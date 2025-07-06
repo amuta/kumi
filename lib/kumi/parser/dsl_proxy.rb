@@ -2,7 +2,7 @@ module Kumi
   module Parser
     class DslProxy
       DSL_METHODS = %i[
-        attribute attribute_cascade trait
+        attribute trait
         key ref literal fn
       ].freeze
 

@@ -1,9 +1,7 @@
 RSpec.describe Kumi::Compiler do
   include Kumi::ASTFactory # gives us `syntax`
 
-  # ------------------------------------------------------------------
   # Operator stubs for the test
-  # ------------------------------------------------------------------
   let(:schema) do
     a = attr(:a, lit(2))
     b = attr(:b, call(:add, binding_ref(:a), lit(3)))
@@ -13,9 +11,7 @@ RSpec.describe Kumi::Compiler do
   let(:analysis) { Kumi::Analyzer.analyze!(schema) }
   let(:exec)     { Kumi::Compiler.compile(schema, analyzer: analysis) }
 
-  # ------------------------------------------------------------------
   # Expectations
-  # ------------------------------------------------------------------
   it "returns an ExecutableSchema" do
     expect(exec).to be_a(Kumi::ExecutableSchema)
   end

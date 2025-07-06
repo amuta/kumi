@@ -10,7 +10,7 @@ module Kumi
           return unless node
 
           blk.call(node)
-          Array(node.children).each { |c| visit(c, &blk) }
+          node.children.each { |c| visit(c, &blk) }
         end
       end
     end

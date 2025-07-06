@@ -13,7 +13,7 @@ module Kumi
 
       WhenCaseExpression = Struct.new(:condition, :result) do
         include Node
-        def children = [condition, result] + condition.children + result.children
+        def children = [condition, result]
       end
 
       ListExpression = Struct.new(:elements) do

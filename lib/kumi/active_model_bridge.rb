@@ -1,4 +1,4 @@
-module TraitEngine
+module Kumi
   module ActiveModelBridge
     extend ActiveSupport::Concern
 
