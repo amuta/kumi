@@ -12,8 +12,8 @@ RSpec.describe Kumi::Compiler do
   let(:exec)     { Kumi::Compiler.compile(schema, analyzer: analysis) }
 
   # Expectations
-  it "returns an ExecutableSchema" do
-    expect(exec).to be_a(Kumi::ExecutableSchema)
+  it "returns an Kumi::CompiledSchema" do
+    expect(exec).to be_a(Kumi::CompiledSchema)
   end
 
   it "computes attributes in a single evaluation pass" do
