@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # RESPONSIBILITY
 #   • Local semantic checks
 #   • Build :dependency_graph and :leaf_map

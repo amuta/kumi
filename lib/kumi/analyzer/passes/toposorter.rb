@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # RESPONSIBILITY
 #   Compute :topo_order from :dependency_graph.
 # INTERFACE

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # RESPONSIBILITY
 #   Detect cycles in :dependency_graph.
 # INTERFACE

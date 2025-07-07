@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe "Kumi Compiler Integration" do
   before(:all) do
     # Set up custom functions that our schema references

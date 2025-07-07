@@ -1,11 +1,11 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Parser::Dsl do
   def build_schema(&block)
     subject.schema(&block)
   end
 
   describe ".schema" do
-    let(:subject) { described_class }
-
     it "can define attributes" do
       schema = build_schema do
         attribute :name, key(:first_name)
@@ -58,7 +58,7 @@ RSpec.describe Kumi::Parser::Dsl do
       )
 
       expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Syntax::Expressions::CallExpression))
-      expect(schema.traits.map(&:expression).map(&:fn_name)).to contain_exactly(:>=, :>=)
+      expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:>=, :>=)
       expect(schema.traits.map(&:expression).flat_map(&:args).to_set).to contain_exactly(
         be_a(Kumi::Syntax::TerminalExpressions::Field),
         be_a(Kumi::Syntax::TerminalExpressions::Literal),
@@ -151,7 +151,7 @@ RSpec.describe Kumi::Parser::Dsl do
     end
   end
 
-  context "Class extension" do
+  context "when used as a Class extension" do
     let(:klass) { Class.new { extend Kumi::Parser::Dsl } }
 
     it "adds a `schema` method to classes that extend the DSL" do
@@ -187,8 +187,8 @@ RSpec.describe Kumi::Parser::Dsl do
     end
   end
 
-  context "syntax validations" do
-    context "attribute" do
+  describe "syntax validations" do
+    context "with attribute" do
       it "accepts <symbol>, <expression>" do
         schema = build_schema do
           attribute :name, key(:first_name)
@@ -222,57 +222,57 @@ RSpec.describe Kumi::Parser::Dsl do
         expect(cases.first.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
         expect(cases.first.result.name).to eq(:active)
       end
+    end
 
-      context "cascade cases" do
-        let(:schema) do
-          build_schema do
-            attribute :status do
-              on_trait :active, key(:active)
-              on_traits :verified, key(:verified)
-              default key(:default_status)
-            end
+    context "with cascade cases" do
+      let(:schema) do
+        build_schema do
+          attribute :status do
+            on_trait :active, key(:active)
+            on_traits :verified, key(:verified)
+            default key(:default_status)
           end
         end
-        let(:attribute_expr) { schema.attributes.first.expression }
-        let(:first_case) { attribute_expr.cases[0] }
-        let(:second_case) { attribute_expr.cases[1] }
-        let(:default_case) { attribute_expr.cases[2] }
+      end
+      let(:attribute_expr) { schema.attributes.first.expression }
+      let(:first_case) { attribute_expr.cases[0] }
+      let(:second_case) { attribute_expr.cases[1] }
+      let(:default_case) { attribute_expr.cases[2] }
 
-        it "creates a cascade expression with cases: whencases" do
-          expect(attribute_expr).to be_a(Kumi::Syntax::Expressions::CascadeExpression)
-          expect(attribute_expr.cases.size).to eq(3)
-        end
+      it "creates a cascade expression with cases: whencases" do
+        expect(attribute_expr).to be_a(Kumi::Syntax::Expressions::CascadeExpression)
+        expect(attribute_expr.cases.size).to eq(3)
+      end
 
-        it "creates the first case with a condition and result" do
-          expect(first_case.condition).to be_a(Kumi::Syntax::Expressions::CallExpression)
-          expect(first_case.condition.fn_name).to eq(:all?)
-          expect(first_case.condition.args.size).to eq(1)
-          expect(first_case.condition.args.first).to be_a(Kumi::Syntax::Expressions::ListExpression)
-          expect(first_case.condition.args.first.elements.size).to eq(1)
-          expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
-          expect(first_case.condition.args.first.elements.first.name).to eq(:active)
-          expect(first_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
-          expect(first_case.result.name).to eq(:active)
-        end
+      it "creates the first case with a condition and result" do
+        expect(first_case.condition).to be_a(Kumi::Syntax::Expressions::CallExpression)
+        expect(first_case.condition.fn_name).to eq(:all?)
+        expect(first_case.condition.args.size).to eq(1)
+        expect(first_case.condition.args.first).to be_a(Kumi::Syntax::Expressions::ListExpression)
+        expect(first_case.condition.args.first.elements.size).to eq(1)
+        expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
+        expect(first_case.condition.args.first.elements.first.name).to eq(:active)
+        expect(first_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(first_case.result.name).to eq(:active)
+      end
 
-        it "creates the second case with a condition and result" do
-          expect(second_case.condition).to be_a(Kumi::Syntax::Expressions::CallExpression)
-          expect(second_case.condition.fn_name).to eq(:all?)
-          expect(second_case.condition.args.size).to eq(1)
-          expect(second_case.condition.args.first).to be_a(Kumi::Syntax::Expressions::ListExpression)
-          expect(second_case.condition.args.first.elements.size).to eq(1)
-          expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
-          expect(second_case.condition.args.first.elements.first.name).to eq(:verified)
-          expect(second_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
-          expect(second_case.result.name).to eq(:verified)
-        end
+      it "creates the second case with a condition and result" do
+        expect(second_case.condition).to be_a(Kumi::Syntax::Expressions::CallExpression)
+        expect(second_case.condition.fn_name).to eq(:all?)
+        expect(second_case.condition.args.size).to eq(1)
+        expect(second_case.condition.args.first).to be_a(Kumi::Syntax::Expressions::ListExpression)
+        expect(second_case.condition.args.first.elements.size).to eq(1)
+        expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
+        expect(second_case.condition.args.first.elements.first.name).to eq(:verified)
+        expect(second_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(second_case.result.name).to eq(:verified)
+      end
 
-        it "creates the default case with a condition and result" do
-          expect(default_case.condition).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
-          expect(default_case.condition.value).to eq(true) # Always matches
-          expect(default_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
-          expect(default_case.result.name).to eq(:default_status)
-        end
+      it "creates the default case with a condition and result" do
+        expect(default_case.condition).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
+        expect(default_case.condition.value).to be(true) # Always matches
+        expect(default_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(default_case.result.name).to eq(:default_status)
       end
     end
   end

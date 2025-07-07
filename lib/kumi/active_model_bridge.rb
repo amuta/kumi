@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module ActiveModelBridge
     extend ActiveSupport::Concern
@@ -17,7 +19,7 @@ module Kumi
 
         define_method :_trait_engine_context do
           # Convert model to a hash the schema expects
-          @__trait_ctx ||= begin
+          @_trait_engine_context ||= begin
             attrs = attributes.symbolize_keys
             # also expose arbitrary methods like #roles, etc.
             attrs.merge(

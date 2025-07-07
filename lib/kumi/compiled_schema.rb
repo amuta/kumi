@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   class CompiledSchema
     def initialize(bindings) = @bindings = bindings

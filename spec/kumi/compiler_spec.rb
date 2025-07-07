@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Compiler do
   include Kumi::ASTFactory # gives us `syntax`
 
@@ -9,7 +11,7 @@ RSpec.describe Kumi::Compiler do
   end
 
   let(:analysis) { Kumi::Analyzer.analyze!(schema) }
-  let(:exec)     { Kumi::Compiler.compile(schema, analyzer: analysis) }
+  let(:exec)     { described_class.compile(schema, analyzer: analysis) }
 
   # Expectations
   it "returns an Kumi::CompiledSchema" do
@@ -28,7 +30,7 @@ RSpec.describe Kumi::Compiler do
       [],
       [trait(:adult, call(:>=, field(:age), lit(18)))]
     )
-    t_exec = Kumi::Compiler.compile(
+    t_exec = described_class.compile(
       t_schema,
       analyzer: Kumi::Analyzer.analyze!(t_schema)
     )

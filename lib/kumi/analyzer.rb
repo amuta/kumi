@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Analyzer
     Result = Struct.new(:dependency_graph, :leaf_map, :topo_order, keyword_init: true)

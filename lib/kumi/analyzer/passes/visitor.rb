@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # RESPONSIBILITY
 #   DFS traversal used by other passes.
 # INTERFACE

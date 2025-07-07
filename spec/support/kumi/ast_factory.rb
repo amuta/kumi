@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Kumi
   module ASTFactory
-    extend self # expose module-functions only
+    module_function # expose module-functions only
 
     S = Kumi::Syntax
 
@@ -26,7 +28,7 @@ module Kumi
 
       schema: ->(attributes = [], traits = [], loc:) { S::Schema.new(attributes, traits, loc: loc) },
 
-      location: ->(file, line, column, loc:) { S::Location.new(file: file, line: line, column: column) }
+      location: ->(file, line, column) { S::Location.new(file: file, line: line, column: column) }
     }.freeze
 
     # Public constructor used in specs
@@ -35,7 +37,7 @@ module Kumi
       builder.call(*args, loc: loc)
     end
 
-    def loc(off = 0) = syntax(:location, __FILE__, __LINE__ + off, 0)
+    def loc(off = 0) = syntax(:location, __FILE__, __LINE__ + off)
 
     def attr(name, expr = syntax(:literal, 1, loc: loc))
       syntax(:attribute, name, expr, loc: loc)
@@ -46,16 +48,17 @@ module Kumi
     end
 
     def binding_ref(name) = syntax(:binding_ref, name, loc: loc)
+    alias ref binding_ref
 
-    def call(fn, *args) = syntax(:call_expression, fn, *args, loc: loc)
+    def call(fn_name, *args) = syntax(:call_expression, fn_name, *args, loc: loc)
 
     def lit(value) = syntax(:literal, value, loc: loc)
 
     def field(name) = syntax(:field, name, loc: loc)
-
-    def schema(attrs = [], traits = [])
-      syntax(:schema, attrs, traits, loc: loc)
-    end
+    #
+    # def schema(attrs = [], traits = [])
+    #   # syntax(:schema, attrs, traits, loc: loc)
+    # end
 
     def when_case_expression(predicate, then_expr)
       syntax(:when_case_expression, predicate, then_expr, loc: loc)

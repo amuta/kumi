@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Syntax
     # A struct to hold standardized source location information.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Analyzer::Passes::Toposorter do
   def toposort(graph)
     state = { dependency_graph: graph }
@@ -6,7 +8,7 @@ RSpec.describe Kumi::Analyzer::Passes::Toposorter do
   end
 
   describe ".run" do
-    context "simple dependency chain" do
+    context "with simple dependency chain" do
       it "returns parents after dependencies in deterministic order" do
         order = toposort(a: %i[b c], b: %i[c], c: [])
         expect(order.index(:c)).to be < order.index(:b)
@@ -14,7 +16,7 @@ RSpec.describe Kumi::Analyzer::Passes::Toposorter do
       end
     end
 
-    context "disconnected subgraphs" do
+    context "with disconnected subgraphs" do
       it "includes all nodes" do
         order = toposort(x: [], y: [])
         expect(order).to match_array(%i[x y])

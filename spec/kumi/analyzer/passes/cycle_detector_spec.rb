@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
   def detect(graph)
     state  = { dependency_graph: graph }
@@ -7,34 +9,34 @@ RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
   end
 
   describe ".run" do
-    context "acyclic graph" do
+    context "with acyclic graph" do
       it "records no errors" do
         expect(detect(a: %i[b], b: [])).to be_empty
       end
     end
 
-    context "self-loop" do
+    context "with self-loop" do
       it "detects a node that references itself" do
         msgs = detect(a: %i[a])
         expect(msgs.first).to match(/cycle detected: a → a/)
       end
     end
 
-    context "two-node cycle" do
+    context "with two-node cycle" do
       it "detects a ↔ b" do
         msgs = detect(a: %i[b], b: %i[a])
         expect(msgs.first).to match(/cycle detected: a → b → a/)
       end
     end
 
-    context "three-node ring" do
+    context "with three-node ring" do
       it "detects a → b → c → a" do
         msgs = detect(a: %i[b], b: %i[c], c: %i[a])
         expect(msgs.first).to match(/cycle detected: a → b → c → a/)
       end
     end
 
-    context "multiple disconnected cycles" do
+    context "with multiple disconnected cycles" do
       it "reports at least one message per cycle" do
         graph = {
           a: %i[b], b: %i[a],          # cycle 1
@@ -49,7 +51,7 @@ RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
       end
     end
 
-    context "cycle plus acyclic subgraph" do
+    context "with cycle plus acyclic subgraph" do
       it "ignores acyclic parts and flags the cycle" do
         graph = { a: %i[b], b: %i[a], # cycle
                   c: %i[d], d: [] } # acyclic chain
@@ -60,7 +62,7 @@ RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
       end
     end
 
-    context "cycle created through cascades referencing each other" do
+    context "with cycle created through cascades referencing each other" do
       it "is caught by the analyzer" do
         graph = {
           x: %i[y],

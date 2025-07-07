@@ -16,8 +16,12 @@ Style/Documentation:
   Enabled: false
 
 Layout/LineLength:
-  Max: 120
+  Max: 140
 
 # RSpec-specific configuration
 RSpec:
   Enabled: true
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/ExampleLength:
+  Max: 30

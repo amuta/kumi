@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module MethodCallRegistry
     class UnknownMethodName < StandardError; end
@@ -13,7 +15,7 @@ module Kumi
       :>= => Entry.new(->(a, b) { a >= b }, 2, %i[numeric numeric]),
       :<= => Entry.new(->(a, b) { a <= b }, 2, %i[numeric numeric]),
       :add => Entry.new(->(a, b) { a + b }, 2, %i[numeric numeric])
-    }
+    }.freeze
 
     @fn_proc = OPERATORS_PROCS.dup
 

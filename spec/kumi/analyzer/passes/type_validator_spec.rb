@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
   include Kumi::ASTFactory
 
   before do
     # Stub Kumi::MethodCallRegistry with predictable behaviour
-    allow(Kumi::MethodCallRegistry).to receive(:confirm_support!).and_return(true)
-    allow(Kumi::MethodCallRegistry).to receive(:signature).and_return({ arity: 1 })
+    allow(Kumi::MethodCallRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   let(:state)  { {} }
@@ -18,7 +19,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
   end
 
   describe ".run" do
-    context "valid schema" do
+    context "when schema is valid" do
       let(:schema) do
         price = attr(:price)
         high  = trait(:high_price, call(:gt, binding_ref(:price)))
@@ -34,7 +35,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
       end
     end
 
-    context "undefined binding reference" do
+    context "when a reference is missing" do
       let(:schema) do
         bad_trait = trait(:oops, call(:eq, binding_ref(:missing)))
         syntax(:schema, [], [bad_trait], loc: loc)
@@ -47,7 +48,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
       end
     end
 
-    context "attribute without expression" do
+    context "when an attribute has no expression" do
       let(:schema) { syntax(:schema, [syntax(:attribute, :broken, nil, loc: loc)], [], loc: loc) }
 
       it "adds an attribute-expression error" do
@@ -57,7 +58,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
       end
     end
 
-    context "trait not wrapping CallExpression" do
+    context "when a trait expression is not an CallExpression" do
       let(:schema) do
         bad_trait = trait(:flag, syntax(:literal, true, loc: loc))
         syntax(:schema, [], [bad_trait], loc: loc)
@@ -70,7 +71,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
       end
     end
 
-    context "operator arity mismatch" do
+    context "when operator arity mismatch" do
       before { allow(Kumi::MethodCallRegistry).to receive(:signature).and_return({ arity: 2 }) }
 
       let(:schema) do

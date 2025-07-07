@@ -1,20 +1,10 @@
+# frozen_string_literal: true
+
 RSpec.describe Kumi::Analyzer do
   include Kumi::ASTFactory
 
-  # --------------------------------------------------------------------
-  # Helpers
-  # --------------------------------------------------------------------
-  def loc(δ = 0) = syntax(:location, __FILE__, __LINE__ + δ, 0)
-
-  def lit(v)            = syntax(:literal, v, loc: loc)
-  def ref(n)            = syntax(:binding_ref, n, loc: loc)
-  def call(fn, *args)   = syntax(:call_expression, fn, *args, loc: loc)
-  def attr(name, expr = lit(1))  = syntax(:attribute, name, expr, loc: loc)
-  def trait(name, pred)          = syntax(:trait,     name, pred, loc: loc)
-
   before do
-    allow(Kumi::MethodCallRegistry).to receive(:confirm_support!).and_return true
-    allow(Kumi::MethodCallRegistry).to receive(:signature).and_return({ arity: 1 })
+    allow(Kumi::MethodCallRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   # --------------------------------------------------------------------

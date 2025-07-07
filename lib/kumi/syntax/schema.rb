@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Syntax
     # Represents the root of the Abstract Syntax Tree.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Parser
     class DslBuilderContext
@@ -111,7 +113,7 @@ module Kumi
         # if proxy set @last_loc, use it; otherwise fallback as before
         return last_loc if last_loc
 
-        fallback = caller_locations.find { |loc| loc.absolute_path }
+        fallback = caller_locations.find(&:absolute_path)
         Syntax::Location.new(file: fallback.path, line: fallback.lineno, column: 0)
       end
     end

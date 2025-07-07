@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # RESPONSIBILITY
 #   Build :definitions and detect duplicates.
 # INTERFACE
