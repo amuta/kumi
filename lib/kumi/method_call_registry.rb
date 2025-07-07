@@ -26,7 +26,7 @@ module Kumi
       def register_with(fn_name, &block)
         raise ArgumentError, "Operator #{fn_name.inspect} already registered" if @fn_proc.key?(fn_name)
 
-        fn_lambda = block.is_a?(Proc) ? block : ->(*args) { block.call(*args) }
+        fn_lambda = block.is_a?(Proc) ? block : ->(*args) { yield(*args) }
         register(fn_name, fn_lambda, arity: fn_lambda.arity, types: [:any])
       end
 

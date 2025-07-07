@@ -25,7 +25,7 @@ RSpec.describe "Kumi Compiler Integration" do
       "No Error"
     end
 
-    Kumi::MethodCallRegistry.register_with(:create_offers) do |segment, tier, balance|
+    Kumi::MethodCallRegistry.register_with(:create_offers) do |segment, tier, _balance|
       base_offers = case segment
                     when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
                     when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]

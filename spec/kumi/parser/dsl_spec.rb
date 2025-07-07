@@ -5,6 +5,7 @@ RSpec.describe Kumi::Parser::Dsl do
 
   describe ".schema" do
     let(:subject) { described_class }
+
     it "can define attributes" do
       schema = build_schema do
         attribute :name, key(:first_name)

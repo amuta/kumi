@@ -91,7 +91,7 @@ module Kumi
         next ctx[name] if ctx.respond_to?(:key?) && ctx.key?(name)
 
         raise Kumi::Errors::RuntimeError,
-              "Key '#{name}' not found at #{loc}. Available: #{ctx.respond_to?(:keys) ? ctx.keys.join(", ") : "N/A"}"
+              "Key '#{name}' not found at #{loc}. Available: #{ctx.respond_to?(:keys) ? ctx.keys.join(', ') : 'N/A'}"
       end
     end
 

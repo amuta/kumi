@@ -26,6 +26,6 @@ module Kumi
       )
     end
 
-    def format(errs) = errs.map { |loc, msg| "at #{loc || "?"}: #{msg}" }.join("\n")
+    def format(errs) = errs.map { |loc, msg| "at #{loc || '?'}: #{msg}" }.join("\n")
   end
 end

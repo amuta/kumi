@@ -20,7 +20,7 @@ module Kumi
             return if perm.include?(n)
 
             if temp.include?(n)
-              errors << [:cycle, "cycle detected: #{temp.to_a.join(" → ")} → #{n}"]
+              errors << [:cycle, "cycle detected: #{temp.to_a.join(' → ')} → #{n}"]
               return
             end
 

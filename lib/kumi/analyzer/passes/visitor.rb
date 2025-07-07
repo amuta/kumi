@@ -9,7 +9,7 @@ module Kumi
         def visit(node, &blk)
           return unless node
 
-          blk.call(node)
+          yield(node)
           node.children.each { |c| visit(c, &blk) }
         end
       end

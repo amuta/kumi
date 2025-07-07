@@ -37,11 +37,13 @@ module Kumi
 
     def loc(off = 0) = syntax(:location, __FILE__, __LINE__ + off, 0)
 
-    def attr(name, expr = syntax(:literal, 1, loc: loc)) =
+    def attr(name, expr = syntax(:literal, 1, loc: loc))
       syntax(:attribute, name, expr, loc: loc)
+    end
 
-    def trait(name, predicate) =
+    def trait(name, predicate)
       syntax(:trait, name, predicate, loc: loc)
+    end
 
     def binding_ref(name) = syntax(:binding_ref, name, loc: loc)
 
@@ -51,10 +53,12 @@ module Kumi
 
     def field(name) = syntax(:field, name, loc: loc)
 
-    def schema(attrs = [], traits = []) =
+    def schema(attrs = [], traits = [])
       syntax(:schema, attrs, traits, loc: loc)
+    end
 
-    def when_case_expression(predicate, then_expr) =
+    def when_case_expression(predicate, then_expr)
       syntax(:when_case_expression, predicate, then_expr, loc: loc)
+    end
   end
 end

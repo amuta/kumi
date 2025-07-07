@@ -27,7 +27,7 @@ module Kumi
           stack   << node
           Array(g[node]).each do |m|
             if stack.include?(m)
-              errors << [nil, "cycle detected: #{(stack + [m]).join(" → ")}"]
+              errors << [nil, "cycle detected: #{(stack + [m]).join(' → ')}"]
             else
               dfs(m, g, visited, stack, errors)
             end

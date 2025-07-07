@@ -21,6 +21,8 @@ RSpec.describe Kumi::Analyzer do
   # Contract 1 – happy path on a complex acyclic schema
   # --------------------------------------------------------------------
   context "with a complex, valid schema" do
+    subject(:result) { described_class.analyze!(schema) }
+
     let(:schema) do
       a    = attr(:a)                             # literal leaf
       b    = attr(:b, call(:inc, ref(:a)))        # depends on a
@@ -30,8 +32,6 @@ RSpec.describe Kumi::Analyzer do
 
       syntax(:schema, [a, b, c, d], [high], loc: loc)
     end
-
-    subject(:result) { described_class.analyze!(schema) }
 
     it "returns an immutable Result" do
       expect(result).to be_a(Kumi::Analyzer::Result)

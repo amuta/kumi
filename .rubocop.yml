@@ -1,8 +1,23 @@
-AllCops:
-  TargetRubyVersion: 3.0
+require:
+  - rubocop-performance
+  - rubocop-rspec
 
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'bin/*'          
+    - 'spec/fixtures/**/*'
+
+# Common stylistic choices
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
+Style/Documentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
+
+# RSpec-specific configuration
+RSpec:
+  Enabled: true

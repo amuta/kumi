@@ -59,6 +59,7 @@ RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
         expect(msgs.size).to eq(1)
       end
     end
+
     context "cycle created through cascades referencing each other" do
       it "is caught by the analyzer" do
         graph = {
