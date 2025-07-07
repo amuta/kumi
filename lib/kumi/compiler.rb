@@ -1,4 +1,3 @@
-# Refactored Compiler with ExprCompilers mix-in
 # frozen_string_literal: true
 
 module Kumi
