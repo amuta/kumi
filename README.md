@@ -42,10 +42,10 @@ schema = Kumi::Parser::Dsl.schema do
 
   # Complex attributes with cascading logic
   attribute :customer_tier do
-    on_traits :valuable_customer, :engaged_customer, "Gold"
-    on_trait :high_balance, "Premium"
-    on_trait :adult, "Standard"
-    default "Basic"
+    on :valuable_customer, :engaged_customer, "Gold"
+    on :high_balance, "Premium"
+    on :adult, "Standard"
+    else "Basic"
   end
 
   # Attributes that combine multiple data sources
@@ -99,7 +99,7 @@ Register custom Ruby functions that integrate seamlessly with comprehensive core
 # String: concat, upcase, downcase, capitalize, strip, length, include?, start_with?, end_with?
 # Logical: and, or, not, all?, any?, none?
 # Collections: size, empty?, first, last, sum, max, min, sort, reverse, uniq
-# Conditionals: conditional, if, coalesce, default
+# Conditionals: conditional, if, coalesce, else
 # Types: to_string, to_integer, to_float, to_boolean, to_array
 
 # Register custom functions
@@ -132,11 +132,11 @@ Implement complex multi-condition logic with cascading rules:
 
 ```ruby
 attribute :segment do
-  on_traits :high_value, :loyal, "VIP"
-  on_traits :high_value, :engaged, "Champion"
-  on_trait :high_value, "High Value"
-  on_trait :engaged, "Loyal"
-  default "Standard"
+  on :high_value, :loyal, "VIP"
+  on :high_value, :engaged, "Champion"
+  on :high_value, "High Value"
+  on :engaged, "Loyal"
+  else "Standard"
 end
 ```
 
@@ -184,9 +184,9 @@ schema = Kumi::Parser::Dsl.schema do
 
   # Define attributes (derived values)
   attribute :customer_tier do
-    on_traits :vip, :high_value, "VIP"
-    on_trait :adult, "Adult"
-    default "Standard"
+    on :vip, :high_value, "VIP"
+    on :adult, "Adult"
+    else "Standard"
   end
 
   attribute :greeting, fn(:concat, [
@@ -234,10 +234,10 @@ schema = Kumi::Parser::Dsl.schema do
 
   # Complex attributes with cascading logic
   attribute :customer_tier do
-    on_traits :valuable_customer, :engaged_customer, "Gold"
-    on_trait :high_balance, "Premium"
-    on_trait :adult, "Standard"
-    default "Basic"
+    on :valuable_customer, :engaged_customer, "Gold"
+    on :high_balance, "Premium"
+    on :adult, "Standard"
+    else "Basic"
   end
 
   # Attributes combining multiple data sources
@@ -271,9 +271,9 @@ attribute :greeting, fn(:concat, ["Hello ", key(:name)])
 
 # Cascade (decision table)
 attribute :tier do
-  on_trait :vip, "VIP"
-  on_trait :adult, "Adult"
-  default "Standard"
+  on :vip, "VIP"
+  on :adult, "Adult"
+  else "Standard"
 end
 ```
 
@@ -282,10 +282,10 @@ Decision tables for multi-condition logic:
 
 ```ruby
 attribute :segment do
-  on_traits :high_value, :loyal, "VIP"
-  on_trait :high_value, "High Value"
-  on_trait :loyal, "Loyal"
-  default "Standard"
+  on :high_value, :loyal, "VIP"
+  on :high_value, "High Value"
+  on :loyal, "Loyal"
+  else "Standard"
 end
 ```
 
@@ -326,8 +326,8 @@ class CustomerSegmenter
   schema do
     trait :vip, key(:status), :==, "VIP"
     attribute :tier do
-      on_trait :vip, "VIP"
-      default "Standard"
+      on :vip, "VIP"
+      else "Standard"
     end
   end
 

@@ -9,7 +9,7 @@ module Kumi
 
       extend Forwardable
 
-      attr_reader :cases, :default
+      attr_reader :cases
 
       def_delegators :@context, :ref, :literal, :key, :fn
 
@@ -17,21 +17,31 @@ module Kumi
         @context = context
         @cases   = []
         @loc = loc
-        @default = nil
+        @else = nil
       end
 
-      def on_trait(trait_name, expr)
-        on_traits(trait_name, expr)
-      end
-
-      def on_traits(*trait_names, expr)
+      def on(*trait_names, expr)
         loc = @context.send(:current_location)
         condition = fn(:all?, trait_names.map { |name| ref(name) })
         result    = @context.send(:ensure_syntax, expr, loc)
         @cases << WhenCaseExpression.new(condition, result)
       end
 
-      def default(expr)
+      def on_any(*trait_names, expr)
+        loc = @context.send(:current_location)
+        condition = fn(:any?, trait_names.map { |name| ref(name) })
+        result    = @context.send(:ensure_syntax, expr, loc)
+        @cases << WhenCaseExpression.new(condition, result)
+      end
+
+      def on_none(*trait_names, expr)
+        loc = @context.send(:current_location)
+        condition = fn(:none?, trait_names.map { |name| ref(name) })
+        result    = @context.send(:ensure_syntax, expr, loc)
+        @cases << WhenCaseExpression.new(condition, result)
+      end
+
+      def base(expr)
         result = @context.send(:ensure_syntax, expr, @loc)
         @cases << WhenCaseExpression.new(literal(true), result) # Always matches
       end

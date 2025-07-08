@@ -202,7 +202,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "accepts <symbol> with a block" do
         schema = build_schema do
           value :status do
-            on_trait :active, key(:active)
+            on :active, key(:active)
           end
         end
 
@@ -228,16 +228,16 @@ RSpec.describe Kumi::Parser::Dsl do
       let(:schema) do
         build_schema do
           value :status do
-            on_trait :active, key(:active)
-            on_traits :verified, key(:verified)
-            default key(:default_status)
+            on :active, key(:active)
+            on :verified, key(:verified)
+            base key(:base_status)
           end
         end
       end
       let(:attribute_expr) { schema.attributes.first.expression }
       let(:first_case) { attribute_expr.cases[0] }
       let(:second_case) { attribute_expr.cases[1] }
-      let(:default_case) { attribute_expr.cases[2] }
+      let(:base_case) { attribute_expr.cases[2] }
 
       it "creates a cascade expression with cases: whencases" do
         expect(attribute_expr).to be_a(Kumi::Syntax::Expressions::CascadeExpression)
@@ -268,11 +268,11 @@ RSpec.describe Kumi::Parser::Dsl do
         expect(second_case.result.name).to eq(:verified)
       end
 
-      it "creates the default case with a condition and result" do
-        expect(default_case.condition).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
-        expect(default_case.condition.value).to be(true) # Always matches
-        expect(default_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
-        expect(default_case.result.name).to eq(:default_status)
+      it "creates the base case with a condition and result" do
+        expect(base_case.condition).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
+        expect(base_case.condition.value).to be(true) # Always matches
+        expect(base_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(base_case.result.name).to eq(:base_status)
       end
     end
   end

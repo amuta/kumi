@@ -88,19 +88,19 @@ RSpec.describe "Kumi Compiler Integration" do
         # The compiler must handle the binding lookups correctly when the cascade evaluates
 
         value :customer_tier do
-          on_trait :senior, "Senior VIP"
-          on_traits :valuable_customer, :engaged_customer, "Gold"
-          on_trait :premium_account, "Premium"
-          on_trait :adult, "Standard"
-          default "Basic"
+          on :senior, "Senior VIP"
+          on :valuable_customer, :engaged_customer, "Gold"
+          on :premium_account, "Premium"
+          on :adult, "Standard"
+          base "Basic"
         end
 
         value :marketing_segment do
-          on_traits :valuable_customer, :low_maintenance, "Champion"
-          on_trait :engaged_customer, "Loyal Customer"
-          on_traits :high_balance, :recent_activity, "Big Spender"
-          on_trait :frequent_buyer, "Frequent Buyer"
-          default "Potential"
+          on :valuable_customer, :low_maintenance, "Champion"
+          on :engaged_customer, "Loyal Customer"
+          on :high_balance, :recent_activity, "Big Spender"
+          on :frequent_buyer, "Frequent Buyer"
+          base "Potential"
         end
 
         value :user_error, fn(:error!, key(:should_error))
@@ -109,30 +109,30 @@ RSpec.describe "Kumi Compiler Integration" do
         # These show how attributes can reference both raw fields and computed traits
 
         value :welcome_message, fn(:concat, [
-                                         "Hello ",
-                                         key(:name),
-                                         ", you are a ",
-                                         ref(:customer_tier),
-                                         " customer!"
-                                       ])
+                                     "Hello ",
+                                     key(:name),
+                                     ", you are a ",
+                                     ref(:customer_tier),
+                                     " customer!"
+                                   ])
 
         value :engagement_score, fn(:multiply,
-                                        key(:total_purchases),
-                                        fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
+                                    key(:total_purchases),
+                                    fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
 
         # === FUNCTIONS THAT REFERENCE OTHER DEFINITIONS ===
         # Functions can consume both raw data and computed values, showing the
         # full power of cross-referencing in the compilation system
 
         value :generate_offers, fn(:create_offers,
-                                       ref(:marketing_segment),
-                                       ref(:customer_tier),
-                                       key(:account_balance))
+                                   ref(:marketing_segment),
+                                   ref(:customer_tier),
+                                   key(:account_balance))
 
         value :calculate_loyalty_bonus, fn(:bonus_formula,
-                                               key(:years_customer),
-                                               ref(:valuable_customer),
-                                               ref(:engagement_score))
+                                           key(:years_customer),
+                                           ref(:valuable_customer),
+                                           ref(:engagement_score))
       end
     end
 

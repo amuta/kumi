@@ -18,3 +18,5 @@ gem "rspec", "~> 3.0"
 gem "rubocop", "~> 1.21"
 gem "rubocop-performance", "~> 1.25"
 gem "rubocop-rspec", "~> 3.6"
+
+gem "benchmark", "~> 0.4.1"

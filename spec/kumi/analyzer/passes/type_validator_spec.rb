@@ -3,11 +3,6 @@
 RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
   include Kumi::ASTFactory
 
-  before do
-    # Stub Kumi::FunctionRegistry with predictable behaviour
-    allow(Kumi::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
-  end
-
   let(:state)  { {} }
   let(:errors) { [] }
 
@@ -22,7 +17,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
     context "when schema is valid" do
       let(:schema) do
         price = attr(:price)
-        high  = trait(:high_price, call(:gt, binding_ref(:price)))
+        high  = trait(:high_price, call(:>=, binding_ref(:price), lit(0)))
         syntax(:schema, [price], [high], loc: loc)
       end
 
@@ -37,7 +32,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
 
     context "when a reference is missing" do
       let(:schema) do
-        bad_trait = trait(:oops, call(:eq, binding_ref(:missing)))
+        bad_trait = trait(:oops, call(:==, binding_ref(:missing), lit(1)))
         syntax(:schema, [], [bad_trait], loc: loc)
       end
 
@@ -83,6 +78,19 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
         run(schema)
 
         expect(errors.first.last).to match(/expects 2 args, got 1/)
+      end
+    end
+
+    context "when operator type mismatch" do
+      let(:schema) do
+        bad = trait(:bad, call(:multiply, syntax(:literal, 1, loc: loc), syntax(:literal, "test", loc: loc)))
+        syntax(:schema, [], [bad], loc: loc)
+      end
+
+      it "records a type error for the first argument" do
+        run(schema)
+
+        expect(errors.first.last).to match(/expects numeric, got literal `test` of type string/)
       end
     end
   end

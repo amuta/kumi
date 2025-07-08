@@ -54,119 +54,125 @@ module Kumi
 
     # Core mathematical operations
     MATH_OPERATIONS = {
-      :add => Entry.new(
+      add: Entry.new(
         fn: ->(a, b) { a + b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Add two numbers"
       ),
-      :subtract => Entry.new(
+      subtract: Entry.new(
         fn: ->(a, b) { a - b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Subtract second number from first"
       ),
-      :multiply => Entry.new(
+      multiply: Entry.new(
         fn: ->(a, b) { a * b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Multiply two numbers"
       ),
-      :divide => Entry.new(
+      divide: Entry.new(
         fn: ->(a, b) { a / b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Divide first number by second"
       ),
-      :modulo => Entry.new(
+      modulo: Entry.new(
         fn: ->(a, b) { a % b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Modulo operation"
       ),
-      :power => Entry.new(
-        fn: ->(a, b) { a ** b },
+      power: Entry.new(
+        fn: ->(a, b) { a**b },
         arity: 2,
         types: %i[numeric numeric],
         description: "Raise first number to power of second"
       ),
-      :abs => Entry.new(
+      abs: Entry.new(
         fn: ->(a) { a.abs },
         arity: 1,
         types: %i[numeric],
         description: "Absolute value"
       ),
-      :round => Entry.new(
+      round: Entry.new(
         fn: ->(a, precision = 0) { a.round(precision) },
         arity: -1, # Variable arity
         types: %i[numeric],
         description: "Round number to specified precision"
       ),
-      :floor => Entry.new(
+      floor: Entry.new(
         fn: ->(a) { a.floor },
         arity: 1,
         types: %i[numeric],
         description: "Floor of number"
       ),
-      :ceil => Entry.new(
+      ceil: Entry.new(
         fn: ->(a) { a.ceil },
         arity: 1,
         types: %i[numeric],
         description: "Ceiling of number"
+      ),
+      clamp: Entry.new(
+        fn: ->(value, min, max) { [[value, min].max, max].min },
+        arity: 3,
+        types: %i[numeric numeric numeric],
+        description: "Clamp value between min and max"
       )
     }.freeze
 
     # Core string operations
     STRING_OPERATIONS = {
-      :concat => Entry.new(
+      concat: Entry.new(
         fn: ->(*strings) { strings.join },
         arity: -1, # Variable arity
         types: %i[string],
         description: "Concatenate multiple strings"
       ),
-      :upcase => Entry.new(
+      upcase: Entry.new(
         fn: ->(str) { str.to_s.upcase },
         arity: 1,
         types: %i[string],
         description: "Convert string to uppercase"
       ),
-      :downcase => Entry.new(
+      downcase: Entry.new(
         fn: ->(str) { str.to_s.downcase },
         arity: 1,
         types: %i[string],
         description: "Convert string to lowercase"
       ),
-      :capitalize => Entry.new(
+      capitalize: Entry.new(
         fn: ->(str) { str.to_s.capitalize },
         arity: 1,
         types: %i[string],
         description: "Capitalize first letter of string"
       ),
-      :strip => Entry.new(
+      strip: Entry.new(
         fn: ->(str) { str.to_s.strip },
         arity: 1,
         types: %i[string],
         description: "Remove leading and trailing whitespace"
       ),
-      :length => Entry.new(
+      length: Entry.new(
         fn: ->(str) { str.to_s.length },
         arity: 1,
         types: %i[string],
         description: "Get string length"
       ),
-      :include? => Entry.new(
+      include?: Entry.new(
         fn: ->(str, substr) { str.to_s.include?(substr.to_s) },
         arity: 2,
         types: %i[string string],
         description: "Check if string contains substring"
       ),
-      :start_with? => Entry.new(
+      start_with?: Entry.new(
         fn: ->(str, prefix) { str.to_s.start_with?(prefix.to_s) },
         arity: 2,
         types: %i[string string],
         description: "Check if string starts with prefix"
       ),
-      :end_with? => Entry.new(
+      end_with?: Entry.new(
         fn: ->(str, suffix) { str.to_s.end_with?(suffix.to_s) },
         arity: 2,
         types: %i[string string],
@@ -176,37 +182,37 @@ module Kumi
 
     # Core logical operations
     LOGICAL_OPERATIONS = {
-      :and => Entry.new(
+      and: Entry.new(
         fn: ->(*conditions) { conditions.all? },
         arity: -1, # Variable arity
         types: %i[boolean],
         description: "Logical AND of multiple conditions"
       ),
-      :or => Entry.new(
+      or: Entry.new(
         fn: ->(*conditions) { conditions.any? },
         arity: -1, # Variable arity
         types: %i[boolean],
         description: "Logical OR of multiple conditions"
       ),
-      :not => Entry.new(
+      not: Entry.new(
         fn: ->(condition) { !condition },
         arity: 1,
         types: %i[boolean],
         description: "Logical NOT"
       ),
-      :all? => Entry.new(
+      all?: Entry.new(
         fn: ->(collection) { collection.all? },
         arity: 1,
         types: %i[collection],
         description: "Check if all elements in collection are truthy"
       ),
-      :any? => Entry.new(
+      any?: Entry.new(
         fn: ->(collection) { collection.any? },
         arity: 1,
         types: %i[collection],
         description: "Check if any element in collection is truthy"
       ),
-      :none? => Entry.new(
+      none?: Entry.new(
         fn: ->(collection) { collection.none? },
         arity: 1,
         types: %i[collection],
@@ -216,61 +222,61 @@ module Kumi
 
     # Core collection operations
     COLLECTION_OPERATIONS = {
-      :size => Entry.new(
+      size: Entry.new(
         fn: ->(collection) { collection.size },
         arity: 1,
         types: %i[collection],
         description: "Get collection size"
       ),
-      :empty? => Entry.new(
+      empty?: Entry.new(
         fn: ->(collection) { collection.empty? },
         arity: 1,
         types: %i[collection],
         description: "Check if collection is empty"
       ),
-      :first => Entry.new(
+      first: Entry.new(
         fn: ->(collection) { collection.first },
         arity: 1,
         types: %i[collection],
         description: "Get first element of collection"
       ),
-      :last => Entry.new(
+      last: Entry.new(
         fn: ->(collection) { collection.last },
         arity: 1,
         types: %i[collection],
         description: "Get last element of collection"
       ),
-      :sum => Entry.new(
+      sum: Entry.new(
         fn: ->(collection) { collection.sum },
         arity: 1,
         types: %i[collection],
         description: "Sum all elements in collection"
       ),
-      :max => Entry.new(
+      max: Entry.new(
         fn: ->(collection) { collection.max },
         arity: 1,
         types: %i[collection],
         description: "Get maximum value in collection"
       ),
-      :min => Entry.new(
+      min: Entry.new(
         fn: ->(collection) { collection.min },
         arity: 1,
         types: %i[collection],
         description: "Get minimum value in collection"
       ),
-      :sort => Entry.new(
+      sort: Entry.new(
         fn: ->(collection) { collection.sort },
         arity: 1,
         types: %i[collection],
         description: "Sort collection"
       ),
-      :reverse => Entry.new(
+      reverse: Entry.new(
         fn: ->(collection) { collection.reverse },
         arity: 1,
         types: %i[collection],
         description: "Reverse collection"
       ),
-      :uniq => Entry.new(
+      uniq: Entry.new(
         fn: ->(collection) { collection.uniq },
         arity: 1,
         types: %i[collection],
@@ -280,59 +286,59 @@ module Kumi
 
     # Core conditional operations
     CONDITIONAL_OPERATIONS = {
-      :conditional => Entry.new(
+      conditional: Entry.new(
         fn: ->(condition, true_value, false_value) { condition ? true_value : false_value },
         arity: 3,
         types: %i[boolean any any],
         description: "Ternary conditional operator"
       ),
-      :if => Entry.new(
+      if: Entry.new(
         fn: ->(condition, true_value, false_value = nil) { condition ? true_value : false_value },
         arity: -1, # Variable arity (2 or 3)
         types: %i[boolean any any],
         description: "If-then-else conditional"
       ),
-      :coalesce => Entry.new(
+      coalesce: Entry.new(
         fn: ->(*values) { values.find { |v| !v.nil? } },
         arity: -1, # Variable arity
         types: %i[any],
         description: "Return first non-nil value"
       ),
-      :default => Entry.new(
-        fn: ->(value, default_value) { value.nil? ? default_value : value },
+      else: Entry.new(
+        fn: ->(value, else_value) { value.nil? ? else_value : value },
         arity: 2,
         types: %i[any any],
-        description: "Provide default value if first is nil"
+        description: "Provide else value if first is nil"
       )
     }.freeze
 
     # Core type conversion operations
     TYPE_OPERATIONS = {
-      :to_string => Entry.new(
+      to_string: Entry.new(
         fn: ->(value) { value.to_s },
         arity: 1,
         types: %i[any],
         description: "Convert value to string"
       ),
-      :to_integer => Entry.new(
+      to_integer: Entry.new(
         fn: ->(value) { value.to_i },
         arity: 1,
         types: %i[any],
         description: "Convert value to integer"
       ),
-      :to_float => Entry.new(
+      to_float: Entry.new(
         fn: ->(value) { value.to_f },
         arity: 1,
         types: %i[any],
         description: "Convert value to float"
       ),
-      :to_boolean => Entry.new(
+      to_boolean: Entry.new(
         fn: ->(value) { !!value },
         arity: 1,
         types: %i[any],
         description: "Convert value to boolean"
       ),
-      :to_array => Entry.new(
+      to_array: Entry.new(
         fn: ->(value) { Array(value) },
         arity: 1,
         types: %i[any],
@@ -454,20 +460,20 @@ module Kumi
       # Auto-register functions from a module
       def auto_register(module_name, prefix: nil)
         module_obj = Object.const_get(module_name)
-        
+
         module_obj.instance_methods(false).each do |method_name|
-          function_name = prefix ? "#{prefix}_#{method_name}".to_sym : method_name
-          
+          function_name = prefix ? :"#{prefix}_#{method_name}" : method_name
+
           # Skip if already registered
           next if @functions.key?(function_name)
-          
+
           # Create a wrapper that calls the module method
           wrapper = ->(*args) { module_obj.public_send(method_name, *args) }
-          
+
           # Try to get method arity
           method = module_obj.instance_method(method_name)
           arity = method.arity
-          
+
           register_with_metadata(
             function_name,
             wrapper,
@@ -485,4 +491,4 @@ module Kumi
       end
     end
   end
-end 
+end
