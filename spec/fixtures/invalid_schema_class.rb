@@ -3,6 +3,6 @@ class InvalidSchema
 
   schema do
     # this line should trigger our “missing expr” error
-    attribute :name
+    value :name
   end
 end

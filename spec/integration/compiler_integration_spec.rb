@@ -58,78 +58,78 @@ RSpec.describe "Kumi Compiler Integration" do
         # These traits examine raw customer data to establish fundamental classifications
         # Traits use the syntax: trait name, lhs, operator, rhs
 
-        trait :adult, key(:age), :>=, 18
-        trait :senior, key(:age), :>=, 65
-        trait :high_balance, key(:account_balance), :>=, 10_000
-        trait :premium_account, key(:account_type), :==, "premium"
-        trait :recent_activity, key(:last_purchase_days_ago), :<=, 30
-        trait :frequent_buyer, key(:total_purchases), :>=, 50
-        trait :long_term_customer, key(:years_customer), :>=, 5
-        trait :has_referrals, key(:referral_count), :>, 0
-        trait :low_support_usage, key(:support_tickets), :<=, 3
+        predicate :adult, key(:age), :>=, 18
+        predicate :senior, key(:age), :>=, 65
+        predicate :high_balance, key(:account_balance), :>=, 10_000
+        predicate :premium_account, key(:account_type), :==, "premium"
+        predicate :recent_activity, key(:last_purchase_days_ago), :<=, 30
+        predicate :frequent_buyer, key(:total_purchases), :>=, 50
+        predicate :long_term_customer, key(:years_customer), :>=, 5
+        predicate :has_referrals, key(:referral_count), :>, 0
+        predicate :low_support_usage, key(:support_tickets), :<=, 3
 
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
         # # These functions encapsulate multi-condition logic, making traits more readable
 
-        attribute :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
-        attribute :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
-        attribute :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
+        value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
+        value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
+        value :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
 
         # # === DERIVED TRAITS ===
         # # These traits reference helper functions, showing clean trait definitions
         # # that depend on complex multi-condition logic
 
-        trait :engaged_customer, ref(:check_engagement), :==, literal(true)
-        trait :valuable_customer, ref(:check_value), :==, literal(true)
-        trait :low_maintenance, ref(:check_low_maintenance), :==, literal(true)
+        predicate :engaged_customer, ref(:check_engagement), :==, true
+        predicate :valuable_customer, ref(:check_value), :==, true
+        predicate :low_maintenance, ref(:check_low_maintenance), :==, true
 
         # === COMPLEX ATTRIBUTES WITH CASCADING LOGIC ===
         # These attributes demonstrate cascade expressions that reference multiple traits
         # The compiler must handle the binding lookups correctly when the cascade evaluates
 
-        attribute :customer_tier do
-          on_trait :senior, literal("Senior VIP")
-          on_traits :valuable_customer, :engaged_customer, literal("Gold")
-          on_trait :premium_account, literal("Premium")
-          on_trait :adult, literal("Standard")
-          default literal("Basic")
+        value :customer_tier do
+          on_trait :senior, "Senior VIP"
+          on_traits :valuable_customer, :engaged_customer, "Gold"
+          on_trait :premium_account, "Premium"
+          on_trait :adult, "Standard"
+          default "Basic"
         end
 
-        attribute :marketing_segment do
-          on_traits :valuable_customer, :low_maintenance, literal("Champion")
-          on_trait :engaged_customer, literal("Loyal Customer")
-          on_traits :high_balance, :recent_activity, literal("Big Spender")
-          on_trait :frequent_buyer, literal("Frequent Buyer")
-          default literal("Potential")
+        value :marketing_segment do
+          on_traits :valuable_customer, :low_maintenance, "Champion"
+          on_trait :engaged_customer, "Loyal Customer"
+          on_traits :high_balance, :recent_activity, "Big Spender"
+          on_trait :frequent_buyer, "Frequent Buyer"
+          default "Potential"
         end
 
-        attribute :user_error, fn(:error!, key(:should_error))
+        value :user_error, fn(:error!, key(:should_error))
 
         # === ATTRIBUTES THAT COMBINE MULTIPLE DATA SOURCES ===
         # These show how attributes can reference both raw fields and computed traits
 
-        attribute :welcome_message, fn(:concat, [
-                                         literal("Hello "),
+        value :welcome_message, fn(:concat, [
+                                         "Hello ",
                                          key(:name),
-                                         literal(", you are a "),
+                                         ", you are a ",
                                          ref(:customer_tier),
-                                         literal(" customer!")
+                                         " customer!"
                                        ])
 
-        attribute :engagement_score, fn(:multiply,
+        value :engagement_score, fn(:multiply,
                                         key(:total_purchases),
-                                        fn(:conditional, ref(:engaged_customer), literal(1.5), literal(1.0)))
+                                        fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
 
         # === FUNCTIONS THAT REFERENCE OTHER DEFINITIONS ===
         # Functions can consume both raw data and computed values, showing the
         # full power of cross-referencing in the compilation system
 
-        attribute :generate_offers, fn(:create_offers,
+        value :generate_offers, fn(:create_offers,
                                        ref(:marketing_segment),
                                        ref(:customer_tier),
                                        key(:account_balance))
 
-        attribute :calculate_loyalty_bonus, fn(:bonus_formula,
+        value :calculate_loyalty_bonus, fn(:bonus_formula,
                                                key(:years_customer),
                                                ref(:valuable_customer),
                                                ref(:engagement_score))

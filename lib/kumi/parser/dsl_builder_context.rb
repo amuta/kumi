@@ -16,17 +16,17 @@ module Kumi
         @functions  = []
       end
 
-      def attribute(name, expr = nil, &blk)
+      def value(name, expr = nil, &blk)
         loc = current_location
-        validate_name(name, :attribute, loc)
+        validate_name(name, :value, loc)
 
         has_expr = !expr.nil?
         has_block = block_given?
 
         if has_expr && has_block
-          raise_error("attribute '#{name}' cannot be called with both an expression and a block", loc)
+          raise_error("value '#{name}' cannot be called with both an expression and a block", loc)
         elsif !has_expr && !has_block
-          raise_error("attribute '#{name}' requires an expression or a block.", loc)
+          raise_error("value '#{name}' requires an expression or a block.", loc)
         end
 
         expr =
@@ -40,16 +40,16 @@ module Kumi
         @attributes << Attribute.new(name, expr, loc: loc)
       end
 
-      def trait(name, *expression)
+      def predicate(name, *expression)
         unless expression.size == 3
-          raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
+          raise_error("predicate '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
                       current_location)
         end
 
         lhs, operator, rhs = expression
 
         loc = current_location
-        validate_name(name, :trait, loc)
+        validate_name(name, :predicate, loc)
         raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
 
         raise_error("unsupported operator `#{operator}`", loc) unless FunctionRegistry.operator?(operator)
@@ -86,7 +86,7 @@ module Kumi
 
       def ensure_syntax(obj, location)
         case obj
-        when Integer, String, Symbol, TrueClass, FalseClass then literal(obj)
+        when Integer, String, Symbol, TrueClass, FalseClass, Float then literal(obj)
         when Array then ListExpression.new(obj.map { |e| ensure_syntax(e, location) })
         when Syntax::Node then obj
         else

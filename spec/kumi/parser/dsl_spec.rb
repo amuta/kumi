@@ -6,9 +6,9 @@ RSpec.describe Kumi::Parser::Dsl do
   end
 
   describe ".schema" do
-    it "can define attributes" do
+    it "can define values" do
       schema = build_schema do
-        attribute :name, key(:first_name)
+        value :name, key(:first_name)
       end
 
       expect(schema.attributes.size).to eq(1)
@@ -18,31 +18,31 @@ RSpec.describe Kumi::Parser::Dsl do
       expect(schema.attributes.first.expression.name).to eq(:first_name)
     end
 
-    it "can define traits" do
+    it "can define predicates" do
       schema = build_schema do
-        trait :vip, key(:status), :==, literal("VIP")
+        predicate :vip, key(:status), :==, "VIP"
       end
 
       expect(schema.traits.size).to eq(1)
-      trait = schema.traits.first
-      expect(trait).to be_a(Kumi::Syntax::Declarations::Trait)
-      expect(trait.name).to eq(:vip)
-      expect(trait.expression).to be_a(Kumi::Syntax::Expressions::CallExpression)
-      expect(trait.expression.fn_name).to eq(:==)
-      expect(trait.expression.args.size).to eq(2)
-      expect(trait.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::Field)
-      expect(trait.expression.args.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
+      predicate = schema.traits.first
+      expect(predicate).to be_a(Kumi::Syntax::Declarations::Trait)
+      expect(predicate.name).to eq(:vip)
+      expect(predicate.expression).to be_a(Kumi::Syntax::Expressions::CallExpression)
+      expect(predicate.expression.fn_name).to eq(:==)
+      expect(predicate.expression.args.size).to eq(2)
+      expect(predicate.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+      expect(predicate.expression.args.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
     end
 
-    it "can define multiple attributes, traits" do
+    it "can define multiple values, predicates" do
       schema = build_schema do
-        attribute :name, key(:first_name)
-        attribute :age, key(:birth_date)
+        value :name, key(:first_name)
+        value :age, key(:birth_date)
 
-        trait :adult, key(:age), :>=, 18
-        trait :senior, key(:age), :>=, 65
+        predicate :adult, key(:age), :>=, 18
+        predicate :senior, key(:age), :>=, 65
 
-        attribute :greet, fn(:hello, key(:name))
+        value :greet, fn(:hello, key(:name))
       end
 
       expect(schema.attributes.size).to eq(3)
@@ -71,46 +71,46 @@ RSpec.describe Kumi::Parser::Dsl do
     let(:error_class) { Kumi::Errors::SyntaxError }
 
     context "when defining names" do
-      it "raises an error if an attribute name is not a symbol" do
+      it "raises an error if a value name is not a symbol" do
         expect do
           build_schema do
-            attribute "name_string", key(:first_name)
+            value "name_string", key(:first_name)
           end
-        end.to raise_error(error_class, /The name for 'attribute' must be a Symbol, got String/)
+        end.to raise_error(error_class, /The name for 'value' must be a Symbol, got String/)
       end
 
-      it "raises an error if a trait name is not a symbol" do
+      it "raises an error if a predicate name is not a symbol" do
         expect do
           build_schema do
-            trait "not_a_symbol", key(:age), :<, 18
+            predicate "not_a_symbol", key(:age), :<, 18
           end
-        end.to raise_error(error_class, /The name for 'trait' must be a Symbol, got String/)
+        end.to raise_error(error_class, /The name for 'predicate' must be a Symbol, got String/)
       end
     end
 
-    context "when defining attributes" do
-      it "raises an error if an attribute has no expression or block" do
+    context "when defining values" do
+      it "raises an error if a value has no expression or block" do
         expect do
           build_schema do
-            attribute :name
+            value :name
           end
-        end.to raise_error(error_class, /attribute 'name' requires an expression or a block/)
+        end.to raise_error(error_class, /value 'name' requires an expression or a block/)
       end
 
       it "raises an error for an invalid expression type" do
         expect do
           build_schema do
-            attribute :name, { some: :hash }
+            value :name, { some: :hash }
           end
         end.to raise_error(error_class, /Invalid expression/)
       end
     end
 
-    context "when defining traits" do
+    context "when defining predicates" do
       it "raises an error if the operator is not a symbol" do
         expect do
           build_schema do
-            trait :is_minor, key(:age), "not_a_symbol", 18
+            predicate :is_minor, key(:age), "not_a_symbol", 18
           end
         end.to raise_error(error_class, /expects a symbol for an operator, got String/)
       end
@@ -118,17 +118,17 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if the operator is not supported" do
         expect do
           build_schema do
-            trait :unsupported, key(:value), :>>, 42
+            predicate :unsupported, key(:value), :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end
 
-      it "raises an error if a trait has an invalid expression size" do
+      it "raises an error if a predicate has an invalid expression size" do
         expect do
           build_schema do
-            trait :invalid_trait, key(:value), :==
+            predicate :invalid_predicate, key(:value), :==
           end
-        end.to raise_error(error_class, /trait 'invalid_trait' requires exactly 3 arguments: lhs, operator, and rhs/)
+        end.to raise_error(error_class, /predicate 'invalid_predicate' requires exactly 3 arguments: lhs, operator, and rhs/)
       end
     end
 
@@ -136,7 +136,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error for unknown expression types in a call" do
         expect do
           build_schema do
-            attribute :my_attr, fn(:foo, self)
+            value :my_value, fn(:foo, self)
           end
         end.to raise_error(error_class, /Invalid expression/)
       end
@@ -144,7 +144,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error for unsupported operators" do
         expect do
           build_schema do
-            trait :unsupported, key(:value), :>>, 42
+            predicate :unsupported, key(:value), :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end
@@ -158,10 +158,10 @@ RSpec.describe Kumi::Parser::Dsl do
       expect(klass).to respond_to(:schema)
     end
 
-    it "builds a Syntax::Schema populated by attributes, traits" do
+    it "builds a Syntax::Schema populated by values, predicates" do
       schema = klass.schema do
-        attribute :name, key(:first_name)
-        trait     :adult, key(:age), :>=, 18
+        value :name, key(:first_name)
+        predicate :adult, key(:age), :>=, 18
       end
 
       expect(schema).to be_a(Kumi::Syntax::Schema)
@@ -180,7 +180,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises a SyntaxError pointing at the fixture file and line" do
         expect { load fixture_path }.to raise_error(Kumi::Errors::SyntaxError) { |error|
           expect(error.message).to match(
-            /invalid_schema_class.rb:#{line}: attribute 'name' requires an expression or a block/
+            /invalid_schema_class.rb:#{line}: value 'name' requires an expression or a block/
           )
         }
       end
@@ -188,10 +188,10 @@ RSpec.describe Kumi::Parser::Dsl do
   end
 
   describe "syntax validations" do
-    context "with attribute" do
+    context "with value" do
       it "accepts <symbol>, <expression>" do
         schema = build_schema do
-          attribute :name, key(:first_name)
+          value :name, key(:first_name)
         end
 
         expect(schema.attributes.size).to eq(1)
@@ -201,7 +201,7 @@ RSpec.describe Kumi::Parser::Dsl do
 
       it "accepts <symbol> with a block" do
         schema = build_schema do
-          attribute :status do
+          value :status do
             on_trait :active, key(:active)
           end
         end
@@ -227,7 +227,7 @@ RSpec.describe Kumi::Parser::Dsl do
     context "with cascade cases" do
       let(:schema) do
         build_schema do
-          attribute :status do
+          value :status do
             on_trait :active, key(:active)
             on_traits :verified, key(:verified)
             default key(:default_status)

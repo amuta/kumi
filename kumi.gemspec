@@ -8,9 +8,11 @@ Gem::Specification.new do |spec|
   spec.authors = ["André Muta"]
   spec.email = ["andremuta@gmail.com"]
 
-  spec.summary       = "Declarative trait-driven attribute mapping DSL for Ruby."
-  spec.description   = "Kumi replaces nested if/else logic with a concise DSL that maps data sources \
-                         to derived attributes using reusable traits, functions, and decision tables."
+  spec.summary       = "A Declarative Decision-Modeling & Business-Logic Compiler"
+  spec.description   = "Kumi is a declarative decision-modeling compiler-ish that transforms complex business \
+                         rules into executable dependency graphs. It analyzes rule interdependencies, \
+                         validates cycles, detect redundant rules and allows to generate optimized evaluation functions for \
+                         sophisticated decision logic."
   spec.homepage      = "https://github.com/amuta/trait-engine"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
