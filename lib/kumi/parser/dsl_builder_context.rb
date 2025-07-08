@@ -52,7 +52,7 @@ module Kumi
         validate_name(name, :trait, loc)
         raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
 
-        raise_error("unsupported operator `#{operator}`", loc) unless MethodCallRegistry.operator?(operator)
+        raise_error("unsupported operator `#{operator}`", loc) unless FunctionRegistry.operator?(operator)
 
         expr = CallExpression.new(operator, [ensure_syntax(lhs, loc), ensure_syntax(rhs, loc)], loc: loc)
         @traits << Trait.new(name, expr, loc: loc)

@@ -60,12 +60,11 @@ module Kumi
         end
 
         def validate_call(node, errors)
-          MethodCallRegistry.confirm_support!(node.fn_name)
-          sig = MethodCallRegistry.signature(node.fn_name)
+          sig = FunctionRegistry.signature(node.fn_name)
           if sig[:arity] >= 0 && sig[:arity] != node.args.size
             errors << [node.loc, "operator `#{node.fn_name}` expects #{sig[:arity]} args, got #{node.args.size}"]
           end
-        rescue MethodCallRegistry::UnknownMethodName
+        rescue FunctionRegistry::UnknownFunction
           errors << [node.loc, "unsupported operator `#{node.fn_name}`"]
         end
       end

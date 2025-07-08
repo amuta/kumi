@@ -2,32 +2,15 @@
 
 RSpec.describe "Kumi Compiler Integration" do
   before(:all) do
-    # Set up custom functions that our schema references
-    # This shows how the function registry integrates with compiled schemas
+    Kumi::FunctionRegistry.reset!
 
-    Kumi::MethodCallRegistry.register_with(:all?) do |conditions|
-      conditions.all? { |condition| condition }
-    end
-
-    Kumi::MethodCallRegistry.register_with(:concat) do |*strings|
-      strings.join
-    end
-
-    Kumi::MethodCallRegistry.register_with(:multiply) do |a, b|
-      a * b
-    end
-
-    Kumi::MethodCallRegistry.register_with(:conditional) do |condition, true_value, false_value|
-      condition ? true_value : false_value
-    end
-
-    Kumi::MethodCallRegistry.register_with(:error!) do |should_error|
+    Kumi::FunctionRegistry.register(:error!) do |should_error|
       raise "ErrorInsideCustomFunction" if should_error
 
       "No Error"
     end
 
-    Kumi::MethodCallRegistry.register_with(:create_offers) do |segment, tier, _balance|
+    Kumi::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
       base_offers = case segment
                     when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
                     when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
@@ -42,7 +25,7 @@ RSpec.describe "Kumi Compiler Integration" do
       base_offers
     end
 
-    Kumi::MethodCallRegistry.register_with(:bonus_formula) do |years, is_valuable, engagement|
+    Kumi::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
       base_bonus = years * 10
       base_bonus *= 2 if is_valuable
       (base_bonus * (engagement / 100.0)).round(2)

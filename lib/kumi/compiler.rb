@@ -105,7 +105,7 @@ module Kumi
     end
 
     def invoke_function(name, arg_fns, ctx, loc)
-      fn = MethodCallRegistry.fetch(name)
+      fn = FunctionRegistry.fetch(name)
       values = arg_fns.map { |fn| fn.call(ctx) }
       fn.call(*values)
     rescue StandardError => e

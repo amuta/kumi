@@ -4,8 +4,8 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
   include Kumi::ASTFactory
 
   before do
-    # Stub Kumi::MethodCallRegistry with predictable behaviour
-    allow(Kumi::MethodCallRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
+    # Stub Kumi::FunctionRegistry with predictable behaviour
+    allow(Kumi::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   let(:state)  { {} }
@@ -72,7 +72,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
     end
 
     context "when operator arity mismatch" do
-      before { allow(Kumi::MethodCallRegistry).to receive(:signature).and_return({ arity: 2 }) }
+      before { allow(Kumi::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
 
       let(:schema) do
         bad = trait(:bad, call(:gt, syntax(:literal, 1, loc: loc)))

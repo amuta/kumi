@@ -4,7 +4,7 @@ RSpec.describe Kumi::Analyzer do
   include Kumi::ASTFactory
 
   before do
-    allow(Kumi::MethodCallRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
+    allow(Kumi::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   # --------------------------------------------------------------------
@@ -69,7 +69,7 @@ RSpec.describe Kumi::Analyzer do
       syntax(:schema, [dup1, dup2], [undef_, bad, arity], loc: loc)
     end
 
-    before { allow(Kumi::MethodCallRegistry).to receive(:signature).and_return({ arity: 2 }) }
+    before { allow(Kumi::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
 
     it "raises once, containing every problem" do
       expect do
