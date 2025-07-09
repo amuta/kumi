@@ -120,6 +120,10 @@ module Kumi
       values = arg_fns.map { |fn| fn.call(ctx) }
       fn.call(*values)
     rescue StandardError => e
+      # I need to validate this with examples of errors within the fn calls
+      # to make sure it is not obscuring useful information
+      # e.g. if fn is a lambda that raises an error, we want to see
+      # the original error message, not just "Error calling fn(:name)"
       raise Errors::RuntimeError,
             "Error calling fn(:#{name}) at #{loc}: #{e.message}"
     end

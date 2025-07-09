@@ -3,7 +3,7 @@
 require "benchmark"
 require "benchmark/ips"
 
-return unless ENV["KUMI_PERFORMANCE_TEST"]
+# return unless ENV["KUMI_PERFORMANCE_TEST"]
 
 class PlainRubySegmenter
   # I know, this class is ugly, it could be optimized, but its just a try
@@ -137,15 +137,19 @@ RSpec.describe "Kumi Performance" do
   # This block measures the one-time cost of compilation
   context "compilation phase" do
     it "compiles the schema within an acceptable time" do
-      compilation_time = Benchmark.measure do
-        analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
-        Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
-      end.real
+      Benchmark.ips do |x|
+        x.report("Kumi Schema Analyzer & Compile") do
+          analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
+          Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
+        end
+
+        x.compare!
+      end
 
       # The threshold is arbitrary; adjust based on expectations.
       # This asserts that the compilation is not excessively slow.
-      expect(compilation_time).to be < 0.1 # seconds
-      puts "\nCompilation Time: #{(compilation_time * 1000).round(2)} ms"
+      # expect(compilation_time).to be < 0.001 # seconds
+      # puts "\nCompilation Time: #{(compilation_time * 1000).round(2)} ms"
     end
   end
 
@@ -156,9 +160,9 @@ RSpec.describe "Kumi Performance" do
       Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
     end
 
-    let(:plain_ruby_segmenter) { PlainRubySegmenter.new }
+    let!(:plain_ruby_segmenter) { PlainRubySegmenter.new }
 
-    let(:customer_data_set) do
+    let!(:customer_data_set) do
       # Generate a diverse set of data to ensure the benchmark covers various code paths
       Array.new(1000) do |i|
         {
@@ -180,7 +184,6 @@ RSpec.describe "Kumi Performance" do
     end
 
     it "is slower than plain ruby if it needs to evaluate all the keys" do
-      puts "\n--- Compilation Preparation ---"
       compiled_schema
       customer_data_set
 

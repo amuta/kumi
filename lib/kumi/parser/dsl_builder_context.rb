@@ -36,25 +36,22 @@ module Kumi
             ensure_syntax(expr, loc)
           end
 
-        binding.pry if expr.nil?
         @attributes << Attribute.new(name, expr, loc: loc)
       end
 
-      def predicate(name, *expression)
-        unless expression.size == 3
+      def predicate(name, lhs, operator, *rhs)
+        unless rhs.size > 0
           raise_error("predicate '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
                       current_location)
         end
-
-        lhs, operator, rhs = expression
-
         loc = current_location
         validate_name(name, :predicate, loc)
         raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
 
         raise_error("unsupported operator `#{operator}`", loc) unless FunctionRegistry.operator?(operator)
 
-        expr = CallExpression.new(operator, [ensure_syntax(lhs, loc), ensure_syntax(rhs, loc)], loc: loc)
+        rhs_expr = rhs.map { |r| ensure_syntax(r, loc) }
+        expr = CallExpression.new(operator, [ensure_syntax(lhs, loc)] + rhs_expr, loc: loc)
         @traits << Trait.new(name, expr, loc: loc)
       end
 

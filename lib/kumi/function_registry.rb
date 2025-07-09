@@ -7,7 +7,7 @@ module Kumi
     class UnknownFunction < StandardError; end
 
     # Core operators that are always available
-    CORE_OPERATORS = %i[== > < >= <= !=].freeze
+    CORE_OPERATORS = %i[== > < >= <= != between?].freeze
 
     # Function entry with metadata
     Entry = Struct.new(:fn, :arity, :types, :description, keyword_init: true)
@@ -49,6 +49,12 @@ module Kumi
         arity: 2,
         types: %i[numeric numeric],
         description: "Less than or equal comparison"
+      ),
+      :between? => Entry.new(
+        fn: ->(value, min, max) { value >= min && value <= max },
+        arity: 3,
+        types: %i[numeric numeric numeric],
+        description: "Check if value is between min and max"
       )
     }.freeze
 

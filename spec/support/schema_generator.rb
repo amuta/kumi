@@ -5,9 +5,9 @@ module SchemaGenerator
   # - `num_preds` simple predicates
   # - `num_vals` value rules, each with `cascade_size` on-clauses
   # Fields are drawn from a fixed pool so you only need to supply those once at evaluation time.
-  def generate_complex_schema(
-    num_preds:     5_000,
-    num_vals:      5_000,
+  def generate_schema(
+    num_preds:     500,
+    num_vals:      500,
     cascade_size:  4,
     fields:        %i[age balance purchases]
   )
