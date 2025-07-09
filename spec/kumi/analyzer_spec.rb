@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe Kumi::Analyzer do
-  include Kumi::ASTFactory
+  include ASTFactory
 
   before do
     allow(Kumi::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
-  # --------------------------------------------------------------------
   # Contract 1 – happy path on a complex acyclic schema
-  # --------------------------------------------------------------------
   context "with a complex, valid schema" do
     subject(:result) { described_class.analyze!(schema) }
 
@@ -55,9 +53,7 @@ RSpec.describe Kumi::Analyzer do
     end
   end
 
-  # --------------------------------------------------------------------
   # Contract 2 – aggregated semantic diagnostics
-  # --------------------------------------------------------------------
   context "when schema contains multiple semantic errors" do
     let(:schema) do
       dup1   = attr(:dup)
@@ -84,9 +80,7 @@ RSpec.describe Kumi::Analyzer do
     end
   end
 
-  # --------------------------------------------------------------------
   # Contract 3 – cycle detection
-  # --------------------------------------------------------------------
   context "when dependency graph has a cycle" do
     let(:schema) do
       a = attr(:a, ref(:b))
@@ -101,9 +95,7 @@ RSpec.describe Kumi::Analyzer do
     end
   end
 
-  # --------------------------------------------------------------------
   # Convenience – caller supplies a partial pass list
-  # --------------------------------------------------------------------
   context "with a custom pass list containing only NameIndexer" do
     let(:schema) { syntax(:schema, [attr(:foo)], [], loc: loc) }
     let(:passes) { [Kumi::Analyzer::Passes::NameIndexer] }

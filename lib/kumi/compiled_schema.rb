@@ -5,11 +5,12 @@ module Kumi
     def initialize(bindings) = @bindings = bindings
 
     # full evaluation
-    def evaluate(data)
-      {
-        traits: evaluate_traits(data),
-        attributes: evaluate_attributes(data)
-      }
+    def evaluate(data, *keys)
+      return evaluate_traits(data).merge(evaluate_attributes(data)) if keys.empty?
+
+      keys.each_with_object({}) do |name, hash|
+        hash[name] = evaluate_binding(name, data)
+      end
     end
 
     # only traits
@@ -20,9 +21,9 @@ module Kumi
 
     # single binding
     def evaluate_binding(name, data)
-      entry = @bindings[name] or
-        raise Kumi::Errors::RuntimeError, "No binding named #{name}"
-      entry.last.call(data)
+      raise Kumi::Errors::RuntimeError, "No binding named #{name}" unless @bindings.key?(name)
+
+      @bindings[name][1].call(data)
     end
 
     private

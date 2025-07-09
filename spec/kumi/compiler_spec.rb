@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Kumi::Compiler do
-  include Kumi::ASTFactory # gives us `syntax`
+  include ASTFactory # gives us `syntax`
 
   # Operator stubs for the test
   let(:schema) do
@@ -18,9 +18,24 @@ RSpec.describe Kumi::Compiler do
     expect(exec).to be_a(Kumi::CompiledSchema)
   end
 
-  it "computes attributes in a single evaluation pass" do
-    result = exec.evaluate({})               # empty data context
-    expect(result[:attributes][:b]).to eq 5  # (2 + 3)
+  it "computes values in a single evaluation pass" do
+    result = exec.evaluate({}) # empty data context
+    expect(result[:b]).to eq 5 # (2 + 3)
+  end
+
+  it "lazyly evaluates values" do
+    schema = begin
+      a = attr(:a, key(:x))
+      b = attr(:b, call(:add, binding_ref(:a), key(:y)))
+      syntax(:schema, [a, b], [])
+    end
+
+    # We will test this by putting a bad value that will only cause an error
+    # when we try to evaluate `:b`
+    exec = described_class.compile(schema, analyzer: analysis)
+    context = { x: 10, y: "bad_input" }
+    expect { exec.evaluate(context, :a) }.not_to raise_error
+    expect { exec.evaluate(context, :b) }.to raise_error(Kumi::Errors::RuntimeError, /Error calling fn\(:add/)
   end
 
   it "evaluates traits independently" do

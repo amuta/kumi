@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Kumi::Analyzer::Passes::TypeValidator do
-  include Kumi::ASTFactory
+  include ASTFactory
 
   let(:state)  { {} }
   let(:errors) { [] }

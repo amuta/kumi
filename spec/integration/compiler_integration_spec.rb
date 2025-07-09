@@ -50,13 +50,13 @@ RSpec.describe "Kumi Compiler Integration" do
 
     let(:schema) do
       # This schema demonstrates complex interdependencies between different types of definitions.
-      # Notice how traits build on other traits, attributes reference multiple traits,
+      # Notice how predicates build on other predicates, attributes reference multiple predicates,
       # and functions consume both raw fields and computed attributes.
 
       Kumi::Parser::Dsl.schema do
-        # === BASE TRAITS ===
-        # These traits examine raw customer data to establish fundamental classifications
-        # Traits use the syntax: trait name, lhs, operator, rhs
+        # === BASE predicateS ===
+        # These predicates examine raw customer data to establish fundamental classifications
+        # predicates use the syntax: predicate name, lhs, operator, rhs
 
         predicate :adult, key(:age), :>=, 18
         predicate :senior, key(:age), :>=, 65
@@ -69,14 +69,14 @@ RSpec.describe "Kumi Compiler Integration" do
         predicate :low_support_usage, key(:support_tickets), :<=, 3
 
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
-        # # These functions encapsulate multi-condition logic, making traits more readable
+        # # These functions encapsulate multi-condition logic, making predicates more readable
 
         value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
         value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
         value :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
 
-        # # === DERIVED TRAITS ===
-        # # These traits reference helper functions, showing clean trait definitions
+        # # === DERIVED predicateS ===
+        # # These predicates reference helper functions, showing clean predicate definitions
         # # that depend on complex multi-condition logic
 
         predicate :engaged_customer, ref(:check_engagement), :==, true
@@ -84,7 +84,7 @@ RSpec.describe "Kumi Compiler Integration" do
         predicate :low_maintenance, ref(:check_low_maintenance), :==, true
 
         # === COMPLEX ATTRIBUTES WITH CASCADING LOGIC ===
-        # These attributes demonstrate cascade expressions that reference multiple traits
+        # These attributes demonstrate cascade expressions that reference multiple predicates
         # The compiler must handle the binding lookups correctly when the cascade evaluates
 
         value :customer_tier do
@@ -106,7 +106,7 @@ RSpec.describe "Kumi Compiler Integration" do
         value :user_error, fn(:error!, key(:should_error))
 
         # === ATTRIBUTES THAT COMBINE MULTIPLE DATA SOURCES ===
-        # These show how attributes can reference both raw fields and computed traits
+        # These show how attributes can reference both raw fields and computed predicates
 
         value :welcome_message, fn(:concat, [
                                      "Hello ",
@@ -148,121 +148,113 @@ RSpec.describe "Kumi Compiler Integration" do
     end
 
     describe "full schema evaluation" do
-      it "correctly evaluates all traits with complex dependencies" do
-        # Test that all the trait dependencies resolve correctly
+      it "correctly evaluates all predicates with complex dependencies" do
+        # Test that all the predicate dependencies resolve correctly
         # This exercises the binding resolution logic extensively
 
         result = executable_schema.evaluate(customer_data)
-        traits = result[:traits]
+        predicates = result[:predicates]
         attributes = result[:attributes]
 
-        # Verify base traits computed from raw data
-        expect(traits[:adult]).to be true
-        expect(traits[:senior]).to be false # 45 < 65
-        expect(traits[:high_balance]).to be true # 25,000 >= 10,000
-        expect(traits[:premium_account]).to be true
-        expect(traits[:recent_activity]).to be true # 15 <= 30
-        expect(traits[:frequent_buyer]).to be true # 127 >= 50
-        expect(traits[:long_term_customer]).to be true # 8 >= 5
-        expect(traits[:has_referrals]).to be true # 3 > 0
-        expect(traits[:low_support_usage]).to be true # 2 <= 3
+        expect(result[:adult]).to be true
+        expect(result[:senior]).to be false # 45 < 65
+        expect(result[:high_balance]).to be true # 25,000 >= 10,000
+        expect(result[:premium_account]).to be true
+        expect(result[:recent_activity]).to be true # 15 <= 30
+        expect(result[:frequent_buyer]).to be true # 127 >= 50
+        expect(result[:long_term_customer]).to be true # 8 >= 5
+        expect(result[:has_referrals]).to be true # 3 > 0
+        expect(result[:low_support_usage]).to be true # 2 <= 3
 
-        # Verify helper functions that combine multiple conditions
-        expect(attributes[:check_engagement]).to be true # recent_activity AND frequent_buyer
-        expect(attributes[:check_value]).to be true # high_balance AND long_term_customer
-        expect(attributes[:check_low_maintenance]).to be true # low_support_usage AND has_referrals
+        # Verify helper values that combine multiple conditions
+        expect(result[:check_engagement]).to be true # recent_activity AND frequent_buyer
+        expect(result[:check_value]).to be true # high_balance AND long_term_customer
+        expect(result[:check_low_maintenance]).to be true # low_support_usage AND has_referrals
 
-        # Verify derived traits that reference helper functions
-        # These test the binding resolution where traits depend on functions
-        # that themselves reference other traits
-        expect(traits[:engaged_customer]).to be true # check_engagement() == true
-        expect(traits[:valuable_customer]).to be true # check_value() == true
-        expect(traits[:low_maintenance]).to be true # check_low_maintenance() == true
+        # Verify derived values that reference helper functions
+        # These test the binding resolution logic for predicates
+        # that themselves reference other predicates
+        expect(result[:engaged_customer]).to be true # check_engagement() == true
+        expect(result[:valuable_customer]).to be true # check_value() == true
+        expect(result[:low_maintenance]).to be true # check_low_maintenance() == true
       end
 
-      it "correctly evaluates cascade attributes with trait references" do
-        # Test that cascade expressions properly resolve trait bindings
+      it "correctly evaluates cascade attributes with predicate references" do
+        # Test that cascade expressions properly resolve predicate bindings
         # This is a complex test of the CascadeExpression compilation logic
 
         result = executable_schema.evaluate(customer_data)
-        attributes = result[:attributes]
 
         # Customer is valuable_customer AND engaged_customer, so should get "Gold"
-        expect(attributes[:customer_tier]).to eq("Gold")
+        expect(result[:customer_tier]).to eq("Gold")
 
         # Customer is valuable_customer AND low_maintenance, so should get "Champion"
-        expect(attributes[:marketing_segment]).to eq("Champion")
+        expect(result[:marketing_segment]).to eq("Champion")
       end
 
       it "correctly evaluates attributes that combine multiple reference types" do
-        # Test attributes that reference both fields and computed traits
+        # Test attributes that reference both fields and computed predicates
         # This exercises the mixed binding resolution in complex expressions
 
         result = executable_schema.evaluate(customer_data)
         attributes = result[:attributes]
 
-        # Test string concatenation with field and trait references
+        # Test string concatenation with field and predicate references
         expected_message = "Hello Alice Johnson, you are a Gold customer!"
-        expect(attributes[:welcome_message]).to eq(expected_message)
+        expect(result[:welcome_message]).to eq(expected_message)
 
-        # Test mathematical computation with field and trait references
+        # Test mathematical computation with field and predicate references
         # 127 purchases * 1.5 (because engaged_customer is true) = 190.5
-        expect(attributes[:engagement_score]).to eq(190.5)
+        expect(result[:engagement_score]).to eq(190.5)
       end
 
       it "correctly evaluates functions that consume computed values" do
-        # Test that functions can reference attributes and traits computed earlier
+        # Test that functions can reference attributes and predicates computed earlier
         # This demonstrates the full power of cross-referencing in the system
 
         result = executable_schema.evaluate(customer_data)
-        attributes = result[:attributes]
 
-        # Test helper functions that combine multiple trait conditions
-        expect(attributes[:check_engagement]).to be true
-        expect(attributes[:check_value]).to be true
-        expect(attributes[:check_low_maintenance]).to be true
+        # Test helper functions that combine multiple predicate conditions
+        expect(result[:check_engagement]).to be true
+        expect(result[:check_value]).to be true
+        expect(result[:check_low_maintenance]).to be true
 
         # Test offer generation based on computed marketing segment and tier
-        offers = attributes[:generate_offers]
+        offers = result[:generate_offers]
         expect(offers).to include("Exclusive Preview")  # Champion segment
         expect(offers).to include("VIP Events")         # Champion segment
         expect(offers).to include("Concierge Service")  # Gold tier bonus
 
-        # Test loyalty bonus calculation using years, computed trait, and computed attribute
+        # Test loyalty bonus calculation using years, computed predicate, and computed attribute
         # Formula: (years * 10) * 2 (valuable customer) * (engagement_score / 100)
         # (8 * 10) * 2 * (190.5 / 100) = 80 * 2 * 1.905 = 304.8
-        bonus = attributes[:calculate_loyalty_bonus]
+        bonus = result[:calculate_loyalty_bonus]
         expect(bonus).to eq(304.8)
       end
     end
 
     describe "partial evaluation capabilities" do
-      it "can evaluate only traits without computing attributes or functions" do
-        # Test that we can efficiently compute just the traits when that's all we need
+      it "can evaluate only predicates without computing attributes or functions" do
+        # Test that we can efficiently compute just the predicates when that's all we need
         # This is important for performance in scenarios where you only need partial results
 
-        traits = executable_schema.evaluate(customer_data)[:traits]
+        result = executable_schema.evaluate(customer_data)
 
-        expect(traits).to have_key(:adult)
-        expect(traits).to have_key(:engaged_customer)
-        expect(traits).to have_key(:valuable_customer)
-        expect(traits[:engaged_customer]).to be true
-
-        # Verify we only got traits, not attributes or functions
-        expect(traits).not_to have_key(:customer_tier)
-        expect(traits).not_to have_key(:check_engagement)
-        expect(traits).not_to have_key(:generate_offers)
+        expect(result).to have_key(:adult)
+        expect(result).to have_key(:engaged_customer)
+        expect(result).to have_key(:valuable_customer)
+        expect(result[:engaged_customer]).to be true
       end
 
-      it "can evaluate only attributes, with trait dependencies resolved" do
+      it "can evaluate only attributes, with predicate dependencies resolved" do
         pending("TODO: expose: [:attribute_names,...] -> we used functions as private attributes, right now everything is public")
         #  before, but now, for clarity we only have attributes
 
         attributes = executable_schema.evaluate_attributes(customer_data)
 
-        expect(attributes[:customer_tier]).to eq("Gold")
-        expect(attributes[:marketing_segment]).to eq("Champion")
-        expect(attributes[:engagement_score]).to eq(190.5)
+        expect(result[:customer_tier]).to eq("Gold")
+        expect(result[:marketing_segment]).to eq("Champion")
+        expect(result[:engagement_score]).to eq(190.5)
 
         expect(attributes).not_to have_key(:adult)
         expect(attributes).not_to have_key(:check_engagement)
@@ -332,12 +324,12 @@ RSpec.describe "Kumi Compiler Integration" do
         result2 = executable_schema.evaluate(different_customer)
 
         # Results should be different because data is different
-        expect(result1[:traits][:high_balance]).to be true
-        expect(result2[:traits][:high_balance]).to be false
+        expect(result1[:high_balance]).to be true
+        expect(result2[:high_balance]).to be false
 
         # But both should execute without recompilation
-        expect(result1[:attributes][:customer_tier]).to eq("Gold")
-        expect(result2[:attributes][:customer_tier]).to eq("Premium") # Different tier for different data
+        expect(result1[:customer_tier]).to eq("Gold")
+        expect(result2[:customer_tier]).to eq("Premium") # Different tier for different data
       end
     end
   end

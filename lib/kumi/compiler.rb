@@ -15,8 +15,8 @@ module Kumi
       end
 
       def compile_binding_node(expr)
-        name = expr.name
-        ->(ctx) { @bindings.fetch(name).last.call(ctx) }
+        fn = @bindings[expr.name].last
+        ->(ctx) { fn.call(ctx) }
       end
 
       def compile_list(expr)
@@ -29,6 +29,12 @@ module Kumi
         arg_fns = expr.args.map { |a| compile_expr(a) }
         ->(ctx) { invoke_function(fn_name, arg_fns, ctx, expr.loc) }
       end
+
+      # def compile_call(expr)
+      #   fn = FunctionRegistry.fetch(expr.fn_name)
+      #   arg_fns = expr.args.map { |a| compile_expr(a) }
+      #   ->(ctx) { fn.call(*arg_fns.map { |f| f.call(ctx) }) }
+      # end
 
       def compile_cascade(expr)
         pairs = expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
@@ -86,11 +92,16 @@ module Kumi
 
     # Dispatch to the appropriate compile_* method
     def compile_expr(expr)
-      method = DISPATCH.fetch(expr.class) do
-        raise("Unsupported expression node: \#{expr.class}")
-      end
+      method = DISPATCH.fetch(expr.class)
       send(method, expr)
     end
+
+    # def compile_expr(expr)
+    #   method = DISPATCH.fetch(expr.class) do
+    #     raise("Unsupported expression node: \#{expr.class}")
+    #   end
+    #   send(method, expr)
+    # end
 
     # Existing helpers unchanged
     def compile_field(node)
