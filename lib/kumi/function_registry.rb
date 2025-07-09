@@ -91,7 +91,7 @@ module Kumi
         description: "Raise first number to power of second"
       ),
       abs: Entry.new(
-        fn: ->(a) { a.abs },
+        fn: lambda(&:abs),
         arity: 1,
         types: %i[numeric],
         description: "Absolute value"
@@ -103,13 +103,13 @@ module Kumi
         description: "Round number to specified precision"
       ),
       floor: Entry.new(
-        fn: ->(a) { a.floor },
+        fn: lambda(&:floor),
         arity: 1,
         types: %i[numeric],
         description: "Floor of number"
       ),
       ceil: Entry.new(
-        fn: ->(a) { a.ceil },
+        fn: lambda(&:ceil),
         arity: 1,
         types: %i[numeric],
         description: "Ceiling of number"
@@ -195,25 +195,25 @@ module Kumi
         description: "Logical OR of multiple conditions"
       ),
       not: Entry.new(
-        fn: ->(condition) { !condition },
+        fn: lambda(&:!),
         arity: 1,
         types: %i[boolean],
         description: "Logical NOT"
       ),
       all?: Entry.new(
-        fn: ->(collection) { collection.all? },
+        fn: lambda(&:all?),
         arity: 1,
         types: %i[collection],
         description: "Check if all elements in collection are truthy"
       ),
       any?: Entry.new(
-        fn: ->(collection) { collection.any? },
+        fn: lambda(&:any?),
         arity: 1,
         types: %i[collection],
         description: "Check if any element in collection is truthy"
       ),
       none?: Entry.new(
-        fn: ->(collection) { collection.none? },
+        fn: lambda(&:none?),
         arity: 1,
         types: %i[collection],
         description: "Check if no elements in collection are truthy"
@@ -223,61 +223,61 @@ module Kumi
     # Core collection operations
     COLLECTION_OPERATIONS = {
       size: Entry.new(
-        fn: ->(collection) { collection.size },
+        fn: lambda(&:size),
         arity: 1,
         types: %i[collection],
         description: "Get collection size"
       ),
       empty?: Entry.new(
-        fn: ->(collection) { collection.empty? },
+        fn: lambda(&:empty?),
         arity: 1,
         types: %i[collection],
         description: "Check if collection is empty"
       ),
       first: Entry.new(
-        fn: ->(collection) { collection.first },
+        fn: lambda(&:first),
         arity: 1,
         types: %i[collection],
         description: "Get first element of collection"
       ),
       last: Entry.new(
-        fn: ->(collection) { collection.last },
+        fn: lambda(&:last),
         arity: 1,
         types: %i[collection],
         description: "Get last element of collection"
       ),
       sum: Entry.new(
-        fn: ->(collection) { collection.sum },
+        fn: lambda(&:sum),
         arity: 1,
         types: %i[collection],
         description: "Sum all elements in collection"
       ),
       max: Entry.new(
-        fn: ->(collection) { collection.max },
+        fn: lambda(&:max),
         arity: 1,
         types: %i[collection],
         description: "Get maximum value in collection"
       ),
       min: Entry.new(
-        fn: ->(collection) { collection.min },
+        fn: lambda(&:min),
         arity: 1,
         types: %i[collection],
         description: "Get minimum value in collection"
       ),
       sort: Entry.new(
-        fn: ->(collection) { collection.sort },
+        fn: lambda(&:sort),
         arity: 1,
         types: %i[collection],
         description: "Sort collection"
       ),
       reverse: Entry.new(
-        fn: ->(collection) { collection.reverse },
+        fn: lambda(&:reverse),
         arity: 1,
         types: %i[collection],
         description: "Reverse collection"
       ),
       uniq: Entry.new(
-        fn: ->(collection) { collection.uniq },
+        fn: lambda(&:uniq),
         arity: 1,
         types: %i[collection],
         description: "Remove duplicates from collection"
@@ -315,25 +315,25 @@ module Kumi
     # Core type conversion operations
     TYPE_OPERATIONS = {
       to_string: Entry.new(
-        fn: ->(value) { value.to_s },
+        fn: lambda(&:to_s),
         arity: 1,
         types: %i[any],
         description: "Convert value to string"
       ),
       to_integer: Entry.new(
-        fn: ->(value) { value.to_i },
+        fn: lambda(&:to_i),
         arity: 1,
         types: %i[any],
         description: "Convert value to integer"
       ),
       to_float: Entry.new(
-        fn: ->(value) { value.to_f },
+        fn: lambda(&:to_f),
         arity: 1,
         types: %i[any],
         description: "Convert value to float"
       ),
       to_boolean: Entry.new(
-        fn: ->(value) { !!value },
+        fn: ->(value) { !value.nil? },
         arity: 1,
         types: %i[any],
         description: "Convert value to boolean"
@@ -418,7 +418,7 @@ module Kumi
 
       # Get functions by category
       def operators
-        @functions.select { |name, _| CORE_OPERATORS.include?(name) }
+        @functions.slice(*CORE_OPERATORS)
       end
 
       def math_operations

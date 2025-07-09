@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "benchmark"
 require "benchmark/ips"
 
@@ -158,7 +160,7 @@ RSpec.describe "Kumi Performance" do
 
     let(:customer_data_set) do
       # Generate a diverse set of data to ensure the benchmark covers various code paths
-      1000.times.map do |i|
+      Array.new(1000) do |i|
         {
           name: "Customer #{i}",
           age: 20 + (i % 60),

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SchemaGenerator
   # Generates a Kumi schema with:
   # - `num_preds` simple predicates

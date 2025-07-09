@@ -153,8 +153,8 @@ RSpec.describe "Kumi Compiler Integration" do
         # This exercises the binding resolution logic extensively
 
         result = executable_schema.evaluate(customer_data)
-        predicates = result[:predicates]
-        attributes = result[:attributes]
+        result[:predicates]
+        result[:attributes]
 
         expect(result[:adult]).to be true
         expect(result[:senior]).to be false # 45 < 65
@@ -197,7 +197,7 @@ RSpec.describe "Kumi Compiler Integration" do
         # This exercises the mixed binding resolution in complex expressions
 
         result = executable_schema.evaluate(customer_data)
-        attributes = result[:attributes]
+        result[:attributes]
 
         # Test string concatenation with field and predicate references
         expected_message = "Hello Alice Johnson, you are a Gold customer!"

@@ -66,7 +66,7 @@ module Kumi
             errors << [node.loc, "operator `#{node.fn_name}` expects #{sig[:arity]} args, got #{node.args.size}"]
           end
 
-          return if sig[:arity] < 0 && node.args.empty?
+          return if sig[:arity].negative? && node.args.empty?
           return unless sig[:types]
 
           # TODO: -> Refactor
