@@ -3,7 +3,7 @@
 require "benchmark"
 require "benchmark/ips"
 
-# return unless ENV["KUMI_PERFORMANCE_TEST"]
+return unless ENV["KUMI_PERFORMANCE_TEST"]
 
 class PlainRubySegmenter
   # I know, this class is ugly, it could be optimized, but its just a try
