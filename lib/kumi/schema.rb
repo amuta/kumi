@@ -5,7 +5,7 @@ module Kumi
     def from(context)
       raise("No schema defined") unless @__schema__
 
-      Runner.new(context, @__schema__, @__analyzer_result__.dependency_graph)
+      Runner.new(context, @__schema__, @__analyzer_result__.definitions)
     end
 
     # The schema compilation logic remains the same

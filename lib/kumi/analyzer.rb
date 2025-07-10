@@ -2,7 +2,7 @@
 
 module Kumi
   module Analyzer
-    Result = Struct.new(:dependency_graph, :leaf_map, :topo_order, keyword_init: true)
+    Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, keyword_init: true)
 
     module_function
 
@@ -24,6 +24,7 @@ module Kumi
       raise Errors::SemanticError, format(errors) unless errors.empty?
 
       Result.new(
+        definitions: analysis_state[:definitions].freeze,
         dependency_graph: analysis_state[:dependency_graph].freeze,
         leaf_map: analysis_state[:leaf_map].freeze,
         topo_order: analysis_state[:topo_order].freeze

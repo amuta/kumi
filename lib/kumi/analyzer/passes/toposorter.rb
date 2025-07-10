@@ -15,6 +15,8 @@ module Kumi
 
         def run(errors)
           g = @state[:dependency_graph] || {}
+          defs = @state[:definitions] || {} # Get the map of defined rules
+
           temp = Set.new
           perm = Set.new
           order = []
@@ -27,10 +29,10 @@ module Kumi
             end
 
             temp << n
-            Array(g[n]).each { |m| visit.call(m) }
+            Array(g[n]).each { |edge| visit.call(edge.to) }
             temp.delete(n)
             perm << n
-            order << n
+            order << n if defs.key?(n) # Only include declaration nodes (predicate, value) in the order
           end
           g.each_key { |n| visit.call(n) }
           @state[:topo_order] = order

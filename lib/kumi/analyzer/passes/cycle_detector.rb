@@ -27,7 +27,9 @@ module Kumi
 
           visited << node
           stack   << node
-          Array(g[node]).each do |m|
+
+          Array(g[node]).each do |edge|
+            m = edge.to
             if stack.include?(m)
               errors << [nil, "cycle detected: #{(stack + [m]).join(' → ')}"]
             else
