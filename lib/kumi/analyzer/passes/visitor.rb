@@ -8,6 +8,8 @@ module Kumi
   module Analyzer
     module Passes
       class Visitor
+        include Kumi::Syntax
+
         def visit(node, &blk)
           return unless node
 

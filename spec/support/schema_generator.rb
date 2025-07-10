@@ -11,7 +11,7 @@ module SchemaGenerator
     cascade_size:  4,
     fields:        %i[age balance purchases]
   )
-    Kumi::Parser::Dsl.schema do
+    Kumi::Parser::Dsl.build_sytax_tree do
       # simple predicates
       num_preds.times do |i|
         predicate(

@@ -53,7 +53,7 @@ RSpec.describe "Kumi Compiler Integration" do
       # Notice how predicates build on other predicates, attributes reference multiple predicates,
       # and functions consume both raw fields and computed attributes.
 
-      Kumi::Parser::Dsl.schema do
+      Kumi::Parser::Dsl.build_sytax_tree do
         # === BASE predicateS ===
         # These predicates examine raw customer data to establish fundamental classifications
         # predicates use the syntax: predicate name, lhs, operator, rhs
@@ -244,21 +244,6 @@ RSpec.describe "Kumi Compiler Integration" do
         expect(result).to have_key(:engaged_customer)
         expect(result).to have_key(:valuable_customer)
         expect(result[:engaged_customer]).to be true
-      end
-
-      it "can evaluate only attributes, with predicate dependencies resolved" do
-        pending("TODO: expose: [:attribute_names,...] -> we used functions as private attributes, right now everything is public")
-        #  before, but now, for clarity we only have attributes
-
-        attributes = executable_schema.evaluate_attributes(customer_data)
-
-        expect(result[:customer_tier]).to eq("Gold")
-        expect(result[:marketing_segment]).to eq("Champion")
-        expect(result[:engagement_score]).to eq(190.5)
-
-        expect(attributes).not_to have_key(:adult)
-        expect(attributes).not_to have_key(:check_engagement)
-        expect(attributes).not_to have_key(:generate_offers)
       end
 
       it "can evaluate individual bindings on demand" do

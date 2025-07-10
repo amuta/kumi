@@ -12,6 +12,7 @@ gemspec
 # spec.add_development_dependency "rubocop-performance", "~> 1.25"
 # spec.add_development_dependency "rubocop-rspec", "~> 3.6"
 
+gem "csv"
 gem "pry", "~> 0.15.2"
 gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"

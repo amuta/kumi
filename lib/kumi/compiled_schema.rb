@@ -5,12 +5,19 @@ module Kumi
     def initialize(bindings) = @bindings = bindings
 
     # full evaluation
+    # TODO-> how about we have some way to use it like this
+    # FullfillmentRules.from(input).fetch(:fulfillment)
+    # without adding extra costs for the `from` method? (we just save the input reference on the result of :from)
     def evaluate(data, *keys)
       return evaluate_traits(data).merge(evaluate_attributes(data)) if keys.empty?
 
       keys.each_with_object({}) do |name, hash|
         hash[name] = evaluate_binding(name, data)
       end
+    end
+
+    def value_of(data, _key)
+      evaluate_binding(name, data)
     end
 
     # only traits

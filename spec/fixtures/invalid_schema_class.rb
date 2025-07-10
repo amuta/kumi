@@ -1,5 +1,5 @@
 class InvalidSchema
-  extend Kumi::Parser::Dsl
+  extend Kumi::Schema
 
   schema do
     # this line should trigger our “missing expr” error

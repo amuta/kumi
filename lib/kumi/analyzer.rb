@@ -7,10 +7,12 @@ module Kumi
     module_function
 
     DEFAULT_PASSES = [
-      Passes::NameIndexer,
-      Passes::TypeValidator,
-      Passes::CycleDetector,
-      Passes::Toposorter
+      Passes::NameIndexer,            # 1. Finds all names and checks for duplicates.
+      Passes::DefinitionValidator,    # 2. Checks the basic structure of each rule.
+      Passes::DependencyResolver,     # 3. Builds the dependency graph.
+      Passes::TypeChecker,            # 4. Validates types in function calls.
+      Passes::CycleDetector,          # 5. Finds cycles in the dependency graph.
+      Passes::Toposorter              # 6. Creates the final evaluation order.
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)

@@ -40,7 +40,7 @@ module Kumi
       end
 
       def predicate(name, lhs, operator, *rhs)
-        unless rhs.size > 0
+        unless rhs.size.positive?
           raise_error("predicate '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
                       current_location)
         end
@@ -83,7 +83,7 @@ module Kumi
 
       def ensure_syntax(obj, location)
         case obj
-        when Integer, String, Symbol, TrueClass, FalseClass, Float then literal(obj)
+        when Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp then literal(obj)
         when Array then ListExpression.new(obj.map { |e| ensure_syntax(e, location) })
         when Syntax::Node then obj
         else

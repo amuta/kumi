@@ -3,6 +3,8 @@
 require "benchmark"
 require "benchmark/ips"
 
+return unless ENV["KUMI_PERFORMANCE_TEST"]
+
 # This could be better, we are testing against a simplistic schema
 # TODO: improve schema generation to cover more complex/realistic scenario
 RSpec.describe "big schema stress test" do

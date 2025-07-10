@@ -51,7 +51,7 @@ module Kumi
         description: "Less than or equal comparison"
       ),
       :between? => Entry.new(
-        fn: ->(value, min, max) { value >= min && value <= max },
+        fn: ->(value, min, max) { value.between?(min, max) },
         arity: 3,
         types: %i[numeric numeric numeric],
         description: "Check if value is between min and max"
@@ -228,12 +228,6 @@ module Kumi
 
     # Core collection operations
     COLLECTION_OPERATIONS = {
-      size: Entry.new(
-        fn: lambda(&:size),
-        arity: 1,
-        types: %i[collection],
-        description: "Get collection size"
-      ),
       empty?: Entry.new(
         fn: lambda(&:empty?),
         arity: 1,
@@ -287,6 +281,28 @@ module Kumi
         arity: 1,
         types: %i[collection],
         description: "Remove duplicates from collection"
+      ),
+      size: Entry.new(
+        fn: lambda(&:size),
+        arity: 1,
+        types: %i[collection],
+        description: "Get collection size"
+      ),
+      count_match: Entry.new(
+        fn: ->(collection, pattern) { collection.count { |item| item.to_s.match?(Regexp.new(pattern)) } },
+        arity: 2,
+        types: %i[collection string],
+        description: "Counts items in a collection that match a regex pattern."
+      )
+    }.freeze
+
+    # Core data structure operations
+    DATA_STRUCTURE_OPERATIONS = {
+      hash: Entry.new(
+        fn: ->(**kwargs) { kwargs },
+        arity: -1, # Accepts keyword arguments
+        types: %i[any],
+        description: "Creates a hash from keyword arguments."
       )
     }.freeze
 
@@ -360,7 +376,8 @@ module Kumi
       **LOGICAL_OPERATIONS,
       **COLLECTION_OPERATIONS,
       **CONDITIONAL_OPERATIONS,
-      **TYPE_OPERATIONS
+      **TYPE_OPERATIONS,
+      **DATA_STRUCTURE_OPERATIONS
     }.freeze
 
     @functions = CORE_OPERATIONS.dup

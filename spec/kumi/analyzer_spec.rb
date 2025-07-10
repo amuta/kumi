@@ -18,7 +18,7 @@ RSpec.describe Kumi::Analyzer do
       d    = attr(:d, call(:sum, lit(3)))         # independent
       high = trait(:high, call(:gt, ref(:c)))     # depends on c
 
-      syntax(:schema, [a, b, c, d], [high], loc: loc)
+      syntax(:root, [a, b, c, d], [high], loc: loc)
     end
 
     it "returns an immutable Result" do
@@ -62,7 +62,7 @@ RSpec.describe Kumi::Analyzer do
       bad    = trait(:flag, lit(true))                 # not a CallExpression
       arity  = trait(:arity, call(:noop))              # arity mismatch
 
-      syntax(:schema, [dup1, dup2], [undef_, bad, arity], loc: loc)
+      syntax(:root, [dup1, dup2], [undef_, bad, arity], loc: loc)
     end
 
     before { allow(Kumi::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
@@ -85,7 +85,7 @@ RSpec.describe Kumi::Analyzer do
     let(:schema) do
       a = attr(:a, ref(:b))
       b = attr(:b, ref(:a))
-      syntax(:schema, [a, b], [], loc: loc)
+      syntax(:root, [a, b], [], loc: loc)
     end
 
     it "fails with a cycle diagnostic" do
@@ -97,7 +97,7 @@ RSpec.describe Kumi::Analyzer do
 
   # Convenience – caller supplies a partial pass list
   context "with a custom pass list containing only NameIndexer" do
-    let(:schema) { syntax(:schema, [attr(:foo)], [], loc: loc) }
+    let(:schema) { syntax(:root, [attr(:foo)], [], loc: loc) }
     let(:passes) { [Kumi::Analyzer::Passes::NameIndexer] }
 
     it "runs without error but returns nils for data not produced" do

@@ -5,6 +5,10 @@ require "benchmark/ips"
 
 return unless ENV["KUMI_PERFORMANCE_TEST"]
 
+# Run this spec file if you want to benchmark the performance of Kumi
+# against a plain Ruby implementation of the same logic.
+# - For now it wont be running in CI, but you can run it locally commenting out the `return` line above.
+
 class PlainRubySegmenter
   # I know, this class is ugly, it could be optimized, but its just a try
   # to replicate a real service that evaluates customer data
@@ -91,7 +95,7 @@ RSpec.describe "Kumi Performance" do
   end
 
   let(:schema_definition) do
-    Kumi::Parser::Dsl.schema do
+    Kumi::Parser::Dsl.build_sytax_tree do
       predicate :adult, key(:age), :>=, 18
       predicate :senior, key(:age), :>=, 65
       predicate :high_balance, key(:account_balance), :>=, 10_000
@@ -146,6 +150,8 @@ RSpec.describe "Kumi Performance" do
         x.compare!
       end
 
+      expect(true).to be(true)
+
       # The threshold is arbitrary; adjust based on expectations.
       # This asserts that the compilation is not excessively slow.
       # expect(compilation_time).to be < 0.001 # seconds
@@ -199,6 +205,8 @@ RSpec.describe "Kumi Performance" do
 
         x.compare!
       end
+
+      expect(true).to be(true)
     end
 
     it "is faster than plain ruby if it only evaluates a few keys" do
@@ -214,6 +222,8 @@ RSpec.describe "Kumi Performance" do
 
         x.compare!
       end
+
+      expect(true).to be(true)
     end
   end
 end

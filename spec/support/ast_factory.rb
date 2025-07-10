@@ -21,11 +21,11 @@ module ASTFactory
       S::WhenCaseExpression.new(predicate, then_expr, loc: loc)
     },
 
-    # Schema and Location are special because they are used in the
-    # ASTFactory constructor to build the initial schema.
+    # Root and Location are special because they are used in the
+    # ASTFactory constructor to build the initial Root.
     # They are not used in the AST itself.
 
-    schema: ->(attributes = [], traits = [], loc:) { S::Schema.new(attributes, traits, loc: loc) },
+    root: ->(attributes = [], traits = [], loc:) { S::Root.new(attributes, traits, loc: loc) },
 
     location: ->(file, line, column) { S::Location.new(file: file, line: line, column: column) }
   }.freeze
@@ -56,8 +56,8 @@ module ASTFactory
   def field(name) = syntax(:field, name, loc: loc)
   alias key field
   #
-  # def schema(attrs = [], traits = [])
-  #   # syntax(:schema, attrs, traits, loc: loc)
+  # def Root(attrs = [], traits = [])
+  #   # syntax(:Root, attrs, traits, loc: loc)
   # end
 
   def when_case_expression(predicate, then_expr)

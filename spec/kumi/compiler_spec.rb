@@ -7,7 +7,7 @@ RSpec.describe Kumi::Compiler do
   let(:schema) do
     a = attr(:a, lit(2))
     b = attr(:b, call(:add, binding_ref(:a), lit(3)))
-    syntax(:schema, [a, b], [])
+    syntax(:root, [a, b], [])
   end
 
   let(:analysis) { Kumi::Analyzer.analyze!(schema) }
@@ -27,7 +27,7 @@ RSpec.describe Kumi::Compiler do
     schema = begin
       a = attr(:a, key(:x))
       b = attr(:b, call(:add, binding_ref(:a), key(:y)))
-      syntax(:schema, [a, b], [])
+      syntax(:root, [a, b], [])
     end
 
     # We will test this by putting a bad value that will only cause an error
@@ -41,7 +41,7 @@ RSpec.describe Kumi::Compiler do
   it "evaluates traits independently" do
     # separate schema: single trait adult? (age >= 18)
     t_schema = syntax(
-      :schema,
+      :root,
       [],
       [trait(:adult, call(:>=, field(:age), lit(18)))]
     )

@@ -2,10 +2,10 @@
 
 RSpec.describe Kumi::Parser::Dsl do
   def build_schema(&block)
-    subject.schema(&block)
+    subject.build_sytax_tree(&block)
   end
 
-  describe ".schema" do
+  describe ".build_sytax_tree" do
     it "can define values" do
       schema = build_schema do
         value :name, key(:first_name)
@@ -147,42 +147,6 @@ RSpec.describe Kumi::Parser::Dsl do
             predicate :unsupported, key(:value), :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
-      end
-    end
-  end
-
-  context "when used as a Class extension" do
-    let(:klass) { Class.new { extend Kumi::Parser::Dsl } }
-
-    it "adds a `schema` method to classes that extend the DSL" do
-      expect(klass).to respond_to(:schema)
-    end
-
-    it "builds a Syntax::Schema populated by values, predicates" do
-      schema = klass.schema do
-        value :name, key(:first_name)
-        predicate :adult, key(:age), :>=, 18
-      end
-
-      expect(schema).to be_a(Kumi::Syntax::Schema)
-      expect(schema.attributes.map(&:name)).to    contain_exactly(:name)
-      expect(schema.traits.map(&:name)).to        contain_exactly(:adult)
-
-      # Spot‐check internals
-      expect(schema.attributes.first.expression.name).to eq(:first_name)
-      expect(schema.traits.first.expression.fn_name).to eq(:>=)
-    end
-
-    describe "error propagation from within a class" do
-      let(:fixture_path) { File.expand_path("../../fixtures/invalid_schema_class.rb", __dir__) }
-      let(:line)         { 6 }
-
-      it "raises a SyntaxError pointing at the fixture file and line" do
-        expect { load fixture_path }.to raise_error(Kumi::Errors::SyntaxError) { |error|
-          expect(error.message).to match(
-            /invalid_schema_class.rb:#{line}: value 'name' requires an expression or a block/
-          )
-        }
       end
     end
   end
