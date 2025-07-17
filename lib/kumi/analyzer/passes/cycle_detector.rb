@@ -1,42 +1,47 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY
-#   Detect cycles in :dependency_graph.
-# INTERFACE
-#   new(schema, state).run(errors)  (schema unused)
-
 module Kumi
   module Analyzer
     module Passes
-      class CycleDetector
-        def initialize(_schema, state)
-          @state = state
-        end
-
+      # RESPONSIBILITY: Detect cycles in the dependency graph using depth-first search
+      # DEPENDENCIES: :dependency_graph from DependencyResolver
+      # PRODUCES: None (validation only)
+      # INTERFACE: new(schema, state).run(errors)
+      class CycleDetector < PassBase
         def run(errors)
-          g = @state[:dependency_graph] || {}
+          dependency_graph = get_state(:dependency_graph, required: false) || {}
           visited = Set.new
-          stack = []
-          g.each_key { |n| dfs(n, g, visited, stack, errors) }
+          recursion_stack = []
+
+          dependency_graph.each_key do |node|
+            detect_cycles_from(node, dependency_graph, visited, recursion_stack, errors)
+          end
         end
 
         private
 
-        def dfs(node, g, visited, stack, errors)
+        def detect_cycles_from(node, graph, visited, stack, errors)
           return if visited.include?(node)
 
           visited << node
-          stack   << node
+          stack << node
 
-          Array(g[node]).each do |edge|
-            m = edge.to
-            if stack.include?(m)
-              errors << [nil, "cycle detected: #{(stack + [m]).join(' → ')}"]
+          Array(graph[node]).each do |edge|
+            target = edge.to
+            
+            if stack.include?(target)
+              report_cycle(stack + [target], errors)
             else
-              dfs(m, g, visited, stack, errors)
+              detect_cycles_from(target, graph, visited, stack, errors)
             end
           end
+          
           stack.pop
+        end
+
+        def report_cycle(cycle_path, errors)
+          cycle_description = cycle_path.join(' → ')
+          add_error(errors, nil, "cycle detected: #{cycle_description}")
         end
       end
     end

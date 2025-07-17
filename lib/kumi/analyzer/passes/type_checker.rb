@@ -1,59 +1,74 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY:
-#   - Validate function call arity and argument types against the FunctionRegistry.
 module Kumi
   module Analyzer
     module Passes
-      class TypeChecker < Visitor
-        def initialize(schema, state)
-          @schema = schema
-          @state = state
-        end
-
+      # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
+      # DEPENDENCIES: None (can run independently)
+      # PRODUCES: None (validation only)
+      # INTERFACE: new(schema, state).run(errors)
+      class TypeChecker < VisitorPass
         def run(errors)
-          each_decl do |decl|
-            visit(decl) { |node| handle(node, errors) }
+          visit_nodes_of_type(Expressions::CallExpression, errors: errors) do |node, _decl, errs|
+            validate_function_call(node, errs)
           end
         end
 
         private
 
-        def handle(node, errors)
-          validate_call(node, errors) if node.is_a?(CallExpression)
+        def validate_function_call(node, errors)
+          signature = get_function_signature(node.fn_name, errors)
+          return unless signature
+
+          validate_arity(node, signature, errors)
+          validate_argument_types(node, signature, errors)
         end
 
-        def validate_call(node, errors)
-          sig = Kumi::FunctionRegistry.signature(node.fn_name)
+        def get_function_signature(fn_name, errors)
+          FunctionRegistry.signature(fn_name)
+        rescue FunctionRegistry::UnknownFunction
+          add_error(errors, nil, "unsupported operator `#{fn_name}`")
+          nil
+        end
 
-          if sig[:arity] >= 0 && sig[:arity] != node.args.size
-            errors << [node.loc, "operator `#{node.fn_name}` expects #{sig[:arity]} args, got #{node.args.size}"]
-          end
+        def validate_arity(node, signature, errors)
+          expected_arity = signature[:arity]
+          actual_arity = node.args.size
 
-          return if sig[:types].nil? || (sig[:arity].negative? && node.args.empty?)
+          return if expected_arity < 0 || expected_arity == actual_arity
+
+          add_error(errors, node.loc, 
+                   "operator `#{node.fn_name}` expects #{expected_arity} args, got #{actual_arity}")
+        end
+
+        def validate_argument_types(node, signature, errors)
+          types = signature[:types]
+          return if types.nil? || (signature[:arity].negative? && node.args.empty?)
 
           node.args.each_with_index do |arg, i|
-            next unless arg.is_a?(Literal)
-
-            req_type = sig[:types][i]
-            next if req_type.nil? || req_type == :any
-
-            arg_type = arg.value.class.name.downcase.to_sym
-            arg_type = :numeric if %i[integer float].include?(arg_type)
-            arg_type = :string if arg_type == :regexp
-
-            unless Array(req_type).include?(arg_type)
-              errors << [arg.loc,
-                         "argument #{i + 1} of `fn(:#{node.fn_name})` expects #{Array(req_type).join(' or ')}, got literal `#{arg.value}` of type #{arg_type}"]
-            end
+            validate_argument_type(arg, i, types[i], node.fn_name, errors)
           end
-        rescue Kumi::FunctionRegistry::UnknownFunction
-          errors << [node.loc, "unsupported operator `#{node.fn_name}`"]
         end
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def validate_argument_type(arg, index, expected_type, fn_name, errors)
+          return unless arg.is_a?(TerminalExpressions::Literal)
+          return if expected_type.nil? || expected_type == :any
+
+          actual_type = normalize_type(arg.value)
+          expected_types = Array(expected_type)
+
+          return if expected_types.include?(actual_type)
+
+          add_error(errors, arg.loc,
+                   "argument #{index + 1} of `fn(:#{fn_name})` expects #{expected_types.join(' or ')}, " \
+                   "got literal `#{arg.value}` of type #{actual_type}")
+        end
+
+        def normalize_type(value)
+          type = value.class.name.downcase.to_sym
+          type = :numeric if %i[integer float].include?(type)
+          type = :string if type == :regexp
+          type
         end
       end
     end

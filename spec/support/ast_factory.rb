@@ -63,4 +63,28 @@ module ASTFactory
   def when_case_expression(predicate, then_expr)
     syntax(:when_case_expression, predicate, then_expr, loc: loc)
   end
+
+  # Dependency graph factory methods for analyzer pass tests
+  def dependency_edge(to:, type: :ref, via: nil)
+    Kumi::Analyzer::Passes::DependencyResolver::DependencyEdge.new(
+      to: to, type: type, via: via
+    )
+  end
+
+  def dependency_graph(**nodes)
+    nodes.transform_values do |edges|
+      Array(edges).map do |edge_spec|
+        case edge_spec
+        when Symbol
+          dependency_edge(to: edge_spec)
+        when Hash  
+          dependency_edge(**edge_spec)
+        when Kumi::Analyzer::Passes::DependencyResolver::DependencyEdge
+          edge_spec
+        else
+          raise ArgumentError, "Invalid edge specification: #{edge_spec}"
+        end
+      end
+    end
+  end
 end

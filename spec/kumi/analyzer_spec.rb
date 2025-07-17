@@ -29,13 +29,22 @@ RSpec.describe Kumi::Analyzer do
     end
 
     it "captures every dependency edge" do
-      expect(result.dependency_graph).to eq(
-        a: Set[],
-        b: Set[:a],
-        c: Set[:a],
-        d: Set[],
-        high: Set[:c]
+      graph = result.dependency_graph
+      
+      # Extract just the 'to' field from edges for simpler testing
+      simplified_graph = graph.transform_values { |edges| edges.map(&:to) }
+      
+      expect(simplified_graph).to eq(
+        b: [:a],
+        c: [:a],
+        high: [:c]
       )
+      
+      # Verify edge metadata is present
+      expect(graph[:b].first.type).to eq(:ref)
+      expect(graph[:b].first.via).to eq(:inc)
+      expect(graph[:c].first.via).to eq(:mul)
+      expect(graph[:high].first.via).to eq(:gt)
     end
 
     it "collects all terminal leaves" do

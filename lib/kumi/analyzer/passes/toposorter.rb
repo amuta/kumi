@@ -1,41 +1,52 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY
-#   Compute :topo_order from :dependency_graph.
-# INTERFACE
-#   new(schema, state).run(errors)  (errors unused)
-
 module Kumi
   module Analyzer
     module Passes
-      class Toposorter
-        def initialize(_schema, state)
-          @state = state
+      # RESPONSIBILITY: Compute topological ordering of declarations from dependency graph
+      # DEPENDENCIES: :dependency_graph from DependencyResolver, :definitions from NameIndexer
+      # PRODUCES: :topo_order - Array of declaration names in evaluation order
+      # INTERFACE: new(schema, state).run(errors)
+      class Toposorter < PassBase
+        def run(errors)
+          dependency_graph = get_state(:dependency_graph, required: false) || {}
+          definitions = get_state(:definitions, required: false) || {}
+
+          order = compute_topological_order(dependency_graph, definitions, errors)
+          set_state(:topo_order, order)
         end
 
-        def run(errors)
-          g = @state[:dependency_graph] || {}
-          defs = @state[:definitions] || {} # Get the map of defined rules
+        private
 
-          temp = Set.new
-          perm = Set.new
+        def compute_topological_order(graph, definitions, errors)
+          temp_marks = Set.new
+          perm_marks = Set.new
           order = []
-          visit = lambda do |n|
-            return if perm.include?(n)
 
-            if temp.include?(n)
-              errors << [:cycle, "cycle detected: #{temp.to_a.join(' → ')} → #{n}"]
+          visit_node = lambda do |node|
+            return if perm_marks.include?(node)
+
+            if temp_marks.include?(node)
+              report_unexpected_cycle(temp_marks, node, errors)
               return
             end
 
-            temp << n
-            Array(g[n]).each { |edge| visit.call(edge.to) }
-            temp.delete(n)
-            perm << n
-            order << n if defs.key?(n) # Only include declaration nodes (predicate, value) in the order
+            temp_marks << node
+            Array(graph[node]).each { |edge| visit_node.call(edge.to) }
+            temp_marks.delete(node)
+            perm_marks << node
+            
+            # Only include declaration nodes in the final order
+            order << node if definitions.key?(node)
           end
-          g.each_key { |n| visit.call(n) }
-          @state[:topo_order] = order
+
+          graph.each_key { |node| visit_node.call(node) }
+          order
+        end
+
+        def report_unexpected_cycle(temp_marks, current_node, errors)
+          cycle_path = temp_marks.to_a.join(' → ') + " → #{current_node}"
+          add_error(errors, :cycle, "cycle detected: #{cycle_path}")
         end
       end
     end

@@ -1,72 +1,71 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY:
-#   - Build the :dependency_graph and :leaf_map.
-#   - Check for undefined references.
 module Kumi
   module Analyzer
     module Passes
-      class DependencyResolver < Visitor
+      # RESPONSIBILITY: Build dependency graph and leaf map, validate references
+      # DEPENDENCIES: :definitions from NameIndexer
+      # PRODUCES: :dependency_graph - Hash of name → [DependencyEdge], :leaf_map - Hash of name → Set[nodes]
+      # INTERFACE: new(schema, state).run(errors)
+      class DependencyResolver < PassBase
         # A Struct to hold rich dependency information
         DependencyEdge = Struct.new(:to, :type, :via, keyword_init: true)
 
-        def initialize(schema, state)
-          @schema = schema
-          @state  = state
-        end
-
         def run(errors)
-          rich_graph = Hash.new { |h, k| h[k] = [] }
-          raw_leaves = Hash.new { |h, k| h[k] = Set.new }
-          defs = @state[:definitions] || {}
+          definitions = get_state(:definitions)
+          dependency_graph = Hash.new { |h, k| h[k] = [] }
+          leaf_map = Hash.new { |h, k| h[k] = Set.new }
 
           each_decl do |decl|
-            # Traverse the expression for each declaration, passing context down.
-            visit(decl.expression) do |node, context|
-              handle(node, decl, rich_graph, raw_leaves, defs, errors, context)
+            # Traverse the expression for each declaration, passing context down
+            visit_with_context(decl.expression) do |node, context|
+              process_node(node, decl, dependency_graph, leaf_map, definitions, errors, context)
             end
           end
 
-          @state[:dependency_graph] = rich_graph.transform_values(&:freeze).freeze
-          @state[:leaf_map] = raw_leaves.transform_values(&:freeze).freeze
+          set_state(:dependency_graph, dependency_graph.transform_values(&:freeze).freeze)
+          set_state(:leaf_map, leaf_map.transform_values(&:freeze).freeze)
         end
 
         private
 
-        def handle(node, decl, graph, leaves, defs, errors, context)
+        def process_node(node, decl, graph, leaves, definitions, errors, context)
           case node
-          when Syntax::TerminalExpressions::Binding
-            errors << [node.loc, "undefined reference to `#{node.name}`"] unless defs.key?(node.name)
-            # Create a rich edge describing the dependency
-            edge = DependencyEdge.new(to: node.name, type: :ref, via: context[:via])
-            graph[decl.name] << edge
-          when Syntax::TerminalExpressions::Field
-            edge = DependencyEdge.new(to: node.name, type: :key, via: context[:via])
-            graph[decl.name] << edge
+          when TerminalExpressions::Binding
+            validate_reference(node, definitions, errors)
+            add_dependency_edge(graph, decl.name, node.name, :ref, context[:via])
+          when TerminalExpressions::Field
+            add_dependency_edge(graph, decl.name, node.name, :key, context[:via])
             leaves[decl.name] << node
-          when Syntax::TerminalExpressions::Literal
+          when TerminalExpressions::Literal
             leaves[decl.name] << node
           end
         end
 
-        # This custom visitor passes context (like the function name) down the tree.
-        def visit(node, context = {}, &block)
+        def validate_reference(node, definitions, errors)
+          return if definitions.key?(node.name)
+          
+          add_error(errors, node.loc, "undefined reference to `#{node.name}`")
+        end
+
+        def add_dependency_edge(graph, from, to, type, via)
+          edge = DependencyEdge.new(to: to, type: type, via: via)
+          graph[from] << edge
+        end
+
+        # Custom visitor that passes context (like function name) down the tree
+        def visit_with_context(node, context = {}, &block)
           return unless node
 
           yield(node, context)
 
-          new_context = if node.is_a?(Syntax::Expressions::CallExpression)
+          new_context = if node.is_a?(Expressions::CallExpression)
                           { via: node.fn_name }
                         else
                           context
                         end
 
-          node.children.each { |c| visit(c, new_context, &block) }
-        end
-
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+          node.children.each { |child| visit_with_context(child, new_context, &block) }
         end
       end
     end

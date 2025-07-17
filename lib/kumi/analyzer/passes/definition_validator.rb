@@ -1,38 +1,40 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY:
-#   - Perform local, structural checks on each declaration.
 module Kumi
   module Analyzer
     module Passes
-      class DefinitionValidator < Visitor
-        def initialize(schema, state)
-          @schema = schema
-          @state = state
-        end
-
+      # RESPONSIBILITY: Perform local structural validation on each declaration
+      # DEPENDENCIES: None (can run independently)
+      # PRODUCES: None (validation only)
+      # INTERFACE: new(schema, state).run(errors)
+      class DefinitionValidator < VisitorPass
         def run(errors)
           each_decl do |decl|
-            visit(decl) { |node| handle(node, errors) }
+            visit(decl) { |node| validate_node(node, errors) }
           end
         end
 
         private
 
-        def handle(node, errors)
+        def validate_node(node, errors)
           case node
-          when Syntax::Attribute
-            errors << [node.loc, "attribute `#{node.name}` requires an expression"] if node.expression.nil?
-          when Syntax::Trait
-            unless node.expression.is_a?(Syntax::Expressions::CallExpression)
-              errors << [node.loc, "trait `#{node.name}` must wrap a CallExpression"]
-            end
+          when Declarations::Attribute
+            validate_attribute(node, errors)
+          when Declarations::Trait
+            validate_trait(node, errors)
           end
         end
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def validate_attribute(node, errors)
+          return unless node.expression.nil?
+          
+          add_error(errors, node.loc, "attribute `#{node.name}` requires an expression")
+        end
+
+        def validate_trait(node, errors)
+          return if node.expression.is_a?(Expressions::CallExpression)
+          
+          add_error(errors, node.loc, "trait `#{node.name}` must wrap a CallExpression")
         end
       end
     end

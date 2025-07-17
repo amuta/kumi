@@ -1,32 +1,24 @@
 # frozen_string_literal: true
 
-# RESPONSIBILITY
-#   Build :definitions and detect duplicates.
-# INTERFACE
-#   new(schema, state).run(errors)
 module Kumi
   module Analyzer
     module Passes
-      class NameIndexer < Visitor
-        def initialize(schema, state)
-          @schema = schema
-          @state  = state # shared accumulator
-        end
-
+      # RESPONSIBILITY: Build definitions index and detect duplicate names
+      # DEPENDENCIES: None (first pass in pipeline)
+      # PRODUCES: :definitions - Hash mapping names to declaration nodes
+      # INTERFACE: new(schema, state).run(errors)
+      class NameIndexer < PassBase
         def run(errors)
           definitions = {}
+          
           each_decl do |decl|
-            errors << [decl.loc, "duplicated definition `#{decl.name}`"] if definitions.key?(decl.name)
+            if definitions.key?(decl.name)
+              add_error(errors, decl.loc, "duplicated definition `#{decl.name}`")
+            end
             definitions[decl.name] = decl
           end
-          @state[:definitions] = definitions
-        end
-
-        private
-
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+          
+          set_state(:definitions, definitions)
         end
       end
     end

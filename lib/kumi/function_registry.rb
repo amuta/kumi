@@ -259,8 +259,8 @@ module Kumi
         description: "Get maximum value in collection"
       ),
       min: Entry.new(
-        fn: lambda(&:min),
-        arity: 1,
+        fn: ->(*args) { args.size == 1 ? args.first.min : args.min },
+        arity: -1,
         types: %i[collection],
         description: "Get minimum value in collection"
       ),
@@ -303,6 +303,12 @@ module Kumi
         arity: -1, # Accepts keyword arguments
         types: %i[any],
         description: "Creates a hash from keyword arguments."
+      ),
+      fetch: Entry.new(
+        fn: ->(hash, key, default = nil) { hash.fetch(key, default) },
+        arity: -1, # Variable arity (2 or 3)
+        types: %i[hash any any],
+        description: "Fetch value from hash by key, with optional default"
       )
     }.freeze
 
@@ -367,6 +373,11 @@ module Kumi
         description: "Convert value to array"
       )
     }.freeze
+
+    # Where should i put a hash operation? like
+    #    value :applicable_brackets, fn(:fetch, key(:tax_bracket_data), key(:filing_status))
+    #    value :total_tax, fn(:calculate_progressive_tax, ref(:taxable_income), ref(:applicable_brackets))
+    # response by AI:
 
     # Combine all core operations
     CORE_OPERATIONS = {
