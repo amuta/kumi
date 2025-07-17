@@ -108,29 +108,15 @@ module Kumi
         def infer_cascade_type(cascade_expr, type_context)
           return Types::Base.new if cascade_expr.cases.empty?
 
-          # Collect all possible result types
-          result_types = []
-
-          cascade_expr.cases.each do |case_stmt|
-            case case_stmt
-            when Syntax::Expressions::WhenCaseExpression
-              result_types << infer_expression_type(case_stmt.result, type_context)
-            end
+          result_types = cascade_expr.cases.map do |case_stmt|
+            infer_expression_type(case_stmt.result, type_context)
           end
 
-          return Types::Base.new if result_types.empty?
-
-          # Try to unify all result types, but limit to simple unions for v1
-          if result_types.size == 1
-            result_types.first
-          elsif result_types.size == 2
-            Types.unify(result_types[0], result_types[1])
-          else
-            # For more than 2 types, fall back to base type to avoid explosion
-            Types::Base.new
-          end
+          # Reduce all possible types into a single unified type
+          result_types.reduce { |unified, type| Types.unify(unified, type) } || Types::Base.new
         rescue StandardError
-          # If unification fails, fall back to base type
+          # Check if unification fails, fall back to base type
+          # TODO: understand if this right to fallback or we should raise
           Types::Base.new
         end
       end
