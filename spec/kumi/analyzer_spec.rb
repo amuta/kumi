@@ -30,16 +30,16 @@ RSpec.describe Kumi::Analyzer do
 
     it "captures every dependency edge" do
       graph = result.dependency_graph
-      
+
       # Extract just the 'to' field from edges for simpler testing
       simplified_graph = graph.transform_values { |edges| edges.map(&:to) }
-      
+
       expect(simplified_graph).to eq(
         b: [:a],
         c: [:a],
         high: [:c]
       )
-      
+
       # Verify edge metadata is present
       expect(graph[:b].first.type).to eq(:ref)
       expect(graph[:b].first.via).to eq(:inc)

@@ -35,10 +35,10 @@ module Kumi
           expected_arity = signature[:arity]
           actual_arity = node.args.size
 
-          return if expected_arity < 0 || expected_arity == actual_arity
+          return if expected_arity.negative? || expected_arity == actual_arity
 
-          add_error(errors, node.loc, 
-                   "operator `#{node.fn_name}` expects #{expected_arity} args, got #{actual_arity}")
+          add_error(errors, node.loc,
+                    "operator `#{node.fn_name}` expects #{expected_arity} args, got #{actual_arity}")
         end
 
         def validate_argument_types(node, signature, errors)
@@ -60,8 +60,8 @@ module Kumi
           return if expected_types.include?(actual_type)
 
           add_error(errors, arg.loc,
-                   "argument #{index + 1} of `fn(:#{fn_name})` expects #{expected_types.join(' or ')}, " \
-                   "got literal `#{arg.value}` of type #{actual_type}")
+                    "argument #{index + 1} of `fn(:#{fn_name})` expects #{expected_types.join(' or ')}, " \
+                    "got literal `#{arg.value}` of type #{actual_type}")
         end
 
         def normalize_type(value)

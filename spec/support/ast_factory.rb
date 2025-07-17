@@ -77,7 +77,7 @@ module ASTFactory
         case edge_spec
         when Symbol
           dependency_edge(to: edge_spec)
-        when Hash  
+        when Hash
           dependency_edge(**edge_spec)
         when Kumi::Analyzer::Passes::DependencyResolver::DependencyEdge
           edge_spec

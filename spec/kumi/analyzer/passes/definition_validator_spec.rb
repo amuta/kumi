@@ -27,9 +27,9 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
     context "with valid traits" do
       let(:schema) do
         valid_trait = trait(:expensive, call(:>, key(:price), lit(100)))
-        valid_trait_complex = trait(:eligible, call(:and, 
-                                                   call(:>, key(:age), lit(18)),
-                                                   call(:==, key(:verified), lit(true))))
+        valid_trait_complex = trait(:eligible, call(:and,
+                                                    call(:>, key(:age), lit(18)),
+                                                    call(:==, key(:verified), lit(true))))
         syntax(:root, [], [valid_trait, valid_trait_complex], loc: loc)
       end
 
@@ -48,7 +48,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
 
       it "reports error for missing expression" do
         run(schema)
-        
+
         expect(errors.size).to eq(1)
         expect(errors.first.last).to match(/attribute `broken` requires an expression/)
       end
@@ -63,7 +63,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
 
       it "reports error for non-call expression" do
         run(schema)
-        
+
         expect(errors.size).to eq(1)
         expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
@@ -71,14 +71,14 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
 
     context "with trait containing field reference" do
       let(:schema) do
-        # Trait with field reference instead of call expression  
+        # Trait with field reference instead of call expression
         invalid_trait = trait(:bad_trait, key(:some_field))
         syntax(:root, [], [invalid_trait], loc: loc)
       end
 
       it "reports error for field reference" do
         run(schema)
-        
+
         expect(errors.size).to eq(1)
         expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
@@ -93,7 +93,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
 
       it "reports error for binding reference" do
         run(schema)
-        
+
         expect(errors.size).to eq(1)
         expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
@@ -104,15 +104,15 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         broken_attr = syntax(:attribute, :broken_attr, nil, loc: loc)
         broken_trait = trait(:broken_trait, lit(false))
         another_broken_trait = trait(:another_broken, key(:field))
-        
+
         syntax(:root, [broken_attr], [broken_trait, another_broken_trait], loc: loc)
       end
 
       it "reports all validation errors" do
         run(schema)
-        
+
         expect(errors.size).to eq(3)
-        
+
         error_messages = errors.map(&:last)
         expect(error_messages).to include(match(/attribute `broken_attr` requires an expression/))
         expect(error_messages).to include(match(/trait `broken_trait` must wrap a CallExpression/))
@@ -127,7 +127,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         field_attr = attr(:field, key(:user_input))
         ref_attr = attr(:ref, ref(:other_value))
         call_attr = attr(:call, call(:add, lit(1), lit(2)))
-        
+
         syntax(:root, [literal_attr, field_attr, ref_attr, call_attr], [], loc: loc)
       end
 
@@ -144,7 +144,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         case2 = when_case_expression(call(:>, key(:amount), lit(500)), lit(0.1))
         default_case = when_case_expression(lit(true), lit(0.05))
         cascade_expr = syntax(:cascade_expression, [case1, case2, default_case], loc: loc)
-        
+
         cascade_attr = attr(:discount, cascade_expr)
         syntax(:root, [cascade_attr], [], loc: loc)
       end
@@ -159,12 +159,12 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
       let(:schema) do
         # Test that validator traverses nested structures correctly
         complex_attr = attr(:complex, call(:if,
-                                           call(:and, 
+                                           call(:and,
                                                 call(:>, key(:price), lit(0)),
                                                 call(:<=, key(:price), lit(1000))),
                                            call(:multiply, key(:price), lit(1.2)),
                                            lit(0)))
-        
+
         syntax(:root, [complex_attr], [], loc: loc)
       end
 

@@ -13,7 +13,7 @@ RSpec.describe Kumi::Analyzer::Passes::Toposorter do
   describe ".run" do
     context "with simple dependency chain" do
       it "returns parents after dependencies in deterministic order" do
-        order = toposort(a: [:b, :c], b: [:c], c: [])
+        order = toposort(a: %i[b c], b: [:c], c: [])
         expect(order.index(:c)).to be < order.index(:b)
         expect(order.index(:b)).to be < order.index(:a)
       end

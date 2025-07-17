@@ -44,7 +44,7 @@ module Kumi
 
         def validate_reference(node, definitions, errors)
           return if definitions.key?(node.name)
-          
+
           add_error(errors, node.loc, "undefined reference to `#{node.name}`")
         end
 

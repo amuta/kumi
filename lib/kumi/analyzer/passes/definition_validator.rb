@@ -27,13 +27,13 @@ module Kumi
 
         def validate_attribute(node, errors)
           return unless node.expression.nil?
-          
+
           add_error(errors, node.loc, "attribute `#{node.name}` requires an expression")
         end
 
         def validate_trait(node, errors)
           return if node.expression.is_a?(Expressions::CallExpression)
-          
+
           add_error(errors, node.loc, "trait `#{node.name}` must wrap a CallExpression")
         end
       end

@@ -8,7 +8,7 @@ RSpec.describe Kumi::Analyzer::Passes::CycleDetector do
     state = { dependency_graph: graph }
     errors = []
     described_class.new(nil, state).run(errors)
-    errors.map(&:last)                 # return just the messages
+    errors.map(&:last) # return just the messages
   end
 
   describe ".run" do

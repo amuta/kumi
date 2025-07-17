@@ -10,14 +10,12 @@ module Kumi
       class NameIndexer < PassBase
         def run(errors)
           definitions = {}
-          
+
           each_decl do |decl|
-            if definitions.key?(decl.name)
-              add_error(errors, decl.loc, "duplicated definition `#{decl.name}`")
-            end
+            add_error(errors, decl.loc, "duplicated definition `#{decl.name}`") if definitions.key?(decl.name)
             definitions[decl.name] = decl
           end
-          
+
           set_state(:definitions, definitions)
         end
       end

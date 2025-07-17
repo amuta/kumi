@@ -35,7 +35,7 @@ module Kumi
             Array(graph[node]).each { |edge| visit_node.call(edge.to) }
             temp_marks.delete(node)
             perm_marks << node
-            
+
             # Only include declaration nodes in the final order
             order << node if definitions.key?(node)
           end
@@ -45,7 +45,7 @@ module Kumi
         end
 
         def report_unexpected_cycle(temp_marks, current_node, errors)
-          cycle_path = temp_marks.to_a.join(' → ') + " → #{current_node}"
+          cycle_path = temp_marks.to_a.join(" → ") + " → #{current_node}"
           add_error(errors, :cycle, "cycle detected: #{cycle_path}")
         end
       end

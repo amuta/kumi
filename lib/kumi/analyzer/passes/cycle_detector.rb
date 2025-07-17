@@ -28,19 +28,19 @@ module Kumi
 
           Array(graph[node]).each do |edge|
             target = edge.to
-            
+
             if stack.include?(target)
               report_cycle(stack + [target], errors)
             else
               detect_cycles_from(target, graph, visited, stack, errors)
             end
           end
-          
+
           stack.pop
         end
 
         def report_cycle(cycle_path, errors)
-          cycle_description = cycle_path.join(' → ')
+          cycle_description = cycle_path.join(" → ")
           add_error(errors, nil, "cycle detected: #{cycle_description}")
         end
       end

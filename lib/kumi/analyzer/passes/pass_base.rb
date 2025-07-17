@@ -48,9 +48,8 @@ module Kumi
         # @raise [StandardError] If required state is missing
         def get_state(key, required: true)
           value = state[key]
-          if required && value.nil?
-            raise "Pass #{self.class.name} requires #{key} from previous passes, but it was not found"
-          end
+          raise "Pass #{self.class.name} requires #{key} from previous passes, but it was not found" if required && value.nil?
+
           value
         end
 
