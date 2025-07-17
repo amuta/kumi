@@ -60,6 +60,10 @@ module Kumi
       def hash
         [self.class, elem].hash
       end
+
+      def self.[](elem)
+        new(elem)
+      end
     end
 
     class SetOf < Base
@@ -83,6 +87,10 @@ module Kumi
 
       def hash
         [self.class, elem].hash
+      end
+
+      def self.[](elem)
+        new(elem)
       end
     end
 
@@ -108,6 +116,10 @@ module Kumi
 
       def hash
         [self.class, key, val].hash
+      end
+
+      def self.[](key, val)
+        new(key, val)
       end
     end
 
@@ -175,7 +187,22 @@ module Kumi
     # Common type unions
     NUMERIC = Union.new(INT, FLOAT)
 
-    # Helper methods
+    RUBY_KLASS_TO_TYPE = {
+      Integer: INT,
+      Float: FLOAT,
+      String: STRING,
+      TrueClass: BOOL,
+      FalseClass: BOOL,
+      Symbol: SYMBOL,
+      Regexp: REGEXP,
+      Time: TIME,
+      Date: DATE,
+      DateTime: DATETIME,
+      Array: ArrayOf.new(ANY),
+      Hash: HashOf.new(ANY, ANY),
+      Set: SetOf.new(ANY)
+    }.freeze
+
     def self.array(elem_type)
       ArrayOf.new(elem_type)
     end
@@ -188,30 +215,45 @@ module Kumi
       HashOf.new(key_type, val_type)
     end
 
-    def self.optional(inner_type)
-      Optional.new(inner_type)
+    # Maybe coerse is not the best name here, but it fits the context
+    def self.coerce(klass)
+      # If it's already a Kumi type, return as-is
+      return klass if klass.is_a?(Base)
+
+      kumi_type = RUBY_KLASS_TO_TYPE[klass.name&.to_sym]
+      return kumi_type if kumi_type
+
+      # return the original class
+      klass
     end
 
-    # Type inference from Ruby values
-    def self.infer_from_value(value)
-      case value
-      when Integer then INT
-      when Float then FLOAT
-      when String then STRING
-      when TrueClass, FalseClass then BOOL
-      when Symbol then SYMBOL
-      when Regexp then REGEXP
-      when Time then TIME
-      when Array then array(Base.new) # Generic array for now
-      when Hash then hash(Base.new, Base.new) # Generic hash for now
-      else
-        # Handle optional dependencies
-        return DATE if defined?(Date) && value.is_a?(Date)
-        return DATETIME if defined?(DateTime) && value.is_a?(DateTime)
-        return set(Base.new) if defined?(Set) && value.is_a?(Set)
+    # Check if type1 is compatible with type2
+    def self.compatible?(type1, type2)
+      return true if type1 == type2
+      # ANY type is compatible with any other type
+      return true if type1 == ANY || type2 == ANY
+      # Base type instances are compatible with any other type (generic base types)
+      return true if type1.is_a?(Base) && type1.instance_of?(Base)
+      return true if type2.is_a?(Base) && type2.instance_of?(Base)
 
-        Base.new
-      end
+      # Union types are compatible if either side is compatible
+      return compatible?(type1.left, type2) || compatible?(type1.right, type2) if type1.is_a?(Union)
+
+      return compatible?(type1, type2.left) || compatible?(type1, type2.right) if type2.is_a?(Union)
+
+      # Array types are compatible if their element types are compatible
+      return compatible?(type1.elem, type2.elem) if type1.is_a?(ArrayOf) && type2.is_a?(ArrayOf)
+
+      # Set types are compatible if their element types are compatible
+      return compatible?(type1.elem, type2.elem) if type1.is_a?(SetOf) && type2.is_a?(SetOf)
+
+      # Hash types are compatible if both key and value types are compatible
+      return compatible?(type1.key, type2.key) && compatible?(type1.val, type2.val) if type1.is_a?(HashOf) && type2.is_a?(HashOf)
+
+      # Numeric compatibility
+      return true if [type1, type2].all? { |t| [INT, FLOAT, DECIMAL].include?(t) }
+
+      false
     end
 
     # Type unification - find common supertype
@@ -234,62 +276,26 @@ module Kumi
       Union.new(type1, type2)
     end
 
-    # Map Ruby classes to Kumi types
-    def self.from_ruby_class(ruby_class)
-      # If it's already a Kumi type, return as-is
-      return ruby_class if ruby_class.is_a?(Base)
+    # Type inference from Ruby values
+    def self.infer_from_value(value)
+      case value
+      when Integer then INT
+      when Float then FLOAT
+      when String then STRING
+      when TrueClass, FalseClass then BOOL
+      when Symbol then SYMBOL
+      when Regexp then REGEXP
+      when Time then TIME
+      when Array then array(Base.new) # Generic array for now
+      when Hash then hash(Base.new, Base.new) # Generic hash for now
+      else
+        # Handle optional dependencies
+        return DATE if defined?(Date) && value.is_a?(Date)
+        return DATETIME if defined?(DateTime) && value.is_a?(DateTime)
+        return set(Base.new) if defined?(Set) && value.is_a?(Set)
 
-      return INT if ruby_class == Integer
-      return FLOAT if ruby_class == Float
-      return STRING if ruby_class == String
-      return BOOL if [TrueClass, FalseClass].include?(ruby_class)
-      return SYMBOL if ruby_class == Symbol
-      return REGEXP if ruby_class == Regexp
-      return TIME if ruby_class == Time
-      return array(ANY) if ruby_class == Array
-      return hash(ANY, ANY) if ruby_class == Hash
-
-      # Handle optional dependencies
-      return DATE if defined?(Date) && ruby_class == Date
-      return DATETIME if defined?(DateTime) && ruby_class == DateTime
-      return set(ANY) if defined?(Set) && ruby_class == Set
-
-      # Default to ANY for unknown types
-      nil
-    end
-
-    # Check if type1 is compatible with type2
-    def self.compatible?(type1, type2)
-      return true if type1 == type2
-      # ANY type is compatible with any other type
-      return true if type1 == ANY || type2 == ANY
-      # Base type instances are compatible with any other type (generic base types)
-      return true if type1.is_a?(Base) && type1.instance_of?(Base)
-      return true if type2.is_a?(Base) && type2.instance_of?(Base)
-
-      # Optional types are compatible with their inner type
-      return compatible?(type1.inner, type2) if type1.is_a?(Optional)
-
-      return compatible?(type1, type2.inner) if type2.is_a?(Optional)
-
-      # Union types are compatible if either side is compatible
-      return compatible?(type1.left, type2) || compatible?(type1.right, type2) if type1.is_a?(Union)
-
-      return compatible?(type1, type2.left) || compatible?(type1, type2.right) if type2.is_a?(Union)
-
-      # Array types are compatible if their element types are compatible
-      return compatible?(type1.elem, type2.elem) if type1.is_a?(ArrayOf) && type2.is_a?(ArrayOf)
-
-      # Set types are compatible if their element types are compatible
-      return compatible?(type1.elem, type2.elem) if type1.is_a?(SetOf) && type2.is_a?(SetOf)
-
-      # Hash types are compatible if both key and value types are compatible
-      return compatible?(type1.key, type2.key) && compatible?(type1.val, type2.val) if type1.is_a?(HashOf) && type2.is_a?(HashOf)
-
-      # Numeric compatibility
-      return true if [type1, type2].all? { |t| [INT, FLOAT, DECIMAL].include?(t) }
-
-      false
+        Base.new
+      end
     end
   end
 end

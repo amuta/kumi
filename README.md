@@ -31,9 +31,9 @@ require 'kumi'
 # Define a schema with explicit input declarations and business rules
 schema = Kumi.schema do
   input do
-    key :score, type: Kumi::Types::INT
-    key :base_discount, type: Kumi::Types::FLOAT
-    key :customer_tier, type: Kumi::Types::STRING
+    key :score, type: Integer
+    key :base_discount, type: Float
+    key :customer_tier, type: String
   end
   
   predicate :high_risk, fn(:>, input.score, 80)
@@ -54,7 +54,7 @@ puts runner.fetch(:final_discount, {
   base_discount: 10.0, 
   customer_tier: "premium"
 }) # => 15.0
-```
+```INT
 
 ## Core Features
 
@@ -64,9 +64,10 @@ All schemas must declare expected input fields with optional type annotations:
 ```ruby
 schema do
   input do
-    key :age, type: Kumi::Types::INT
-    key :name, type: Kumi::Types::STRING
-    key :scores, type: Kumi::Types.array(Kumi::Types::INT)
+    key :age, type: Integer
+    key :name, type: String
+    key :scores, type: Array
+    key :dynamic
   end
   
   # Use input.field_name to access fields
@@ -75,6 +76,9 @@ schema do
 end
 ```
 
+note: when the type is not declared, it will be considered as `Any` type
+(Later I will add a flag for strict_type: true)
+
 ### Type System
 - **Declared Types**: Explicit type declarations in input blocks
 - **Inferred Types**: Automatic type inference from expressions
@@ -82,7 +86,7 @@ end
 - **Rich Error Messages**: Shows type provenance and location information
 
 ### Available Types
-- Primitives: `INT`, `FLOAT`, `STRING`, `BOOL`, `NUMERIC`, `COMPARABLE`, `ANY`
+- Primitives: `Integer`, `Float`, `String`, `Bool`, `Numeric`, `Any`
 - Collections: `array(T)`, `set(T)`, `hash(K, V)`
 - Unions: `A | B` for multiple possible types
 - Optionals: `optional(T)` for nullable values
@@ -99,10 +103,10 @@ end
 - `ref(:name)` - Reference other declarations
 - `fn(:function, args...)` - Function calls
 - `[element1, element2]` - Lists
-- Literals: numbers, strings, booleans
+- Literals: numbers, Strings, booleans
 
 ### Available Functions
-Core functions include arithmetic (`add`, `subtract`, `multiply`, `divide`), comparison (`==`, `>`, `<`, `>=`, `<=`), logical (`and`, `or`, `not`), string operations (`concat`, `upcase`, `downcase`), and collection operations (`sum`, `first`, `last`, `size`).
+Core functions include arithmetic (`add`, `subtract`, `multiply`, `divide`), comparison (`==`, `>`, `<`, `>=`, `<=`), logical (`and`, `or`, `not`), String operations (`concat`, `upcase`, `downcase`), and collection operations (`sum`, `first`, `last`, `size`).
 
 ## Examples
 
@@ -110,8 +114,8 @@ Core functions include arithmetic (`add`, `subtract`, `multiply`, `divide`), com
 ```ruby
 schema do
   input do
-    key :temperature, type: Kumi::Types::FLOAT
-    key :humidity, type: Kumi::Types::FLOAT
+    key :temperature, type: Float
+    key :humidity, type: Float
   end
   
   predicate :hot, fn(:>, input.temperature, 80.0)
@@ -130,10 +134,10 @@ end
 ```ruby
 schema do
   input do
-    key :credit_score, type: Kumi::Types::INT
-    key :annual_income, type: Kumi::Types::FLOAT
-    key :loan_amount, type: Kumi::Types::FLOAT
-    key :employment_years, type: Kumi::Types::INT
+    key :credit_score, type: Integer
+    key :annual_income, type: Float
+    key :loan_amount, type: Float
+    key :employment_years, type: Integer
   end
   
   predicate :good_credit, fn(:>=, input.credit_score, 700)
@@ -176,8 +180,8 @@ Kumi provides detailed error messages with:
 
 ```ruby
 # Example error:
-# at example.rb:10:5: argument 1 of `fn(:add)` expects int | float, 
-# got input field `name` of declared type string
+# at example.rb:10:5: argument 1 of `fn(:add)` expects int | Float, 
+# got input field `name` of declared type String
 ```
 
 ## Development

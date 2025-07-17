@@ -71,15 +71,6 @@ RSpec.describe Kumi::Types do
         expect(string_int_hash.to_s).to eq("hash<string,int>")
       end
     end
-
-    describe "Optional" do
-      it "creates optional types" do
-        optional_string = described_class.optional(Kumi::Types::STRING)
-        expect(optional_string).to be_a(Kumi::Types::Optional)
-        expect(optional_string.inner).to eq(Kumi::Types::STRING)
-        expect(optional_string.to_s).to eq("string?")
-      end
-    end
   end
 
   describe "type inference from values" do
@@ -136,12 +127,6 @@ RSpec.describe Kumi::Types do
       base = Kumi::Types::Base.new
       expect(described_class.compatible?(Kumi::Types::INT, base)).to be true
       expect(described_class.compatible?(base, Kumi::Types::INT)).to be true
-    end
-
-    it "handles optional type compatibility" do
-      optional_int = described_class.optional(Kumi::Types::INT)
-      expect(described_class.compatible?(Kumi::Types::INT, optional_int)).to be true
-      expect(described_class.compatible?(optional_int, Kumi::Types::INT)).to be true
     end
 
     it "handles union type compatibility" do

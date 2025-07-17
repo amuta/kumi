@@ -7,16 +7,16 @@ module Kumi
     class InputDslProxy
       include Syntax
 
+      # We define these so they can be used in the DSL
+      Bool       = Kumi::Types::BOOL
+      Any        = Kumi::Types::ANY
+
       def initialize(context)
         @context = context
       end
 
-      def key(name, type: nil, domain: nil)
-        type ||= Kumi::Types::ANY
-        # Convert Ruby classes to Kumi types
-        kumi_type = Kumi::Types.from_ruby_class(type)
-
-        type = kumi_type || type
+      def key(name, type: Any, domain: nil)
+        type = Kumi::Types.coerce(type)
 
         unless type.is_a?(Kumi::Types::Base)
           @context.raise_error("Undefined type class `#{type}` for input `#{name}`. Use a valid Kumi type or Ruby class.",

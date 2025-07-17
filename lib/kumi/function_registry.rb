@@ -241,21 +241,21 @@ module Kumi
       all?: Entry.new(
         fn: lambda(&:all?),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::BOOL,
         description: "Check if all elements in collection are truthy"
       ),
       any?: Entry.new(
         fn: lambda(&:any?),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::BOOL,
         description: "Check if any element in collection is truthy"
       ),
       none?: Entry.new(
         fn: lambda(&:none?),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::BOOL,
         description: "Check if no elements in collection are truthy"
       )
@@ -266,77 +266,77 @@ module Kumi
       empty?: Entry.new(
         fn: lambda(&:empty?),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::BOOL,
         description: "Check if collection is empty"
       ),
       first: Entry.new(
         fn: lambda(&:first),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::ANY,
         description: "Get first element of collection"
       ),
       last: Entry.new(
         fn: lambda(&:last),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::ANY,
         description: "Get last element of collection"
       ),
       sum: Entry.new(
         fn: lambda(&:sum),
         arity: 1,
-        param_types: [Types.array(Types::NUMERIC)],
+        param_types: [Types::ArrayOf[Types::NUMERIC]],
         return_type: Types::NUMERIC,
         description: "Sum all elements in collection"
       ),
       max: Entry.new(
         fn: lambda(&:max),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::ANY,
         description: "Get maximum value in collection"
       ),
       min: Entry.new(
         fn: ->(*args) { args.size == 1 ? args.first.min : args.min },
         arity: -1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::ANY,
         description: "Get minimum value in collection"
       ),
       sort: Entry.new(
         fn: lambda(&:sort),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
-        return_type: Types.array(Types::ANY),
+        param_types: [Types::ArrayOf[Types::ANY]],
+        return_type: Types::ArrayOf[Types::ANY],
         description: "Sort collection"
       ),
       reverse: Entry.new(
         fn: lambda(&:reverse),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
-        return_type: Types.array(Types::ANY),
+        param_types: [Types::ArrayOf[Types::ANY]],
+        return_type: Types::ArrayOf[Types::ANY],
         description: "Reverse collection"
       ),
       uniq: Entry.new(
         fn: lambda(&:uniq),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
-        return_type: Types.array(Types::ANY),
+        param_types: [Types::ArrayOf[Types::ANY]],
+        return_type: Types::ArrayOf[Types::ANY],
         description: "Remove duplicates from collection"
       ),
       size: Entry.new(
         fn: lambda(&:size),
         arity: 1,
-        param_types: [Types.array(Types::ANY)],
+        param_types: [Types::ArrayOf[Types::ANY]],
         return_type: Types::INT,
         description: "Get collection size"
       ),
       count_match: Entry.new(
         fn: ->(collection, pattern) { collection.count { |item| item.to_s.match?(Regexp.new(pattern)) } },
         arity: 2,
-        param_types: [Types.array(Types::ANY), Types::STRING],
+        param_types: [Types::ArrayOf[Types::ANY], Types::STRING],
         return_type: Types::INT,
         description: "Counts items in a collection that match a regex pattern."
       )
@@ -344,17 +344,10 @@ module Kumi
 
     # Core data structure operations
     DATA_STRUCTURE_OPERATIONS = {
-      hash: Entry.new(
-        fn: ->(**kwargs) { kwargs },
-        arity: -1, # Accepts keyword arguments
-        param_types: [Types::ANY],
-        return_type: Types.hash(Types::ANY, Types::ANY),
-        description: "Creates a hash from keyword arguments."
-      ),
       fetch: Entry.new(
         fn: ->(hash, key, default = nil) { hash.fetch(key, default) },
         arity: -1, # Variable arity (2 or 3)
-        param_types: [Types.hash(Types::ANY, Types::ANY), Types::ANY, Types::ANY],
+        param_types: [Types::HashOf[Types::ANY, Types::ANY], Types::ANY, Types::ANY],
         return_type: Types::ANY,
         description: "Fetch value from hash by key, with optional default"
       )
@@ -426,7 +419,7 @@ module Kumi
         fn: ->(value) { Array(value) },
         arity: 1,
         param_types: [Types::ANY],
-        return_type: Types.array(Types::ANY),
+        return_type: Types::ArrayOf[Types::ANY],
         description: "Convert value to array"
       )
     }.freeze
