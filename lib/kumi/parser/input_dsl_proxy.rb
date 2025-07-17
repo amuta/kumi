@@ -13,6 +13,16 @@ module Kumi
 
       def key(name, type: nil, domain: nil)
         type ||= Kumi::Types::ANY
+        # Convert Ruby classes to Kumi types
+        kumi_type = Kumi::Types.from_ruby_class(type)
+
+        type = kumi_type || type
+
+        unless type.is_a?(Kumi::Types::Base)
+          @context.raise_error("Undefined type class `#{type}` for input `#{name}`. Use a valid Kumi type or Ruby class.",
+                               @context.current_location)
+        end
+
         @context.inputs << FieldDecl.new(name, domain, type, loc: @context.current_location)
       end
 

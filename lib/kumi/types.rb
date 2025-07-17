@@ -234,6 +234,30 @@ module Kumi
       Union.new(type1, type2)
     end
 
+    # Map Ruby classes to Kumi types
+    def self.from_ruby_class(ruby_class)
+      # If it's already a Kumi type, return as-is
+      return ruby_class if ruby_class.is_a?(Base)
+
+      return INT if ruby_class == Integer
+      return FLOAT if ruby_class == Float
+      return STRING if ruby_class == String
+      return BOOL if [TrueClass, FalseClass].include?(ruby_class)
+      return SYMBOL if ruby_class == Symbol
+      return REGEXP if ruby_class == Regexp
+      return TIME if ruby_class == Time
+      return array(ANY) if ruby_class == Array
+      return hash(ANY, ANY) if ruby_class == Hash
+
+      # Handle optional dependencies
+      return DATE if defined?(Date) && ruby_class == Date
+      return DATETIME if defined?(DateTime) && ruby_class == DateTime
+      return set(ANY) if defined?(Set) && ruby_class == Set
+
+      # Default to ANY for unknown types
+      nil
+    end
+
     # Check if type1 is compatible with type2
     def self.compatible?(type1, type2)
       return true if type1 == type2

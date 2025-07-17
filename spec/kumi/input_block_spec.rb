@@ -148,6 +148,114 @@ RSpec.describe "Input Block Feature" do
   end
 
   # Test compliance with acceptance criteria
+  describe "Ruby class type declarations" do
+    it "accepts Integer as type parameter" do
+      schema = create_schema do
+        input do
+          key :age, type: Integer, domain: 0..120
+        end
+
+        predicate :adult, input.age, :>=, 18
+      end
+
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
+    end
+
+    it "accepts String as type parameter" do
+      schema = create_schema do
+        input do
+          key :name, type: String
+        end
+
+        predicate :has_name, input.name, :!=, ""
+      end
+
+      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(Kumi::Types::STRING)
+    end
+
+    it "accepts Float as type parameter" do
+      schema = create_schema do
+        input do
+          key :score, type: Float, domain: 0.0..100.0
+        end
+
+        predicate :passing, input.score, :>=, 60.0
+      end
+
+      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(Kumi::Types::FLOAT)
+    end
+
+    it "accepts TrueClass and FalseClass as type parameter" do
+      schema = create_schema do
+        input do
+          key :active, type: TrueClass
+          key :enabled, type: FalseClass
+        end
+
+        predicate :is_active, input.active, :==, true
+      end
+
+      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(Kumi::Types::BOOL)
+      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(Kumi::Types::BOOL)
+    end
+
+    it "accepts Array as type parameter" do
+      schema = create_schema do
+        input do
+          key :items, type: Array
+        end
+
+        predicate :has_items, fn(:size, input.items), :>, 0
+      end
+
+      expected_type = Kumi::Types::ArrayOf.new(Kumi::Types::ANY)
+      expect(schema.analysis.state[:input_meta][:items][:type]).to eq(expected_type)
+    end
+
+    it "accepts Hash as type parameter" do
+      schema = create_schema do
+        input do
+          key :config, type: Hash
+        end
+
+        value :username, fn(:fetch, input.config, :username)
+      end
+
+      expected_type = Kumi::Types::HashOf.new(Kumi::Types::ANY, Kumi::Types::ANY)
+      expect(schema.analysis.state[:input_meta][:config][:type]).to eq(expected_type)
+    end
+
+    it "still accepts Kumi types as type parameter" do
+      schema = create_schema do
+        input do
+          key :age, type: Kumi::Types::INT
+          key :name, type: String
+        end
+
+        predicate :adult, input.age, :>=, 18
+      end
+
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
+      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(Kumi::Types::STRING)
+    end
+
+    it "defaults to ANY for unknown types" do
+      unknown_class = Class.new
+
+      expect do
+        create_schema do
+          input do
+            key :unknown, type: unknown_class
+          end
+
+          predicate :always_true, true, :==, true
+        end
+      end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+        expect(error.message).to match(/Undefined type class `#{unknown_class}` for input `unknown`. Use a valid Kumi type or Ruby class/)
+      end
+    end
+  end
+
   describe "acceptance criteria" do
     it "Field declared once; referenced via input.age" do
       schema = create_schema do
