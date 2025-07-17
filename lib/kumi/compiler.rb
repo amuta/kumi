@@ -120,12 +120,20 @@ module Kumi
       values = arg_fns.map { |fn| fn.call(ctx) }
       fn.call(*values)
     rescue StandardError => e
-      # I need to validate this with examples of errors within the fn calls
-      # to make sure it is not obscuring useful information
-      # e.g. if fn is a lambda that raises an error, we want to see
-      # the original error message, not just "Error calling fn(:name)"
-      raise Errors::RuntimeError,
-            "Error calling fn(:#{name}) at #{loc}: #{e.message}"
+      # Preserve original error class and backtrace while adding context
+      enhanced_message = "Error calling fn(:#{name}) at #{loc}: #{e.message}"
+      
+      if e.is_a?(Kumi::Errors::Error)
+        # Re-raise Kumi errors with enhanced message but preserve type
+        e.define_singleton_method(:message) { enhanced_message }
+        raise e
+      else
+        # For non-Kumi errors, wrap in RuntimeError but preserve original error info
+        runtime_error = Errors::RuntimeError.new(enhanced_message)
+        runtime_error.set_backtrace(e.backtrace)
+        runtime_error.define_singleton_method(:cause) { e }
+        raise runtime_error
+      end
     end
   end
 end
