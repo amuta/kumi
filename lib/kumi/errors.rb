@@ -23,6 +23,8 @@ module Kumi
 
     class SemanticError < LocatedError; end
 
+    class TypeError < SemanticError; end
+
     class SyntaxError < LocatedError; end
 
     class RuntimeError < Error; end

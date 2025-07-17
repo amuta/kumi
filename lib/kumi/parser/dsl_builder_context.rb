@@ -55,8 +55,8 @@ module Kumi
         @traits << Trait.new(name, expr, loc: loc)
       end
 
-      def key(name)
-        Field.new(name, loc: current_location)
+      def key(name, domain: nil, type: nil)
+        Field.new(name, domain, type, loc: current_location)
       end
 
       def ref(name)

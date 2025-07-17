@@ -13,7 +13,7 @@ module Kumi
       end
 
       DSL_METHODS.each do |meth|
-        define_method(meth) do |*args, &blk|
+        define_method(meth) do |*args, **kwargs, &blk|
           # grab exactly where the user invoked `attribute`, `fn`, etc.
           c = caller_locations(1, 1).first
           @context.last_loc = Syntax::Location.new(
@@ -21,7 +21,7 @@ module Kumi
             line: c.lineno,
             column: 0
           )
-          @context.public_send(meth, *args, &blk)
+          @context.public_send(meth, *args, **kwargs, &blk)
         end
       end
     end

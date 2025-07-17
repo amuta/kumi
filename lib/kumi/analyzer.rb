@@ -2,7 +2,7 @@
 
 module Kumi
   module Analyzer
-    Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, keyword_init: true)
+    Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
 
     module_function
 
@@ -12,7 +12,8 @@ module Kumi
       Passes::DependencyResolver,     # 3. Builds the dependency graph.
       Passes::TypeChecker,            # 4. Validates types in function calls.
       Passes::CycleDetector,          # 5. Finds cycles in the dependency graph.
-      Passes::Toposorter              # 6. Creates the final evaluation order.
+      Passes::Toposorter,             # 6. Creates the final evaluation order.
+      Passes::TypeInferencer          # 7. Infers types for all declarations.
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)
@@ -27,7 +28,9 @@ module Kumi
         definitions: analysis_state[:definitions].freeze,
         dependency_graph: analysis_state[:dependency_graph].freeze,
         leaf_map: analysis_state[:leaf_map].freeze,
-        topo_order: analysis_state[:topo_order].freeze
+        topo_order: analysis_state[:topo_order].freeze,
+        decl_types: analysis_state[:decl_types].freeze,
+        state: analysis_state.freeze
       )
     end
 

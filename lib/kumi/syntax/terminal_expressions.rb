@@ -11,7 +11,7 @@ module Kumi
         include Node
         def children = []
       end
-      Field = Struct.new(:name) do
+      Field = Struct.new(:name, :domain, :type) do
         include Node
         def children = []
       end
