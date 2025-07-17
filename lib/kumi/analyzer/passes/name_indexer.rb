@@ -9,6 +9,7 @@ module Kumi
     module Passes
       class NameIndexer < Visitor
         def initialize(schema, state)
+          super()
           @schema = schema
           @state  = state # shared accumulator
         end
@@ -24,9 +25,9 @@ module Kumi
 
         private
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def each_decl(&block)
+          @schema.attributes.each(&block)
+          @schema.traits.each(&block)
         end
       end
     end

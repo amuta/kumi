@@ -7,6 +7,7 @@ module Kumi
     module Passes
       class TypeChecker < Visitor
         def initialize(schema, state)
+          super()
           @schema = schema
           @state = state
         end
@@ -51,9 +52,9 @@ module Kumi
           errors << [node.loc, "unsupported operator `#{node.fn_name}`"]
         end
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def each_decl(&block)
+          @schema.attributes.each(&block)
+          @schema.traits.each(&block)
         end
       end
     end

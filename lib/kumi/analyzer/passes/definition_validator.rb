@@ -7,6 +7,7 @@ module Kumi
     module Passes
       class DefinitionValidator < Visitor
         def initialize(schema, state)
+          super()
           @schema = schema
           @state = state
         end
@@ -30,9 +31,9 @@ module Kumi
           end
         end
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def each_decl(&block)
+          @schema.attributes.each(&block)
+          @schema.traits.each(&block)
         end
       end
     end

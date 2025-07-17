@@ -121,7 +121,7 @@ module Kumi
         description: "Ceiling of number"
       ),
       clamp: Entry.new(
-        fn: ->(value, min, max) { [[value, min].max, max].min },
+        fn: ->(value, min, max) { value.clamp(min, max) },
         arity: 3,
         types: %i[numeric numeric numeric],
         description: "Clamp value between min and max"

@@ -50,7 +50,8 @@ module Kumi
         "#{indent_str}- is an unknown expression type.\n"
       end
     rescue StandardError => e
-      binding.pry
+      # You might log the error here for debugging purposes
+      raise e
     end
   end
 end

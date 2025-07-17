@@ -11,6 +11,7 @@ module Kumi
         DependencyEdge = Struct.new(:to, :type, :via, keyword_init: true)
 
         def initialize(schema, state)
+          super()
           @schema = schema
           @state  = state
         end
@@ -64,9 +65,9 @@ module Kumi
           node.children.each { |c| visit(c, new_context, &block) }
         end
 
-        def each_decl(&b)
-          @schema.attributes.each(&b)
-          @schema.traits.each(&b)
+        def each_decl(&block)
+          @schema.attributes.each(&block)
+          @schema.traits.each(&block)
         end
       end
     end

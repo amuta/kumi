@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Kumi Default Functions" do
+RSpec.describe "Kumi Default Functions" do # rubocop:disable RSpec/DescribeClass
   describe "core functions" do
     it "works" do
       syntax_tree = Kumi::Parser::Dsl.build_sytax_tree do
@@ -27,3 +27,4 @@ RSpec.describe "Kumi Default Functions" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

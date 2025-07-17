@@ -22,18 +22,18 @@ module Kumi
 
         private
 
-        def dfs(node, g, visited, stack, errors)
+        def dfs(node, graph, visited, stack, errors)
           return if visited.include?(node)
 
           visited << node
-          stack   << node
+          stack << node
 
-          Array(g[node]).each do |edge|
+          Array(graph[node]).each do |edge|
             m = edge.to
             if stack.include?(m)
               errors << [nil, "cycle detected: #{(stack + [m]).join(' → ')}"]
             else
-              dfs(m, g, visited, stack, errors)
+              dfs(m, graph, visited, stack, errors)
             end
           end
           stack.pop

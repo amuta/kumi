@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Kumi Cascade Logic" do
+RSpec.describe "Kumi Cascade Logic" do # rubocop:disable RSpec/DescribeClass
   let(:syntax_tree) do
     Kumi::Parser::Dsl.build_sytax_tree do
       # -- Base Predicates --
@@ -46,3 +46,4 @@ RSpec.describe "Kumi Cascade Logic" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

@@ -77,7 +77,7 @@ class PlainRubySegmenter
     }
   end
 end
-
+# rubocop:disable RSpec/DescribeClass
 RSpec.describe "Kumi Performance" do
   # Reuse the setup from the integration spec
   before(:all) do
@@ -150,8 +150,6 @@ RSpec.describe "Kumi Performance" do
         x.compare!
       end
 
-      expect(true).to be(true)
-
       # The threshold is arbitrary; adjust based on expectations.
       # This asserts that the compilation is not excessively slow.
       # expect(compilation_time).to be < 0.001 # seconds
@@ -205,8 +203,6 @@ RSpec.describe "Kumi Performance" do
 
         x.compare!
       end
-
-      expect(true).to be(true)
     end
 
     it "is faster than plain ruby if it only evaluates a few keys" do
@@ -222,8 +218,7 @@ RSpec.describe "Kumi Performance" do
 
         x.compare!
       end
-
-      expect(true).to be(true)
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

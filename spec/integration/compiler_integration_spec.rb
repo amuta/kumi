@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Kumi Compiler Integration" do
+RSpec.describe "Kumi Compiler Integration" do # rubocop:disable RSpec/DescribeClass
   before(:all) do
     Kumi::FunctionRegistry.reset!
 
@@ -319,3 +319,4 @@ RSpec.describe "Kumi Compiler Integration" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

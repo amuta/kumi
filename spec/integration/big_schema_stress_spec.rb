@@ -7,7 +7,7 @@ return unless ENV["KUMI_PERFORMANCE_TEST"]
 
 # This could be better, we are testing against a simplistic schema
 # TODO: improve schema generation to cover more complex/realistic scenario
-RSpec.describe "big schema stress test" do
+RSpec.describe "big schema stress test" do # rubocop:disable RSpec/DescribeClass
   let!(:big_schema_def) { generate_schema(num_preds: 500, num_vals: 500, cascade_size: 4) }
   let!(:analyzer)      { Kumi::Analyzer.analyze!(big_schema_def) }
   let!(:compiled)      { Kumi::Compiler.compile(big_schema_def, analyzer: analyzer) }
@@ -29,3 +29,4 @@ RSpec.describe "big schema stress test" do
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass
