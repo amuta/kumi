@@ -7,7 +7,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
 
   describe ".run" do
     context "when the schema is empty" do
-      let(:schema) { syntax(:root, [], [], loc: loc) }
+      let(:schema) { syntax(:root, [], [], [], loc: loc) }
 
       it "leaves the state empty and records no errors" do
         state = {}
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
     context "with unique attribute and trait names" do
       let(:price_attribute) { attr(:price, lit(100)) }
       let(:vip_trait) { trait(:vip, call(:is_vip, ref(:price))) }
-      let(:schema) { syntax(:root, [price_attribute], [vip_trait], loc: loc) }
+      let(:schema) { syntax(:root, [], [price_attribute], [vip_trait], loc: loc) }
 
       it "stores each declaration and reports zero errors" do
         state = {}
@@ -40,7 +40,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
       # let(:schema) { syntax(:root, [attr(:dup), attr(:dup)], [], loc: loc) }
       let(:dup_attribute) { attr(:dup, lit(1)) }
       let(:dup_attribute_two) { attr(:dup, lit(2)) }
-      let(:schema) { syntax(:root, [dup_attribute, dup_attribute_two], []) }
+      let(:schema) { syntax(:root, [], [dup_attribute, dup_attribute_two], []) }
 
       it "records a single duplicate-definition error" do
         state = {}
@@ -53,7 +53,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
     end
 
     context "when an attribute and a trait share the same name" do
-      let(:schema) { syntax(:root, [attr(:conflict)], [trait(:conflict, call(:is_conflict))], loc: loc) }
+      let(:schema) { syntax(:root, [], [attr(:conflict)], [trait(:conflict, call(:is_conflict))], loc: loc) }
 
       it "registers the duplicate and keeps the last declaration in the map" do
         state = {}

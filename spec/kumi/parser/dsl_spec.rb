@@ -8,19 +8,19 @@ RSpec.describe Kumi::Parser::Dsl do
   describe ".build_sytax_tree" do
     it "can define values" do
       schema = build_schema do
-        value :name, key(:first_name)
+        value :name, input.first_name
       end
 
       expect(schema.attributes.size).to eq(1)
       expect(schema.attributes.first).to be_a(Kumi::Syntax::Declarations::Attribute)
       expect(schema.attributes.first.name).to eq(:name)
-      expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+      expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
       expect(schema.attributes.first.expression.name).to eq(:first_name)
     end
 
     it "can define predicates" do
       schema = build_schema do
-        predicate :vip, key(:status), :==, "VIP"
+        predicate :vip, input.status, :==, "VIP"
       end
 
       expect(schema.traits.size).to eq(1)
@@ -30,19 +30,19 @@ RSpec.describe Kumi::Parser::Dsl do
       expect(predicate.expression).to be_a(Kumi::Syntax::Expressions::CallExpression)
       expect(predicate.expression.fn_name).to eq(:==)
       expect(predicate.expression.args.size).to eq(2)
-      expect(predicate.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+      expect(predicate.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
       expect(predicate.expression.args.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
     end
 
     it "can define multiple values, predicates" do
       schema = build_schema do
-        value :name, key(:first_name)
-        value :age, key(:birth_date)
+        value :name, input.first_name
+        value :age, input.birth_date
 
-        predicate :adult, key(:age), :>=, 18
-        predicate :senior, key(:age), :>=, 65
+        predicate :adult, input.age, :>=, 18
+        predicate :senior, input.age, :>=, 65
 
-        value :greet, fn(:hello, key(:name))
+        value :greet, fn(:hello, input.name)
       end
 
       expect(schema.attributes.size).to eq(3)
@@ -52,15 +52,15 @@ RSpec.describe Kumi::Parser::Dsl do
       expect(schema.traits.map(&:name)).to contain_exactly(:adult, :senior)
 
       expect(schema.attributes.map { |attr| attr.expression.class }).to contain_exactly(
-        Kumi::Syntax::TerminalExpressions::Field,
-        Kumi::Syntax::TerminalExpressions::Field,
+        Kumi::Syntax::TerminalExpressions::FieldRef,
+        Kumi::Syntax::TerminalExpressions::FieldRef,
         Kumi::Syntax::Expressions::CallExpression
       )
 
       expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Syntax::Expressions::CallExpression))
       expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:>=, :>=)
       expect(schema.traits.map(&:expression).flat_map(&:args).to_set).to contain_exactly(
-        be_a(Kumi::Syntax::TerminalExpressions::Field),
+        be_a(Kumi::Syntax::TerminalExpressions::FieldRef),
         be_a(Kumi::Syntax::TerminalExpressions::Literal),
         be_a(Kumi::Syntax::TerminalExpressions::Literal)
       )
@@ -74,7 +74,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if a value name is not a symbol" do
         expect do
           build_schema do
-            value "name_string", key(:first_name)
+            value "name_string", input.first_name
           end
         end.to raise_error(error_class, /The name for 'value' must be a Symbol, got String/)
       end
@@ -82,7 +82,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if a predicate name is not a symbol" do
         expect do
           build_schema do
-            predicate "not_a_symbol", key(:age), :<, 18
+            predicate "not_a_symbol", input.age, :<, 18
           end
         end.to raise_error(error_class, /The name for 'predicate' must be a Symbol, got String/)
       end
@@ -110,7 +110,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if the operator is not a symbol" do
         expect do
           build_schema do
-            predicate :is_minor, key(:age), "not_a_symbol", 18
+            predicate :is_minor, input.age, "not_a_symbol", 18
           end
         end.to raise_error(error_class, /expects a symbol for an operator, got String/)
       end
@@ -118,7 +118,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if the operator is not supported" do
         expect do
           build_schema do
-            predicate :unsupported, key(:value), :>>, 42
+            predicate :unsupported, input.value, :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end
@@ -126,7 +126,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if a predicate has an invalid expression size" do
         expect do
           build_schema do
-            predicate :invalid_predicate, key(:value), :==
+            predicate :invalid_predicate, input.value, :==
           end
         end.to raise_error(error_class, /predicate 'invalid_predicate' requires exactly 3 arguments: lhs, operator, and rhs/)
       end
@@ -144,7 +144,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error for unsupported operators" do
         expect do
           build_schema do
-            predicate :unsupported, key(:value), :>>, 42
+            predicate :unsupported, input.value, :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end
@@ -155,18 +155,18 @@ RSpec.describe Kumi::Parser::Dsl do
     context "with value" do
       it "accepts <symbol>, <expression>" do
         schema = build_schema do
-          value :name, key(:first_name)
+          value :name, input.first_name
         end
 
         expect(schema.attributes.size).to eq(1)
         expect(schema.attributes.first.name).to eq(:name)
-        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
       end
 
       it "accepts <symbol> with a block" do
         schema = build_schema do
           value :status do
-            on :active, key(:active)
+            on :active, input.active
           end
         end
 
@@ -183,7 +183,7 @@ RSpec.describe Kumi::Parser::Dsl do
         expect(cases.first.condition.args.first.elements.size).to eq(1)
         expect(cases.first.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
         expect(cases.first.condition.args.first.elements.first.name).to eq(:active)
-        expect(cases.first.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(cases.first.result).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
         expect(cases.first.result.name).to eq(:active)
       end
     end
@@ -192,9 +192,9 @@ RSpec.describe Kumi::Parser::Dsl do
       let(:schema) do
         build_schema do
           value :status do
-            on :active, key(:active)
-            on :verified, key(:verified)
-            base key(:base_status)
+            on :active, input.active
+            on :verified, input.verified
+            base input.base_status
           end
         end
       end
@@ -216,7 +216,7 @@ RSpec.describe Kumi::Parser::Dsl do
         expect(first_case.condition.args.first.elements.size).to eq(1)
         expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
         expect(first_case.condition.args.first.elements.first.name).to eq(:active)
-        expect(first_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(first_case.result).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
         expect(first_case.result.name).to eq(:active)
       end
 
@@ -228,14 +228,14 @@ RSpec.describe Kumi::Parser::Dsl do
         expect(second_case.condition.args.first.elements.size).to eq(1)
         expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::TerminalExpressions::Binding)
         expect(second_case.condition.args.first.elements.first.name).to eq(:verified)
-        expect(second_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(second_case.result).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
         expect(second_case.result.name).to eq(:verified)
       end
 
       it "creates the base case with a condition and result" do
         expect(base_case.condition).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
         expect(base_case.condition.value).to be(true) # Always matches
-        expect(base_case.result).to be_a(Kumi::Syntax::TerminalExpressions::Field)
+        expect(base_case.result).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
         expect(base_case.result.name).to eq(:base_status)
       end
     end

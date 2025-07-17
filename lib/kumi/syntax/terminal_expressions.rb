@@ -11,10 +11,13 @@ module Kumi
         include Node
         def children = []
       end
-      Field = Struct.new(:name, :domain, :type) do
+
+      # For field usage/reference in expressions (input.field_name)
+      FieldRef = Struct.new(:name) do
         include Node
         def children = []
       end
+
       Binding = Struct.new(:name) do
         include Node
         def children = []

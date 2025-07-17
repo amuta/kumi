@@ -11,7 +11,7 @@ module Kumi
 
       attr_reader :cases
 
-      def_delegators :@context, :ref, :literal, :key, :fn
+      def_delegators :@context, :ref, :literal, :fn, :input
 
       def initialize(context, loc)
         @context = context

@@ -7,7 +7,7 @@ RSpec.describe Kumi::Compiler do
   let(:schema) do
     a = attr(:a, lit(2))
     b = attr(:b, call(:add, binding_ref(:a), lit(3)))
-    syntax(:root, [a, b], [])
+    syntax(:root, [], [a, b], [])
   end
 
   let(:analysis) { Kumi::Analyzer.analyze!(schema) }
@@ -25,9 +25,9 @@ RSpec.describe Kumi::Compiler do
 
   it "lazyly evaluates values" do
     schema = begin
-      a = attr(:a, key(:x))
-      b = attr(:b, call(:add, binding_ref(:a), key(:y)))
-      syntax(:root, [a, b], [])
+      a = attr(:a, field_ref(:x))
+      b = attr(:b, call(:add, binding_ref(:a), field_ref(:y)))
+      syntax(:root, [], [a, b], [])
     end
 
     # We will test this by putting a bad value that will only cause an error
@@ -42,8 +42,9 @@ RSpec.describe Kumi::Compiler do
     # separate schema: single trait adult? (age >= 18)
     t_schema = syntax(
       :root,
+      [field_decl(:age)],
       [],
-      [trait(:adult, call(:>=, field(:age), lit(18)))]
+      [trait(:adult, call(:>=, field_ref(:age), lit(18)))]
     )
     t_exec = described_class.compile(
       t_schema,

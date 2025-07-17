@@ -32,13 +32,13 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
   let(:schema) do
     # Create a schema with varied expression types for testing
     simple_attr = attr(:simple, lit(42))
-    call_attr = attr(:calc, call(:add, lit(10), key(:user_input)))
+    call_attr = attr(:calc, call(:add, lit(10), field_ref(:user_input)))
     ref_attr = attr(:ref_test, ref(:simple))
     complex_trait = trait(:complex, call(:and,
-                                         call(:>, key(:price), lit(100)),
-                                         call(:==, key(:active), lit(true))))
+                                         call(:>, field_ref(:price), lit(100)),
+                                         call(:==, field_ref(:active), lit(true))))
 
-    syntax(:root, [simple_attr, call_attr, ref_attr], [complex_trait], loc: loc)
+    syntax(:root, [], [simple_attr, call_attr, ref_attr], [complex_trait], loc: loc)
   end
 
   let(:state) { {} }
@@ -102,7 +102,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
     end
 
     it "handles empty schema" do
-      empty_schema = syntax(:root, [], [], loc: loc)
+      empty_schema = syntax(:root, [], [], [], loc: loc)
       empty_pass = test_visitor_pass_class.new(empty_schema, state)
 
       visited = []
@@ -151,15 +151,15 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_mixed = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Syntax::TerminalExpressions::Field,
+                         Kumi::Syntax::TerminalExpressions::FieldRef,
                          Kumi::Syntax::TerminalExpressions::Binding,
                          errors: errors) do |node, decl, _errs|
         visited_mixed << [node.class.name.split("::").last, node.name, decl.name]
       end
 
-      # Should find both Field and Binding nodes
+      # Should find both FieldRef and Binding nodes
       node_types = visited_mixed.map(&:first).uniq
-      expect(node_types).to include("Field", "Binding")
+      expect(node_types).to include("FieldRef", "Binding")
     end
 
     it "handles non-matching node types gracefully" do

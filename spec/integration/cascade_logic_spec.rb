@@ -3,10 +3,14 @@
 RSpec.describe "Kumi Cascade Logic" do
   let(:syntax_tree) do
     Kumi::Parser::Dsl.build_sytax_tree do
+      input do
+        key :role, type: Kumi::Types::STRING
+      end
+
       # -- Base Predicates --
-      predicate :is_staff, key(:role), :==, "staff"
-      predicate :is_admin, key(:role), :==, "admin"
-      predicate :is_guest, key(:role), :==, "guest"
+      predicate :is_staff, input.role, :==, "staff"
+      predicate :is_admin, input.role, :==, "admin"
+      predicate :is_guest, input.role, :==, "guest"
 
       # -- Attribute with Cascade Logic --
       value :permission_level do

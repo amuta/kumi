@@ -8,6 +8,7 @@ module Kumi
         proxy   = DslProxy.new(context)
         proxy.instance_eval(&block)
         Syntax::Root.new(
+          context.inputs,
           context.attributes,
           context.traits
         )

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kumi is a declarative decision-modeling compiler for Ruby that transforms complex business rules into executable dependency graphs. It analyzes rule interdependencies, validates cycles, detects redundant rules, and generates optimized evaluation functions for sophisticated decision logic.
+Kumi is a declarative decision-modeling compiler for Ruby that transforms complex business rules into executable dependency graphs. It features a multi-pass analyzer that validates rule interdependencies, detects cycles, infers types, and generates optimized evaluation functions. The system separates input field declarations from business logic through an explicit input block syntax.
 
 ## Development Commands
 
@@ -34,25 +34,29 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 
 **Parser** (`lib/kumi/parser/`):
 - `dsl.rb` - Main DSL parser that converts Ruby block syntax into AST nodes
-- `dsl_builder_context.rb` - Context for building DSL elements
+- `dsl_builder_context.rb` - Context for building DSL elements with input/value/predicate methods
 - `dsl_cascade_builder.rb` - Specialized builder for cascade expressions
 - `dsl_proxy.rb` - Proxy object for method delegation during parsing
+- `input_dsl_proxy.rb` - Proxy for input block DSL (only allows `key` declarations)
+- `input_proxy.rb` - Proxy for `input.field_name` references in expressions
 
 **Syntax Tree** (`lib/kumi/syntax/`):
 - `node.rb` - Base node class with location tracking
-- `root.rb` - Root schema node containing attributes and traits
+- `root.rb` - Root schema node containing inputs, attributes, and traits
 - `declarations.rb` - Attribute and trait declaration nodes  
 - `expressions.rb` - Expression nodes (calls, lists, cascades)
-- `terminal_expressions.rb` - Terminal nodes (literals, fields, bindings)
+- `terminal_expressions.rb` - Terminal nodes (literals, field references, bindings, field declarations)
 
 **Analyzer** (`lib/kumi/analyzer.rb`):
 - Multi-pass analysis system that validates schemas and builds dependency graphs
 - **Pass 1**: `name_indexer.rb` - Find all names, check for duplicates
-- **Pass 2**: `definition_validator.rb` - Validate basic structure
-- **Pass 3**: `dependency_resolver.rb` - Build dependency graph
-- **Pass 4**: `type_checker.rb` - Validate function types  
+- **Pass 2**: `input_collector.rb` - Collect field metadata, validate conflicts
+- **Pass 3**: `definition_validator.rb` - Validate basic structure
+- **Pass 4**: `dependency_resolver.rb` - Build dependency graph
 - **Pass 5**: `cycle_detector.rb` - Find circular dependencies
 - **Pass 6**: `toposorter.rb` - Create evaluation order
+- **Pass 7**: `type_inferencer.rb` - Infer types for all declarations
+- **Pass 8**: `type_checker.rb` - Validate function types and compatibility using inferred types
 
 **Compiler** (`lib/kumi/compiler.rb`):
 - Transforms analyzed syntax tree into executable lambda functions
@@ -62,8 +66,10 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 
 **Function Registry** (`lib/kumi/function_registry.rb`):
 - Registry of available functions (operators, math, string, logical, collection operations)
-- Supports custom function registration with metadata
+- Supports custom function registration with comprehensive type metadata
+- Each function includes param_types, return_type, arity, and description
 - Core functions include: `==`, `>`, `<`, `add`, `multiply`, `and`, `or`, `clamp`, etc.
+- Maintains backward compatibility with legacy type checking system
 
 **Runner** (`lib/kumi/runner.rb`):
 - Executes compiled schemas against input data
@@ -76,17 +82,29 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 **DSL Structure**:
 ```ruby
 schema do
+  input do
+    key :field_name, type: Types::STRING
+    key :number_field, type: Types::INT, domain: 0..100
+  end
+  
   predicate :name, expression    # Boolean conditions
   value :name, expression        # Computed values  
-  cascade :name do               # Conditional logic
+  value :name do               # Conditional logic
     on condition, result
-    else default
+    base default
   end
 end
 ```
 
+**Input Block System**:
+- **Required**: All schemas must have an `input` block declaring expected fields
+- **Type Declarations**: Each field can specify type: `key :field, type: Types::STRING`
+- **Domain Constraints**: Fields can have domains: `key :age, type: Types::INT, domain: 18..65` (declared but not yet validated)
+- **Field Access**: Use `input.field_name` to reference input fields in expressions
+- **Separation**: Input metadata (types, domains) is separate from business logic
+
 **Expression Types**:
-- `key(:field)` - Access input data
+- `input.field_name` - Access input data (replaces deprecated `key(:field)`)
 - `ref(:name)` - Reference other declarations
 - `fn(:name, args...)` - Function calls
 - `[element1, element2]` - Lists
@@ -94,16 +112,27 @@ end
 
 **Analysis Flow**:
 1. Parse DSL → Syntax Tree
-2. Analyze Syntax Tree → Analysis Result (dependency graph, topo order)
-3. Compile → Executable Schema
+2. Analyze Syntax Tree → Analysis Result (dependency graph, type information, topo order)
+3. Compile → Executable Schema  
 4. Execute with Runner
+
+**Type System** (`lib/kumi/types.rb`):
+- Comprehensive static type system with primitives, collections, unions, and optionals
+- **Dual Type System**: Declared types (from input blocks) and inferred types (from expressions)
+- Automatic type inference for all declarations based on expression analysis
+- Type primitives: `INT`, `FLOAT`, `STRING`, `BOOL`, `NUMERIC`, `COMPARABLE`, `ANY`
+- Collection types: `ArrayOf[T]`, `SetOf[T]`, `HashOf[K,V]` with parametric type support
+- Optional types: `Optional[T]` for nullable values
+- Union types: `A | B` for multiple possible types
+- Type compatibility checking and unification algorithms
+- Enhanced error messages showing type provenance (declared vs inferred)
 
 ### Examples Directory
 
 The `examples/` directory contains comprehensive examples showing Kumi usage patterns:
-- `fraud_risk_scorer.rb` - Complex fraud detection rules (extensive example)
-- `federal_tax_calculator.rb` - Tax calculation logic
-- `function_registry_demo.rb` - Custom function examples
+- `input_block_typing_showcase.rb` - Demonstrates input block typing features (current best practices)
+
+*Note: Some examples may use deprecated syntax and should be updated to use the new input block system.*
 
 ## Test Structure
 
@@ -115,7 +144,63 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 ## Key Files for Understanding
 
 1. `lib/kumi/schema.rb` - Start here to understand the main API
-2. `examples/fraud_risk_scorer.rb` - Comprehensive real-world example
-3. `lib/kumi/analyzer.rb` - Core analysis pipeline
-4. `lib/kumi/function_registry.rb` - Available functions and extension patterns
-5. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
+2. `examples/input_block_typing_showcase.rb` - Comprehensive example of current features
+3. `lib/kumi/analyzer.rb` - Core analysis pipeline with multi-pass system
+4. `lib/kumi/types.rb` - Static type system implementation
+5. `lib/kumi/function_registry.rb` - Available functions and extension patterns
+6. `lib/kumi/analyzer/passes/type_inferencer.rb` - Type inference algorithm
+7. `lib/kumi/analyzer/passes/type_checker.rb` - Type validation with enhanced error messages
+8. `spec/kumi/input_block_spec.rb` - Input block syntax and behavior
+9. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
+
+## Input Block System Details
+
+### Required Input Blocks
+- **All schemas must have an input block** - This is now mandatory
+- Input blocks declare expected fields with optional type and domain constraints
+- Fields are accessed via `input.field_name` syntax (replaces deprecated `key(:field)`)
+
+### Type System Integration
+- **Declared Types**: Explicit type declarations in input blocks (`key :field, type: Types::STRING`)
+- **Inferred Types**: Types automatically inferred from expression analysis
+- **Type Checking**: Validates compatibility between declared and inferred types
+- **Enhanced Errors**: Error messages show type provenance (declared vs inferred)
+
+### Parser Components
+- `input_dsl_proxy.rb` - Restricts input block to only allow `key` declarations
+- `input_proxy.rb` - Handles `input.field_name` references in expressions
+- `input_collector.rb` - Collects and validates field metadata consistency
+
+### Domain Constraints
+- Can be declared: `key :age, type: Types::INT, domain: 18..65`
+- **Not yet implemented**: Domain validation logic is planned but not active
+- Field metadata includes domain information for future validation
+
+## Common Development Tasks
+
+### Adding New Analyzer Passes
+1. Create pass class inheriting from `PassBase` in `lib/kumi/analyzer/passes/`
+2. Implement `run(errors)` method that calls `set_state(key, value)` to store results
+3. Add pass to `PASSES` array in `lib/kumi/analyzer.rb` in correct order
+4. Consider dependencies on other passes (e.g., TypeChecker needs TypeInferencer)
+
+### Working with AST Nodes
+- All nodes include `Node` module for location tracking
+- Use `spec/support/ast_factory.rb` helpers in tests
+- Field declarations use `FieldDecl` nodes with name, domain, and type
+- Field references use `FieldRef` nodes (from `input.field_name`)
+
+### Testing Input Block Features
+- See `spec/kumi/input_block_spec.rb` for comprehensive input block tests
+- Use `schema_generator.rb` helper for creating test schemas
+- All integration tests now require input blocks
+
+## Architecture Design Principles
+
+- **Multi-pass Analysis**: Each analysis pass has a single responsibility and builds on previous passes
+- **Immutable Syntax Tree**: AST nodes are immutable; analysis results stored separately in analyzer state
+- **Dependency-driven Evaluation**: All computation follows dependency graph to ensure correct order
+- **Type Safety**: Optional but comprehensive type checking without breaking existing schemas
+- **Backward Compatibility**: New features maintain compatibility with existing DSL and APIs
+- **Ruby Integration**: Leverages Ruby's metaprogramming while providing structured analysis
+- **Separation of Concerns**: Input metadata (types, domains) separated from business logic

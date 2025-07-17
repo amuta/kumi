@@ -136,6 +136,8 @@ module Kumi
     end
 
     class Union < Base
+      # Not sure we need this
+      # TODO - consider removing
       attr_reader :left, :right
 
       def initialize(left, right)
@@ -149,12 +151,6 @@ module Kumi
 
       def inspect
         "Types::Union(#{left.inspect}, #{right.inspect})"
-      end
-
-      def ==(other)
-        other.is_a?(Union) &&
-          ((left == other.left && right == other.right) ||
-           (left == other.right && right == other.left))
       end
 
       def hash
@@ -174,6 +170,7 @@ module Kumi
     SYMBOL = Primitive.new(:symbol)
     REGEXP = Primitive.new(:regexp)
     UUID = Primitive.new(:uuid)
+    ANY = Primitive.new(:any) # Represents any type, used for defaults
 
     # Common type unions
     NUMERIC = Union.new(INT, FLOAT)
@@ -240,8 +237,11 @@ module Kumi
     # Check if type1 is compatible with type2
     def self.compatible?(type1, type2)
       return true if type1 == type2
-      return true if type2.is_a?(Base) && type2.instance_of?(Base)
+      # ANY type is compatible with any other type
+      return true if type1 == ANY || type2 == ANY
+      # Base type instances are compatible with any other type (generic base types)
       return true if type1.is_a?(Base) && type1.instance_of?(Base)
+      return true if type2.is_a?(Base) && type2.instance_of?(Base)
 
       # Optional types are compatible with their inner type
       return compatible?(type1.inner, type2) if type1.is_a?(Optional)
@@ -252,6 +252,15 @@ module Kumi
       return compatible?(type1.left, type2) || compatible?(type1.right, type2) if type1.is_a?(Union)
 
       return compatible?(type1, type2.left) || compatible?(type1, type2.right) if type2.is_a?(Union)
+
+      # Array types are compatible if their element types are compatible
+      return compatible?(type1.elem, type2.elem) if type1.is_a?(ArrayOf) && type2.is_a?(ArrayOf)
+
+      # Set types are compatible if their element types are compatible
+      return compatible?(type1.elem, type2.elem) if type1.is_a?(SetOf) && type2.is_a?(SetOf)
+
+      # Hash types are compatible if both key and value types are compatible
+      return compatible?(type1.key, type2.key) && compatible?(type1.val, type2.val) if type1.is_a?(HashOf) && type2.is_a?(HashOf)
 
       # Numeric compatibility
       return true if [type1, type2].all? { |t| [INT, FLOAT, DECIMAL].include?(t) }

@@ -1,16 +1,20 @@
 # frozen_string_literal: true
 
+require_relative "input_dsl_proxy"
+require_relative "input_proxy"
+
 module Kumi
   module Parser
     class DslBuilderContext
       attr_accessor :last_loc
-      attr_reader :attributes, :traits, :functions
+      attr_reader :inputs, :attributes, :traits, :functions
 
       include Syntax::Declarations
       include Syntax::Expressions
       include Syntax::TerminalExpressions
 
       def initialize
+        @inputs     = []
         @attributes = []
         @traits     = []
         @functions  = []
@@ -55,8 +59,14 @@ module Kumi
         @traits << Trait.new(name, expr, loc: loc)
       end
 
-      def key(name, domain: nil, type: nil)
-        Field.new(name, domain, type, loc: current_location)
+      def input(&blk)
+        return InputProxy.new(self) unless block_given?
+
+        raise_error("input block already defined", current_location) if @_input_block
+        @_input_block = true
+
+        proxy = InputDslProxy.new(self)
+        proxy.instance_eval(&blk)
       end
 
       def ref(name)
@@ -71,6 +81,18 @@ module Kumi
         loc = current_location
         expr_args = args.map { |a| ensure_syntax(a, loc) }
         CallExpression.new(fn_name, expr_args, loc: loc)
+      end
+
+      def current_location
+        # if proxy set @last_loc, use it; otherwise fallback as before
+        return last_loc if last_loc
+
+        fallback = caller_locations.find(&:absolute_path)
+        Syntax::Location.new(file: fallback.path, line: fallback.lineno, column: 0)
+      end
+
+      def raise_error(message, location)
+        raise Errors::SyntaxError, "at #{location.file}:#{location.line}: #{message}"
       end
 
       private
@@ -95,23 +117,11 @@ module Kumi
       #   Kumi.current_location
       # end
 
-      def raise_error(message, location)
-        raise Errors::SyntaxError, "at #{location.file}:#{location.line}: #{message}"
-      end
-
       def build_cascade(loc, &blk)
         cascade_builder = DslCascadeBuilder.new(self, loc)
         cascade_builder.instance_eval(&blk)
 
         CascadeExpression.new(cascade_builder.cases, loc: loc)
-      end
-
-      def current_location
-        # if proxy set @last_loc, use it; otherwise fallback as before
-        return last_loc if last_loc
-
-        fallback = caller_locations.find(&:absolute_path)
-        Syntax::Location.new(file: fallback.path, line: fallback.lineno, column: 0)
       end
     end
   end

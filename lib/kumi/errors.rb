@@ -25,6 +25,8 @@ module Kumi
 
     class TypeError < SemanticError; end
 
+    class FieldMetadataError < SemanticError; end
+
     class SyntaxError < LocatedError; end
 
     class RuntimeError < Error; end

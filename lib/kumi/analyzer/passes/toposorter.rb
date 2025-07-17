@@ -42,11 +42,11 @@ module Kumi
 
           # Visit all nodes in the graph
           graph.each_key { |node| visit_node.call(node) }
-          
+
           # Also visit any definitions that aren't in the dependency graph
           # (i.e., declarations with no dependencies)
           definitions.each_key { |node| visit_node.call(node) }
-          
+
           order
         end
 

@@ -54,19 +54,32 @@ RSpec.describe "Kumi Compiler Integration" do
       # and functions consume both raw fields and computed attributes.
 
       Kumi::Parser::Dsl.build_sytax_tree do
+        input do
+          key :name, type: Kumi::Types::STRING
+          key :age, type: Kumi::Types::INT
+          key :account_balance, type: Kumi::Types::FLOAT
+          key :years_customer, type: Kumi::Types::INT
+          key :last_purchase_days_ago, type: Kumi::Types::INT
+          key :total_purchases, type: Kumi::Types::INT
+          key :account_type, type: Kumi::Types::STRING
+          key :referral_count, type: Kumi::Types::INT
+          key :support_tickets, type: Kumi::Types::INT
+          key :should_error, type: Kumi::Types::BOOL
+        end
+
         # === BASE predicateS ===
         # These predicates examine raw customer data to establish fundamental classifications
         # predicates use the syntax: predicate name, lhs, operator, rhs
 
-        predicate :adult, key(:age), :>=, 18
-        predicate :senior, key(:age), :>=, 65
-        predicate :high_balance, key(:account_balance), :>=, 10_000
-        predicate :premium_account, key(:account_type), :==, "premium"
-        predicate :recent_activity, key(:last_purchase_days_ago), :<=, 30
-        predicate :frequent_buyer, key(:total_purchases), :>=, 50
-        predicate :long_term_customer, key(:years_customer), :>=, 5
-        predicate :has_referrals, key(:referral_count), :>, 0
-        predicate :low_support_usage, key(:support_tickets), :<=, 3
+        predicate :adult, input.age, :>=, 18
+        predicate :senior, input.age, :>=, 65
+        predicate :high_balance, input.account_balance, :>=, 10_000
+        predicate :premium_account, input.account_type, :==, "premium"
+        predicate :recent_activity, input.last_purchase_days_ago, :<=, 30
+        predicate :frequent_buyer, input.total_purchases, :>=, 50
+        predicate :long_term_customer, input.years_customer, :>=, 5
+        predicate :has_referrals, input.referral_count, :>, 0
+        predicate :low_support_usage, input.support_tickets, :<=, 3
 
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
         # # These functions encapsulate multi-condition logic, making predicates more readable
@@ -103,21 +116,21 @@ RSpec.describe "Kumi Compiler Integration" do
           base "Potential"
         end
 
-        value :user_error, fn(:error!, key(:should_error))
+        value :user_error, fn(:error!, input.should_error)
 
         # === ATTRIBUTES THAT COMBINE MULTIPLE DATA SOURCES ===
         # These show how attributes can reference both raw fields and computed predicates
 
         value :welcome_message, fn(:concat, [
                                      "Hello ",
-                                     key(:name),
+                                     input.name,
                                      ", you are a ",
                                      ref(:customer_tier),
                                      " customer!"
                                    ])
 
         value :engagement_score, fn(:multiply,
-                                    key(:total_purchases),
+                                    input.total_purchases,
                                     fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
 
         # === FUNCTIONS THAT REFERENCE OTHER DEFINITIONS ===
@@ -127,10 +140,10 @@ RSpec.describe "Kumi Compiler Integration" do
         value :generate_offers, fn(:create_offers,
                                    ref(:marketing_segment),
                                    ref(:customer_tier),
-                                   key(:account_balance))
+                                   input.account_balance)
 
         value :calculate_loyalty_bonus, fn(:bonus_formula,
-                                           key(:years_customer),
+                                           input.years_customer,
                                            ref(:valuable_customer),
                                            ref(:engagement_score))
       end

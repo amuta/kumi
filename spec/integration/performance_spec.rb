@@ -96,15 +96,15 @@ RSpec.describe "Kumi Performance" do
 
   let(:schema_definition) do
     Kumi::Parser::Dsl.build_sytax_tree do
-      predicate :adult, key(:age), :>=, 18
-      predicate :senior, key(:age), :>=, 65
-      predicate :high_balance, key(:account_balance), :>=, 10_000
-      predicate :premium_account, key(:account_type), :==, "premium"
-      predicate :recent_activity, key(:last_purchase_days_ago), :<=, 30
-      predicate :frequent_buyer, key(:total_purchases), :>=, 50
-      predicate :long_term_customer, key(:years_customer), :>=, 5
-      predicate :has_referrals, key(:referral_count), :>, 0
-      predicate :low_support_usage, key(:support_tickets), :<=, 3
+      predicate :adult, input.age, :>=, 18
+      predicate :senior, input.age, :>=, 65
+      predicate :high_balance, input.account_balance, :>=, 10_000
+      predicate :premium_account, input.account_type, :==, "premium"
+      predicate :recent_activity, input.last_purchase_days_ago, :<=, 30
+      predicate :frequent_buyer, input.total_purchases, :>=, 50
+      predicate :long_term_customer, input.years_customer, :>=, 5
+      predicate :has_referrals, input.referral_count, :>, 0
+      predicate :low_support_usage, input.support_tickets, :<=, 3
 
       value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
       value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
@@ -131,10 +131,10 @@ RSpec.describe "Kumi Performance" do
       end
 
       value :engagement_score, fn(:multiply,
-                                  key(:total_purchases),
+                                  input.total_purchases,
                                   fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
 
-      value :heavy_score, fn(:group_and_sum, key(:purchases))
+      value :heavy_score, fn(:group_and_sum, input.purchases)
     end
   end
 

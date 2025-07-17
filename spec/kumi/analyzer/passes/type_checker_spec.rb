@@ -37,7 +37,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
 
       it "records a type error for the mismatched argument" do
         run(schema)
-        expect(errors.first.last).to match(/expects numeric, got literal `test` of type string/)
+        expect(errors.first.last).to match(/argument 2 of `fn(:>)` expects int | float, got `test` of type string/)
       end
     end
 

@@ -4,8 +4,8 @@ module Kumi
   module Parser
     class DslProxy
       DSL_METHODS = %i[
-        value predicate
-        key ref literal fn
+        value predicate input
+        ref literal fn
       ].freeze
 
       def initialize(context)

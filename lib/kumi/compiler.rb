@@ -50,7 +50,7 @@ module Kumi
     # Map node classes to compiler methods
     DISPATCH = {
       Syntax::TerminalExpressions::Literal => :compile_literal,
-      Syntax::TerminalExpressions::Field => :compile_field_node,
+      Syntax::TerminalExpressions::FieldRef => :compile_field_node,
       Syntax::TerminalExpressions::Binding => :compile_binding_node,
       Syntax::Expressions::ListExpression => :compile_list,
       Syntax::Expressions::CallExpression => :compile_call,

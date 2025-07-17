@@ -8,8 +8,9 @@ module ASTFactory
   # Dispatch table:  tag symbol → lambda(*args, loc:) → node instance
   NODE = {
     literal: ->(value, loc:) { S::Literal.new(value, loc: loc) },
-    field: ->(name, loc:) { S::Field.new(name, loc: loc) },
+    field_ref: ->(name, loc:) { S::FieldRef.new(name, loc: loc) },
     binding_ref: ->(name, loc:) { S::Binding.new(name, loc: loc) },
+    field_decl: ->(name, domain = nil, type = nil, loc:) { S::FieldDecl.new(name, domain, type, loc: loc) },
 
     call_expression: ->(fn_name, *args, loc:) { S::CallExpression.new(fn_name, args, loc: loc) },
 
@@ -25,7 +26,7 @@ module ASTFactory
     # ASTFactory constructor to build the initial Root.
     # They are not used in the AST itself.
 
-    root: ->(attributes = [], traits = [], loc:) { S::Root.new(attributes, traits, loc: loc) },
+    root: ->(inputs = [], attributes = [], traits = [], loc:) { S::Root.new(inputs, attributes, traits, loc: loc) },
 
     location: ->(file, line, column) { S::Location.new(file: file, line: line, column: column) }
   }.freeze
@@ -53,8 +54,8 @@ module ASTFactory
 
   def lit(value) = syntax(:literal, value, loc: loc)
 
-  def field(name) = syntax(:field, name, loc: loc)
-  alias key field
+  def field_ref(name) = syntax(:field_ref, name, loc: loc)
+  def field_decl(name, domain = nil, type = nil) = syntax(:field_decl, name, domain, type, loc: loc)
   #
   # def Root(attrs = [], traits = [])
   #   # syntax(:Root, attrs, traits, loc: loc)

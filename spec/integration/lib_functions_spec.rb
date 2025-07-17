@@ -4,12 +4,16 @@ RSpec.describe "Kumi Default Functions" do
   describe "core functions" do
     it "works" do
       syntax_tree = Kumi::Parser::Dsl.build_sytax_tree do
+        input do
+          key :number, type: Kumi::Types::INT
+        end
+
         value :test_value do
           on :test_predicate, "result"
           base "default"
         end
 
-        predicate :test_predicate, key(:number), :between?, 6, 8
+        predicate :test_predicate, input.number, :between?, 6, 8
       end
 
       analyzer = Kumi::Analyzer.analyze!(syntax_tree)

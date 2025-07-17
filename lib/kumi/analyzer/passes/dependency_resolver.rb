@@ -10,16 +10,19 @@ module Kumi
       class DependencyResolver < PassBase
         # A Struct to hold rich dependency information
         DependencyEdge = Struct.new(:to, :type, :via, keyword_init: true)
+        include Syntax
 
         def run(errors)
           definitions = get_state(:definitions)
+          input_meta = get_state(:input_meta)
+
           dependency_graph = Hash.new { |h, k| h[k] = [] }
           leaf_map = Hash.new { |h, k| h[k] = Set.new }
 
           each_decl do |decl|
             # Traverse the expression for each declaration, passing context down
             visit_with_context(decl.expression) do |node, context|
-              process_node(node, decl, dependency_graph, leaf_map, definitions, errors, context)
+              process_node(node, decl, dependency_graph, leaf_map, definitions, input_meta, errors, context)
             end
           end
 
@@ -29,23 +32,18 @@ module Kumi
 
         private
 
-        def process_node(node, decl, graph, leaves, definitions, errors, context)
+        def process_node(node, decl, graph, leaves, definitions, input_meta, errors, context)
           case node
-          when TerminalExpressions::Binding
-            validate_reference(node, definitions, errors)
+          when Binding
+            add_error(errors, node.loc, "undefined reference to `#{node.name}`") unless definitions.key?(node.name)
             add_dependency_edge(graph, decl.name, node.name, :ref, context[:via])
-          when TerminalExpressions::Field
+          when FieldRef
+            add_error(errors, node.loc, "undeclared input `#{node.name}`") unless input_meta.key?(node.name)
             add_dependency_edge(graph, decl.name, node.name, :key, context[:via])
-            leaves[decl.name] << node
-          when TerminalExpressions::Literal
+            leaves[decl.name] << node # put it back
+          when Literal
             leaves[decl.name] << node
           end
-        end
-
-        def validate_reference(node, definitions, errors)
-          return if definitions.key?(node.name)
-
-          add_error(errors, node.loc, "undefined reference to `#{node.name}`")
         end
 
         def add_dependency_edge(graph, from, to, type, via)

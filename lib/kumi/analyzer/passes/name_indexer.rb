@@ -6,6 +6,7 @@ module Kumi
       # RESPONSIBILITY: Build definitions index and detect duplicate names
       # DEPENDENCIES: None (first pass in pipeline)
       # PRODUCES: :definitions - Hash mapping names to declaration nodes
+      #           :input_keys - Set of input names
       # INTERFACE: new(schema, state).run(errors)
       class NameIndexer < PassBase
         def run(errors)
@@ -16,7 +17,7 @@ module Kumi
             definitions[decl.name] = decl
           end
 
-          set_state(:definitions, definitions)
+          set_state(:definitions, definitions.freeze)
         end
       end
     end

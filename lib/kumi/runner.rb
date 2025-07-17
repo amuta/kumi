@@ -9,6 +9,10 @@ module Kumi
       schema.evaluate(context, *keys)
     end
 
+    def input
+      context
+    end
+
     def fetch(key)
       @cache ||= {}
 

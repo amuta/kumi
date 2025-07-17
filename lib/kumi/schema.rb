@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'ostruct'
+require "ostruct"
 
 module Kumi
   module Schema
@@ -15,7 +15,7 @@ module Kumi
       @__syntax_tree__ = Kumi::Parser::Dsl.build_sytax_tree(&block).freeze
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
       @__schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
-      
+
       # Return an object that provides access to both the compiled schema and analysis
       OpenStruct.new(
         runner: Runner.new({}, @__schema__, @__analyzer_result__.definitions),

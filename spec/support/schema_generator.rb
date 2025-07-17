@@ -12,11 +12,17 @@ module SchemaGenerator
     fields:        %i[age balance purchases]
   )
     Kumi::Parser::Dsl.build_sytax_tree do
+      input do
+        fields.each do |field|
+          key field, type: Kumi::Types::INT
+        end
+      end
+
       # simple predicates
       num_preds.times do |i|
         predicate(
           :"pred_#{i}",
-          key(fields[i % fields.size]),
+          input.send(fields[i % fields.size]),
           :>=,
           i % 100 # threshold cycles 0–99
         )
@@ -42,6 +48,24 @@ module SchemaGenerator
       end
     end
   end
+
+  # Helper to create a schema with proper analysis and compilation
+  def create_schema(&block)
+    syntax_tree = Kumi::Parser::Dsl.build_sytax_tree(&block)
+    analyzer = Kumi::Analyzer.analyze!(syntax_tree)
+    compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
+
+    OpenStruct.new(
+      syntax_tree: syntax_tree,
+      analysis: analyzer,
+      compiled: compiled,
+      runner: Kumi::Runner.new({}, compiled, analyzer.definitions)
+    )
+  end
+end
+
+RSpec.shared_context "schema generator" do
+  include SchemaGenerator
 end
 
 RSpec.configure do |c|

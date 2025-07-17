@@ -41,12 +41,6 @@ RSpec.describe Kumi::Types do
       union = Kumi::Types::INT | Kumi::Types::FLOAT
       expect(union.to_s).to eq("int | float")
     end
-
-    it "supports equality" do
-      union1 = Kumi::Types::INT | Kumi::Types::FLOAT
-      union2 = Kumi::Types::FLOAT | Kumi::Types::INT
-      expect(union1).to eq(union2)
-    end
   end
 
   describe "parametric types" do

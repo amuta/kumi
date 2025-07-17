@@ -37,8 +37,11 @@ module Kumi
           case expr
           when Syntax::TerminalExpressions::Literal
             Types.infer_from_value(expr.value)
-          when Syntax::TerminalExpressions::Field
-            expr.type || Types::Base.new
+          when Syntax::TerminalExpressions::FieldRef
+            # Look up type from field metadata
+            input_meta = get_state(:input_meta, required: false) || {}
+            meta = input_meta[expr.name]
+            meta&.dig(:type) || Types::Base.new
           when Syntax::TerminalExpressions::Binding
             type_context[expr.name] || Types::Base.new
           when Syntax::Expressions::CallExpression

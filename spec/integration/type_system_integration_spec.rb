@@ -11,7 +11,7 @@ RSpec.describe "Type System Integration" do
       end
 
       types = schema_result.analysis.decl_types
-      
+
       expect(types[:int_val]).to eq(Kumi::Types::INT)
       expect(types[:float_val]).to eq(Kumi::Types::FLOAT)
       expect(types[:string_val]).to eq(Kumi::Types::STRING)
@@ -20,7 +20,11 @@ RSpec.describe "Type System Integration" do
 
     it "uses annotated field types" do
       schema_result = Kumi.schema do
-        value :age_check, fn(:>=, key(:age, type: Kumi::Types::INT), 18)
+        input do
+          key :age, type: Kumi::Types::INT
+        end
+
+        value :age_check, fn(:>=, input.age, 18)
       end
 
       types = schema_result.analysis.decl_types
@@ -35,7 +39,7 @@ RSpec.describe "Type System Integration" do
       end
 
       types = schema_result.analysis.decl_types
-      
+
       expect(types[:sum]).to eq(Kumi::Types::NUMERIC)
       expect(types[:comparison]).to eq(Kumi::Types::BOOL)
       expect(types[:text]).to eq(Kumi::Types::STRING)
@@ -44,14 +48,14 @@ RSpec.describe "Type System Integration" do
     it "infers array types" do
       schema_result = Kumi.schema do
         value :numbers, [1, 2, 3]
-        value :strings, ["a", "b", "c"]
+        value :strings, %w[a b c]
       end
 
       types = schema_result.analysis.decl_types
-      
+
       expect(types[:numbers]).to be_a(Kumi::Types::ArrayOf)
       expect(types[:numbers].elem).to eq(Kumi::Types::INT)
-      
+
       expect(types[:strings]).to be_a(Kumi::Types::ArrayOf)
       expect(types[:strings].elem).to eq(Kumi::Types::STRING)
     end
@@ -67,7 +71,7 @@ RSpec.describe "Type System Integration" do
       end
 
       types = schema_result.analysis.decl_types
-      
+
       expect(types[:base_amount]).to eq(Kumi::Types::INT)
       expect(types[:tax_rate]).to eq(Kumi::Types::FLOAT)
       expect(types[:tax_amount]).to eq(Kumi::Types::NUMERIC)
@@ -75,7 +79,7 @@ RSpec.describe "Type System Integration" do
     end
   end
 
-  # Note: Cascade expression type inference is implemented but has dependency resolution
+  # NOTE: Cascade expression type inference is implemented but has dependency resolution
   # issues in integration tests that need further investigation. The TypeInferencer
   # unit tests cover cascade type inference functionality.
 
@@ -83,8 +87,13 @@ RSpec.describe "Type System Integration" do
     it "works with existing schemas without type annotations" do
       expect do
         Kumi.schema do
-          predicate :is_adult, key(:age), :>=, 18
-          value :discount, fn(:multiply, key(:base_price), 0.1)
+          input do
+            key :age
+            key :base_price
+          end
+
+          predicate :is_adult, input.age, :>=, 18
+          value :discount, fn(:multiply, input.base_price, 0.1)
         end
       end.not_to raise_error
     end
@@ -124,7 +133,7 @@ RSpec.describe "Type System Integration" do
       end
 
       types = schema_result.analysis.decl_types
-      
+
       expect(types[:numbers]).to be_a(Kumi::Types::ArrayOf)
       expect(types[:sum_total]).to eq(Kumi::Types::NUMERIC)
       expect(types[:first_num]).to be_a(Kumi::Types::Base)
@@ -133,13 +142,16 @@ RSpec.describe "Type System Integration" do
 
   describe "error scenarios" do
     it "validates at analysis time with type annotations" do
-      # Note: Current implementation doesn't fail on type mismatches during inference
-      # This is by design for v1 - we infer best effort and let runtime handle mismatches
+      # Enhanced type checker now validates field references against function parameter types
       expect do
         Kumi.schema do
-          value :invalid, fn(:add, key(:name, type: Kumi::Types::STRING), 1)
+          input do
+            key :name, type: Kumi::Types::STRING
+          end
+
+          value :invalid, fn(:add, input.name, 1)
         end
-      end.not_to raise_error # Type inferencer doesn't fail, just infers best type
+      end.to raise_error(Kumi::Errors::SemanticError, /argument 1 of `fn\(:add\)` expects int \| float, got input field `name` of declared type string/)
     end
   end
 
@@ -157,7 +169,7 @@ RSpec.describe "Type System Integration" do
   describe "function registry type metadata" do
     it "includes type information in function signatures" do
       signature = Kumi::FunctionRegistry.signature(:add)
-      
+
       expect(signature).to have_key(:param_types)
       expect(signature).to have_key(:return_type)
       expect(signature[:param_types]).to all(be_a(Kumi::Types::Base))
@@ -167,14 +179,14 @@ RSpec.describe "Type System Integration" do
     it "validates that all core functions have type metadata" do
       Kumi::FunctionRegistry.all.each do |fn_name|
         signature = Kumi::FunctionRegistry.signature(fn_name)
-        
+
         expect(signature[:param_types]).to be_an(Array), "Function #{fn_name} missing param_types"
         expect(signature[:return_type]).to be_a(Kumi::Types::Base), "Function #{fn_name} missing return_type"
-        
+
         # Validate arity matches param_types (unless variable arity)
         unless signature[:arity] < 0
           expect(signature[:param_types].size).to eq(signature[:arity]).or(eq(1)),
-            "Function #{fn_name} arity mismatch: #{signature[:arity]} vs #{signature[:param_types].size}"
+                                                  "Function #{fn_name} arity mismatch: #{signature[:arity]} vs #{signature[:param_types].size}"
         end
       end
     end

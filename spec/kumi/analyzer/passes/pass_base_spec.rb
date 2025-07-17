@@ -19,7 +19,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
   let(:schema) do
     attr1 = attr(:attr1, lit(1))
     trait1 = trait(:trait1, call(:>, lit(1), lit(0)))
-    syntax(:root, [attr1], [trait1], loc: loc)
+    syntax(:root, [], [attr1], [trait1], loc: loc)
   end
 
   let(:state) { { existing: "data" } }
@@ -52,7 +52,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     end
 
     it "handles empty schema" do
-      empty_schema = syntax(:root, [], [], loc: loc)
+      empty_schema = syntax(:root, [], [], [], loc: loc)
       empty_pass = test_pass_class.new(empty_schema, state)
 
       declarations = []

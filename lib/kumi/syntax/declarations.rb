@@ -12,6 +12,12 @@ module Kumi
         include Node
         def children = [expression]
       end
+
+      # For field metadata declarations inside input blocks
+      FieldDecl = Struct.new(:name, :domain, :type) do
+        include Node
+        def children = []
+      end
     end
   end
 end
