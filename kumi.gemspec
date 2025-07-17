@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
                          rules into executable dependency graphs. It analyzes rule interdependencies, \
                          validates cycles, detect redundant rules and allows to generate optimized evaluation functions for \
                          sophisticated decision logic."
-  spec.homepage      = "https://github.com/amuta/trait-engine"
+  spec.homepage      = "https://github.com/amuta/kumi"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
 
