@@ -1,445 +1,27 @@
 # frozen_string_literal: true
 
-require_relative "types"
-
 module Kumi
   # Registry for functions that can be used in Kumi schemas
   # This is the public interface for registering custom functions
   module FunctionRegistry
     class UnknownFunction < StandardError; end
 
+    # Re-export the Entry struct from FunctionBuilder for compatibility
+    Entry = FunctionBuilder::Entry
+
     # Core operators that are always available
     CORE_OPERATORS = %i[== > < >= <= != between?].freeze
 
-    # Function entry with metadata
-    Entry = Struct.new(:fn, :arity, :param_types, :return_type, :description, :inverse, keyword_init: true)
-
-    # Core comparison operators
-    CORE_OPERATORS_PROCS = {
-      :== => Entry.new(
-        fn: ->(a, b) { a == b },
-        arity: 2,
-        param_types: %i[any any],
-        return_type: :boolean,
-        description: "Equality comparison"
-      ),
-      :!= => Entry.new(
-        fn: ->(a, b) { a != b },
-        arity: 2,
-        param_types: %i[any any],
-        return_type: :boolean,
-        description: "Inequality comparison"
-      ),
-      :> => Entry.new(
-        fn: ->(a, b) { a > b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :boolean,
-        description: "Greater than comparison"
-      ),
-      :< => Entry.new(
-        fn: ->(a, b) { a < b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :boolean,
-        description: "Less than comparison"
-      ),
-      :>= => Entry.new(
-        fn: ->(a, b) { a >= b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :boolean,
-        description: "Greater than or equal comparison"
-      ),
-      :<= => Entry.new(
-        fn: ->(a, b) { a <= b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :boolean,
-        description: "Less than or equal comparison"
-      ),
-      :between? => Entry.new(
-        fn: ->(value, min, max) { value.between?(min, max) },
-        arity: 3,
-        param_types: %i[float float float],
-        return_type: :boolean,
-        description: "Check if value is between min and max"
-      )
-    }.freeze
-
-    # Core mathematical operations
-    MATH_OPERATIONS = {
-      add: Entry.new(
-        fn: ->(a, b) { a + b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Add two numbers"
-      ),
-      subtract: Entry.new(
-        fn: ->(a, b) { a - b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Subtract second number from first"
-      ),
-      multiply: Entry.new(
-        fn: ->(a, b) { a * b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Multiply two numbers"
-      ),
-      divide: Entry.new(
-        fn: ->(a, b) { a / b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Divide first number by second"
-      ),
-      modulo: Entry.new(
-        fn: ->(a, b) { a % b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Modulo operation"
-      ),
-      power: Entry.new(
-        fn: ->(a, b) { a**b },
-        arity: 2,
-        param_types: %i[float float],
-        return_type: :float,
-        description: "Raise first number to power of second"
-      ),
-      abs: Entry.new(
-        fn: lambda(&:abs),
-        arity: 1,
-        param_types: [:float],
-        return_type: :float,
-        description: "Absolute value"
-      ),
-      round: Entry.new(
-        fn: ->(a, precision = 0) { a.round(precision) },
-        arity: -1, # Variable arity
-        param_types: [:float],
-        return_type: :float,
-        description: "Round number to specified precision"
-      ),
-      floor: Entry.new(
-        fn: lambda(&:floor),
-        arity: 1,
-        param_types: [:float],
-        return_type: :integer,
-        description: "Floor of number"
-      ),
-      ceil: Entry.new(
-        fn: lambda(&:ceil),
-        arity: 1,
-        param_types: [:float],
-        return_type: :integer,
-        description: "Ceiling of number"
-      ),
-      clamp: Entry.new(
-        fn: ->(value, min, max) { value.clamp(min, max) },
-        arity: 3,
-        param_types: %i[float float float],
-        return_type: :float,
-        description: "Clamp value between min and max"
-      )
-    }.freeze
-
-    # Core string operations
-    STRING_OPERATIONS = {
-      concat: Entry.new(
-        fn: ->(*strings) { strings.join },
-        arity: -1, # Variable arity
-        param_types: [:string],
-        return_type: :string,
-        description: "Concatenate multiple strings"
-      ),
-      upcase: Entry.new(
-        fn: ->(str) { str.to_s.upcase },
-        arity: 1,
-        param_types: [:string],
-        return_type: :string,
-        description: "Convert string to uppercase"
-      ),
-      downcase: Entry.new(
-        fn: ->(str) { str.to_s.downcase },
-        arity: 1,
-        param_types: [:string],
-        return_type: :string,
-        description: "Convert string to lowercase"
-      ),
-      capitalize: Entry.new(
-        fn: ->(str) { str.to_s.capitalize },
-        arity: 1,
-        param_types: [:string],
-        return_type: :string,
-        description: "Capitalize first letter of string"
-      ),
-      strip: Entry.new(
-        fn: ->(str) { str.to_s.strip },
-        arity: 1,
-        param_types: [:string],
-        return_type: :string,
-        description: "Remove leading and trailing whitespace"
-      ),
-      length: Entry.new(
-        fn: ->(str) { str.to_s.length },
-        arity: 1,
-        param_types: [:string],
-        return_type: :integer,
-        description: "Get string length"
-      ),
-      include?: Entry.new(
-        fn: ->(str, substr) { str.to_s.include?(substr.to_s) },
-        arity: 2,
-        param_types: %i[string string],
-        return_type: :boolean,
-        description: "Check if string contains substring"
-      ),
-      start_with?: Entry.new(
-        fn: ->(str, prefix) { str.to_s.start_with?(prefix.to_s) },
-        arity: 2,
-        param_types: %i[string string],
-        return_type: :boolean,
-        description: "Check if string starts with prefix"
-      ),
-      end_with?: Entry.new(
-        fn: ->(str, suffix) { str.to_s.end_with?(suffix.to_s) },
-        arity: 2,
-        param_types: %i[string string],
-        return_type: :boolean,
-        description: "Check if string ends with suffix"
-      )
-    }.freeze
-
-    # Core logical operations
-    LOGICAL_OPERATIONS = {
-      and: Entry.new(
-        fn: ->(*conditions) { conditions.all? },
-        arity: -1, # Variable arity
-        param_types: [:boolean],
-        return_type: :boolean,
-        description: "Logical AND of multiple conditions"
-      ),
-      or: Entry.new(
-        fn: ->(*conditions) { conditions.any? },
-        arity: -1, # Variable arity
-        param_types: [:boolean],
-        return_type: :boolean,
-        description: "Logical OR of multiple conditions"
-      ),
-      not: Entry.new(
-        fn: lambda(&:!),
-        arity: 1,
-        param_types: [:boolean],
-        return_type: :boolean,
-        description: "Logical NOT"
-      ),
-      all?: Entry.new(
-        fn: lambda(&:all?),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :boolean,
-        description: "Check if all elements in collection are truthy"
-      ),
-      any?: Entry.new(
-        fn: lambda(&:any?),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :boolean,
-        description: "Check if any element in collection is truthy"
-      ),
-      none?: Entry.new(
-        fn: lambda(&:none?),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :boolean,
-        description: "Check if no elements in collection are truthy"
-      )
-    }.freeze
-
-    # Core collection operations
-    COLLECTION_OPERATIONS = {
-      empty?: Entry.new(
-        fn: lambda(&:empty?),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :boolean,
-        description: "Check if collection is empty"
-      ),
-      first: Entry.new(
-        fn: lambda(&:first),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :any,
-        description: "Get first element of collection"
-      ),
-      last: Entry.new(
-        fn: lambda(&:last),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :any,
-        description: "Get last element of collection"
-      ),
-      sum: Entry.new(
-        fn: lambda(&:sum),
-        arity: 1,
-        param_types: [Kumi::Types.array(:float)],
-        return_type: :float,
-        description: "Sum all elements in collection"
-      ),
-      max: Entry.new(
-        fn: lambda(&:max),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :any,
-        description: "Get maximum value in collection"
-      ),
-      min: Entry.new(
-        fn: ->(*args) { args.size == 1 ? args.first.min : args.min },
-        arity: -1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :any,
-        description: "Get minimum value in collection"
-      ),
-      sort: Entry.new(
-        fn: lambda(&:sort),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: Kumi::Types.array(:any),
-        description: "Sort collection"
-      ),
-      reverse: Entry.new(
-        fn: lambda(&:reverse),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: Kumi::Types.array(:any),
-        description: "Reverse collection"
-      ),
-      uniq: Entry.new(
-        fn: lambda(&:uniq),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: Kumi::Types.array(:any),
-        description: "Remove duplicates from collection"
-      ),
-      size: Entry.new(
-        fn: lambda(&:size),
-        arity: 1,
-        param_types: [Kumi::Types.array(:any)],
-        return_type: :integer,
-        description: "Get collection size"
-      ),
-      count_match: Entry.new(
-        fn: ->(collection, pattern) { collection.count { |item| item.to_s.match?(Regexp.new(pattern)) } },
-        arity: 2,
-        param_types: [Kumi::Types.array(:any), :string],
-        return_type: :integer,
-        description: "Counts items in a collection that match a regex pattern."
-      )
-    }.freeze
-
-    # Core data structure operations
-    DATA_STRUCTURE_OPERATIONS = {
-      fetch: Entry.new(
-        fn: ->(hash, key, default = nil) { hash.fetch(key, default) },
-        arity: -1, # Variable arity (2 or 3)
-        param_types: [Kumi::Types.hash(:any, :any), :any, :any],
-        return_type: :any,
-        description: "Fetch value from hash by key, with optional default"
-      )
-    }.freeze
-
-    # Core conditional operations
-    CONDITIONAL_OPERATIONS = {
-      conditional: Entry.new(
-        fn: ->(condition, true_value, false_value) { condition ? true_value : false_value },
-        arity: 3,
-        param_types: %i[boolean any any],
-        return_type: :any,
-        description: "Ternary conditional operator"
-      ),
-      if: Entry.new(
-        fn: ->(condition, true_value, false_value = nil) { condition ? true_value : false_value },
-        arity: -1, # Variable arity (2 or 3)
-        param_types: %i[boolean any any],
-        return_type: :any,
-        description: "If-then-else conditional"
-      ),
-      coalesce: Entry.new(
-        fn: ->(*values) { values.find { |v| !v.nil? } },
-        arity: -1, # Variable arity
-        param_types: [:any],
-        return_type: :any,
-        description: "Return first non-nil value"
-      ),
-      else: Entry.new(
-        fn: ->(value, else_value) { value.nil? ? else_value : value },
-        arity: 2,
-        param_types: %i[any any],
-        return_type: :any,
-        description: "Provide else value if first is nil"
-      )
-    }.freeze
-
-    # Core type conversion operations
-    TYPE_OPERATIONS = {
-      to_string: Entry.new(
-        fn: lambda(&:to_s),
-        arity: 1,
-        param_types: [:any],
-        return_type: :string,
-        description: "Convert value to string"
-      ),
-      to_integer: Entry.new(
-        fn: lambda(&:to_i),
-        arity: 1,
-        param_types: [:any],
-        return_type: :integer,
-        description: "Convert value to integer"
-      ),
-      to_float: Entry.new(
-        fn: lambda(&:to_f),
-        arity: 1,
-        param_types: [:any],
-        return_type: :float,
-        description: "Convert value to float"
-      ),
-      to_boolean: Entry.new(
-        fn: ->(value) { !value.nil? },
-        arity: 1,
-        param_types: [:any],
-        return_type: :boolean,
-        description: "Convert value to boolean"
-      ),
-      to_array: Entry.new(
-        fn: ->(value) { Array(value) },
-        arity: 1,
-        param_types: [:any],
-        return_type: Kumi::Types.array(:any),
-        description: "Convert value to array"
-      )
-    }.freeze
-
-    # Where should i put a hash operation? like
-    #    value :applicable_brackets, fn(:fetch, key(:tax_bracket_data), key(:filing_status))
-    #    value :total_tax, fn(:calculate_progressive_tax, ref(:taxable_income), ref(:applicable_brackets))
-    # response by AI:
-
-    # Combine all core operations
-    CORE_OPERATIONS = {
-      **CORE_OPERATORS_PROCS,
-      **MATH_OPERATIONS,
-      **STRING_OPERATIONS,
-      **LOGICAL_OPERATIONS,
-      **COLLECTION_OPERATIONS,
-      **CONDITIONAL_OPERATIONS,
-      **TYPE_OPERATIONS,
-      **DATA_STRUCTURE_OPERATIONS
-    }.freeze
+    # Build the complete function registry by combining all categories
+    CORE_OPERATIONS = {}.tap do |registry|
+      registry.merge!(ComparisonFunctions.definitions)
+      registry.merge!(MathFunctions.definitions)
+      registry.merge!(StringFunctions.definitions)
+      registry.merge!(LogicalFunctions.definitions)
+      registry.merge!(CollectionFunctions.definitions)
+      registry.merge!(ConditionalFunctions.definitions)
+      registry.merge!(TypeFunctions.definitions)
+    end.freeze
 
     @functions = CORE_OPERATIONS.dup
 
@@ -467,122 +49,89 @@ module Kumi
         )
       end
 
-      # Check if a function is a core operator
+      # Auto-register functions from modules
+      def auto_register(*modules)
+        modules.each do |mod|
+          mod.public_instance_methods(false).each do |method_name|
+            next if supported?(method_name)
+
+            register(method_name) do |*args|
+              mod.new.public_send(method_name, *args)
+            end
+          end
+        end
+      end
+
+      # Query interface
+      def supported?(name)
+        @functions.key?(name)
+      end
+
       def operator?(name)
         return false unless name.is_a?(Symbol)
 
         @functions.key?(name) && CORE_OPERATORS.include?(name)
       end
 
-      # Get function by name
       def fetch(name)
-        entry = @functions[name]
-        confirm_support!(name)
-        entry.fn
+        @functions.fetch(name) { raise UnknownFunction, "Unknown function: #{name}" }.fn
       end
 
-      # Get function signature
       def signature(name)
-        confirm_support!(name)
-        entry = @functions[name]
-
+        entry = @functions.fetch(name) { raise UnknownFunction, "Unknown function: #{name}" }
         {
           arity: entry.arity,
           param_types: entry.param_types,
           return_type: entry.return_type,
-          description: entry.description,
-          inverse: entry.inverse
+          description: entry.description
         }
       end
 
-      # Check if function is supported
-      def supported?(name)
-        @functions.key?(name)
+      def all_functions
+        @functions.keys
       end
 
-      # Get all registered function names
+      # Alias for compatibility
       def all
         @functions.keys
       end
 
-      # Get all functions with their metadata
-      def all_with_metadata
-        @functions.transform_values { |entry| signature(entry) }
-      end
-
-      # Get functions by category
-      def operators
-        @functions.slice(*CORE_OPERATORS)
+      # Category accessors for introspection
+      def comparison_operators
+        ComparisonFunctions.definitions.keys
       end
 
       def math_operations
-        @functions.select { |name, _| MATH_OPERATIONS.key?(name) }
+        MathFunctions.definitions.keys
       end
 
       def string_operations
-        @functions.select { |name, _| STRING_OPERATIONS.key?(name) }
+        StringFunctions.definitions.keys
       end
 
       def logical_operations
-        @functions.select { |name, _| LOGICAL_OPERATIONS.key?(name) }
+        LogicalFunctions.definitions.keys
       end
 
       def collection_operations
-        @functions.select { |name, _| COLLECTION_OPERATIONS.key?(name) }
+        CollectionFunctions.definitions.keys
       end
 
       def conditional_operations
-        @functions.select { |name, _| CONDITIONAL_OPERATIONS.key?(name) }
+        ConditionalFunctions.definitions.keys
       end
 
       def type_operations
-        @functions.select { |name, _| TYPE_OPERATIONS.key?(name) }
+        TypeFunctions.definitions.keys
       end
 
-      # Reset to core operations only
+      # Development helpers
       def reset!
-        @functions.clear
-        @functions.merge!(CORE_OPERATIONS)
+        @functions = CORE_OPERATIONS.dup
       end
 
-      # Freeze the registry
-      def freeze
+      def freeze!
         @functions.freeze
-        super
-      end
-
-      # Auto-register functions from a module
-      def auto_register(module_name, prefix: nil)
-        module_obj = Object.const_get(module_name)
-
-        module_obj.instance_methods(false).each do |method_name|
-          function_name = prefix ? :"#{prefix}_#{method_name}" : method_name
-
-          # Skip if already registered
-          next if @functions.key?(function_name)
-
-          # Create a wrapper that calls the module method
-          wrapper = ->(*args) { module_obj.public_send(method_name, *args) }
-
-          # Try to get method arity
-          method = module_obj.instance_method(method_name)
-          arity = method.arity
-
-          register_with_metadata(
-            function_name,
-            wrapper,
-            arity: arity,
-            param_types: [:any],
-            return_type: :any,
-            description: "Auto-registered from #{module_name}##{method_name}"
-          )
-        end
-      end
-
-      private
-
-      def confirm_support!(name)
-        raise UnknownFunction, "Unknown function: '#{name.inspect}'" unless supported?(name)
       end
     end
   end
