@@ -2,7 +2,7 @@
 
 RSpec.describe "Kumi Cascade Logic" do
   let(:syntax_tree) do
-    Kumi::Parser::Dsl.build_sytax_tree do
+    Kumi::Parser::Dsl.build_syntax_tree do
       input do
         key :role, type: Kumi::Types::STRING
       end

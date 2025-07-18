@@ -2,10 +2,10 @@
 
 RSpec.describe Kumi::Parser::Dsl do
   def build_schema(&block)
-    subject.build_sytax_tree(&block)
+    subject.build_syntax_tree(&block)
   end
 
-  describe ".build_sytax_tree" do
+  describe ".build_syntax_tree" do
     it "can define values" do
       schema = build_schema do
         value :name, input.first_name

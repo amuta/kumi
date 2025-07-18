@@ -3,7 +3,7 @@
 module Kumi
   module Parser
     module Dsl
-      def self.build_sytax_tree(&block)
+      def self.build_syntax_tree(&block)
         context = DslBuilderContext.new
         proxy   = DslProxy.new(context)
         proxy.instance_eval(&block)

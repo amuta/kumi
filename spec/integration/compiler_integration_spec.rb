@@ -53,7 +53,7 @@ RSpec.describe "Kumi Compiler Integration" do
       # Notice how predicates build on other predicates, attributes reference multiple predicates,
       # and functions consume both raw fields and computed attributes.
 
-      Kumi::Parser::Dsl.build_sytax_tree do
+      Kumi::Parser::Dsl.build_syntax_tree do
         input do
           key :name, type: :string # Kumi::Types::STRING
           key :age, type: :integer # Kumi::Types::INT
