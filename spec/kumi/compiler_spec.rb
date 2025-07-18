@@ -51,7 +51,7 @@ RSpec.describe Kumi::Compiler do
       analyzer: Kumi::Analyzer.analyze!(t_schema)
     )
 
-    traits_only = t_exec.traits(age: 20)
-    expect(traits_only[:adult]).to be true
+    result = t_exec.evaluate(age: 20)
+    expect(result[:adult]).to be true
   end
 end

@@ -79,49 +79,6 @@ RSpec.describe Kumi::CompiledSchema do
     end
   end
 
-
-  describe "#traits" do
-    it "evaluates only trait bindings" do
-      result = compiled_schema.traits(age: 20, name: "Bob")
-
-      expect(result).to eq({ is_adult: true })
-    end
-
-    it "excludes attribute bindings" do
-      result = compiled_schema.traits(age: 16, name: "Charlie")
-
-      expect(result.keys).not_to include(:display_name)
-    end
-
-    it "handles empty traits" do
-      schema_without_traits = described_class.new({ display_name: [:attr, attr_lambda] })
-      result = schema_without_traits.traits(name: "David")
-
-      expect(result).to eq({})
-    end
-  end
-
-  describe "#attributes" do
-    it "evaluates only attribute bindings" do
-      result = compiled_schema.attributes(age: 25, name: "Eve")
-
-      expect(result).to eq({ display_name: "EVE" })
-    end
-
-    it "excludes trait bindings" do
-      result = compiled_schema.attributes(age: 25, name: "Frank")
-
-      expect(result.keys).not_to include(:is_adult)
-    end
-
-    it "handles empty attributes" do
-      schema_without_attrs = described_class.new({ is_adult: [:trait, trait_lambda] })
-      result = schema_without_attrs.attributes(age: 25)
-
-      expect(result).to eq({})
-    end
-  end
-
   describe "#evaluate_binding" do
     it "evaluates a specific binding by name" do
       result = compiled_schema.evaluate_binding(:is_adult, valid_data)
@@ -161,18 +118,6 @@ RSpec.describe Kumi::CompiledSchema do
       expect do
         error_schema.evaluate_binding(:error_binding, valid_data)
       end.to raise_error(StandardError, "Lambda error")
-    end
-
-    it "validates context for traits method" do
-      expect do
-        compiled_schema.traits("invalid_context")
-      end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
-    end
-
-    it "validates context for attributes method" do
-      expect do
-        compiled_schema.attributes("invalid_context")
-      end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
     end
   end
 

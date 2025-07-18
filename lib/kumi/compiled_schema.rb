@@ -24,14 +24,6 @@ module Kumi
       execute_binding(key, data)
     end
 
-    def traits(data)
-      evaluate_by_type(data, :trait)
-    end
-
-    def attributes(data)
-      evaluate_by_type(data, :attr)
-    end
-
     private
 
     def validate_context(data)
@@ -61,20 +53,6 @@ module Kumi
     def execute_binding(key, data)
       _type, proc = @bindings[key]
       proc.call(data)
-    end
-
-    def evaluate_by_type(data, target_type)
-      validate_context(data)
-
-      filtered_keys = filter_keys_by_type(target_type)
-
-      filtered_keys.each_with_object({}) do |key, result|
-        result[key] = execute_binding(key, data)
-      end
-    end
-
-    def filter_keys_by_type(target_type)
-      @bindings.filter_map { |key, (type, _proc)| key if type == target_type }
     end
   end
 end
