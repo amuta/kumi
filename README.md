@@ -1,16 +1,17 @@
 # Kumi
 
-A declarative decision-modeling compiler for Ruby that transforms complex business rules into executable dependency graphs with comprehensive static type checking.
+A Ruby library for building business rule systems. Kumi compiles declarative rules into dependency graphs with static analysis and type checking.
 
-## Overview
+## What is Kumi?
 
-Kumi provides a powerful DSL for modeling complex business logic through:
-- **Multi-pass analysis** that validates rule interdependencies and detects cycles
-- **Static type system** with declared and inferred types
-- **Dependency-driven evaluation** for optimal performance
-- **Input block system** for explicit field declarations and type safety
-- **Object-oriented design** with extensible schema classes
-- **Comprehensive error reporting** with precise location tracking
+Kumi helps you organize complex business logic in a structured way:
+- Define rules declaratively using a Ruby DSL
+- Automatic dependency resolution between rules
+- Type checking for rule inputs and outputs
+- Schema compilation to executable code
+- AST-based design for extensibility
+
+The core strength is the compiler architecture - rules are parsed into an AST, analyzed through multiple passes, then "compiled" to executable form. This foundation enables building various frontends and backends.
 
 ## Installation
 
@@ -24,45 +25,12 @@ Or add to your Gemfile:
 gem 'kumi'
 ```
 
-## Quick Start
+## Basic Usage
 
-Kumi supports both functional and object-oriented approaches. **The object-oriented approach is recommended** for production applications as it provides better encapsulation, reusability, and testability.
-
-### Functional Approach
 ```ruby
 require 'kumi'
 
-# Direct schema definition
-schema = Kumi.schema do
-  input do
-    key :score, type: :integer
-    key :base_discount, type: :float
-    key :customer_tier, type: :string
-  end
-  
-  predicate :high_risk, fn(:>, input.score, 80)
-  predicate :premium_customer, fn(:==, input.customer_tier, "premium")
-  
-  value :discount_multiplier, fn(:conditional, 
-    ref(:premium_customer), 1.5,
-    fn(:conditional, ref(:high_risk), 0.8, 1.2)
-  )
-  
-  value :final_discount, fn(:multiply, input.base_discount, ref(:discount_multiplier))
-end
-
-runner = schema.runner
-puts runner.fetch(:final_discount, {
-  score: 75, 
-  base_discount: 10.0, 
-  customer_tier: "premium"
-}) # => 15.0
-```
-
-### Object-Oriented Approach (Recommended)
-```ruby
-require 'kumi'
-
+# Define a schema with business rules
 class DiscountCalculator
   extend Kumi::Schema
   
@@ -84,192 +52,106 @@ class DiscountCalculator
     value :final_discount, fn(:multiply, input.base_discount, ref(:discount_multiplier))
   end
   
-  def self.calculate_discount(customer_data)
+  def self.calculate(customer_data)
     from(customer_data).fetch(:final_discount)
-  end
-  
-  def self.get_customer_tier(customer_data)
-    from(customer_data).fetch(:premium_customer) ? "Premium" : "Standard"
   end
 end
 
-# Clean, domain-focused usage
-discount = DiscountCalculator.calculate_discount({
+# Use it
+discount = DiscountCalculator.calculate({
   score: 75, 
   base_discount: 10.0, 
   customer_tier: "premium"
-}) # => 15.0
-
-tier = DiscountCalculator.get_customer_tier(customer_data)
+})
+# => 15.0
 ```
 
-## Core Features
-
-### Input Block System
-All schemas must declare expected input fields with optional type annotations:
+Kumi can also be used functionally:
 
 ```ruby
-schema do
-  input do
-    key :age, type: :integer
-    key :name, type: :string
-    key :scores, type: array(:any)
-    key :dynamic
-  end
-  
-  # Use input.field_name to access fields
-  predicate :adult, fn(:>=, input.age, 18)
-  value :greeting, fn(:concat, "Hello, ", input.name)
+schema = Kumi.schema do
+  # same schema definition
+end
+
+runner = schema.runner
+result = runner.fetch(:final_discount, data)
+```
+
+## How It Works
+
+### Input Declaration
+Schemas start by declaring expected input fields:
+
+```ruby
+input do
+  key :age, type: :integer
+  key :name, type: :string
+  key :scores, type: array(:float)
 end
 ```
 
-note: when the type is not declared, it will be considered as `Any` type
-(Later I will add a flag for strict_type: true)
+### Rule Definitions
+Define business logic using predicates and values:
+
+```ruby
+predicate :adult, fn(:>=, input.age, 18)
+value :greeting, fn(:concat, "Hello, ", input.name)
+value :average_score, fn(:divide, fn(:sum, input.scores), fn(:size, input.scores))
+```
+
+### Dependencies and Evaluation
+Rules can reference other rules, creating a dependency graph:
+
+```ruby
+predicate :eligible, fn(:and, ref(:adult), fn(:>, ref(:average_score), 75))
+value :status, fn(:conditional, ref(:eligible), "approved", "rejected")
+```
+
+Kumi automatically determines evaluation order and detects circular dependencies.
 
 ### Type System
-- **Declared Types**: Explicit type declarations in input blocks
-- **Inferred Types**: Automatic type inference from expressions
-- **Type Checking**: Validates compatibility between declared and inferred types
-- **Rich Error Messages**: Shows type provenance and location information
-
-### Available Types
-- Primitives: `:integer`, `:float`, `:string`, `:boolean`, `:any`, `:symbol`, `:regexp`, `:time`, `:date`, `:datetime`
-- Collections: `array(:element_type)`, `hash(:key_type, :value_type)`
-
-## DSL Syntax
-
-### Basic Declarations
-- `predicate :name, expression` - Boolean conditions
-- `value :name, expression` - Computed values
-- `value :name do ... end` - Conditional logic with `on predicate1, predicate2, result` and `base default`
-
-### Expressions
-- `input.field_name` - Access input data (replaces deprecated `key(:field)`)
-- `ref(:name)` - Reference other declarations
-- `fn(:function, args...)` - Function calls
-- `[element1, element2]` - Lists
-- Literals: numbers, Strings, booleans
-
-### Available Functions
-Core functions include arithmetic (`add`, `subtract`, `multiply`, `divide`), comparison (`==`, `>`, `<`, `>=`, `<=`), logical (`and`, `or`, `not`), String operations (`concat`, `upcase`, `downcase`), and collection operations (`sum`, `first`, `last`, `size`).
+- Input types can be declared explicitly
+- Expression types are inferred automatically
+- Type compatibility is checked at schema compilation
+- Supports primitives and collections: `array(:type)`, `hash(:key_type, :value_type)`
 
 ## Examples
 
-### Simple Weather Assessment
+### Loan Approval Rules
 ```ruby
-class WeatherComfort
+class LoanApproval
   extend Kumi::Schema
   
   schema do
     input do
-      key :temperature, type: :float
-      key :humidity, type: :float
-    end
-    
-    predicate :hot, fn(:>, input.temperature, 80.0)
-    predicate :humid, fn(:>, input.humidity, 60.0)
-    
-    value :comfort_level do
-      on :hot, :humid, "uncomfortable"
-      on :hot, "warm"
-      on :humid, "muggy"
-      base "pleasant"
-    end
-    
-    value :recommendation, fn(:conditional,
-      fn(:==, ref(:comfort_level), "uncomfortable"), "Stay indoors with AC",
-      fn(:conditional,
-        fn(:==, ref(:comfort_level), "pleasant"), "Perfect for outdoor activities",
-        "Consider light activities"
-      )
-    )
-  end
-  
-  def self.assess(conditions)
-    runner = from(conditions)
-    {
-      comfort: runner.fetch(:comfort_level),
-      recommendation: runner.fetch(:recommendation)
-    }
-  end
-end
-
-# Usage
-assessment = WeatherComfort.assess({
-  temperature: 75.0,
-  humidity: 45.0
-})
-# => { comfort: "pleasant", recommendation: "Perfect for outdoor activities" }
-```
-
-### Loan Approval System
-```ruby
-class LoanApprovalEngine
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      key :credit_score, type: :integer, domain: 300..850
+      key :credit_score, type: :integer
       key :annual_income, type: :float
       key :loan_amount, type: :float
       key :employment_years, type: :integer
-      key :has_collateral, type: :boolean
     end
     
     predicate :good_credit, fn(:>=, input.credit_score, 700)
-    predicate :stable_income, fn(:>=, input.employment_years, 2)
-    predicate :low_debt_ratio, fn(:<, fn(:divide, input.loan_amount, input.annual_income), 0.3)
+    predicate :stable_employment, fn(:>=, input.employment_years, 2)
     
-    value :debt_to_income_ratio, fn(:divide, input.loan_amount, input.annual_income)
-    value :risk_score, fn(:multiply, 
-      fn(:conditional, ref(:good_credit), 0.3, 0.7),
-      fn(:conditional, ref(:stable_income), 0.8, 1.2)
-    )
+    value :debt_ratio, fn(:divide, input.loan_amount, input.annual_income)
+    predicate :manageable_debt, fn(:<, ref(:debt_ratio), 0.4)
     
     value :approval_status do
-      on :good_credit, :stable_income, "approved"
-      on :low_debt_ratio, "conditional"
+      on :good_credit, :stable_employment, :manageable_debt, "approved"
+      on :good_credit, :manageable_debt, "conditional"
       base "denied"
     end
-    
-    value :interest_rate, fn(:conditional,
-      fn(:==, ref(:approval_status), "approved"), 3.5,
-      fn(:conditional,
-        fn(:==, ref(:approval_status), "conditional"), 4.2,
-        0.0
-      )
-    )
   end
   
   def self.evaluate(application)
-    runner = from(application)
-    {
-      status: runner.fetch(:approval_status),
-      interest_rate: runner.fetch(:interest_rate),
-      debt_ratio: runner.fetch(:debt_to_income_ratio).round(3),
-      risk_score: runner.fetch(:risk_score).round(3)
-    }
-  end
-  
-  def self.approved?(application)
-    from(application).fetch(:approval_status) != "denied"
+    from(application).fetch(:approval_status)
   end
 end
-
-# Usage
-result = LoanApprovalEngine.evaluate({
-  credit_score: 720,
-  annual_income: 75_000.0,
-  loan_amount: 200_000.0,
-  employment_years: 5,
-  has_collateral: true
-})
-# => { status: "approved", interest_rate: 3.5, debt_ratio: 2.667, risk_score: 0.24 }
 ```
 
-### Product Pricing Engine
+### Dynamic Pricing
 ```ruby
-class ProductPricing
+class PricingEngine
   extend Kumi::Schema
   
   schema do
@@ -277,251 +159,81 @@ class ProductPricing
       key :base_price, type: :float
       key :customer_tier, type: :string
       key :quantity, type: :integer
-      key :seasonal_demand, type: :string
-      key :is_member, type: :boolean
+      key :demand_level, type: :string
     end
     
-    predicate :bulk_order, fn(:>=, input.quantity, 10)
+    predicate :bulk_order, fn(:>=, input.quantity, 20)
     predicate :premium_customer, fn(:==, input.customer_tier, "premium")
-    predicate :high_demand, fn(:==, input.seasonal_demand, "high")
+    predicate :high_demand, fn(:==, input.demand_level, "high")
     
-    value :tier_discount, fn(:conditional,
-      ref(:premium_customer), 0.15,
-      fn(:conditional, input.is_member, 0.05, 0.0)
-    )
+    value :volume_discount, fn(:conditional, ref(:bulk_order), 0.15, 0.0)
+    value :tier_discount, fn(:conditional, ref(:premium_customer), 0.10, 0.0)
+    value :demand_multiplier, fn(:conditional, ref(:high_demand), 1.2, 1.0)
     
-    value :quantity_discount, fn(:conditional,
-      fn(:>=, input.quantity, 50), 0.20,
-      fn(:conditional, ref(:bulk_order), 0.10, 0.0)
-    )
-    
-    value :seasonal_multiplier, fn(:conditional,
-      ref(:high_demand), 1.15,
-      fn(:conditional, fn(:==, input.seasonal_demand, "low"), 0.9, 1.0)
-    )
-    
-    value :total_discount, fn(:add, ref(:tier_discount), ref(:quantity_discount))
+    value :total_discount, fn(:add, ref(:volume_discount), ref(:tier_discount))
     value :discounted_price, fn(:multiply, input.base_price, fn(:subtract, 1.0, ref(:total_discount)))
-    value :final_price, fn(:multiply, ref(:discounted_price), ref(:seasonal_multiplier))
+    value :final_price, fn(:multiply, ref(:discounted_price), ref(:demand_multiplier))
   end
   
-  def self.calculate(product_data)
-    runner = from(product_data)
-    {
-      base_price: product_data[:base_price],
-      tier_discount: (runner.fetch(:tier_discount) * 100).round(1),
-      quantity_discount: (runner.fetch(:quantity_discount) * 100).round(1),
-      seasonal_adjustment: ((runner.fetch(:seasonal_multiplier) - 1) * 100).round(1),
-      final_price: runner.fetch(:final_price).round(2)
-    }
+  def self.calculate(params)
+    from(params).fetch(:final_price)
   end
 end
-
-# Usage
-pricing = ProductPricing.calculate({
-  base_price: 100.0,
-  customer_tier: "premium",
-  quantity: 25,
-  seasonal_demand: "normal",
-  is_member: true
-})
-# => { base_price: 100.0, tier_discount: 15.0, quantity_discount: 10.0, 
-#      seasonal_adjustment: 0.0, final_price: 75.0 }
 ```
 
-## Object-Oriented Benefits
+## Design
 
-### Why Extend Classes with Kumi::Schema?
+### AST Foundation
+Kumi compiles schemas through several phases:
 
-The object-oriented approach provides several key advantages:
+1. **Parse** - DSL to syntax tree (AST)
+2. **Analyze** - Multi-pass validation and dependency resolution  
+3. **Compile** - AST to executable functions
 
-1. **Domain Encapsulation**: Each schema class represents a specific business domain
-2. **Reusability**: Schemas become reusable components across your application
-3. **Clean APIs**: Custom methods provide domain-specific interfaces
-4. **Testability**: Easy to unit test individual business logic components
-5. **Maintainability**: Business rules are organized by domain, not scattered
+This architecture enables:
+- Different input syntaxes (Ruby DSL, YAML, JSON)
+- Rule storage in databases or external systems
+- API-driven rule management
+- Custom analysis passes
 
-### Implementation Patterns
+### Extensibility
+The AST-based design allows building tools on top of Kumi:
 
-#### Simple Extension
 ```ruby
-class RiskAssessment
-  extend Kumi::Schema
-  
-  schema do
-    # Your business logic here
-  end
-  
-  def self.assess_risk(data)
-    from(data).fetch(:risk_level)
-  end
-end
+# Potential extensions
+ast = schema.analysis.syntax_tree
+rules_json = ASTSerializer.to_json(ast)
+yaml_schema = ASTExporter.to_yaml(ast) 
+visual_graph = DependencyVisualizer.render(ast)
 ```
 
-#### Multiple Outputs
-```ruby
-class EmployeeEvaluation
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      key :performance_score, type: :integer
-      key :years_of_service, type: :integer
-      key :department, type: :string
-    end
-    
-    predicate :high_performer, fn(:>=, input.performance_score, 85)
-    predicate :senior_employee, fn(:>=, input.years_of_service, 5)
-    
-    value :promotion_eligible, fn(:and, ref(:high_performer), ref(:senior_employee))
-    value :bonus_multiplier, fn(:conditional, ref(:high_performer), 1.5, 1.0)
-    value :development_track, fn(:conditional, 
-      ref(:senior_employee), "leadership", "individual_contributor"
-    )
-  end
-  
-  def self.evaluate(employee_data)
-    runner = from(employee_data)
-    {
-      promotion_eligible: runner.fetch(:promotion_eligible),
-      bonus_multiplier: runner.fetch(:bonus_multiplier),
-      development_track: runner.fetch(:development_track)
-    }
-  end
-  
-  def self.promotion_eligible?(employee_data)
-    from(employee_data).fetch(:promotion_eligible)
-  end
-  
-  def self.recommended_bonus(employee_data, base_bonus)
-    multiplier = from(employee_data).fetch(:bonus_multiplier)
-    base_bonus * multiplier
-  end
-end
-```
+Since Kumi is MIT licensed, you can extend it for specific needs without restrictions.
 
-#### Inheritance for Related Domains
-```ruby
-class BaseInsuranceCalculator
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      key :age, type: :integer
-      key :coverage_amount, type: :float
-      key :risk_factors, type: array(:string)
-    end
-    
-    predicate :high_risk_age, fn(:or, fn(:<, input.age, 25), fn(:>, input.age, 65))
-    value :base_premium, fn(:multiply, input.coverage_amount, 0.02)
-  end
-end
+## Analysis Passes
 
-class AutoInsurance < BaseInsuranceCalculator
-  schema do
-    input do
-      key :driving_record, type: :string
-      key :vehicle_year, type: :integer
-    end
-    
-    predicate :good_driver, fn(:==, input.driving_record, "clean")
-    predicate :new_vehicle, fn(:>, input.vehicle_year, 2020)
-    
-    value :risk_multiplier, fn(:conditional,
-      fn(:and, ref(:good_driver), ref(:new_vehicle)), 0.8,
-      fn(:conditional, ref(:good_driver), 0.9, 1.2)
-    )
-    
-    value :final_premium, fn(:multiply, ref(:base_premium), ref(:risk_multiplier))
-  end
-  
-  def self.quote(driver_data)
-    from(driver_data).fetch(:final_premium).round(2)
-  end
-end
-```
+Kumi's multi-pass analyzer ensures schema correctness:
 
-## Architecture
-
-Kumi uses a multi-pass analysis system:
-
-1. **Name Indexing** - Find all declarations and check for duplicates
-2. **Input Collection** - Gather field metadata and validate consistency
-3. **Definition Validation** - Validate basic structure
+1. **Name Indexing** - Find declarations, check duplicates
+2. **Input Collection** - Gather field metadata  
+3. **Definition Validation** - Validate structure
 4. **Dependency Resolution** - Build dependency graph
 5. **Cycle Detection** - Find circular dependencies
 6. **Topological Sorting** - Create evaluation order
-7. **Type Inference** - Infer types for all declarations
-8. **Type Checking** - Validate function types and compatibility
-
-## Error Handling
-
-Kumi provides detailed error messages with:
-- Precise location information (file, line, column)
-- Type provenance (declared vs inferred types)
-- Clear descriptions of type mismatches
-- Suggestions for fixing common issues
-
-```ruby
-# Example error:
-# at example.rb:10:5: argument 1 of `fn(:add)` expects int | Float, 
-# got input field `name` of declared type String
-```
+7. **Type Inference** - Infer expression types
+8. **Type Checking** - Validate compatibility
 
 ## Development
 
 ```bash
-# Install dependencies
-bundle install
-
-# Run tests
-bundle exec rspec
-
-# Run linter
-bundle exec rubocop
-
-# Run both tests and linter
-rake
-
-# Build gem
-gem build kumi.gemspec
+bundle install        # Install dependencies
+bundle exec rspec     # Run tests
+bundle exec rubocop   # Run linter
+rake                  # Run tests and linter
 ```
 
-## Examples Directory
+## Examples
 
-The `examples/` directory contains comprehensive examples:
-- `input_block_typing_showcase.rb` - Complete demonstration of input block typing features
-
-*Note: Examples demonstrate both functional and object-oriented approaches. The object-oriented pattern (extending classes with `Kumi::Schema`) is recommended for production applications.*
-
-### Getting Started with Object-Oriented Schemas
-
-1. **Start Simple**: Create a class and extend `Kumi::Schema`
-2. **Define Schema**: Use the `schema do...end` block to define business logic
-3. **Add Methods**: Create class methods that use `from(data)` to access the runner
-4. **Test Easily**: Each class becomes a testable unit of business logic
-
-```ruby
-# Your first schema class
-class MyBusinessLogic
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      key :my_field, type: :string
-    end
-    
-    value :my_result, fn(:upcase, input.my_field)
-  end
-  
-  def self.process(data)
-    from(data).fetch(:my_result)
-  end
-end
-
-result = MyBusinessLogic.process({ my_field: "hello" })
-# => "HELLO"
-```
+See `examples/input_block_typing_showcase.rb` for comprehensive usage examples.
 
 ## Contributing
 
