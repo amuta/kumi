@@ -11,7 +11,7 @@ Kumi helps you organize complex business logic in a structured way:
 - Schema compilation to executable code
 - AST-based design for extensibility
 
-The core strength is the compiler architecture - rules are parsed into an AST, analyzed through multiple passes, then "compiled" to executable form. This foundation enables building various frontends and backends.
+The core strength is the compiler architecture - rules are parsed into an AST, analyzed through multiple passes, then "compiled" to executable form.
 
 ## Installation
 
@@ -44,11 +44,12 @@ class DiscountCalculator
     predicate :high_risk, fn(:>, input.score, 80)
     predicate :premium_customer, fn(:==, input.customer_tier, "premium")
     
-    value :discount_multiplier, fn(:conditional, 
-      ref(:premium_customer), 1.5,
-      fn(:conditional, ref(:high_risk), 0.8, 1.2)
-    )
-    
+    value :discount_multiplier do
+      on :premium_customer, 1.5
+      on :high_risk, 0.8, 
+      base 1.2
+    end
+      
     value :final_discount, fn(:multiply, input.base_discount, ref(:discount_multiplier))
   end
   
@@ -94,7 +95,7 @@ end
 Define business logic using predicates and values:
 
 ```ruby
-predicate :adult, fn(:>=, input.age, 18)
+predicate :adult, input.age, :>=, 18
 value :greeting, fn(:concat, "Hello, ", input.name)
 value :average_score, fn(:divide, fn(:sum, input.scores), fn(:size, input.scores))
 ```
@@ -103,8 +104,12 @@ value :average_score, fn(:divide, fn(:sum, input.scores), fn(:size, input.scores
 Rules can reference other rules, creating a dependency graph:
 
 ```ruby
-predicate :eligible, fn(:and, ref(:adult), fn(:>, ref(:average_score), 75))
-value :status, fn(:conditional, ref(:eligible), "approved", "rejected")
+predicate :adult, input.age, :>=, 18
+predicate :eligible, ref(:adult), :>, ref(:average_score)
+value :status do
+  on :adult, :eligible, "approved"
+  base "rejected"
+end
 ```
 
 Kumi automatically determines evaluation order and detects circular dependencies.
@@ -183,44 +188,81 @@ end
 
 ## Design
 
-### AST Foundation
-Kumi compiles schemas through several phases:
+### Architecture
 
-1. **Parse** - DSL to syntax tree (AST)
-2. **Analyze** - Multi-pass validation and dependency resolution  
-3. **Compile** - AST to executable functions
+#### How it's organized
+- The ruby DSL is parsed to an abstract syntax tree (AST)
+- The syntax tree (AST) is decoupled from the analysis/compilation
+- Data structures don't change after creation  
+- No hidden state or complicated object relationships
 
-This architecture enables:
-- Different input syntaxes (Ruby DSL, YAML, JSON)
-- Rule storage in databases or external systems
-- API-driven rule management
-- Custom analysis passes
+#### How compilation works
+Kumi compiles schemas in three steps:
 
-### Extensibility
-The AST-based design allows building tools on top of Kumi:
+1. **Parse** - Turn the DSL into a AST
+2. **Analyze** - Validate the schema and figure out dependencies
+3. **Compile** - Turn the syntax tree into runnable code
+
+
+### Exporting Schemas
+
+You can export schemas to JSON and import them back:
 
 ```ruby
-# Potential extensions
-ast = schema.analysis.syntax_tree
-rules_json = ASTSerializer.to_json(ast)
-yaml_schema = ASTExporter.to_yaml(ast) 
-visual_graph = DependencyVisualizer.render(ast)
+# Export schema to JSON
+json = Kumi::Export.to_json(schema)
+
+# Import from JSON  
+imported_schema = Kumi::Export.from_json(json)
+
+# Imported schemas work the same as the originals
+analysis = Kumi::Analyzer.analyze!(imported_schema)
+compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
+result = compiled.evaluate(data)
 ```
 
-Since Kumi is MIT licensed, you can extend it for specific needs without restrictions.
+What it does:
+- Export and import schemas without losing information
+- Keeps Ruby types correct (symbols vs strings) when converting to JSON
+- Handles complex structures like arrays, hashes, and nested expressions
+- Can format JSON nicely for humans to read
+
+This lets you:
+- Store schemas in databases as JSON
+- Build REST APIs for managing rules  
+- Create web-based rule editors
+- Share schemas between different services
+
+### Building on top of Kumi
+Since Kumi uses a syntax tree internally, you can build other tools:
+
+```ruby
+# Schema analysis and export
+schema = MyBusinessRules.schema_definition
+ast = schema.analysis.syntax_tree
+
+# Export to various formats
+json_schema = Kumi::Export.to_json(ast)
+rules_api.store(schema_id, json_schema)
+
+# Build custom tools
+dependency_graph = schema.analysis.dependency_graph
+visual_graph = DependencyVisualizer.render(dependency_graph)
+docs = DocumentationGenerator.from_ast(ast)
+```
 
 ## Analysis Passes
 
-Kumi's multi-pass analyzer ensures schema correctness:
+Kumi checks schemas in several passes to make sure they're correct:
 
-1. **Name Indexing** - Find declarations, check duplicates
-2. **Input Collection** - Gather field metadata  
-3. **Definition Validation** - Validate structure
-4. **Dependency Resolution** - Build dependency graph
-5. **Cycle Detection** - Find circular dependencies
-6. **Topological Sorting** - Create evaluation order
-7. **Type Inference** - Infer expression types
-8. **Type Checking** - Validate compatibility
+1. **Name Indexing** - Find all declarations and check for duplicates
+2. **Input Collection** - Collect information about input fields  
+3. **Definition Validation** - Check that the structure makes sense
+4. **Dependency Resolution** - Figure out which rules depend on others
+5. **Cycle Detection** - Make sure there are no circular dependencies
+6. **Topological Sorting** - Determine the order to evaluate rules
+7. **Type Inference** - Figure out what types expressions return
+8. **Type Checking** - Make sure types are compatible
 
 ## Development
 
@@ -230,6 +272,23 @@ bundle exec rspec     # Run tests
 bundle exec rubocop   # Run linter
 rake                  # Run tests and linter
 ```
+
+### Testing the Export System
+
+The AST export system includes comprehensive integration tests:
+
+```bash
+# Test basic export/import functionality
+bundle exec rspec spec/kumi/export_spec.rb
+
+# Test analyzer integration with exported schemas  
+bundle exec rspec spec/kumi/export/analyzer_integration_spec.rb
+
+# Test comprehensive schema with all syntax features
+bundle exec rspec spec/kumi/export/comprehensive_integration_spec.rb
+```
+
+These tests validate that exported schemas preserve semantic information and execute correctly after import.
 
 ## Examples
 
