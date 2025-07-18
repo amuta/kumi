@@ -4,147 +4,206 @@ require "set"
 require "date"
 
 RSpec.describe Kumi::Types do
-  describe "primitive types" do
-    it "defines all expected primitive types" do
-      expect(Kumi::Types::INT).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::FLOAT).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::STRING).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::BOOL).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::DATE).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::TIME).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::DATETIME).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::SYMBOL).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::REGEXP).to be_a(Kumi::Types::Primitive)
-      expect(Kumi::Types::UUID).to be_a(Kumi::Types::Primitive)
+  describe "type validation" do
+    it "validates primitive type symbols" do
+      expect(described_class.valid_type?(:string)).to be true
+      expect(described_class.valid_type?(:integer)).to be true
+      expect(described_class.valid_type?(:float)).to be true
+      expect(described_class.valid_type?(:boolean)).to be true
+      expect(described_class.valid_type?(:any)).to be true
+      expect(described_class.valid_type?(:symbol)).to be true
+      expect(described_class.valid_type?(:regexp)).to be true
+      expect(described_class.valid_type?(:time)).to be true
+      expect(described_class.valid_type?(:date)).to be true
+      expect(described_class.valid_type?(:datetime)).to be true
     end
 
-    it "supports comparison" do
-      expect(Kumi::Types::FLOAT <=> Kumi::Types::INT).to eq(-1)
-      expect(Kumi::Types::STRING <=> Kumi::Types::STRING).to eq(0)
+    it "rejects invalid type symbols" do
+      expect(described_class.valid_type?(:invalid)).to be false
+      expect(described_class.valid_type?("string")).to be false
+      expect(described_class.valid_type?(42)).to be false
     end
 
-    it "has proper string representation" do
-      expect(Kumi::Types::INT.to_s).to eq("int")
-      expect(Kumi::Types::STRING.to_s).to eq("string")
-    end
-  end
-
-  describe "union types" do
-    it "creates unions with | operator" do
-      union = Kumi::Types::INT | Kumi::Types::FLOAT
-      expect(union).to be_a(Kumi::Types::Union)
-      expect(union.left).to eq(Kumi::Types::INT)
-      expect(union.right).to eq(Kumi::Types::FLOAT)
-    end
-
-    it "has proper string representation" do
-      union = Kumi::Types::INT | Kumi::Types::FLOAT
-      expect(union.to_s).to eq("int | float")
+    it "validates complex types" do
+      expect(described_class.valid_type?({ array: :string })).to be true
+      expect(described_class.valid_type?({ hash: %i[string integer] })).to be true
+      expect(described_class.valid_type?({ array: :invalid })).to be false
+      expect(described_class.valid_type?({ hash: [:string] })).to be false
     end
   end
 
-  describe "parametric types" do
-    describe "ArrayOf" do
-      it "creates typed arrays" do
-        int_array = described_class.array(Kumi::Types::INT)
-        expect(int_array).to be_a(Kumi::Types::ArrayOf)
-        expect(int_array.elem).to eq(Kumi::Types::INT)
-        expect(int_array.to_s).to eq("array<int>")
+  describe "type normalization" do
+    it "normalizes valid symbols" do
+      expect(described_class.normalize(:string)).to eq(:string)
+      expect(described_class.normalize(:integer)).to eq(:integer)
+    end
+
+    it "normalizes strings to symbols" do
+      expect(described_class.normalize("string")).to eq(:string)
+      expect(described_class.normalize("integer")).to eq(:integer)
+    end
+
+    it "normalizes complex types" do
+      expect(described_class.normalize({ array: :string })).to eq({ array: :string })
+      expect(described_class.normalize({ hash: %i[string integer] })).to eq({ hash: %i[string integer] })
+    end
+
+    it "raises error for invalid types" do
+      expect { described_class.normalize(:invalid) }.to raise_error(ArgumentError, /Invalid type symbol/)
+      expect { described_class.normalize("invalid") }.to raise_error(ArgumentError, /Invalid type string/)
+      expect { described_class.normalize(42) }.to raise_error(ArgumentError, /Type must be a symbol/)
+    end
+  end
+
+  describe "helper functions" do
+    describe "array" do
+      it "creates array types" do
+        result = described_class.array(:string)
+        expect(result).to eq({ array: :string })
+      end
+
+      it "raises error for invalid element types" do
+        expect { described_class.array(:invalid) }.to raise_error(ArgumentError, /Invalid array element type/)
       end
     end
 
-    describe "SetOf" do
-      it "creates typed sets" do
-        string_set = described_class.set(Kumi::Types::STRING)
-        expect(string_set).to be_a(Kumi::Types::SetOf)
-        expect(string_set.elem).to eq(Kumi::Types::STRING)
-        expect(string_set.to_s).to eq("set<string>")
+    describe "hash" do
+      it "creates hash types" do
+        result = described_class.hash(:string, :integer)
+        expect(result).to eq({ hash: %i[string integer] })
       end
-    end
 
-    describe "HashOf" do
-      it "creates typed hashes" do
-        string_int_hash = described_class.hash(Kumi::Types::STRING, Kumi::Types::INT)
-        expect(string_int_hash).to be_a(Kumi::Types::HashOf)
-        expect(string_int_hash.key).to eq(Kumi::Types::STRING)
-        expect(string_int_hash.val).to eq(Kumi::Types::INT)
-        expect(string_int_hash.to_s).to eq("hash<string,int>")
+      it "raises error for invalid key/value types" do
+        expect { described_class.hash(:invalid, :string) }.to raise_error(ArgumentError, /Invalid hash key type/)
+        expect { described_class.hash(:string, :invalid) }.to raise_error(ArgumentError, /Invalid hash value type/)
       end
-    end
-  end
-
-  describe "type inference from values" do
-    it "infers correct types from Ruby values" do
-      expect(described_class.infer_from_value(42)).to eq(Kumi::Types::INT)
-      expect(described_class.infer_from_value(3.14)).to eq(Kumi::Types::FLOAT)
-      expect(described_class.infer_from_value("hello")).to eq(Kumi::Types::STRING)
-      expect(described_class.infer_from_value(true)).to eq(Kumi::Types::BOOL)
-      expect(described_class.infer_from_value(false)).to eq(Kumi::Types::BOOL)
-      expect(described_class.infer_from_value(:symbol)).to eq(Kumi::Types::SYMBOL)
-      expect(described_class.infer_from_value(/regex/)).to eq(Kumi::Types::REGEXP)
-    end
-
-    it "infers collection types" do
-      expect(described_class.infer_from_value([1, 2, 3])).to be_a(Kumi::Types::ArrayOf)
-      expect(described_class.infer_from_value(Set.new([1, 2]))).to be_a(Kumi::Types::SetOf)
-      expect(described_class.infer_from_value({ a: 1 })).to be_a(Kumi::Types::HashOf)
-    end
-  end
-
-  describe "type unification" do
-    it "unifies identical types" do
-      result = described_class.unify(Kumi::Types::INT, Kumi::Types::INT)
-      expect(result).to eq(Kumi::Types::INT)
-    end
-
-    it "unifies with base type" do
-      base = Kumi::Types::Base.new
-      result = described_class.unify(Kumi::Types::INT, base)
-      expect(result).to eq(Kumi::Types::INT)
-    end
-
-    it "creates unions for different primitive types" do
-      result = described_class.unify(Kumi::Types::INT, Kumi::Types::STRING)
-      expect(result).to be_a(Kumi::Types::Union)
-    end
-
-    it "unifies array types" do
-      arr1 = described_class.array(Kumi::Types::INT)
-      arr2 = described_class.array(Kumi::Types::FLOAT)
-      result = described_class.unify(arr1, arr2)
-      expect(result).to be_a(Kumi::Types::ArrayOf)
-      expect(result.elem).to be_a(Kumi::Types::Union)
     end
   end
 
   describe "type compatibility" do
     it "checks basic compatibility" do
-      expect(described_class.compatible?(Kumi::Types::INT, Kumi::Types::INT)).to be true
-      expect(described_class.compatible?(Kumi::Types::INT, Kumi::Types::STRING)).to be false
+      expect(described_class.compatible?(:string, :string)).to be true
+      expect(described_class.compatible?(:integer, :string)).to be false
     end
 
-    it "handles base type compatibility" do
-      base = Kumi::Types::Base.new
-      expect(described_class.compatible?(Kumi::Types::INT, base)).to be true
-      expect(described_class.compatible?(base, Kumi::Types::INT)).to be true
-    end
-
-    it "handles union type compatibility" do
-      union = Kumi::Types::INT | Kumi::Types::FLOAT
-      expect(described_class.compatible?(Kumi::Types::INT, union)).to be true
-      expect(described_class.compatible?(Kumi::Types::STRING, union)).to be false
+    it "handles :any compatibility" do
+      expect(described_class.compatible?(:any, :string)).to be true
+      expect(described_class.compatible?(:string, :any)).to be true
     end
 
     it "handles numeric compatibility" do
-      expect(described_class.compatible?(Kumi::Types::INT, Kumi::Types::DECIMAL)).to be true
-      expect(described_class.compatible?(Kumi::Types::FLOAT, Kumi::Types::DECIMAL)).to be true
+      expect(described_class.compatible?(:integer, :float)).to be true
+      expect(described_class.compatible?(:float, :integer)).to be true
+    end
+
+    it "handles array compatibility" do
+      arr1 = { array: :string }
+      arr2 = { array: :string }
+      arr3 = { array: :integer }
+
+      expect(described_class.compatible?(arr1, arr2)).to be true
+      expect(described_class.compatible?(arr1, arr3)).to be false
+    end
+
+    it "handles hash compatibility" do
+      hash1 = { hash: %i[string integer] }
+      hash2 = { hash: %i[string integer] }
+      hash3 = { hash: %i[string string] }
+
+      expect(described_class.compatible?(hash1, hash2)).to be true
+      expect(described_class.compatible?(hash1, hash3)).to be false
     end
   end
 
-  describe "NUMERIC constant" do
-    it "is a union of INT and FLOAT" do
-      expect(Kumi::Types::NUMERIC).to be_a(Kumi::Types::Union)
-      expect([Kumi::Types::NUMERIC.left, Kumi::Types::NUMERIC.right]).to contain_exactly(Kumi::Types::INT, Kumi::Types::FLOAT)
+  describe "type unification" do
+    it "unifies identical types" do
+      expect(described_class.unify(:string, :string)).to eq(:string)
+    end
+
+    it "unifies with :any" do
+      expect(described_class.unify(:any, :string)).to eq(:string)
+      expect(described_class.unify(:string, :any)).to eq(:string)
+    end
+
+    it "unifies numeric types" do
+      expect(described_class.unify(:integer, :float)).to eq(:float)
+      expect(described_class.unify(:float, :integer)).to eq(:float)
+      expect(described_class.unify(:integer, :integer)).to eq(:integer)
+    end
+
+    it "unifies array types" do
+      arr1 = { array: :integer }
+      arr2 = { array: :float }
+      result = described_class.unify(arr1, arr2)
+      expect(result).to eq({ array: :float })
+    end
+
+    it "unifies hash types" do
+      hash1 = { hash: %i[string integer] }
+      hash2 = { hash: %i[string float] }
+      result = described_class.unify(hash1, hash2)
+      expect(result).to eq({ hash: %i[string float] })
+    end
+
+    it "falls back to :any for incompatible types" do
+      expect(described_class.unify(:string, :integer)).to eq(:any)
+    end
+  end
+
+  describe "type inference from values" do
+    it "infers primitive types from Ruby values" do
+      expect(described_class.infer_from_value(42)).to eq(:integer)
+      expect(described_class.infer_from_value(3.14)).to eq(:float)
+      expect(described_class.infer_from_value("hello")).to eq(:string)
+      expect(described_class.infer_from_value(true)).to eq(:boolean)
+      expect(described_class.infer_from_value(false)).to eq(:boolean)
+      expect(described_class.infer_from_value(:symbol)).to eq(:symbol)
+      expect(described_class.infer_from_value(/regex/)).to eq(:regexp)
+    end
+
+    it "infers array types" do
+      expect(described_class.infer_from_value([1, 2, 3])).to eq({ array: :integer })
+      expect(described_class.infer_from_value([])).to eq({ array: :any })
+    end
+
+    it "infers hash types" do
+      expect(described_class.infer_from_value({ "key" => 42 })).to eq({ hash: %i[string integer] })
+      expect(described_class.infer_from_value({})).to eq({ hash: %i[any any] })
+    end
+
+    it "handles unknown types" do
+      expect(described_class.infer_from_value(Object.new)).to eq(:any)
+    end
+  end
+
+  describe "string representation" do
+    it "converts primitive types to strings" do
+      expect(described_class.type_to_s(:string)).to eq("string")
+      expect(described_class.type_to_s(:integer)).to eq("integer")
+    end
+
+    it "converts array types to strings" do
+      expect(described_class.type_to_s({ array: :string })).to eq("array(string)")
+    end
+
+    it "converts hash types to strings" do
+      expect(described_class.type_to_s({ hash: %i[string integer] })).to eq("hash(string, integer)")
+    end
+  end
+
+  describe "legacy compatibility" do
+    it "provides legacy constants" do
+      expect(Kumi::Types::STRING).to eq(:string)
+      expect(Kumi::Types::INT).to eq(:integer)
+      expect(Kumi::Types::FLOAT).to eq(:float)
+      expect(Kumi::Types::BOOL).to eq(:boolean)
+      expect(Kumi::Types::ANY).to eq(:any)
+    end
+
+    it "handles legacy coercion" do
+      expect(described_class.coerce(:string)).to eq(:string)
+      expect(described_class.coerce(Kumi::Types::STRING)).to eq(:string)
+      expect(described_class.coerce(Kumi::Types::INT)).to eq(:integer)
     end
   end
 end

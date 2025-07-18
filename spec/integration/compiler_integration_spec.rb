@@ -55,16 +55,16 @@ RSpec.describe "Kumi Compiler Integration" do
 
       Kumi::Parser::Dsl.build_sytax_tree do
         input do
-          key :name, type: Kumi::Types::STRING
-          key :age, type: Kumi::Types::INT
-          key :account_balance, type: Kumi::Types::FLOAT
-          key :years_customer, type: Kumi::Types::INT
-          key :last_purchase_days_ago, type: Kumi::Types::INT
-          key :total_purchases, type: Kumi::Types::INT
-          key :account_type, type: Kumi::Types::STRING
-          key :referral_count, type: Kumi::Types::INT
-          key :support_tickets, type: Kumi::Types::INT
-          key :should_error, type: Kumi::Types::BOOL
+          key :name, type: :string # Kumi::Types::STRING
+          key :age, type: :integer # Kumi::Types::INT
+          key :account_balance, type: :float # Kumi::Types::FLOAT
+          key :years_customer, type: :integer # Kumi::Types::INT
+          key :last_purchase_days_ago, type: :integer # Kumi::Types::INT
+          key :total_purchases, type: :integer # Kumi::Types::INT
+          key :account_type, type: :string # Kumi::Types::STRING
+          key :referral_count, type: :integer # Kumi::Types::INT
+          key :support_tickets, type: :integer # Kumi::Types::INT
+          key :should_error, type: :boolean # Kumi::Types::BOOL
         end
 
         # === BASE predicateS ===

@@ -31,9 +31,9 @@ require 'kumi'
 # Define a schema with explicit input declarations and business rules
 schema = Kumi.schema do
   input do
-    key :score, type: Integer
-    key :base_discount, type: Float
-    key :customer_tier, type: String
+    key :score, type: :integer
+    key :base_discount, type: :float
+    key :customer_tier, type: :string
   end
   
   predicate :high_risk, fn(:>, input.score, 80)
@@ -64,9 +64,9 @@ All schemas must declare expected input fields with optional type annotations:
 ```ruby
 schema do
   input do
-    key :age, type: Integer
-    key :name, type: String
-    key :scores, type: Array
+    key :age, type: :integer
+    key :name, type: :string
+    key :scores, type: array(:any)
     key :dynamic
   end
   
@@ -86,17 +86,15 @@ note: when the type is not declared, it will be considered as `Any` type
 - **Rich Error Messages**: Shows type provenance and location information
 
 ### Available Types
-- Primitives: `Integer`, `Float`, `String`, `Bool`, `Numeric`, `Any`
-- Collections: `array(T)`, `set(T)`, `hash(K, V)`
-- Unions: `A | B` for multiple possible types
-- Optionals: `optional(T)` for nullable values
+- Primitives: `:integer`, `:float`, `:string`, `:boolean`, `:any`, `:symbol`, `:regexp`, `:time`, `:date`, `:datetime`
+- Collections: `array(:element_type)`, `hash(:key_type, :value_type)`
 
 ## DSL Syntax
 
 ### Basic Declarations
 - `predicate :name, expression` - Boolean conditions
 - `value :name, expression` - Computed values
-- `value :name do ... end` - Conditional logic with `on condition, result` and `base default`
+- `value :name do ... end` - Conditional logic with `on predicate1, predicate2, result` and `base default`
 
 ### Expressions
 - `input.field_name` - Access input data (replaces deprecated `key(:field)`)
@@ -114,17 +112,17 @@ Core functions include arithmetic (`add`, `subtract`, `multiply`, `divide`), com
 ```ruby
 schema do
   input do
-    key :temperature, type: Float
-    key :humidity, type: Float
+    key :temperature, type: :float
+    key :humidity, type: :float
   end
   
-  predicate :hot, fn(:>, input.temperature, 80.0)
-  predicate :humid, fn(:>, input.humidity, 60.0)
+  predicate :hot, input.temperature, :>,  80.0
+  predicate :humid, input.humidity, :>, 60.0
   
   value :comfort_level do
-    on fn(:and, ref(:hot), ref(:humid)), "uncomfortable"
-    on ref(:hot), "warm"
-    on ref(:humid), "muggy"
+    on :hot, :humid, "uncomfortable"
+    on :hot, "warm"
+    on :humid, "muggy"
     base "pleasant"
   end
 end
@@ -134,14 +132,15 @@ end
 ```ruby
 schema do
   input do
-    key :credit_score, type: Integer
-    key :annual_income, type: Float
-    key :loan_amount, type: Float
-    key :employment_years, type: Integer
+    key :credit_score, type: :integer
+    key :annual_income, type: :float
+    key :loan_amount, type: :float
+    key :employment_years, type: :integer
   end
   
   predicate :good_credit, fn(:>=, input.credit_score, 700)
   predicate :stable_income, fn(:>=, input.employment_years, 2)
+  predicate :low_debt_ratio, fn(:<, fn(:divide, input.loan_amount, input.annual_income), 0.3)
   
   value :debt_to_income_ratio, fn(:divide, input.loan_amount, input.annual_income)
   value :risk_score, fn(:multiply, 
@@ -150,8 +149,8 @@ schema do
   )
   
   value :approval_status do
-    on fn(:and, ref(:good_credit), ref(:stable_income)), "approved"
-    on fn(:<, ref(:debt_to_income_ratio), 0.3), "conditional"
+    on :good_credit, :stable_income, "approved"
+    on :low_debt_ratio, "conditional"
     base "denied"
   end
 end

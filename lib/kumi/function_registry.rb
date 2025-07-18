@@ -19,50 +19,50 @@ module Kumi
       :== => Entry.new(
         fn: ->(a, b) { a == b },
         arity: 2,
-        param_types: [Types::ANY, Types::ANY],
-        return_type: Types::BOOL,
+        param_types: %i[any any],
+        return_type: :boolean,
         description: "Equality comparison"
       ),
       :!= => Entry.new(
         fn: ->(a, b) { a != b },
         arity: 2,
-        param_types: [Types::ANY, Types::ANY],
-        return_type: Types::BOOL,
+        param_types: %i[any any],
+        return_type: :boolean,
         description: "Inequality comparison"
       ),
       :> => Entry.new(
         fn: ->(a, b) { a > b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::BOOL,
+        param_types: %i[float float],
+        return_type: :boolean,
         description: "Greater than comparison"
       ),
       :< => Entry.new(
         fn: ->(a, b) { a < b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::BOOL,
+        param_types: %i[float float],
+        return_type: :boolean,
         description: "Less than comparison"
       ),
       :>= => Entry.new(
         fn: ->(a, b) { a >= b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::BOOL,
+        param_types: %i[float float],
+        return_type: :boolean,
         description: "Greater than or equal comparison"
       ),
       :<= => Entry.new(
         fn: ->(a, b) { a <= b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::BOOL,
+        param_types: %i[float float],
+        return_type: :boolean,
         description: "Less than or equal comparison"
       ),
       :between? => Entry.new(
         fn: ->(value, min, max) { value.between?(min, max) },
         arity: 3,
-        param_types: [Types::NUMERIC, Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::BOOL,
+        param_types: %i[float float float],
+        return_type: :boolean,
         description: "Check if value is between min and max"
       )
     }.freeze
@@ -72,78 +72,78 @@ module Kumi
       add: Entry.new(
         fn: ->(a, b) { a + b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Add two numbers"
       ),
       subtract: Entry.new(
         fn: ->(a, b) { a - b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Subtract second number from first"
       ),
       multiply: Entry.new(
         fn: ->(a, b) { a * b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Multiply two numbers"
       ),
       divide: Entry.new(
         fn: ->(a, b) { a / b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Divide first number by second"
       ),
       modulo: Entry.new(
         fn: ->(a, b) { a % b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Modulo operation"
       ),
       power: Entry.new(
         fn: ->(a, b) { a**b },
         arity: 2,
-        param_types: [Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float],
+        return_type: :float,
         description: "Raise first number to power of second"
       ),
       abs: Entry.new(
         fn: lambda(&:abs),
         arity: 1,
-        param_types: [Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: [:float],
+        return_type: :float,
         description: "Absolute value"
       ),
       round: Entry.new(
         fn: ->(a, precision = 0) { a.round(precision) },
         arity: -1, # Variable arity
-        param_types: [Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: [:float],
+        return_type: :float,
         description: "Round number to specified precision"
       ),
       floor: Entry.new(
         fn: lambda(&:floor),
         arity: 1,
-        param_types: [Types::NUMERIC],
-        return_type: Types::INT,
+        param_types: [:float],
+        return_type: :integer,
         description: "Floor of number"
       ),
       ceil: Entry.new(
         fn: lambda(&:ceil),
         arity: 1,
-        param_types: [Types::NUMERIC],
-        return_type: Types::INT,
+        param_types: [:float],
+        return_type: :integer,
         description: "Ceiling of number"
       ),
       clamp: Entry.new(
-        fn: ->(value, min, max) { [[value, min].max, max].min },
+        fn: ->(value, min, max) { value.clamp(min, max) },
         arity: 3,
-        param_types: [Types::NUMERIC, Types::NUMERIC, Types::NUMERIC],
-        return_type: Types::NUMERIC,
+        param_types: %i[float float float],
+        return_type: :float,
         description: "Clamp value between min and max"
       )
     }.freeze
@@ -153,64 +153,64 @@ module Kumi
       concat: Entry.new(
         fn: ->(*strings) { strings.join },
         arity: -1, # Variable arity
-        param_types: [Types::STRING],
-        return_type: Types::STRING,
+        param_types: [:string],
+        return_type: :string,
         description: "Concatenate multiple strings"
       ),
       upcase: Entry.new(
         fn: ->(str) { str.to_s.upcase },
         arity: 1,
-        param_types: [Types::STRING],
-        return_type: Types::STRING,
+        param_types: [:string],
+        return_type: :string,
         description: "Convert string to uppercase"
       ),
       downcase: Entry.new(
         fn: ->(str) { str.to_s.downcase },
         arity: 1,
-        param_types: [Types::STRING],
-        return_type: Types::STRING,
+        param_types: [:string],
+        return_type: :string,
         description: "Convert string to lowercase"
       ),
       capitalize: Entry.new(
         fn: ->(str) { str.to_s.capitalize },
         arity: 1,
-        param_types: [Types::STRING],
-        return_type: Types::STRING,
+        param_types: [:string],
+        return_type: :string,
         description: "Capitalize first letter of string"
       ),
       strip: Entry.new(
         fn: ->(str) { str.to_s.strip },
         arity: 1,
-        param_types: [Types::STRING],
-        return_type: Types::STRING,
+        param_types: [:string],
+        return_type: :string,
         description: "Remove leading and trailing whitespace"
       ),
       length: Entry.new(
         fn: ->(str) { str.to_s.length },
         arity: 1,
-        param_types: [Types::STRING],
-        return_type: Types::INT,
+        param_types: [:string],
+        return_type: :integer,
         description: "Get string length"
       ),
       include?: Entry.new(
         fn: ->(str, substr) { str.to_s.include?(substr.to_s) },
         arity: 2,
-        param_types: [Types::STRING, Types::STRING],
-        return_type: Types::BOOL,
+        param_types: %i[string string],
+        return_type: :boolean,
         description: "Check if string contains substring"
       ),
       start_with?: Entry.new(
         fn: ->(str, prefix) { str.to_s.start_with?(prefix.to_s) },
         arity: 2,
-        param_types: [Types::STRING, Types::STRING],
-        return_type: Types::BOOL,
+        param_types: %i[string string],
+        return_type: :boolean,
         description: "Check if string starts with prefix"
       ),
       end_with?: Entry.new(
         fn: ->(str, suffix) { str.to_s.end_with?(suffix.to_s) },
         arity: 2,
-        param_types: [Types::STRING, Types::STRING],
-        return_type: Types::BOOL,
+        param_types: %i[string string],
+        return_type: :boolean,
         description: "Check if string ends with suffix"
       )
     }.freeze
@@ -220,43 +220,43 @@ module Kumi
       and: Entry.new(
         fn: ->(*conditions) { conditions.all? },
         arity: -1, # Variable arity
-        param_types: [Types::BOOL],
-        return_type: Types::BOOL,
+        param_types: [:boolean],
+        return_type: :boolean,
         description: "Logical AND of multiple conditions"
       ),
       or: Entry.new(
         fn: ->(*conditions) { conditions.any? },
         arity: -1, # Variable arity
-        param_types: [Types::BOOL],
-        return_type: Types::BOOL,
+        param_types: [:boolean],
+        return_type: :boolean,
         description: "Logical OR of multiple conditions"
       ),
       not: Entry.new(
         fn: lambda(&:!),
         arity: 1,
-        param_types: [Types::BOOL],
-        return_type: Types::BOOL,
+        param_types: [:boolean],
+        return_type: :boolean,
         description: "Logical NOT"
       ),
       all?: Entry.new(
         fn: lambda(&:all?),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::BOOL,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :boolean,
         description: "Check if all elements in collection are truthy"
       ),
       any?: Entry.new(
         fn: lambda(&:any?),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::BOOL,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :boolean,
         description: "Check if any element in collection is truthy"
       ),
       none?: Entry.new(
         fn: lambda(&:none?),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::BOOL,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :boolean,
         description: "Check if no elements in collection are truthy"
       )
     }.freeze
@@ -266,78 +266,78 @@ module Kumi
       empty?: Entry.new(
         fn: lambda(&:empty?),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::BOOL,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :boolean,
         description: "Check if collection is empty"
       ),
       first: Entry.new(
         fn: lambda(&:first),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ANY,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :any,
         description: "Get first element of collection"
       ),
       last: Entry.new(
         fn: lambda(&:last),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ANY,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :any,
         description: "Get last element of collection"
       ),
       sum: Entry.new(
         fn: lambda(&:sum),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::NUMERIC]],
-        return_type: Types::NUMERIC,
+        param_types: [Kumi::Types.array(:float)],
+        return_type: :float,
         description: "Sum all elements in collection"
       ),
       max: Entry.new(
         fn: lambda(&:max),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ANY,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :any,
         description: "Get maximum value in collection"
       ),
       min: Entry.new(
         fn: ->(*args) { args.size == 1 ? args.first.min : args.min },
         arity: -1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ANY,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :any,
         description: "Get minimum value in collection"
       ),
       sort: Entry.new(
         fn: lambda(&:sort),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ArrayOf[Types::ANY],
+        param_types: [Kumi::Types.array(:any)],
+        return_type: Kumi::Types.array(:any),
         description: "Sort collection"
       ),
       reverse: Entry.new(
         fn: lambda(&:reverse),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ArrayOf[Types::ANY],
+        param_types: [Kumi::Types.array(:any)],
+        return_type: Kumi::Types.array(:any),
         description: "Reverse collection"
       ),
       uniq: Entry.new(
         fn: lambda(&:uniq),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::ArrayOf[Types::ANY],
+        param_types: [Kumi::Types.array(:any)],
+        return_type: Kumi::Types.array(:any),
         description: "Remove duplicates from collection"
       ),
       size: Entry.new(
         fn: lambda(&:size),
         arity: 1,
-        param_types: [Types::ArrayOf[Types::ANY]],
-        return_type: Types::INT,
+        param_types: [Kumi::Types.array(:any)],
+        return_type: :integer,
         description: "Get collection size"
       ),
       count_match: Entry.new(
         fn: ->(collection, pattern) { collection.count { |item| item.to_s.match?(Regexp.new(pattern)) } },
         arity: 2,
-        param_types: [Types::ArrayOf[Types::ANY], Types::STRING],
-        return_type: Types::INT,
+        param_types: [Kumi::Types.array(:any), :string],
+        return_type: :integer,
         description: "Counts items in a collection that match a regex pattern."
       )
     }.freeze
@@ -347,8 +347,8 @@ module Kumi
       fetch: Entry.new(
         fn: ->(hash, key, default = nil) { hash.fetch(key, default) },
         arity: -1, # Variable arity (2 or 3)
-        param_types: [Types::HashOf[Types::ANY, Types::ANY], Types::ANY, Types::ANY],
-        return_type: Types::ANY,
+        param_types: [Kumi::Types.hash(:any, :any), :any, :any],
+        return_type: :any,
         description: "Fetch value from hash by key, with optional default"
       )
     }.freeze
@@ -358,29 +358,29 @@ module Kumi
       conditional: Entry.new(
         fn: ->(condition, true_value, false_value) { condition ? true_value : false_value },
         arity: 3,
-        param_types: [Types::BOOL, Types::ANY, Types::ANY],
-        return_type: Types::ANY,
+        param_types: %i[boolean any any],
+        return_type: :any,
         description: "Ternary conditional operator"
       ),
       if: Entry.new(
         fn: ->(condition, true_value, false_value = nil) { condition ? true_value : false_value },
         arity: -1, # Variable arity (2 or 3)
-        param_types: [Types::BOOL, Types::ANY, Types::ANY],
-        return_type: Types::ANY,
+        param_types: %i[boolean any any],
+        return_type: :any,
         description: "If-then-else conditional"
       ),
       coalesce: Entry.new(
         fn: ->(*values) { values.find { |v| !v.nil? } },
         arity: -1, # Variable arity
-        param_types: [Types::ANY],
-        return_type: Types::ANY,
+        param_types: [:any],
+        return_type: :any,
         description: "Return first non-nil value"
       ),
       else: Entry.new(
         fn: ->(value, else_value) { value.nil? ? else_value : value },
         arity: 2,
-        param_types: [Types::ANY, Types::ANY],
-        return_type: Types::ANY,
+        param_types: %i[any any],
+        return_type: :any,
         description: "Provide else value if first is nil"
       )
     }.freeze
@@ -390,36 +390,36 @@ module Kumi
       to_string: Entry.new(
         fn: lambda(&:to_s),
         arity: 1,
-        param_types: [Types::ANY],
-        return_type: Types::STRING,
+        param_types: [:any],
+        return_type: :string,
         description: "Convert value to string"
       ),
       to_integer: Entry.new(
         fn: lambda(&:to_i),
         arity: 1,
-        param_types: [Types::ANY],
-        return_type: Types::INT,
+        param_types: [:any],
+        return_type: :integer,
         description: "Convert value to integer"
       ),
       to_float: Entry.new(
         fn: lambda(&:to_f),
         arity: 1,
-        param_types: [Types::ANY],
-        return_type: Types::FLOAT,
+        param_types: [:any],
+        return_type: :float,
         description: "Convert value to float"
       ),
       to_boolean: Entry.new(
         fn: ->(value) { !value.nil? },
         arity: 1,
-        param_types: [Types::ANY],
-        return_type: Types::BOOL,
+        param_types: [:any],
+        return_type: :boolean,
         description: "Convert value to boolean"
       ),
       to_array: Entry.new(
         fn: ->(value) { Array(value) },
         arity: 1,
-        param_types: [Types::ANY],
-        return_type: Types::ArrayOf[Types::ANY],
+        param_types: [:any],
+        return_type: Kumi::Types.array(:any),
         description: "Convert value to array"
       )
     }.freeze
@@ -449,11 +449,11 @@ module Kumi
         raise ArgumentError, "Function #{name.inspect} already registered" if @functions.key?(name)
 
         fn_lambda = block.is_a?(Proc) ? block : ->(*args) { yield(*args) }
-        register_with_metadata(name, fn_lambda, arity: fn_lambda.arity, param_types: [Types::ANY], return_type: Types::ANY)
+        register_with_metadata(name, fn_lambda, arity: fn_lambda.arity, param_types: [:any], return_type: :any)
       end
 
       # Register with custom metadata
-      def register_with_metadata(name, fn_lambda, arity:, param_types: [Types::ANY], return_type: Types::ANY, description: nil,
+      def register_with_metadata(name, fn_lambda, arity:, param_types: [:any], return_type: :any, description: nil,
                                  inverse: nil)
         raise ArgumentError, "Function #{name.inspect} already registered" if @functions.key?(name)
 
@@ -572,8 +572,8 @@ module Kumi
             function_name,
             wrapper,
             arity: arity,
-            param_types: [Types::ANY],
-            return_type: Types::ANY,
+            param_types: [:any],
+            return_type: :any,
             description: "Auto-registered from #{module_name}##{method_name}"
           )
         end

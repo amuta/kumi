@@ -35,23 +35,23 @@ module Kumi
 
         def infer_expression_type(expr, type_context = {})
           case expr
-          when Syntax::TerminalExpressions::Literal
+          when Literal
             Types.infer_from_value(expr.value)
-          when Syntax::TerminalExpressions::FieldRef
+          when FieldRef
             # Look up type from field metadata
             input_meta = get_state(:input_meta, required: false) || {}
             meta = input_meta[expr.name]
-            meta&.dig(:type) || Types::Base.new
-          when Syntax::TerminalExpressions::Binding
-            type_context[expr.name] || Types::Base.new
-          when Syntax::Expressions::CallExpression
+            meta&.dig(:type) || :any
+          when Binding
+            type_context[expr.name] || :any
+          when CallExpression
             infer_call_type(expr, type_context)
-          when Syntax::Expressions::ListExpression
+          when ListExpression
             infer_list_type(expr, type_context)
-          when Syntax::Expressions::CascadeExpression
+          when CascadeExpression
             infer_cascade_type(expr, type_context)
           else
-            Types::Base.new
+            :any
           end
         end
 
@@ -62,7 +62,7 @@ module Kumi
           # Check if function exists in registry
           unless FunctionRegistry.supported?(fn_name)
             # Don't push error here - let existing TypeChecker handle it
-            return Types::Base.new
+            return :any
           end
 
           signature = FunctionRegistry.signature(fn_name)
@@ -70,7 +70,7 @@ module Kumi
           # Validate arity if not variable
           if signature[:arity] >= 0 && args.size != signature[:arity]
             # Don't push error here - let existing TypeChecker handle it
-            return Types::Base.new
+            return :any
           end
 
           # Infer argument types
@@ -89,11 +89,11 @@ module Kumi
             end
           end
 
-          signature[:return_type] || Types::Base.new
+          signature[:return_type] || :any
         end
 
         def infer_list_type(list_expr, type_context)
-          return Types.array(Types::Base.new) if list_expr.elements.empty?
+          return Types.array(:any) if list_expr.elements.empty?
 
           element_types = list_expr.elements.map { |elem| infer_expression_type(elem, type_context) }
 
@@ -102,22 +102,22 @@ module Kumi
           Types.array(unified_type)
         rescue StandardError
           # If unification fails, fall back to generic array
-          Types.array(Types::Base.new)
+          Types.array(:any)
         end
 
         def infer_cascade_type(cascade_expr, type_context)
-          return Types::Base.new if cascade_expr.cases.empty?
+          return :any if cascade_expr.cases.empty?
 
           result_types = cascade_expr.cases.map do |case_stmt|
             infer_expression_type(case_stmt.result, type_context)
           end
 
           # Reduce all possible types into a single unified type
-          result_types.reduce { |unified, type| Types.unify(unified, type) } || Types::Base.new
+          result_types.reduce { |unified, type| Types.unify(unified, type) } || :any
         rescue StandardError
           # Check if unification fails, fall back to base type
           # TODO: understand if this right to fallback or we should raise
-          Types::Base.new
+          :any
         end
       end
     end

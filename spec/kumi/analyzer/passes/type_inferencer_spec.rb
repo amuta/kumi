@@ -9,11 +9,11 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
   describe "#run" do
     context "when decl_types already exists" do
       it "skips inference" do
-        state[:decl_types] = { existing: Kumi::Types::INT }
+        state[:decl_types] = { existing: :integer }
 
         pass.run(errors)
 
-        expect(state[:decl_types]).to eq({ existing: Kumi::Types::INT })
+        expect(state[:decl_types]).to eq({ existing: :integer })
       end
     end
 
@@ -34,26 +34,26 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
           binding_val: binding_decl
         }
         state[:input_meta] = {
-          age: { type: Kumi::Types::INT, domain: nil }
+          age: { type: :integer, domain: nil }
         }
       end
 
       it "infers types for literals" do
         pass.run(errors)
 
-        expect(state[:decl_types][:literal_val]).to eq(Kumi::Types::INT)
+        expect(state[:decl_types][:literal_val]).to eq(:integer)
       end
 
       it "uses annotated field types" do
         pass.run(errors)
 
-        expect(state[:decl_types][:field_val]).to eq(Kumi::Types::INT)
+        expect(state[:decl_types][:field_val]).to eq(:integer)
       end
 
       it "falls back to base type for unresolved bindings" do
         pass.run(errors)
 
-        expect(state[:decl_types][:binding_val]).to be_a(Kumi::Types::Base)
+        expect(state[:decl_types][:binding_val]).to eq(:any)
       end
     end
 
@@ -125,16 +125,14 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
         pass.run(errors)
 
         numbers_type = state[:decl_types][:numbers]
-        expect(numbers_type).to be_a(Kumi::Types::ArrayOf)
-        expect(numbers_type.elem).to eq(Kumi::Types::INT)
+        expect(numbers_type).to eq({ array: :integer })
       end
 
       it "handles empty lists" do
         pass.run(errors)
 
         empty_type = state[:decl_types][:empty]
-        expect(empty_type).to be_a(Kumi::Types::ArrayOf)
-        expect(empty_type.elem).to be_a(Kumi::Types::Base)
+        expect(empty_type).to eq({ array: :any })
       end
     end
 
@@ -179,8 +177,8 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
       it "resolves dependencies in topological order" do
         pass.run(errors)
 
-        expect(state[:decl_types][:base_value]).to eq(Kumi::Types::INT)
-        expect(state[:decl_types][:dependent_value]).to eq(Kumi::Types::INT)
+        expect(state[:decl_types][:base_value]).to eq(:integer)
+        expect(state[:decl_types][:dependent_value]).to eq(:integer)
       end
     end
 
@@ -212,7 +210,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
 
         result = pass.send(:infer_expression_type, unknown_expr, {})
 
-        expect(result).to be_a(Kumi::Types::Base)
+        expect(result).to eq(:any)
       end
     end
   end

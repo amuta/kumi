@@ -17,12 +17,12 @@ puts "-" * 50
 begin
   employee_assessment = Kumi.schema do
     input do
-      key :name, type: Kumi::Types::STRING
-      key :age, type: Kumi::Types::INT, domain: 18..65
-      key :years_experience, type: Kumi::Types::INT, domain: 0..40
-      key :salary, type: Kumi::Types::FLOAT, domain: 30_000.0..200_000.0
-      key :department, type: Kumi::Types::STRING
-      key :is_remote, type: Kumi::Types::BOOL
+      key :name, type: :string
+      key :age, type: :integer, domain: 18..65
+      key :years_experience, type: :integer, domain: 0..40
+      key :salary, type: :float, domain: 30_000.0..200_000.0
+      key :department, type: :string
+      key :is_remote, type: :boolean
     end
 
     # Predicates using declared input types
@@ -100,8 +100,8 @@ puts "Attempting to create a schema with type mismatches..."
 begin
   invalid_schema = Kumi.schema do
     input do
-      key :age, type: Kumi::Types::INT
-      key :name, type: Kumi::Types::STRING
+      key :age, type: :integer
+      key :name, type: :string
     end
 
     # This should fail: trying to use STRING in numeric addition
@@ -121,8 +121,8 @@ puts "-" * 50
 begin
   data_processor = Kumi.schema do
     input do
-      key :scores, type: Kumi::Types.array(Kumi::Types::INT)
-      key :weights, type: Kumi::Types.array(Kumi::Types::FLOAT)
+      key :scores, type: array(:integer)
+      key :weights, type: array(:float)
     end
 
     # These should work due to array type compatibility
@@ -163,8 +163,8 @@ puts "-" * 50
 begin
   grade_processor = Kumi.schema do
     input do
-      key :score, type: Kumi::Types::INT
-      key :assignment_weight, type: Kumi::Types::FLOAT
+      key :score, type: :integer
+      key :assignment_weight, type: :float
     end
 
     # Try to use score in an incompatible operation
@@ -184,13 +184,13 @@ puts "-" * 50
 begin
   loan_approval = Kumi.schema do
     input do
-      key :applicant_name, type: Kumi::Types::STRING
-      key :age, type: Kumi::Types::INT, domain: 18..80
-      key :annual_income, type: Kumi::Types::FLOAT, domain: 0.0..1_000_000.0
-      key :credit_score, type: Kumi::Types::INT, domain: 300..850
-      key :employment_years, type: Kumi::Types::INT, domain: 0..50
-      key :loan_amount, type: Kumi::Types::FLOAT, domain: 1_000.0..500_000.0
-      key :has_collateral, type: Kumi::Types::BOOL
+      key :applicant_name, type: :string
+      key :age, type: :integer, domain: 18..80
+      key :annual_income, type: :float, domain: 0.0..1_000_000.0
+      key :credit_score, type: :integer, domain: 300..850
+      key :employment_years, type: :integer, domain: 0..50
+      key :loan_amount, type: :float, domain: 1_000.0..500_000.0
+      key :has_collateral, type: :boolean
     end
 
     # Risk assessment predicates

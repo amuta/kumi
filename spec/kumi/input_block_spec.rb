@@ -147,111 +147,109 @@ RSpec.describe "Input Block Feature" do
     end
   end
 
-  # Test compliance with acceptance criteria
-  describe "Ruby class type declarations" do
-    it "accepts Integer as type parameter" do
+  # Test compliance with simplified type system
+  describe "symbol type declarations" do
+    it "accepts :integer as type parameter" do
       schema = create_schema do
         input do
-          key :age, type: Integer, domain: 0..120
+          key :age, type: :integer, domain: 0..120
         end
 
         predicate :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
     end
 
-    it "accepts String as type parameter" do
+    it "accepts :string as type parameter" do
       schema = create_schema do
         input do
-          key :name, type: String
+          key :name, type: :string
         end
 
         predicate :has_name, input.name, :!=, ""
       end
 
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(Kumi::Types::STRING)
+      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
     end
 
-    it "accepts Float as type parameter" do
+    it "accepts :float as type parameter" do
       schema = create_schema do
         input do
-          key :score, type: Float, domain: 0.0..100.0
+          key :score, type: :float, domain: 0.0..100.0
         end
 
         predicate :passing, input.score, :>=, 60.0
       end
 
-      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(Kumi::Types::FLOAT)
+      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:float)
     end
 
-    it "accepts TrueClass and FalseClass as type parameter" do
+    it "accepts :boolean as type parameter" do
       schema = create_schema do
         input do
-          key :active, type: TrueClass
-          key :enabled, type: FalseClass
+          key :active, type: :boolean
+          key :enabled, type: :boolean
         end
 
         predicate :is_active, input.active, :==, true
       end
 
-      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(Kumi::Types::BOOL)
-      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(Kumi::Types::BOOL)
+      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(:boolean)
     end
 
-    it "accepts Array as type parameter" do
+    it "accepts array type helper" do
       schema = create_schema do
         input do
-          key :items, type: Array
+          key :items, type: array(:any)
         end
 
         predicate :has_items, fn(:size, input.items), :>, 0
       end
 
-      expected_type = Kumi::Types::ArrayOf.new(Kumi::Types::ANY)
+      expected_type = { array: :any }
       expect(schema.analysis.state[:input_meta][:items][:type]).to eq(expected_type)
     end
 
-    it "accepts Hash as type parameter" do
+    it "accepts hash type helper" do
       schema = create_schema do
         input do
-          key :config, type: Hash
+          key :config, type: hash(:string, :any)
         end
 
         value :username, fn(:fetch, input.config, :username)
       end
 
-      expected_type = Kumi::Types::HashOf.new(Kumi::Types::ANY, Kumi::Types::ANY)
+      expected_type = { hash: %i[string any] }
       expect(schema.analysis.state[:input_meta][:config][:type]).to eq(expected_type)
     end
 
-    it "still accepts Kumi types as type parameter" do
+    it "still accepts legacy Kumi type constants" do
       schema = create_schema do
         input do
           key :age, type: Kumi::Types::INT
-          key :name, type: String
+          key :name, type: Kumi::Types::STRING
         end
 
         predicate :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(Kumi::Types::STRING)
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
     end
 
-    it "defaults to ANY for unknown types" do
-      unknown_class = Class.new
-
+    it "raises error for unknown types" do
       expect do
         create_schema do
           input do
-            key :unknown, type: unknown_class
+            key :unknown, type: :invalid_type
           end
 
           predicate :always_true, true, :==, true
         end
       end.to raise_error(Kumi::Errors::SyntaxError) do |error|
-        expect(error.message).to match(/Undefined type class `#{unknown_class}` for input `unknown`. Use a valid Kumi type or Ruby class/)
+        expect(error.message).to match(/Invalid type for input `unknown`: Invalid type symbol: invalid_type/)
       end
     end
   end
@@ -260,14 +258,14 @@ RSpec.describe "Input Block Feature" do
     it "Field declared once; referenced via input.age" do
       schema = create_schema do
         input do
-          key :age, type: Kumi::Types::INT, domain: 0..120
+          key :age, type: :integer, domain: 0..120
         end
 
         predicate :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
-      expect(schema.analysis.decl_types[:adult]).to be_a(Kumi::Types::Base)
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
+      expect(schema.analysis.decl_types[:adult]).to eq(:boolean)
     end
 
     it "raises when input references to undeclared field" do

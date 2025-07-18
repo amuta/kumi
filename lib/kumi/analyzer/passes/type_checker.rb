@@ -64,8 +64,6 @@ module Kumi
                     "got #{source_desc}")
         end
 
-        private
-
         def get_expression_type(expr)
           case expr
           when TerminalExpressions::Literal

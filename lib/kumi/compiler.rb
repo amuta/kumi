@@ -122,7 +122,7 @@ module Kumi
     rescue StandardError => e
       # Preserve original error class and backtrace while adding context
       enhanced_message = "Error calling fn(:#{name}) at #{loc}: #{e.message}"
-      
+
       if e.is_a?(Kumi::Errors::Error)
         # Re-raise Kumi errors with enhanced message but preserve type
         e.define_singleton_method(:message) { enhanced_message }

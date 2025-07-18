@@ -83,8 +83,10 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 ```ruby
 schema do
   input do
-    key :field_name, type: Types::STRING
-    key :number_field, type: Types::INT, domain: 0..100
+    key :field_name, type: :string
+    key :number_field, type: :integer, domain: 0..100
+    key :scores, type: array(:float)
+    key :metadata, type: hash(:string, :any)
   end
   
   predicate :name, expression    # Boolean conditions
@@ -98,8 +100,9 @@ end
 
 **Input Block System**:
 - **Required**: All schemas must have an `input` block declaring expected fields
-- **Type Declarations**: Each field can specify type: `key :field, type: Types::STRING`
-- **Domain Constraints**: Fields can have domains: `key :age, type: Types::INT, domain: 18..65` (declared but not yet validated)
+- **Type Declarations**: Each field can specify type: `key :field, type: :string`
+- **Complex Types**: Use helper functions: `array(:element_type)` and `hash(:key_type, :value_type)`
+- **Domain Constraints**: Fields can have domains: `key :age, type: :integer, domain: 18..65` (declared but not yet validated)
 - **Field Access**: Use `input.field_name` to reference input fields in expressions
 - **Separation**: Input metadata (types, domains) is separate from business logic
 
@@ -117,15 +120,14 @@ end
 4. Execute with Runner
 
 **Type System** (`lib/kumi/types.rb`):
-- Comprehensive static type system with primitives, collections, unions, and optionals
+- Simple symbol-based type system for clean and intuitive declaration
 - **Dual Type System**: Declared types (from input blocks) and inferred types (from expressions)
 - Automatic type inference for all declarations based on expression analysis
-- Type primitives: `INT`, `FLOAT`, `STRING`, `BOOL`, `NUMERIC`, `COMPARABLE`, `ANY`
-- Collection types: `ArrayOf[T]`, `SetOf[T]`, `HashOf[K,V]` with parametric type support
-- Optional types: `Optional[T]` for nullable values
-- Union types: `A | B` for multiple possible types
-- Type compatibility checking and unification algorithms
+- Type primitives: `:string`, `:integer`, `:float`, `:boolean`, `:any`, `:symbol`, `:regexp`, `:time`, `:date`, `:datetime`
+- Collection types: `array(:element_type)` and `hash(:key_type, :value_type)` helper functions
+- Type compatibility checking and unification algorithms for numeric types
 - Enhanced error messages showing type provenance (declared vs inferred)
+- Legacy compatibility constants maintained for backward compatibility
 
 ### Examples Directory
 
@@ -161,10 +163,11 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 - Fields are accessed via `input.field_name` syntax (replaces deprecated `key(:field)`)
 
 ### Type System Integration
-- **Declared Types**: Explicit type declarations in input blocks (`key :field, type: Types::STRING`)
+- **Declared Types**: Explicit type declarations in input blocks (`key :field, type: :string`)
 - **Inferred Types**: Types automatically inferred from expression analysis
 - **Type Checking**: Validates compatibility between declared and inferred types
 - **Enhanced Errors**: Error messages show type provenance (declared vs inferred)
+- **Helper Functions**: Use `array(:type)` and `hash(:key_type, :value_type)` for complex types
 
 ### Parser Components
 - `input_dsl_proxy.rb` - Restricts input block to only allow `key` declarations
@@ -172,9 +175,26 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 - `input_collector.rb` - Collects and validates field metadata consistency
 
 ### Domain Constraints
-- Can be declared: `key :age, type: Types::INT, domain: 18..65`
+- Can be declared: `key :age, type: :integer, domain: 18..65`
 - **Not yet implemented**: Domain validation logic is planned but not active
 - Field metadata includes domain information for future validation
+
+### Type Examples
+```ruby
+input do
+  # Primitive types
+  key :name, type: :string
+  key :age, type: :integer
+  key :score, type: :float
+  key :active, type: :boolean
+  
+  # Complex types using helper functions
+  key :tags, type: array(:string)
+  key :scores, type: array(:float)
+  key :metadata, type: hash(:string, :any)
+  key :nested_data, type: hash(:string, array(:integer))
+end
+```
 
 ## Common Development Tasks
 

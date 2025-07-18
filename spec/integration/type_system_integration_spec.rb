@@ -53,11 +53,8 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analysis.decl_types
 
-      expect(types[:numbers]).to be_a(Kumi::Types::ArrayOf)
-      expect(types[:numbers].elem).to eq(Kumi::Types::INT)
-
-      expect(types[:strings]).to be_a(Kumi::Types::ArrayOf)
-      expect(types[:strings].elem).to eq(Kumi::Types::STRING)
+      expect(types[:numbers]).to eq({ array: :integer })
+      expect(types[:strings]).to eq({ array: :string })
     end
   end
 
@@ -134,9 +131,9 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analysis.decl_types
 
-      expect(types[:numbers]).to be_a(Kumi::Types::ArrayOf)
-      expect(types[:sum_total]).to eq(Kumi::Types::NUMERIC)
-      expect(types[:first_num]).to be_a(Kumi::Types::Base)
+      expect(types[:numbers]).to eq({ array: :integer })
+      expect(types[:sum_total]).to eq(:float)
+      expect(types[:first_num]).to eq(:any)
     end
   end
 
@@ -151,7 +148,8 @@ RSpec.describe "Type System Integration" do
 
           value :invalid, fn(:add, input.name, 1)
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /argument 1 of `fn\(:add\)` expects int \| float, got input field `name` of declared type string/)
+      end.to raise_error(Kumi::Errors::SemanticError,
+                         /argument 1 of `fn\(:add\)` expects float, got input field `name` of declared type string/)
     end
   end
 
@@ -172,8 +170,8 @@ RSpec.describe "Type System Integration" do
 
       expect(signature).to have_key(:param_types)
       expect(signature).to have_key(:return_type)
-      expect(signature[:param_types]).to all(be_a(Kumi::Types::Base))
-      expect(signature[:return_type]).to be_a(Kumi::Types::Base)
+      expect(signature[:param_types]).to be_an(Array)
+      expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash))
     end
 
     it "validates that all core functions have type metadata" do
@@ -181,7 +179,7 @@ RSpec.describe "Type System Integration" do
         signature = Kumi::FunctionRegistry.signature(fn_name)
 
         expect(signature[:param_types]).to be_an(Array), "Function #{fn_name} missing param_types"
-        expect(signature[:return_type]).to be_a(Kumi::Types::Base), "Function #{fn_name} missing return_type"
+        expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash)), "Function #{fn_name} missing return_type"
 
         # Validate arity matches param_types (unless variable arity)
         unless signature[:arity] < 0

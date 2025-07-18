@@ -2,303 +2,214 @@
 
 module Kumi
   module Types
-    class Base
-      def |(other)
-        Union.new(self, other)
+    # Simple symbol-based type system
+    # Valid type symbols: :string, :integer, :float, :boolean, :any
+    VALID_TYPES = %i[string integer float boolean any symbol regexp time date datetime].freeze
+
+    # Type validation
+    def self.valid_type?(type)
+      return true if VALID_TYPES.include?(type)
+      return true if type.is_a?(Hash) && type.keys == [:array] && valid_type?(type[:array])
+      if type.is_a?(Hash) && type.keys.sort == [:hash] && type[:hash].is_a?(Array) && type[:hash].size == 2 &&
+         valid_type?(type[:hash][0]) && valid_type?(type[:hash][1])
+        return true
       end
+
+      false
     end
 
-    class Primitive < Base
-      include Comparable
-
-      attr_reader :name
-
-      def initialize(name)
-        @name = name
-      end
-
-      def <=>(other)
-        name <=> other.name
-      end
-
-      def to_s
-        name.to_s
-      end
-
-      def inspect
-        "Types::#{name.to_s.upcase}"
-      end
-
-      def ==(other)
-        other.is_a?(Primitive) && name == other.name
-      end
-
-      def hash
-        [self.class, name].hash
-      end
-    end
-
-    class ArrayOf < Base
-      attr_reader :elem
-
-      def initialize(elem)
-        @elem = elem
-      end
-
-      def to_s
-        "array<#{elem}>"
-      end
-
-      def inspect
-        "Types::ArrayOf(#{elem.inspect})"
-      end
-
-      def ==(other)
-        other.is_a?(ArrayOf) && elem == other.elem
-      end
-
-      def hash
-        [self.class, elem].hash
-      end
-
-      def self.[](elem)
-        new(elem)
-      end
-    end
-
-    class SetOf < Base
-      attr_reader :elem
-
-      def initialize(elem)
-        @elem = elem
-      end
-
-      def to_s
-        "set<#{elem}>"
-      end
-
-      def inspect
-        "Types::SetOf(#{elem.inspect})"
-      end
-
-      def ==(other)
-        other.is_a?(SetOf) && elem == other.elem
-      end
-
-      def hash
-        [self.class, elem].hash
-      end
-
-      def self.[](elem)
-        new(elem)
-      end
-    end
-
-    class HashOf < Base
-      attr_reader :key, :val
-
-      def initialize(key, val)
-        @key = key
-        @val = val
-      end
-
-      def to_s
-        "hash<#{key},#{val}>"
-      end
-
-      def inspect
-        "Types::HashOf(#{key.inspect}, #{val.inspect})"
-      end
-
-      def ==(other)
-        other.is_a?(HashOf) && key == other.key && val == other.val
-      end
-
-      def hash
-        [self.class, key, val].hash
-      end
-
-      def self.[](key, val)
-        new(key, val)
-      end
-    end
-
-    class Optional < Base
-      attr_reader :inner
-
-      def initialize(inner)
-        @inner = inner
-      end
-
-      def to_s
-        "#{inner}?"
-      end
-
-      def inspect
-        "Types::Optional(#{inner.inspect})"
-      end
-
-      def ==(other)
-        other.is_a?(Optional) && inner == other.inner
-      end
-
-      def hash
-        [self.class, inner].hash
-      end
-    end
-
-    class Union < Base
-      # Not sure we need this
-      # TODO - consider removing
-      attr_reader :left, :right
-
-      def initialize(left, right)
-        @left = left
-        @right = right
-      end
-
-      def to_s
-        "#{left} | #{right}"
-      end
-
-      def inspect
-        "Types::Union(#{left.inspect}, #{right.inspect})"
-      end
-
-      def hash
-        [self.class, [left, right].sort_by(&:hash)].hash
-      end
-    end
-
-    # Primitive type constants
-    INT = Primitive.new(:int)
-    FLOAT = Primitive.new(:float)
-    DECIMAL = Primitive.new(:decimal)
-    STRING = Primitive.new(:string)
-    BOOL = Primitive.new(:bool)
-    DATE = Primitive.new(:date)
-    TIME = Primitive.new(:time)
-    DATETIME = Primitive.new(:datetime)
-    SYMBOL = Primitive.new(:symbol)
-    REGEXP = Primitive.new(:regexp)
-    UUID = Primitive.new(:uuid)
-    ANY = Primitive.new(:any) # Represents any type, used for defaults
-
-    # Common type unions
-    NUMERIC = Union.new(INT, FLOAT)
-
-    RUBY_KLASS_TO_TYPE = {
-      Integer: INT,
-      Float: FLOAT,
-      String: STRING,
-      TrueClass: BOOL,
-      FalseClass: BOOL,
-      Symbol: SYMBOL,
-      Regexp: REGEXP,
-      Time: TIME,
-      Date: DATE,
-      DateTime: DATETIME,
-      Array: ArrayOf.new(ANY),
-      Hash: HashOf.new(ANY, ANY),
-      Set: SetOf.new(ANY)
-    }.freeze
-
+    # Helper functions for complex types
     def self.array(elem_type)
-      ArrayOf.new(elem_type)
-    end
+      raise ArgumentError, "Invalid array element type: #{elem_type}" unless valid_type?(elem_type)
 
-    def self.set(elem_type)
-      SetOf.new(elem_type)
+      { array: elem_type }
     end
 
     def self.hash(key_type, val_type)
-      HashOf.new(key_type, val_type)
+      raise ArgumentError, "Invalid hash key type: #{key_type}" unless valid_type?(key_type)
+      raise ArgumentError, "Invalid hash value type: #{val_type}" unless valid_type?(val_type)
+
+      { hash: [key_type, val_type] }
     end
 
-    # Maybe coerse is not the best name here, but it fits the context
-    def self.coerce(klass)
-      # If it's already a Kumi type, return as-is
-      return klass if klass.is_a?(Base)
+    # Type normalization - convert various inputs to canonical type symbols
+    # TODO: Maybe not allow this?
+    def self.normalize(type_input)
+      case type_input
+      when Symbol
+        return type_input if VALID_TYPES.include?(type_input)
 
-      kumi_type = RUBY_KLASS_TO_TYPE[klass.name&.to_sym]
-      return kumi_type if kumi_type
+        raise ArgumentError, "Invalid type symbol: #{type_input}. Valid types: #{VALID_TYPES.join(', ')}"
+      when String
+        return type_input.to_sym if VALID_TYPES.include?(type_input.to_sym)
 
-      # return the original class
-      klass
+        raise ArgumentError, "Invalid type string: #{type_input}. Valid types: #{VALID_TYPES.join(', ')}"
+      when Hash
+        return type_input if valid_type?(type_input)
+
+        raise ArgumentError, "Invalid complex type: #{type_input}"
+      when Class
+        # Backward compatibility for Ruby classes
+        case type_input.name
+        when "Integer" then :integer
+        when "Float" then :float
+        when "String" then :string
+        when "TrueClass", "FalseClass" then :boolean
+        when "Array" then { array: :any }
+        when "Hash" then { hash: %i[any any] }
+        else
+          raise ArgumentError, "Unsupported Ruby class: #{type_input}. Use symbols like :string, :integer, etc."
+        end
+      else
+        raise ArgumentError, "Type must be a symbol, string, or hash (for complex types). Got: #{type_input.class}"
+      end
     end
 
-    # Check if type1 is compatible with type2
+    # Type compatibility checking
     def self.compatible?(type1, type2)
+      # Normalize both types
+      type1 = normalize(type1)
+      type2 = normalize(type2)
+
+      # Same types are compatible
       return true if type1 == type2
-      # ANY type is compatible with any other type
-      return true if type1 == ANY || type2 == ANY
-      # Base type instances are compatible with any other type (generic base types)
-      return true if type1.is_a?(Base) && type1.instance_of?(Base)
-      return true if type2.is_a?(Base) && type2.instance_of?(Base)
 
-      # Union types are compatible if either side is compatible
-      return compatible?(type1.left, type2) || compatible?(type1.right, type2) if type1.is_a?(Union)
+      # :any is compatible with everything
+      return true if type1 == :any || type2 == :any
 
-      return compatible?(type1, type2.left) || compatible?(type1, type2.right) if type2.is_a?(Union)
+      # Numeric compatibility (integer and float are compatible)
+      numeric_types = %i[integer float]
+      return true if numeric_types.include?(type1) && numeric_types.include?(type2)
 
-      # Array types are compatible if their element types are compatible
-      return compatible?(type1.elem, type2.elem) if type1.is_a?(ArrayOf) && type2.is_a?(ArrayOf)
+      # Array compatibility - check element types
+      return compatible?(type1[:array], type2[:array]) if type1.is_a?(Hash) && type1[:array] && type2.is_a?(Hash) && type2[:array]
 
-      # Set types are compatible if their element types are compatible
-      return compatible?(type1.elem, type2.elem) if type1.is_a?(SetOf) && type2.is_a?(SetOf)
-
-      # Hash types are compatible if both key and value types are compatible
-      return compatible?(type1.key, type2.key) && compatible?(type1.val, type2.val) if type1.is_a?(HashOf) && type2.is_a?(HashOf)
-
-      # Numeric compatibility
-      return true if [type1, type2].all? { |t| [INT, FLOAT, DECIMAL].include?(t) }
+      # Hash compatibility - check key and value types
+      if type1.is_a?(Hash) && type1[:hash] && type2.is_a?(Hash) && type2[:hash]
+        return compatible?(type1[:hash][0], type2[:hash][0]) &&
+               compatible?(type1[:hash][1], type2[:hash][1])
+      end
 
       false
     end
 
     # Type unification - find common supertype
     def self.unify(type1, type2)
+      # Normalize both types
+      type1 = normalize(type1)
+      type2 = normalize(type2)
+
+      # Same types unify to themselves
       return type1 if type1 == type2
-      return type1 if type2.is_a?(Base) && type2.instance_of?(Base)
-      return type2 if type1.is_a?(Base) && type1.instance_of?(Base)
 
-      # For primitives, create union
-      return Union.new(type1, type2) if type1.is_a?(Primitive) && type2.is_a?(Primitive)
+      # If one is :any, return the other
+      return type2 if type1 == :any
+      return type1 if type2 == :any
 
-      # For collections of same type, unify element types
-      return ArrayOf.new(unify(type1.elem, type2.elem)) if type1.is_a?(ArrayOf) && type2.is_a?(ArrayOf)
+      # Numeric types unify to :float
+      numeric_types = %i[integer float]
+      if numeric_types.include?(type1) && numeric_types.include?(type2)
+        return type1 == :float || type2 == :float ? :float : :integer
+      end
 
-      return SetOf.new(unify(type1.elem, type2.elem)) if type1.is_a?(SetOf) && type2.is_a?(SetOf)
+      # Array types - unify element types
+      return { array: unify(type1[:array], type2[:array]) } if type1.is_a?(Hash) && type1[:array] && type2.is_a?(Hash) && type2[:array]
 
-      return HashOf.new(unify(type1.key, type2.key), unify(type1.val, type2.val)) if type1.is_a?(HashOf) && type2.is_a?(HashOf)
+      # Hash types - unify key and value types
+      if type1.is_a?(Hash) && type1[:hash] && type2.is_a?(Hash) && type2[:hash]
+        return { hash: [unify(type1[:hash][0], type2[:hash][0]),
+                        unify(type1[:hash][1], type2[:hash][1])] }
+      end
 
-      # For different types, fall back to union
-      Union.new(type1, type2)
+      # Otherwise, fall back to :any
+      :any
     end
 
     # Type inference from Ruby values
     def self.infer_from_value(value)
       case value
-      when Integer then INT
-      when Float then FLOAT
-      when String then STRING
-      when TrueClass, FalseClass then BOOL
-      when Symbol then SYMBOL
-      when Regexp then REGEXP
-      when Time then TIME
-      when Array then array(Base.new) # Generic array for now
-      when Hash then hash(Base.new, Base.new) # Generic hash for now
+      when Integer then :integer
+      when Float then :float
+      when String then :string
+      when TrueClass, FalseClass then :boolean
+      when Symbol then :symbol
+      when Regexp then :regexp
+      when Time then :time
+      when Array
+        return { array: :any } if value.empty?
+
+        # Infer from first element (simple heuristic)
+        { array: infer_from_value(value.first) }
+      when Hash
+        return { hash: %i[any any] } if value.empty?
+
+        # Infer from first key-value pair
+        first_key, first_value = value.first
+        { hash: [infer_from_value(first_key), infer_from_value(first_value)] }
       else
         # Handle optional dependencies
-        return DATE if defined?(Date) && value.is_a?(Date)
-        return DATETIME if defined?(DateTime) && value.is_a?(DateTime)
-        return set(Base.new) if defined?(Set) && value.is_a?(Set)
+        return :date if defined?(Date) && value.is_a?(Date)
+        return :datetime if defined?(DateTime) && value.is_a?(DateTime)
 
-        Base.new
+        :any
+      end
+    end
+
+    # Convert types to string representation
+    def self.type_to_s(type)
+      case type
+      when Symbol
+        type.to_s
+      when Hash
+        if type[:array]
+          "array(#{type_to_s(type[:array])})"
+        elsif type[:hash]
+          "hash(#{type_to_s(type[:hash][0])}, #{type_to_s(type[:hash][1])})"
+        else
+          type.to_s
+        end
+      else
+        type.to_s
+      end
+    end
+
+    # Legacy compatibility constants (will be phased out)
+    # These should be replaced with symbols in user code over time
+    STRING = :string
+    INT = :integer # NOTE: using :integer instead of :int for clarity
+    FLOAT = :float
+    BOOL = :boolean # NOTE: using :boolean instead of :bool for clarity
+    ANY = :any
+    SYMBOL = :symbol
+    REGEXP = :regexp
+    TIME = :time
+    DATE = :date
+    DATETIME = :datetime
+
+    # Legacy compatibility for numeric union
+    NUMERIC = :float # Simplified - just use float for numeric operations
+
+    # Legacy method for backward compatibility
+    def self.coerce(type_input)
+      # Handle legacy constant usage
+      return type_input if type_input.is_a?(Symbol) && VALID_TYPES.include?(type_input)
+
+      # Handle legacy constant objects
+      case type_input
+      when STRING then :string
+      when INT then :integer
+      when FLOAT then :float
+      when BOOL then :boolean
+      when ANY then :any
+      when SYMBOL then :symbol
+      when REGEXP then :regexp
+      when TIME then :time
+      when DATE then :date
+      when DATETIME then :datetime
+      when NUMERIC then :float
+      else
+        normalize(type_input)
       end
     end
   end
 end
-
-# Freeze all type instances
-ObjectSpace.each_object(Kumi::Types::Base, &:freeze)

@@ -1,12 +1,18 @@
-require:
+plugins:
   - rubocop-performance
   - rubocop-rspec
 
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 3.0
+  SuggestExtensions: false
   Exclude:
     - 'bin/*'          
     - 'spec/fixtures/**/*'
+    - 'examples/**/*'  # Examples may use deprecated syntax
+    - '*.txt'
+    - 'test_*.rb'      # Temporary test files
+    - 'spec/integration/performance_spec.rb'
 
 # Common stylistic choices
 Style/StringLiterals:
@@ -15,13 +21,90 @@ Style/StringLiterals:
 Style/Documentation:
   Enabled: false
 
+Style/OpenStructUse:
+  Enabled: false  # Used in AST nodes and test fixtures
+
+# Naming conventions - allow underscores in symbols for tax codes, etc.
+Naming/VariableNumber:
+  Enabled: false
+
+# Layout
 Layout/LineLength:
   Max: 140
+
+# Metrics - Reasonable limits for a DSL/compiler project
+Metrics/MethodLength:
+  Max: 20
+  Exclude:
+    - 'lib/kumi/function_registry.rb'    # Large function registry
+    - 'lib/kumi/analyzer/passes/**/*'    # Analyzer passes often need longer methods
+    - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/runner.rb'               # Complex runner methods
+    - 'spec/**/*'                        # Test files often need longer methods
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'lib/kumi/function_registry.rb'    # Large function registry
+    - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic
+    - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/runner.rb'               # Complex runner methods
+    - 'spec/**/*'                        # Test files often have higher ABC
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+  Exclude:
+    - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic
+    - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/runner.rb'               # Complex runner methods
+
+Metrics/PerceivedComplexity:
+  Max: 10
+  Exclude:
+    - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic  
+    - 'lib/kumi/types.rb'                # Type system operations
+
+Metrics/ParameterLists:
+  Max: 6
+  Exclude:
+    - 'lib/kumi/analyzer/passes/dependency_resolver.rb'  # Complex dependency analysis
+    - 'lib/kumi/function_registry.rb'                    # Metadata registration
+
+Metrics/ModuleLength:
+  Max: 150
+  Exclude:
+    - 'lib/kumi/function_registry.rb'  # Large function registry
+
+# Allow missing super in base classes that are designed for inheritance
+Lint/MissingSuper:
+  Exclude:
+    - 'lib/kumi/analyzer/passes/pass_base.rb'  # Base class for analyzer passes
+    - 'lib/kumi/types.rb'                      # Type system value objects
 
 # RSpec-specific configuration
 RSpec:
   Enabled: true
+
 RSpec/MultipleExpectations:
   Enabled: false
+
 RSpec/ExampleLength:
   Max: 30
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+RSpec/VerifiedDoubleReference:
+  Enabled: false  # May require significant test refactoring
+
+RSpec/DescribeClass:
+  Enabled: false  # Integration tests don't always test specific classes
+
+RSpec/ContextWording:
+  Enabled: false  # Allow flexible context naming
+
+RSpec/ExpectActual:
+  Enabled: true   # Keep this - it's a good practice
+
+RSpec/IdenticalEqualityAssertion:
+  Enabled: false  # Sometimes needed for testing type systems
