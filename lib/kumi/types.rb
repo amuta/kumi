@@ -158,8 +158,6 @@ module Kumi
     # Convert types to string representation
     def self.type_to_s(type)
       case type
-      when Symbol
-        type.to_s
       when Hash
         if type[:array]
           "array(#{type_to_s(type[:array])})"
@@ -198,7 +196,7 @@ module Kumi
       case type_input
       when STRING then :string
       when INT then :integer
-      when FLOAT then :float
+      when FLOAT, NUMERIC then :float # Both FLOAT and NUMERIC map to :float
       when BOOL then :boolean
       when ANY then :any
       when SYMBOL then :symbol
@@ -206,7 +204,6 @@ module Kumi
       when TIME then :time
       when DATE then :date
       when DATETIME then :datetime
-      when NUMERIC then :float
       else
         normalize(type_input)
       end

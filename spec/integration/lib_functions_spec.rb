@@ -2,7 +2,7 @@
 
 RSpec.describe "Kumi Default Functions" do
   describe "core functions" do
-    it "works" do
+    it "compiles and executes basic function calls successfully" do
       syntax_tree = Kumi::Parser::Dsl.build_sytax_tree do
         input do
           key :number, type: Kumi::Types::INT

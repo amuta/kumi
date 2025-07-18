@@ -182,10 +182,11 @@ RSpec.describe "Type System Integration" do
         expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash)), "Function #{fn_name} missing return_type"
 
         # Validate arity matches param_types (unless variable arity)
-        unless signature[:arity] < 0
-          expect(signature[:param_types].size).to eq(signature[:arity]).or(eq(1)),
-                                                  "Function #{fn_name} arity mismatch: #{signature[:arity]} vs #{signature[:param_types].size}"
-        end
+        next if signature[:arity] < 0
+
+        expect(signature[:param_types].size).to eq(signature[:arity]).or(eq(1)),
+                                                "Function #{fn_name} arity mismatch: " \
+                                                "#{signature[:arity]} vs #{signature[:param_types].size}"
       end
     end
   end

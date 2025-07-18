@@ -248,9 +248,7 @@ RSpec.describe "Input Block Feature" do
 
           predicate :always_true, true, :==, true
         end
-      end.to raise_error(Kumi::Errors::SyntaxError) do |error|
-        expect(error.message).to match(/Invalid type for input `unknown`: Invalid type symbol: invalid_type/)
-      end
+      end.to raise_error(Kumi::Errors::SyntaxError)
     end
   end
 

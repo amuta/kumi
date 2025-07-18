@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Kumi Compiler Integration" do
-  before(:all) do
+  before do
     Kumi::FunctionRegistry.reset!
 
     Kumi::FunctionRegistry.register(:error!) do |should_error|

@@ -22,10 +22,11 @@ RSpec.describe "big schema stress test" do
 
   it "evaluates one predicate quickly" do
     data = Hash.new(0).merge(age: 50, balance: 2000, purchases: 10)
-    Benchmark.ips do |x|
-      x.report("500 pred & 500 values, 1 value that depends on all") do
-        compiled.evaluate(data)
-      end
+
+    evaluation_time = Benchmark.realtime do
+      compiled.evaluate(data)
     end
+
+    expect(evaluation_time).to be < 0.01 # Should evaluate very quickly
   end
 end

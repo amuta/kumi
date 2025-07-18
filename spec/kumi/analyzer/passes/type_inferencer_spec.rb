@@ -206,7 +206,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
   describe "private methods" do
     describe "#infer_expression_type" do
       it "handles unknown expression types" do
-        unknown_expr = double("UnknownExpr")
+        unknown_expr = OpenStruct.new(type: "UnknownExpr")
 
         result = pass.send(:infer_expression_type, unknown_expr, {})
 
