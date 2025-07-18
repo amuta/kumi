@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "zeitwerk"
-require "pry" # TODO: REMOVE AFTER DEBUGGING
+# require "pry" # COMMENT AFTER DEBUGGING
 
 loader = Zeitwerk::Loader.for_gem
 loader.setup

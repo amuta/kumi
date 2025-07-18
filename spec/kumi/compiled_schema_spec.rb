@@ -79,15 +79,6 @@ RSpec.describe Kumi::CompiledSchema do
     end
   end
 
-  describe "#value_of" do
-    it "evaluates a single binding" do
-      # NOTE: There's a bug in the implementation - it uses 'name' instead of '_key'
-      # This test documents the current behavior
-      expect do
-        compiled_schema.value_of(valid_data, :is_adult)
-      end.to raise_error(NameError, /undefined local variable/)
-    end
-  end
 
   describe "#traits" do
     it "evaluates only trait bindings" do
@@ -173,16 +164,14 @@ RSpec.describe Kumi::CompiledSchema do
     end
 
     it "validates context for traits method" do
-      # The traits method uses **data keyword args, so we test the private method directly
       expect do
-        compiled_schema.send(:evaluate_traits, "invalid_context")
+        compiled_schema.traits("invalid_context")
       end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
     end
 
     it "validates context for attributes method" do
-      # The attributes method uses **data keyword args, so we test the private method directly
       expect do
-        compiled_schema.send(:evaluate_attributes, "invalid_context")
+        compiled_schema.attributes("invalid_context")
       end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
     end
   end

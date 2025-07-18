@@ -2,61 +2,79 @@
 
 module Kumi
   class CompiledSchema
-    def initialize(bindings) = @bindings = bindings
+    attr_reader :bindings
 
-    # full evaluation
-    # TODO-> how about we have some way to use it like this
-    # FullfillmentRules.from(input).fetch(:fulfillment)
-    # without adding extra costs for the `from` method? (we just save the input reference on the result of :from)
+    def initialize(bindings)
+      @bindings = bindings.freeze
+    end
+
     def evaluate(data, *keys)
-      return evaluate_traits(data).merge(evaluate_attributes(data)) if keys.empty?
+      validate_context(data)
 
-      keys.each_with_object({}) do |name, hash|
-        hash[name] = evaluate_binding(name, data)
+      target_keys = keys.empty? ? @bindings.keys : validate_keys(keys)
+
+      target_keys.each_with_object({}) do |key, result|
+        result[key] = execute_binding(key, data)
       end
     end
 
-    def value_of(data, _key)
-      evaluate_binding(name, data)
+    def evaluate_binding(key, data)
+      validate_context(data)
+      validate_binding_exists(key)
+      execute_binding(key, data)
     end
 
-    # only traits
-    def traits(**data) = evaluate_traits(data)
+    def traits(data)
+      evaluate_by_type(data, :trait)
+    end
 
-    # only attributes
-    def attributes(**data) = evaluate_attributes(data)
-
-    # single binding
-    def evaluate_binding(name, data)
-      raise Kumi::Errors::RuntimeError, "No binding named #{name}" unless @bindings.key?(name)
-
-      @bindings[name][1].call(data)
+    def attributes(data)
+      evaluate_by_type(data, :attr)
     end
 
     private
 
-    def evaluate_traits(data)
-      validate_ctx(data)
-      filter_by(:trait).transform_values { |fn| fn.call(data) }
-    end
-
-    def evaluate_attributes(data)
-      validate_ctx(data)
-      filter_by(:attr).transform_values { |fn| fn.call(data) }
-    end
-
-    def filter_by(kind)
-      @bindings.each_with_object({}) do |(k, (knd, fn)), h|
-        h[k] = fn if knd == kind
-      end
-    end
-
-    def validate_ctx(ctx)
-      return if ctx.is_a?(Hash) ||
-                (ctx.respond_to?(:key?) && ctx.respond_to?(:[]))
+    def validate_context(data)
+      return if data.is_a?(Hash) || hash_like?(data)
 
       raise Kumi::Errors::RuntimeError,
             "Data context should be Hash-like (respond to :key? and :[])"
+    end
+
+    def hash_like?(obj)
+      obj.respond_to?(:key?) && obj.respond_to?(:[])
+    end
+
+    def validate_keys(keys)
+      unknown_keys = keys - @bindings.keys
+      return keys if unknown_keys.empty?
+
+      raise Kumi::Errors::RuntimeError, "No binding named #{unknown_keys.first}"
+    end
+
+    def validate_binding_exists(key)
+      return if @bindings.key?(key)
+
+      raise Kumi::Errors::RuntimeError, "No binding named #{key}"
+    end
+
+    def execute_binding(key, data)
+      _type, proc = @bindings[key]
+      proc.call(data)
+    end
+
+    def evaluate_by_type(data, target_type)
+      validate_context(data)
+
+      filtered_keys = filter_keys_by_type(target_type)
+
+      filtered_keys.each_with_object({}) do |key, result|
+        result[key] = execute_binding(key, data)
+      end
+    end
+
+    def filter_keys_by_type(target_type)
+      @bindings.filter_map { |key, (type, _proc)| key if type == target_type }
     end
   end
 end
