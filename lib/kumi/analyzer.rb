@@ -11,6 +11,7 @@ module Kumi
       Passes::InputCollector,         # 2. Collects field metadata from input declarations.
       Passes::DefinitionValidator,    # 3. Checks the basic structure of each rule.
       Passes::DependencyResolver,     # 4. Builds the dependency graph.
+      Passes::UnsatDetector,          # 5. Detects unsatisfiable constraints in rules.
       Passes::CycleDetector,          # 5. Finds cycles in the dependency graph.
       Passes::Toposorter,             # 6. Creates the final evaluation order.
       Passes::TypeInferencer,         # 7. Infers types for all declarations (pure annotation).

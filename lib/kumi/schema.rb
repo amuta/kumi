@@ -10,8 +10,8 @@ module Kumi
       # Validate input types and domain constraints
       input_meta = @__analyzer_result__.state[:input_meta] || {}
       violations = Input::Validator.validate_context(context, input_meta)
-      
-      raise Errors::InputValidationError.new(violations) unless violations.empty?
+
+      raise Errors::InputValidationError, violations unless violations.empty?
 
       Runner.new(context, @__schema__, @__analyzer_result__.definitions)
     end

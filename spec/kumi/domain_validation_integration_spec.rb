@@ -22,28 +22,28 @@ RSpec.describe "Domain Validation Integration" do
     context "with valid input" do
       it "creates runner successfully" do
         runner = schema.from({ age: 25, score: 85.0, status: "active" })
-        
+
         expect(runner).to be_a(Kumi::Runner)
         expect(runner.fetch(:adult)).to be true
         expect(runner.fetch(:grade)).to eq("B")
       end
 
       it "accepts boundary values" do
-        expect {
+        expect do
           schema.from({ age: 18, score: 0.0, status: "active" })
-        }.not_to raise_error
+        end.not_to raise_error
 
-        expect {
+        expect do
           schema.from({ age: 65, score: 100.0, status: "pending" })
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
     context "with domain violations" do
       it "raises DomainViolationError for single violation" do
-        expect {
+        expect do
           schema.from({ age: 17, score: 85.0, status: "active" })
-        }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
           expect(error.single_violation?).to be true
           expect(error.violations.first[:field]).to eq(:age)
           expect(error.message).to include("Field :age value 17 is outside domain 18..65")
@@ -51,15 +51,15 @@ RSpec.describe "Domain Validation Integration" do
       end
 
       it "raises DomainViolationError for multiple violations" do
-        expect {
+        expect do
           schema.from({ age: 16, score: 110.0, status: "unknown" })
-        }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
           expect(error.multiple_violations?).to be true
           expect(error.violations.size).to eq(3)
-          
+
           fields = error.violations.map { |v| v[:field] }
           expect(fields).to contain_exactly(:age, :score, :status)
-          
+
           expect(error.message).to include("Domain violations:")
           expect(error.message).to include("Field :age value 16")
           expect(error.message).to include("Field :score value 110.0")
@@ -68,9 +68,9 @@ RSpec.describe "Domain Validation Integration" do
       end
 
       it "provides detailed violation information" do
-        expect {
+        expect do
           schema.from({ age: 70, score: 85.0, status: "active" })
-        }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
           violation = error.violations.first
           expect(violation[:field]).to eq(:age)
           expect(violation[:value]).to eq(70)
@@ -93,10 +93,10 @@ RSpec.describe "Domain Validation Integration" do
       end
 
       it "allows any values when no domains specified" do
-        expect {
-          runner = schema_no_domains.from({ name: "any name", count: 999999 })
+        expect do
+          runner = schema_no_domains.from({ name: "any name", count: 999_999 })
           expect(runner.fetch(:has_name)).to be true
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
@@ -104,9 +104,9 @@ RSpec.describe "Domain Validation Integration" do
       let(:mixed_schema) do
         create_schema do
           input do
-            key :name, type: :string              # no domain
-            key :age, type: :integer, domain: 18..65  # has domain
-            key :comment, type: :string            # no domain
+            key :name, type: :string # no domain
+            key :age, type: :integer, domain: 18..65 # has domain
+            key :comment, type: :string # no domain
           end
 
           value :display_name, input.name
@@ -115,14 +115,14 @@ RSpec.describe "Domain Validation Integration" do
 
       it "validates only fields with domains" do
         # This should work - age is valid, other fields have no constraints
-        expect {
+        expect do
           mixed_schema.from({ name: "Any Name", age: 25, comment: "Any comment" })
-        }.not_to raise_error
+        end.not_to raise_error
 
         # This should fail - age violates domain
-        expect {
+        expect do
           mixed_schema.from({ name: "Any Name", age: 17, comment: "Any comment" })
-        }.to raise_error(Kumi::Errors::InputValidationError)
+        end.to raise_error(Kumi::Errors::InputValidationError)
       end
     end
   end
@@ -140,13 +140,13 @@ RSpec.describe "Domain Validation Integration" do
       end
 
       it "validates using custom proc" do
-        expect {
+        expect do
           email_schema.from({ email: "user@example.com" })
-        }.not_to raise_error
+        end.not_to raise_error
 
-        expect {
+        expect do
           email_schema.from({ email: "invalid-email" })
-        }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
           expect(error.message).to include("does not satisfy custom domain constraint")
         end
       end
@@ -164,17 +164,17 @@ RSpec.describe "Domain Validation Integration" do
       end
 
       it "handles exclusive end correctly" do
-        expect {
+        expect do
           probability_schema.from({ probability: 0.0 })
-        }.not_to raise_error
+        end.not_to raise_error
 
-        expect {
+        expect do
           probability_schema.from({ probability: 0.999 })
-        }.not_to raise_error
+        end.not_to raise_error
 
-        expect {
+        expect do
           probability_schema.from({ probability: 1.0 })
-        }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
           expect(error.message).to include("(exclusive)")
         end
       end
@@ -192,21 +192,21 @@ RSpec.describe "Domain Validation Integration" do
     end
 
     it "formats range violation messages clearly" do
-      expect {
+      expect do
         error_schema.from({ age: 17, status: "active" })
-      }.to raise_error(Kumi::Errors::InputValidationError, /Field :age value 17 is outside domain 18\.\.65/)
+      end.to raise_error(Kumi::Errors::InputValidationError, /Field :age value 17 is outside domain 18\.\.65/)
     end
 
     it "formats array violation messages clearly" do
-      expect {
+      expect do
         error_schema.from({ age: 25, status: "unknown" })
-      }.to raise_error(Kumi::Errors::InputValidationError, /Field :status value "unknown" is not in allowed values/)
+      end.to raise_error(Kumi::Errors::InputValidationError, /Field :status value "unknown" is not in allowed values/)
     end
 
     it "formats multiple violations with clear structure" do
-      expect {
+      expect do
         error_schema.from({ age: 17, status: "unknown" })
-      }.to raise_error(Kumi::Errors::InputValidationError) do |error|
+      end.to raise_error(Kumi::Errors::InputValidationError) do |error|
         message = error.message
         expect(message).to include("Domain violations:")
         expect(message).to include("- Field :age")
@@ -226,26 +226,26 @@ RSpec.describe "Domain Validation Integration" do
         predicate :adult, input.age, :>=, 18
       end
 
-      expect {
+      expect do
         runner = legacy_schema.from({ name: "John", age: 25 })
         expect(runner.fetch(:adult)).to be true
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it "works with schemas using old key() syntax without domains" do
       # This test ensures we don't break existing code that doesn't use domains
-      expect {
+      expect do
         simple_schema = create_schema do
           input do
             key :value, type: :integer
           end
-          
+
           predicate :always_true, input.value, :>, 0
         end
-        
+
         runner = simple_schema.from({ value: 42 })
         expect(runner.fetch(:always_true)).to be true
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 end

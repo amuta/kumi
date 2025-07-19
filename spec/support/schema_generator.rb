@@ -62,17 +62,17 @@ module SchemaGenerator
       compiled: compiled,
       runner: Kumi::Runner.new({}, compiled, analyzer.definitions)
     )
-    
+
     # Add the from method with input validation (type + domain)
     def schema.from(context)
       input_meta = analysis.state[:input_meta] || {}
       violations = Kumi::Input::Validator.validate_context(context, input_meta)
-      
-      raise Kumi::Errors::InputValidationError.new(violations) unless violations.empty?
+
+      raise Kumi::Errors::InputValidationError, violations unless violations.empty?
 
       Kumi::Runner.new(context, compiled, analysis.definitions)
     end
-    
+
     schema
   end
 end

@@ -15,7 +15,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           message: "Field :age expected integer, got \"25\" of type string"
         }
       end
-      
+
       let(:error) { described_class.new([violation]) }
 
       it "reports single violation" do
@@ -45,7 +45,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           message: "Field :age value 16 is outside domain 18..65"
         }
       end
-      
+
       let(:error) { described_class.new([violation]) }
 
       it "categorizes violation correctly" do
@@ -83,7 +83,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           }
         ]
       end
-      
+
       let(:error) { described_class.new(violations) }
 
       it "reports multiple violations" do
@@ -126,7 +126,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           }
         ]
       end
-      
+
       let(:error) { described_class.new(violations) }
 
       it "categorizes violations correctly" do
@@ -151,7 +151,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           {
             type: :type_violation,
             field: :name,
-            value: 12345,
+            value: 12_345,
             expected_type: :string,
             actual_type: :integer,
             message: "Field :name expected string, got 12345 of type integer"
@@ -165,7 +165,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
           }
         ]
       end
-      
+
       let(:error) { described_class.new(violations) }
 
       it "categorizes violations correctly" do
@@ -181,7 +181,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
         expect(message).to include("- Field :name expected string")
         expect(message).to include("Domain violations:")
         expect(message).to include("- Field :age value 16")
-        
+
         # Check order: type violations should come first
         type_index = message.index("Type violations:")
         domain_index = message.index("Domain violations:")
@@ -218,7 +218,7 @@ RSpec.describe Kumi::Errors::InputValidationError do
         }
       ]
     end
-    
+
     let(:error) { described_class.new(violations) }
 
     it "provides access to all violations" do

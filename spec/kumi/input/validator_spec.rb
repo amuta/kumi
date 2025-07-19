@@ -11,7 +11,7 @@ RSpec.describe Kumi::Input::Validator do
         name: { type: :string, domain: nil },
         active: { type: :boolean, domain: nil },
         tags: { type: { array: :string }, domain: nil },
-        metadata: { type: { hash: [:string, :any] }, domain: nil },
+        metadata: { type: { hash: %i[string any] }, domain: nil },
         untyped: { type: :any, domain: nil }
       }
     end
@@ -49,11 +49,11 @@ RSpec.describe Kumi::Input::Validator do
           metadata: {}    # Correct
         }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(2)
         type_violations = violations.select { |v| v[:type] == :type_violation }
         expect(type_violations.size).to eq(2)
-        
+
         fields = type_violations.map { |v| v[:field] }
         expect(fields).to contain_exactly(:age, :active)
       end
@@ -64,11 +64,11 @@ RSpec.describe Kumi::Input::Validator do
           score: 85.0,
           name: "John",
           active: true,
-          tags: ["tag1", 123, "tag3"],  # Mixed types
+          tags: ["tag1", 123, "tag3"], # Mixed types
           metadata: {}
         }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(1)
         violation = violations.first
         expect(violation[:type]).to eq(:type_violation)
@@ -83,10 +83,10 @@ RSpec.describe Kumi::Input::Validator do
           name: "John",
           active: true,
           tags: [],
-          metadata: { :symbol_key => "value" }  # Wrong key type
+          metadata: { symbol_key: "value" } # Wrong key type
         }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(1)
         violation = violations.first
         expect(violation[:type]).to eq(:type_violation)
@@ -105,11 +105,11 @@ RSpec.describe Kumi::Input::Validator do
           metadata: {}    # Correct
         }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(2)
         domain_violations = violations.select { |v| v[:type] == :domain_violation }
         expect(domain_violations.size).to eq(2)
-        
+
         fields = domain_violations.map { |v| v[:field] }
         expect(fields).to contain_exactly(:age, :score)
       end
@@ -126,11 +126,11 @@ RSpec.describe Kumi::Input::Validator do
           metadata: {}    # Correct
         }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(2)
         # Should only get type violations, not domain violations
         expect(violations.all? { |v| v[:type] == :type_violation }).to be true
-        
+
         fields = violations.map { |v| v[:field] }
         expect(fields).to contain_exactly(:age, :score)
       end
@@ -208,14 +208,14 @@ RSpec.describe Kumi::Input::Validator do
 
     context "with hash types" do
       it "matches homogeneous hashes" do
-        hash_type = { hash: [:string, :integer] }
+        hash_type = { hash: %i[string integer] }
         expect(described_class.type_matches?({ "a" => 1, "b" => 2 }, hash_type)).to be true
         expect(described_class.type_matches?({ "a" => "not_int" }, hash_type)).to be false
-        expect(described_class.type_matches?({ :symbol => 1 }, hash_type)).to be false
+        expect(described_class.type_matches?({ symbol: 1 }, hash_type)).to be false
       end
 
       it "matches hashes with any key/value types" do
-        hash_type = { hash: [:any, :any] }
+        hash_type = { hash: %i[any any] }
         expect(described_class.type_matches?({ "a" => 1, :b => "c" }, hash_type)).to be true
         expect(described_class.type_matches?({}, hash_type)).to be true
       end
@@ -234,7 +234,7 @@ RSpec.describe Kumi::Input::Validator do
 
     it "infers collection types" do
       expect(described_class.infer_type([])).to eq({ array: :mixed })
-      expect(described_class.infer_type({})).to eq({ hash: [:mixed, :mixed] })
+      expect(described_class.infer_type({})).to eq({ hash: %i[mixed mixed] })
     end
 
     it "handles unknown types" do
@@ -254,8 +254,8 @@ RSpec.describe Kumi::Input::Validator do
     end
 
     it "formats hash types" do
-      expect(described_class.format_type({ hash: [:string, :integer] })).to eq("hash(string, integer)")
-      expect(described_class.format_type({ hash: [:any, :any] })).to eq("hash(any, any)")
+      expect(described_class.format_type({ hash: %i[string integer] })).to eq("hash(string, integer)")
+      expect(described_class.format_type({ hash: %i[any any] })).to eq("hash(any, any)")
     end
   end
 end

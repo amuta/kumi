@@ -42,7 +42,7 @@ RSpec.describe Kumi::Domain::Validator do
       end
 
       it "handles symbol arrays" do
-        roles = [:admin, :user, :guest]
+        roles = %i[admin user guest]
         expect(described_class.validate_field(:role, :admin, roles)).to be true
         expect(described_class.validate_field(:role, :superuser, roles)).to be false
       end
@@ -97,7 +97,7 @@ RSpec.describe Kumi::Domain::Validator do
       it "returns violation details" do
         context = { age: 17, score: 85.0, status: "active" }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(1)
         violation = violations.first
         expect(violation[:field]).to eq(:age)
@@ -111,7 +111,7 @@ RSpec.describe Kumi::Domain::Validator do
       it "returns all violations" do
         context = { age: 17, score: 150.0, status: "unknown" }
         violations = described_class.validate_context(context, input_meta)
-        
+
         expect(violations.size).to eq(3)
         fields = violations.map { |v| v[:field] }
         expect(fields).to contain_exactly(:age, :score, :status)
@@ -148,7 +148,7 @@ RSpec.describe Kumi::Domain::Validator do
 
     it "extracts metadata for all fields with domains" do
       metadata = described_class.extract_domain_metadata(input_meta)
-      
+
       expect(metadata.keys).to contain_exactly(:age, :score, :status, :email)
       expect(metadata[:name]).to be_nil
     end
@@ -157,7 +157,7 @@ RSpec.describe Kumi::Domain::Validator do
       it "provides comprehensive range metadata" do
         metadata = described_class.extract_domain_metadata(input_meta)
         age_meta = metadata[:age]
-        
+
         expect(age_meta[:type]).to eq(:range)
         expect(age_meta[:min]).to eq(18)
         expect(age_meta[:max]).to eq(65)
@@ -172,22 +172,22 @@ RSpec.describe Kumi::Domain::Validator do
         exclusive_meta = { score: { domain: 0.0...1.0 } }
         metadata = described_class.extract_domain_metadata(exclusive_meta)
         score_meta = metadata[:score]
-        
+
         expect(score_meta[:exclusive_end]).to be true
         expect(score_meta[:invalid_samples]).to include(1.0)
       end
 
       it "handles large ranges" do
-        large_meta = { id: { domain: 1..10000 } }
+        large_meta = { id: { domain: 1..10_000 } }
         metadata = described_class.extract_domain_metadata(large_meta)
-        
+
         expect(metadata[:id][:size]).to eq(:large)
       end
 
       it "handles continuous ranges" do
         float_meta = { temperature: { domain: -10.5..50.2 } }
         metadata = described_class.extract_domain_metadata(float_meta)
-        
+
         expect(metadata[:temperature][:size]).to eq(:continuous)
       end
     end
@@ -196,7 +196,7 @@ RSpec.describe Kumi::Domain::Validator do
       it "provides enumeration metadata" do
         metadata = described_class.extract_domain_metadata(input_meta)
         status_meta = metadata[:status]
-        
+
         expect(status_meta[:type]).to eq(:enumeration)
         expect(status_meta[:values]).to eq(%w[active inactive pending])
         expect(status_meta[:size]).to eq(3)
@@ -209,7 +209,7 @@ RSpec.describe Kumi::Domain::Validator do
       it "provides custom domain metadata" do
         metadata = described_class.extract_domain_metadata(input_meta)
         email_meta = metadata[:email]
-        
+
         expect(email_meta[:type]).to eq(:custom)
         expect(email_meta[:description]).to eq("Custom constraint function")
       end

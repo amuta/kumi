@@ -53,7 +53,7 @@ module Kumi
         if single_violation?
           violations.first[:message]
         else
-          "Multiple domain violations:\n" + 
+          "Multiple domain violations:\n" +
             violations.map { |v| "  - #{v[:message]}" }.join("\n")
         end
       end
@@ -98,17 +98,17 @@ module Kumi
           violations.first[:message]
         else
           message_parts = []
-          
+
           if has_type_violations?
             message_parts << "Type violations:"
             type_violations.each { |v| message_parts << "  - #{v[:message]}" }
           end
-          
+
           if has_domain_violations?
             message_parts << "Domain violations:"
             domain_violations.each { |v| message_parts << "  - #{v[:message]}" }
           end
-          
+
           message_parts.join("\n")
         end
       end
