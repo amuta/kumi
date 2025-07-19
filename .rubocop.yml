@@ -37,8 +37,10 @@ Metrics/MethodLength:
   Max: 20
   Exclude:
     - 'lib/kumi/function_registry.rb'    # Large function registry
+    - 'lib/kumi/function_registry/**/*'  # Function registry modules with data definitions
     - 'lib/kumi/analyzer/passes/**/*'    # Analyzer passes often need longer methods
     - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/types/**/*'              # Type system modules
     - 'lib/kumi/runner.rb'               # Complex runner methods
     - 'spec/**/*'                        # Test files often need longer methods
 
@@ -46,8 +48,10 @@ Metrics/AbcSize:
   Max: 20
   Exclude:
     - 'lib/kumi/function_registry.rb'    # Large function registry
+    - 'lib/kumi/function_registry/**/*'  # Function registry modules with data definitions
     - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic
     - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/types/**/*'              # Type system modules
     - 'lib/kumi/runner.rb'               # Complex runner methods
     - 'spec/**/*'                        # Test files often have higher ABC
 
@@ -56,6 +60,7 @@ Metrics/CyclomaticComplexity:
   Exclude:
     - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic
     - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/types/**/*'              # Type system modules
     - 'lib/kumi/runner.rb'               # Complex runner methods
 
 Metrics/PerceivedComplexity:
@@ -63,6 +68,7 @@ Metrics/PerceivedComplexity:
   Exclude:
     - 'lib/kumi/analyzer/passes/**/*'    # Complex analyzer logic  
     - 'lib/kumi/types.rb'                # Type system operations
+    - 'lib/kumi/types/**/*'              # Type system modules
 
 Metrics/ParameterLists:
   Max: 6
@@ -90,6 +96,8 @@ RSpec/MultipleExpectations:
 
 RSpec/ExampleLength:
   Max: 30
+  Exclude:
+    - 'spec/kumi/export/comprehensive_integration_spec.rb'  # Comprehensive integration tests need longer examples
 
 RSpec/MultipleMemoizedHelpers:
   Max: 10

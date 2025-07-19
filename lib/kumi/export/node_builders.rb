@@ -89,9 +89,7 @@ module Kumi
           { array: deserialize_type(type_data[:element_type]) }
         when "hash"
           { hash: [deserialize_type(type_data[:key_type]), deserialize_type(type_data[:value_type])] }
-        when "literal"
-          type_data[:value]
-        else
+        when "literal", nil
           type_data[:value]
         end
       end

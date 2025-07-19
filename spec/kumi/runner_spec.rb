@@ -50,9 +50,10 @@ RSpec.describe Kumi::Runner do
     end
 
     it "delegates to schema.evaluate" do
-      expect(schema).to receive(:evaluate).with(context, :display_name).and_return({ display_name: "ALICE" })
+      allow(schema).to receive(:evaluate).with(context, :display_name).and_return({ display_name: "ALICE" })
 
       runner.slice(:display_name)
+      expect(schema).to have_received(:evaluate).with(context, :display_name)
     end
   end
 
@@ -75,7 +76,7 @@ RSpec.describe Kumi::Runner do
     end
 
     it "caches results for subsequent calls" do
-      expect(schema).to receive(:evaluate_binding).once.with(:display_name, context).and_return("ALICE")
+      allow(schema).to receive(:evaluate_binding).with(:display_name, context).and_return("ALICE")
 
       # First call should evaluate
       result1 = runner.fetch(:display_name)
@@ -84,6 +85,7 @@ RSpec.describe Kumi::Runner do
 
       expect(result1).to eq("ALICE")
       expect(result2).to eq("ALICE")
+      expect(schema).to have_received(:evaluate_binding).with(:display_name, context).once
     end
 
     it "evaluates different keys independently" do
@@ -129,11 +131,12 @@ RSpec.describe Kumi::Runner do
     end
 
     it "calls explain_recursive with the key" do
-      expect(runner).to receive(:explain_recursive).with(:display_name).and_return("explanation")
+      allow(runner).to receive(:explain_recursive).with(:display_name).and_return("explanation")
 
       result = runner.explain(:display_name)
 
       expect(result).to eq("explanation")
+      expect(runner).to have_received(:explain_recursive).with(:display_name)
     end
 
     context "with basic explanation" do
