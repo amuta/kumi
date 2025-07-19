@@ -1,6 +1,6 @@
 # Kumi: A Declarative Business Logic Compiler
 
-Kumi provides a DSL for defining, validating, and executing complex business logic. It parses declarative rules into an Abstract Syntax Tree (AST), runs a series of analysis passes, and compiles the result into an executable dependency graph.
+Kumi provides a DSL for defining, validating, and executing complex business logic. It parses declarative rules into an Abstract Syntax Tree (AST), runs a series of analysis passes, and "compiles" the result into an executable (procs) dependency graph.
 
 This approach isolates business logic from application code, allowing it to be managed and validated as a self-contained unit.
 
@@ -51,14 +51,63 @@ class DiscountCalculator
   end
 end
 
+
 # Execute the schema with a given set of inputs.
 discount = DiscountCalculator.calculate({
-  score: 75, 
-  base_discount: 10.0, 
+  score: 75,
+  base_discount: 10.0,
   customer_tier: "premium"
 })
 # => 15.0
 ```
+
+## Errors at Schema Definition
+
+When you define a `schema` block on a class (by extending `Kumi::Schema`), Kumi immediately
+validates your DSL syntax and schema semantics as the class is loaded. This fail-fast approach
+lets you catch mistakes early. Common failure scenarios include:
+
+### Syntax errors
+- **Missing expression or block for a value**
+  ```ruby
+  value :discount
+  # => error: "value 'discount' requires an expression or a block at path/to/file.rb:42"
+  ```
+- **Invalid operator in a predicate**
+  ```ruby
+  predicate :flagged, input.score, :>>, 100
+  # => error: "unsupported operator `>>` at path/to/file.rb:87"
+  ```
+
+### Semantic errors
+- **Duplicate definitions**
+  ```ruby
+  value :age, input.age
+  value :age, input.birth_year
+  # => error: "duplicate definition `age` at path/to/file.rb:56"
+  ```
+- **Cyclic dependencies**
+  ```ruby
+  value :a, ref(:b)
+  value :b, ref(:a)
+  # => error: "cycle detected: a → b → a"
+  ```
+- **Unsatisfiable logic**
+  ```ruby
+  predicate :impossible, fn(:and, input.x > 10, input.x < 5)
+  # => error: "unsatisfiable conditions for `impossible`"
+  ```
+
+### Type and metadata errors
+- **Type mismatch in inputs**
+  ```ruby
+  input do
+    key :rate, type: :integer
+  end
+  # => error: "Field :rate expected integer, got \"high\" of type string"
+
+Schemas are validated and loaded at class definition time, so you get immediate actionable feedback
+when something is amiss.
 
 ## Debugging a Schema
 Standard debugging tools cannot be used inside a `schema` block because the DSL is declarative and does not execute code linearly. To inspect the intermediate values of the dependency graph, use the `runner`.
