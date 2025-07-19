@@ -55,12 +55,25 @@ module SchemaGenerator
     analyzer = Kumi::Analyzer.analyze!(syntax_tree)
     compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
 
-    OpenStruct.new(
+    # Create a schema-like object that includes the from method
+    schema = OpenStruct.new(
       syntax_tree: syntax_tree,
       analysis: analyzer,
       compiled: compiled,
       runner: Kumi::Runner.new({}, compiled, analyzer.definitions)
     )
+    
+    # Add the from method with input validation (type + domain)
+    def schema.from(context)
+      input_meta = analysis.state[:input_meta] || {}
+      violations = Kumi::Input::Validator.validate_context(context, input_meta)
+      
+      raise Kumi::Errors::InputValidationError.new(violations) unless violations.empty?
+
+      Kumi::Runner.new(context, compiled, analysis.definitions)
+    end
+    
+    schema
   end
 end
 
