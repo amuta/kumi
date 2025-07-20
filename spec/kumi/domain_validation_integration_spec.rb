@@ -41,42 +41,45 @@ RSpec.describe "Domain Validation Integration" do
 
     context "with domain violations" do
       it "raises DomainViolationError for single violation" do
+        error = nil
         expect do
           schema.from({ age: 17, score: 85.0, status: "active" })
-        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-          expect(error.single_violation?).to be true
-          expect(error.violations.first[:field]).to eq(:age)
-          expect(error.message).to include("Field :age value 17 is outside domain 18..65")
-        end
+        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+
+        expect(error.single_violation?).to be true
+        expect(error.violations.first[:field]).to eq(:age)
+        expect(error.message).to include("Field :age value 17 is outside domain 18..65")
       end
 
       it "raises DomainViolationError for multiple violations" do
+        error = nil
         expect do
           schema.from({ age: 16, score: 110.0, status: "unknown" })
-        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-          expect(error.multiple_violations?).to be true
-          expect(error.violations.size).to eq(3)
+        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
 
-          fields = error.violations.map { |v| v[:field] }
-          expect(fields).to contain_exactly(:age, :score, :status)
+        expect(error.multiple_violations?).to be true
+        expect(error.violations.size).to eq(3)
 
-          expect(error.message).to include("Domain violations:")
-          expect(error.message).to include("Field :age value 16")
-          expect(error.message).to include("Field :score value 110.0")
-          expect(error.message).to include("Field :status value \"unknown\"")
-        end
+        fields = error.violations.map { |v| v[:field] }
+        expect(fields).to contain_exactly(:age, :score, :status)
+
+        expect(error.message).to include("Domain violations:")
+        expect(error.message).to include("Field :age value 16")
+        expect(error.message).to include("Field :score value 110.0")
+        expect(error.message).to include("Field :status value \"unknown\"")
       end
 
       it "provides detailed violation information" do
+        error = nil
         expect do
           schema.from({ age: 70, score: 85.0, status: "active" })
-        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-          violation = error.violations.first
-          expect(violation[:field]).to eq(:age)
-          expect(violation[:value]).to eq(70)
-          expect(violation[:domain]).to eq(18..65)
-          expect(violation[:message]).to be_a(String)
-        end
+        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+
+        violation = error.violations.first
+        expect(violation[:field]).to eq(:age)
+        expect(violation[:value]).to eq(70)
+        expect(violation[:domain]).to eq(18..65)
+        expect(violation[:message]).to be_a(String)
       end
     end
 
@@ -144,11 +147,12 @@ RSpec.describe "Domain Validation Integration" do
           email_schema.from({ email: "user@example.com" })
         end.not_to raise_error
 
+        error = nil
         expect do
           email_schema.from({ email: "invalid-email" })
-        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-          expect(error.message).to include("does not satisfy custom domain constraint")
-        end
+        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+
+        expect(error.message).to include("does not satisfy custom domain constraint")
       end
     end
 
@@ -172,11 +176,12 @@ RSpec.describe "Domain Validation Integration" do
           probability_schema.from({ probability: 0.999 })
         end.not_to raise_error
 
+        error = nil
         expect do
           probability_schema.from({ probability: 1.0 })
-        end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-          expect(error.message).to include("(exclusive)")
-        end
+        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+
+        expect(error.message).to include("(exclusive)")
       end
     end
   end
@@ -204,14 +209,15 @@ RSpec.describe "Domain Validation Integration" do
     end
 
     it "formats multiple violations with clear structure" do
+      error = nil
       expect do
         error_schema.from({ age: 17, status: "unknown" })
-      end.to raise_error(Kumi::Errors::InputValidationError) do |error|
-        message = error.message
-        expect(message).to include("Domain violations:")
-        expect(message).to include("- Field :age")
-        expect(message).to include("- Field :status")
-      end
+      end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+
+      message = error.message
+      expect(message).to include("Domain violations:")
+      expect(message).to include("- Field :age")
+      expect(message).to include("- Field :status")
     end
   end
 

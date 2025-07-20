@@ -37,7 +37,7 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - `dsl_builder_context.rb` - Context for building DSL elements with input/value/predicate methods
 - `dsl_cascade_builder.rb` - Specialized builder for cascade expressions
 - `dsl_proxy.rb` - Proxy object for method delegation during parsing
-- `input_dsl_proxy.rb` - Proxy for input block DSL (only allows `key` declarations)
+- `input_dsl_proxy.rb` - Proxy for input block DSL supporting both `key` method and type-specific DSL methods
 - `input_proxy.rb` - Proxy for `input.field_name` references in expressions
 
 **Syntax Tree** (`lib/kumi/syntax/`):
@@ -76,6 +76,15 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - Provides `fetch(key)` for individual value retrieval with caching
 - Provides `slice(*keys)` for batch evaluation
 - Provides `explain(key)` for detailed execution tracing
+
+**Input Validation System** (`lib/kumi/input/` and `lib/kumi/domain/`):
+- `input/validator.rb` - Main validation coordinator for type and domain checking
+- `input/type_matcher.rb` - Type validation logic for primitive and complex types
+- `input/violation_creator.rb` - Creates standardized violation objects with detailed messages
+- `domain/validator.rb` - Domain constraint validation (ranges, arrays, procs)
+- `domain/range_analyzer.rb` - Range domain analysis and validation
+- `domain/enum_analyzer.rb` - Enumeration domain analysis and validation
+- `domain/violation_formatter.rb` - Formats domain violation error messages
 
 ### Key Patterns
 
@@ -170,29 +179,33 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 - **Helper Functions**: Use `array(:type)` and `hash(:key_type, :value_type)` for complex types
 
 ### Parser Components
-- `input_dsl_proxy.rb` - Restricts input block to only allow `key` declarations
+- `input_dsl_proxy.rb` - Supports both `key` method and type-specific DSL methods (`integer`, `float`, `string`, `boolean`, `array`, `hash`)
 - `input_proxy.rb` - Handles `input.field_name` references in expressions
 - `input_collector.rb` - Collects and validates field metadata consistency
 
 ### Domain Constraints
 - Can be declared: `key :age, type: :integer, domain: 18..65`
-- **Not yet implemented**: Domain validation logic is planned but not active
-- Field metadata includes domain information for future validation
+- **Now implemented**: Domain validation is active and enforced at runtime
+- Supports Range domains (`18..65`), Array domains (`%w[active inactive]`), and Proc domains for custom validation
+- Field metadata includes domain information and runtime validation occurs during `Schema.from()`
 
 ### Type Examples
 ```ruby
 input do
-  # Primitive types
+  # Legacy key method syntax (still supported)
   key :name, type: :string
-  key :age, type: :integer
-  key :score, type: :float
-  key :active, type: :boolean
-  
-  # Complex types using helper functions
-  key :tags, type: array(:string)
-  key :scores, type: array(:float)
+  key :age, type: :integer, domain: 18..65
   key :metadata, type: hash(:string, :any)
-  key :nested_data, type: hash(:string, array(:integer))
+  
+  # New type-specific DSL methods (recommended)
+  integer      :score                           # integer with any domain
+  float        :base_discount, domain: 0.0..1.0 # float with range constraint
+  string       :customer_tier, domain: %w[bronze silver gold platinum]
+  boolean      :is_active
+  array        :tags                            # array<any>
+  array        :scores, elem: { type: :float }  # array<float>
+  hash         :settings                        # hash<any:any>
+  hash         :config, key: { type: :string }, value: { type: :integer }
 end
 ```
 
@@ -224,3 +237,24 @@ end
 - **Backward Compatibility**: New features maintain compatibility with existing DSL and APIs
 - **Ruby Integration**: Leverages Ruby's metaprogramming while providing structured analysis
 - **Separation of Concerns**: Input metadata (types, domains) separated from business logic
+- **Class Decomposition**: Large classes split into focused, single-responsibility components following RuboCop guidelines
+- **Delegation Pattern**: Complex operations delegated to specialized analyzer and formatter classes
+
+## Code Organization Patterns
+
+### Modular Validation Architecture
+- **Coordinator Classes**: Main classes like `Input::Validator` and `Domain::Validator` coordinate but delegate complex logic
+- **Specialized Analyzers**: Domain-specific classes like `RangeAnalyzer` and `EnumAnalyzer` handle specific constraint types
+- **Formatter Classes**: Dedicated classes like `ViolationFormatter` handle message formatting with consistent patterns
+- **Creator Classes**: Classes like `ViolationCreator` centralize object creation with standardized structure
+
+### Testing Best Practices
+- **Spec Organization**: Tests organized by component with clear separation between unit and integration tests
+- **Error Variable Extraction**: RSpec patterns avoid multiline block chains by extracting error variables for assertion
+- **Shared Contexts**: Use `schema_generator` and other shared contexts for consistent test setup
+
+### RuboCop Compliance
+- **Method Length**: Keep methods under 10 lines through extraction and delegation
+- **Class Length**: Break classes over 100 lines into focused components
+- **Complexity Metrics**: Reduce cyclomatic and ABC complexity through single-responsibility design
+- **Style Consistency**: Follow Ruby style guidelines for readability and maintainability

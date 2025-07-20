@@ -24,8 +24,8 @@ RSpec.describe Kumi::Errors::InputValidationError do
       end
 
       it "categorizes violation correctly" do
-        expect(error.has_type_violations?).to be true
-        expect(error.has_domain_violations?).to be false
+        expect(error.type_violations?).to be true
+        expect(error.domain_violations?).to be false
         expect(error.type_violations.size).to eq(1)
         expect(error.domain_violations.size).to eq(0)
       end
@@ -49,8 +49,8 @@ RSpec.describe Kumi::Errors::InputValidationError do
       let(:error) { described_class.new([violation]) }
 
       it "categorizes violation correctly" do
-        expect(error.has_type_violations?).to be false
-        expect(error.has_domain_violations?).to be true
+        expect(error.type_violations?).to be false
+        expect(error.domain_violations?).to be true
         expect(error.type_violations.size).to eq(0)
         expect(error.domain_violations.size).to eq(1)
       end
@@ -92,8 +92,8 @@ RSpec.describe Kumi::Errors::InputValidationError do
       end
 
       it "categorizes violations correctly" do
-        expect(error.has_type_violations?).to be true
-        expect(error.has_domain_violations?).to be false
+        expect(error.type_violations?).to be true
+        expect(error.domain_violations?).to be false
         expect(error.type_violations.size).to eq(2)
         expect(error.domain_violations.size).to eq(0)
       end
@@ -130,8 +130,8 @@ RSpec.describe Kumi::Errors::InputValidationError do
       let(:error) { described_class.new(violations) }
 
       it "categorizes violations correctly" do
-        expect(error.has_type_violations?).to be false
-        expect(error.has_domain_violations?).to be true
+        expect(error.type_violations?).to be false
+        expect(error.domain_violations?).to be true
         expect(error.type_violations.size).to eq(0)
         expect(error.domain_violations.size).to eq(2)
       end
@@ -169,8 +169,8 @@ RSpec.describe Kumi::Errors::InputValidationError do
       let(:error) { described_class.new(violations) }
 
       it "categorizes violations correctly" do
-        expect(error.has_type_violations?).to be true
-        expect(error.has_domain_violations?).to be true
+        expect(error.type_violations?).to be true
+        expect(error.domain_violations?).to be true
         expect(error.type_violations.size).to eq(1)
         expect(error.domain_violations.size).to eq(1)
       end

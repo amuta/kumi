@@ -246,9 +246,156 @@ RSpec.describe "Input Block Feature" do
             key :unknown, type: :invalid_type
           end
 
-          predicate :always_true, true, :==, true
+          predicate :always_true, true, :==, true, :==, true
         end
       end.to raise_error(Kumi::Errors::SyntaxError)
+    end
+  end
+
+  describe "type-specific DSL methods" do
+    it "supports integer method" do
+      schema = create_schema do
+        input do
+          integer :score
+          integer :age, domain: 0..120
+        end
+
+        predicate :passing, input.score, :>=, 60
+      end
+
+      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:integer)
+      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:input_meta][:age][:domain]).to eq(0..120)
+    end
+
+    it "supports float method" do
+      schema = create_schema do
+        input do
+          float :base_discount
+          float :temperature, domain: -50.0..50.0
+        end
+
+        predicate :has_discount, input.base_discount, :>, 0.0
+      end
+
+      expect(schema.analysis.state[:input_meta][:base_discount][:type]).to eq(:float)
+      expect(schema.analysis.state[:input_meta][:temperature][:type]).to eq(:float)
+      expect(schema.analysis.state[:input_meta][:temperature][:domain]).to eq(-50.0..50.0)
+    end
+
+    it "supports string method" do
+      schema = create_schema do
+        input do
+          string :customer_tier
+          string :name, domain: %w[admin user guest]
+        end
+
+        predicate :is_premium, input.customer_tier, :==, "premium"
+      end
+
+      expect(schema.analysis.state[:input_meta][:customer_tier][:type]).to eq(:string)
+      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
+      expect(schema.analysis.state[:input_meta][:name][:domain]).to eq(%w[admin user guest])
+    end
+
+    it "supports boolean method" do
+      schema = create_schema do
+        input do
+          boolean :active
+          boolean :enabled, domain: [true, false]
+        end
+
+        predicate :is_active, input.active, :==, true
+      end
+
+      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(:boolean)
+    end
+
+    it "supports array method with default any type" do
+      schema = create_schema do
+        input do
+          array :discounts, domain: nil
+        end
+
+        predicate :has_discounts, fn(:size, input.discounts), :>, 0
+      end
+
+      expected_type = { array: :any }
+      expect(schema.analysis.state[:input_meta][:discounts][:type]).to eq(expected_type)
+    end
+
+    it "supports array method with element type specification" do
+      schema = create_schema do
+        input do
+          array :scores, elem: { type: :float }
+          array :tags, elem: { type: :string }
+        end
+
+        predicate :has_scores, fn(:size, input.scores), :>, 0
+      end
+
+      expect(schema.analysis.state[:input_meta][:scores][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:input_meta][:tags][:type]).to eq({ array: :string })
+    end
+
+    it "supports hash method with default any:any type" do
+      schema = create_schema do
+        input do
+          hash :product_to_discount
+        end
+
+        predicate :always_true, true, :==, true
+      end
+
+      expected_type = { hash: %i[any any] }
+      expect(schema.analysis.state[:input_meta][:product_to_discount][:type]).to eq(expected_type)
+    end
+
+    it "supports hash method with key and value type specification" do
+      schema = create_schema do
+        input do
+          hash :metadata, key: { type: :string }, val: { type: :any }
+          hash :scores, key: { type: :string }, val: { type: :float }
+        end
+
+        predicate :always_true, true, :==, true
+      end
+
+      expect(schema.analysis.state[:input_meta][:metadata][:type]).to eq({ hash: %i[string any] })
+      expect(schema.analysis.state[:input_meta][:scores][:type]).to eq({ hash: %i[string float] })
+    end
+
+    it "maintains backward compatibility with key method" do
+      schema = create_schema do
+        input do
+          key :old_style, type: :integer
+          integer :new_style
+        end
+
+        predicate :both_work, fn(:add, input.old_style, input.new_style), :>, 0
+      end
+
+      expect(schema.analysis.state[:input_meta][:old_style][:type]).to eq(:integer)
+      expect(schema.analysis.state[:input_meta][:new_style][:type]).to eq(:integer)
+    end
+
+    it "maintains backward compatibility with array and hash helper functions" do
+      schema = create_schema do
+        input do
+          key :old_array, type: array(:float)
+          key :old_hash, type: hash(:string, :integer)
+          array :new_array, elem: { type: :float }
+          hash :new_hash, key: { type: :string }, val: { type: :integer }
+        end
+
+        predicate :arrays_equal, fn(:size, input.old_array), :==, fn(:size, input.new_array)
+      end
+
+      expect(schema.analysis.state[:input_meta][:old_array][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:input_meta][:old_hash][:type]).to eq({ hash: %i[string integer] })
+      expect(schema.analysis.state[:input_meta][:new_array][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:input_meta][:new_hash][:type]).to eq({ hash: %i[string integer] })
     end
   end
 

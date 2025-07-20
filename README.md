@@ -1,6 +1,6 @@
 # Kumi: A Declarative Business Logic Compiler
 
-Kumi provides a DSL for defining, validating, and executing complex business logic. It parses declarative rules into an Abstract Syntax Tree (AST), runs a series of analysis passes, and "compiles" the result into an executable (procs) dependency graph.
+Kumi provides a DSL for defining, validating, and executing complex business logic. It parses declarative rules into an Abstract Syntax Tree (AST), runs a series of analysis passes, and builds an executable dependency graph (of procs).
 
 This approach isolates business logic from application code, allowing it to be managed and validated as a self-contained unit.
 
@@ -105,6 +105,20 @@ lets you catch mistakes early. Common failure scenarios include:
     key :rate, type: :integer
   end
   # => error: "Field :rate expected integer, got \"high\" of type string"
+  ```
+- **Conflicting input declarations**
+  ```ruby
+  input do
+    key :score, type: :integer
+    key :score, type: :float
+  end
+  # => error: "conflicting type declarations for `score`: integer vs float"
+  ```
+- **Type errors in expressions**
+  ```ruby
+  value :average, fn(:divide, input.total, input.count)
+  # => error: "argument 1 of `fn(:divide)` expects int | float, got \"foo\" of type string"
+  ```
 
 Schemas are validated and loaded at class definition time, so you get immediate actionable feedback
 when something is amiss.
@@ -137,7 +151,7 @@ Kumi processes schemas in three stages:
 
 1.  **Parse:** The Ruby DSL is parsed into an **Abstract Syntax Tree (AST)**. The AST is a language-agnostic data structure representing the rules.
 2.  **Analyze:** A series of validation passes are executed on the AST. These passes perform dependency resolution, cycle detection, and type checking.
-3.  **Compile:** The validated AST is transformed into an executable object graph.
+3.  **Build:** The validated AST is transformed into an executable object graph (dependency procs).
 
 This decoupled pipeline allows the analysis and compilation logic to be reused for different input formats.
 
@@ -157,7 +171,8 @@ json_representation = Kumi::Export.to_json(DiscountCalculator.schema_definition)
 # Import the AST from JSON.
 imported_ast = Kumi::Export.from_json(json_representation)
 
-# The imported AST can be compiled and executed.
+```
+# The imported AST can be loaded and executed.
 runner = Kumi::Compiler.compile(imported_ast).runner
 runner.fetch(:final_discount, { score: 75, base_discount: 10.0, customer_tier: "premium" })
 # => 15.0
