@@ -72,8 +72,9 @@ module Kumi
 
       def create_hash_field(field_name, options)
         key_spec = options[:key]
-        val_spec = options[:val]
-        domain = options[:domain]
+        # support both :val and :value aliases for value specification
+        val_spec = options[:val] || options[:value]
+        domain   = options[:domain]
 
         key_type = extract_type(key_spec)
         val_type = extract_type(val_spec)

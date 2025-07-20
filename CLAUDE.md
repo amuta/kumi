@@ -92,26 +92,30 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 ```ruby
 schema do
   input do
-    key :field_name, type: :string
-    key :number_field, type: :integer, domain: 0..100
-    key :scores, type: array(:float)
-    key :metadata, type: hash(:string, :any)
+    # Recommended type-specific DSL methods
+    string  :field_name
+    integer :number_field, domain: 0..100
+    array   :scores, elem: { type: :float }
+    hash    :metadata, key: { type: :string }, val: { type: :any }
+
+    # Fields with no declared type
+    any     :misc_field
   end
-  
+
   trait :name, expression    # Boolean conditions
-  value :name, expression        # Computed values  
-  value :name do               # Conditional logic
+  value :name, expression    # Computed values
+  value :name do             # Conditional logic
     on condition, result
-    base default
+    base default_result
   end
 end
 ```
 
 **Input Block System**:
 - **Required**: All schemas must have an `input` block declaring expected fields
-- **Type Declarations**: Each field can specify type: `key :field, type: :string`
+- **Type Declarations**: Preferred via type-specific methods (e.g. `integer :field`, `string :name`, `any :field` for untyped fields)
 - **Complex Types**: Use helper functions: `array(:element_type)` and `hash(:key_type, :value_type)`
-- **Domain Constraints**: Fields can have domains: `key :age, type: :integer, domain: 18..65` (declared but not yet validated)
+- **Domain Constraints**: Fields can have domains: `integer :age, domain: 18..65` (declared but not yet validated)
 - **Field Access**: Use `input.field_name` to reference input fields in expressions
 - **Separation**: Input metadata (types, domains) is separate from business logic
 
@@ -172,19 +176,19 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 - Fields are accessed via `input.field_name` syntax (replaces deprecated `key(:field)`)
 
 ### Type System Integration
-- **Declared Types**: Explicit type declarations in input blocks (`key :field, type: :string`)
+- **Declared Types**: Explicit type declarations in input blocks (e.g. `integer :field`, `string :name`, `any :field`)
 - **Inferred Types**: Types automatically inferred from expression analysis
 - **Type Checking**: Validates compatibility between declared and inferred types
 - **Enhanced Errors**: Error messages show type provenance (declared vs inferred)
 - **Helper Functions**: Use `array(:type)` and `hash(:key_type, :value_type)` for complex types
 
 ### Parser Components
-- `input_dsl_proxy.rb` - Supports both `key` method and type-specific DSL methods (`integer`, `float`, `string`, `boolean`, `array`, `hash`)
+- `input_dsl_proxy.rb` - Supports type-specific DSL methods (`integer`, `float`, `string`, `boolean`, `array`, `hash`, `any`)
 - `input_proxy.rb` - Handles `input.field_name` references in expressions
 - `input_collector.rb` - Collects and validates field metadata consistency
 
 ### Domain Constraints
-- Can be declared: `key :age, type: :integer, domain: 18..65`
+- Can be declared: `integer :age, domain: 18..65`
 - **Now implemented**: Domain validation is active and enforced at runtime
 - Supports Range domains (`18..65`), Array domains (`%w[active inactive]`), and Proc domains for custom validation
 - Field metadata includes domain information and runtime validation occurs during `Schema.from()`
@@ -192,20 +196,13 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 ### Type Examples
 ```ruby
 input do
-  # Legacy key method syntax (still supported)
-  key :name, type: :string
-  key :age, type: :integer, domain: 18..65
-  key :metadata, type: hash(:string, :any)
-  
   # New type-specific DSL methods (recommended)
-  integer      :score                           # integer with any domain
-  float        :base_discount, domain: 0.0..1.0 # float with range constraint
-  string       :customer_tier, domain: %w[bronze silver gold platinum]
-  boolean      :is_active
-  array        :tags                            # array<any>
-  array        :scores, elem: { type: :float }  # array<float>
-  hash         :settings                        # hash<any:any>
-  hash         :config, key: { type: :string }, value: { type: :integer }
+  string       :name
+  integer      :age, domain: 18..65
+  hash         :metadata, key: { type: :string }, val: { type: :any }
+
+  # For untyped/any fields
+  any          :misc
 end
 ```
 
