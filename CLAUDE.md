@@ -34,7 +34,7 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 
 **Parser** (`lib/kumi/parser/`):
 - `dsl.rb` - Main DSL parser that converts Ruby block syntax into AST nodes
-- `dsl_builder_context.rb` - Context for building DSL elements with input/value/predicate methods
+- `dsl_builder_context.rb` - Context for building DSL elements with input/value/trait methods
 - `dsl_cascade_builder.rb` - Specialized builder for cascade expressions
 - `dsl_proxy.rb` - Proxy object for method delegation during parsing
 - `input_dsl_proxy.rb` - Proxy for input block DSL supporting both `key` method and type-specific DSL methods
@@ -98,7 +98,7 @@ schema do
     key :metadata, type: hash(:string, :any)
   end
   
-  predicate :name, expression    # Boolean conditions
+  trait :name, expression    # Boolean conditions
   value :name, expression        # Computed values  
   value :name do               # Conditional logic
     on condition, result

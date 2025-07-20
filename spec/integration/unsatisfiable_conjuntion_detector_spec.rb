@@ -11,9 +11,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_z, input.y, :>, input.z
-          predicate :z_gt_x, input.z, :>, input.x
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_z, input.y, :>, input.z
+          trait :z_gt_x, input.z, :>, input.x
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z), ref(:z_gt_x)])
         end
@@ -28,8 +28,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :y, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_x, input.y, :>, input.x
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_x, input.y, :>, input.x
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
         end
@@ -46,10 +46,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :d, type: :integer
           end
 
-          predicate :a_gt_b, input.a, :>, input.b
-          predicate :b_gt_c, input.b, :>, input.c
-          predicate :c_gt_d, input.c, :>, input.d
-          predicate :d_gt_a, input.d, :>, input.a
+          trait :a_gt_b, input.a, :>, input.b
+          trait :b_gt_c, input.b, :>, input.c
+          trait :c_gt_d, input.c, :>, input.d
+          trait :d_gt_a, input.d, :>, input.a
 
           value :impossible, fn(:all?, [ref(:a_gt_b), ref(:b_gt_c), ref(:c_gt_d), ref(:d_gt_a)])
         end
@@ -67,9 +67,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :z_lt_y, input.z, :<, input.y # equivalent to y > z
-          predicate :z_gt_x, input.z, :>, input.x
+          trait :x_gt_y, input.x, :>, input.y
+          trait :z_lt_y, input.z, :<, input.y # equivalent to y > z
+          trait :z_gt_x, input.z, :>, input.x
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:z_lt_y), ref(:z_gt_x)])
         end
@@ -84,8 +84,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :y, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_x, input.y, :>, input.x
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_x, input.y, :>, input.x
 
           value :contradiction, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
         end
@@ -93,8 +93,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
     end
   end
 
-  context "indirect cycles through predicates" do
-    it "detects cycle when predicates reference other predicates" do
+  context "indirect cycles through traits" do
+    it "detects cycle when traits reference other traits" do
       expect do
         Kumi.schema do
           input do
@@ -103,11 +103,11 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_z, input.y, :>, input.z
-          predicate :z_gt_x, input.z, :>, input.x
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_z, input.y, :>, input.z
+          trait :z_gt_x, input.z, :>, input.x
 
-          # Predicate that combines others
+          # Trait that combines others
           value :chain_xy_yz, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z)])
 
           value :impossible, fn(:all?, [ref(:chain_xy_yz), ref(:z_gt_x)])
@@ -124,8 +124,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          predicate :x_gt_10, input.x, :>, 10
-          predicate :x_lt_5, input.x, :<, 5
+          trait :x_gt_10, input.x, :>, 10
+          trait :x_lt_5, input.x, :<, 5
 
           value :impossible, fn(:all?, [ref(:x_gt_10), ref(:x_lt_5)])
         end
@@ -139,8 +139,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          predicate :five_gt_x, 5, :>, input.x
-          predicate :x_gt_10, input.x, :>, 10
+          trait :five_gt_x, 5, :>, input.x
+          trait :x_gt_10, input.x, :>, 10
 
           value :impossible, fn(:all?, [ref(:five_gt_x), ref(:x_gt_10)])
         end
@@ -158,8 +158,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_z, input.y, :>, input.z
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_z, input.y, :>, input.z
 
           value :valid_chain, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z)])
         end
@@ -173,8 +173,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          predicate :x_gt_10, input.x, :>, 10
-          predicate :x_lt_20, input.x, :<, 20
+          trait :x_gt_10, input.x, :>, 10
+          trait :x_lt_20, input.x, :<, 20
 
           value :valid_range, fn(:all?, [ref(:x_gt_10), ref(:x_lt_20)])
         end
@@ -191,8 +191,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :y, type: :integer
           end
 
-          predicate :a_gt_b, input.a, :>, input.b
-          predicate :x_gt_y, input.x, :>, input.y
+          trait :a_gt_b, input.a, :>, input.b
+          trait :x_gt_y, input.x, :>, input.y
 
           value :independent, fn(:all?, [ref(:a_gt_b), ref(:x_gt_y)])
         end
@@ -209,9 +209,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :w, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
-          predicate :y_gt_z, input.y, :>, input.z
-          predicate :w_gt_z, input.w, :>, input.z
+          trait :x_gt_y, input.x, :>, input.y
+          trait :y_gt_z, input.y, :>, input.z
+          trait :w_gt_z, input.w, :>, input.z
 
           value :partial_chain, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z), ref(:w_gt_z)])
         end
@@ -220,7 +220,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
   end
 
   context "complex scenarios" do
-    it "detects contradictions in deeply nested predicate references" do
+    it "detects contradictions in deeply nested trait references" do
       expect do
         Kumi.schema do
           input do
@@ -229,11 +229,11 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :c, type: :integer
           end
 
-          predicate :a_gt_b, input.a, :>, input.b
-          predicate :b_gt_c, input.b, :>, input.c
+          trait :a_gt_b, input.a, :>, input.b
+          trait :b_gt_c, input.b, :>, input.c
           value :chain_ab_bc, fn(:all?, [ref(:a_gt_b), ref(:b_gt_c)])
 
-          predicate :c_gt_a, input.c, :>, input.a
+          trait :c_gt_a, input.c, :>, input.a
           value :impossible_nested, fn(:all?, [ref(:chain_ab_bc), ref(:c_gt_a)])
         end
       end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
@@ -250,10 +250,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           end
 
           # Create a tree structure: w > x, w > y, x > z, y > z
-          predicate :w_gt_x, input.w, :>, input.x
-          predicate :w_gt_y, input.w, :>, input.y
-          predicate :x_gt_z, input.x, :>, input.z
-          predicate :y_gt_z, input.y, :>, input.z
+          trait :w_gt_x, input.w, :>, input.x
+          trait :w_gt_y, input.w, :>, input.y
+          trait :x_gt_z, input.x, :>, input.z
+          trait :y_gt_z, input.y, :>, input.z
 
           value :tree_structure, fn(:all?, [ref(:w_gt_x), ref(:w_gt_y), ref(:x_gt_z), ref(:y_gt_z)])
         end
@@ -269,8 +269,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :c, type: :integer
           end
 
-          predicate :a_eq_b, input.a, :==, input.b
-          predicate :b_eq_c, input.b, :==, input.c
+          trait :a_eq_b, input.a, :==, input.b
+          trait :b_eq_c, input.b, :==, input.c
           # Don't explicitly state a_eq_c, let it be derived
 
           value :all_equal, fn(:all?, [ref(:a_eq_b), ref(:b_eq_c)])
@@ -287,9 +287,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_eq_y, input.x, :==, input.y
-          predicate :y_eq_z, input.y, :==, input.z
-          predicate :x_gt_z, input.x, :>, input.z # Contradicts transitivity of equality
+          trait :x_eq_y, input.x, :==, input.y
+          trait :y_eq_z, input.y, :==, input.z
+          trait :x_gt_z, input.x, :>, input.z # Contradicts transitivity of equality
 
           value :mixed_contradiction, fn(:all?, [ref(:x_eq_y), ref(:y_eq_z), ref(:x_gt_z)])
         end
@@ -306,9 +306,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :score, type: :integer
           end
 
-          predicate :young, input.age, :<, 25
-          predicate :old, input.age, :>, 65
-          predicate :high_score, input.score, :>, 90
+          trait :young, input.age, :<, 25
+          trait :old, input.age, :>, 65
+          trait :high_score, input.score, :>, 90
 
           # This cascade condition should be impossible
           value :eligibility do
@@ -320,7 +320,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
       end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
-    it "detects contradictory predicates in complex cascade chains" do
+    it "detects contradictory traits in complex cascade chains" do
       expect do
         Kumi.schema do
           input do
@@ -328,10 +328,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :pressure, type: :integer
           end
 
-          predicate :hot, input.temperature, :>, 80
-          predicate :cold, input.temperature, :<, 20
-          predicate :high_pressure, input.pressure, :>, 100
-          predicate :low_pressure, input.pressure, :<, 50
+          trait :hot, input.temperature, :>, 80
+          trait :cold, input.temperature, :<, 20
+          trait :high_pressure, input.pressure, :>, 100
+          trait :low_pressure, input.pressure, :<, 50
 
           # Multiple impossible combinations
           value :system_state do
@@ -352,9 +352,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :experience_years, type: :integer
           end
 
-          predicate :child, input.user_age, :<, 16
-          predicate :adult, input.user_age, :>, 65
-          predicate :has_experience, input.experience_years, :>, 5
+          trait :child, input.user_age, :<, 16
+          trait :adult, input.user_age, :>, 65
+          trait :has_experience, input.experience_years, :>, 5
 
           # Impossible: same age variable cannot be both < 16 AND > 65
           value :profile_type do
@@ -374,9 +374,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :bonus, type: :integer
           end
 
-          predicate :good_score, input.score, :>=, 70
-          predicate :excellent_score, input.score, :>=, 90
-          predicate :has_bonus, input.bonus, :>, 0
+          trait :good_score, input.score, :>=, 70
+          trait :excellent_score, input.score, :>=, 90
+          trait :has_bonus, input.bonus, :>, 0
 
           value :grade do
             on :excellent_score, :has_bonus, "A+"
@@ -397,8 +397,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           end
 
           # Same expression with contradictory constraints
-          predicate :total_large, input.total, :>, 100
-          predicate :total_small, input.total, :<, 50
+          trait :total_large, input.total, :>, 100
+          trait :total_small, input.total, :<, 50
 
           value :analysis do
             on :total_large, :total_small, "impossible_total" # total > 100 AND total < 50
@@ -418,10 +418,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :credit_score, type: :integer
           end
 
-          predicate :minor, input.customer_age, :<, 18
-          predicate :high_balance, input.account_balance, :>, 10_000.0
-          predicate :excellent_credit, input.credit_score, :>, 800
-          predicate :poor_credit, input.credit_score, :<, 500
+          trait :minor, input.customer_age, :<, 18
+          trait :high_balance, input.account_balance, :>, 10_000.0
+          trait :excellent_credit, input.credit_score, :>, 800
+          trait :poor_credit, input.credit_score, :<, 500
 
           value :loan_eligibility do
             # Valid combinations
@@ -452,18 +452,18 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :employment_status, type: :float
           end
 
-          # Credit score predicates
-          predicate :excellent_credit, input.credit_score, :>, 800
-          predicate :poor_credit, input.credit_score, :<, 500
-          predicate :good_credit, input.credit_score, :>, 700
+          # Credit score traits
+          trait :excellent_credit, input.credit_score, :>, 800
+          trait :poor_credit, input.credit_score, :<, 500
+          trait :good_credit, input.credit_score, :>, 700
 
-          # Income predicates
-          predicate :high_income, input.annual_income, :>, 100_000.0
-          predicate :low_income, input.annual_income, :<, 30_000.0
+          # Income traits
+          trait :high_income, input.annual_income, :>, 100_000.0
+          trait :low_income, input.annual_income, :<, 30_000.0
 
-          # Employment predicates
-          predicate :employed, input.employment_status, :==, "employed"
-          predicate :unemployed, input.employment_status, :==, "unemployed"
+          # Employment traits
+          trait :employed, input.employment_status, :==, "employed"
+          trait :unemployed, input.employment_status, :==, "unemployed"
 
           # Loan approval logic with impossible combinations
           value :loan_approval do
@@ -493,17 +493,17 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :device_trust_score, type: :integer
           end
 
-          # Transaction amount predicates
-          predicate :micro_transaction, input.transaction_amount, :<, 10.0
-          predicate :large_transaction, input.transaction_amount, :>, 1000.0
+          # Transaction amount traits
+          trait :micro_transaction, input.transaction_amount, :<, 10.0
+          trait :large_transaction, input.transaction_amount, :>, 1000.0
 
-          # Account age predicates
-          predicate :new_account, input.user_account_age_days, :<, 30
-          predicate :established_account, input.user_account_age_days, :>, 365
+          # Account age traits
+          trait :new_account, input.user_account_age_days, :<, 30
+          trait :established_account, input.user_account_age_days, :>, 365
 
-          # Device trust predicates
-          predicate :trusted_device, input.device_trust_score, :>, 80
-          predicate :suspicious_device, input.device_trust_score, :<, 20
+          # Device trust traits
+          trait :trusted_device, input.device_trust_score, :>, 80
+          trait :suspicious_device, input.device_trust_score, :<, 20
 
           # Fraud risk assessment with logical contradictions
           value :risk_level do
@@ -536,18 +536,18 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :loyalty_points, type: :integer
           end
 
-          # Customer tier predicates
-          predicate :vip_customer, input.customer_tier, :==, "VIP"
-          predicate :premium_customer, input.customer_tier, :==, "Premium"
-          predicate :standard_customer, input.customer_tier, :==, "Standard"
+          # Customer tier traits
+          trait :vip_customer, input.customer_tier, :==, "VIP"
+          trait :premium_customer, input.customer_tier, :==, "Premium"
+          trait :standard_customer, input.customer_tier, :==, "Standard"
 
-          # Purchase predicates
-          predicate :large_purchase, input.purchase_amount, :>, 500.0
-          predicate :small_purchase, input.purchase_amount, :<, 50.0
+          # Purchase traits
+          trait :large_purchase, input.purchase_amount, :>, 500.0
+          trait :small_purchase, input.purchase_amount, :<, 50.0
 
-          # Loyalty predicates
-          predicate :high_loyalty, input.loyalty_points, :>, 1000
-          predicate :low_loyalty, input.loyalty_points, :<, 100
+          # Loyalty traits
+          trait :high_loyalty, input.loyalty_points, :>, 1000
+          trait :low_loyalty, input.loyalty_points, :<, 100
 
           # Discount calculation - all combinations are logically possible
           value :discount_percentage do
@@ -573,8 +573,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :age, type: :integer
           end
 
-          predicate :child, input.age, :<, 16
-          predicate :adult, input.age, :>=, 18
+          trait :child, input.age, :<, 16
+          trait :adult, input.age, :>=, 18
 
           value :category do
             on :child, :adult, "impossible" # age < 16 AND age >= 18
@@ -593,8 +593,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :score, type: :integer
           end
 
-          predicate :low_score, input.score, :<=, 50
-          predicate :high_score, input.score, :>, 80
+          trait :low_score, input.score, :<=, 50
+          trait :high_score, input.score, :>, 80
 
           value :grade do
             on :low_score, :high_score, "impossible" # score <= 50 AND score > 80
@@ -612,8 +612,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :value, type: :integer
           end
 
-          predicate :below_threshold, input.value, :<, 100
-          predicate :at_or_above_threshold, input.value, :>=, 100
+          trait :below_threshold, input.value, :<, 100
+          trait :at_or_above_threshold, input.value, :>=, 100
 
           value :status do
             on :below_threshold, :at_or_above_threshold, "impossible" # value < 100 AND value >= 100
@@ -631,8 +631,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :temperature, type: :integer
           end
 
-          predicate :not_too_cold, input.temperature, :>=, 10
-          predicate :not_too_hot, input.temperature, :<=, 30
+          trait :not_too_cold, input.temperature, :>=, 10
+          trait :not_too_hot, input.temperature, :<=, 30
 
           value :comfort do
             on :not_too_cold, :not_too_hot, "comfortable"  # temp >= 10 AND temp <= 30 (valid range [10,30])
@@ -650,8 +650,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :limit, type: :integer
           end
 
-          predicate :at_most_100, input.limit, :<=, 100
-          predicate :at_least_100, input.limit, :>=, 100
+          trait :at_most_100, input.limit, :<=, 100
+          trait :at_least_100, input.limit, :>=, 100
 
           value :boundary_check do
             on :at_most_100, :at_least_100, "exactly_100"  # limit <= 100 AND limit >= 100 (limit = 100)
@@ -669,8 +669,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :number, type: :integer
           end
 
-          predicate :strictly_less, input.number, :<, 50
-          predicate :greater_or_equal, input.number, :>=, 50
+          trait :strictly_less, input.number, :<, 50
+          trait :greater_or_equal, input.number, :>=, 50
 
           value :mixed_check do
             on :strictly_less, :greater_or_equal, "impossible" # number < 50 AND number >= 50
@@ -691,9 +691,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :z, type: :integer
           end
 
-          predicate :x_gte_y, input.x, :>=, input.y
-          predicate :y_gte_z, input.y, :>=, input.z
-          predicate :z_gte_x, input.z, :>=, input.x
+          trait :x_gte_y, input.x, :>=, input.y
+          trait :y_gte_z, input.y, :>=, input.z
+          trait :z_gte_x, input.z, :>=, input.x
 
           value :non_strict_cycle, fn(:all?, [ref(:x_gte_y), ref(:y_gte_z), ref(:z_gte_x)])
         end
@@ -720,7 +720,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :y, type: :integer
           end
 
-          predicate :x_gt_y, input.x, :>, input.y
+          trait :x_gt_y, input.x, :>, input.y
           value :single, ref(:x_gt_y)
         end
       end.not_to raise_error
@@ -734,8 +734,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :y, type: :integer
           end
 
-          predicate :x_eq_y, input.x, :==, input.y
-          predicate :x_gt_y, input.x, :>, input.y
+          trait :x_eq_y, input.x, :==, input.y
+          trait :x_gt_y, input.x, :>, input.y
 
           value :contradiction_with_equality, fn(:all?, [ref(:x_eq_y), ref(:x_gt_y)])
         end

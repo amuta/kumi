@@ -43,13 +43,13 @@ module Kumi
         @attributes << Attribute.new(name, expr, loc: loc)
       end
 
-      def predicate(name, lhs, operator, *rhs)
+      def trait(name, lhs, operator, *rhs)
         unless rhs.size.positive?
-          raise_error("predicate '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
+          raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
                       current_location)
         end
         loc = current_location
-        validate_name(name, :predicate, loc)
+        validate_name(name, :trait, loc)
         raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
 
         raise_error("unsupported operator `#{operator}`", loc) unless FunctionRegistry.operator?(operator)

@@ -4,7 +4,7 @@ module Kumi
   module Parser
     class DslProxy
       DSL_METHODS = %i[
-        value predicate input
+        value trait input
         ref literal fn
       ].freeze
 

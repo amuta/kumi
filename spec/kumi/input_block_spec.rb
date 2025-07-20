@@ -13,7 +13,7 @@ RSpec.describe "Input Block Feature" do
           key :name, type: Kumi::Types::STRING
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
       end
 
       expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
@@ -27,7 +27,7 @@ RSpec.describe "Input Block Feature" do
           key :score, type: Kumi::Types::INT, domain: 0..100
         end
 
-        predicate :passing, input.score, :>=, 60
+        trait :passing, input.score, :>=, 60
       end
 
       result = schema.compiled.evaluate({ score: 75 })
@@ -65,10 +65,10 @@ RSpec.describe "Input Block Feature" do
       expect do
         create_schema do
           input do
-            predicate :invalid, true # Not allowed in input block
+            trait :invalid, true # Not allowed in input block
           end
         end
-      end.to raise_error(Kumi::Errors::SyntaxError, /Unknown method 'predicate' in input block/)
+      end.to raise_error(Kumi::Errors::SyntaxError, /Unknown method 'trait' in input block/)
     end
   end
 
@@ -111,7 +111,7 @@ RSpec.describe "Input Block Feature" do
           key :user_id, type: Kumi::Types::INT
         end
 
-        predicate :valid_user, input.user_id, :>, 0
+        trait :valid_user, input.user_id, :>, 0
       end
 
       data = { user_id: 42, extra_data: "ignored" }
@@ -131,8 +131,8 @@ RSpec.describe "Input Block Feature" do
           key :threshold, type: Kumi::Types::FLOAT
         end
 
-        predicate :hot, input.temperature, :>, input.threshold
-        predicate :cold, input.temperature, :<, input.threshold
+        trait :hot, input.temperature, :>, input.threshold
+        trait :cold, input.temperature, :<, input.threshold
       end
 
       # Test hot condition
@@ -155,7 +155,7 @@ RSpec.describe "Input Block Feature" do
           key :age, type: :integer, domain: 0..120
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
       end
 
       expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
@@ -167,7 +167,7 @@ RSpec.describe "Input Block Feature" do
           key :name, type: :string
         end
 
-        predicate :has_name, input.name, :!=, ""
+        trait :has_name, input.name, :!=, ""
       end
 
       expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
@@ -179,7 +179,7 @@ RSpec.describe "Input Block Feature" do
           key :score, type: :float, domain: 0.0..100.0
         end
 
-        predicate :passing, input.score, :>=, 60.0
+        trait :passing, input.score, :>=, 60.0
       end
 
       expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:float)
@@ -192,7 +192,7 @@ RSpec.describe "Input Block Feature" do
           key :enabled, type: :boolean
         end
 
-        predicate :is_active, input.active, :==, true
+        trait :is_active, input.active, :==, true
       end
 
       expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
@@ -205,7 +205,7 @@ RSpec.describe "Input Block Feature" do
           key :items, type: array(:any)
         end
 
-        predicate :has_items, fn(:size, input.items), :>, 0
+        trait :has_items, fn(:size, input.items), :>, 0
       end
 
       expected_type = { array: :any }
@@ -232,7 +232,7 @@ RSpec.describe "Input Block Feature" do
           key :name, type: Kumi::Types::STRING
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
       end
 
       expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
@@ -246,7 +246,7 @@ RSpec.describe "Input Block Feature" do
             key :unknown, type: :invalid_type
           end
 
-          predicate :always_true, true, :==, true, :==, true
+          trait :always_true, true, :==, true, :==, true
         end
       end.to raise_error(Kumi::Errors::SyntaxError)
     end
@@ -260,7 +260,7 @@ RSpec.describe "Input Block Feature" do
           integer :age, domain: 0..120
         end
 
-        predicate :passing, input.score, :>=, 60
+        trait :passing, input.score, :>=, 60
       end
 
       expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:integer)
@@ -275,7 +275,7 @@ RSpec.describe "Input Block Feature" do
           float :temperature, domain: -50.0..50.0
         end
 
-        predicate :has_discount, input.base_discount, :>, 0.0
+        trait :has_discount, input.base_discount, :>, 0.0
       end
 
       expect(schema.analysis.state[:input_meta][:base_discount][:type]).to eq(:float)
@@ -290,7 +290,7 @@ RSpec.describe "Input Block Feature" do
           string :name, domain: %w[admin user guest]
         end
 
-        predicate :is_premium, input.customer_tier, :==, "premium"
+        trait :is_premium, input.customer_tier, :==, "premium"
       end
 
       expect(schema.analysis.state[:input_meta][:customer_tier][:type]).to eq(:string)
@@ -305,7 +305,7 @@ RSpec.describe "Input Block Feature" do
           boolean :enabled, domain: [true, false]
         end
 
-        predicate :is_active, input.active, :==, true
+        trait :is_active, input.active, :==, true
       end
 
       expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
@@ -318,7 +318,7 @@ RSpec.describe "Input Block Feature" do
           array :discounts, domain: nil
         end
 
-        predicate :has_discounts, fn(:size, input.discounts), :>, 0
+        trait :has_discounts, fn(:size, input.discounts), :>, 0
       end
 
       expected_type = { array: :any }
@@ -332,7 +332,7 @@ RSpec.describe "Input Block Feature" do
           array :tags, elem: { type: :string }
         end
 
-        predicate :has_scores, fn(:size, input.scores), :>, 0
+        trait :has_scores, fn(:size, input.scores), :>, 0
       end
 
       expect(schema.analysis.state[:input_meta][:scores][:type]).to eq({ array: :float })
@@ -345,7 +345,7 @@ RSpec.describe "Input Block Feature" do
           hash :product_to_discount
         end
 
-        predicate :always_true, true, :==, true
+        trait :always_true, true, :==, true
       end
 
       expected_type = { hash: %i[any any] }
@@ -359,7 +359,7 @@ RSpec.describe "Input Block Feature" do
           hash :scores, key: { type: :string }, val: { type: :float }
         end
 
-        predicate :always_true, true, :==, true
+        trait :always_true, true, :==, true
       end
 
       expect(schema.analysis.state[:input_meta][:metadata][:type]).to eq({ hash: %i[string any] })
@@ -373,7 +373,7 @@ RSpec.describe "Input Block Feature" do
           integer :new_style
         end
 
-        predicate :both_work, fn(:add, input.old_style, input.new_style), :>, 0
+        trait :both_work, fn(:add, input.old_style, input.new_style), :>, 0
       end
 
       expect(schema.analysis.state[:input_meta][:old_style][:type]).to eq(:integer)
@@ -389,7 +389,7 @@ RSpec.describe "Input Block Feature" do
           hash :new_hash, key: { type: :string }, val: { type: :integer }
         end
 
-        predicate :arrays_equal, fn(:size, input.old_array), :==, fn(:size, input.new_array)
+        trait :arrays_equal, fn(:size, input.old_array), :==, fn(:size, input.new_array)
       end
 
       expect(schema.analysis.state[:input_meta][:old_array][:type]).to eq({ array: :float })
@@ -406,7 +406,7 @@ RSpec.describe "Input Block Feature" do
           key :age, type: :integer, domain: 0..120
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
       end
 
       expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
@@ -416,7 +416,7 @@ RSpec.describe "Input Block Feature" do
     it "raises when input references to undeclared field" do
       expect do
         create_schema do
-          predicate :adult, input.age, :>=, 18 # No input block defined
+          trait :adult, input.age, :>=, 18 # No input block defined
         end
       end.to raise_error(Kumi::Errors::SemanticError, /undeclared input `age`/)
     end
@@ -435,7 +435,7 @@ RSpec.describe "Input Block Feature" do
     it "key() method no longer exists" do
       expect do
         create_schema do
-          predicate :adult, key(:age), :>=, 18
+          trait :adult, key(:age), :>=, 18
         end
       end.to raise_error(NoMethodError, /undefined method `key'/)
     end

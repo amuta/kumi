@@ -9,11 +9,11 @@ RSpec.describe "Kumi Default Functions" do
         end
 
         value :test_value do
-          on :test_predicate, "result"
+          on :test_trait, "result"
           base "default"
         end
 
-        predicate :test_predicate, input.number, :between?, 6, 8
+        trait :test_trait, input.number, :between?, 6, 8
       end
 
       analyzer = Kumi::Analyzer.analyze!(syntax_tree)

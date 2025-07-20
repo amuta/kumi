@@ -2,11 +2,11 @@
 
 module SchemaGenerator
   # Generates a Kumi schema with:
-  # - `num_preds` simple predicates
+  # - `num_traits` simple traits
   # - `num_vals` value rules, each with `cascade_size` on-clauses
   # Fields are drawn from a fixed pool so you only need to supply those once at evaluation time.
   def generate_schema(
-    num_preds:     500,
+    num_traits:     500,
     num_vals:      500,
     cascade_size:  4,
     fields:        %i[age balance purchases]
@@ -18,10 +18,10 @@ module SchemaGenerator
         end
       end
 
-      # simple predicates
-      num_preds.times do |i|
-        predicate(
-          :"pred_#{i}",
+      # simple traits
+      num_traits.times do |i|
+        trait(
+          :"trait_#{i}",
           input.send(fields[i % fields.size]),
           :>=,
           i % 100 # threshold cycles 0–99
@@ -32,10 +32,10 @@ module SchemaGenerator
       num_vals.times do |j|
         value :"val_#{j}" do
           cascade_size.times do |k|
-            # pick a predicate to branch on
-            pred = :"pred_#{(j + k) % num_preds}"
+            # pick a trait to branch on
+            trait = :"trait_#{(j + k) % num_traits}"
             # result is just a string unique per branch
-            on pred, "res_#{j}_#{k}"
+            on trait, "res_#{j}_#{k}"
           end
           base "default_#{j}"
         end

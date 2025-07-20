@@ -50,7 +50,7 @@ RSpec.describe "Kumi Compiler Integration" do
 
     let(:schema) do
       # This schema demonstrates complex interdependencies between different types of definitions.
-      # Notice how predicates build on other predicates, attributes reference multiple predicates,
+      # Notice how traits build on other traits, attributes reference multiple traits,
       # and functions consume both raw fields and computed attributes.
 
       Kumi::Parser::Dsl.build_syntax_tree do
@@ -67,37 +67,37 @@ RSpec.describe "Kumi Compiler Integration" do
           key :should_error, type: :boolean # Kumi::Types::BOOL
         end
 
-        # === BASE predicateS ===
-        # These predicates examine raw customer data to establish fundamental classifications
-        # predicates use the syntax: predicate name, lhs, operator, rhs
+        # === BASE TRAITS ===
+        # These traits examine raw customer data to establish fundamental classifications
+        # traits use the syntax: trait name, lhs, operator, rhs
 
-        predicate :adult, input.age, :>=, 18
-        predicate :senior, input.age, :>=, 65
-        predicate :high_balance, input.account_balance, :>=, 10_000
-        predicate :premium_account, input.account_type, :==, "premium"
-        predicate :recent_activity, input.last_purchase_days_ago, :<=, 30
-        predicate :frequent_buyer, input.total_purchases, :>=, 50
-        predicate :long_term_customer, input.years_customer, :>=, 5
-        predicate :has_referrals, input.referral_count, :>, 0
-        predicate :low_support_usage, input.support_tickets, :<=, 3
+        trait :adult, input.age, :>=, 18
+        trait :senior, input.age, :>=, 65
+        trait :high_balance, input.account_balance, :>=, 10_000
+        trait :premium_account, input.account_type, :==, "premium"
+        trait :recent_activity, input.last_purchase_days_ago, :<=, 30
+        trait :frequent_buyer, input.total_purchases, :>=, 50
+        trait :long_term_customer, input.years_customer, :>=, 5
+        trait :has_referrals, input.referral_count, :>, 0
+        trait :low_support_usage, input.support_tickets, :<=, 3
 
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
-        # # These functions encapsulate multi-condition logic, making predicates more readable
+        # # These functions encapsulate multi-condition logic, making traits more readable
 
         value :check_engagement, fn(:all?, [recent_activity, frequent_buyer])
         value :check_value, fn(:all?, [high_balance, long_term_customer])
         value :check_low_maintenance, fn(:all?, [low_support_usage, has_referrals])
 
-        # # === DERIVED predicateS ===
-        # # These predicates reference helper functions, showing clean predicate definitions
+        # # === DERIVED TRAITS ===
+        # # These traits reference helper functions, showing clean trait definitions
         # # that depend on complex multi-condition logic
 
-        predicate :engaged_customer, check_engagement, :==, true
-        predicate :valuable_customer, check_value, :==, true
-        predicate :low_maintenance, check_low_maintenance, :==, true
+        trait :engaged_customer, check_engagement, :==, true
+        trait :valuable_customer, check_value, :==, true
+        trait :low_maintenance, check_low_maintenance, :==, true
 
         # === COMPLEX ATTRIBUTES WITH CASCADING LOGIC ===
-        # These attributes demonstrate cascade expressions that reference multiple predicates
+        # These attributes demonstrate cascade expressions that reference multiple traits
         # The compiler must handle the binding lookups correctly when the cascade evaluates
 
         value :customer_tier do
@@ -119,7 +119,7 @@ RSpec.describe "Kumi Compiler Integration" do
         value :user_error, fn(:error!, input.should_error)
 
         # === ATTRIBUTES THAT COMBINE MULTIPLE DATA SOURCES ===
-        # These show how attributes can reference both raw fields and computed predicates
+        # These show how attributes can reference both raw fields and computed traits
 
         value :welcome_message, fn(:concat, [
                                      "Hello ",
@@ -161,12 +161,12 @@ RSpec.describe "Kumi Compiler Integration" do
     end
 
     describe "full schema evaluation" do
-      it "correctly evaluates all predicates with complex dependencies" do
-        # Test that all the predicate dependencies resolve correctly
+      it "correctly evaluates all traits with complex dependencies" do
+        # Test that all the trait dependencies resolve correctly
         # This exercises the binding resolution logic extensively
 
         result = executable_schema.evaluate(customer_data)
-        result[:predicates]
+        result[:traits]
         result[:attributes]
 
         expect(result[:adult]).to be true
@@ -185,15 +185,15 @@ RSpec.describe "Kumi Compiler Integration" do
         expect(result[:check_low_maintenance]).to be true # low_support_usage AND has_referrals
 
         # Verify derived values that reference helper functions
-        # These test the binding resolution logic for predicates
-        # that themselves reference other predicates
+        # These test the binding resolution logic for traits
+        # that themselves reference other traits
         expect(result[:engaged_customer]).to be true # check_engagement() == true
         expect(result[:valuable_customer]).to be true # check_value() == true
         expect(result[:low_maintenance]).to be true # check_low_maintenance() == true
       end
 
-      it "correctly evaluates cascade attributes with predicate references" do
-        # Test that cascade expressions properly resolve predicate bindings
+      it "correctly evaluates cascade attributes with trait references" do
+        # Test that cascade expressions properly resolve trait bindings
         # This is a complex test of the CascadeExpression compilation logic
 
         result = executable_schema.evaluate(customer_data)
@@ -206,28 +206,28 @@ RSpec.describe "Kumi Compiler Integration" do
       end
 
       it "correctly evaluates attributes that combine multiple reference types" do
-        # Test attributes that reference both fields and computed predicates
+        # Test attributes that reference both fields and computed traits
         # This exercises the mixed binding resolution in complex expressions
 
         result = executable_schema.evaluate(customer_data)
         result[:attributes]
 
-        # Test string concatenation with field and predicate references
+        # Test string concatenation with field and trait references
         expected_message = "Hello Alice Johnson, you are a Gold customer!"
         expect(result[:welcome_message]).to eq(expected_message)
 
-        # Test mathematical computation with field and predicate references
+        # Test mathematical computation with field and trait references
         # 127 purchases * 1.5 (because engaged_customer is true) = 190.5
         expect(result[:engagement_score]).to eq(190.5)
       end
 
       it "correctly evaluates functions that consume computed values" do
-        # Test that functions can reference attributes and predicates computed earlier
+        # Test that functions can reference attributes and traits computed earlier
         # This demonstrates the full power of cross-referencing in the system
 
         result = executable_schema.evaluate(customer_data)
 
-        # Test helper functions that combine multiple predicate conditions
+        # Test helper functions that combine multiple trait conditions
         expect(result[:check_engagement]).to be true
         expect(result[:check_value]).to be true
         expect(result[:check_low_maintenance]).to be true
@@ -238,7 +238,7 @@ RSpec.describe "Kumi Compiler Integration" do
         expect(offers).to include("VIP Events")         # Champion segment
         expect(offers).to include("Concierge Service")  # Gold tier bonus
 
-        # Test loyalty bonus calculation using years, computed predicate, and computed attribute
+        # Test loyalty bonus calculation using years, computed trait, and computed attribute
         # Formula: (years * 10) * 2 (valuable customer) * (engagement_score / 100)
         # (8 * 10) * 2 * (190.5 / 100) = 80 * 2 * 1.905 = 304.8
         bonus = result[:calculate_loyalty_bonus]
@@ -247,8 +247,8 @@ RSpec.describe "Kumi Compiler Integration" do
     end
 
     describe "partial evaluation capabilities" do
-      it "can evaluate only predicates without computing attributes or functions" do
-        # Test that we can efficiently compute just the predicates when that's all we need
+      it "can evaluate only traits without computing attributes or functions" do
+        # Test that we can efficiently compute just the traits when that's all we need
         # This is important for performance in scenarios where you only need partial results
 
         result = executable_schema.evaluate(customer_data)

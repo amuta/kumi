@@ -74,22 +74,22 @@ RSpec.describe "Comprehensive AST Export Integration" do
         key :tags, type: array(:string)
       end
 
-      # === BASIC PREDICATES ===
+      # === BASIC TRAITS ===
       # Simple field comparisons testing all comparison operators
-      predicate :adult, input.age, :>=, 18
-      predicate :senior, input.age, :>, 65
-      predicate :exact_age_45, input.age, :==, 45
-      predicate :not_teenager, input.age, :!=, 13
-      predicate :middle_aged, input.age, :<, 65
-      predicate :old_enough, input.age, :<=, 100
-      predicate :age_in_range, input.age, :between?, 25, 65
-      predicate :high_balance, input.account_balance, :>=, 10_000.0
-      predicate :premium_account, input.account_type, :==, "premium"
-      predicate :recent_activity, input.last_purchase_days_ago, :<=, 30
-      predicate :frequent_buyer, input.total_purchases, :>=, 50
-      predicate :long_term_customer, input.years_customer, :>=, 5
-      predicate :has_referrals, input.referral_count, :>, 0
-      predicate :low_support_usage, input.support_tickets, :<=, 3
+      trait :adult, input.age, :>=, 18
+      trait :senior, input.age, :>, 65
+      trait :exact_age_45, input.age, :==, 45
+      trait :not_teenager, input.age, :!=, 13
+      trait :middle_aged, input.age, :<, 65
+      trait :old_enough, input.age, :<=, 100
+      trait :age_in_range, input.age, :between?, 25, 65
+      trait :high_balance, input.account_balance, :>=, 10_000.0
+      trait :premium_account, input.account_type, :==, "premium"
+      trait :recent_activity, input.last_purchase_days_ago, :<=, 30
+      trait :frequent_buyer, input.total_purchases, :>=, 50
+      trait :long_term_customer, input.years_customer, :>=, 5
+      trait :has_referrals, input.referral_count, :>, 0
+      trait :low_support_usage, input.support_tickets, :<=, 3
 
       # === COMPLEX FUNCTION CALLS ===
       # Nested function calls with multiple argument types
@@ -111,7 +111,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
                                  ])
 
       # === COMPLEX LOGICAL COMBINATIONS ===
-      # Multiple predicate combinations using logical functions
+      # Multiple trait combinations using logical functions
       value :customer_quality, fn(:all?, [
                                     ref(:frequent_buyer),
                                     ref(:long_term_customer),
@@ -137,11 +137,11 @@ RSpec.describe "Comprehensive AST Export Integration" do
                                    "Standard",
                                    "Youth"))
 
-      # === PREDICATES BASED ON COMPUTED VALUES ===
-      predicate :elite_customer, ref(:customer_quality), :==, true
-      predicate :premium_eligible, ref(:premium_eligibility), :==, true
-      predicate :high_risk, ref(:risk_score), :>, 50
-      predicate :good_scores, ref(:scores_analysis), :==, true
+      # === TRAITS BASED ON COMPUTED VALUES ===
+      trait :elite_customer, ref(:customer_quality), :==, true
+      trait :premium_eligible, ref(:premium_eligibility), :==, true
+      trait :high_risk, ref(:risk_score), :>, 50
+      trait :good_scores, ref(:scores_analysis), :==, true
 
       # === MULTIPLE CASCADE EXPRESSIONS ===
       # Complex cascades with multiple conditions per case
@@ -308,7 +308,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
     compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
     result = compiled.evaluate(customer_data)
 
-    # Test basic predicates
+    # Test basic traits
     expect(result[:adult]).to be true
     expect(result[:senior]).to be false
     expect(result[:exact_age_45]).to be true

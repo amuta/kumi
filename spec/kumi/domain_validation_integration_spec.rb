@@ -14,7 +14,7 @@ RSpec.describe "Domain Validation Integration" do
           key :status, type: :string, domain: %w[active inactive pending]
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
         value :grade, fn(:conditional, fn(:>=, input.score, 90), "A", "B")
       end
     end
@@ -91,7 +91,7 @@ RSpec.describe "Domain Validation Integration" do
             key :count, type: :integer
           end
 
-          predicate :has_name, input.name, :!=, ""
+          trait :has_name, input.name, :!=, ""
         end
       end
 
@@ -138,7 +138,7 @@ RSpec.describe "Domain Validation Integration" do
             key :email, type: :string, domain: ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) }
           end
 
-          predicate :valid_email, input.email, :!=, ""
+          trait :valid_email, input.email, :!=, ""
         end
       end
 
@@ -163,7 +163,7 @@ RSpec.describe "Domain Validation Integration" do
             key :probability, type: :float, domain: 0.0...1.0
           end
 
-          predicate :likely, input.probability, :>, 0.5
+          trait :likely, input.probability, :>, 0.5
         end
       end
 
@@ -229,7 +229,7 @@ RSpec.describe "Domain Validation Integration" do
           key :age, type: :integer
         end
 
-        predicate :adult, input.age, :>=, 18
+        trait :adult, input.age, :>=, 18
       end
 
       expect do
@@ -246,7 +246,7 @@ RSpec.describe "Domain Validation Integration" do
             key :value, type: :integer
           end
 
-          predicate :always_true, input.value, :>, 0
+          trait :always_true, input.value, :>, 0
         end
 
         runner = simple_schema.from({ value: 42 })

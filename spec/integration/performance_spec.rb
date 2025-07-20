@@ -96,23 +96,23 @@ RSpec.describe "Kumi Performance" do
 
   let(:schema_definition) do
     Kumi::Parser::Dsl.build_syntax_tree do
-      predicate :adult, input.age, :>=, 18
-      predicate :senior, input.age, :>=, 65
-      predicate :high_balance, input.account_balance, :>=, 10_000
-      predicate :premium_account, input.account_type, :==, "premium"
-      predicate :recent_activity, input.last_purchase_days_ago, :<=, 30
-      predicate :frequent_buyer, input.total_purchases, :>=, 50
-      predicate :long_term_customer, input.years_customer, :>=, 5
-      predicate :has_referrals, input.referral_count, :>, 0
-      predicate :low_support_usage, input.support_tickets, :<=, 3
+      trait :adult, input.age, :>=, 18
+      trait :senior, input.age, :>=, 65
+      trait :high_balance, input.account_balance, :>=, 10_000
+      trait :premium_account, input.account_type, :==, "premium"
+      trait :recent_activity, input.last_purchase_days_ago, :<=, 30
+      trait :frequent_buyer, input.total_purchases, :>=, 50
+      trait :long_term_customer, input.years_customer, :>=, 5
+      trait :has_referrals, input.referral_count, :>, 0
+      trait :low_support_usage, input.support_tickets, :<=, 3
 
       value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
       value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
       value :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
 
-      predicate :engaged_customer, ref(:check_engagement), :==, true
-      predicate :valuable_customer, ref(:check_value), :==, true
-      predicate :low_maintenance, ref(:check_low_maintenance), :==, true
+      trait :engaged_customer, ref(:check_engagement), :==, true
+      trait :valuable_customer, ref(:check_value), :==, true
+      trait :low_maintenance, ref(:check_low_maintenance), :==, true
 
       value :customer_tier do
         on :senior, "Senior VIP"

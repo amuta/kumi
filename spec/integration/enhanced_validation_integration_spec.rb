@@ -20,7 +20,7 @@ RSpec.describe "Enhanced Validation Integration" do
             hash         :config, key: { type: :string }, val: { type: :integer }
           end
 
-          predicate :premium_customer, input.customer_tier, :==, "platinum"
+          trait :premium_customer, input.customer_tier, :==, "platinum"
           value :total_score, fn(:add, input.score, fn(:multiply, input.base_discount, 100))
         end
       end
@@ -185,7 +185,7 @@ RSpec.describe "Enhanced Validation Integration" do
             hash :metadata, key: { type: :string }, val: { type: array(:string) }
           end
 
-          predicate :has_users, fn(:size, input.users), :>, 0
+          trait :has_users, fn(:size, input.users), :>, 0
         end
       end
 
@@ -231,7 +231,7 @@ RSpec.describe "Enhanced Validation Integration" do
             float :score, domain: 0.0..100.0
           end
 
-          predicate :eligible, input.age, :>=, 21
+          trait :eligible, input.age, :>=, 21
         end
       end
 
@@ -290,7 +290,7 @@ RSpec.describe "Enhanced Validation Integration" do
             string :password, domain: ->(v) { v.length >= 8 && v.match?(/[A-Z]/) && v.match?(/[0-9]/) }
           end
 
-          predicate :valid_credentials, input.email, :!=, ""
+          trait :valid_credentials, input.email, :!=, ""
         end
       end
 
@@ -367,7 +367,7 @@ RSpec.describe "Enhanced Validation Integration" do
             integer :percentage, domain: 0..100
           end
 
-          predicate :likely, input.probability, :>, 0.5
+          trait :likely, input.probability, :>, 0.5
         end
       end
 
@@ -423,7 +423,7 @@ RSpec.describe "Enhanced Validation Integration" do
             key :scores, type: array(:float)
           end
 
-          predicate :adult, input.age, :>=, 18
+          trait :adult, input.age, :>=, 18
         end
       end
 
@@ -453,7 +453,7 @@ RSpec.describe "Enhanced Validation Integration" do
             integer :new_field, domain: 1..100
           end
 
-          predicate :both_valid, input.legacy_field, :!=, ""
+          trait :both_valid, input.legacy_field, :!=, ""
         end
       end
 
@@ -485,7 +485,7 @@ RSpec.describe "Enhanced Validation Integration" do
           hash :config, key: { type: :string }, val: { type: :integer }
         end
 
-        predicate :valid, input.count, :>, 0
+        trait :valid, input.count, :>, 0
       end
     end
 

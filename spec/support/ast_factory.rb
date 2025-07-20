@@ -15,11 +15,11 @@ module ASTFactory
     call_expression: ->(fn_name, *args, loc:) { S::CallExpression.new(fn_name, args, loc: loc) },
 
     attribute: ->(name, expr, loc:) { S::Attribute.new(name, expr, loc: loc) },
-    trait: ->(name, predicate, loc:) { S::Trait.new(name, predicate, loc: loc) },
+    trait: ->(name, trait, loc:) { S::Trait.new(name, trait, loc: loc) },
 
     cascade_expression: ->(cases, loc:) { S::CascadeExpression.new(cases, loc: loc) },
-    when_case_expression: lambda { |predicate, then_expr, loc:|
-      S::WhenCaseExpression.new(predicate, then_expr, loc: loc)
+    when_case_expression: lambda { |trait, then_expr, loc:|
+      S::WhenCaseExpression.new(trait, then_expr, loc: loc)
     },
 
     # Root and Location are special because they are used in the
@@ -43,8 +43,8 @@ module ASTFactory
     syntax(:attribute, name, expr, loc: loc)
   end
 
-  def trait(name, predicate)
-    syntax(:trait, name, predicate, loc: loc)
+  def trait(name, trait)
+    syntax(:trait, name, trait, loc: loc)
   end
 
   def binding_ref(name) = syntax(:binding_ref, name, loc: loc)
@@ -61,8 +61,8 @@ module ASTFactory
   #   # syntax(:Root, attrs, traits, loc: loc)
   # end
 
-  def when_case_expression(predicate, then_expr)
-    syntax(:when_case_expression, predicate, then_expr, loc: loc)
+  def when_case_expression(trait, then_expr)
+    syntax(:when_case_expression, trait, then_expr, loc: loc)
   end
 
   # Dependency graph factory methods for analyzer pass tests

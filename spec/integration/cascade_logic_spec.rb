@@ -7,10 +7,10 @@ RSpec.describe "Kumi Cascade Logic" do
         key :role, type: Kumi::Types::STRING
       end
 
-      # -- Base Predicates --
-      predicate :is_staff, input.role, :==, "staff"
-      predicate :is_admin, input.role, :==, "admin"
-      predicate :is_guest, input.role, :==, "guest"
+      # -- Base Traits --
+      trait :is_staff, input.role, :==, "staff"
+      trait :is_admin, input.role, :==, "admin"
+      trait :is_guest, input.role, :==, "guest"
 
       # -- Attribute with Cascade Logic --
       value :permission_level do

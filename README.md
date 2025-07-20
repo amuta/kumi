@@ -32,10 +32,10 @@ class DiscountCalculator
       array   :transaction_history, elem: { type: :float }
     end
     
-    # 2. Define intermediate logic using predicates
-    predicate :high_risk, input.score, :>, 80
-    predicate :premium_customer, input.customer_tier, :==, "premium"
-    predicate :eligible, ref(:premium_customer), :&&, input.is_active
+    # 2. Define intermediate logic using traits
+    trait :high_risk, input.score, :>, 80
+    trait :premium_customer, input.customer_tier, :==, "premium"
+    trait :eligible, ref(:premium_customer), :&&, input.is_active
     
     # 3. Define values that depend on inputs or other rules
     value :discount_multiplier do
@@ -112,7 +112,7 @@ schema do
   end
   
   # Access declared fields via input.field_name
-  predicate :high_score, input.scores, :>, [90.0, 85.0, 95.0]
+  trait :high_score, input.scores, :>, [90.0, 85.0, 95.0]
   value :max_score, fn(:max, input.scores)
 end
 ```
@@ -144,7 +144,7 @@ schema do
     }
   end
   
-  predicate :valid_user, input.email, :!=, ""
+  trait :valid_user, input.email, :!=, ""
   value :user_count, fn(:size, input.users)
 end
 ```
@@ -176,11 +176,11 @@ class PricingEngine
       float   :seasonal_multiplier, domain: 0.5..2.0
     end
     
-    # Business logic predicates
-    predicate :bulk_order, input.quantity, :>=, 10
-    predicate :premium_customer, input.customer_tier, :in, %w[gold platinum]
-    predicate :loyalty_eligible, input.loyalty_points, :>, 1000
-    predicate :free_shipping_eligible, ref(:premium_customer), :||, ref(:bulk_order)
+    # Business logic traits
+    trait :bulk_order, input.quantity, :>=, 10
+    trait :premium_customer, input.customer_tier, :in, %w[gold platinum]
+    trait :loyalty_eligible, input.loyalty_points, :>, 1000
+    trait :free_shipping_eligible, ref(:premium_customer), :||, ref(:bulk_order)
     
     # Pricing calculations
     value :base_total, fn(:multiply, input.base_price, input.quantity)
@@ -260,9 +260,9 @@ lets you catch mistakes early. Common failure scenarios include:
   value :discount
   # => error: "value 'discount' requires an expression or a block at path/to/file.rb:42"
   ```
-- **Invalid operator in a predicate**
+- **Invalid operator in a trait**
   ```ruby
-  predicate :flagged, input.score, :>>, 100
+  trait :flagged, input.score, :>>, 100
   # => error: "unsupported operator `>>` at path/to/file.rb:87"
   ```
 
@@ -281,7 +281,7 @@ lets you catch mistakes early. Common failure scenarios include:
   ```
 - **Unsatisfiable logic**
   ```ruby
-  predicate :impossible, fn(:and, input.x > 10, input.x < 5)
+  trait :impossible, fn(:and, input.x > 10, input.x < 5)
   # => error: "unsatisfiable conditions for `impossible`"
   ```
 
@@ -313,7 +313,7 @@ when something is amiss.
 ## Debugging a Schema
 Standard debugging tools cannot be used inside a `schema` block because the DSL is declarative and does not execute code linearly. To inspect the intermediate values of the dependency graph, use the `runner`.
 
-The runner's `fetch` method can retrieve the calculated value of any named `predicate` or `value`.
+The runner's `fetch` method can retrieve the calculated value of any named `trait` or `value`.
 
 ```ruby
 # Get the runner for the schema.

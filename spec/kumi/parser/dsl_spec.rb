@@ -18,29 +18,29 @@ RSpec.describe Kumi::Parser::Dsl do
       expect(schema.attributes.first.expression.name).to eq(:first_name)
     end
 
-    it "can define predicates" do
+    it "can define traits" do
       schema = build_schema do
-        predicate :vip, input.status, :==, "VIP"
+        trait :vip, input.status, :==, "VIP"
       end
 
       expect(schema.traits.size).to eq(1)
-      predicate = schema.traits.first
-      expect(predicate).to be_a(Kumi::Syntax::Declarations::Trait)
-      expect(predicate.name).to eq(:vip)
-      expect(predicate.expression).to be_a(Kumi::Syntax::Expressions::CallExpression)
-      expect(predicate.expression.fn_name).to eq(:==)
-      expect(predicate.expression.args.size).to eq(2)
-      expect(predicate.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
-      expect(predicate.expression.args.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
+      trait = schema.traits.first
+      expect(trait).to be_a(Kumi::Syntax::Declarations::Trait)
+      expect(trait.name).to eq(:vip)
+      expect(trait.expression).to be_a(Kumi::Syntax::Expressions::CallExpression)
+      expect(trait.expression.fn_name).to eq(:==)
+      expect(trait.expression.args.size).to eq(2)
+      expect(trait.expression.args.first).to be_a(Kumi::Syntax::TerminalExpressions::FieldRef)
+      expect(trait.expression.args.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
     end
 
-    it "can define multiple values, predicates" do
+    it "can define multiple values, traits" do
       schema = build_schema do
         value :name, input.first_name
         value :age, input.birth_date
 
-        predicate :adult, input.age, :>=, 18
-        predicate :senior, input.age, :>=, 65
+        trait :adult, input.age, :>=, 18
+        trait :senior, input.age, :>=, 65
 
         value :greet, fn(:hello, input.name)
       end
@@ -79,12 +79,12 @@ RSpec.describe Kumi::Parser::Dsl do
         end.to raise_error(error_class, /The name for 'value' must be a Symbol, got String/)
       end
 
-      it "raises an error if a predicate name is not a symbol" do
+      it "raises an error if a trait name is not a symbol" do
         expect do
           build_schema do
-            predicate "not_a_symbol", input.age, :<, 18
+            trait "not_a_symbol", input.age, :<, 18
           end
-        end.to raise_error(error_class, /The name for 'predicate' must be a Symbol, got String/)
+        end.to raise_error(error_class, /The name for 'trait' must be a Symbol, got String/)
       end
     end
 
@@ -106,11 +106,11 @@ RSpec.describe Kumi::Parser::Dsl do
       end
     end
 
-    context "when defining predicates" do
+    context "when defining traits" do
       it "raises an error if the operator is not a symbol" do
         expect do
           build_schema do
-            predicate :is_minor, input.age, "not_a_symbol", 18
+            trait :is_minor, input.age, "not_a_symbol", 18
           end
         end.to raise_error(error_class, /expects a symbol for an operator, got String/)
       end
@@ -118,17 +118,17 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error if the operator is not supported" do
         expect do
           build_schema do
-            predicate :unsupported, input.value, :>>, 42
+            trait :unsupported, input.value, :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end
 
-      it "raises an error if a predicate has an invalid expression size" do
+      it "raises an error if a trait has an invalid expression size" do
         expect do
           build_schema do
-            predicate :invalid_predicate, input.value, :==
+            trait :invalid_trait, input.value, :==
           end
-        end.to raise_error(error_class, /predicate 'invalid_predicate' requires exactly 3 arguments: lhs, operator, and rhs/)
+        end.to raise_error(error_class, /trait 'invalid_trait' requires exactly 3 arguments: lhs, operator, and rhs/)
       end
     end
 
@@ -144,7 +144,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "raises an error for unsupported operators" do
         expect do
           build_schema do
-            predicate :unsupported, input.value, :>>, 42
+            trait :unsupported, input.value, :>>, 42
           end
         end.to raise_error(error_class, /unsupported operator `>>`/)
       end

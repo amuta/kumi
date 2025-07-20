@@ -25,10 +25,10 @@ begin
       key :is_remote, type: :boolean
     end
 
-    # Predicates using declared input types
-    predicate :is_senior, input.years_experience, :>=, 5
-    predicate :is_well_paid, input.salary, :>, 80_000.0
-    predicate :is_tech_dept, input.department, :==, "Engineering"
+    # Traits using declared input types
+    trait :is_senior, input.years_experience, :>=, 5
+    trait :is_well_paid, input.salary, :>, 80_000.0
+    trait :is_tech_dept, input.department, :==, "Engineering"
 
     # Values with inferred types based on expressions
     value :seniority_level, fn(:conditional, 
@@ -193,11 +193,11 @@ begin
       key :has_collateral, type: :boolean
     end
 
-    # Risk assessment predicates
-    predicate :good_credit, input.credit_score, :>=, 650
-    predicate :stable_employment, input.employment_years, :>=, 2
-    predicate :reasonable_income, input.annual_income, :>=, 30_000.0
-    predicate :mature_age, input.age, :>=, 25
+    # Risk assessment traits
+    trait :good_credit, input.credit_score, :>=, 650
+    trait :stable_employment, input.employment_years, :>=, 2
+    trait :reasonable_income, input.annual_income, :>=, 30_000.0
+    trait :mature_age, input.age, :>=, 25
 
     # Calculated values with inferred types
     value :debt_to_income_ratio, fn(:divide, input.loan_amount, input.annual_income)

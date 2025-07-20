@@ -62,18 +62,18 @@ module Kumi
         triggered = false
 
         expr.cases.each do |case_node|
-          condition_str, predicate_keys = format_condition(case_node.condition)
+          condition_str, trait_keys = format_condition(case_node.condition)
 
           if triggered
             output += "#{indent_str}  - Rule '#{condition_str}' was skipped because a previous rule matched.\n"
             next
           end
 
-          is_match = predicate_keys.all? { |pk| fetch(pk) }
+          is_match = trait_keys.all? { |pk| fetch(pk) }
 
           if is_match
             output += "#{indent_str}  - Checking rule '#{condition_str}'... MATCHED\n"
-            predicate_keys.each do |pk|
+            trait_keys.each do |pk|
               output += explain_recursive(pk, indent + 2)
             end
             triggered = true
@@ -90,10 +90,10 @@ module Kumi
     def format_condition(condition_node)
       case condition_node
       when Syntax::TerminalExpressions::Binding
-        # Single predicate: `on :rich`
+        # Single trait: `on :rich`
         ["on :#{condition_node.name}", [condition_node.name]]
       when Syntax::Expressions::CallExpression
-        # Multi-predicate: `on :rich, :famous`
+        # Multi-trait: `on :rich, :famous`
         keys = condition_node.args.first.elements.map(&:name)
         str = "on #{keys.map { |k| ":#{k}" }.join(' and ')}"
         [str, keys]

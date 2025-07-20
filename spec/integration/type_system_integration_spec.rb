@@ -89,7 +89,7 @@ RSpec.describe "Type System Integration" do
             key :base_price
           end
 
-          predicate :is_adult, input.age, :>=, 18
+          trait :is_adult, input.age, :>=, 18
           value :discount, fn(:multiply, input.base_price, 0.1)
         end
       end.not_to raise_error
