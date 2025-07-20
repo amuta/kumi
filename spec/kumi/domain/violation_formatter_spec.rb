@@ -96,9 +96,7 @@ RSpec.describe Kumi::Domain::ViolationFormatter do
         expect(message).to include("value 100")
         expect(message).to include("not in allowed values")
         # Should indicate truncation for readability
-        if message.include?("...")
-          expect(message).to include("...")
-        end
+        expect(message).to include("...") if message.include?("...")
       end
 
       it "handles empty arrays" do

@@ -84,17 +84,17 @@ RSpec.describe "Kumi Compiler Integration" do
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
         # # These functions encapsulate multi-condition logic, making predicates more readable
 
-        value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
-        value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
-        value :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
+        value :check_engagement, fn(:all?, [recent_activity, frequent_buyer])
+        value :check_value, fn(:all?, [high_balance, long_term_customer])
+        value :check_low_maintenance, fn(:all?, [low_support_usage, has_referrals])
 
         # # === DERIVED predicateS ===
         # # These predicates reference helper functions, showing clean predicate definitions
         # # that depend on complex multi-condition logic
 
-        predicate :engaged_customer, ref(:check_engagement), :==, true
-        predicate :valuable_customer, ref(:check_value), :==, true
-        predicate :low_maintenance, ref(:check_low_maintenance), :==, true
+        predicate :engaged_customer, check_engagement, :==, true
+        predicate :valuable_customer, check_value, :==, true
+        predicate :low_maintenance, check_low_maintenance, :==, true
 
         # === COMPLEX ATTRIBUTES WITH CASCADING LOGIC ===
         # These attributes demonstrate cascade expressions that reference multiple predicates
@@ -125,27 +125,27 @@ RSpec.describe "Kumi Compiler Integration" do
                                      "Hello ",
                                      input.name,
                                      ", you are a ",
-                                     ref(:customer_tier),
+                                     customer_tier,
                                      " customer!"
                                    ])
 
         value :engagement_score, fn(:multiply,
                                     input.total_purchases,
-                                    fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
+                                    fn(:conditional, engaged_customer, 1.5, 1.0))
 
         # === FUNCTIONS THAT REFERENCE OTHER DEFINITIONS ===
         # Functions can consume both raw data and computed values, showing the
         # full power of cross-referencing in the compilation system
 
         value :generate_offers, fn(:create_offers,
-                                   ref(:marketing_segment),
-                                   ref(:customer_tier),
+                                   marketing_segment,
+                                   customer_tier,
                                    input.account_balance)
 
         value :calculate_loyalty_bonus, fn(:bonus_formula,
                                            input.years_customer,
-                                           ref(:valuable_customer),
-                                           ref(:engagement_score))
+                                           valuable_customer,
+                                           engagement_score)
       end
     end
 

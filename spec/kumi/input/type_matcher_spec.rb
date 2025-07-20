@@ -113,7 +113,7 @@ RSpec.describe Kumi::Input::TypeMatcher do
           expect(described_class.matches?([1, 2, 3], string_array_type)).to be false
 
           integer_array_type = { array: :integer }
-          expect(described_class.matches?(["1", "2", "3"], integer_array_type)).to be false
+          expect(described_class.matches?(%w[1 2 3], integer_array_type)).to be false
           expect(described_class.matches?([1.5, 2.5], integer_array_type)).to be false
         end
 
@@ -149,8 +149,8 @@ RSpec.describe Kumi::Input::TypeMatcher do
 
         it "does not match incorrectly nested arrays" do
           nested_array_type = { array: { array: :string } }
-          expect(described_class.matches?([["a", 1], ["c", "d"]], nested_array_type)).to be false
-          expect(described_class.matches?(["not", "nested"], nested_array_type)).to be false
+          expect(described_class.matches?([["a", 1], %w[c d]], nested_array_type)).to be false
+          expect(described_class.matches?(%w[not nested], nested_array_type)).to be false
         end
       end
     end
@@ -210,7 +210,7 @@ RSpec.describe Kumi::Input::TypeMatcher do
           hash_type = { hash: %i[string any] }
           expect(described_class.matches?({ "key" => "value", "other" => 123 }, hash_type)).to be true
           expect(described_class.matches?({ "key" => [] }, hash_type)).to be true
-          expect(described_class.matches?({ :symbol => "value" }, hash_type)).to be false
+          expect(described_class.matches?({ symbol: "value" }, hash_type)).to be false
         end
       end
 
@@ -219,7 +219,7 @@ RSpec.describe Kumi::Input::TypeMatcher do
           hash_type = { hash: [:string, { array: :integer }] }
           expect(described_class.matches?({ "key" => [1, 2, 3] }, hash_type)).to be true
           expect(described_class.matches?({ "key" => [] }, hash_type)).to be true
-          expect(described_class.matches?({ "key" => ["not", "int"] }, hash_type)).to be false
+          expect(described_class.matches?({ "key" => %w[not int] }, hash_type)).to be false
         end
       end
     end
@@ -284,7 +284,7 @@ RSpec.describe Kumi::Input::TypeMatcher do
       it "infers mixed hash type for hashes" do
         expect(described_class.infer_type({})).to eq({ hash: %i[mixed mixed] })
         expect(described_class.infer_type({ "a" => 1 })).to eq({ hash: %i[mixed mixed] })
-        expect(described_class.infer_type({ :sym => "value" })).to eq({ hash: %i[mixed mixed] })
+        expect(described_class.infer_type({ sym: "value" })).to eq({ hash: %i[mixed mixed] })
         expect(described_class.infer_type({ 1 => true, "key" => [] })).to eq({ hash: %i[mixed mixed] })
       end
     end

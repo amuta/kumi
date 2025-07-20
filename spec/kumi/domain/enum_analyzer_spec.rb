@@ -63,7 +63,7 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
         result = described_class.analyze(values)
         samples = result[:sample_values]
 
-        expect(samples.all? { |v| v.is_a?(Symbol) }).to be true
+        expect(samples.all?(Symbol)).to be true
         expect(samples.all? { |v| values.include?(v) }).to be true
       end
 
@@ -71,7 +71,7 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
         result = described_class.analyze(values)
         invalid_samples = result[:invalid_samples]
 
-        expect(invalid_samples.all? { |v| v.is_a?(Symbol) }).to be true
+        expect(invalid_samples.all?(Symbol)).to be true
         expect(invalid_samples.none? { |v| values.include?(v) }).to be true
         expect(invalid_samples).not_to be_empty
       end
@@ -92,7 +92,7 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
         result = described_class.analyze(values)
         samples = result[:sample_values]
 
-        expect(samples.all? { |v| v.is_a?(Integer) }).to be true
+        expect(samples.all?(Integer)).to be true
         expect(samples.all? { |v| values.include?(v) }).to be true
       end
 
@@ -100,7 +100,7 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
         result = described_class.analyze(values)
         invalid_samples = result[:invalid_samples]
 
-        expect(invalid_samples.all? { |v| v.is_a?(Integer) }).to be true
+        expect(invalid_samples.all?(Integer)).to be true
         expect(invalid_samples.none? { |v| values.include?(v) }).to be true
         expect(invalid_samples).not_to be_empty
       end
@@ -190,7 +190,7 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
       end
 
       it "handles arrays with duplicate values" do
-        values = ["active", "active", "inactive"]
+        values = %w[active active inactive]
         result = described_class.analyze(values)
 
         # Analysis should work with the array as-is (not deduplicated)
@@ -206,11 +206,11 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
     it "provides analysis that supports enumeration validation" do
       values = %w[red green blue]
       analysis = described_class.analyze(values)
-      
+
       expect(analysis[:type]).to eq(:enumeration)
       expect(analysis[:values]).to eq(values)
       expect(analysis[:size]).to eq(3)
-      
+
       # Test that the values cover expected behavior
       expect(values.include?("red")).to be true
       expect(values.include?("yellow")).to be false
@@ -219,11 +219,11 @@ RSpec.describe Kumi::Domain::EnumAnalyzer do
     it "provides analysis for various enumeration types" do
       symbol_values = %i[small medium large]
       analysis = described_class.analyze(symbol_values)
-      
+
       expect(analysis[:values]).to eq(symbol_values)
       expect(analysis[:sample_values]).to be_a(Array)
       expect(analysis[:invalid_samples]).to be_a(Array)
-      
+
       # Verify invalid samples don't overlap with valid values
       expect(analysis[:invalid_samples].any? { |v| symbol_values.include?(v) }).to be false
     end

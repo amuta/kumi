@@ -123,6 +123,18 @@ module Kumi
 
         CascadeExpression.new(cascade_builder.cases, loc: loc)
       end
+
+      def method_missing(method_name, *args, &block)
+        if args.empty? && !block_given?
+          Binding.new(method_name, loc: current_location)
+        else
+          super
+        end
+      end
+
+      def respond_to_missing?(_method_name, _include_private = false)
+        true
+      end
     end
   end
 end

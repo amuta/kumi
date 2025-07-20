@@ -166,12 +166,12 @@ RSpec.describe Kumi::Domain::RangeAnalyzer do
     it "provides analysis that supports range validation" do
       range = 10..20
       analysis = described_class.analyze(range)
-      
+
       # The analysis should provide enough info for validation
       expect(analysis[:min]).to eq(10)
       expect(analysis[:max]).to eq(20)
       expect(analysis[:exclusive_end]).to be false
-      
+
       # Test that the range covers expected behavior
       expect(range.include?(15)).to be true
       expect(range.include?(9)).to be false
@@ -181,10 +181,10 @@ RSpec.describe Kumi::Domain::RangeAnalyzer do
     it "provides analysis for exclusive ranges" do
       range = 0.0...1.0
       analysis = described_class.analyze(range)
-      
+
       expect(analysis[:exclusive_end]).to be true
       expect(analysis[:invalid_samples]).to include(1.0) # The excluded value
-      
+
       # Test that the range covers expected behavior
       expect(range.include?(0.0)).to be true
       expect(range.include?(0.999)).to be true

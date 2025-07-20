@@ -63,8 +63,8 @@ RSpec.describe "Type System Integration" do
       schema_result = Kumi.schema do
         value :base_amount, 1000
         value :tax_rate, 0.08
-        value :tax_amount, fn(:multiply, ref(:base_amount), ref(:tax_rate))
-        value :total, fn(:add, ref(:base_amount), ref(:tax_amount))
+        value :tax_amount, fn(:multiply, base_amount, tax_rate)
+        value :total, fn(:add, base_amount, tax_amount)
       end
 
       types = schema_result.analysis.decl_types
@@ -125,8 +125,8 @@ RSpec.describe "Type System Integration" do
     it "handles list operations" do
       schema_result = Kumi.schema do
         value :numbers, [1, 2, 3, 4, 5]
-        value :sum_total, fn(:sum, ref(:numbers))
-        value :first_num, fn(:first, ref(:numbers))
+        value :sum_total, fn(:sum, numbers)
+        value :first_num, fn(:first, numbers)
       end
 
       types = schema_result.analysis.decl_types

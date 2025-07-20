@@ -211,7 +211,7 @@ RSpec.describe "Enhanced Validation Integration" do
         invalid_data = {
           users: [
             { "name" => "John", "age" => 30 },
-            { :symbol_key => "Jane" } # Symbol key instead of string
+            { symbol_key: "Jane" } # Symbol key instead of string
           ],
           metadata: {}
         }

@@ -74,11 +74,11 @@ RSpec.describe Kumi::Input::ViolationCreator do
 
       it "creates violation for hash type mismatch" do
         expected_type = { hash: %i[string integer] }
-        violation = described_class.create_type_violation(:metadata, { :symbol => "value" }, expected_type)
+        violation = described_class.create_type_violation(:metadata, { symbol: "value" }, expected_type)
 
         expect(violation[:type]).to eq(:type_violation)
         expect(violation[:field]).to eq(:metadata)
-        expect(violation[:value]).to eq({ :symbol => "value" })
+        expect(violation[:value]).to eq({ symbol: "value" })
         expect(violation[:expected_type]).to eq(expected_type)
         expect(violation[:actual_type]).to eq({ hash: %i[mixed mixed] })
         expect(violation[:message]).to include("expected hash(string, integer)")
