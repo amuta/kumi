@@ -23,42 +23,229 @@ class DiscountCalculator
   extend Kumi::Schema
   
   schema do
-    # 1. Declare the expected inputs and their types.
+    # 1. Declare inputs with type-specific methods and validation constraints
     input do
-      key :score, type: :integer
-      key :base_discount, type: :float
-      key :customer_tier, type: :string
+      integer :score, domain: 0..1000                    # Score must be 0-1000
+      float   :base_discount, domain: 0.0..1.0          # Discount rate 0-100%
+      string  :customer_tier, domain: %w[basic premium gold platinum]
+      boolean :is_active, domain: [true]                # Must be active
+      array   :transaction_history, elem: { type: :float }
     end
     
-    # 2. Define intermediate logic using predicates.
-    predicate :high_risk, fn(:>, input.score, 80)
-    predicate :premium_customer, fn(:==, input.customer_tier, "premium")
+    # 2. Define intermediate logic using predicates
+    predicate :high_risk, input.score, :>, 80
+    predicate :premium_customer, input.customer_tier, :==, "premium"
+    predicate :eligible, ref(:premium_customer), :&&, input.is_active
     
-    # 3. Define values that depend on inputs or other rules.
+    # 3. Define values that depend on inputs or other rules
     value :discount_multiplier do
-      on :premium_customer, 1.5
+      on :eligible, 1.5
       on :high_risk, 0.8
       base 1.2
     end
       
-    # 4. Define the final output value.
+    # 4. Define the final output value
     value :final_discount, fn(:multiply, input.base_discount, ref(:discount_multiplier))
   end
   
-  # 5. Create an interface to execute the schema.
+  # 5. Create an interface to execute the schema
   def self.calculate(customer_data)
     from(customer_data).fetch(:final_discount)
   end
 end
 
-
-# Execute the schema with a given set of inputs.
+# Execute the schema with valid inputs
 discount = DiscountCalculator.calculate({
   score: 75,
-  base_discount: 10.0,
-  customer_tier: "premium"
+  base_discount: 0.10,
+  customer_tier: "premium",
+  is_active: true,
+  transaction_history: [100.0, 250.5, 75.0]
 })
-# => 15.0
+# => 0.15 (10% base * 1.5 multiplier)
+
+# Validation errors are caught automatically
+begin
+  DiscountCalculator.calculate({
+    score: 1500,              # Outside domain 0..1000
+    base_discount: 1.5,       # Outside domain 0.0..1.0  
+    customer_tier: "unknown", # Not in allowed values
+    is_active: false,         # Must be true
+    transaction_history: ["invalid", 100.0] # Array contains non-float
+  })
+rescue Kumi::Errors::InputValidationError => e
+  puts e.message
+  # Multiple validation errors:
+  # Type violations:
+  #   - Field :transaction_history expected array(float), got ["invalid", 100.0] of type array(mixed)
+  # Domain violations:
+  #   - Field :score value 1500 is outside domain 0..1000
+  #   - Field :base_discount value 1.5 is outside domain 0.0..1.0
+  #   - Field :customer_tier value "unknown" is not in allowed values ["basic", "premium", "gold", "platinum"]
+  #   - Field :is_active value false is not in allowed values [true]
+end
+```
+
+## Enhanced Input Declaration Syntax
+
+Kumi provides intuitive type-specific methods for declaring inputs with built-in validation:
+
+### Type-Specific Declaration Methods
+
+```ruby
+schema do
+  input do
+    # Primitive types with clean syntax
+    integer :user_id                           # Any integer
+    float   :temperature, domain: -50.0..50.0 # Constrained range
+    string  :status, domain: %w[active inactive suspended]
+    boolean :verified                          # true or false
+    
+    # Collection types with element specifications
+    array :scores                              # Array of any type
+    array :grades, elem: { type: :float }      # Array of floats only
+    hash  :settings                            # Hash with any keys/values
+    hash  :config, key: { type: :string }, val: { type: :integer }
+    
+    # Backward compatibility - legacy syntax still works
+    key :legacy_field, type: :string, domain: %w[old style]
+  end
+  
+  # Access declared fields via input.field_name
+  predicate :high_score, input.scores, :>, [90.0, 85.0, 95.0]
+  value :max_score, fn(:max, input.scores)
+end
+```
+
+### Advanced Validation Features
+
+```ruby
+# Custom validation with Proc domains
+schema do
+  input do
+    string :email, domain: ->(email) { 
+      email.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) 
+    }
+    
+    string :password, domain: ->(pwd) { 
+      pwd.length >= 8 && pwd.match?(/[A-Z]/) && pwd.match?(/[0-9]/) 
+    }
+    
+    # Exclusive ranges (excludes end value)
+    float :probability, domain: 0.0...1.0  # 0.0 <= x < 1.0
+    
+    # Complex nested structures
+    array :users, elem: { 
+      type: hash(:string, :any)  # Array of string-keyed hashes
+    }
+    
+    hash :metrics, key: { type: :string }, val: { 
+      type: array(:float)  # Hash mapping strings to float arrays
+    }
+  end
+  
+  predicate :valid_user, input.email, :!=, ""
+  value :user_count, fn(:size, input.users)
+end
+```
+
+### Real-World Example: E-commerce Pricing
+
+```ruby
+class PricingEngine
+  extend Kumi::Schema
+  
+  schema do
+    input do
+      # Product information
+      integer :product_id, domain: 1..999_999
+      float   :base_price, domain: 0.01..10_000.0
+      string  :category, domain: %w[electronics clothing books home sports]
+      
+      # Customer information  
+      string  :customer_tier, domain: %w[bronze silver gold platinum]
+      integer :loyalty_points, domain: 0..100_000
+      boolean :is_member
+      
+      # Order details
+      integer :quantity, domain: 1..100
+      array   :coupon_codes, elem: { type: :string }
+      hash    :shipping_info, key: { type: :string }, val: { type: :string }
+      
+      # Seasonal factors
+      float   :seasonal_multiplier, domain: 0.5..2.0
+    end
+    
+    # Business logic predicates
+    predicate :bulk_order, input.quantity, :>=, 10
+    predicate :premium_customer, input.customer_tier, :in, %w[gold platinum]
+    predicate :loyalty_eligible, input.loyalty_points, :>, 1000
+    predicate :free_shipping_eligible, ref(:premium_customer), :||, ref(:bulk_order)
+    
+    # Pricing calculations
+    value :base_total, fn(:multiply, input.base_price, input.quantity)
+    
+    value :discount_rate do
+      on fn(:and, ref(:premium_customer), ref(:loyalty_eligible)), 0.25
+      on ref(:premium_customer), 0.15  
+      on ref(:bulk_order), 0.10
+      on input.is_member, 0.05
+      base 0.0
+    end
+    
+    value :discounted_total, fn(:multiply, 
+      ref(:base_total), 
+      fn(:subtract, 1.0, ref(:discount_rate))
+    )
+    
+    value :seasonal_price, fn(:multiply, 
+      ref(:discounted_total), 
+      input.seasonal_multiplier
+    )
+    
+    value :shipping_cost do
+      on ref(:free_shipping_eligible), 0.0
+      on fn(:>, ref(:seasonal_price), 100.0), 0.0
+      base 9.99
+    end
+    
+    value :final_price, fn(:add, ref(:seasonal_price), ref(:shipping_cost))
+  end
+  
+  def self.calculate_price(order_data)
+    runner = from(order_data)
+    {
+      base_total: runner.fetch(:base_total),
+      discount_rate: runner.fetch(:discount_rate),
+      seasonal_price: runner.fetch(:seasonal_price),
+      shipping_cost: runner.fetch(:shipping_cost),
+      final_price: runner.fetch(:final_price)
+    }
+  end
+end
+
+# Usage with automatic validation
+result = PricingEngine.calculate_price({
+  product_id: 12345,
+  base_price: 29.99,
+  category: "electronics",
+  customer_tier: "gold",
+  loyalty_points: 2500,
+  is_member: true,
+  quantity: 12,
+  coupon_codes: ["SAVE10", "FREESHIP"],
+  shipping_info: { "method" => "express", "address" => "123 Main St" },
+  seasonal_multiplier: 1.2
+})
+
+puts result
+# => {
+#   base_total: 359.88,
+#   discount_rate: 0.25,
+#   seasonal_price: 323.892,
+#   shipping_cost: 0.0,
+#   final_price: 323.892
+# }
 ```
 
 ## Errors at Schema Definition
@@ -156,10 +343,13 @@ Kumi processes schemas in three stages:
 This decoupled pipeline allows the analysis and compilation logic to be reused for different input formats.
 
 ### 2. The Type System
-Kumi includes a static type system to validate data compatibility.
-- **Explicit Types:** Input types can be declared with primitives (`:integer`, `:string`) and collections (`array(:float)`).
+Kumi includes a comprehensive static type system with runtime validation.
+- **Type-Specific DSL:** Input types are declared with intuitive methods (`integer`, `float`, `string`, `boolean`, `array`, `hash`).
+- **Domain Constraints:** Fields support range, enumeration, and custom proc validation (`domain: 0..100`, `domain: %w[a b c]`).
+- **Runtime Validation:** Input data is automatically validated against declared types and constraints with detailed error messages.
 - **Inferred Types:** The return types of functions and expressions are inferred by the `TypeInferencer` pass.
 - **Type Checking:** The `TypeChecker` pass validates that operations are performed on compatible types.
+- **Complex Types:** Support for nested structures like `array(hash(:string, :float))` with full validation.
 
 ### 3. AST Serialization
 The AST can be serialized to and from JSON. This allows schemas to be stored in databases or managed via APIs.
