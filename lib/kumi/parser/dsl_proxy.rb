@@ -23,6 +23,7 @@ module Kumi
             line: c.lineno,
             column: 0
           )
+          # TODO: -> If this errors we need to keep the location
           @context.public_send(meth, *args, **kwargs, &blk)
         end
       end
@@ -35,6 +36,7 @@ module Kumi
             line: c.lineno,
             column: 0
           )
+          # TODO: -> If this errors we need to keep the location
           @context.public_send(method_name, *args, &block)
         else
           super

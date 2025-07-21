@@ -34,6 +34,36 @@ module Kumi
             param_types: %i[float float float],
             return_type: :float,
             description: "Clamp value between min and max"
+          ),
+          tiered_sum: FunctionBuilder::Entry.new(
+            # Tiered / piece‑wise accumulator ­­­­­­­­­­­­­­­­­­­­­­­­­
+            fn: lambda do |value, breaks, rates|
+              raise ArgumentError, "breaks & rates size mismatch" unless breaks.size == rates.size
+
+              acc      = 0.0
+              previous = 0.0
+              marginal = rates.last
+
+              breaks.zip(rates).each do |upper, rate|
+                if value <= upper
+                  marginal = rate
+                  acc += (value - previous) * rate
+                  break
+                else
+                  acc += (upper - previous) * rate
+                  previous = upper
+                end
+              end
+              [acc, marginal]                              # => [sum, marginal_rate]
+            end,
+            arity: 3,
+            param_types: [
+              :float,
+              Kumi::Types.array(:float),                   # breaks
+              Kumi::Types.array(:float)                    # rates
+            ],
+            return_type: Kumi::Types.array(:float),        # 2‑element [sum, marginal]
+            description: "Accumulate over tiered ranges; returns [sum, marginal_rate]"
           )
         }
       end

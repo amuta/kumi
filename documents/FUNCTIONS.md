@@ -58,6 +58,8 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:round, float1, float2, ...)` → `float`
 * **`subtract`**: Subtract second number from first
   * **Usage**: `fn(:subtract, float arg1, float arg2)` → `float`
+* **`tiered_sum`**: Accumulate over tiered ranges; returns [sum, marginal_rate]
+  * **Usage**: `fn(:tiered_sum, float arg1, array(float) arg2, array(float) arg3)` → `array(float)`
 
 ## String Functions
 
@@ -118,6 +120,8 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
 
 ## Type & Hash Functions
 
+* **`at`**: Get element at index from array
+  * **Usage**: `fn(:at, array(any) arg1, integer arg2)` → `any`
 * **`fetch`**: Fetch value from hash with optional default
   * **Usage**: `fn(:fetch, hash(any, any)1, hash(any, any)2, ...)` → `any`
 * **`has_key?`**: Check if hash has the given key

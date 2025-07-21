@@ -36,6 +36,13 @@ module Kumi
             param_types: [Kumi::Types.hash(:any, :any)],
             return_type: Kumi::Types.array(:any),
             description: "Get all values from hash"
+          ),
+          at: FunctionBuilder::Entry.new(
+            fn: ->(array, index) { array[index] },
+            arity: 2,
+            param_types: [Kumi::Types.array(:any), :integer],
+            return_type: :any,
+            description: "Get element at index from array"
           )
         }
       end
