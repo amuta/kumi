@@ -9,9 +9,7 @@ module Kumi
       attr_accessor :last_loc
       attr_reader :inputs, :attributes, :traits, :functions
 
-      include Syntax::Declarations
-      include Syntax::Expressions
-      include Syntax::TerminalExpressions
+      include Syntax
 
       def initialize
         @inputs     = []
@@ -179,8 +177,6 @@ module Kumi
         attr_reader :name
       end
 
-      private
-
       def ensure_syntax(obj, location)
         case obj
         when Integer, String, TrueClass, FalseClass, Float, Regexp then literal(obj)
@@ -197,6 +193,8 @@ module Kumi
           end
         end
       end
+
+      private
 
       # def current_location
       #   Kumi.current_location
