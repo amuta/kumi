@@ -7,7 +7,7 @@ module Kumi
         include Node
         def children = args
 
-        # Logical AND operator for chaining expressions  
+        # Logical AND operator for chaining expressions
         def &(other)
           CallExpression.new(:and, [self, ensure_node(other)])
         end

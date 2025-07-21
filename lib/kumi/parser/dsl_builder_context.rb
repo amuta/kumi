@@ -55,7 +55,7 @@ module Kumi
           return
         end
 
-        # Handle positional arguments  
+        # Handle positional arguments
         case args.size
         when 2
           # NEW CLEAN SYNTAX: trait :name, (expression)
@@ -78,12 +78,10 @@ module Kumi
           expr = CallExpression.new(operator, [ensure_syntax(lhs, loc), rhs_expr], loc: loc)
           @traits << Trait.new(name, expr, loc: loc)
         else
-          # Multiple RHS args (old deprecated syntax): trait :name, lhs, operator, *rhs  
+          # Multiple RHS args (old deprecated syntax): trait :name, lhs, operator, *rhs
           warn "DEPRECATION: trait(:name, lhs, operator, *rhs) syntax is deprecated. Use: trait :name, (lhs operator rhs)"
           name, lhs, operator, *rhs = args
-          unless rhs.size.positive?
-            raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs", current_location)
-          end
+          raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs", current_location) unless rhs.size.positive?
           loc = current_location
           validate_name(name, :trait, loc)
           raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
@@ -140,7 +138,8 @@ module Kumi
 
       def method_missing(method_name, *args, &block)
         if args.empty? && !block_given?
-          Binding.new(method_name, loc: current_location)
+          # Return a composable trait reference instead of a plain Binding
+          ComposableTraitRef.new(method_name, self)
         else
           super
         end
@@ -150,13 +149,45 @@ module Kumi
         true
       end
 
+      # Composable wrapper for trait references that supports & operator
+      class ComposableTraitRef
+        def initialize(name, context)
+          @name = name
+          @context = context
+        end
+
+        def &(other)
+          # Create an AND expression between this trait and another
+          left = @context.ref(@name)
+          right = case other
+                  when ComposableTraitRef
+                    @context.ref(other.name)
+                  when Syntax::Node
+                    other
+                  else
+                    @context.ensure_syntax(other, @context.current_location)
+                  end
+          Syntax::Expressions::CallExpression.new(:and, [left, right], loc: @context.current_location)
+        end
+
+        def to_ast_node
+          @context.ref(@name)
+        end
+
+        protected
+
+        attr_reader :name
+      end
+
       private
 
       def ensure_syntax(obj, location)
         case obj
-        when Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp then literal(obj)
+        when Integer, String, TrueClass, FalseClass, Float, Regexp then literal(obj)
+        when Symbol then literal(obj)
         when Array then ListExpression.new(obj.map { |e| ensure_syntax(e, location) })
         when Syntax::Node then obj
+        when ComposableTraitRef then obj.to_ast_node
         else
           # Check if it's an ExpressionWrapper or similar (without calling respond_to_missing?)
           if obj.class.instance_methods.include?(:to_ast_node)

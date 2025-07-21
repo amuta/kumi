@@ -81,7 +81,7 @@ module Kumi
                     # Fallback: try to get context from call stack
                     # This is a bit hacky but should work for most cases
                     caller_locations.each do |location|
-                      if location.label.include?('DslBuilderContext')
+                      if location.label.include?("DslBuilderContext")
                         left_operand = respond_to?(:to_ast_node) ? to_ast_node : self
                         return CallExpression.new(operator, [left_operand, ensure_syntax_with_fallback(other)])
                       end

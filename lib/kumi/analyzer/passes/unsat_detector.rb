@@ -15,9 +15,7 @@ module Kumi
             atoms = gather_atoms(decl.expression, definitions, Set.new)
             next if atoms.empty?
 
-            if Kumi::StrictCycleChecker.unsat?(atoms)
-              add_error(errors, decl.loc, "conjunction in `#{decl.name}` is logically impossible")
-            end
+            add_error(errors, decl.loc, "conjunction in `#{decl.name}` is logically impossible") if Kumi::StrictCycleChecker.unsat?(atoms)
           end
         end
 
