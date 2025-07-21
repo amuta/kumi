@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# This script loads the Kumi library and introspects the FunctionRegistry
+# to generate a Markdown reference for the standard function library.
+
+require "bundler/setup"
+require "kumi"
+
+# Helper to format the type information for display.
+def format_type(type)
+  Kumi::Types.type_to_s(type)
+end
+
+# Helper to generate a signature string for a function.
+def generate_signature(name, signature)
+  params = if signature[:arity].negative?
+             # Variadic function (e.g., add, concat)
+             param_type = format_type(signature[:param_types].first || :any)
+             "#{param_type}1, #{param_type}2, ..."
+           else
+             # Fixed arity function
+             signature[:param_types].map.with_index { |type, i| "#{format_type(type)} arg#{i + 1}" }.join(", ")
+           end
+
+  return_type = format_type(signature[:return_type])
+  "`fn(:#{name}, #{params})` → `#{return_type}`"
+end
+
+# Main documentation generation logic.
+def generate_docs
+  output = []
+  output << "# Kumi Standard Function Library Reference"
+  output << "\nKumi provides a rich library of built-in functions for use within `value` and `trait` expressions via `fn(...)`."
+
+  categories = {
+    "Logical Functions" => Kumi::FunctionRegistry.logical_operations,
+    "Comparison Functions" => Kumi::FunctionRegistry.comparison_operators,
+    "Math Functions" => Kumi::FunctionRegistry.math_operations,
+    "String Functions" => Kumi::FunctionRegistry.string_operations,
+    "Collection Functions" => Kumi::FunctionRegistry.collection_operations,
+    "Conditional Functions" => Kumi::FunctionRegistry.conditional_operations,
+    "Type & Hash Functions" => Kumi::FunctionRegistry.type_operations
+  }
+
+  categories.each do |title, functions|
+    output << "\n## #{title}\n"
+    functions.sort.each do |name|
+      signature = Kumi::FunctionRegistry.signature(name)
+      output << "* **`#{name}`**: #{signature[:description]}"
+      output << "  * **Usage**: #{generate_signature(name, signature)}"
+    end
+  end
+
+  output.join("\n")
+end
+
+# Execute the script and print the documentation.
+puts generate_docs

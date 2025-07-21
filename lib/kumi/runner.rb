@@ -13,14 +13,38 @@ module Kumi
       context
     end
 
-    def fetch(key)
+    def fetch(*keys)
       @cache ||= {}
 
-      # Return the cached value if it exists.
-      return @cache[key] if @cache.key?(key)
+      # if only one key is provided, return it directly
 
-      # Otherwise, calculate it, store it in the cache, and then return it.
-      @cache[key] = schema.evaluate_binding(key, context)
+      if keys.length == 1
+        # Return the cached value if it exists.
+        return @cache[key] if @cache.key?(key)
+
+        # Otherwise, calculate it, store it in the cache, and then return it.
+        @cache[key] = schema.evaluate_binding(key, context)
+        @cache[key]
+
+      else
+        cached_keys = keys.select { |k| @cache.key?(k) }
+        not_cached_keys = keys - cached_keys
+
+        values = schema.evaluate(context, *not_cached_keys)
+
+        keys.each do |key|
+          # If the key is already cached, skip it
+          next if @cache.key?(key)
+
+          # Otherwise, store the evaluated value in the cache
+          @cache[key] = values[key]
+        end
+
+        # Return the values for all keys, including cached ones
+        keys.each_with_object({}) do |key, result|
+          result[key] = @cache[key]
+        end
+      end
     end
 
     def explain(key)
