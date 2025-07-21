@@ -33,9 +33,9 @@ class DiscountCalculator
     end
     
     # 2. Define intermediate logic using traits
-    trait :high_risk, input.score, :>, 80
-    trait :premium_customer, input.customer_tier, :==, "premium"
-    trait :eligible, ref(:premium_customer), :&&, input.is_active
+    trait :high_risk, (input.score > 80)
+    trait :premium_customer, (input.customer_tier == "premium")
+    trait :eligible, (ref(:premium_customer) & input.is_active)
     
     # 3. Define values that depend on inputs or other rules
     value :discount_multiplier do
@@ -112,7 +112,7 @@ schema do
   end
   
   # Access declared fields via input.field_name
-  trait :high_score, input.scores, :>, [90.0, 85.0, 95.0]
+  trait :high_score, (fn(:>, input.scores, [90.0, 85.0, 95.0]))
   value :max_score, fn(:max, input.scores)
 end
 ```
@@ -144,7 +144,7 @@ schema do
     }
   end
   
-  trait :valid_user, input.email, :!=, ""
+  trait :valid_user, (input.email != "")
   value :user_count, fn(:size, input.users)
 end
 ```
@@ -177,10 +177,10 @@ class PricingEngine
     end
     
     # Business logic traits
-    trait :bulk_order, input.quantity, :>=, 10
-    trait :premium_customer, input.customer_tier, :in, %w[gold platinum]
-    trait :loyalty_eligible, input.loyalty_points, :>, 1000
-    trait :free_shipping_eligible, ref(:premium_customer), :||, ref(:bulk_order)
+    trait :bulk_order, (input.quantity >= 10)
+    trait :premium_customer, (fn(:in, input.customer_tier, %w[gold platinum]))
+    trait :loyalty_eligible, (input.loyalty_points > 1000)
+    trait :free_shipping_eligible, (ref(:premium_customer) & ref(:bulk_order))
     
     # Pricing calculations
     value :base_total, fn(:multiply, input.base_price, input.quantity)
@@ -260,10 +260,10 @@ lets you catch mistakes early. Common failure scenarios include:
   value :discount
   # => error: "value 'discount' requires an expression or a block at path/to/file.rb:42"
   ```
-- **Invalid operator in a trait**
+- **Invalid expression in a trait**
   ```ruby
-  trait :flagged, input.score, :>>, 100
-  # => error: "unsupported operator `>>` at path/to/file.rb:87"
+  trait :flagged, (input.score >> 100)
+  # => error: "undefined method `>>' for FieldRef at path/to/file.rb:87"
   ```
 
 ### Semantic errors
@@ -281,7 +281,7 @@ lets you catch mistakes early. Common failure scenarios include:
   ```
 - **Unsatisfiable logic**
   ```ruby
-  trait :impossible, fn(:and, input.x > 10, input.x < 5)
+  trait :impossible, ((input.x > 10) & (input.x < 5))
   # => error: "unsatisfiable conditions for `impossible`"
   ```
 

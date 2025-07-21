@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+!! Remember, this gem is not on production yet, so no backward compatilibity is necessary. But do not change the public interfaces (e.g. DSL, Schema) without explicitly requested or demanded. 
+!! We are using zeitwerk, i.e.: no requires
+
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
@@ -102,7 +106,7 @@ schema do
     any     :misc_field
   end
 
-  trait :name, expression    # Boolean conditions
+  trait :name, (expression)  # Boolean conditions with new syntax
   value :name, expression    # Computed values
   value :name do             # Conditional logic
     on condition, result
@@ -115,14 +119,15 @@ end
 - **Required**: All schemas must have an `input` block declaring expected fields
 - **Type Declarations**: Preferred via type-specific methods (e.g. `integer :field`, `string :name`, `any :field` for untyped fields)
 - **Complex Types**: Use helper functions: `array(:element_type)` and `hash(:key_type, :value_type)`
-- **Domain Constraints**: Fields can have domains: `integer :age, domain: 18..65` (declared but not yet validated)
+- **Domain Constraints**: Fields can have domains: `integer :age, domain: 18..65` (validated at runtime)
 - **Field Access**: Use `input.field_name` to reference input fields in expressions
 - **Separation**: Input metadata (types, domains) is separate from business logic
 
 **Expression Types**:
-- `input.field_name` - Access input data (replaces deprecated `key(:field)`)
+- `input.field_name` - Access input data with operator methods (>=, <=, >, <, ==, !=)
 - `ref(:name)` - Reference other declarations
 - `fn(:name, args...)` - Function calls
+- `(expr1) & (expr2)` - Logical AND chaining
 - `[element1, element2]` - Lists
 - Literals (numbers, strings, booleans)
 
@@ -167,6 +172,8 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 7. `lib/kumi/analyzer/passes/type_checker.rb` - Type validation with enhanced error messages
 8. `spec/kumi/input_block_spec.rb` - Input block syntax and behavior
 9. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
+10. `documents/DSL.md` - Concise DSL syntax reference
+11. `documents/AST.md` - AST node types and structure reference
 
 ## Input Block System Details
 
@@ -189,7 +196,7 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 
 ### Domain Constraints
 - Can be declared: `integer :age, domain: 18..65`
-- **Now implemented**: Domain validation is active and enforced at runtime
+- **Implemented**: Domain validation is active and enforced at runtime
 - Supports Range domains (`18..65`), Array domains (`%w[active inactive]`), and Proc domains for custom validation
 - Field metadata includes domain information and runtime validation occurs during `Schema.from()`
 
@@ -206,6 +213,27 @@ input do
 end
 ```
 
+### Trait Syntax Evolution
+
+**Current Syntax** (recommended):
+```ruby
+trait :adult, (input.age >= 18)
+trait :qualified, (input.age >= 21) & (input.score > 80) & (input.verified == true)
+```
+
+**Deprecated Syntax** (with warnings):
+```ruby
+trait :adult, input.age, :>=, 18                    # OLD - shows deprecation warning
+trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation warning
+```
+
+**Key Changes**:
+- New syntax uses parenthesized expressions: `trait :name, (expression)`  
+- FieldRef nodes have operator methods that create CallExpression nodes
+- Logical AND chaining via `&` operator (Ruby limitation prevents `&&`)
+- Only AND operations supported to maintain constraint satisfaction system
+- Old syntax maintained with deprecation warnings for backward compatibility
+
 ## Common Development Tasks
 
 ### Adding New Analyzer Passes
@@ -218,7 +246,9 @@ end
 - All nodes include `Node` module for location tracking
 - Use `spec/support/ast_factory.rb` helpers in tests
 - Field declarations use `FieldDecl` nodes with name, domain, and type
-- Field references use `FieldRef` nodes (from `input.field_name`)
+- Field references use `FieldRef` nodes (from `input.field_name`) with operator methods
+- FieldRef operator methods (>=, <=, >, <, ==, !=) create CallExpression nodes
+- CallExpression `&` method enables logical AND chaining
 
 ### Testing Input Block Features
 - See `spec/kumi/input_block_spec.rb` for comprehensive input block tests
