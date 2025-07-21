@@ -35,7 +35,10 @@ class DiscountCalculator
     # 2. Define intermediate logic using traits
     trait :high_risk, (input.score > 80)
     trait :premium_customer, (input.customer_tier == "premium")
-    trait :eligible, (ref(:premium_customer) & input.is_active)
+    trait :active_user, (input.is_active == true)
+    
+    # Compose traits using bare identifier syntax
+    trait :eligible, premium_customer & active_user
     
     # 3. Define values that depend on inputs or other rules
     value :discount_multiplier do
@@ -180,7 +183,7 @@ class PricingEngine
     trait :bulk_order, (input.quantity >= 10)
     trait :premium_customer, (fn(:in, input.customer_tier, %w[gold platinum]))
     trait :loyalty_eligible, (input.loyalty_points > 1000)
-    trait :free_shipping_eligible, (ref(:premium_customer) & ref(:bulk_order))
+    trait :free_shipping_eligible, bulk_order & premium_customer & loyalty_eligible
     
     # Pricing calculations
     value :base_total, fn(:multiply, input.base_price, input.quantity)

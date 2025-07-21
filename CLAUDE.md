@@ -221,6 +221,21 @@ trait :adult, (input.age >= 18)
 trait :qualified, (input.age >= 21) & (input.score > 80) & (input.verified == true)
 ```
 
+**Composite Trait Syntax** (NEW - bare identifier references):
+```ruby
+# Base traits
+trait :adult, (input.age >= 18)
+trait :verified, (input.verified == true)
+trait :high_score, (input.score > 80)
+
+# Composite traits using bare identifier syntax
+trait :eligible, adult & verified & high_score
+trait :mixed, adult & (input.income > 50_000) & verified
+
+# Backward compatibility - both syntaxes work together
+trait :legacy_mix, adult & ref(:verified) & (input.score > 90)
+```
+
 **Deprecated Syntax** (with warnings):
 ```ruby
 trait :adult, input.age, :>=, 18                    # OLD - shows deprecation warning
@@ -228,10 +243,12 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 ```
 
 **Key Changes**:
+- **NEW**: Bare identifier syntax allows direct trait reference: `adult` instead of `ref(:adult)`
 - New syntax uses parenthesized expressions: `trait :name, (expression)`  
 - FieldRef nodes have operator methods that create CallExpression nodes
 - Logical AND chaining via `&` operator (Ruby limitation prevents `&&`)
 - Only AND operations supported to maintain constraint satisfaction system
+- **Backward Compatible**: Both `trait_name` and `ref(:trait_name)` work together
 - Old syntax maintained with deprecation warnings for backward compatibility
 
 ## Common Development Tasks

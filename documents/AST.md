@@ -39,9 +39,12 @@ FieldRef = Struct.new(:name)
 # Has operator methods: >=, <=, >, <, ==, != that create CallExpression nodes
 ```
 
-**Binding**: References to other declarations (`ref(:name)`)
+**Binding**: References to other declarations
 ```ruby
 Binding = Struct.new(:name)
+# Created by: ref(:name) OR bare identifier (trait_name) in composite traits
+# DSL: ref(:adult) → Binding(:adult)
+# DSL: adult & verified → CallExpression(:and, [Binding(:adult), Binding(:verified)])
 ```
 
 **Literal**: Constants (`18`, `"text"`, `true`) 
@@ -97,5 +100,27 @@ CallExpression(:>=, [FieldRef(:age), Literal(18)])
 CallExpression(:and, [
   CallExpression(:>=, [FieldRef(:age), Literal(21)]),
   CallExpression(:==, [FieldRef(:verified), Literal(true)])
+])
+```
+
+**Composite Trait**: `adult & verified & high_income`
+```
+CallExpression(:and, [
+  CallExpression(:and, [
+    Binding(:adult),
+    Binding(:verified)
+  ]),
+  Binding(:high_income)
+])
+```
+
+**Mixed Composition**: `adult & (input.score > 80) & verified`
+```
+CallExpression(:and, [
+  CallExpression(:and, [
+    Binding(:adult),
+    CallExpression(:>, [FieldRef(:score), Literal(80)])
+  ]),
+  Binding(:verified)
 ])
 ```

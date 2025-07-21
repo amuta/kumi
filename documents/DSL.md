@@ -39,6 +39,18 @@ trait :adult, (input.age >= 18)
 trait :qualified, (input.age >= 21) & (input.score > 80) & (input.verified == true)
 ```
 
+**Composite trait syntax** (NEW):
+```ruby
+# Base traits
+trait :adult, (input.age >= 18)
+trait :verified, (input.verified == true) 
+trait :high_score, (input.score > 80)
+
+# Composite traits using bare identifier syntax
+trait :eligible, adult & verified & high_score
+trait :mixed, adult & (input.income > 50_000) & verified
+```
+
 **Keyword syntax**:
 ```ruby  
 trait adult: (input.age >= 18), qualified: (input.score > 80)
@@ -72,7 +84,9 @@ end
 
 **Functions**: `fn(:name, arg1, arg2)` → `CallExpression(:name, [arg1, arg2])`
 
-**References**: `ref(:trait_name)` → `Binding` node
+**References**: 
+- `ref(:trait_name)` → `Binding` node (traditional)
+- `trait_name` → `Binding` node (bare identifier, NEW)
 
 **Literals**: `18`, `"text"`, `true`, `[1,2,3]` → `Literal` or `ListExpression` nodes
 
