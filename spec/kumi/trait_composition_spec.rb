@@ -168,7 +168,7 @@ RSpec.describe "Trait Composition" do
 
       data = { age: 30, income: 60_000 }
       runner = schema_class.from(data)
-      high_earner
+
       expect(runner.fetch(:eligible)).to be true
       expect(runner.fetch(:status)).to eq "qualified"
     end

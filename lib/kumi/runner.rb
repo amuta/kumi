@@ -19,6 +19,7 @@ module Kumi
       # if only one key is provided, return it directly
 
       if keys.length == 1
+        key = keys.first
         # Return the cached value if it exists.
         return @cache[key] if @cache.key?(key)
 
