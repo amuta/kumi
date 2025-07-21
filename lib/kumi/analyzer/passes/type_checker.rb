@@ -17,17 +17,18 @@ module Kumi
         private
 
         def validate_function_call(node, errors)
-          signature = get_function_signature(node.fn_name, errors)
+          signature = get_function_signature(node, errors)
           return unless signature
 
           validate_arity(node, signature, errors)
           validate_argument_types(node, signature, errors)
         end
 
-        def get_function_signature(fn_name, errors)
-          FunctionRegistry.signature(fn_name)
+        def get_function_signature(node, errors)
+          FunctionRegistry.signature(node.fn_name)
         rescue FunctionRegistry::UnknownFunction
-          add_error(errors, nil, "unsupported operator `#{fn_name}`")
+          # Use old format for backward compatibility, but node.loc provides better location
+          report_error(errors, "unsupported operator `#{node.fn_name}`", location: node.loc, type: :type)
           nil
         end
 
@@ -37,8 +38,8 @@ module Kumi
 
           return if expected_arity.negative? || expected_arity == actual_arity
 
-          add_error(errors, node.loc,
-                    "operator `#{node.fn_name}` expects #{expected_arity} args, got #{actual_arity}")
+          report_error(errors, "operator `#{node.fn_name}` expects #{expected_arity} args, got #{actual_arity}", location: node.loc,
+                                                                                                                 type: :type)
         end
 
         def validate_argument_types(node, signature, errors)
@@ -59,9 +60,8 @@ module Kumi
 
           # Generate descriptive error message
           source_desc = describe_expression_type(arg, actual_type)
-          add_error(errors, arg.loc,
-                    "argument #{index + 1} of `fn(:#{fn_name})` expects #{expected_type}, " \
-                    "got #{source_desc}")
+          report_error(errors, "argument #{index + 1} of `fn(:#{fn_name})` expects #{expected_type}, " \
+                               "got #{source_desc}", location: arg.loc, type: :type)
         end
 
         def get_expression_type(expr)

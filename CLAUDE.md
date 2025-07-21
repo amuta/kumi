@@ -181,6 +181,7 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 ### Required Input Blocks
 - **All schemas must have an input block** - This is now mandatory
 - Input blocks declare expected fields with optional type and domain constraints
+- **Empty input blocks are allowed** - Use `input {}` for schemas that don't require external data
 - Fields are accessed via `input.field_name` syntax (replaces deprecated `key(:field)`)
 
 ### Type System Integration
@@ -284,6 +285,7 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 - **Separation of Concerns**: Input metadata (types, domains) separated from business logic
 - **Class Decomposition**: Large classes split into focused, single-responsibility components following RuboCop guidelines
 - **Delegation Pattern**: Complex operations delegated to specialized analyzer and formatter classes
+- **Unified Error Reporting**: Consistent, localized error messages throughout the system with clear interface patterns
 
 ## Code Organization Patterns
 
@@ -303,5 +305,62 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 - **Class Length**: Break classes over 100 lines into focused components
 - **Complexity Metrics**: Reduce cyclomatic and ABC complexity through single-responsibility design
 - **Style Consistency**: Follow Ruby style guidelines for readability and maintainability
+
+### Error Reporting Architecture
+- **Unified Interface**: Use `ErrorReporter` module and `ErrorReporting` mixin for consistent error handling
+- **Location Information**: All errors must include proper file:line:column location data
+- **Backward Compatibility**: Support both legacy `[location, message]` and new `ErrorEntry` formats
+- **Type Categorization**: Errors categorized as `:syntax`, `:semantic`, `:type`, `:runtime`
+- **Enhanced Messaging**: Support for error suggestions, context, and similar name detection
+
+## Development Guides and Standards
+
+### Error Reporting Standards
+**For Parser Classes**:
+```ruby
+class MyParser
+  include ErrorReporting
+  
+  def parse_something
+    # Immediate error raising
+    raise_syntax_error("Invalid syntax", location: current_location)
+  end
+end
+```
+
+**For Analyzer Passes**:
+```ruby
+class MyAnalyzerPass < PassBase
+  def run(errors)
+    # Error accumulation with enhanced location
+    report_error(errors, "semantic error", location: node.loc, type: :semantic)
+    
+    # Backward compatible method
+    add_error(errors, node.loc, "legacy format error")
+  end
+end
+```
+
+**Location Resolution Best Practices**:
+- Always provide location information when available
+- For complex errors (cycles, cross-references), find relevant AST nodes for location
+- Use symbolic locations (`:cycle`, `:type_mismatch`) as fallback when no AST location available
+- Prefer `node.loc` over `nil` for location parameter
+
+### Testing Error Scenarios
+- Use `spec/integration/dsl_breakage_spec.rb` patterns for comprehensive error testing
+- Use `spec/integration/potential_breakage_spec.rb` for edge cases that should break but might not
+- Verify error location precision with `spec/integration/error_location_spec.rb` patterns
+- Test backward compatibility with existing analyzer pass specs
+
+### Key Development Files
+12. `lib/kumi/error_reporter.rb` - Central error reporting functionality
+13. `lib/kumi/error_reporting.rb` - Mixin for consistent error interfaces  
+14. `ERROR_REPORTING_INTERFACE.md` - Detailed error reporting implementation guide
+15. `ON_ERRORS.md` - Comprehensive analysis of DSL breakage scenarios and error quality
+16. `spec/integration/dsl_breakage_spec.rb` - Integration tests for all DSL breakage scenarios
+17. `spec/integration/potential_breakage_spec.rb` - Edge cases that should break but might not
+18. `docs/development/README.md` - Development guides directory index
+19. `docs/development/error-reporting.md` - Comprehensive error reporting standards and patterns
 
 # 

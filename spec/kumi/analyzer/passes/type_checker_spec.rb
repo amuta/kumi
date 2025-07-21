@@ -23,7 +23,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
 
       it "records an arity error" do
         run(schema)
-        expect(errors.first.last).to match(/expects 2 args, got 1/)
+        expect(errors.first.message).to match(/expects 2 args, got 1/)
       end
     end
 
@@ -37,7 +37,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
 
       it "records a type error for the mismatched argument" do
         run(schema)
-        expect(errors.first.last).to match(/argument 2 of `fn(:>)` expects int | float, got `test` of type string/)
+        expect(errors.first.message).to match(/argument 2 of `fn(:>)` expects int | float, got `test` of type string/)
       end
     end
 
@@ -61,7 +61,7 @@ RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
 
       it "records an unsupported operator error" do
         run(schema)
-        expect(errors.first.last).to match(/unsupported operator `unknown_function`/)
+        expect(errors.first.message).to match(/unsupported operator `unknown_function`/)
       end
     end
   end

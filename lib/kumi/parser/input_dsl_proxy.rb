@@ -39,6 +39,10 @@ module Kumi
         @context.inputs << FieldDecl.new(name, domain, :boolean, loc: @context.current_location)
       end
 
+      def any(name, domain: nil)
+        @context.inputs << FieldDecl.new(name, domain, :any, loc: @context.current_location)
+      end
+
       def array(name_or_elem_type, **kwargs)
         # Check if any keyword arguments were provided
         if kwargs.any?
@@ -94,7 +98,7 @@ module Kumi
       end
 
       def method_missing(method_name, *_args)
-        allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'array', and 'hash'"
+        allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'array', and 'hash'"
         @context.raise_error("Unknown method '#{method_name}' in input block. Only #{allowed_methods} are allowed.",
                              @context.current_location)
       end

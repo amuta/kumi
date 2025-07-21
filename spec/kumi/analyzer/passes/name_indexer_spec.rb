@@ -48,7 +48,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
         described_class.new(schema, state).run(errors)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/duplicated definition `dup`/)
+        expect(errors.first.message).to match(/duplicated definition `dup`/)
       end
     end
 

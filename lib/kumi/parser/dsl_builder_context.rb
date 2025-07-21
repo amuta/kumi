@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "input_dsl_proxy"
-require_relative "input_proxy"
-
 module Kumi
   module Parser
     class DslBuilderContext
@@ -10,6 +7,7 @@ module Kumi
       attr_reader :inputs, :attributes, :traits, :functions
 
       include Syntax
+      include ErrorReporting
 
       def initialize
         @inputs     = []
@@ -18,8 +16,11 @@ module Kumi
         @functions  = []
       end
 
-      def value(name, expr = nil, &blk)
+      def value(name = nil, expr = nil, &blk)
         loc = current_location
+
+        raise_error("value requires a name as first argument", loc) if name.nil?
+
         validate_name(name, :value, loc)
 
         has_expr = !expr.nil?
@@ -55,6 +56,11 @@ module Kumi
 
         # Handle positional arguments
         case args.size
+        when 0
+          raise_error("trait requires a name and expression", current_location)
+        when 1
+          name = args.first
+          raise_error("trait '#{name}' requires an expression", current_location)
         when 2
           # NEW CLEAN SYNTAX: trait :name, (expression)
           name, expression = args
@@ -125,7 +131,8 @@ module Kumi
       end
 
       def raise_error(message, location)
-        raise Errors::SyntaxError, "at #{location.file}:#{location.line}: #{message}"
+        # Use the new error reporting interface
+        raise_syntax_error(message, location: location)
       end
 
       def validate_name(name, type, location)

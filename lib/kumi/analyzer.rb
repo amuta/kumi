@@ -24,7 +24,16 @@ module Kumi
 
       passes.each { |klass| klass.new(schema, analysis_state).run(errors) }
 
-      raise Errors::SemanticError, format(errors) unless errors.empty?
+      unless errors.empty?
+        # Check if we have type-specific errors to raise more specific exception
+        type_errors = errors.select { |e| e.type == :type }
+        first_error_location = errors.first.location
+
+        raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
+
+        raise Errors::SemanticError.new(format_errors(errors), first_error_location)
+
+      end
 
       Result.new(
         definitions: analysis_state[:definitions].freeze,
@@ -36,6 +45,11 @@ module Kumi
       )
     end
 
-    def format(errs) = errs.map { |loc, msg| "at #{loc || '?'}: #{msg}" }.join("\n")
+    # Handle both old and new error formats for backward compatibility
+    def format_errors(errors)
+      return "" if errors.empty?
+
+      errors.map(&:to_s).join("\n")
+    end
   end
 end

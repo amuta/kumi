@@ -70,14 +70,14 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
       pass_instance.send(:add_error, errors, location, message)
 
       expect(errors.size).to eq(1)
-      expect(errors.first).to eq([location, message])
+      expect(errors.first.message).to eq(message)
     end
 
     it "handles nil location" do
       pass_instance.send(:add_error, errors, nil, message)
 
       expect(errors.size).to eq(1)
-      expect(errors.first).to eq([nil, message])
+      expect(errors.first.message).to eq(message)
     end
   end
 
@@ -130,7 +130,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
 
       # Check that each_decl and add_error worked
       expect(errors.size).to eq(2)
-      expect(errors.map(&:last)).to contain_exactly(
+      expect(errors.map(&:message)).to contain_exactly(
         "test error for attr1",
         "test error for trait1"
       )

@@ -212,7 +212,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       expect(state[:visitor_test]).to be true
       expect(state[:literal_count]).to be > 0
       expect(errors.size).to eq(1)
-      expect(errors.first.last).to eq("test error from visitor pass")
+      expect(errors.first.message).to eq("test error from visitor pass")
     end
   end
 end

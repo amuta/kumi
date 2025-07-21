@@ -41,7 +41,21 @@ module Kumi
 
         def report_cycle(cycle_path, errors)
           cycle_description = cycle_path.join(" → ")
-          add_error(errors, nil, "cycle detected: #{cycle_description}")
+
+          # Try to find the first declaration in the cycle for location info
+          # This provides better location information when schema is available
+          first_decl = find_declaration_by_name(cycle_path.first)
+          location = first_decl&.loc
+
+          # Use old format for backward compatibility with existing tests
+          add_error(errors, location, "cycle detected: #{cycle_description}")
+        end
+
+        def find_declaration_by_name(name)
+          return nil unless schema
+
+          schema.attributes.find { |attr| attr.name == name } ||
+            schema.traits.find { |trait| trait.name == name }
         end
       end
     end

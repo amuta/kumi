@@ -115,7 +115,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
         run(schema)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/undefined reference to `nonexistent`/)
+        expect(errors.first.message).to match(/undefined reference to `nonexistent`/)
 
         # Still builds edges for valid references
         graph = state[:dependency_graph]

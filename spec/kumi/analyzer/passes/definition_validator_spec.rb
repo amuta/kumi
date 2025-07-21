@@ -50,7 +50,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         run(schema)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/attribute `broken` requires an expression/)
+        expect(errors.first.message).to match(/attribute `broken` requires an expression/)
       end
     end
 
@@ -65,7 +65,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         run(schema)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
+        expect(errors.first.message).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
     end
 
@@ -80,7 +80,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         run(schema)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
+        expect(errors.first.message).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
     end
 
@@ -95,7 +95,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
         run(schema)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.last).to match(/trait `bad_trait` must wrap a CallExpression/)
+        expect(errors.first.message).to match(/trait `bad_trait` must wrap a CallExpression/)
       end
     end
 
@@ -113,7 +113,7 @@ RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
 
         expect(errors.size).to eq(3)
 
-        error_messages = errors.map(&:last)
+        error_messages = errors.map(&:message)
         expect(error_messages).to include(match(/attribute `broken_attr` requires an expression/))
         expect(error_messages).to include(match(/trait `broken_trait` must wrap a CallExpression/))
         expect(error_messages).to include(match(/trait `another_broken` must wrap a CallExpression/))

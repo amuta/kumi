@@ -7,6 +7,7 @@ module Kumi
       # and enforcing consistent interface patterns.
       class PassBase
         include Kumi::Syntax
+        include Kumi::ErrorReporting
 
         # @param schema [Syntax::Root] The schema to analyze
         # @param state [Hash] Shared analysis state accumulator
@@ -33,12 +34,13 @@ module Kumi
           schema.traits.each(&block)
         end
 
+        # DEPRECATED: Use report_error instead for consistent error handling
         # Helper to add standardized error messages
         # @param errors [Array] Error accumulator
         # @param location [Syntax::Location] Error location
         # @param message [String] Error message
         def add_error(errors, location, message)
-          errors << [location, message]
+          errors << ErrorReporter.create_error(message, location: location, type: :semantic)
         end
 
         # Helper to get required state from previous passes
