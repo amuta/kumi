@@ -20,6 +20,8 @@ module Kumi
             TerminalExpressions::Literal.new(obj)
           when Syntax::Node
             obj
+          when Kumi::Parser::DslBuilderContext::ComposableTraitRef
+            obj.to_ast_node
           else
             TerminalExpressions::Literal.new(obj)
           end

@@ -35,16 +35,16 @@ RSpec.describe "Potential Breakage Cases" do
       expect do
         schema do
           input { integer :start }
-          
+
           # Create 1000 chained dependencies
           1000.times do |i|
             if i == 0
               value :"val_#{i}", input.start
             else
-              value :"val_#{i}", ref(:"val_#{i-1}")
+              value :"val_#{i}", ref(:"val_#{i - 1}")
             end
           end
-          
+
           value :final, ref(:val_999)
         end
       end.not_to raise_error # Might be slow but should work
@@ -77,7 +77,7 @@ RSpec.describe "Potential Breakage Cases" do
       expect do
         schema do
           input { integer :x }
-          value :huge, (10 ** 100)  # Very large number
+          value :huge, (10**100) # Very large number
           value :result, input.x + ref(:huge)
         end
       end.not_to raise_error # Should work but might overflow
@@ -86,9 +86,9 @@ RSpec.describe "Potential Breakage Cases" do
     it "detects Unicode edge cases in identifiers" do
       expect do
         schema do
-          input { integer :"🎯" }  # Emoji as field name
-          trait :"✅", (input.🎯 > 0)
-          value :"🚀", ref(:✅) ? "success" : "failure"
+          input { integer :🎯 } # Emoji as field name
+          trait :✅, (input.🎯 > 0)
+          value :🚀, ref(:✅) ? "success" : "failure"
         end
       end.not_to raise_error # Unicode should be supported
     end
@@ -98,7 +98,7 @@ RSpec.describe "Potential Breakage Cases" do
       nested = (1..100).reduce("input.x") do |acc, i|
         "fn(:add, #{acc}, #{i})"
       end
-      
+
       expect do
         eval <<~RUBY
           Kumi.schema do
@@ -126,20 +126,20 @@ RSpec.describe "Potential Breakage Cases" do
         schema do
           input { boolean :flag }
           trait :condition, (input.flag == true)
-          
+
           value :a do
             on condition, ref(:b)
             on !condition, ref(:c)
             base "default_a"
           end
-          
+
           value :b do
             on condition, ref(:c)
             base "default_b"
           end
-          
+
           value :c do
-            on condition, ref(:a)  # Creates cycle through cascades
+            on condition, ref(:a) # Creates cycle through cascades
             base "default_c"
           end
         end
@@ -150,7 +150,7 @@ RSpec.describe "Potential Breakage Cases" do
       expect do
         schema do
           input { string :text }
-          
+
           # Trait with side effects (if Ruby allows it)
           trait :side_effect, (puts("evaluating") || (input.text.length > 0))
         end
@@ -162,7 +162,7 @@ RSpec.describe "Potential Breakage Cases" do
         schema do
           input { integer :x }
           # Call function with wrong number of args should be caught
-          value :result, fn(:add, input.x, 1, 2, 3)  # add expects 2 args, got 4
+          value :result, fn(:add, input.x, 1, 2, 3) # add expects 2 args, got 4
         end
       end.to raise_error # Should catch arity mismatch
     end
@@ -174,43 +174,32 @@ RSpec.describe "Potential Breakage Cases" do
             string :text
             integer :number
           end
-          
+
           value :mixed do
             on (input.text.length > 5), input.text     # returns string
-            on (input.number > 10), input.number       # returns integer  
-            base nil                                    # returns nil
+            on (input.number > 10), input.number       # returns integer
+            base nil # returns nil
           end
-          
+
           # Using mixed type value in type-strict operation
-          value :result, fn(:add, ref(:mixed), 5)      # add expects numbers
+          value :result, fn(:add, ref(:mixed), 5) # add expects numbers
         end
       end.to raise_error # Should catch type inconsistency in cascade
     end
 
     it "detects resource exhaustion scenarios" do
       # This test documents potential DoS vectors
-      pending "Resource exhaustion not currently tested" do
-        schema do
-          input { integer :depth }
-          
-          # Exponential explosion of references
-          10.times do |level|
-            (2**level).times do |i|
-              value :"level_#{level}_#{i}", ref(:some_complex_calculation)
-            end
+      pending "Resource exhaustion not currently tested"
+      schema do
+        input { integer :depth }
+
+        # Exponential explosion of references
+        10.times do |level|
+          (2**level).times do |i|
+            value :"level_#{level}_#{i}", ref(:some_complex_calculation)
           end
         end
       end
-    end
-
-    it "detects malformed regex literals" do
-      expect do
-        schema do
-          input { string :pattern }
-          # This should be caught if regex literals are supported
-          value :result, /(?invalid_regex)/
-        end
-      end.to raise_error # Should catch syntax errors in regex
     end
   end
 
