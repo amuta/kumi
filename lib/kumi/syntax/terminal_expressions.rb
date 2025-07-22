@@ -15,7 +15,6 @@ module Kumi
       # For field usage/reference in expressions (input.field_name)
       FieldRef = Struct.new(:name) do
         include Node
-        include Syntax::Expressions
         def children = []
       end
 

@@ -28,7 +28,9 @@ module Kumi
 
       def self.math_binary(_name, description, operation, return_type: :float)
         Entry.new(
-          fn: ->(a, b) { a.public_send(operation, b) },
+          fn: lambda { |a, b|
+            a.public_send(operation, b)
+          },
           arity: 2,
           param_types: %i[float float],
           return_type: return_type,

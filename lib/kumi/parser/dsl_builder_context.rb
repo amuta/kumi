@@ -151,7 +151,7 @@ module Kumi
       def method_missing(method_name, *args, &block)
         if args.empty? && !block_given?
           # Return a composable trait reference instead of a plain Binding
-          ComposableTraitRef.new(method_name, self)
+          Binding.new(method_name, loc: current_location)
         else
           super
         end
@@ -162,62 +162,6 @@ module Kumi
       end
 
       # Composable wrapper for trait references that supports & operator and all Sugar operators
-      class ComposableTraitRef
-        def initialize(name, context)
-          @name = name
-          @context = context
-        end
-
-        def &(other)
-          # Create an AND expression between this trait and another
-          left = @context.ref(@name)
-          right = case other
-                  when ComposableTraitRef
-                    @context.ref(other.name)
-                  when Syntax::Node
-                    other
-                  else
-                    @context.ensure_syntax(other, @context.current_location)
-                  end
-          Syntax::Expressions::CallExpression.new(:and, [left, right], loc: @context.current_location)
-        end
-
-        # Arithmetic operators - delegate to underlying Binding via Sugar refinements
-        %i[+ - * / % **].each do |op|
-          define_method(op) do |other|
-            binding_node = @context.ref(@name)
-            binding_node.public_send(op, other)
-          end
-        end
-
-        # Comparison operators - delegate to underlying Binding via Sugar refinements
-        %i[< <= > >= == !=].each do |op|
-          define_method(op) do |other|
-            binding_node = @context.ref(@name)
-            binding_node.public_send(op, other)
-          end
-        end
-
-        # Indexing operator
-        def [](index)
-          binding_node = @context.ref(@name)
-          binding_node[index]
-        end
-
-        # Unary minus
-        def -@
-          binding_node = @context.ref(@name)
-          -binding_node
-        end
-
-        def to_ast_node
-          @context.ref(@name)
-        end
-
-        protected
-
-        attr_reader :name
-      end
 
       def ensure_syntax(obj, location)
         case obj
@@ -225,8 +169,6 @@ module Kumi
         when Symbol then literal(obj)
         when Array then ListExpression.new(obj.map { |e| ensure_syntax(e, location) })
         when Syntax::Node then obj
-        when ComposableTraitRef then obj.to_ast_node
-        when SugarFieldRef then obj.to_ast_node
         else
           # Check if it's an ExpressionWrapper or similar (without calling respond_to_missing?)
           if obj.class.instance_methods.include?(:to_ast_node)
@@ -239,12 +181,9 @@ module Kumi
 
       private
 
-      # def current_location
-      #   Kumi.current_location
-      # end
-
       def build_cascade(loc, &blk)
         cascade_builder = DslCascadeBuilder.new(self, loc)
+
         cascade_builder.instance_eval(&blk)
 
         CascadeExpression.new(cascade_builder.cases, loc: loc)

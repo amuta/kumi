@@ -520,7 +520,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
     it "provides helpful error messages with location information" do
       schema do
         input { integer :age }
-        trait :invalid, (input.nonexistent_field > 0)
+        trait :invalid, fn(:>, input.nonexistent_field, 0)
       end
     rescue Kumi::Errors::SemanticError => e
       expect(e.message).to include("nonexistent_field")

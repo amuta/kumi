@@ -6,28 +6,7 @@ module Kumi
       CallExpression = Struct.new(:fn_name, :args) do
         include Node
         def children = args
-
-        # Logical AND operator for chaining expressions
-        def &(other)
-          CallExpression.new(:and, [self, ensure_node(other)])
-        end
-
-        private
-
-        def ensure_node(obj)
-          case obj
-          when Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp
-            TerminalExpressions::Literal.new(obj)
-          when Syntax::Node
-            obj
-          when Kumi::Parser::DslBuilderContext::ComposableTraitRef
-            obj.to_ast_node
-          else
-            TerminalExpressions::Literal.new(obj)
-          end
-        end
       end
-
       CascadeExpression = Struct.new(:cases) do
         include Node
         def children = cases

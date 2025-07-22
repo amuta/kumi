@@ -3,7 +3,7 @@
 # This file registers test schemas at top-level where refinements work
 # These schemas use the new Sugar syntax and can be tested via SugarTestHelper
 
-require_relative 'sugar_test_helper'
+require_relative "sugar_test_helper"
 
 # Arithmetic operations schema
 SugarTestHelper.register_schema(:arithmetic, Kumi.schema do
@@ -19,7 +19,7 @@ SugarTestHelper.register_schema(:arithmetic, Kumi.schema do
   value :product, input.x * input.y
   value :quotient, input.a / input.b
   value :modulo, input.x % input.y
-  value :power, input.x ** input.y
+  value :power, input.x**input.y
   value :unary_minus, -input.a
 end)
 
@@ -49,8 +49,8 @@ SugarTestHelper.register_schema(:literal_lifting, Kumi.schema do
   # Integer literals on left side
   value :int_plus, 5 + input.count
   value :int_multiply, 3 * input.count
-  
-  # Float literals on left side  
+
+  # Float literals on left side
   value :float_plus, 5.5 + input.value
   value :float_multiply, 2.5 * input.value
 
@@ -81,7 +81,7 @@ SugarTestHelper.register_schema(:bare_identifiers, Kumi.schema do
   value :second_score, scores[1]
 
   # Bare identifier comparisons
-  trait :high_income, base_income >= 50000.0
+  trait :high_income, base_income >= 50_000.0
   trait :adult, person_age >= 18
 
   # Bare identifier logical operations
@@ -111,9 +111,9 @@ SugarTestHelper.register_schema(:mixed_chaining, Kumi.schema do
   # Chained arithmetic with mixed literals and expressions
   value :bonus_amount, input.base_salary * (input.bonus_percent / 100.0)
   value :total_salary, input.base_salary + ref(:bonus_amount)
-  
+
   # Chained comparisons
-  trait :well_paid, ref(:total_salary) >= 80000.0
+  trait :well_paid, ref(:total_salary) >= 80_000.0
   trait :experienced, input.years_experience > 5
   trait :senior_well_paid, well_paid & experienced
 end)

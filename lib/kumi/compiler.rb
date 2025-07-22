@@ -96,13 +96,6 @@ module Kumi
       send(method, expr)
     end
 
-    # def compile_expr(expr)
-    #   method = DISPATCH.fetch(expr.class) do
-    #     raise("Unsupported expression node: \#{expr.class}")
-    #   end
-    #   send(method, expr)
-    # end
-
     # Existing helpers unchanged
     def compile_field(node)
       name = node.name

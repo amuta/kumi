@@ -2,35 +2,35 @@
 
 require "spec_helper"
 
-RSpec.describe "Trait Composition" do
-  describe "bare identifier composition with & operator" do
-    let(:schema_class) do
-      Class.new do
-        extend Kumi::Schema
+# This needs to be define outside of the context block - because we intercept
+# operators and ruby does not allow to redefine operators outside a Module context
+schema_class = Class.new do
+  extend Kumi::Schema
 
-        schema do
-          input do
-            integer :age
-            integer :account_balance
-            boolean :verified
-          end
-
-          trait :adult, input.age, :>=, 18
-          trait :ancient, input.age, :>=, 65
-          trait :wealthy, input.account_balance, :>, 100_000
-
-          # Test various composition patterns
-          trait :rich_ancient, adult & ancient & ref(:wealthy)
-          trait :verified_adult, adult & ref(:verified_check)
-          trait :simple_combo, adult & wealthy
-          trait :complex_mix, ancient & wealthy & ref(:verified_check)
-
-          # Helper for verification check
-          trait :verified_check, input.verified, :==, true
-        end
-      end
+  schema do
+    input do
+      integer :age
+      integer :account_balance
+      boolean :verified
     end
 
+    trait :adult, input.age, :>=, 18
+    trait :ancient, input.age, :>=, 65
+    trait :wealthy, input.account_balance, :>, 100_000
+
+    # Test various composition patterns
+    trait :rich_ancient, adult & ancient & ref(:wealthy)
+    trait :verified_adult, adult & ref(:verified_check)
+    trait :simple_combo, adult & wealthy
+    trait :complex_mix, ancient & wealthy & ref(:verified_check)
+
+    # Helper for verification check
+    trait :verified_check, input.verified, :==, true
+  end
+end
+
+RSpec.describe "Trait Composition" do
+  describe "bare identifier composition with & operator" do
     context "with rich ancient person" do
       let(:data) { { age: 70, account_balance: 150_000, verified: true } }
       let(:runner) { schema_class.from(data) }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../support/error_inspector"
-
 RSpec.describe "Potential Breakage Cases" do
   describe "Cases that should break but might not be caught" do
     it "detects completely empty schemas (no input, no values, no traits)" do
@@ -77,8 +75,8 @@ RSpec.describe "Potential Breakage Cases" do
       expect do
         schema do
           input { integer :x }
-          value :huge, (10**100) # Very large number
-          value :result, input.x + ref(:huge)
+          value :huge, fn(:multiply, input.x, 1_000_000) # Very large number
+          value :result, fn(:add, input.x, ref(:huge))
         end
       end.not_to raise_error # Should work but might overflow
     end
@@ -87,7 +85,7 @@ RSpec.describe "Potential Breakage Cases" do
       expect do
         schema do
           input { integer :🎯 } # Emoji as field name
-          trait :✅, (input.🎯 > 0)
+          trait :✅, fn(:>, input.🎯, 0) # No sugar for declared schema inside spec
           value :🚀, ref(:✅) ? "success" : "failure"
         end
       end.not_to raise_error # Unicode should be supported

@@ -23,7 +23,7 @@ module Kumi
       def on(*args)
         # Capture the caller location for precise error reporting
         c = caller_locations(1, 1).first
-        on_loc = Syntax::Location.new(file: c.path, line: c.lineno, column: 0)
+        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
 
         @context.raise_error("cascade 'on' requires at least one trait name", on_loc) if args.empty?
 
@@ -40,7 +40,7 @@ module Kumi
       def on_any(*args)
         # Capture the caller location for precise error reporting
         c = caller_locations(1, 1).first
-        on_loc = Syntax::Location.new(file: c.path, line: c.lineno, column: 0)
+        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
 
         @context.raise_error("cascade 'on_any' requires at least one trait name", on_loc) if args.empty?
 
@@ -57,7 +57,7 @@ module Kumi
       def on_none(*args)
         # Capture the caller location for precise error reporting
         c = caller_locations(1, 1).first
-        on_loc = Syntax::Location.new(file: c.path, line: c.lineno, column: 0)
+        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
 
         @context.raise_error("cascade 'on_none' requires at least one trait name", on_loc) if args.empty?
 
