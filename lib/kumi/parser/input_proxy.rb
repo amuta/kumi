@@ -12,7 +12,7 @@ module Kumi
 
       private
 
-      def method_missing(method_name, *args, &block)
+      def method_missing(method_name, *_args)
         # Create a FieldRef node for the given method name
         FieldRef.new(method_name, loc: @context.current_location)
       end

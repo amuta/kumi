@@ -3,103 +3,63 @@
 module Kumi
   module Parser
     module Sugar
-      # Module that can be directly included to add operator overloads
-      module ExpressionOperators
-        include Syntax
+      include Syntax
 
-        ARITHMETIC_OPS = { :+ => :add, :- => :subtract, :* => :multiply,
-                           :/ => :divide, :% => :modulo, :** => :power }.freeze
-        COMPARISON_OPS = %i[< <= > >= == !=].freeze
+      ARITHMETIC_OPS = { :+ => :add, :- => :subtract, :* => :multiply,
+                         :/ => :divide, :% => :modulo, :** => :power }.freeze
+      COMPARISON_OPS = %i[< <= > >= == !=].freeze
+      LITERAL_TYPES = [Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp].freeze
 
-        # Special handling for + operator to choose between add and concat for obvious string cases
-        # Handle other arithmetic operators normally
-        ARITHMETIC_OPS.each do |op, op_name|
-          define_method(op) do |other|
-            # Ensure both self and other are unwrapped to pure AST nodes
-            self_node = respond_to?(:to_ast_node) ? to_ast_node : self
-            other_node = ensure_literal(other)
-            CallExpression.new(op_name, [self_node, other_node])
-          end
-        end
+      def self.ensure_literal(obj)
+        return Literal.new(obj) if LITERAL_TYPES.any? { |type| obj.is_a?(type) }
+        return obj if obj.is_a?(Syntax::Node)
+        return obj.to_ast_node if obj.respond_to?(:to_ast_node)
 
-        COMPARISON_OPS.each do |op|
-          define_method(op) do |other|
-            # Ensure both self and other are unwrapped to pure AST nodes
-            self_node = respond_to?(:to_ast_node) ? to_ast_node : self
-            other_node = ensure_literal(other)
-            CallExpression.new(op, [self_node, other_node])
-          end
-        end
-
-        def [](index)
-          CallExpression.new(:at, [self, ensure_literal(index)])
-        end
-
-        def -@
-          CallExpression.new(:subtract, [ensure_literal(0), self])
-        end
-
-        def &(other)
-          CallExpression.new(:and, [self, ensure_literal(other)])
-        end
+        Literal.new(obj)
       end
 
-      # Refinement for Expression objects to add operator overloads
-      module ExpressionRefinement
-        include Syntax
+      def self.syntax_expression?(obj)
+        obj.is_a?(Syntax::Node) || obj.respond_to?(:to_ast_node)
+      end
 
+      module ExpressionRefinement
         refine Syntax::Node do
-          # Include the same operator methods from ExpressionOperators
-          ExpressionOperators::ARITHMETIC_OPS.each do |op, op_name|
+          ARITHMETIC_OPS.each do |op, op_name|
             define_method(op) do |other|
-              CallExpression.new(op_name, [self, ensure_literal(other)])
+              other_node = Sugar.ensure_literal(other)
+              Syntax::CallExpression.new(op_name, [self, other_node])
             end
           end
 
-          ExpressionOperators::COMPARISON_OPS.each do |op|
+          COMPARISON_OPS.each do |op|
             define_method(op) do |other|
-              CallExpression.new(op, [self, ensure_literal(other)])
+              other_node = Sugar.ensure_literal(other)
+              Syntax::CallExpression.new(op, [self, other_node])
             end
           end
 
           def [](index)
-            CallExpression.new(:at, [self, ensure_literal(index)])
+            Syntax::CallExpression.new(:at, [self, Sugar.ensure_literal(index)])
           end
 
           def -@
-            CallExpression.new(:subtract, [ensure_literal(0), self])
+            Syntax::CallExpression.new(:subtract, [Sugar.ensure_literal(0), self])
           end
 
           def &(other)
-            CallExpression.new(:and, [self, ensure_literal(other)])
-          end
-
-          private
-
-          def ensure_literal(obj)
-            return Literal.new(obj) if [Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp].any? { |type| obj.is_a?(type) }
-            return obj if obj.is_a?(Syntax::Node)
-
-            Literal.new(obj)
+            Syntax::CallExpression.new(:and, [self, Sugar.ensure_literal(other)])
           end
         end
       end
 
-      # Refinement for Numeric types to lift literals when operating with Expressions
       module NumericRefinement
-        include Syntax
-        ARITHMETIC_OPS = ExpressionOperators::ARITHMETIC_OPS
-        COMPARISON_OPS = ExpressionOperators::COMPARISON_OPS
-        NUMERIC_TYPES = [Integer, Float].freeze
-
-        NUMERIC_TYPES.each do |klass|
+        [Integer, Float].each do |klass|
           refine klass do
             ARITHMETIC_OPS.each do |op, op_name|
               define_method(op) do |other|
-                if other.is_a?(Syntax::Node) || other.respond_to?(:to_ast_node)
-                  # Unwrap Sugar wrappers to pure AST nodes
+                if Sugar.syntax_expression?(other)
                   other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                  CallExpression.new(op_name, [Literal.new(self), other_node])
+                  Syntax::CallExpression.new(op_name, [Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
@@ -108,10 +68,9 @@ module Kumi
 
             COMPARISON_OPS.each do |op|
               define_method(op) do |other|
-                if other.is_a?(Syntax::Node) || other.respond_to?(:to_ast_node)
-                  # Unwrap Sugar wrappers to pure AST nodes
+                if Sugar.syntax_expression?(other)
                   other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                  CallExpression.new(op, [Literal.new(self), other_node])
+                  Syntax::CallExpression.new(op, [Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
@@ -121,16 +80,12 @@ module Kumi
         end
       end
 
-      # Refinement for String type to lift literals when operating with Expressions
       module StringRefinement
-        include Syntax
-
         refine String do
           def +(other)
-            if other.is_a?(Syntax::Node) || other.respond_to?(:to_ast_node)
-              # Unwrap Sugar wrappers to pure AST nodes
+            if Sugar.syntax_expression?(other)
               other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-              CallExpression.new(:concat, [Literal.new(self), other_node])
+              Syntax::CallExpression.new(:concat, [Syntax::Literal.new(self), other_node])
             else
               super
             end
@@ -138,10 +93,9 @@ module Kumi
 
           %i[== !=].each do |op|
             define_method(op) do |other|
-              if other.is_a?(Syntax::Node) || other.respond_to?(:to_ast_node)
-                # Unwrap Sugar wrappers to pure AST nodes
+              if Sugar.syntax_expression?(other)
                 other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                CallExpression.new(op, [Literal.new(self), other_node])
+                Syntax::CallExpression.new(op, [Syntax::Literal.new(self), other_node])
               else
                 super(other)
               end

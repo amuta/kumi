@@ -21,3 +21,4 @@ gem "rubocop-performance", "~> 1.25"
 gem "rubocop-rspec", "~> 3.6"
 
 gem "benchmark-ips", "~> 2.14"
+gem "simplecov", "~> 0.21"

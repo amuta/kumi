@@ -33,7 +33,7 @@ module Kumi
         expr = args.last
 
         condition = fn(:all?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = ensure_syntax(expr, @loc)
+        result    = @context.ensure_syntax(expr)
         @cases << WhenCaseExpression.new(condition, result)
       end
 
@@ -50,7 +50,7 @@ module Kumi
         expr = args.last
 
         condition = fn(:any?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = ensure_syntax(expr, @loc)
+        result    = @context.ensure_syntax(expr)
         @cases << WhenCaseExpression.new(condition, result)
       end
 
@@ -67,12 +67,12 @@ module Kumi
         expr = args.last
 
         condition = fn(:none?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = ensure_syntax(expr, @loc)
+        result    = @context.ensure_syntax(expr)
         @cases << WhenCaseExpression.new(condition, result)
       end
 
       def base(expr)
-        result = ensure_syntax(expr, @loc)
+        result = @context.ensure_syntax(expr)
         @cases << WhenCaseExpression.new(literal(true), result) # Always matches
       end
 
