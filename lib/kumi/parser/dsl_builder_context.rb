@@ -3,10 +3,6 @@
 module Kumi
   module Parser
     class DslBuilderContext
-      using Sugar::ExpressionRefinement
-      using Sugar::NumericRefinement
-      using Sugar::StringRefinement
-
       attr_accessor :last_loc
       attr_reader :inputs, :attributes, :traits, :functions
 

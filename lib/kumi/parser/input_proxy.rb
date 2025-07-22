@@ -6,10 +6,6 @@ module Kumi
     class InputProxy
       include Syntax
 
-      using Sugar::ExpressionRefinement
-      using Sugar::NumericRefinement
-      using Sugar::StringRefinement
-
       def initialize(context)
         @context = context
       end

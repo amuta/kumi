@@ -17,6 +17,8 @@ module Kumi
       @cache ||= {}
 
       # if only one key is provided, return it directly
+      #
+      return schema.evaluate(context) if keys.length == 0
 
       if keys.length == 1
         key = keys.first

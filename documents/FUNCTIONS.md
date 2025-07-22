@@ -58,8 +58,8 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:round, float1, float2, ...)` → `float`
 * **`subtract`**: Subtract second number from first
   * **Usage**: `fn(:subtract, float arg1, float arg2)` → `float`
-* **`tiered_sum`**: Accumulate over tiered ranges; returns [sum, marginal_rate]
-  * **Usage**: `fn(:tiered_sum, float arg1, array(float) arg2, array(float) arg3)` → `array(float)`
+* **`piecewise_sum`**: Accumulate over tiered ranges; returns [sum, marginal_rate]
+  * **Usage**: `fn(:piecewise_sum, float arg1, array(float) arg2, array(float) arg3)` → `array(float)`
 
 ## String Functions
 

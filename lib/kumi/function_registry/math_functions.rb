@@ -35,7 +35,7 @@ module Kumi
             return_type: :float,
             description: "Clamp value between min and max"
           ),
-          tiered_sum: FunctionBuilder::Entry.new(
+          piecewise_sum: FunctionBuilder::Entry.new(
             # Tiered / piece‑wise accumulator ­­­­­­­­­­­­­­­­­­­­­­­­­
             fn: lambda do |value, breaks, rates|
               raise ArgumentError, "breaks & rates size mismatch" unless breaks.size == rates.size
