@@ -1,14 +1,6 @@
-# federal_tax_2024.rb
-# U.S. federal income‑tax plus FICA, generic State, and generic Local (2024).
-#
-#  • Arithmetic / comparison ops → FnCall via sugar
-#  • Indexing  ary[i]            → fn(:at, ary, i)
-#  • Piece‑wise brackets         → fn(:piecewise_sum, …)
-#
-# NOTE ▸ State 6 % and Local 3.88 % here are placeholders that mimic
-#        SmartAsset’s example; real jurisdictions vary.
+# U.S. federal income‑tax plus FICA
 
-require_relative "lib/kumi"
+require "kumi"
 
 module CompositeTax2024
   extend Kumi::Schema
@@ -28,15 +20,6 @@ module CompositeTax2024
                          0.32, 0.35, 0.37]
 
   schema do
-    # ── inputs ────────────────────────────────────────────────
-
-
-
-
-Sources
-
-Ask ChatGPT
-─────────
     input do
       float  :income
       string :filing_status
