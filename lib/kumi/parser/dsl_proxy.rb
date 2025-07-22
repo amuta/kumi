@@ -5,6 +5,9 @@ require "pry"
 module Kumi
   module Parser
     class DslProxy
+      using Sugar::ExpressionRefinement
+      using Sugar::NumericRefinement
+      using Sugar::StringRefinement
       DSL_METHODS = %i[
         value trait input
         ref literal fn

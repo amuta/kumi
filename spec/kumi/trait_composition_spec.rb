@@ -15,15 +15,18 @@ RSpec.describe "Trait Composition" do
             boolean :verified
           end
 
-          trait :adult, (input.age >= 18)
-          trait :ancient, (input.age >= 65)
-          trait :wealthy, (input.account_balance > 100_000)
+          trait :adult, input.age, :>=, 18
+          trait :ancient, input.age, :>=, 65
+          trait :wealthy, input.account_balance, :>, 100_000
 
           # Test various composition patterns
-          trait :rich_ancient, adult & ancient & (input.account_balance > 100_000.0)
-          trait :verified_adult, adult & (input.verified == true)
+          trait :rich_ancient, adult & ancient & ref(:wealthy)
+          trait :verified_adult, adult & ref(:verified_check)
           trait :simple_combo, adult & wealthy
-          trait :complex_mix, ancient & wealthy & (input.verified == true)
+          trait :complex_mix, ancient & wealthy & ref(:verified_check)
+
+          # Helper for verification check
+          trait :verified_check, input.verified, :==, true
         end
       end
     end

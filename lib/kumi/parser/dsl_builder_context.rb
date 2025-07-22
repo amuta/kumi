@@ -3,6 +3,10 @@
 module Kumi
   module Parser
     class DslBuilderContext
+      using Sugar::ExpressionRefinement
+      using Sugar::NumericRefinement
+      using Sugar::StringRefinement
+
       attr_accessor :last_loc
       attr_reader :inputs, :attributes, :traits, :functions
 
@@ -85,7 +89,10 @@ module Kumi
           # Multiple RHS args (old deprecated syntax): trait :name, lhs, operator, *rhs
           warn "DEPRECATION: trait(:name, lhs, operator, *rhs) syntax is deprecated. Use: trait :name, (lhs operator rhs)"
           name, lhs, operator, *rhs = args
-          raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs", current_location) unless rhs.size.positive?
+          unless rhs.size.positive?
+            raise_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs",
+                        current_location)
+          end
           loc = current_location
           validate_name(name, :trait, loc)
           raise_error("expects a symbol for an operator, got #{operator.class}", loc) unless operator.is_a?(Symbol)
@@ -154,7 +161,7 @@ module Kumi
         true
       end
 
-      # Composable wrapper for trait references that supports & operator
+      # Composable wrapper for trait references that supports & operator and all Sugar operators
       class ComposableTraitRef
         def initialize(name, context)
           @name = name
@@ -173,6 +180,34 @@ module Kumi
                     @context.ensure_syntax(other, @context.current_location)
                   end
           Syntax::Expressions::CallExpression.new(:and, [left, right], loc: @context.current_location)
+        end
+
+        # Arithmetic operators - delegate to underlying Binding via Sugar refinements
+        %i[+ - * / % **].each do |op|
+          define_method(op) do |other|
+            binding_node = @context.ref(@name)
+            binding_node.public_send(op, other)
+          end
+        end
+
+        # Comparison operators - delegate to underlying Binding via Sugar refinements
+        %i[< <= > >= == !=].each do |op|
+          define_method(op) do |other|
+            binding_node = @context.ref(@name)
+            binding_node.public_send(op, other)
+          end
+        end
+
+        # Indexing operator
+        def [](index)
+          binding_node = @context.ref(@name)
+          binding_node[index]
+        end
+
+        # Unary minus
+        def -@
+          binding_node = @context.ref(@name)
+          -binding_node
         end
 
         def to_ast_node

@@ -16,6 +16,7 @@ module Kumi
         freeze
       end
 
+
       def ==(other)
         other.is_a?(self.class) &&
           # for Struct-based nodes

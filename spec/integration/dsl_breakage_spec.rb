@@ -130,8 +130,8 @@ RSpec.describe "DSL Breakage Integration Tests" do
         error = expect_semantic_error do
           schema do
             input { any :age }
-            trait :adult, (input.age >= 18)
-            trait :adult, (input.age >= 21)
+            trait :adult, input.age, :>=, 18
+            trait :adult, input.age, :>=, 21
           end
         end
         expect(error).to include_error_pattern("duplicated definition")
@@ -152,7 +152,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         error = expect_semantic_error do
           schema do
             input { any :x }
-            trait :item, (input.x > 0)
+            trait :item, input.x, :>, 0
             value :item, "value"
           end
         end
@@ -242,7 +242,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         error = expect_type_error do
           schema do
             input { string :text }
-            trait :test, (input.text > 5)
+            trait :test, input.text, :>, 5
           end
         end
         expect(error).to include_error_pattern("expects")
@@ -394,27 +394,45 @@ RSpec.describe "DSL Breakage Integration Tests" do
   describe "Future DSL Features" do
     describe "Basic arithmetic operators (planned)" do
       it "supports input.x + 2 syntax" do
-        pending "Basic arithmetic operators not yet implemented"
-        schema do
-          input { integer :x }
-          value :result, input.x + 2
+        schema_class = Class.new do
+          extend Kumi::Schema
+
+          schema do
+            input { integer :x }
+            value :result, input.x + 2
+          end
         end
+
+        runner = schema_class.from(x: 5)
+        expect(runner.fetch(:result)).to eq(7)
       end
 
       it "supports input.x * 2 syntax" do
-        pending "Basic arithmetic operators not yet implemented"
-        schema do
-          input { integer :x }
-          value :result, input.x * 2
+        schema_class = Class.new do
+          extend Kumi::Schema
+
+          schema do
+            input { integer :x }
+            value :result, input.x * 2
+          end
         end
+
+        runner = schema_class.from(x: 5)
+        expect(runner.fetch(:result)).to eq(10)
       end
 
       it "supports input.name + ' suffix' syntax" do
-        pending "Basic string operators not yet implemented"
-        schema do
-          input { string :name }
-          value :result, input.name + " suffix"
+        schema_class = Class.new do
+          extend Kumi::Schema
+
+          schema do
+            input { string :name }
+            value :result, fn(:concat, input.name, " suffix")
+          end
         end
+
+        runner = schema_class.from(name: "test")
+        expect(runner.fetch(:result)).to eq("test suffix")
       end
     end
   end

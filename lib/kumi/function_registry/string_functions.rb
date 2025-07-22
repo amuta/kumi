@@ -13,6 +13,15 @@ module Kumi
           strip: FunctionBuilder.string_unary(:strip, "Remove leading and trailing whitespace", :strip),
 
           # String queries
+          string_length: FunctionBuilder::Entry.new(
+            fn: ->(str) { str.to_s.length },
+            arity: 1,
+            param_types: [:string],
+            return_type: :integer,
+            description: "Get string length"
+          ),
+
+          # Keep the original length for backward compatibility, but it will be overridden
           length: FunctionBuilder::Entry.new(
             fn: ->(str) { str.to_s.length },
             arity: 1,

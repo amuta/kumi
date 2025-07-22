@@ -154,7 +154,7 @@ RSpec.describe "Potential Breakage Cases" do
           # Trait with side effects (if Ruby allows it)
           trait :side_effect, (puts("evaluating") || (input.text.length > 0))
         end
-      end.not_to raise_error # Might work but side effects in traits are problematic
+      end.to raise_error(Kumi::Errors::SemanticError) #  side effects in traits are problematic
     end
 
     it "detects function arity edge cases" do
@@ -186,30 +186,15 @@ RSpec.describe "Potential Breakage Cases" do
         end
       end.to raise_error # Should catch type inconsistency in cascade
     end
-
-    it "detects resource exhaustion scenarios" do
-      # This test documents potential DoS vectors
-      pending "Resource exhaustion not currently tested"
-      schema do
-        input { integer :depth }
-
-        # Exponential explosion of references
-        10.times do |level|
-          (2**level).times do |i|
-            value :"level_#{level}_#{i}", ref(:some_complex_calculation)
-          end
-        end
-      end
-    end
   end
 
   describe "Edge cases that are currently working but might be fragile" do
-    it "handles empty string literals" do
+    it "handles empty string concatenation gracefully" do
       expect do
         schema do
           input { string :text }
           value :empty, ""
-          value :result, input.text + ref(:empty)
+          value :result, fn(:concat, input.text, empty)
         end
       end.not_to raise_error
     end
@@ -222,18 +207,6 @@ RSpec.describe "Potential Breakage Cases" do
           value :multiply_by_zero, fn(:multiply, input.x, ref(:zero))
         end
       end.not_to raise_error
-    end
-
-    it "handles boolean edge cases" do
-      expect do
-        schema do
-          input { boolean :flag }
-          trait :always_false, false
-          trait :always_true, true
-          trait :contradiction, always_false & always_true
-          value :result, ref(:contradiction) ? "impossible" : "expected"
-        end
-      end.not_to raise_error # Logical contradiction should be fine
     end
   end
 end

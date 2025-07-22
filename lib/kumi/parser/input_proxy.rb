@@ -16,7 +16,8 @@ module Kumi
       # on the input object, e.g. `input.field_name`.
       # It is used to create a FieldRef node in the AST.
       def method_missing(method_name, *_args)
-        FieldRef.new(method_name, loc: @context.current_location)
+        field_ref = FieldRef.new(method_name, loc: @context.current_location)
+        SugarFieldRef.new(field_ref)
       end
 
       def respond_to_missing?(_method_name, _include_private = false)
