@@ -226,6 +226,7 @@ module Kumi
         when Array then ListExpression.new(obj.map { |e| ensure_syntax(e, location) })
         when Syntax::Node then obj
         when ComposableTraitRef then obj.to_ast_node
+        when SugarFieldRef then obj.to_ast_node
         else
           # Check if it's an ExpressionWrapper or similar (without calling respond_to_missing?)
           if obj.class.instance_methods.include?(:to_ast_node)
