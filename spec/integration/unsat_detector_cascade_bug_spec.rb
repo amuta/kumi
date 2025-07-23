@@ -76,30 +76,10 @@ RSpec.describe "UnsatDetector Cascade Bug" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction.*is logically impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `very_young AND very_old` is logically impossible/)
     end
 
-    it "flags cascades with multiple impossible traits in one condition" do
-      expect do
-        build_schema do
-          input do
-            integer :age, domain: 0..150
-          end
-
-          trait :young, input.age, :<, 25
-          trait :old, input.age, :>, 65
-
-          # This should be flagged - combining young AND old in one condition is impossible
-          value :impossible_combo do
-            on :young, :old, "Impossible Combination" # young AND old is impossible
-            base "Normal"
-          end
-        end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction.*is logically impossible/)
-    end
-
-    it "flags cascades combined impossible trait in one condition" do
-      pending "The UnsatDetector does catch this case, but it will reference parent traits and not young_and_old directly"
+    it "flags cascades combined impossible traits in multiple conditions" do
       expect do
         build_schema do
           input do
@@ -109,14 +89,43 @@ RSpec.describe "UnsatDetector Cascade Bug" do
           trait :young, input.age, :<, 25
           trait :old, input.age, :>, 65
           trait :young_and_old, fn(:and, young, old) # This is logically impossible
+          trait :other_impossible, fn(:and, young, old) # Another impossible trait
 
           # This should be flagged - combining young AND old in one condition is impossible
           value :impossible_combo do
             on :young_and_old, "Impossible Combination" # young AND old is impossible
+            on :other_impossible, "Also Impossible" # another impossible trait
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `young_and_old` is logically impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError,
+                         /(conjunction `young_and_old` is logically impossible|conjunction `other_impossible` is logically impossible)/)
+    end
+
+    it "flags only the impossible traits and not valid parents" do
+      expect do
+        build_schema do
+          input do
+            integer :age, domain: 0..150
+          end
+
+          trait :young, input.age, :<, 25
+          trait :old, input.age, :>, 65
+          trait :young_and_old, fn(:and, young, old) # This is logically impossible
+          trait :other_impossible, fn(:and, young, old) # Another impossible trait
+
+          # This should be flagged - combining young AND old in one condition is impossible
+          value :impossible_combo do
+            on :young_and_old, "Impossible Combination" # young AND old is impossible
+            on :other_impossible, "Also Impossible"     # another impossible trait
+            base "Normal"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError) do |e|
+        expect(e.message).to match(/conjunction `young_and_old` is logically impossible/)
+        expect(e.message).to match(/conjunction `other_impossible` is logically impossible/)
+        expect(e.message).not_to match(/conjunction `impossible_combo` is logically impossible/)
+      end
     end
   end
 

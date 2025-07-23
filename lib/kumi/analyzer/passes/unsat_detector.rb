@@ -20,7 +20,7 @@ module Kumi
               atoms = gather_atoms(decl.expression, definitions, Set.new)
               next if atoms.empty?
 
-              add_error(errors, decl.loc, "conjunction in `#{decl.name}` is logically impossible") if Kumi::StrictCycleChecker.unsat?(atoms)
+              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible") if Kumi::StrictCycleChecker.unsat?(atoms)
             end
           end
         end
@@ -55,12 +55,28 @@ module Kumi
             # Skip the base case (it's typically a literal true condition)
             next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
 
+            # Skip single-trait 'on' branches: trait-level unsat detection covers these
+            if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+              list = when_case.condition.args.first
+              if list.is_a?(ListExpression) && list.elements.size < 2
+                next
+              end
+            end
             # Gather atoms from this individual condition only
             condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
 
             # Only flag if this individual condition is impossible
             if !condition_atoms.empty? && Kumi::StrictCycleChecker.unsat?(condition_atoms)
-              add_error(errors, decl.loc, "conjunction in `#{decl.name}` is logically impossible")
+              # For multi-trait on-clauses, report the trait names rather than the value name
+              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+                list = when_case.condition.args.first
+                if list.is_a?(ListExpression) && list.elements.all? { |a| a.is_a?(Binding) }
+                  traits = list.elements.map(&:name).join(' AND ')
+                  add_error(errors, decl.loc, "conjunction `#{traits}` is logically impossible")
+                  next
+                end
+              end
+              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible")
             end
           end
         end
