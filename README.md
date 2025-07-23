@@ -236,7 +236,6 @@ eval 150-deep:   240.9 i/s  (4.15 ms/i)
 - **Compile-once, evaluate-many**: Schema compilation happens once, evaluations are pure computation
 - **Dependency graph optimization**: Only computes values that are actually needed for the requested output
 - **Type-safe execution**: No runtime type checking overhead after compilation
-- **Memoized intermediate values**: Avoids redundant calculations within evaluation cycles
 - **Depth vs Width trade-offs**: Deep chains slower than wide schemas due to sequential dependencies
 
 Run the benchmarks yourself:
