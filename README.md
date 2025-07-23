@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/amuta/kumi/workflows/CI/badge.svg)](https://github.com/amuta/kumi/actions)
 [![Gem Version](https://badge.fury.io/rb/kumi.svg)](https://badge.fury.io/rb/kumi)
-[![Coverage](./coverage/coverage_badge_total.svg)](./coverage/index.html)
 
 Kumi is a declarative rule‑and‑calculation DSL for Ruby that turns scattered business logic into a statically‑checked dependency graph.
 

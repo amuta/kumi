@@ -22,4 +22,3 @@ gem "rubocop-rspec", "~> 3.6"
 
 gem "benchmark-ips", "~> 2.14"
 gem "simplecov", "~> 0.21"
-gem "simplecov-small-badge", "~> 0.2"

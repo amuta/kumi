@@ -29,8 +29,6 @@ GEM
     rainbow (3.1.1)
     rake (13.3.0)
     regexp_parser (2.10.0)
-    repo-small-badge (0.2.10)
-      victor (~> 0.3.0)
     rspec (3.13.1)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -71,14 +69,10 @@ GEM
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
-    simplecov-small-badge (0.2.7)
-      repo-small-badge (~> 0.2.10)
-      simplecov (~> 0.18)
     simplecov_json_formatter (0.1.4)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
-    victor (0.3.4)
     zeitwerk (2.6.18)
 
 PLATFORMS
@@ -96,7 +90,6 @@ DEPENDENCIES
   rubocop-performance (~> 1.25)
   rubocop-rspec (~> 3.6)
   simplecov (~> 0.21)
-  simplecov-small-badge (~> 0.2)
 
 BUNDLED WITH
    2.5.22

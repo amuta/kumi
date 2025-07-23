@@ -5,7 +5,6 @@ require "kumi"
 require "pry"
 
 require "simplecov"
-require "simplecov_small_badge"
 
 SimpleCov.start do
   add_filter "/spec/"
@@ -21,11 +20,6 @@ SimpleCov.start do
 
   minimum_coverage 0
   track_files "lib/**/*.rb"
-
-  SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-                                                                    SimpleCov::Formatter::HTMLFormatter,
-                                                                    SimpleCovSmallBadge::Formatter
-                                                                  ])
 end
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
