@@ -58,7 +58,9 @@ def build_deep_schema(depth)
 end
 
 # Conservative depths to avoid Ruby stack overflow
-DEPTHS = [50, 100, 150]
+# Ruby stack depth limit is around 1000-2000 frames depending on the system
+# Keep depths well below this limit for reliable operation
+DEPTHS = [50, 100, 150, 200]
 
 # ------------------------------------------------------------------
 # 2. Measure compilation once per depth

@@ -7,7 +7,7 @@ module Kumi
         include Syntax
 
         COMPARATORS = %i[> < >= <= == !=].freeze
-        Atom        = Kumi::StrictCycleChecker::Atom
+        Atom        = Kumi::AtomUnsatSolver::Atom
 
         def run(errors)
           definitions = get_state(:definitions)
@@ -22,7 +22,7 @@ module Kumi
               atoms = gather_atoms(decl.expression, definitions, Set.new)
               next if atoms.empty?
 
-              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible") if Kumi::StrictCycleChecker.unsat?(atoms)
+              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible") if Kumi::AtomUnsatSolver.unsat?(atoms)
             end
           end
         end
@@ -32,18 +32,29 @@ module Kumi
         def gather_atoms(node, defs, visited, list = [])
           return list unless node
 
-          if node.is_a?(CallExpression) && COMPARATORS.include?(node.fn_name)
-            lhs, rhs = node.args
-            list << Atom.new(node.fn_name, term(lhs, defs), term(rhs, defs))
-          elsif node.is_a?(Binding)
-            name = node.name
-            unless visited.include?(name)
-              visited << name
-              gather_atoms(defs[name].expression, defs, visited, list) if defs.key?(name)
+          # Use iterative approach with stack to avoid SystemStackError on deep graphs
+          stack = [node]
+
+          until stack.empty?
+            current = stack.pop
+            next unless current
+
+            if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
+              lhs, rhs = current.args
+              list << Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
+            elsif current.is_a?(Binding)
+              name = current.name
+              unless visited.include?(name)
+                visited << name
+                stack << defs[name].expression if defs.key?(name)
+              end
+            end
+
+            # Add children to stack for processing
+            if current.respond_to?(:children)
+              current.children.each { |child| stack << child }
             end
           end
-
-          node.children.each { |c| gather_atoms(c, defs, visited, list) } if node.respond_to?(:children)
 
           list
         end
@@ -66,7 +77,7 @@ module Kumi
             condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
 
             # Only flag if this individual condition is impossible
-            next unless !condition_atoms.empty? && Kumi::StrictCycleChecker.unsat?(condition_atoms)
+            next unless !condition_atoms.empty? && Kumi::AtomUnsatSolver.unsat?(condition_atoms)
 
             # For multi-trait on-clauses, report the trait names rather than the value name
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
