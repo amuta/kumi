@@ -56,7 +56,7 @@ module Kumi
     end
 
     def initialize(schema, analyzer)
-      @schema   = schema
+      @schema = schema
       @analysis = analyzer
       @bindings = {}
     end
@@ -67,6 +67,7 @@ module Kumi
         decl = @index[name] or raise("Unknown binding #{name}")
         compile_declaration(decl)
       end
+
       CompiledSchema.new(@bindings.freeze)
     end
 

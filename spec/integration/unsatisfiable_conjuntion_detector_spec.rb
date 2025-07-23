@@ -432,7 +432,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             # minors typically can't have both high balances and excellent credit
             on :minor, :high_balance, :excellent_credit, "exceptional_minor"
 
-            # This is logically impossible - same credit score can't be both > 800 and < 500
+            # This is impossible - same credit score can't be both > 800 and < 500
             on :excellent_credit, :poor_credit, "impossible_credit"
 
             base "not_eligible"

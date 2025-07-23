@@ -3,15 +3,15 @@
 module Kumi
   module Explain
     class ExplanationGenerator
-      def initialize(schema, analyzer_result, inputs)
-        @schema = schema
+      def initialize(syntax_tree, analyzer_result, inputs)
         @analyzer_result = analyzer_result
-        @inputs = inputs
+        @inputs = EvaluationWrapper.new(inputs)
         @definitions = analyzer_result.definitions
-        @compiled_schema = Compiler.compile(schema, analyzer: analyzer_result)
+        @compiled_schema = Compiler.compile(syntax_tree, analyzer: analyzer_result)
 
+        # TODO: REFACTOR QUICK!
         # Set up compiler once for expression evaluation
-        @compiler = Compiler.new(schema, analyzer_result)
+        @compiler = Compiler.new(syntax_tree, analyzer_result)
         @compiler.send(:build_index)
 
         # Populate bindings from the compiled schema

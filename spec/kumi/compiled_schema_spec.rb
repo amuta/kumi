@@ -60,23 +60,6 @@ RSpec.describe Kumi::CompiledSchema do
         end.to raise_error(Kumi::Errors::RuntimeError, /No binding named unknown_key/)
       end
     end
-
-    context "with invalid data context" do
-      it "raises error for non-hash-like objects" do
-        expect do
-          compiled_schema.evaluate("invalid")
-        end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
-      end
-
-      it "allows objects that respond to key? and []" do
-        hash_like = OpenStruct.new(age: 25, name: "Alice")
-        def hash_like.key?(key)
-          respond_to?(key)
-        end
-
-        expect { compiled_schema.evaluate(hash_like) }.not_to raise_error
-      end
-    end
   end
 
   describe "#evaluate_binding" do

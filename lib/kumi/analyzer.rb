@@ -19,7 +19,7 @@ module Kumi
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)
-      analysis_state = { opts: opts } # renamed from :summary
+      analysis_state = { opts: opts }
       errors = []
 
       passes.each { |klass| klass.new(schema, analysis_state).run(errors) }
@@ -32,7 +32,6 @@ module Kumi
         raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
 
         raise Errors::SemanticError.new(format_errors(errors), first_error_location)
-
       end
 
       Result.new(

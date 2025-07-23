@@ -69,6 +69,7 @@ compile_times = {}
 schemas       = {}
 
 DEPTHS.each do |d|
+  puts "\n--- Building #{d}-deep schema ---"
   t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   schemas[d] = build_deep_schema(d)
   compile_times[d] = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0

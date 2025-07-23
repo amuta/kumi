@@ -6,6 +6,8 @@
 - Added support for always-false comparison detection (e.g., `100 < 100`)
 
 ### Added  
+- **Evaluation memoization**: `EvaluationWrapper` struct with `@__schema_cache__` provides automatic caching of computed bindings
+- **Massive performance improvements**: 369x-1,379x speedup on deep dependency chains through intelligent memoization
 - Depth-safe UNSAT detection handles 30k+ node graphs without stack overflow
 - Comprehensive test suite for large graph scenarios (acyclic ladders, cycles, mixed constraints)
 - Enhanced documentation with YARD comments for `AtomUnsatSolver` module

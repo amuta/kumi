@@ -22,7 +22,7 @@ module Kumi
               atoms = gather_atoms(decl.expression, definitions, Set.new)
               next if atoms.empty?
 
-              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible") if Kumi::AtomUnsatSolver.unsat?(atoms)
+              add_error(errors, decl.loc, "conjunction `#{decl.name}` is impossible") if Kumi::AtomUnsatSolver.unsat?(atoms)
             end
           end
         end
@@ -51,9 +51,7 @@ module Kumi
             end
 
             # Add children to stack for processing
-            if current.respond_to?(:children)
-              current.children.each { |child| stack << child }
-            end
+            current.children.each { |child| stack << child } if current.respond_to?(:children)
           end
 
           list
@@ -84,11 +82,11 @@ module Kumi
               list = when_case.condition.args.first
               if list.is_a?(ListExpression) && list.elements.all?(Binding)
                 traits = list.elements.map(&:name).join(" AND ")
-                add_error(errors, decl.loc, "conjunction `#{traits}` is logically impossible")
+                add_error(errors, decl.loc, "conjunction `#{traits}` is impossible")
                 next
               end
             end
-            add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible")
+            add_error(errors, decl.loc, "conjunction `#{decl.name}` is impossible")
           end
         end
 

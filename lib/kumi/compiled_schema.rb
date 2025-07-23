@@ -8,30 +8,24 @@ module Kumi
       @bindings = bindings.freeze
     end
 
-    def evaluate(data, *keys)
-      validate_context(data)
-
-      target_keys = keys.empty? ? @bindings.keys : validate_keys(keys)
+    def evaluate(ctx, *key_names)
+      target_keys = key_names.empty? ? @bindings.keys : validate_keys(key_names)
 
       target_keys.each_with_object({}) do |key, result|
-        result[key] = execute_binding(key, data)
+        result[key] = evaluate_binding(key, ctx)
       end
     end
 
-    def evaluate_binding(key, data)
-      validate_context(data)
-      validate_binding_exists(key)
-      execute_binding(key, data)
+    def evaluate_binding(key, ctx)
+      memo = ctx.instance_variable_get(:@__schema_cache__)
+      return memo[key] if memo&.key?(key)
+
+      value = @bindings[key][1].call(ctx)
+      memo[key] = value if memo
+      value
     end
 
     private
-
-    def validate_context(data)
-      return if data.is_a?(Hash) || hash_like?(data)
-
-      raise Kumi::Errors::RuntimeError,
-            "Data context should be Hash-like (respond to :key? and :[])"
-    end
 
     def hash_like?(obj)
       obj.respond_to?(:key?) && obj.respond_to?(:[])
@@ -42,17 +36,6 @@ module Kumi
       return keys if unknown_keys.empty?
 
       raise Kumi::Errors::RuntimeError, "No binding named #{unknown_keys.first}"
-    end
-
-    def validate_binding_exists(key)
-      return if @bindings.key?(key)
-
-      raise Kumi::Errors::RuntimeError, "No binding named #{key}"
-    end
-
-    def execute_binding(key, data)
-      _type, proc = @bindings[key]
-      proc.call(data)
     end
   end
 end

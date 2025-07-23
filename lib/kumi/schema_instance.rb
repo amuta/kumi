@@ -12,30 +12,28 @@ module Kumi
   #
   class SchemaInstance
     def initialize(compiled_schema, analysis, context)
-      @schema   = compiled_schema          # Kumi::CompiledSchema
-      @analysis = analysis                 # Analyzer result (for deps)
-      @context  = context.freeze           # external Hash‑like
+      @compiled_schema = compiled_schema # Kumi::CompiledSchema
+      @analysis = analysis # Analyzer result (for deps)
+      @context  = context.is_a?(EvaluationWrapper) ? context : EvaluationWrapper.new(context)
     end
 
     # Hash‑like read of one or many bindings
-    def evaluate(*keys)
-      if keys.empty?
-        @schema.evaluate(@context)
+    def evaluate(*key_names)
+      if key_names.empty?
+        @compiled_schema.evaluate(@context)
       else
-        @schema.evaluate(@context, *keys)
+        @compiled_schema.evaluate(@context, *key_names)
       end
     end
 
-    def slice(*keys)
-      return {} if keys.empty?
+    def slice(*key_names)
+      return {} if key_names.empty?
 
-      evaluate(*keys)
+      evaluate(*key_names)
     end
 
-    def [](*keys)
-      raise ArgumentError, "pass exactly one key" unless keys.size == 1
-
-      evaluate(*keys).values.first
+    def [](key_name)
+      evaluate(key_name)[key_name]
     end
 
     def input

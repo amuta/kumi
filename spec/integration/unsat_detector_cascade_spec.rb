@@ -17,7 +17,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Default"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is logically impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is impossible/)
     end
   end
 
@@ -143,7 +143,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `very_young AND very_old` is logically impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `very_young AND very_old` is impossible/)
     end
 
     it "flags cascades combined impossible traits in multiple conditions" do
@@ -155,7 +155,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           trait :young, input.age, :<, 25
           trait :old, input.age, :>, 65
-          trait :young_and_old, fn(:and, young, old) # This is logically impossible
+          trait :young_and_old, fn(:and, young, old) # This is impossible
           trait :other_impossible, fn(:and, young, old) # Another impossible trait
 
           # This should be flagged - combining young AND old in one condition is impossible
@@ -166,7 +166,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           end
         end
       end.to raise_error(Kumi::Errors::SemanticError,
-                         /(conjunction `young_and_old` is logically impossible|conjunction `other_impossible` is logically impossible)/)
+                         /(conjunction `young_and_old` is impossible|conjunction `other_impossible` is impossible)/)
     end
 
     it "flags only the impossible traits and not valid parents" do
@@ -178,7 +178,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           trait :young, input.age, :<, 25
           trait :old, input.age, :>, 65
-          trait :young_and_old, fn(:and, young, old) # This is logically impossible
+          trait :young_and_old, fn(:and, young, old) # This is impossible
           trait :other_impossible, fn(:and, young, old) # Another impossible trait
 
           # This should be flagged - combining young AND old in one condition is impossible
@@ -189,9 +189,9 @@ RSpec.describe "UnsatDetector Special Cases" do
           end
         end
       end.to raise_error(Kumi::Errors::SemanticError) do |e|
-        expect(e.message).to match(/conjunction `young_and_old` is logically impossible/)
-        expect(e.message).to match(/conjunction `other_impossible` is logically impossible/)
-        expect(e.message).not_to match(/conjunction `impossible_combo` is logically impossible/)
+        expect(e.message).to match(/conjunction `young_and_old` is impossible/)
+        expect(e.message).to match(/conjunction `other_impossible` is impossible/)
+        expect(e.message).not_to match(/conjunction `impossible_combo` is impossible/)
       end
     end
   end

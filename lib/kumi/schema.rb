@@ -38,7 +38,6 @@ module Kumi
       nil
     end
 
-    # The schema compilation logic remains the same
     def schema(&block)
       @__syntax_tree__ = Kumi::Parser::Dsl.build_syntax_tree(&block).freeze
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
