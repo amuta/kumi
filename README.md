@@ -4,6 +4,16 @@ Kumi is a declarative rule‑and‑calculation DSL for Ruby that turns scattered
 
 Every input, trait, and formula is compiled into a typed AST node, so the entire graph is explicit and introspectable.
 
+Note: The examples here are small for the sake of readability. I would not recommend using this gem unless you need to keep track of 100+ conditions/variables.
+
+
+## How to get started
+
+Install Kumi and try running the examples below or explore the `./examples` directory of this repository.
+```
+gem install kumi
+```
+
 ## Example
 
 **Instead of scattered logic:**
