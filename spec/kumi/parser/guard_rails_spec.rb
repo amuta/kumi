@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe "DSL Guard Rails" do
   def build_schema(&b)
     Kumi::Parser::Parser.new.parse(&b)
@@ -27,8 +29,13 @@ RSpec.describe "DSL Guard Rails" do
 
     begin
       expect do
-        class Kumi::Parser::SchemaBuilder
-          def value(*); end # shadow!
+        module Kumi
+          module Parser
+            class SchemaBuilder
+              # shadow!
+              def value(*); end
+            end
+          end
         end
       end.to raise_error(Kumi::Errors::SemanticError, /reserved/)
     ensure

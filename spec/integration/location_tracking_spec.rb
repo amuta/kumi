@@ -9,31 +9,31 @@ RSpec.describe "Location Tracking Accuracy" do
 
     context "when parsing schema with syntax errors" do
       it "reports accurate location for invalid value name syntax" do
-        expect {
+        expect do
           load fixture_path
-        }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+        end.to raise_error(Kumi::Errors::SyntaxError) do |error|
           expect(error.message).to include("The name for 'value' must be a Symbol, got Array")
           expect(error.location.file).to end_with("location_tracking_test_schema.rb")
-          expect(error.location.line).to eq(16)  # Line with "value value :bad_name, 42"
+          expect(error.location.line).to eq(16) # Line with "value value :bad_name, 42"
         end
       end
     end
 
-    context "when encountering different error types" do  
+    context "when encountering different error types" do
       it "accurately reports location for invalid value name (Array instead of Symbol)" do
         temp_schema_content = create_schema_with_single_error("value value :bad_name, 42", 15)
         temp_file = write_temp_schema(temp_schema_content)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             expect(error.message).to include("The name for 'value' must be a Symbol, got Array")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
 
@@ -42,15 +42,15 @@ RSpec.describe "Location Tracking Accuracy" do
         temp_file = write_temp_schema(temp_schema_content)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             expect(error.message).to include("The name for 'trait' must be a Symbol, got String")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
 
@@ -59,15 +59,15 @@ RSpec.describe "Location Tracking Accuracy" do
         temp_file = write_temp_schema(temp_schema_content)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             expect(error.message).to include("value 'incomplete_value' requires an expression or a block")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
 
@@ -76,15 +76,15 @@ RSpec.describe "Location Tracking Accuracy" do
         temp_file = write_temp_schema(temp_schema_content)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             expect(error.message).to include("unsupported operator `invalid_op`")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
     end
@@ -95,9 +95,9 @@ RSpec.describe "Location Tracking Accuracy" do
         temp_file = write_temp_schema(temp_schema)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             # Should NOT point to internal schema_builder.rb
             expect(error.location.file).not_to include("schema_builder.rb")
             # Should point to the actual user file
@@ -106,7 +106,7 @@ RSpec.describe "Location Tracking Accuracy" do
             expect(error.location.line).to be > 0
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
 
@@ -115,15 +115,15 @@ RSpec.describe "Location Tracking Accuracy" do
         temp_file = write_temp_schema(complex_schema)
 
         begin
-          expect {
+          expect do
             load temp_file
-          }.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
             # First error should be the value error on line 8
             expect(error.location.line).to eq(8)
             expect(error.message).to include("The name for 'value' must be a Symbol")
           end
         ensure
-          File.delete(temp_file) if File.exist?(temp_file)
+          FileUtils.rm_f(temp_file)
         end
       end
     end
@@ -133,47 +133,45 @@ RSpec.describe "Location Tracking Accuracy" do
 
   def create_schema_with_single_error(error_line, line_number)
     base_lines = [
-      "class TestSchema#{rand(10000)}",
+      "class TestSchema#{rand(10_000)}",
       "  extend Kumi::Schema",
       "",
-      "  schema do", 
+      "  schema do",
       "    input do",
       "      integer :age",
       "    end",
       ""
     ]
-    
+
     # Add enough blank lines to get to the target line number
-    while base_lines.length < line_number - 1
-      base_lines << ""
-    end
-    
+    base_lines << "" while base_lines.length < line_number - 1
+
     base_lines << "    #{error_line}"
     base_lines << "  end"
     base_lines << "end"
-    
+
     base_lines.join("\n")
   end
 
   def create_simple_error_schema
     <<~RUBY
-      class SimpleErrorSchema#{rand(10000)}
+      class SimpleErrorSchema#{rand(10_000)}
         extend Kumi::Schema
 
         schema do
           input do
             integer :age
           end
-          
+      #{'    '}
           value value :bad_syntax, 42
         end
       end
     RUBY
   end
 
-  def create_complex_error_schema  
+  def create_complex_error_schema
     <<~RUBY
-      class ComplexErrorSchema#{rand(10000)}
+      class ComplexErrorSchema#{rand(10_000)}
         extend Kumi::Schema
 
         schema do
@@ -188,7 +186,7 @@ RSpec.describe "Location Tracking Accuracy" do
   end
 
   def write_temp_schema(content)
-    temp_file = File.join(Dir.tmpdir, "test_schema_#{rand(100000)}.rb")
+    temp_file = File.join(Dir.tmpdir, "test_schema_#{rand(100_000)}.rb")
     File.write(temp_file, content)
     temp_file
   end

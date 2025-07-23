@@ -85,7 +85,6 @@ module Kumi
             end
             evaluated_format = evaluated_operands.join(" #{get_operator_symbol(fn_name)} ")
 
-            "#{symbolic_format} = #{evaluated_format}"
           else
             # Regular pretty formatting for non-chain expressions
             symbolic_args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
@@ -106,8 +105,8 @@ module Kumi
             end
             evaluated_format = get_display_format(fn_name, evaluated_args)
 
-            "#{symbolic_format} = #{evaluated_format}"
           end
+          "#{symbolic_format} = #{evaluated_format}"
         else
           # For nested expressions, just show the symbolic form without evaluation details
           args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }

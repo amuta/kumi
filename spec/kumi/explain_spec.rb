@@ -16,9 +16,9 @@ RSpec.describe Kumi::Explain do
 
           value :tax_amount, fn(:multiply, input.income, input.rate)
           value :after_tax, fn(:subtract, input.income, tax_amount)
-          
+
           trait :high_earner, fn(:>, input.income, 100_000)
-          
+
           value :status do
             on :high_earner, "High Income"
             base "Regular Income"
@@ -70,28 +70,28 @@ RSpec.describe Kumi::Explain do
       end
 
       it "explains piecewise_sum with detailed breakdown" do
-        explanation = described_class.call(piecewise_schema, :total_tax, 
-                                         inputs: { taxable_income: 75_000 })
-        
+        explanation = described_class.call(piecewise_schema, :total_tax,
+                                           inputs: { taxable_income: 75_000 })
+
         expect(explanation).to include("total_tax = at(tax_calc = [16 500, 0.3]")
         expect(explanation).to include("0")
         expect(explanation).to include("=> 16 500")
-        expect(explanation).not_to include("0 = 0")  # Should not show redundant literal values
+        expect(explanation).not_to include("0 = 0") # Should not show redundant literal values
       end
 
       it "explains the underlying piecewise calculation" do
         explanation = described_class.call(piecewise_schema, :tax_calc,
-                                         inputs: { taxable_income: 75_000 })
-        
+                                           inputs: { taxable_income: 75_000 })
+
         expect(explanation).to include("tax_calc = piecewise_sum(input.taxable_income = 75 000")
         expect(explanation).to include("breaks = [10 000, 50 000, 100 000]")
         expect(explanation).to include("rates = [0.1, 0.2, 0.3]")
         expect(explanation).to include("=> [16 500, 0.3]")
-        
+
         # Check that indentation aligns with opening parenthesis
         lines = explanation.split("\n")
         expect(lines[0]).to start_with("tax_calc = piecewise_sum(")
-        
+
         # The continuation should align with the opening paren: "tax_calc = piecewise_sum("
         # That's 11 chars for "tax_calc = " + 13 chars for "piecewise_sum(" = 24 chars total
         expected_indent = " " * 24
@@ -102,17 +102,17 @@ RSpec.describe Kumi::Explain do
 
     context "error handling" do
       it "raises error for unknown declaration" do
-        expect {
+        expect do
           described_class.call(test_schema, :unknown_field, inputs: inputs)
-        }.to raise_error(ArgumentError, /Unknown declaration: unknown_field/)
+        end.to raise_error(ArgumentError, /Unknown declaration: unknown_field/)
       end
 
       it "raises error for uncompiled schema" do
         uncompiled_schema = Class.new { extend Kumi::Schema }
-        
-        expect {
+
+        expect do
           described_class.call(uncompiled_schema, :tax_amount, inputs: inputs)
-        }.to raise_error(ArgumentError, /Schema not found or not compiled/)
+        end.to raise_error(ArgumentError, /Schema not found or not compiled/)
       end
     end
   end

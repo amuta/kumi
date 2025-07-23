@@ -16,13 +16,13 @@ module Kumi
             # Check if this is a redefinition by looking at the call stack
             # We want to allow the original definition but prevent redefinition
             calling_location = caller_locations(1, 1).first
-            
+
             # Allow the original definition from schema_builder.rb
             if calling_location&.path&.include?("schema_builder.rb")
               super
               return
             end
-            
+
             # This is a redefinition attempt, prevent it
             raise Kumi::Errors::SemanticError,
                   "DSL keyword `#{name}` is reserved; " \

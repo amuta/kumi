@@ -34,7 +34,7 @@ module Kumi
           string_include?: FunctionBuilder.string_binary(:include?, "Check if string contains substring", :include?, return_type: :boolean),
           includes?: FunctionBuilder.string_binary(:include?, "Check if string contains substring", :include?, return_type: :boolean),
           contains?: FunctionBuilder.string_binary(:include?, "Check if string contains substring", :include?, return_type: :boolean),
-          
+
           start_with?: FunctionBuilder.string_binary(:start_with?, "Check if string starts with prefix", :start_with?,
                                                      return_type: :boolean),
           end_with?: FunctionBuilder.string_binary(:end_with?, "Check if string ends with suffix", :end_with?, return_type: :boolean),

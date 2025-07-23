@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   EvaluationWrapper = Struct.new(:ctx) do
     def initialize(ctx)
