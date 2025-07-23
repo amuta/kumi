@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require "tmpdir"
 
 RSpec.describe Kumi::Export do
   include ASTFactory
@@ -88,6 +88,142 @@ RSpec.describe Kumi::Export do
     end
   end
 
+  describe ".to_file" do
+    it "writes schema to file" do
+      inputs = [field_decl(:name, type: :string)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      Dir.mktmpdir do |dir|
+        filepath = File.join(dir, "schema.json")
+
+        described_class.to_file(syntax_root, filepath)
+
+        expect(File.exist?(filepath)).to be true
+        expect(File.read(filepath)).to include('"name"')
+      end
+    end
+
+    it "writes pretty formatted JSON when requested" do
+      inputs = [field_decl(:age, type: :integer)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      Dir.mktmpdir do |dir|
+        filepath = File.join(dir, "pretty_schema.json")
+
+        described_class.to_file(syntax_root, filepath, pretty: true)
+
+        content = File.read(filepath)
+        expect(content).to include("\n")
+        expect(content).to include("  ")
+      end
+    end
+  end
+
+  describe ".from_file" do
+    it "reads schema from file" do
+      inputs = [field_decl(:name, type: :string)]
+      attributes = [attr(:greeting, field_ref(:name))]
+      original_ast = syntax(:root, inputs, attributes, [])
+
+      Dir.mktmpdir do |dir|
+        filepath = File.join(dir, "schema.json")
+
+        described_class.to_file(original_ast, filepath)
+        imported_ast = described_class.from_file(filepath)
+
+        expect(imported_ast).to be_a(Kumi::Syntax::Root)
+        expect(imported_ast.inputs.size).to eq(1)
+        expect(imported_ast.attributes.size).to eq(1)
+        expect(imported_ast.inputs.first.name).to eq(:name)
+      end
+    end
+
+    it "raises error for non-existent file" do
+      expect do
+        described_class.from_file("/nonexistent/file.json")
+      end.to raise_error(Errno::ENOENT)
+    end
+  end
+
+  describe "serializer options" do
+    it "exports with location information when requested" do
+      inputs = [field_decl(:name, type: :string)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      json_string = described_class.to_json(syntax_root, include_locations: true)
+
+      expect(json_string).to be_a(String)
+      parsed_json = JSON.parse(json_string)
+      expect(parsed_json).to have_key("kumi_version")
+      expect(parsed_json).to have_key("ast")
+    end
+
+    it "exports compact JSON by default" do
+      inputs = [field_decl(:name, type: :string)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      json_string = described_class.to_json(syntax_root)
+
+      expect(json_string).not_to include("\n")
+      expect(json_string).not_to include("  ")
+    end
+  end
+
+  describe "deserializer options" do
+    it "validates JSON structure by default" do
+      invalid_json = '{"invalid": "structure"}'
+
+      expect do
+        described_class.from_json(invalid_json)
+      end.to raise_error(Kumi::Export::DeserializationError, /Missing required fields/)
+    end
+
+    it "skips validation when requested" do
+      inputs = [field_decl(:name, type: :string)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      json_string = described_class.to_json(syntax_root)
+
+      expect do
+        described_class.from_json(json_string, validate: false)
+      end.not_to raise_error
+    end
+
+    it "validates root node type" do
+      invalid_root_json = JSON.generate({
+                                          kumi_version: Kumi::VERSION,
+                                          ast: { type: "not_root", inputs: [], attributes: [], traits: [] }
+                                        })
+
+      expect do
+        described_class.from_json(invalid_root_json)
+      end.to raise_error(Kumi::Export::DeserializationError, /Root node must have type 'root'/)
+    end
+  end
+
+  describe "error handling" do
+    it "raises DeserializationError for malformed JSON" do
+      expect do
+        described_class.from_json("{ invalid json")
+      end.to raise_error(Kumi::Export::DeserializationError, /Invalid JSON/)
+    end
+
+    it "handles file write errors gracefully" do
+      inputs = [field_decl(:name, type: :string)]
+      syntax_root = syntax(:root, inputs, [], [])
+
+      expect do
+        described_class.to_file(syntax_root, "/invalid/path/file.json")
+      end.to raise_error(Errno::ENOENT)
+    end
+
+    it "handles file read errors gracefully" do
+      expect do
+        described_class.from_file("/invalid/path/file.json")
+      end.to raise_error(Errno::ENOENT)
+    end
+  end
+
   describe ".valid?" do
     it "returns true for valid JSON" do
       inputs = [field_decl(:test, type: :string)]
@@ -100,6 +236,15 @@ RSpec.describe Kumi::Export do
     it "returns false for invalid JSON" do
       expect(described_class.valid?("invalid json")).to be false
       expect(described_class.valid?("{}")).to be false
+    end
+
+    it "returns false for JSON parse errors" do
+      expect(described_class.valid?("{ invalid")).to be false
+    end
+
+    it "returns false for deserialization errors" do
+      malformed_kumi_json = JSON.generate({ wrong: "structure" })
+      expect(described_class.valid?(malformed_kumi_json)).to be false
     end
   end
 end

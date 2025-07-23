@@ -2,6 +2,8 @@
 
 module Kumi
   module Export
+    class DeserializationError < StandardError; end
+
     class Deserializer
       include NodeBuilders
 

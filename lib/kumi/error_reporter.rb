@@ -133,7 +133,7 @@ module Kumi
         location_coverage: 0.0
       }
 
-      report[:location_coverage] = (report[:errors_with_location].to_f / report[:total_errors]) * 100 if report[:total_errors] > 0
+      report[:location_coverage] = (report[:errors_with_location].to_f / report[:total_errors]) * 100 if report[:total_errors].positive?
 
       # Check specific types that should have locations
       report[:problematic_errors] = errors.select do |error|

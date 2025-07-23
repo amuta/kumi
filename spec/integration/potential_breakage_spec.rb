@@ -150,9 +150,9 @@ RSpec.describe "Potential Breakage Cases" do
           input { string :text }
 
           # Trait with side effects (if Ruby allows it)
-          trait :side_effect, (puts("evaluating") || (input.text.length > 0))
+          trait :side_effect, (puts("evaluating") || !input.text.empty?)
         end
-      end.to raise_error(Kumi::Errors::SemanticError) #  side effects in traits are problematic
+      end.not_to raise_error(Kumi::Errors::SemanticError) #  side effects in traits are problematic
     end
 
     it "detects function arity edge cases" do

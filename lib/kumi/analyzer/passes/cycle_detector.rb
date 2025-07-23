@@ -8,8 +8,8 @@ module Kumi
       # PRODUCES: None (validation only)
       # INTERFACE: new(schema, state).run(errors)
       class CycleDetector < PassBase
-        MAX_DEPTH = 1000  # Prevent infinite recursion in pathological cases
-        
+        MAX_DEPTH = 1000 # Prevent infinite recursion in pathological cases
+
         def run(errors)
           dependency_graph = get_state(:dependency_graph, required: false) || {}
           visited = Set.new
@@ -24,7 +24,7 @@ module Kumi
 
         def detect_cycles_from(node, graph, visited, stack, errors, depth)
           return if visited.include?(node)
-          
+
           # Prevent infinite recursion in pathological cases
           if depth > MAX_DEPTH
             add_error(errors, nil, "Cycle detection depth limit exceeded (#{MAX_DEPTH}). Possible infinite recursion in dependency graph.")

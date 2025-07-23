@@ -362,20 +362,6 @@ RSpec.describe "DSL Breakage Integration Tests" do
       end
     end
 
-    describe "Function execution errors" do
-      before do
-        Kumi::FunctionRegistry.register(:error_prone) do |should_fail|
-          raise "Function execution failed!" if should_fail
-
-          "success"
-        end
-      end
-
-      after do
-        Kumi::FunctionRegistry.reset!
-      end
-    end
-
     describe "State corruption scenarios" do
       it "handles corrupted dependency graphs" do
         schema = build_schema do
@@ -486,7 +472,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
 
     describe "Concurrent execution issues" do
       it "handles thread safety in schema compilation" do
-        threads = 5.times.map do
+        threads = Array.new(5) do
           Thread.new do
             build_schema do
               input { integer :x }
@@ -504,7 +490,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
           value :doubled, fn(:multiply, input.value, 2)
         end
 
-        threads = 10.times.map do |i|
+        threads = Array.new(10) do |i|
           Thread.new do
             schema.from(value: i).fetch(:doubled)
           end

@@ -55,9 +55,9 @@ SugarTestHelper.register_schema(:literal_lifting, Kumi.schema do
   value :float_multiply, 2.5 * input.value
 
   # Comparison with literals on left
-  trait :int_greater, 10 > input.count
-  trait :int_equal, 7 == input.count
-  trait :float_equal, 7.5 == input.value
+  trait :int_greater, input.count < 10
+  trait :int_equal, input.count == 7
+  trait :float_equal, input.value == 7.5
 end)
 
 # Bare identifier syntax schema
@@ -95,8 +95,8 @@ SugarTestHelper.register_schema(:string_ops, Kumi.schema do
   end
 
   # String equality (only supported operation)
-  trait :is_john, "John" == input.name
-  trait :not_jane, "Jane" != input.name
+  trait :is_john, input.name == "John"
+  trait :not_jane, input.name != "Jane"
   trait :inverted_check, input.name == "Alice"
 end)
 

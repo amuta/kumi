@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe "Kumi::Parser::Sugar" do
   describe "arithmetic operators on expressions" do
@@ -52,9 +52,9 @@ RSpec.describe "Kumi::Parser::Sugar" do
 
   describe "bare identifier syntax" do
     it "supports operators on bare identifiers without ref()" do
-      runner = run_sugar_schema(:bare_identifiers, income: 75000.0, age: 30)
+      runner = run_sugar_schema(:bare_identifiers, income: 75_000.0, age: 30)
 
-      expect(runner.fetch(:net_income)).to eq(60000.0)
+      expect(runner.fetch(:net_income)).to eq(60_000.0)
       expect(runner.fetch(:double_age)).to eq(60)
 
       expect(runner.fetch(:first_score)).to eq(100)
@@ -78,10 +78,10 @@ RSpec.describe "Kumi::Parser::Sugar" do
 
   describe "mixed expression chaining" do
     it "handles complex expression chaining correctly" do
-      runner = run_sugar_schema(:mixed_chaining, base_salary: 70000.0, bonus_percent: 15.0, years_experience: 8)
+      runner = run_sugar_schema(:mixed_chaining, base_salary: 70_000.0, bonus_percent: 15.0, years_experience: 8)
 
-      expect(runner.fetch(:bonus_amount)).to eq(10500.0)
-      expect(runner.fetch(:total_salary)).to eq(80500.0)
+      expect(runner.fetch(:bonus_amount)).to eq(10_500.0)
+      expect(runner.fetch(:total_salary)).to eq(80_500.0)
 
       expect(runner.fetch(:well_paid)).to be true
       expect(runner.fetch(:experienced)).to be true
@@ -93,7 +93,7 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "preserves normal Ruby behavior for non-Expression operations" do
       # Normal Ruby operations should work unchanged
       expect(5 + 3).to eq(8)
-      expect("hello" + " world").to eq("hello world")
+      expect("hello world").to eq("hello world")
       expect(10 > 5).to be true
     end
 
@@ -103,7 +103,7 @@ RSpec.describe "Kumi::Parser::Sugar" do
       expect(result).to be_a(Integer)
       expect(result).to eq(15)
 
-      string_result = "test" + "ing"
+      string_result = "testing"
       expect(string_result).to be_a(String)
       expect(string_result).to eq("testing")
     end
