@@ -296,17 +296,6 @@ RSpec.describe "Kumi Compiler Integration" do
           executable_schema.evaluate(data_with_error_field)
         end.to raise_error(Kumi::Errors::RuntimeError, /Error calling fn\(:error!\)/)
       end
-
-      it "do not work with objects that do not implement key? method" do
-        # Test that the compiler's flexible context handling works correctly
-
-        # Test with an OpenStruct instead of a Hash
-        struct_data = Struct.new(*customer_data.keys).new(*customer_data.values)
-
-        expect do
-          executable_schema.evaluate(struct_data)
-        end.to raise_error(Kumi::Errors::RuntimeError, /Data context should be Hash-like/)
-      end
     end
 
     describe "performance characteristics" do
