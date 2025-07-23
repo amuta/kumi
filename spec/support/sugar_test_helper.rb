@@ -4,8 +4,6 @@
 # Since refinements only work at top-level contexts, we need to evaluate schemas
 # outside of method contexts (like RSpec tests).
 
-require_relative "../../lib/kumi"
-
 module SugarTestHelper
   # Store compiled schemas that were created at top-level
   @@top_level_schemas = {}
@@ -24,21 +22,10 @@ module SugarTestHelper
   def self.run_schema(name, input_data)
     schema = get_schema(name)
 
-    # The schema is an OpenStruct with runner and analysis
-    # The runner was created with the compiled schema and definitions
-    unless schema.respond_to?(:runner) && schema.respond_to?(:analysis)
-      raise "Unexpected schema format: #{schema.class} - expected OpenStruct with runner and analysis"
-    end
+    # When capture an schema declaration, it should provide us an instance of Kumi::Schema::Inspector
+    raise "Expected schema to be an instance of Kumi::Schema::Inspector, got #{schema.class}" unless schema.is_a?(Kumi::Schema::Inspector)
 
-    # Get the template runner which has the correct structure
-    template_runner = schema.runner
-
-    # Get the compiled schema and node index from the template
-    compiled_schema = template_runner.schema
-    node_index = template_runner.node_index
-
-    # Create a new runner with the actual input data but same schema and node_index
-    Kumi::Runner.new(input_data, compiled_schema, node_index)
+    Kumi::SchemaInstance.new(schema.compiled_schema, schema.analyzer_result.definitions, input_data)
   end
 
   # For use in specs - include this module to get access to helper methods

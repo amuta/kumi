@@ -7,13 +7,13 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "creates correct CallExpression nodes for arithmetic operators" do
       runner = run_sugar_schema(:arithmetic, a: 10.0, b: 3.0, x: 7, y: 2)
 
-      expect(runner.fetch(:sum)).to eq(13.0)
-      expect(runner.fetch(:difference)).to eq(7.0)
-      expect(runner.fetch(:product)).to eq(14)
-      expect(runner.fetch(:quotient)).to be_within(0.001).of(3.333)
-      expect(runner.fetch(:modulo)).to eq(1)
-      expect(runner.fetch(:power)).to eq(49)
-      expect(runner.fetch(:unary_minus)).to eq(-10.0)
+      expect(runner[:sum]).to eq(13.0)
+      expect(runner[:difference]).to eq(7.0)
+      expect(runner[:product]).to eq(14)
+      expect(runner[:quotient]).to be_within(0.001).of(3.333)
+      expect(runner[:modulo]).to eq(1)
+      expect(runner[:power]).to eq(49)
+      expect(runner[:unary_minus]).to eq(-10.0)
     end
   end
 
@@ -21,13 +21,13 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "creates correct CallExpression nodes for comparison operators" do
       runner = run_sugar_schema(:comparison, age: 25, score: 95.5)
 
-      expect(runner.fetch(:adult)).to be true
-      expect(runner.fetch(:minor)).to be false
-      expect(runner.fetch(:teenager)).to be true
-      expect(runner.fetch(:child)).to be false
-      expect(runner.fetch(:exact_age)).to be true
-      expect(runner.fetch(:not_exact_age)).to be false
-      expect(runner.fetch(:high_score)).to be true
+      expect(runner[:adult]).to be true
+      expect(runner[:minor]).to be false
+      expect(runner[:teenager]).to be true
+      expect(runner[:child]).to be false
+      expect(runner[:exact_age]).to be true
+      expect(runner[:not_exact_age]).to be false
+      expect(runner[:high_score]).to be true
     end
   end
 
@@ -36,17 +36,17 @@ RSpec.describe "Kumi::Parser::Sugar" do
       runner = run_sugar_schema(:literal_lifting, value: 7.5, count: 7)
 
       # Integer arithmetic
-      expect(runner.fetch(:int_plus)).to eq(12)
-      expect(runner.fetch(:int_multiply)).to eq(21)
+      expect(runner[:int_plus]).to eq(12)
+      expect(runner[:int_multiply]).to eq(21)
 
       # Float arithmetic
-      expect(runner.fetch(:float_plus)).to eq(13.0)
-      expect(runner.fetch(:float_multiply)).to eq(18.75)
+      expect(runner[:float_plus]).to eq(13.0)
+      expect(runner[:float_multiply]).to eq(18.75)
 
       # Comparisons (10 > 7 should be true, not false)
-      expect(runner.fetch(:int_greater)).to be true
-      expect(runner.fetch(:int_equal)).to be true
-      expect(runner.fetch(:float_equal)).to be true
+      expect(runner[:int_greater]).to be true
+      expect(runner[:int_equal]).to be true
+      expect(runner[:float_equal]).to be true
     end
   end
 
@@ -54,15 +54,15 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "supports operators on bare identifiers without ref()" do
       runner = run_sugar_schema(:bare_identifiers, income: 75_000.0, age: 30)
 
-      expect(runner.fetch(:net_income)).to eq(60_000.0)
-      expect(runner.fetch(:double_age)).to eq(60)
+      expect(runner[:net_income]).to eq(60_000.0)
+      expect(runner[:double_age]).to eq(60)
 
-      expect(runner.fetch(:first_score)).to eq(100)
-      expect(runner.fetch(:second_score)).to eq(85)
+      expect(runner[:first_score]).to eq(100)
+      expect(runner[:second_score]).to eq(85)
 
-      expect(runner.fetch(:high_income)).to be true
-      expect(runner.fetch(:adult)).to be true
-      expect(runner.fetch(:wealthy_adult)).to be true
+      expect(runner[:high_income]).to be true
+      expect(runner[:adult]).to be true
+      expect(runner[:wealthy_adult]).to be true
     end
   end
 
@@ -70,9 +70,9 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "supports string equality operations" do
       runner = run_sugar_schema(:string_ops, name: "John")
 
-      expect(runner.fetch(:is_john)).to be true
-      expect(runner.fetch(:not_jane)).to be true
-      expect(runner.fetch(:inverted_check)).to be false
+      expect(runner[:is_john]).to be true
+      expect(runner[:not_jane]).to be true
+      expect(runner[:inverted_check]).to be false
     end
   end
 
@@ -80,12 +80,12 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "handles complex expression chaining correctly" do
       runner = run_sugar_schema(:mixed_chaining, base_salary: 70_000.0, bonus_percent: 15.0, years_experience: 8)
 
-      expect(runner.fetch(:bonus_amount)).to eq(10_500.0)
-      expect(runner.fetch(:total_salary)).to eq(80_500.0)
+      expect(runner[:bonus_amount]).to eq(10_500.0)
+      expect(runner[:total_salary]).to eq(80_500.0)
 
-      expect(runner.fetch(:well_paid)).to be true
-      expect(runner.fetch(:experienced)).to be true
-      expect(runner.fetch(:senior_well_paid)).to be true
+      expect(runner[:well_paid]).to be true
+      expect(runner[:experienced]).to be true
+      expect(runner[:senior_well_paid]).to be true
     end
   end
 

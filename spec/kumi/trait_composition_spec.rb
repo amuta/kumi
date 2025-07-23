@@ -36,19 +36,19 @@ RSpec.describe "Trait Composition" do
       let(:runner) { schema_class.from(data) }
 
       it "evaluates rich_ancient trait correctly" do
-        expect(runner.fetch(:rich_ancient)).to be true
+        expect(runner[:rich_ancient]).to be true
       end
 
       it "evaluates verified_adult trait correctly" do
-        expect(runner.fetch(:verified_adult)).to be true
+        expect(runner[:verified_adult]).to be true
       end
 
       it "evaluates simple_combo trait correctly" do
-        expect(runner.fetch(:simple_combo)).to be true
+        expect(runner[:simple_combo]).to be true
       end
 
       it "evaluates complex_mix trait correctly" do
-        expect(runner.fetch(:complex_mix)).to be true
+        expect(runner[:complex_mix]).to be true
       end
     end
 
@@ -57,19 +57,19 @@ RSpec.describe "Trait Composition" do
       let(:runner) { schema_class.from(data) }
 
       it "evaluates rich_ancient trait correctly (should be false)" do
-        expect(runner.fetch(:rich_ancient)).to be false
+        expect(runner[:rich_ancient]).to be false
       end
 
       it "evaluates verified_adult trait correctly" do
-        expect(runner.fetch(:verified_adult)).to be true
+        expect(runner[:verified_adult]).to be true
       end
 
       it "evaluates simple_combo trait correctly" do
-        expect(runner.fetch(:simple_combo)).to be true
+        expect(runner[:simple_combo]).to be true
       end
 
       it "evaluates complex_mix trait correctly (should be false)" do
-        expect(runner.fetch(:complex_mix)).to be false
+        expect(runner[:complex_mix]).to be false
       end
     end
 
@@ -78,19 +78,19 @@ RSpec.describe "Trait Composition" do
       let(:runner) { schema_class.from(data) }
 
       it "evaluates rich_ancient trait correctly (should be false)" do
-        expect(runner.fetch(:rich_ancient)).to be false
+        expect(runner[:rich_ancient]).to be false
       end
 
       it "evaluates verified_adult trait correctly (should be false)" do
-        expect(runner.fetch(:verified_adult)).to be false
+        expect(runner[:verified_adult]).to be false
       end
 
       it "evaluates simple_combo trait correctly (should be false)" do
-        expect(runner.fetch(:simple_combo)).to be false
+        expect(runner[:simple_combo]).to be false
       end
 
       it "evaluates complex_mix trait correctly (should be false)" do
-        expect(runner.fetch(:complex_mix)).to be false
+        expect(runner[:complex_mix]).to be false
       end
     end
   end
@@ -117,7 +117,7 @@ RSpec.describe "Trait Composition" do
       data = { age: 25, verified: true }
       runner = schema_class.from(data)
 
-      expect(runner.fetch(:mixed_syntax)).to be true
+      expect(runner[:mixed_syntax]).to be true
     end
 
     it "maintains existing trait behavior unchanged" do
@@ -142,8 +142,8 @@ RSpec.describe "Trait Composition" do
       data = { score: 90 }
       runner = schema_class.from(data)
 
-      expect(runner.fetch(:high_score)).to be true
-      expect(runner.fetch(:score_category)).to eq "excellent"
+      expect(runner[:high_score]).to be true
+      expect(runner[:score_category]).to eq "excellent"
     end
   end
 
@@ -172,8 +172,8 @@ RSpec.describe "Trait Composition" do
       data = { age: 30, income: 60_000 }
       runner = schema_class.from(data)
 
-      expect(runner.fetch(:eligible)).to be true
-      expect(runner.fetch(:status)).to eq "qualified"
+      expect(runner[:eligible]).to be true
+      expect(runner[:status]).to eq "qualified"
     end
   end
 end

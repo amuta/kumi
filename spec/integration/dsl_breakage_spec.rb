@@ -371,7 +371,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
 
         # Simulate corrupted state by trying to fetch non-existent binding
         expect do
-          schema.from(x: 5).fetch(:non_existent)
+          schema.from(x: 5)[:non_existent]
         end.to raise_error(Kumi::Errors::RuntimeError)
       end
     end
@@ -390,7 +390,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         end
 
         runner = schema_class.from(x: 5)
-        expect(runner.fetch(:result)).to eq(7)
+        expect(runner[:result]).to eq(7)
       end
 
       it "supports input.x * 2 syntax" do
@@ -404,7 +404,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         end
 
         runner = schema_class.from(x: 5)
-        expect(runner.fetch(:result)).to eq(10)
+        expect(runner[:result]).to eq(10)
       end
 
       it "supports input.name + ' suffix' syntax" do
@@ -418,7 +418,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         end
 
         runner = schema_class.from(name: "test")
-        expect(runner.fetch(:result)).to eq("test suffix")
+        expect(runner[:result]).to eq("test suffix")
       end
     end
   end
@@ -492,7 +492,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
 
         threads = Array.new(10) do |i|
           Thread.new do
-            schema.from(value: i).fetch(:doubled)
+            schema.from(value: i)[:doubled]
           end
         end
 

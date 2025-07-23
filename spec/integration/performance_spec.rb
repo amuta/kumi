@@ -15,53 +15,53 @@ class PlainRubySegmenter
 
   def evaluate(data)
     tier =
-      if data.fetch(:age).to_i >= 65
+      if data.slice(:age).to_i >= 65
         "Senior VIP"
-      elsif data.fetch(:account_type).to_s.casecmp?("premium")
+      elsif data.slice(:account_type).to_s.casecmp?("premium")
         "Premium"
-      elsif data.fetch(:account_balance).to_i >= 10_000 &&
-            data.fetch(:years_customer).to_i >= 5 &&
-            data.fetch(:last_purchase_days_ago).to_i <= 30 &&
-            data.fetch(:total_purchases).to_i >= 50
+      elsif data.slice(:account_balance).to_i >= 10_000 &&
+            data.slice(:years_customer).to_i >= 5 &&
+            data.slice(:last_purchase_days_ago).to_i <= 30 &&
+            data.slice(:total_purchases).to_i >= 50
         "Gold"
-      elsif data.fetch(:age).to_i >= 18
+      elsif data.slice(:age).to_i >= 18
         "Standard"
       else
         "Basic"
       end
 
     segment =
-      if data.fetch(:account_balance).to_i >= 10_000 &&
-         data.fetch(:years_customer).to_i >= 5 &&
-         data.fetch(:support_tickets).to_i <= 3 &&
-         data.fetch(:referral_count).to_i > 0
+      if data.slice(:account_balance).to_i >= 10_000 &&
+         data.slice(:years_customer).to_i >= 5 &&
+         data.slice(:support_tickets).to_i <= 3 &&
+         data.slice(:referral_count).to_i > 0
         "Champion"
-      elsif data.fetch(:last_purchase_days_ago).to_i <= 30 &&
-            data.fetch(:total_purchases).to_i >= 50
+      elsif data.slice(:last_purchase_days_ago).to_i <= 30 &&
+            data.slice(:total_purchases).to_i >= 50
         "Loyal Customer"
-      elsif data.fetch(:account_balance).to_i >= 10_000 &&
-            data.fetch(:last_purchase_days_ago).to_i <= 30
+      elsif data.slice(:account_balance).to_i >= 10_000 &&
+            data.slice(:last_purchase_days_ago).to_i <= 30
         "Big Spender"
-      elsif data.fetch(:total_purchases).to_i >= 50
+      elsif data.slice(:total_purchases).to_i >= 50
         "Frequent Buyer"
       else
         "Potential"
       end
 
     engagement_score =
-      data.fetch(:total_purchases).to_i *
-      (if data.fetch(:last_purchase_days_ago).to_i <= 30 &&
-        data.fetch(:total_purchases).to_i >= 50
+      data.slice(:total_purchases).to_i *
+      (if data.slice(:last_purchase_days_ago).to_i <= 30 &&
+        data.slice(:total_purchases).to_i >= 50
          1.5
        else
          1.0
        end)
 
     heavy_score =
-      data.fetch(:purchases)
+      data.slice(:purchases)
           .each_with_object(Hash.new(0.0)) do |purchase, sums|
-            cat = purchase.fetch(:category).to_s
-            amt = purchase.fetch(:amount).to_f
+            cat = purchase.slice(:category).to_s
+            amt = purchase.slice(:amount).to_f
             sums[cat] += amt
           end
           .values

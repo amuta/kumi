@@ -38,8 +38,8 @@ RSpec.describe "Enhanced Validation Integration" do
         }
 
         runner = schema.from(valid_data)
-        expect(runner.fetch(:premium_customer)).to be false
-        expect(runner.fetch(:total_score)).to eq(100) # 85 + (0.15 * 100)
+        expect(runner[:premium_customer]).to be false
+        expect(runner[:total_score]).to eq(100) # 85 + (0.15 * 100)
       end
 
       it "validates integer fields and rejects non-integers" do
@@ -172,7 +172,7 @@ RSpec.describe "Enhanced Validation Integration" do
 
         expect do
           runner = schema.from(flexible_data)
-          expect(runner.fetch(:premium_customer)).to be false
+          expect(runner[:premium_customer]).to be false
         end.not_to raise_error
       end
     end
@@ -203,7 +203,7 @@ RSpec.describe "Enhanced Validation Integration" do
 
         expect do
           runner = nested_schema.from(valid_data)
-          expect(runner.fetch(:has_users)).to be true
+          expect(runner[:has_users]).to be true
         end.not_to raise_error
       end
 
@@ -302,7 +302,7 @@ RSpec.describe "Enhanced Validation Integration" do
 
         expect do
           runner = proc_schema.from(valid_data)
-          expect(runner.fetch(:valid_credentials)).to be true
+          expect(runner[:valid_credentials]).to be true
         end.not_to raise_error
       end
 
@@ -379,7 +379,7 @@ RSpec.describe "Enhanced Validation Integration" do
 
         expect do
           runner = exclusive_schema.from(valid_data)
-          expect(runner.fetch(:likely)).to be true
+          expect(runner[:likely]).to be true
         end.not_to raise_error
       end
 

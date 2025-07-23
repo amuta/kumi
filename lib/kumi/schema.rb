@@ -4,6 +4,12 @@ require "ostruct"
 
 module Kumi
   module Schema
+    Inspector = Struct.new(:syntax_tree, :analyzer_result, :compiled_schema) do
+      def inspect
+        "#<#{self.class} syntax_tree: #{syntax_tree.inspect}, analyzer_result: #{analyzer_result.inspect}, schema: #{schema.inspect}>"
+      end
+    end
+
     def from(context)
       raise("No schema defined") unless @__schema__
 
@@ -13,7 +19,7 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      Runner.new(context, @__schema__, @__analyzer_result__.definitions)
+      SchemaInstance.new(@__schema__, @__analyzer_result__.definitions, context)
     end
 
     # The schema compilation logic remains the same
@@ -22,11 +28,7 @@ module Kumi
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
       @__schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 
-      # Return an object that provides access to both the compiled schema and analysis
-      OpenStruct.new(
-        runner: Runner.new({}, @__schema__, @__analyzer_result__.definitions),
-        analysis: @__analyzer_result__
-      )
+      Inspector.new(@__syntax_tree__, @__analyzer_result__, @__schema__)
     end
   end
 end

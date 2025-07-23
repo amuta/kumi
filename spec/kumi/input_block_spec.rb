@@ -104,25 +104,6 @@ RSpec.describe "Input Block Feature" do
     end
   end
 
-  describe "runner integration" do
-    it "provides input method to access original data" do
-      schema = create_schema do
-        input do
-          key :user_id, type: Kumi::Types::INT
-        end
-
-        trait :valid_user, input.user_id, :>, 0
-      end
-
-      data = { user_id: 42, extra_data: "ignored" }
-      runner = Kumi::Runner.new(data, schema.compiled, schema.analysis.definitions)
-
-      expect(runner.input[:user_id]).to eq(42)
-      expect(runner.input[:extra_data]).to eq("ignored")
-      expect(runner.fetch(:valid_user)).to be true
-    end
-  end
-
   describe "compilation and execution" do
     it "compiles and executes schemas with input blocks correctly" do
       schema = create_schema do

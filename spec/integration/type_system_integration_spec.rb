@@ -10,7 +10,7 @@ RSpec.describe "Type System Integration" do
         value :bool_val, true
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
 
       expect(types[:int_val]).to eq(Kumi::Types::INT)
       expect(types[:float_val]).to eq(Kumi::Types::FLOAT)
@@ -27,7 +27,7 @@ RSpec.describe "Type System Integration" do
         value :age_check, fn(:>=, input.age, 18)
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
       expect(types[:age_check]).to eq(Kumi::Types::BOOL)
     end
 
@@ -38,7 +38,7 @@ RSpec.describe "Type System Integration" do
         value :text, fn(:upcase, "hello")
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
 
       expect(types[:sum]).to eq(Kumi::Types::NUMERIC)
       expect(types[:comparison]).to eq(Kumi::Types::BOOL)
@@ -51,7 +51,7 @@ RSpec.describe "Type System Integration" do
         value :strings, %w[a b c]
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
 
       expect(types[:numbers]).to eq({ array: :integer })
       expect(types[:strings]).to eq({ array: :string })
@@ -67,7 +67,7 @@ RSpec.describe "Type System Integration" do
         value :total, fn(:add, base_amount, tax_amount)
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
 
       expect(types[:base_amount]).to eq(Kumi::Types::INT)
       expect(types[:tax_rate]).to eq(Kumi::Types::FLOAT)
@@ -118,7 +118,7 @@ RSpec.describe "Type System Integration" do
         value :nested, fn(:add, fn(:multiply, 2, 3), fn(:subtract, 10, 5))
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
       expect(types[:nested]).to eq(Kumi::Types::NUMERIC)
     end
 
@@ -129,7 +129,7 @@ RSpec.describe "Type System Integration" do
         value :first_num, fn(:first, numbers)
       end
 
-      types = schema_result.analysis.decl_types
+      types = schema_result.analyzer_result.decl_types
 
       expect(types[:numbers]).to eq({ array: :integer })
       expect(types[:sum_total]).to eq(:float)
@@ -159,8 +159,8 @@ RSpec.describe "Type System Integration" do
         value :test_val, 42
       end
 
-      expect(schema_result.analysis.decl_types).to have_key(:test_val)
-      expect(schema_result.analysis.decl_types[:test_val]).to eq(Kumi::Types::INT)
+      expect(schema_result.analyzer_result.decl_types).to have_key(:test_val)
+      expect(schema_result.analyzer_result.decl_types[:test_val]).to eq(Kumi::Types::INT)
     end
   end
 

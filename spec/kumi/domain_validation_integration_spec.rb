@@ -23,9 +23,9 @@ RSpec.describe "Domain Validation Integration" do
       it "creates runner successfully" do
         runner = schema.from({ age: 25, score: 85.0, status: "active" })
 
-        expect(runner).to be_a(Kumi::Runner)
-        expect(runner.fetch(:adult)).to be true
-        expect(runner.fetch(:grade)).to eq("B")
+        expect(runner).to be_a(Kumi::SchemaInstance)
+        expect(runner[:adult]).to be true
+        expect(runner[:grade]).to eq("B")
       end
 
       it "accepts boundary values" do
@@ -98,7 +98,7 @@ RSpec.describe "Domain Validation Integration" do
       it "allows any values when no domains specified" do
         expect do
           runner = schema_no_domains.from({ name: "any name", count: 999_999 })
-          expect(runner.fetch(:has_name)).to be true
+          expect(runner[:has_name]).to be true
         end.not_to raise_error
       end
     end
@@ -234,7 +234,7 @@ RSpec.describe "Domain Validation Integration" do
 
       expect do
         runner = legacy_schema.from({ name: "John", age: 25 })
-        expect(runner.fetch(:adult)).to be true
+        expect(runner[:adult]).to be true
       end.not_to raise_error
     end
 
@@ -250,7 +250,7 @@ RSpec.describe "Domain Validation Integration" do
         end
 
         runner = simple_schema.from({ value: 42 })
-        expect(runner.fetch(:always_true)).to be true
+        expect(runner[:always_true]).to be true
       end.not_to raise_error
     end
   end

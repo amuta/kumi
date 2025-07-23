@@ -60,7 +60,7 @@ module SchemaGenerator
       syntax_tree: syntax_tree,
       analysis: analyzer,
       compiled: compiled,
-      runner: Kumi::Runner.new({}, compiled, analyzer.definitions)
+      runner: Kumi::SchemaInstance.new(compiled, analyzer.definitions, {})
     )
 
     # Add the from method with input validation (type + domain)
@@ -70,7 +70,7 @@ module SchemaGenerator
 
       raise Kumi::Errors::InputValidationError, violations unless violations.empty?
 
-      Kumi::Runner.new(context, compiled, analysis.definitions)
+      Kumi::SchemaInstance.new(compiled, analysis.definitions, context)
     end
 
     schema
