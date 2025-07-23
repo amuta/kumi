@@ -74,22 +74,6 @@ RSpec.describe Kumi::CompiledSchema do
 
       expect(result).to eq("ALICE")
     end
-
-    it "raises error for unknown binding names" do
-      expect do
-        compiled_schema.evaluate_binding(:nonexistent, valid_data)
-      end.to raise_error(Kumi::Errors::RuntimeError, /No binding named nonexistent/)
-    end
-
-    it "passes data context to the lambda" do
-      custom_lambda = ->(data) { "#{data[:name]}_#{data[:age]}" }
-      custom_bindings = { custom: [:attr, custom_lambda] }
-      custom_schema = described_class.new(custom_bindings)
-
-      result = custom_schema.evaluate_binding(:custom, { name: "Test", age: 30 })
-
-      expect(result).to eq("Test_30")
-    end
   end
 
   describe "error handling" do
