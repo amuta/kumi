@@ -70,7 +70,10 @@ module Kumi
       private
 
       def update_location
-        caller_location = caller_locations(1, 1).first
+        # Use caller_locations(2, 1) to skip the DSL method and get the actual user code location
+        # Stack: [0] update_location, [1] DSL method (value/trait/etc), [2] user's DSL code
+        caller_location = caller_locations(2, 1).first
+        
         @context.current_location = Location.new(
           file: caller_location.path,
           line: caller_location.lineno,

@@ -77,7 +77,8 @@ module Kumi
     # @param context [Hash] Additional context
     def raise_error(message, location: nil, error_class: Errors::SemanticError, type: :semantic, context: {})
       entry = create_error(message, location: location, type: type, context: context)
-      raise error_class, entry.to_s
+      # Pass both the formatted message and the original location to the error constructor
+      raise error_class.new(entry.to_s, location)
     end
 
     # Format multiple errors into a single message

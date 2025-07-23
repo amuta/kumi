@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe "UnsatDetector Special Cases" do
   describe "deep references" do
-    it "does not flag deep references as impossible" do
+    it "do flag deep references as impossible" do
       expect do
         build_schema do
           value :x, 100
