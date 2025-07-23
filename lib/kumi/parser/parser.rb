@@ -13,7 +13,16 @@ module Kumi
 
       def parse(&rule_block)
         enable_refinements(rule_block)
+
+        before_consts = ::Object.constants
+        @interface.freeze # stop singleton hacks
         @interface.instance_eval(&rule_block)
+        added = ::Object.constants - before_consts
+        unless added.empty?
+          raise Kumi::Errors::SemanticError,
+                "DSL cannot define global constants: #{added.join(', ')}"
+        end
+
         build_syntax_tree
       rescue ArgumentError => e
         handle_parse_error(e)

@@ -24,6 +24,7 @@ module Kumi
 
         if node.is_a?(Binding)
           return :unknown if visited.include?(node.name)
+
           visited << node.name
 
           definition = @definitions[node.name]
@@ -37,7 +38,7 @@ module Kumi
           return :unknown unless OPERATORS.key?(node.fn_name)
 
           args = node.args.map { |arg| evaluate(arg, visited) }
-          return :unknown if args.any? { |a| a == :unknown }
+          return :unknown if args.any?(:unknown)
 
           @memo[node] = args.reduce(OPERATORS[node.fn_name])
           return @memo[node]

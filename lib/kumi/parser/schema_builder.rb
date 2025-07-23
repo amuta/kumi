@@ -3,6 +3,7 @@
 module Kumi
   module Parser
     class SchemaBuilder
+      include GuardRails
       include Syntax
       include ErrorReporting
 

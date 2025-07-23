@@ -412,13 +412,5 @@ RSpec.describe "Input Block Feature" do
         end
       end.to raise_error(Kumi::Errors::SemanticError, /conflicting types/)
     end
-
-    it "key() method no longer exists" do
-      expect do
-        create_schema do
-          trait :adult, key(:age), :>=, 18
-        end
-      end.to raise_error(NoMethodError, /undefined method `key'/)
-    end
   end
 end

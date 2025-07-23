@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Analyzer
     module Passes
@@ -69,7 +71,7 @@ module Kumi
             # For multi-trait on-clauses, report the trait names rather than the value name
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
               list = when_case.condition.args.first
-              if list.is_a?(ListExpression) && list.elements.all? { |a| a.is_a?(Binding) }
+              if list.is_a?(ListExpression) && list.elements.all?(Binding)
                 traits = list.elements.map(&:name).join(" AND ")
                 add_error(errors, decl.loc, "conjunction `#{traits}` is logically impossible")
                 next
@@ -79,7 +81,7 @@ module Kumi
           end
         end
 
-        def term(node, defs)
+        def term(node, _defs)
           case node
           when FieldRef, Binding
             val = @evaluator.evaluate(node)
