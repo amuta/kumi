@@ -245,5 +245,9 @@ bundle exec ruby examples/wide_schema_compilation_and_evaluation_benchmark.rb
 bundle exec ruby examples/deep_schema_compilation_and_evaluation_benchmark.rb
 ```
 
+## DSL Syntax Reference
+
+See [`documents/SYNTAX.md`](documents/SYNTAX.md) for complete syntax documentation with sugar vs sugar-free examples.
+
 
 

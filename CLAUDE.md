@@ -198,6 +198,7 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 9. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
 10. `documents/DSL.md` - Concise DSL syntax reference
 11. `documents/AST.md` - AST node types and structure reference
+12. `documents/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
 
 ## Input Block System Details
 
