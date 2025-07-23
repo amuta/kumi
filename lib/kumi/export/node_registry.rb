@@ -23,12 +23,12 @@ module Kumi
 
       def self.type_name_for(node)
         SERIALIZATION_MAP[node.class.name] or
-          raise Kumi::Export::SerializationError, "Unknown node type: #{node.class.name}"
+          raise Kumi::Export::Errors::SerializationError, "Unknown node type: #{node.class.name}"
       end
 
       def self.class_for_type(type_name)
         class_name = DESERIALIZATION_MAP[type_name] or
-          raise Kumi::Export::DeserializationError, "Unknown type name: #{type_name}"
+          raise Kumi::Export::Errors::DeserializationError, "Unknown type name: #{type_name}"
 
         # Resolve the class from string name
         class_name.split("::").reduce(Object) { |const, name| const.const_get(name) }

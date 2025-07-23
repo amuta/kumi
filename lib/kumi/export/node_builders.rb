@@ -99,7 +99,7 @@ module Kumi
         node_class = NodeRegistry.class_for_type(type_name)
 
         build_method = "build_#{type_name}"
-        raise Kumi::Export::DeserializationError, "No builder for type: #{type_name}" unless respond_to?(build_method, true)
+        raise Kumi::Export::Errors::DeserializationError, "No builder for type: #{type_name}" unless respond_to?(build_method, true)
 
         send(build_method, node_data, node_class)
       end
