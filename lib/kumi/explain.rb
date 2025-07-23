@@ -26,7 +26,7 @@ module Kumi
 
         expression = declaration.expression
         result_value = @compiled_schema.evaluate_binding(target_name, @inputs)
-        
+
         prefix = "#{target_name} = "
         expression_str = format_expression(expression, indent_context: prefix.length)
 
@@ -35,7 +35,7 @@ module Kumi
 
       private
 
-      def format_expression(expr, indent_context: 0)
+      def format_expression(expr, indent_context: 0, nested: false)
         case expr
         when Syntax::TerminalExpressions::FieldRef
           "input.#{expr.name}"
@@ -44,9 +44,9 @@ module Kumi
         when Syntax::TerminalExpressions::Literal
           format_value(expr.value)
         when Syntax::Expressions::CallExpression
-          format_call_expression(expr, indent_context: indent_context)
+          format_call_expression(expr, indent_context: indent_context, nested: nested)
         when Syntax::Expressions::ListExpression
-          "[#{expr.elements.map { |e| format_expression(e, indent_context: indent_context) }.join(', ')}]"
+          "[#{expr.elements.map { |e| format_expression(e, indent_context: indent_context, nested: nested) }.join(', ')}]"
         when Syntax::Expressions::CascadeExpression
           format_cascade_expression(expr, indent_context: indent_context)
         else
@@ -54,10 +54,128 @@ module Kumi
         end
       end
 
-      def format_call_expression(expr, indent_context: 0)
+      def format_call_expression(expr, indent_context: 0, nested: false)
+        if pretty_printable?(expr.fn_name)
+          format_pretty_function(expr, expr.fn_name, indent_context, nested)
+        else
+          format_generic_function(expr, indent_context)
+        end
+      end
+
+      def format_pretty_function(expr, fn_name, _indent_context, nested = false)
+        if needs_evaluation?(expr.args) && !nested
+          # For top-level expressions, show the flattened symbolic form and evaluation
+          if is_chain_of_same_operator?(expr, fn_name)
+            # For chains like a + b + c, flatten to show all operands
+            all_operands = flatten_operator_chain(expr, fn_name)
+            symbolic_operands = all_operands.map { |op| format_expression(op, indent_context: 0, nested: true) }
+            symbolic_format = symbolic_operands.join(" #{get_operator_symbol(fn_name)} ")
+            
+            evaluated_operands = all_operands.map do |op|
+              if op.is_a?(Syntax::TerminalExpressions::Literal)
+                format_expression(op, indent_context: 0, nested: true)
+              else
+                arg_value = format_value(evaluate_expression(op))
+                if op.is_a?(Syntax::TerminalExpressions::Binding) && all_operands.length > 1
+                  "(#{format_expression(op, indent_context: 0, nested: true)} = #{arg_value})"
+                else
+                  arg_value
+                end
+              end
+            end
+            evaluated_format = evaluated_operands.join(" #{get_operator_symbol(fn_name)} ")
+            
+            "#{symbolic_format} = #{evaluated_format}"
+          else
+            # Regular pretty formatting for non-chain expressions
+            symbolic_args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
+            symbolic_format = get_display_format(fn_name, symbolic_args)
+            
+            evaluated_args = expr.args.map do |arg|
+              if arg.is_a?(Syntax::TerminalExpressions::Literal)
+                format_expression(arg, indent_context: 0, nested: true)
+              else
+                arg_value = format_value(evaluate_expression(arg))
+                if arg.is_a?(Syntax::TerminalExpressions::Binding) && 
+                   expr.args.count { |a| !a.is_a?(Syntax::TerminalExpressions::Literal) } > 1
+                  "(#{format_expression(arg, indent_context: 0, nested: true)} = #{arg_value})"
+                else
+                  arg_value
+                end
+              end
+            end
+            evaluated_format = get_display_format(fn_name, evaluated_args)
+            
+            "#{symbolic_format} = #{evaluated_format}"
+          end
+        else
+          # For nested expressions, just show the symbolic form without evaluation details
+          args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
+          get_display_format(fn_name, args)
+        end
+      end
+
+      def is_chain_of_same_operator?(expr, fn_name)
+        return false unless %i[add subtract multiply divide].include?(fn_name)
+        
+        # Check if any argument is the same operator
+        expr.args.any? do |arg|
+          arg.is_a?(Syntax::Expressions::CallExpression) && arg.fn_name == fn_name
+        end
+      end
+
+      def flatten_operator_chain(expr, operator)
+        operands = []
+        
+        expr.args.each do |arg|
+          if arg.is_a?(Syntax::Expressions::CallExpression) && arg.fn_name == operator
+            # Recursively flatten nested operations of the same type
+            operands.concat(flatten_operator_chain(arg, operator))
+          else
+            operands << arg
+          end
+        end
+        
+        operands
+      end
+
+      def get_operator_symbol(fn_name)
+        case fn_name
+        when :add then "+"
+        when :subtract then "-"
+        when :multiply then "×"
+        when :divide then "÷"
+        else fn_name.to_s
+        end
+      end
+
+      def pretty_printable?(fn_name)
+        %i[add subtract multiply divide == != > < >= <= and or not].include?(fn_name)
+      end
+
+      def get_display_format(fn_name, args)
+        case fn_name
+        when :add then args.join(" + ")
+        when :subtract then args.join(" - ")
+        when :multiply then args.join(" × ")
+        when :divide then args.join(" ÷ ")
+        when :== then "#{args[0]} == #{args[1]}"
+        when :!= then "#{args[0]} != #{args[1]}"
+        when :> then "#{args[0]} > #{args[1]}"
+        when :< then "#{args[0]} < #{args[1]}"
+        when :>= then "#{args[0]} >= #{args[1]}"
+        when :<= then "#{args[0]} <= #{args[1]}"
+        when :and then args.join(" && ")
+        when :or then args.join(" || ")
+        when :not then "!#{args[0]}"
+        else "#{fn_name}(#{args.join(', ')})"
+        end
+      end
+
+      def format_generic_function(expr, indent_context)
         args = expr.args.map do |arg|
           arg_desc = format_expression(arg, indent_context: indent_context)
-          
+
           # For literals and literal lists, just show the value, no need for "100 = 100"
           if arg.is_a?(Syntax::TerminalExpressions::Literal) ||
              (arg.is_a?(Syntax::Expressions::ListExpression) && arg.elements.all?(Syntax::TerminalExpressions::Literal))
@@ -75,6 +193,13 @@ module Kumi
           "#{expr.fn_name}(#{args.join(",\n#{indent}")})"
         else
           "#{expr.fn_name}(#{args.join(', ')})"
+        end
+      end
+
+      def needs_evaluation?(args)
+        args.any? do |arg|
+          !arg.is_a?(Syntax::TerminalExpressions::Literal) &&
+            !(arg.is_a?(Syntax::Expressions::ListExpression) && arg.elements.all?(Syntax::TerminalExpressions::Literal))
         end
       end
 

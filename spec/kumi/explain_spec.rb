@@ -31,31 +31,17 @@ RSpec.describe Kumi::Explain do
 
     it "explains simple arithmetic expressions" do
       explanation = described_class.call(test_schema, :tax_amount, inputs: inputs)
-      expect(explanation).to include("tax_amount = multiply(input.income = 120 000")
-      expect(explanation).to include("input.rate = 0.25")
-      expect(explanation).to include("=> 30 000")
-      
-      # Check indentation for function calls
-      lines = explanation.split("\n")
-      expect(lines[0]).to start_with("tax_amount = multiply(")
-      # "tax_amount = multiply(" = 22 chars
-      expected_indent = " " * 22
-      expect(lines[1]).to start_with(expected_indent)
+      expect(explanation).to include("tax_amount = input.income × input.rate = 120 000 × 0.25 => 30 000")
     end
 
     it "explains binding references" do
       explanation = described_class.call(test_schema, :after_tax, inputs: inputs)
-      expect(explanation).to include("after_tax = subtract(input.income = 120 000")
-      expect(explanation).to include("tax_amount = 30 000")
-      expect(explanation).to include("=> 90 000")
+      expect(explanation).to include("after_tax = input.income - tax_amount = 120 000 - (tax_amount = 30 000) => 90 000")
     end
 
     it "explains trait expressions" do
       explanation = described_class.call(test_schema, :high_earner, inputs: inputs)
-      expect(explanation).to include("high_earner = >(input.income = 120 000")
-      expect(explanation).to include("100 000")
-      expect(explanation).to include("=> true")
-      expect(explanation).not_to include("100 000 = 100 000")  # Should not show redundant literal values
+      expect(explanation).to include("high_earner = input.income > 100 000 = 120 000 > 100 000 => true")
     end
 
     it "explains cascade expressions" do
