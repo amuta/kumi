@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Kumi
   module Analyzer
     module Passes
@@ -11,6 +9,8 @@ module Kumi
 
         def run(errors)
           definitions = get_state(:definitions)
+          @evaluator = ConstantEvaluator.new(definitions)
+
           each_decl do |decl|
             if decl.expression.is_a?(CascadeExpression)
               # Special handling for cascade expressions
@@ -32,7 +32,7 @@ module Kumi
 
           if node.is_a?(CallExpression) && COMPARATORS.include?(node.fn_name)
             lhs, rhs = node.args
-            list << Atom.new(node.fn_name, term(lhs), term(rhs))
+            list << Atom.new(node.fn_name, term(lhs, defs), term(rhs, defs))
           elsif node.is_a?(Binding)
             name = node.name
             unless visited.include?(name)
@@ -58,34 +58,36 @@ module Kumi
             # Skip single-trait 'on' branches: trait-level unsat detection covers these
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
               list = when_case.condition.args.first
-              if list.is_a?(ListExpression) && list.elements.size < 2
-                next
-              end
+              next if list.is_a?(ListExpression) && list.elements.size < 2
             end
             # Gather atoms from this individual condition only
             condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
 
             # Only flag if this individual condition is impossible
-            if !condition_atoms.empty? && Kumi::StrictCycleChecker.unsat?(condition_atoms)
-              # For multi-trait on-clauses, report the trait names rather than the value name
-              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-                list = when_case.condition.args.first
-                if list.is_a?(ListExpression) && list.elements.all? { |a| a.is_a?(Binding) }
-                  traits = list.elements.map(&:name).join(' AND ')
-                  add_error(errors, decl.loc, "conjunction `#{traits}` is logically impossible")
-                  next
-                end
+            next unless !condition_atoms.empty? && Kumi::StrictCycleChecker.unsat?(condition_atoms)
+
+            # For multi-trait on-clauses, report the trait names rather than the value name
+            if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+              list = when_case.condition.args.first
+              if list.is_a?(ListExpression) && list.elements.all? { |a| a.is_a?(Binding) }
+                traits = list.elements.map(&:name).join(" AND ")
+                add_error(errors, decl.loc, "conjunction `#{traits}` is logically impossible")
+                next
               end
-              add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible")
             end
+            add_error(errors, decl.loc, "conjunction `#{decl.name}` is logically impossible")
           end
         end
 
-        def term(node)
+        def term(node, defs)
           case node
-          when FieldRef, Binding then node.name
-          when Literal   then node.value
-          else :unknown
+          when FieldRef, Binding
+            val = @evaluator.evaluate(node)
+            val == :unknown ? node.name : val
+          when Literal
+            node.value
+          else
+            :unknown
           end
         end
       end

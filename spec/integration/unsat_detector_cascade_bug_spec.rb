@@ -2,14 +2,27 @@
 
 require "spec_helper"
 
-RSpec.describe "UnsatDetector Cascade Bug" do
-  # These tests demonstrate the bug where UnsatDetector incorrectly flags
-  # cascades with mutually exclusive conditions as "logically impossible"
+RSpec.describe "UnsatDetector Special Cases" do
+  describe "deep references" do
+    it "does not flag deep references as impossible" do
+      expect do
+        build_schema do
+          value :x, 100
+          trait :x_lt_100, x, :<, 100
+          value :y, fn(:multiply, x, 10)
+          trait :y_gt_1000, y, :>, 1000
+
+          value :result do
+            on :x_lt_100, :y_gt_1000, "Impossible"
+            base "Default"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is logically impossible/)
+    end
+  end
 
   describe "cascade with mutually exclusive numerical conditions" do
     it "does not flag cascades with non-overlapping ranges as impossible" do
-      # This currently fails due to the bug - UnsatDetector incorrectly combines
-      # all cascade conditions into one conjunction
       expect do
         build_schema do
           input do
@@ -31,6 +44,33 @@ RSpec.describe "UnsatDetector Cascade Bug" do
           end
         end
       end.not_to raise_error
+    end
+
+    it "allows numerical cascades with mutually exclusive conditions" do
+      runner = build_schema do
+        input do
+          float :score, domain: 0.0..100.0
+        end
+
+        trait :high_performer, input.score, :>=, 90.0
+        trait :poor_performer, input.score, :<, 60.0
+
+        value :performance_category do
+          on :high_performer, "Exceptional"
+          on :poor_performer, "Needs Improvement"
+          base "Average"
+        end
+      end
+
+      # Should work correctly at runtime
+      high_result = runner.from(score: 95.0)
+      expect(high_result[:performance_category]).to eq("Exceptional")
+
+      poor_result = runner.from(score: 45.0)
+      expect(poor_result[:performance_category]).to eq("Needs Improvement")
+
+      avg_result = runner.from(score: 75.0)
+      expect(avg_result[:performance_category]).to eq("Average")
     end
 
     it "does not flag cascades with overlapping but individually valid ranges" do
@@ -55,6 +95,33 @@ RSpec.describe "UnsatDetector Cascade Bug" do
         end
       end.not_to raise_error
     end
+  end
+
+  it "allows numerical cascades with mutually exclusive conditions" do
+    runner = build_schema do
+      input do
+        float :score, domain: 0.0..100.0
+      end
+
+      trait :high_performer, input.score, :>=, 90.0
+      trait :poor_performer, input.score, :<, 60.0
+
+      value :performance_category do
+        on :high_performer, "Exceptional"
+        on :poor_performer, "Needs Improvement"
+        base "Average"
+      end
+    end
+
+    # Should work correctly at runtime
+    high_result = runner.from(score: 95.0)
+    expect(high_result[:performance_category]).to eq("Exceptional")
+
+    poor_result = runner.from(score: 45.0)
+    expect(poor_result[:performance_category]).to eq("Needs Improvement")
+
+    avg_result = runner.from(score: 75.0)
+    expect(avg_result[:performance_category]).to eq("Average")
   end
 
   describe "cascade with genuinely impossible individual conditions" do
@@ -174,40 +241,6 @@ RSpec.describe "UnsatDetector Cascade Bug" do
 
       married_result = runner.from(status: "married")
       expect(married_result[:filing_status]).to eq("Married Filing Jointly")
-    end
-  end
-
-  describe "expected behavior after fix" do
-    # These tests describe what should happen after we fix the bug
-
-    it "allows numerical cascades with mutually exclusive conditions" do
-      # After the fix, this should work
-      # skip "This will pass after we fix the UnsatDetector cascade bug"
-
-      runner = build_schema do
-        input do
-          float :score, domain: 0.0..100.0
-        end
-
-        trait :high_performer, input.score, :>=, 90.0
-        trait :poor_performer, input.score, :<, 60.0
-
-        value :performance_category do
-          on :high_performer, "Exceptional"
-          on :poor_performer, "Needs Improvement"
-          base "Average"
-        end
-      end
-
-      # Should work correctly at runtime
-      high_result = runner.from(score: 95.0)
-      expect(high_result[:performance_category]).to eq("Exceptional")
-
-      poor_result = runner.from(score: 45.0)
-      expect(poor_result[:performance_category]).to eq("Needs Improvement")
-
-      avg_result = runner.from(score: 75.0)
-      expect(avg_result[:performance_category]).to eq("Average")
     end
   end
 end
