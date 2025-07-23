@@ -1,88 +1,64 @@
 # frozen_string_literal: true
 
-require "forwardable"
-
 module Kumi
   module Parser
     class DslCascadeBuilder
       include Syntax
 
-      extend Forwardable
-
       attr_reader :cases
-
-      def_delegators :@context, :ref, :literal, :fn, :input, :ensure_syntax, :raise_error
 
       def initialize(context, loc)
         @context = context
         @cases   = []
         @loc = loc
-        @else = nil
       end
 
       def on(*args)
-        # Capture the caller location for precise error reporting
-        c = caller_locations(1, 1).first
-        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
-
-        @context.raise_error("cascade 'on' requires at least one trait name", on_loc) if args.empty?
-
-        @context.raise_error("cascade 'on' requires an expression as the last argument", on_loc) if args.size == 1
+        on_loc = current_location
+        validate_on_args(args, "on", on_loc)
 
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = fn(:all?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = @context.ensure_syntax(expr)
-        @cases << WhenCaseExpression.new(condition, result)
+        condition = create_function_call(:all?, trait_names, on_loc)
+        result = ensure_syntax(expr)
+        add_case(condition, result)
       end
 
       def on_any(*args)
-        # Capture the caller location for precise error reporting
-        c = caller_locations(1, 1).first
-        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
-
-        @context.raise_error("cascade 'on_any' requires at least one trait name", on_loc) if args.empty?
-
-        @context.raise_error("cascade 'on_any' requires an expression as the last argument", on_loc) if args.size == 1
+        on_loc = current_location
+        validate_on_args(args, "on_any", on_loc)
 
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = fn(:any?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = @context.ensure_syntax(expr)
-        @cases << WhenCaseExpression.new(condition, result)
+        condition = create_function_call(:any?, trait_names, on_loc)
+        result = ensure_syntax(expr)
+        add_case(condition, result)
       end
 
       def on_none(*args)
-        # Capture the caller location for precise error reporting
-        c = caller_locations(1, 1).first
-        on_loc = Location.new(file: c.path, line: c.lineno, column: 0)
-
-        @context.raise_error("cascade 'on_none' requires at least one trait name", on_loc) if args.empty?
-
-        @context.raise_error("cascade 'on_none' requires an expression as the last argument", on_loc) if args.size == 1
+        on_loc = current_location
+        validate_on_args(args, "on_none", on_loc)
 
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = fn(:none?, trait_names.map { |name| ref_with_location(name, on_loc) })
-        result    = @context.ensure_syntax(expr)
-        @cases << WhenCaseExpression.new(condition, result)
+        condition = create_function_call(:none?, trait_names, on_loc)
+        result = ensure_syntax(expr)
+        add_case(condition, result)
       end
 
       def base(expr)
-        result = @context.ensure_syntax(expr)
-        @cases << WhenCaseExpression.new(literal(true), result) # Always matches
+        result = ensure_syntax(expr)
+        add_case(create_literal(true), result)
       end
 
       def method_missing(method_name, *args, &block)
-        super if !args.empty? || block_given?
-        # You can reference values directly or with ref(:name) syntax
-        # value :one "one"
-        # value :points_to_one, one
-        # value_:also_points_to_one, ref(:one)
-        Binding.new(method_name, loc: @loc)
+        return super if !args.empty? || block_given?
+
+        # Allow direct trait references in cascade conditions
+        create_binding(method_name, @loc)
       end
 
       def respond_to_missing?(_method_name, _include_private = false)
@@ -91,9 +67,54 @@ module Kumi
 
       private
 
-      # Helper method to create a Binding with a specific location
-      def ref_with_location(name, loc)
-        Binding.new(name, loc: loc)
+      def current_location
+        caller_info = caller_locations(1, 1).first
+        Location.new(file: caller_info.path, line: caller_info.lineno, column: 0)
+      end
+
+      def validate_on_args(args, method_name, location)
+        raise_error("cascade '#{method_name}' requires at least one trait name", location) if args.empty?
+
+        return unless args.size == 1
+
+        raise_error("cascade '#{method_name}' requires an expression as the last argument", location)
+      end
+
+      def create_function_call(function_name, trait_names, location)
+        trait_bindings = trait_names.map { |name| create_binding(name, location) }
+        create_fn(function_name, trait_bindings)
+      end
+
+      def add_case(condition, result)
+        @cases << WhenCaseExpression.new(condition, result)
+      end
+
+      def ref(name)
+        @context.ref(name)
+      end
+
+      def create_literal(value)
+        @context.literal(value)
+      end
+
+      def create_fn(name, args)
+        @context.fn(name, args)
+      end
+
+      def input
+        @context.input
+      end
+
+      def ensure_syntax(expr)
+        @context.ensure_syntax(expr)
+      end
+
+      def raise_error(message, location)
+        @context.raise_error(message, location)
+      end
+
+      def create_binding(name, location)
+        Binding.new(name, loc: location)
       end
     end
   end

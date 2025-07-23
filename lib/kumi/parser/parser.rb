@@ -18,6 +18,7 @@ module Kumi
         @interface.freeze # stop singleton hacks
         @interface.instance_eval(&rule_block)
         added = ::Object.constants - before_consts
+
         unless added.empty?
           raise Kumi::Errors::SemanticError,
                 "DSL cannot define global constants: #{added.join(', ')}"
