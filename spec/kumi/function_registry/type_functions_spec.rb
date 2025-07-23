@@ -88,7 +88,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
     end
 
     describe "keys function" do
-      it_behaves_like "a working function", :keys, [{ "a" => 1, "b" => 2 }], ["a", "b"]
+      it_behaves_like "a working function", :keys, [{ "a" => 1, "b" => 2 }], %w[a b]
 
       it "handles empty hashes" do
         fn = Kumi::FunctionRegistry.fetch(:keys)
@@ -109,7 +109,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
         hash["first"] = 1
         hash["second"] = 2
         hash["third"] = 3
-        expect(fn.call(hash)).to eq(["first", "second", "third"])
+        expect(fn.call(hash)).to eq(%w[first second third])
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
         hash["first"] = "A"
         hash["second"] = "B"
         hash["third"] = "C"
-        expect(fn.call(hash)).to eq(["A", "B", "C"])
+        expect(fn.call(hash)).to eq(%w[A B C])
       end
     end
   end
@@ -155,7 +155,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
 
       it "handles positive indices" do
         fn = Kumi::FunctionRegistry.fetch(:at)
-        array = ["a", "b", "c", "d"]
+        array = %w[a b c d]
         expect(fn.call(array, 0)).to eq("a")
         expect(fn.call(array, 1)).to eq("b")
         expect(fn.call(array, 2)).to eq("c")
@@ -164,7 +164,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
 
       it "handles negative indices" do
         fn = Kumi::FunctionRegistry.fetch(:at)
-        array = ["a", "b", "c", "d"]
+        array = %w[a b c d]
         expect(fn.call(array, -1)).to eq("d")
         expect(fn.call(array, -2)).to eq("c")
         expect(fn.call(array, -3)).to eq("b")
@@ -173,7 +173,7 @@ RSpec.describe Kumi::FunctionRegistry::TypeFunctions do
 
       it "handles out of bounds indices" do
         fn = Kumi::FunctionRegistry.fetch(:at)
-        array = ["a", "b", "c"]
+        array = %w[a b c]
         expect(fn.call(array, 10)).to be_nil
         expect(fn.call(array, -10)).to be_nil
       end

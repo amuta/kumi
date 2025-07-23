@@ -81,7 +81,7 @@ RSpec.describe Kumi::FunctionRegistry::ConditionalFunctions do
         fn = Kumi::FunctionRegistry.fetch(:if)
         # Only false and nil are falsy in Ruby boolean context for this function
         expect(fn.call(false, "value", "fallback")).to eq("fallback")
-        # Note: The function expects actual boolean values based on signature
+        # NOTE: The function expects actual boolean values based on signature
       end
     end
   end
@@ -114,14 +114,14 @@ RSpec.describe Kumi::FunctionRegistry::ConditionalFunctions do
 
       it "handles empty arguments" do
         fn = Kumi::FunctionRegistry.fetch(:coalesce)
-        expect(fn.call()).to be_nil
+        expect(fn.call).to be_nil
       end
     end
 
     describe "edge cases" do
       it "distinguishes nil from other falsy values" do
         fn = Kumi::FunctionRegistry.fetch(:coalesce)
-        expect(fn.call(nil, false)).to eq(false) # false is not nil
+        expect(fn.call(nil, false)).to be(false) # false is not nil
         expect(fn.call(nil, 0)).to eq(0) # 0 is not nil
         expect(fn.call(nil, "")).to eq("") # empty string is not nil
         expect(fn.call(nil, [])).to eq([]) # empty array is not nil
@@ -168,9 +168,9 @@ RSpec.describe Kumi::FunctionRegistry::ConditionalFunctions do
       # Pattern: provide default for conditional that might return nil
       user_preference = nil
       system_default = "default_theme"
-      
+
       theme = coalesce_fn.call(
-        conditional_fn.call(user_preference != nil, user_preference, nil),
+        conditional_fn.call(!user_preference.nil?, user_preference, nil),
         system_default
       )
       expect(theme).to eq("default_theme")
@@ -179,7 +179,7 @@ RSpec.describe Kumi::FunctionRegistry::ConditionalFunctions do
       primary = nil
       secondary = nil
       tertiary = "fallback"
-      
+
       result = coalesce_fn.call(primary, secondary, tertiary)
       expect(result).to eq("fallback")
     end

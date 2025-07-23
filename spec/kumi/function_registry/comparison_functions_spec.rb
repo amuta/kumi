@@ -39,10 +39,10 @@ RSpec.describe Kumi::FunctionRegistry::ComparisonFunctions do
     end
 
     describe "string comparisons" do
-      it_behaves_like "a working function", :==, ["hello", "hello"], true
-      it_behaves_like "a working function", :==, ["hello", "world"], false
-      it_behaves_like "a working function", :!=, ["hello", "world"], true
-      it_behaves_like "a working function", :!=, ["hello", "hello"], false
+      it_behaves_like "a working function", :==, %w[hello hello], true
+      it_behaves_like "a working function", :==, %w[hello world], false
+      it_behaves_like "a working function", :!=, %w[hello world], true
+      it_behaves_like "a working function", :!=, %w[hello hello], false
     end
 
     describe "boolean comparisons" do

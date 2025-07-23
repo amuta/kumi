@@ -36,7 +36,7 @@ RSpec.describe Kumi::FunctionRegistry::MathFunctions do
       it "handles decimal numbers" do
         fn = Kumi::FunctionRegistry.fetch(:add)
         expect(fn.call(5.5, 2.3)).to be_within(0.001).of(7.8)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:divide)
         expect(fn.call(7.0, 2.0)).to eq(3.5)
       end

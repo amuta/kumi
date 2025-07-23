@@ -18,7 +18,7 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "handles nested arrays" do
         fn = Kumi::FunctionRegistry.fetch(:size)
         expect(fn.call([[1, 2], [3, 4], [5]])).to eq(3)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:empty?)
         expect(fn.call([[], [], []])).to be false # array contains empty arrays, but isn't empty itself
       end
@@ -26,17 +26,17 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "works with strings (which respond to collection methods)" do
         fn = Kumi::FunctionRegistry.fetch(:size)
         expect(fn.call("hello")).to eq(5)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:empty?)
         expect(fn.call("")).to be true
         expect(fn.call("hello")).to be false
       end
 
       it "size and length are equivalent" do
-        arrays = [[], [1], [1, 2, 3], ["a", "b", "c"]]
+        arrays = [[], [1], [1, 2, 3], %w[a b c]]
         size_fn = Kumi::FunctionRegistry.fetch(:size)
         length_fn = Kumi::FunctionRegistry.fetch(:length)
-        
+
         arrays.each do |arr|
           expect(size_fn.call(arr)).to eq(length_fn.call(arr))
         end
@@ -55,7 +55,7 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "handles single element arrays" do
         fn = Kumi::FunctionRegistry.fetch(:first)
         expect(fn.call([42])).to eq(42)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:last)
         expect(fn.call([42])).to eq(42)
       end
@@ -63,17 +63,17 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "handles empty arrays" do
         fn = Kumi::FunctionRegistry.fetch(:first)
         expect(fn.call([])).to be_nil
-        
+
         fn = Kumi::FunctionRegistry.fetch(:last)
         expect(fn.call([])).to be_nil
       end
 
       it "handles mixed types" do
         array = [1, "hello", true, nil]
-        
+
         fn = Kumi::FunctionRegistry.fetch(:first)
         expect(fn.call(array)).to eq(1)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:last)
         expect(fn.call(array)).to be_nil
       end
@@ -81,7 +81,7 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "works with strings" do
         fn = Kumi::FunctionRegistry.fetch(:first)
         expect(fn.call("hello".chars)).to eq("h")
-        
+
         fn = Kumi::FunctionRegistry.fetch(:last)
         expect(fn.call("hello".chars)).to eq("o")
       end
@@ -101,10 +101,10 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "handles empty arrays" do
         fn = Kumi::FunctionRegistry.fetch(:sum)
         expect(fn.call([])).to eq(0)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:min)
         expect(fn.call([])).to be_nil
-        
+
         fn = Kumi::FunctionRegistry.fetch(:max)
         expect(fn.call([])).to be_nil
       end
@@ -112,36 +112,36 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
       it "handles single element arrays" do
         fn = Kumi::FunctionRegistry.fetch(:sum)
         expect(fn.call([42])).to eq(42)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:min)
         expect(fn.call([42])).to eq(42)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:max)
         expect(fn.call([42])).to eq(42)
       end
 
       it "handles negative numbers" do
         array = [-5, -1, -10, -3]
-        
+
         fn = Kumi::FunctionRegistry.fetch(:sum)
         expect(fn.call(array)).to eq(-19)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:min)
         expect(fn.call(array)).to eq(-10)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:max)
         expect(fn.call(array)).to eq(-1)
       end
 
       it "handles decimal numbers" do
         array = [1.5, 2.3, 0.7]
-        
+
         fn = Kumi::FunctionRegistry.fetch(:sum)
         expect(fn.call(array)).to be_within(0.001).of(4.5)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:min)
         expect(fn.call(array)).to eq(0.7)
-        
+
         fn = Kumi::FunctionRegistry.fetch(:max)
         expect(fn.call(array)).to eq(2.3)
       end
@@ -220,7 +220,7 @@ RSpec.describe Kumi::FunctionRegistry::CollectionFunctions do
 
       it "handles strings" do
         fn = Kumi::FunctionRegistry.fetch(:sort)
-        expect(fn.call(["zebra", "apple", "banana"])).to eq(["apple", "banana", "zebra"])
+        expect(fn.call(%w[zebra apple banana])).to eq(%w[apple banana zebra])
       end
 
       it "handles mixed comparable types" do

@@ -116,6 +116,23 @@ schema do
 end
 ```
 
+**IMPORTANT CASCADE CONDITION SYNTAX:**
+In cascade expressions (`value :name do ... end`), trait references use **symbols**, not bare identifiers:
+```ruby
+value :status do
+  on :adult, "Adult Status"      # ✅ Correct - use :trait_name symbol
+  on :verified, "Verified User"
+  base "Unverified"
+end
+
+# NOT this:
+value :status do
+  on adult, "Adult Status"       # ❌ Wrong - don't use bare identifier in cascade
+  on verified, "Verified User"   # ❌ Wrong
+  base "Unverified"
+end
+```
+
 **Input Block System**:
 - **Required**: All schemas must have an `input` block declaring expected fields
 - **Type Declarations**: Preferred via type-specific methods (e.g. `integer :field`, `string :name`, `any :field` for untyped fields)

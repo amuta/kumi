@@ -117,7 +117,7 @@ module Kumi
           raise_syntax_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs", location: @context.current_location)
         end
 
-        warn "DEPRECATION: trait(:name, lhs, operator, rhs) syntax is deprecated. Use: trait :name, (lhs operator rhs)"
+        # warn "DEPRECATION: trait(:name, lhs, operator, rhs) syntax is deprecated. Use: trait :name, (lhs operator rhs)"
 
         if args.size == 4
           name, lhs, operator, rhs = args

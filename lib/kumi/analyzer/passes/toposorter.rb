@@ -52,7 +52,19 @@ module Kumi
 
         def report_unexpected_cycle(temp_marks, current_node, errors)
           cycle_path = temp_marks.to_a.join(" → ") + " → #{current_node}"
-          add_error(errors, :cycle, "cycle detected: #{cycle_path}")
+
+          # Try to find the first declaration in the cycle for location info
+          first_decl = find_declaration_by_name(temp_marks.first || current_node)
+          location = first_decl&.loc
+
+          add_error(errors, location, "cycle detected: #{cycle_path}")
+        end
+
+        def find_declaration_by_name(name)
+          return nil unless schema
+
+          schema.attributes.find { |attr| attr.name == name } ||
+            schema.traits.find { |trait| trait.name == name }
         end
       end
     end

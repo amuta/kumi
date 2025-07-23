@@ -3,7 +3,10 @@
 module Kumi
   module Analyzer
     module Passes
-      # Collects field metadata from input declarations and validates consistency
+      # RESPONSIBILITY: Collect field metadata from input declarations and validate consistency
+      # DEPENDENCIES: None
+      # PRODUCES: :input_meta - Hash mapping field names to {type:, domain:} metadata
+      # INTERFACE: new(schema, state).run(errors)
       class InputCollector < PassBase
         include Syntax::TerminalExpressions
 

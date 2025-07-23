@@ -1,6 +1,6 @@
 # U.S. federal income‑tax plus FICA
 
-require "kumi"
+require_relative "../lib/kumi"
 
 module CompositeTax2024
   extend Kumi::Schema
@@ -97,7 +97,7 @@ end
 
 def example(income: 1_000_000, status: "single")
   # Create a runner for the schema
-  r = CompositeTax2024.from(income: income, filing_status: status).fetch
+  r = CompositeTax2024.from(income: income, filing_status: status)
   # puts r.inspect
   puts "\n=== 2024 U.S. Income‑Tax Example ==="
   printf "Income:                      $%0.2f\n", income

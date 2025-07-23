@@ -49,7 +49,7 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
   end
 
   describe "string length" do
-    # Note: collection length overrides string length in the registry
+    # NOTE: collection length overrides string length in the registry
     it_behaves_like "a function with correct metadata", :string_length, 1, [:string], :integer
     it_behaves_like "a function with correct metadata", :length, 1, [Kumi::Types.array(:any)], :integer
 
@@ -72,7 +72,7 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
   end
 
   describe "string queries" do
-    # Note: collection include? overrides string include? in the registry
+    # NOTE: collection include? overrides string include? in the registry
     it_behaves_like "a function with correct metadata", :include?, 2, [Kumi::Types.array(:any), :any], :boolean
     it_behaves_like "a function with correct metadata", :start_with?, 2, %i[string string], :boolean
     it_behaves_like "a function with correct metadata", :end_with?, 2, %i[string string], :boolean
@@ -145,8 +145,8 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
     # Since collection include? overrides string include?, test the actual behavior
     it "works with arrays (collection function)" do
       fn = Kumi::FunctionRegistry.fetch(:include?)
-      expect(fn.call(["hello", "world"], "hello")).to be true
-      expect(fn.call(["hello", "world"], "xyz")).to be false
+      expect(fn.call(%w[hello world], "hello")).to be true
+      expect(fn.call(%w[hello world], "xyz")).to be false
     end
 
     it "also works with strings as arrays of characters" do

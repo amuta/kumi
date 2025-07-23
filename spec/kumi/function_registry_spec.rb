@@ -76,15 +76,15 @@ RSpec.describe Kumi::FunctionRegistry do
 
   describe "error handling" do
     it "raises UnknownFunction for unsupported functions" do
-      expect {
+      expect do
         described_class.fetch(:unknown_function)
-      }.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "raises UnknownFunction for signature of unsupported functions" do
-      expect {
+      expect do
         described_class.signature(:unknown_function)
-      }.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "handles nil function names gracefully" do
@@ -128,9 +128,9 @@ RSpec.describe Kumi::FunctionRegistry do
     it "prevents duplicate registration" do
       described_class.register(:custom_func) { |x| x }
 
-      expect {
+      expect do
         described_class.register(:custom_func) { |x| x * 2 }
-      }.to raise_error(ArgumentError, "Function :custom_func already registered")
+      end.to raise_error(ArgumentError, "Function :custom_func already registered")
     end
 
     it "can auto-register from classes" do

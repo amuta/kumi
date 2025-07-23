@@ -30,12 +30,6 @@ module Kumi
         ->(ctx) { invoke_function(fn_name, arg_fns, ctx, expr.loc) }
       end
 
-      # def compile_call(expr)
-      #   fn = FunctionRegistry.fetch(expr.fn_name)
-      #   arg_fns = expr.args.map { |a| compile_expr(a) }
-      #   ->(ctx) { fn.call(*arg_fns.map { |f| f.call(ctx) }) }
-      # end
-
       def compile_cascade(expr)
         pairs = expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
         lambda do |ctx|

@@ -29,7 +29,7 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
 
       it "handles empty arguments" do
         fn = Kumi::FunctionRegistry.fetch(:and)
-        expect(fn.call()).to be true # all? on empty array returns true
+        expect(fn.call).to be true # all? on empty array returns true
       end
     end
 
@@ -52,7 +52,7 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
 
       it "handles empty arguments" do
         fn = Kumi::FunctionRegistry.fetch(:or)
-        expect(fn.call()).to be false # any? on empty array returns false
+        expect(fn.call).to be false # any? on empty array returns false
       end
     end
 
@@ -139,7 +139,8 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       not_fn = Kumi::FunctionRegistry.fetch(:not)
 
       # NOT (A AND B) = (NOT A) OR (NOT B)
-      a, b = true, false
+      a = true
+      b = false
       left_side = not_fn.call(and_fn.call(a, b))
       right_side = or_fn.call(not_fn.call(a), not_fn.call(b))
       expect(left_side).to eq(right_side)

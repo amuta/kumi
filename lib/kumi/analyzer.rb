@@ -12,10 +12,10 @@ module Kumi
       Passes::DefinitionValidator,    # 3. Checks the basic structure of each rule.
       Passes::DependencyResolver,     # 4. Builds the dependency graph.
       Passes::UnsatDetector,          # 5. Detects unsatisfiable constraints in rules.
-      Passes::CycleDetector,          # 5. Finds cycles in the dependency graph.
       Passes::Toposorter,             # 6. Creates the final evaluation order.
       Passes::TypeInferencer,         # 7. Infers types for all declarations (pure annotation).
-      Passes::TypeChecker             # 8. Validates types using inferred information.
+      Passes::TypeConsistencyChecker, # 8. Validates declared vs inferred type consistency.
+      Passes::TypeChecker             # 9. Validates types using inferred information.
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)

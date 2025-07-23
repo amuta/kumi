@@ -27,11 +27,6 @@ module Kumi
     end
     alias slice evaluate
 
-    # Convenience for the canonical audit trail
-    def explain(key)
-      @debugger.trace(@context, key)
-    end
-
     def [](*keys)
       raise ArgumentError, "pass exactly one key" unless keys.size == 1
 
