@@ -93,6 +93,10 @@ module Kumi
         @context.ref(name)
       end
 
+      def fn(name, *args)
+        @context.fn(name, *args)
+      end
+
       def create_literal(value)
         @context.literal(value)
       end

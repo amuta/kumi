@@ -2,7 +2,7 @@
 
 !! Remember, this gem is not on production yet, so no backward compatilibity is necessary. But do not change the public interfaces (e.g. DSL, Schema) without explicitly requested or demanded. 
 !! We are using zeitwerk, i.e.: no requires
-
+!! Do not care about linter or coverage unless asked to do so.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -168,7 +168,13 @@ end
 ### Examples Directory
 
 The `examples/` directory contains comprehensive examples showing Kumi usage patterns:
-- `input_block_typing_showcase.rb` - Demonstrates input block typing features (current best practices)
+- `cascade_demonstration.rb` - Demonstrates cascade logic with UnsatDetector fixes (working)
+- `working_comprehensive_schema.rb` - Complete feature showcase (current best practices, working)
+- `federal_tax_calculator_2024.rb` - Real-world tax calculation example (working)
+- `tax_2024.rb` - Simple tax example with explain functionality (working)
+- `wide_schema_compilation_and_evaluation_benchmark.rb` - Performance benchmark for wide schemas (compilation and evaluation scaling)
+- `deep_schema_compilation_and_evaluation_benchmark.rb` - Performance benchmark for deep dependency chains (stack-safe evaluation)
+- `comprehensive_god_schema.rb` - Complex example (currently has UnsatDetector semantic errors)
 
 *Note: Some examples may use deprecated syntax and should be updated to use the new input block system.*
 
@@ -326,6 +332,8 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 ### Error Reporting Architecture
 - **Unified Interface**: Use `ErrorReporter` module and `ErrorReporting` mixin for consistent error handling
 - **Location Information**: All errors must include proper file:line:column location data
+- **Precise Location Tracking**: Error objects preserve location data in `.location` attribute for programmatic access
+- **User Code Location**: Errors point to actual user DSL code, not internal library files
 - **Backward Compatibility**: Support both legacy `[location, message]` and new `ErrorEntry` formats
 - **Type Categorization**: Errors categorized as `:syntax`, `:semantic`, `:type`, `:runtime`
 - **Enhanced Messaging**: Support for error suggestions, context, and similar name detection
@@ -357,27 +365,22 @@ class MyAnalyzerPass < PassBase
   end
 end
 ```
-
-**Location Resolution Best Practices**:
-- Always provide location information when available
-- For complex errors (cycles, cross-references), find relevant AST nodes for location
-- Use symbolic locations (`:cycle`, `:type_mismatch`) as fallback when no AST location available
-- Prefer `node.loc` over `nil` for location parameter
-
 ### Testing Error Scenarios
 - Use `spec/integration/dsl_breakage_spec.rb` patterns for comprehensive error testing
-- Use `spec/integration/potential_breakage_spec.rb` for edge cases that should break but might not
-- Verify error location precision with `spec/integration/error_location_spec.rb` patterns
+- Use `spec/integration/potential_breakage_spec.rb` for edge cases break
+- Use `spec/fixtures/location_tracking_test_schema.rb` fixture for testing different syntax error types  
 - Test backward compatibility with existing analyzer pass specs
 
 ### Key Development Files
 12. `lib/kumi/error_reporter.rb` - Central error reporting functionality
 13. `lib/kumi/error_reporting.rb` - Mixin for consistent error interfaces  
-14. `ERROR_REPORTING_INTERFACE.md` - Detailed error reporting implementation guide
-15. `ON_ERRORS.md` - Comprehensive analysis of DSL breakage scenarios and error quality
-16. `spec/integration/dsl_breakage_spec.rb` - Integration tests for all DSL breakage scenarios
-17. `spec/integration/potential_breakage_spec.rb` - Edge cases that should break but might not
-18. `docs/development/README.md` - Development guides directory index
-19. `docs/development/error-reporting.md` - Comprehensive error reporting standards and patterns
+14. `spec/integration/location_tracking_spec.rb` - Comprehensive tests for error location accuracy
+15. `spec/fixtures/location_tracking_test_schema.rb` - Fixture with intentional syntax errors for location testing
+16. `ERROR_REPORTING_INTERFACE.md` - Detailed error reporting implementation guide
+17. `ON_ERRORS.md` - Comprehensive analysis of DSL breakage scenarios and error quality
+18. `spec/integration/dsl_breakage_spec.rb` - Integration tests for all DSL breakage scenarios
+19. `spec/integration/potential_breakage_spec.rb` - Edge cases that should break but might not
+20. `docs/development/README.md` - Development guides directory index
+21. `docs/development/error-reporting.md` - Comprehensive error reporting standards and patterns
 
 # 

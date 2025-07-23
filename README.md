@@ -17,7 +17,7 @@ module TaxCalculator
       float :deductions
     end
 
-    value :taxable_income, input.income - deductions
+    value :taxable_income, input.income - input.deductions
     value :tax_amount, taxable_income * input.tax_rate
   end
 end
@@ -185,6 +185,64 @@ end
 
 # Kumi::Errors::SemanticError: cycle detected involving: monthly_rate → yearly_rate → monthly_rate
 # Catches impossible dependency loops at compile time
+```
+
+## Performance
+
+Kumi is designed for high-performance evaluation of complex business rules with efficient compilation and optimized execution.
+
+### Wide Schema Benchmark
+
+The `examples/wide_schema_compilation_and_evaluation_benchmark.rb` demonstrates Kumi's scalability with increasingly complex schemas:
+
+```
+=== Compilation Times ===
+compile  1,000-wide:   39.6 ms
+compile  5,000-wide:  128.1 ms
+compile 10,000-wide:  371.6 ms
+
+=== Evaluation Performance ===
+eval  1,000-wide:  1,048.9 i/s  (953 μs/i)
+eval  5,000-wide:    199.3 i/s  (5.02 ms/i) 
+eval 10,000-wide:     92.3 i/s  (10.83 ms/i)
+```
+
+### Deep Schema Benchmark
+
+The `examples/deep_schema_compilation_and_evaluation_benchmark.rb` tests performance with deep dependency chains:
+
+```
+=== Compilation Times ===
+compile  50-deep:   22.6 ms
+compile 100-deep:   14.5 ms
+compile 150-deep:   28.3 ms
+
+=== Evaluation Performance ===
+eval  50-deep:  1,998.1 i/s  (500 μs/i)
+eval 100-deep:   513.6 i/s  (1.95 ms/i)
+eval 150-deep:   240.9 i/s  (4.15 ms/i)
+```
+
+**Key Performance Characteristics:**
+
+- **Sub-millisecond evaluation** for moderate complexity (50-deep: ~500μs, 1k-wide: ~950μs per evaluation)
+- **Linear compilation scaling** with schema width and depth (O(n) where n = number of declarations)
+- **Stack-safe deep dependency chains** up to 150+ levels without Ruby stack overflow  
+- **Efficient dependency resolution** through topological sorting and memoization
+- **Memory-optimized execution** with compiled lambda functions and cached intermediate results
+
+**Architecture Benefits:**
+
+- **Compile-once, evaluate-many**: Schema compilation happens once, evaluations are pure computation
+- **Dependency graph optimization**: Only computes values that are actually needed for the requested output
+- **Type-safe execution**: No runtime type checking overhead after compilation
+- **Memoized intermediate values**: Avoids redundant calculations within evaluation cycles
+- **Depth vs Width trade-offs**: Deep chains slower than wide schemas due to sequential dependencies
+
+Run the benchmarks yourself:
+```bash
+bundle exec ruby examples/wide_schema_compilation_and_evaluation_benchmark.rb
+bundle exec ruby examples/deep_schema_compilation_and_evaluation_benchmark.rb
 ```
 
 

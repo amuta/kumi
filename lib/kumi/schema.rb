@@ -11,7 +11,7 @@ module Kumi
     end
 
     def from(context)
-      raise("No schema defined") unless @__schema__
+      raise("No schema defined") unless @__compiled_schema__
 
       # Validate input types and domain constraints
       input_meta = @__analyzer_result__.state[:input_meta] || {}
@@ -19,16 +19,32 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      SchemaInstance.new(@__schema__, @__analyzer_result__.definitions, context)
+      SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.definitions, context)
+    end
+
+    def explain(context, *keys)
+      raise("No schema defined") unless @__compiled_schema__
+
+      # Validate input types and domain constraints
+      input_meta = @__analyzer_result__.state[:input_meta] || {}
+      violations = Input::Validator.validate_context(context, input_meta)
+
+      raise Errors::InputValidationError, violations unless violations.empty?
+
+      keys.each do |key|
+        puts Kumi::Explain.call(self, key, inputs: context)
+      end
+
+      nil
     end
 
     # The schema compilation logic remains the same
     def schema(&block)
       @__syntax_tree__ = Kumi::Parser::Dsl.build_syntax_tree(&block).freeze
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
-      @__schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
+      @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 
-      Inspector.new(@__syntax_tree__, @__analyzer_result__, @__schema__)
+      Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
     end
   end
 end

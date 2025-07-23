@@ -70,7 +70,7 @@ module Kumi
             all_operands = flatten_operator_chain(expr, fn_name)
             symbolic_operands = all_operands.map { |op| format_expression(op, indent_context: 0, nested: true) }
             symbolic_format = symbolic_operands.join(" #{get_operator_symbol(fn_name)} ")
-            
+
             evaluated_operands = all_operands.map do |op|
               if op.is_a?(Syntax::TerminalExpressions::Literal)
                 format_expression(op, indent_context: 0, nested: true)
@@ -84,19 +84,19 @@ module Kumi
               end
             end
             evaluated_format = evaluated_operands.join(" #{get_operator_symbol(fn_name)} ")
-            
+
             "#{symbolic_format} = #{evaluated_format}"
           else
             # Regular pretty formatting for non-chain expressions
             symbolic_args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
             symbolic_format = get_display_format(fn_name, symbolic_args)
-            
+
             evaluated_args = expr.args.map do |arg|
               if arg.is_a?(Syntax::TerminalExpressions::Literal)
                 format_expression(arg, indent_context: 0, nested: true)
               else
                 arg_value = format_value(evaluate_expression(arg))
-                if arg.is_a?(Syntax::TerminalExpressions::Binding) && 
+                if arg.is_a?(Syntax::TerminalExpressions::Binding) &&
                    expr.args.count { |a| !a.is_a?(Syntax::TerminalExpressions::Literal) } > 1
                   "(#{format_expression(arg, indent_context: 0, nested: true)} = #{arg_value})"
                 else
@@ -105,7 +105,7 @@ module Kumi
               end
             end
             evaluated_format = get_display_format(fn_name, evaluated_args)
-            
+
             "#{symbolic_format} = #{evaluated_format}"
           end
         else
@@ -117,7 +117,7 @@ module Kumi
 
       def is_chain_of_same_operator?(expr, fn_name)
         return false unless %i[add subtract multiply divide].include?(fn_name)
-        
+
         # Check if any argument is the same operator
         expr.args.any? do |arg|
           arg.is_a?(Syntax::Expressions::CallExpression) && arg.fn_name == fn_name
@@ -126,7 +126,7 @@ module Kumi
 
       def flatten_operator_chain(expr, operator)
         operands = []
-        
+
         expr.args.each do |arg|
           if arg.is_a?(Syntax::Expressions::CallExpression) && arg.fn_name == operator
             # Recursively flatten nested operations of the same type
@@ -135,7 +135,7 @@ module Kumi
             operands << arg
           end
         end
-        
+
         operands
       end
 

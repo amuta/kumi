@@ -25,7 +25,12 @@ module Kumi
         @schema.evaluate(@context, *keys)
       end
     end
-    alias slice evaluate
+
+    def slice(*keys)
+      return {} if keys.empty?
+
+      evaluate(*keys)
+    end
 
     def [](*keys)
       raise ArgumentError, "pass exactly one key" unless keys.size == 1
