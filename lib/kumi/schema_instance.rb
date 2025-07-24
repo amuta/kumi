@@ -9,8 +9,10 @@ module Kumi
   #   instance.slice(:tax_due)         # alias for evaluate(*keys)
   #   instance.explain(:tax_due)       # pretty trace string
   #   instance.input                   # original context (read‑only)
-  #
+
   class SchemaInstance
+    attr_reader :compiled_schema, :analysis, :context
+
     def initialize(compiled_schema, analysis, context)
       @compiled_schema = compiled_schema # Kumi::CompiledSchema
       @analysis = analysis # Analyzer result (for deps)
@@ -34,10 +36,6 @@ module Kumi
 
     def [](key_name)
       evaluate(key_name)[key_name]
-    end
-
-    def input
-      @context
     end
   end
 end

@@ -36,6 +36,8 @@ module Kumi
         rule_block.binding.eval("using Kumi::Parser::Sugar::ExpressionRefinement")
         rule_block.binding.eval("using Kumi::Parser::Sugar::NumericRefinement")
         rule_block.binding.eval("using Kumi::Parser::Sugar::StringRefinement")
+        rule_block.binding.eval("using Kumi::Parser::Sugar::ArrayRefinement")
+        rule_block.binding.eval("using Kumi::Parser::Sugar::ModuleRefinement")
       rescue RuntimeError, NoMethodError
         # Refinements disabled in method scope - continue without them
       end

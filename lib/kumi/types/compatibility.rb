@@ -12,6 +12,10 @@ module Kumi
         # Exact match
         return true if type1 == type2
 
+        # Generic array compatibility: :array is compatible with any structured array
+        return true if (type1 == :array && Validator.array_type?(type2)) ||
+                       (type2 == :array && Validator.array_type?(type1))
+
         # Numeric compatibility
         return true if numeric_compatible?(type1, type2)
 
@@ -31,6 +35,10 @@ module Kumi
         # :any unifies to the other type (more specific)
         return type2 if type1 == :any
         return type1 if type2 == :any
+
+        # Generic array unification: structured array is more specific than :array
+        return type2 if type1 == :array && Validator.array_type?(type2)
+        return type1 if type2 == :array && Validator.array_type?(type1)
 
         # Numeric unification
         if numeric_compatible?(type1, type2)

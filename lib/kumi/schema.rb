@@ -4,6 +4,8 @@ require "ostruct"
 
 module Kumi
   module Schema
+    attr_reader :__syntax_tree__, :__analyzer_result__, :__compiled_schema__
+
     Inspector = Struct.new(:syntax_tree, :analyzer_result, :compiled_schema) do
       def inspect
         "#<#{self.class} syntax_tree: #{syntax_tree.inspect}, analyzer_result: #{analyzer_result.inspect}, schema: #{schema.inspect}>"
@@ -19,7 +21,7 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.definitions, context)
+      SchemaInstance.new(@__compiled_schema__, @__analyzer_result__, context)
     end
 
     def explain(context, *keys)

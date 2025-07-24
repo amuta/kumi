@@ -18,5 +18,9 @@ module Kumi
     def key?(key)
       @ctx.key?(key)
     end
+
+    def clear
+      @__schema_cache__.clear
+    end
   end
 end
