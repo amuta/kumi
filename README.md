@@ -287,3 +287,91 @@ bundle exec ruby examples/deep_schema_compilation_and_evaluation_benchmark.rb
 ## DSL Syntax Reference
 
 See [`documents/SYNTAX.md`](documents/SYNTAX.md) for complete syntax documentation with sugar vs sugar-free examples.
+
+## Advanced Features
+
+### Custom Functions
+Register your own Ruby methods as Kumi functions:
+
+```ruby
+def celsius_to_fahrenheit(celsius)
+  celsius * 9.0 / 5.0 + 32
+end
+
+Kumi::FunctionRegistry.register_with_metadata(
+  :c_to_f, 
+  method(:celsius_to_fahrenheit),
+  return_type: :float, 
+  arity: 1,
+  param_types: [:float],
+  description: "Convert Celsius to Fahrenheit"
+)
+
+module Weather
+  extend Kumi::Schema
+  
+  schema do
+    input do
+      float :celsius
+    end
+    
+    value :fahrenheit, fn(:c_to_f, input.celsius)
+  end
+end
+```
+
+### Array Indexing
+Direct array element access:
+
+```ruby
+schema do
+  input do
+    array :scores, elem: { type: :integer }
+  end
+  
+  value :first_score, input.scores[0]
+  value :third_score, input.scores[2]
+end
+```
+
+### Logical OR
+Use `|` for logical OR operations:
+
+```ruby
+trait :weekend, (input.day == "Saturday") | (input.day == "Sunday")
+trait :holiday_or_weekend, weekend | (input.is_holiday == true)
+```
+
+### Programmatic DSL
+Generate declarations dynamically:
+
+```ruby
+schema do
+  input do
+    array :cells, elem: { type: :integer }
+  end
+  
+  # Generate cell declarations programmatically
+  (0...100).each do |i|
+    value :"cell_#{i}", input.cells[i]
+    trait :"cell_#{i}_alive", input.cells[i] == 1
+  end
+  
+  # Use generated declarations
+  value :alive_count, fn(:sum, 
+    (0...100).map { |i| fn(:conditional, ref(:"cell_#{i}_alive"), 1, 0) }
+  )
+end
+```
+
+### Schema Export/Import
+Serialize schemas for storage or transmission:
+
+```ruby
+# Export to JSON
+syntax_tree = MySchema.__syntax_tree__
+json = Kumi::Export.to_json(syntax_tree)
+
+# Import from JSON
+restored_tree = Kumi::Export.from_json(json)
+```

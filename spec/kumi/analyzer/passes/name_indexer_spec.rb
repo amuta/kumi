@@ -10,11 +10,11 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
       let(:schema) { syntax(:root, [], [], [], loc: loc) }
 
       it "leaves the state empty and records no errors" do
-        state = {}
+        state = Kumi::Analyzer::AnalysisState.new
         errors = []
-        described_class.new(schema, state).run(errors)
+        result_state = described_class.new(schema, state).run(errors)
 
-        expect(state[:definitions]).to eq({})
+        expect(result_state[:definitions]).to eq({})
         expect(errors).to be_empty
       end
     end
@@ -25,14 +25,15 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
       let(:schema) { syntax(:root, [], [price_attribute], [vip_trait], loc: loc) }
 
       it "stores each declaration and reports zero errors" do
-        state = {}
+        state = Kumi::Analyzer::AnalysisState.new
         errors = []
-        described_class.new(schema, state).run(errors)
+        result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(state[:definitions].keys).to contain_exactly(:price, :vip)
-        expect(state[:definitions][:price]).to be_a(Kumi::Syntax::Declarations::Attribute)
-        expect(state[:definitions][:vip]).to be_a(Kumi::Syntax::Declarations::Trait)
+        definitions = result_state[:definitions]
+        expect(definitions.keys).to contain_exactly(:price, :vip)
+        expect(definitions[:price]).to be_a(Kumi::Syntax::Declarations::Attribute)
+        expect(definitions[:vip]).to be_a(Kumi::Syntax::Declarations::Trait)
       end
     end
 
@@ -43,7 +44,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
       let(:schema) { syntax(:root, [], [dup_attribute, dup_attribute_two], []) }
 
       it "records a single duplicate-definition error" do
-        state = {}
+        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         described_class.new(schema, state).run(errors)
 
@@ -56,12 +57,12 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
       let(:schema) { syntax(:root, [], [attr(:conflict)], [trait(:conflict, call(:is_conflict))], loc: loc) }
 
       it "registers the duplicate and keeps the last declaration in the map" do
-        state = {}
+        state = Kumi::Analyzer::AnalysisState.new
         errors = []
-        described_class.new(schema, state).run(errors)
+        result_state = described_class.new(schema, state).run(errors)
 
         expect(errors.size).to eq(1)
-        expect(state[:definitions][:conflict]).to be_a(Kumi::Syntax::Declarations::Trait)
+        expect(result_state[:definitions][:conflict]).to be_a(Kumi::Syntax::Declarations::Trait)
       end
     end
   end

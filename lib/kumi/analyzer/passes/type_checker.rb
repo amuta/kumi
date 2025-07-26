@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
-      # DEPENDENCIES: None (can run independently)
+      # DEPENDENCIES: :decl_types from TypeInferencer
       # PRODUCES: None (validation only)
       # INTERFACE: new(schema, state).run(errors)
       class TypeChecker < VisitorPass
@@ -12,6 +12,7 @@ module Kumi
           visit_nodes_of_type(Expressions::CallExpression, errors: errors) do |node, _decl, errs|
             validate_function_call(node, errs)
           end
+          state
         end
 
         private

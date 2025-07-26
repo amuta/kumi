@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Collect field metadata from input declarations and validate consistency
-      # DEPENDENCIES: None
+      # DEPENDENCIES: :definitions
       # PRODUCES: :input_meta - Hash mapping field names to {type:, domain:} metadata
       # INTERFACE: new(schema, state).run(errors)
       class InputCollector < PassBase
@@ -47,7 +47,7 @@ module Kumi
             end
           end
 
-          set_state(:input_meta, input_meta.freeze)
+          state.with(:input_meta, input_meta.freeze)
         end
       end
     end

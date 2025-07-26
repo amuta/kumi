@@ -13,7 +13,7 @@ module Kumi
           definitions = get_state(:definitions, required: false) || {}
 
           order = compute_topological_order(dependency_graph, definitions, errors)
-          set_state(:topo_order, order)
+          state.with(:topo_order, order)
         end
 
         private
@@ -47,7 +47,7 @@ module Kumi
           # (i.e., declarations with no dependencies)
           definitions.each_key { |node| visit_node.call(node) }
 
-          order
+          order.freeze
         end
 
         def report_unexpected_cycle(temp_marks, current_node, errors)

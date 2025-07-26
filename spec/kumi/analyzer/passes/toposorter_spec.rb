@@ -5,9 +5,12 @@ RSpec.describe Kumi::Analyzer::Passes::Toposorter do
 
   def toposort(graph_spec)
     graph = dependency_graph(**graph_spec)
-    state = { dependency_graph: graph, definitions: graph_spec.keys.to_h { |k| [k, true] } }
-    described_class.new(nil, state).run([])
-    state[:topo_order]
+    state = Kumi::Analyzer::AnalysisState.new(
+      dependency_graph: graph, 
+      definitions: graph_spec.keys.to_h { |k| [k, true] }
+    )
+    result_state = described_class.new(nil, state).run([])
+    result_state[:topo_order]
   end
 
   describe ".run" do

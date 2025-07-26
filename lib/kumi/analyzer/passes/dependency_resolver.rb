@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Build dependency graph and leaf map, validate references
-      # DEPENDENCIES: :definitions from NameIndexer
+      # DEPENDENCIES: :definitions, :input_meta
       # PRODUCES: :dependency_graph - Hash of name → [DependencyEdge], :leaf_map - Hash of name → Set[nodes]
       # INTERFACE: new(schema, state).run(errors)
       class DependencyResolver < PassBase
@@ -26,8 +26,8 @@ module Kumi
             end
           end
 
-          set_state(:dependency_graph, dependency_graph.transform_values(&:freeze).freeze)
-          set_state(:leaf_map, leaf_map.transform_values(&:freeze).freeze)
+          state.with(:dependency_graph, dependency_graph.transform_values(&:freeze).freeze)
+               .with(:leaf_map, leaf_map.transform_values(&:freeze).freeze)
         end
 
         private

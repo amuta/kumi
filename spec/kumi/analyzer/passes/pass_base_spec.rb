@@ -11,7 +11,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
         each_decl do |decl|
           add_error(errors, decl.loc, "test error for #{decl.name}")
         end
-        set_state(:test_key, "test_value")
+        state.with(:test_key, "test_value")
       end
     end
   end
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     syntax(:root, [], [attr1], [trait1], loc: loc)
   end
 
-  let(:state) { { existing: "data" } }
+  let(:state) { Kumi::Analyzer::AnalysisState.new(existing: "data") }
   let(:errors) { [] }
   let(:pass_instance) { test_pass_class.new(schema, state) }
 
@@ -83,7 +83,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
 
   describe "#get_state" do
     context "when state key exists" do
-      before { state[:existing_key] = "existing_value" }
+      let(:state) { Kumi::Analyzer::AnalysisState.new(existing_key: "existing_value") }
 
       it "returns the state value" do
         value = pass_instance.send(:get_state, :existing_key)
@@ -99,7 +99,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     context "when state key does not exist" do
       it "raises error when required (default)" do
         expect { pass_instance.send(:get_state, :missing_key) }
-          .to raise_error(/requires missing_key from previous passes/)
+          .to raise_error(/Required state key .* not found/)
       end
 
       it "returns nil when not required" do
@@ -109,24 +109,10 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     end
   end
 
-  describe "#set_state" do
-    it "sets state value" do
-      pass_instance.send(:set_state, :new_key, "new_value")
-
-      expect(state[:new_key]).to eq("new_value")
-    end
-
-    it "overwrites existing state value" do
-      state[:existing] = "old_value"
-      pass_instance.send(:set_state, :existing, "new_value")
-
-      expect(state[:existing]).to eq("new_value")
-    end
-  end
 
   describe "integration with concrete pass" do
     it "allows concrete passes to use all base functionality" do
-      pass_instance.run(errors)
+      result_state = pass_instance.run(errors)
 
       # Check that each_decl and add_error worked
       expect(errors.size).to eq(2)
@@ -135,8 +121,8 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
         "test error for trait1"
       )
 
-      # Check that set_state worked
-      expect(state[:test_key]).to eq("test_value")
+      # Check that state was updated correctly
+      expect(result_state[:test_key]).to eq("test_value")
     end
   end
 
@@ -148,7 +134,6 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
       expect(pass_instance.send(:respond_to?, :each_decl, true)).to be true
       expect(pass_instance.send(:respond_to?, :add_error, true)).to be true
       expect(pass_instance.send(:respond_to?, :get_state, true)).to be true
-      expect(pass_instance.send(:respond_to?, :set_state, true)).to be true
     end
 
     it "does not expose protected methods publicly" do

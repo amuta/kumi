@@ -3,13 +3,13 @@
 RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
   include ASTFactory
 
-  let(:state)  { {} }
+  let(:state)  { Kumi::Analyzer::AnalysisState.new }
   let(:errors) { [] }
 
   def run(schema)
     # The TypeChecker runs after the NameIndexer to have access to all definitions.
-    Kumi::Analyzer::Passes::NameIndexer.new(schema, state).run(errors)
-    described_class.new(schema, state).run(errors)
+    intermediate_state = Kumi::Analyzer::Passes::NameIndexer.new(schema, state).run(errors)
+    described_class.new(schema, intermediate_state).run(errors)
   end
 
   describe ".run" do

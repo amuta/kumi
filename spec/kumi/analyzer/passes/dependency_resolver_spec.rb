@@ -3,7 +3,7 @@
 RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
   include ASTFactory
 
-  let(:state) { { definitions: definitions, input_meta: input_meta } }
+  let(:state) { Kumi::Analyzer::AnalysisState.new(definitions: definitions, input_meta: input_meta) }
   let(:input_meta) { {} }
   let(:errors) { [] }
   let(:definitions) do
@@ -15,7 +15,15 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
   end
 
   def run(schema)
-    described_class.new(schema, state).run(errors)
+    @result_state = described_class.new(schema, state).run(errors)
+  end
+  
+  def dependency_graph
+    @result_state[:dependency_graph]
+  end
+  
+  def leaf_map
+    @result_state[:leaf_map]
   end
 
   describe ".run" do
@@ -28,7 +36,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "builds dependency graph with reference edges" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         expect(graph[:final_price].size).to eq(2)
 
         price_edge = graph[:final_price].find { |e| e.to == :price }
@@ -50,7 +58,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "builds dependency graph with key edges and populates leaf map" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         expect(graph[:total].size).to eq(2)
 
         base_edge = graph[:total].find { |e| e.to == :base_amount }
@@ -60,7 +68,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
         expect(tax_edge.type).to eq(:key)
 
         # Check leaf map includes field nodes
-        leaves = state[:leaf_map]
+        leaves = leaf_map
         expect(leaves[:total]).to include(an_object_having_attributes(name: :base_amount))
         expect(leaves[:total]).to include(an_object_having_attributes(name: :tax))
       end
@@ -75,11 +83,11 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "populates leaf map with literal nodes" do
         run(schema)
 
-        leaves = state[:leaf_map]
+        leaves = leaf_map
         expect(leaves[:constant]).to include(an_object_having_attributes(value: 42))
 
         # No dependency edges for pure literals
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         expect(graph[:constant] || []).to be_empty
       end
     end
@@ -95,7 +103,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "tracks context through nested calls" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         price_edge = graph[:complex].find { |e| e.to == :price }
         quantity_edge = graph[:complex].find { |e| e.to == :quantity }
 
@@ -118,7 +126,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
         expect(errors.first.message).to match(/undefined reference to `nonexistent`/)
 
         # Still builds edges for valid references
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         valid_edge = graph[:broken].find { |e| e.to == :price }
         expect(valid_edge).not_to be_nil
       end
@@ -138,7 +146,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "handles references and keys in the same expression" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         edges = graph[:mixed]
 
         ref_edge = edges.find { |e| e.type == :ref }
@@ -159,7 +167,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "builds dependencies for trait expressions" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         price_edge = graph[:expensive].find { |e| e.to == :price }
 
         expect(price_edge.type).to eq(:ref)
@@ -182,7 +190,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "extracts dependencies from all cascade conditions" do
         run(schema)
 
-        graph = state[:dependency_graph]
+        graph = dependency_graph
         price_edges = graph[:discount_rate].select { |e| e.to == :price }
 
         # Should have edges for each condition that references :price
@@ -199,10 +207,10 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
       it "freezes the dependency graph and leaf map" do
         run(schema)
 
-        expect(state[:dependency_graph]).to be_frozen
-        expect(state[:leaf_map]).to be_frozen
-        expect(state[:dependency_graph].values.all?(&:frozen?)).to be true
-        expect(state[:leaf_map].values.all?(&:frozen?)).to be true
+        expect(dependency_graph).to be_frozen
+        expect(leaf_map).to be_frozen
+        expect(dependency_graph.values.all?(&:frozen?)).to be true
+        expect(leaf_map.values.all?(&:frozen?)).to be true
       end
     end
   end

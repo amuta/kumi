@@ -16,6 +16,7 @@ module Kumi
 
           # Then check basic consistency (placeholder for now)
           # In a full implementation, this would do sophisticated usage analysis
+          state
         end
 
         private

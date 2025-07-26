@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "analyzer/analysis_state"
+
 module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
@@ -19,10 +21,18 @@ module Kumi
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)
-      analysis_state = { opts: opts }
+      state = AnalysisState.new(opts)
       errors = []
 
-      passes.each { |klass| klass.new(schema, analysis_state).run(errors) }
+      passes.each do |pass_class|
+        pass_instance = pass_class.new(schema, state)
+        begin
+          state = pass_instance.run(errors)
+        rescue => e
+          # Convert exceptions to errors and continue
+          errors << ErrorReporter.create_error(e.message, location: nil, type: :semantic)
+        end
+      end
 
       unless errors.empty?
         # Check if we have type-specific errors to raise more specific exception
@@ -35,12 +45,12 @@ module Kumi
       end
 
       Result.new(
-        definitions: analysis_state[:definitions].freeze,
-        dependency_graph: analysis_state[:dependency_graph].freeze,
-        leaf_map: analysis_state[:leaf_map].freeze,
-        topo_order: analysis_state[:topo_order].freeze,
-        decl_types: analysis_state[:decl_types].freeze,
-        state: analysis_state.freeze
+        definitions: state[:definitions],
+        dependency_graph: state[:dependency_graph],
+        leaf_map: state[:leaf_map],
+        topo_order: state[:topo_order],
+        decl_types: state[:decl_types],
+        state: state.to_h
       )
     end
 

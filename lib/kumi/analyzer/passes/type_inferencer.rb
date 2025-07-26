@@ -9,7 +9,6 @@ module Kumi
       # INTERFACE: new(schema, state).run(errors)
       class TypeInferencer < PassBase
         def run(errors)
-          return if state[:decl_types] # Already run
 
           types = {}
           topo_order = get_state(:topo_order)
@@ -28,7 +27,7 @@ module Kumi
             end
           end
 
-          set_state(:decl_types, types)
+          state.with(:decl_types, types)
         end
 
         private

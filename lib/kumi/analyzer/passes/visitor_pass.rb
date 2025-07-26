@@ -3,7 +3,8 @@
 module Kumi
   module Analyzer
     module Passes
-      # Base class for analyzer passes that need to traverse the AST using the visitor pattern
+      # Base class for analyzer passes that need to traverse the AST using the visitor pattern.
+      # Inherits the new immutable state interface from PassBase.
       class VisitorPass < PassBase
         # Visit a node and all its children using depth-first traversal
         # @param node [Syntax::Node] The node to visit

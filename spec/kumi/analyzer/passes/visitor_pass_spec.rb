@@ -8,6 +8,10 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
     Class.new(described_class) do
       attr_reader :visited_nodes, :visited_expressions
 
+      def self.contract
+        Kumi::Analyzer::PassContract.new
+      end
+
       def initialize(schema, state)
         super
         @visited_nodes = []
@@ -25,6 +29,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
                             errors: errors) do |node, decl, _errs|
           @visited_nodes << [node.class.name, decl.name]
         end
+        state
       end
     end
   end
@@ -41,7 +46,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
     syntax(:root, [], [simple_attr, call_attr, ref_attr], [complex_trait], loc: loc)
   end
 
-  let(:state) { {} }
+  let(:state) { Kumi::Analyzer::AnalysisState.new }
   let(:errors) { [] }
   let(:pass_instance) { test_visitor_pass_class.new(schema, state) }
 
@@ -189,28 +194,31 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
     it "can use PassBase methods alongside visitor methods" do
       # Create a pass that uses both base and visitor functionality
       mixed_pass_class = Class.new(described_class) do
-        def run(errors)
-          # Use PassBase method
-          set_state(:visitor_test, true)
+        def self.contract
+          Kumi::Analyzer::PassContract.new(provides: [:visitor_test, :literal_count])
+        end
 
+        def run(errors)
           # Use visitor methods
           literal_count = 0
           visit_nodes_of_type(Kumi::Syntax::TerminalExpressions::Literal, errors: errors) do |_node, _decl, _errs|
             literal_count += 1
           end
 
-          set_state(:literal_count, literal_count)
-
           # Use PassBase error reporting
           add_error(errors, nil, "test error from visitor pass")
+          
+          # Return updated state
+          state.with(:visitor_test, true)
+               .with(:literal_count, literal_count)
         end
       end
 
       mixed_pass = mixed_pass_class.new(schema, state)
-      mixed_pass.run(errors)
+      result_state = mixed_pass.run(errors)
 
-      expect(state[:visitor_test]).to be true
-      expect(state[:literal_count]).to be > 0
+      expect(result_state[:visitor_test]).to be true
+      expect(result_state[:literal_count]).to be > 0
       expect(errors.size).to eq(1)
       expect(errors.first.message).to eq("test error from visitor pass")
     end

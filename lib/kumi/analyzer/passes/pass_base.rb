@@ -3,22 +3,21 @@
 module Kumi
   module Analyzer
     module Passes
-      # Base class for all analyzer passes providing common functionality
-      # and enforcing consistent interface patterns.
+      # Base class for analyzer passes with simple immutable state
       class PassBase
         include Kumi::Syntax
         include Kumi::ErrorReporting
 
         # @param schema [Syntax::Root] The schema to analyze
-        # @param state [Hash] Shared analysis state accumulator
+        # @param state [AnalysisState] Current analysis state
         def initialize(schema, state)
           @schema = schema
           @state = state
         end
 
-        # Main entry point for pass execution
+        # Main pass execution - subclasses implement this
         # @param errors [Array] Error accumulator array
-        # @abstract Subclasses must implement this method
+        # @return [AnalysisState] New state after pass execution
         def run(errors)
           raise NotImplementedError, "#{self.class.name} must implement #run"
         end
@@ -34,32 +33,17 @@ module Kumi
           schema.traits.each(&block)
         end
 
-        # DEPRECATED: Use report_error instead for consistent error handling
-        # Helper to add standardized error messages
-        # @param errors [Array] Error accumulator
-        # @param location [Syntax::Location] Error location
-        # @param message [String] Error message
+        # Get state value - compatible with old interface
+        def get_state(key, required: true)
+          if required && !state.key?(key)
+            raise StandardError, "Required state key '#{key}' not found"
+          end
+          state[key]
+        end
+
+        # Add error to the error list
         def add_error(errors, location, message)
           errors << ErrorReporter.create_error(message, location: location, type: :semantic)
-        end
-
-        # Helper to get required state from previous passes
-        # @param key [Symbol] State key to retrieve
-        # @param required [Boolean] Whether this state is required
-        # @return [Object] The state value
-        # @raise [StandardError] If required state is missing
-        def get_state(key, required: true)
-          value = state[key]
-          raise "Pass #{self.class.name} requires #{key} from previous passes, but it was not found" if required && value.nil?
-
-          value
-        end
-
-        # Helper to set state for subsequent passes
-        # @param key [Symbol] State key to set
-        # @param value [Object] Value to store
-        def set_state(key, value)
-          state[key] = value
         end
       end
     end

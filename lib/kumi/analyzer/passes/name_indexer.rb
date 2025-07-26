@@ -16,7 +16,7 @@ module Kumi
             definitions[decl.name] = decl
           end
 
-          set_state(:definitions, definitions.freeze)
+          state.with(:definitions, definitions.freeze)
         end
       end
     end

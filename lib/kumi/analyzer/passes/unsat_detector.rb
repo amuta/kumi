@@ -25,6 +25,7 @@ module Kumi
               add_error(errors, decl.loc, "conjunction `#{decl.name}` is impossible") if Kumi::AtomUnsatSolver.unsat?(atoms)
             end
           end
+          state
         end
 
         private

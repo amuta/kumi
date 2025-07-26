@@ -3,7 +3,7 @@
 RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
   include ASTFactory
 
-  let(:state) { {} }
+  let(:state) { Kumi::Analyzer::AnalysisState.new }
   let(:errors) { [] }
 
   def run(schema)
