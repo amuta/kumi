@@ -22,29 +22,35 @@ module Kumi
         return @memo[node] if @memo.key?(node)
         return node.value if node.is_a?(Literal)
 
-        if node.is_a?(Binding)
-          return :unknown if visited.include?(node.name)
+        result = case node
+                 when Binding then evaluate_binding(node, visited)
+                 when CallExpression then evaluate_call_expression(node, visited)
+                 else :unknown
+                 end
 
-          visited << node.name
+        @memo[node] = result unless result == :unknown
+        result
+      end
 
-          definition = @definitions[node.name]
-          return :unknown unless definition
+      private
 
-          @memo[node] = evaluate(definition.expression, visited)
-          return @memo[node]
-        end
+      def evaluate_binding(node, visited)
+        return :unknown if visited.include?(node.name)
 
-        if node.is_a?(CallExpression)
-          return :unknown unless OPERATORS.key?(node.fn_name)
+        visited << node.name
+        definition = @definitions[node.name]
+        return :unknown unless definition
 
-          args = node.args.map { |arg| evaluate(arg, visited) }
-          return :unknown if args.any?(:unknown)
+        evaluate(definition.expression, visited)
+      end
 
-          @memo[node] = args.reduce(OPERATORS[node.fn_name])
-          return @memo[node]
-        end
+      def evaluate_call_expression(node, visited)
+        return :unknown unless OPERATORS.key?(node.fn_name)
 
-        :unknown
+        args = node.args.map { |arg| evaluate(arg, visited) }
+        return :unknown if args.any?(:unknown)
+
+        args.reduce(OPERATORS[node.fn_name])
       end
     end
   end

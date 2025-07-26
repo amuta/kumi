@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe "DSL Guard Rails" do
-  def build_schema(&b)
-    Kumi::Parser::Parser.new.parse(&b)
+  def build_schema(&block)
+    Kumi::Parser::Parser.new.parse(&block)
   end
 
   it "rejects unknown keywords" do

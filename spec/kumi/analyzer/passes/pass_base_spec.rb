@@ -109,7 +109,6 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     end
   end
 
-
   describe "integration with concrete pass" do
     it "allows concrete passes to use all base functionality" do
       result_state = pass_instance.run(errors)

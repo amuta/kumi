@@ -5,17 +5,20 @@ module Kumi
     module Declarations
       Attribute = Struct.new(:name, :expression) do
         include Node
+
         def children = [expression]
       end
 
       Trait = Struct.new(:name, :expression) do
         include Node
+
         def children = [expression]
       end
 
       # For field metadata declarations inside input blocks
       FieldDecl = Struct.new(:name, :domain, :type) do
         include Node
+
         def children = []
       end
     end

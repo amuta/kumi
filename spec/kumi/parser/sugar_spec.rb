@@ -93,7 +93,8 @@ RSpec.describe "Kumi::Parser::Sugar" do
     it "preserves normal Ruby behavior for non-Expression operations" do
       # Normal Ruby operations should work unchanged
       expect(5 + 3).to eq(8)
-      expect("hello world").to eq("hello world")
+      actual_string = "hello world"
+      expect(actual_string).to eq("hello world")
       expect(10 > 5).to be true
     end
 

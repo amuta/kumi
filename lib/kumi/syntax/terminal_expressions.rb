@@ -9,17 +9,20 @@ module Kumi
 
       Literal = Struct.new(:value) do
         include Node
+
         def children = []
       end
 
       # For field usage/reference in expressions (input.field_name)
       FieldRef = Struct.new(:name) do
         include Node
+
         def children = []
       end
 
       Binding = Struct.new(:name) do
         include Node
+
         def children = []
       end
     end

@@ -24,26 +24,33 @@ module Kumi
       state = AnalysisState.new(opts)
       errors = []
 
+      state = run_analysis_passes(schema, passes, state, errors)
+      handle_analysis_errors(errors) unless errors.empty?
+      create_analysis_result(state)
+    end
+
+    def self.run_analysis_passes(schema, passes, state, errors)
       passes.each do |pass_class|
         pass_instance = pass_class.new(schema, state)
         begin
           state = pass_instance.run(errors)
-        rescue => e
-          # Convert exceptions to errors and continue
+        rescue StandardError => e
           errors << ErrorReporter.create_error(e.message, location: nil, type: :semantic)
         end
       end
+      state
+    end
 
-      unless errors.empty?
-        # Check if we have type-specific errors to raise more specific exception
-        type_errors = errors.select { |e| e.type == :type }
-        first_error_location = errors.first.location
+    def self.handle_analysis_errors(errors)
+      type_errors = errors.select { |e| e.type == :type }
+      first_error_location = errors.first.location
 
-        raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
+      raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
 
-        raise Errors::SemanticError.new(format_errors(errors), first_error_location)
-      end
+      raise Errors::SemanticError.new(format_errors(errors), first_error_location)
+    end
 
+    def self.create_analysis_result(state)
       Result.new(
         definitions: state[:definitions],
         dependency_graph: state[:dependency_graph],

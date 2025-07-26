@@ -30,10 +30,25 @@ end
 # Main documentation generation logic.
 def generate_docs
   output = []
+  add_header(output)
+  add_function_categories(output)
+  output.join("\n")
+end
+
+def add_header(output)
   output << "# Kumi Standard Function Library Reference"
   output << "\nKumi provides a rich library of built-in functions for use within `value` and `trait` expressions via `fn(...)`."
+end
 
-  categories = {
+def add_function_categories(output)
+  function_categories.each do |title, functions|
+    output << "\n## #{title}\n"
+    add_functions_for_category(output, functions)
+  end
+end
+
+def function_categories
+  {
     "Logical Functions" => Kumi::FunctionRegistry.logical_operations,
     "Comparison Functions" => Kumi::FunctionRegistry.comparison_operators,
     "Math Functions" => Kumi::FunctionRegistry.math_operations,
@@ -42,17 +57,14 @@ def generate_docs
     "Conditional Functions" => Kumi::FunctionRegistry.conditional_operations,
     "Type & Hash Functions" => Kumi::FunctionRegistry.type_operations
   }
+end
 
-  categories.each do |title, functions|
-    output << "\n## #{title}\n"
-    functions.sort.each do |name|
-      signature = Kumi::FunctionRegistry.signature(name)
-      output << "* **`#{name}`**: #{signature[:description]}"
-      output << "  * **Usage**: #{generate_signature(name, signature)}"
-    end
+def add_functions_for_category(output, functions)
+  functions.sort.each do |name|
+    signature = Kumi::FunctionRegistry.signature(name)
+    output << "* **`#{name}`**: #{signature[:description]}"
+    output << "  * **Usage**: #{generate_signature(name, signature)}"
   end
-
-  output.join("\n")
 end
 
 # Execute the script and print the documentation.

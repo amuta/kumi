@@ -195,7 +195,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       # Create a pass that uses both base and visitor functionality
       mixed_pass_class = Class.new(described_class) do
         def self.contract
-          Kumi::Analyzer::PassContract.new(provides: [:visitor_test, :literal_count])
+          Kumi::Analyzer::PassContract.new(provides: %i[visitor_test literal_count])
         end
 
         def run(errors)
@@ -207,7 +207,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
 
           # Use PassBase error reporting
           add_error(errors, nil, "test error from visitor pass")
-          
+
           # Return updated state
           state.with(:visitor_test, true)
                .with(:literal_count, literal_count)

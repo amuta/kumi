@@ -35,9 +35,8 @@ module Kumi
 
         # Get state value - compatible with old interface
         def get_state(key, required: true)
-          if required && !state.key?(key)
-            raise StandardError, "Required state key '#{key}' not found"
-          end
+          raise StandardError, "Required state key '#{key}' not found" if required && !state.key?(key)
+
           state[key]
         end
 

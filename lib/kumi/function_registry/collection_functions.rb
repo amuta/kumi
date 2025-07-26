@@ -114,18 +114,18 @@ module Kumi
 
           # Conditional transformation functions
           map_conditional: FunctionBuilder::Entry.new(
-            fn: ->(collection, condition_value, true_value, false_value) { 
+            fn: lambda { |collection, condition_value, true_value, false_value|
               collection.map { |x| x == condition_value ? true_value : false_value }
             },
             arity: 4,
-            param_types: [:array, :any, :any, :any],
+            param_types: %i[array any any any],
             return_type: :array,
             description: "Transform elements based on condition: if element == condition_value then true_value else false_value"
           ),
 
           # Range/index functions for grid operations
           build_array: FunctionBuilder::Entry.new(
-            fn: ->(size, &generator) { 
+            fn: lambda { |size, &generator|
               (0...size).map { |i| generator ? generator.call(i) : i }
             },
             arity: 1,
@@ -137,7 +137,7 @@ module Kumi
           range: FunctionBuilder::Entry.new(
             fn: ->(start, finish) { (start...finish).to_a },
             arity: 2,
-            param_types: [:integer, :integer],
+            param_types: %i[integer integer],
             return_type: Kumi::Types.array(:integer),
             description: "Generate range of integers from start to finish (exclusive)"
           ),
@@ -146,24 +146,24 @@ module Kumi
           each_slice: FunctionBuilder::Entry.new(
             fn: ->(array, size) { array.each_slice(size).to_a },
             arity: 2,
-            param_types: [:array, :integer],
+            param_types: %i[array integer],
             return_type: Kumi::Types.array(:array),
             description: "Group array elements into subarrays of given size"
           ),
 
           join: FunctionBuilder::Entry.new(
-            fn: ->(array, separator = "") { 
+            fn: lambda { |array, separator = ""|
               array.map(&:to_s).join(separator.to_s)
             },
             arity: 2,
-            param_types: [:array, :string],
+            param_types: %i[array string],
             return_type: :string,
             description: "Join array elements into string with separator"
           ),
 
           # Transform each subarray to string and join the results
           map_join_rows: FunctionBuilder::Entry.new(
-            fn: ->(array_of_arrays, row_separator = "", column_separator = "\n") {
+            fn: lambda { |array_of_arrays, row_separator = "", column_separator = "\n"|
               array_of_arrays.map { |row| row.join(row_separator.to_s) }.join(column_separator.to_s)
             },
             arity: 3,

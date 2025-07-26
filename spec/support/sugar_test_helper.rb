@@ -6,16 +6,16 @@
 
 module SugarTestHelper
   # Store compiled schemas that were created at top-level
-  @@top_level_schemas = {}
+  @top_level_schemas = {}
 
   # Register a schema created at top-level for later use in tests
   def self.register_schema(name, schema)
-    @@top_level_schemas[name] = schema
+    @top_level_schemas[name] = schema
   end
 
   # Get a registered schema for use in tests
   def self.get_schema(name)
-    @@top_level_schemas[name] || raise("Schema #{name} not found. Make sure to register it at top-level.")
+    @top_level_schemas[name] || raise("Schema #{name} not found. Make sure to register it at top-level.")
   end
 
   # Helper method to run a registered schema with input data

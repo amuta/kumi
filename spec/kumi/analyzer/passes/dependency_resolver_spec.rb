@@ -17,11 +17,11 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
   def run(schema)
     @result_state = described_class.new(schema, state).run(errors)
   end
-  
+
   def dependency_graph
     @result_state[:dependency_graph]
   end
-  
+
   def leaf_map
     @result_state[:leaf_map]
   end

@@ -67,6 +67,7 @@ module DSLBreakageHelpers
   def build_schema(&block)
     Class.new do
       extend Kumi::Schema
+
       schema(&block)
     end
   end
@@ -147,7 +148,7 @@ module DSLBreakageHelpers
       @execution_time = execution_time
     end
 
-    def to_not(matcher)
+    def not_matching?(matcher)
       !matcher.matches?(self)
     end
   end

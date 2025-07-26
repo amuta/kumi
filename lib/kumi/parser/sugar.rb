@@ -54,7 +54,7 @@ module Kumi
             Syntax::CallExpression.new(:or, [self, Sugar.ensure_literal(other)])
           end
 
-          # Collection methods  
+          # Collection methods
           def map_with_index
             Syntax::CallExpression.new(:map_with_index, [self])
           end

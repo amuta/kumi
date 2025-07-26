@@ -56,16 +56,16 @@ module Kumi
 
       def format_call_expression(expr, indent_context: 0, nested: false)
         if pretty_printable?(expr.fn_name)
-          format_pretty_function(expr, expr.fn_name, indent_context, nested)
+          format_pretty_function(expr, expr.fn_name, indent_context, nested: nested)
         else
           format_generic_function(expr, indent_context)
         end
       end
 
-      def format_pretty_function(expr, fn_name, _indent_context, nested = false)
+      def format_pretty_function(expr, fn_name, _indent_context, nested: false)
         if needs_evaluation?(expr.args) && !nested
           # For top-level expressions, show the flattened symbolic form and evaluation
-          if is_chain_of_same_operator?(expr, fn_name)
+          if chain_of_same_operator?(expr, fn_name)
             # For chains like a + b + c, flatten to show all operands
             all_operands = flatten_operator_chain(expr, fn_name)
             symbolic_operands = all_operands.map { |op| format_expression(op, indent_context: 0, nested: true) }
@@ -88,7 +88,7 @@ module Kumi
           else
             # Regular pretty formatting for non-chain expressions
             symbolic_args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
-            symbolic_format = get_display_format(fn_name, symbolic_args)
+            symbolic_format = display_format(fn_name, symbolic_args)
 
             evaluated_args = expr.args.map do |arg|
               if arg.is_a?(Syntax::TerminalExpressions::Literal)
@@ -103,18 +103,18 @@ module Kumi
                 end
               end
             end
-            evaluated_format = get_display_format(fn_name, evaluated_args)
+            evaluated_format = display_format(fn_name, evaluated_args)
 
           end
           "#{symbolic_format} = #{evaluated_format}"
         else
           # For nested expressions, just show the symbolic form without evaluation details
           args = expr.args.map { |arg| format_expression(arg, indent_context: 0, nested: true) }
-          get_display_format(fn_name, args)
+          display_format(fn_name, args)
         end
       end
 
-      def is_chain_of_same_operator?(expr, fn_name)
+      def chain_of_same_operator?(expr, fn_name)
         return false unless %i[add subtract multiply divide].include?(fn_name)
 
         # Check if any argument is the same operator
@@ -152,7 +152,7 @@ module Kumi
         %i[add subtract multiply divide == != > < >= <= and or not].include?(fn_name)
       end
 
-      def get_display_format(fn_name, args)
+      def display_format(fn_name, args)
         case fn_name
         when :add then args.join(" + ")
         when :subtract then args.join(" - ")

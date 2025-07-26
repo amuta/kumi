@@ -17,7 +17,7 @@ module Kumi
         "#{location_str}: #{message}"
       end
 
-      def has_location?
+      def location?
         location && !location.is_a?(Symbol)
       end
 
@@ -32,7 +32,7 @@ module Kumi
         when Syntax::Location
           "at #{loc.file}:#{loc.line}:#{loc.column}"
         else
-          "at #{loc}"
+          "at <unknown>"
         end
       end
     end
@@ -102,7 +102,7 @@ module Kumi
     # @param errors [Array<ErrorEntry>] Array of error entries
     # @return [Array<ErrorEntry>] Errors without location info
     def missing_location_errors(errors)
-      errors.reject(&:has_location?)
+      errors.reject(&:location?)
     end
 
     # Enhanced error reporting with suggestions and context
@@ -129,8 +129,8 @@ module Kumi
     def validate_error_locations(errors, expected_with_location: %i[syntax semantic type])
       report = {
         total_errors: errors.size,
-        errors_with_location: errors.count(&:has_location?),
-        errors_without_location: errors.reject(&:has_location?),
+        errors_with_location: errors.count(&:location?),
+        errors_without_location: errors.reject(&:location?),
         location_coverage: 0.0
       }
 
@@ -138,7 +138,7 @@ module Kumi
 
       # Check specific types that should have locations
       report[:problematic_errors] = errors.select do |error|
-        expected_with_location.include?(error.type) && !error.has_location?
+        expected_with_location.include?(error.type) && !error.location?
       end
 
       report

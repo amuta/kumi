@@ -9,7 +9,6 @@ module Kumi
       # INTERFACE: new(schema, state).run(errors)
       class TypeInferencer < PassBase
         def run(errors)
-
           types = {}
           topo_order = get_state(:topo_order)
           definitions = get_state(:definitions)
