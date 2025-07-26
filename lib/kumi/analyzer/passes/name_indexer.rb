@@ -12,7 +12,7 @@ module Kumi
           definitions = {}
 
           each_decl do |decl|
-            add_error(errors, decl.loc, "duplicated definition `#{decl.name}`") if definitions.key?(decl.name)
+            report_error(errors, "duplicated definition `#{decl.name}`", location: decl.loc) if definitions.key?(decl.name)
             definitions[decl.name] = decl
           end
 

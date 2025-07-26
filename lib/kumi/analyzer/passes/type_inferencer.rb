@@ -22,7 +22,7 @@ module Kumi
               inferred_type = infer_expression_type(decl.expression, types)
               types[name] = inferred_type
             rescue StandardError => e
-              add_error(errors, decl&.loc, "Type inference failed: #{e.message}")
+              report_type_error(errors, "Type inference failed: #{e.message}", location: decl&.loc)
             end
           end
 

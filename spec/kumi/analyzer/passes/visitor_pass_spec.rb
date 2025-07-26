@@ -205,8 +205,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
             literal_count += 1
           end
 
-          # Use PassBase error reporting
-          add_error(errors, nil, "test error from visitor pass")
+          # Use new error reporting interface
+          report_error(errors, "test error from visitor pass")
 
           # Return updated state
           state.with(:visitor_test, true)

@@ -35,10 +35,10 @@ module Kumi
         def process_node(node, decl, graph, leaves, definitions, input_meta, errors, context)
           case node
           when Binding
-            add_error(errors, node.loc, "undefined reference to `#{node.name}`") unless definitions.key?(node.name)
+            report_error(errors, "undefined reference to `#{node.name}`", location: node.loc) unless definitions.key?(node.name)
             add_dependency_edge(graph, decl.name, node.name, :ref, context[:via])
           when FieldRef
-            add_error(errors, node.loc, "undeclared input `#{node.name}`") unless input_meta.key?(node.name)
+            report_error(errors, "undeclared input `#{node.name}`", location: node.loc) unless input_meta.key?(node.name)
             add_dependency_edge(graph, decl.name, node.name, :key, context[:via])
             leaves[decl.name] << node # put it back
           when Literal

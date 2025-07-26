@@ -57,7 +57,7 @@ module Kumi
           first_decl = find_declaration_by_name(temp_marks.first || current_node)
           location = first_decl&.loc
 
-          add_error(errors, location, "cycle detected: #{cycle_path}")
+          report_error(errors, "cycle detected: #{cycle_path}", location: location)
         end
 
         def find_declaration_by_name(name)

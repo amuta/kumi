@@ -31,7 +31,7 @@ module Kumi
             field_decl = find_input_field_declaration(field_name)
             location = field_decl&.loc
 
-            add_error(errors, location, "Invalid type declaration for field :#{field_name}: #{declared_type.inspect}")
+            report_type_error(errors, "Invalid type declaration for field :#{field_name}: #{declared_type.inspect}", location: location)
           end
         end
 

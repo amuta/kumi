@@ -15,7 +15,7 @@ module Kumi
 
           schema.inputs.each do |field_decl|
             unless field_decl.is_a?(FieldDecl)
-              add_error(errors, field_decl.loc, "Expected FieldDecl node, got #{field_decl.class}")
+              report_error(errors, "Expected FieldDecl node, got #{field_decl.class}", location: field_decl.loc)
               next
             end
 
@@ -25,13 +25,15 @@ module Kumi
             if existing
               # Check for compatibility
               if existing[:type] != field_decl.type && field_decl.type && existing[:type]
-                add_error(errors, field_decl.loc,
-                          "Field :#{name} declared with conflicting types: #{existing[:type]} vs #{field_decl.type}")
+                report_error(errors,
+                             "Field :#{name} declared with conflicting types: #{existing[:type]} vs #{field_decl.type}",
+                             location: field_decl.loc)
               end
 
               if existing[:domain] != field_decl.domain && field_decl.domain && existing[:domain]
-                add_error(errors, field_decl.loc,
-                          "Field :#{name} declared with conflicting domains: #{existing[:domain].inspect} vs #{field_decl.domain.inspect}")
+                report_error(errors,
+                             "Field :#{name} declared with conflicting domains: #{existing[:domain].inspect} vs #{field_decl.domain.inspect}",
+                             location: field_decl.loc)
               end
 
               # Merge metadata (later declarations override nil values)

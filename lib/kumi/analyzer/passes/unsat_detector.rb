@@ -22,7 +22,7 @@ module Kumi
               atoms = gather_atoms(decl.expression, definitions, Set.new)
               next if atoms.empty?
 
-              add_error(errors, decl.loc, "conjunction `#{decl.name}` is impossible") if Kumi::AtomUnsatSolver.unsat?(atoms)
+              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if Kumi::AtomUnsatSolver.unsat?(atoms)
             end
           end
           state
@@ -83,11 +83,11 @@ module Kumi
               list = when_case.condition.args.first
               if list.is_a?(ListExpression) && list.elements.all?(Binding)
                 traits = list.elements.map(&:name).join(" AND ")
-                add_error(errors, decl.loc, "conjunction `#{traits}` is impossible")
+                report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
                 next
               end
             end
-            add_error(errors, decl.loc, "conjunction `#{decl.name}` is impossible")
+            report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc)
           end
         end
 
