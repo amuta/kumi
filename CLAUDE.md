@@ -27,6 +27,19 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - `gem build kumi.gemspec` - Build the gem
 - `gem install ./kumi-*.gem` - Install locally built gem
 
+### Kumi CLI
+- `./bin/kumi -i` - Start interactive REPL mode for rapid schema testing
+- `./bin/kumi -f schema.rb -d data.json` - Execute schema file with input data
+- `./bin/kumi -f schema.rb -k key1,key2` - Extract specific keys from schema
+- `./bin/kumi -f schema.rb -e key_name` - Explain how a key is computed
+- `./bin/kumi -f schema.rb -d data.json -o json` - Output results in JSON format
+
+**CLI Features**:
+- Interactive REPL with schema loading, data manipulation, and live evaluation
+- File-based schema execution with JSON/YAML input data support
+- Selective key extraction and explain functionality for debugging
+- Multiple output formats (pretty, JSON, YAML) for integration
+
 ## Architecture Overview
 
 ### Core Components
@@ -90,6 +103,58 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - `domain/range_analyzer.rb` - Range domain analysis and validation
 - `domain/enum_analyzer.rb` - Enumeration domain analysis and validation
 - `domain/violation_formatter.rb` - Formats domain violation error messages
+
+## DSL Syntax Requirements
+
+### Critical Syntax Rules
+
+**Module Definition Structure** (REQUIRED for CLI):
+```ruby
+# CORRECT - CLI can find and load this
+module SchemaName
+  extend Kumi::Schema
+  
+  schema do
+    # schema definition here
+  end
+end
+
+# INCORRECT - CLI cannot load standalone schemas
+schema do  # This won't work with CLI
+  # schema definition
+end
+```
+
+**Function Call Syntax**:
+- **Symbol style**: `fn(:function_name, arg1, arg2)` - Always works, explicit
+- **Method style**: `fn.function_name(arg1, arg2)` - Also works, more readable
+- **Incorrect**: `fn()` - Empty function calls cause parse errors
+- **Incorrect**: `fn.function_name()` - Empty method calls cause parse errors
+
+**Arithmetic Operations**:
+- **Sugar Syntax**: `input.field1 + input.field2` - Works for input fields and value references
+- **Function Syntax**: `fn(:add, input.field1, input.field2)` - Always works, more explicit
+- **Mixed**: Use sugar for simple operations, functions for complex ones
+
+**Cascade Condition Syntax**:
+```ruby
+# CORRECT - use symbols for trait references in cascades
+value :status do
+  on :trait_name, "Result"
+  base "Default"
+end
+
+# INCORRECT - bare identifiers don't work in cascade conditions
+value :status do
+  on trait_name, "Result"  # This will fail
+  base "Default"
+end
+```
+
+**UnsatDetector Considerations**:
+- Cascades with mutually exclusive conditions are valid (e.g., `amount < 100` vs `amount >= 100`)
+- Values that depend on such cascades are also valid (fixed in recent update)
+- Use clear, non-contradictory trait names to avoid confusion
 
 ### Key Patterns
 
@@ -199,6 +264,48 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 10. `documents/DSL.md` - Concise DSL syntax reference
 11. `documents/AST.md` - AST node types and structure reference
 12. `documents/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
+13. `lib/kumi/cli.rb` - CLI implementation with REPL and file execution
+14. `examples/simple_tax_schema.rb` - CLI-compatible schema example
+
+## CLI Usage and Best Practices
+
+### Schema File Requirements
+- **Must use module structure**: `module SchemaName; extend Kumi::Schema; schema do ... end; end`
+- **Must have proper require**: `require_relative "../lib/kumi"` at the top
+- **Must have input block**: Even empty `input {}` blocks are required
+- **Avoid inline definitions**: Don't define schemas directly in methods or blocks
+
+### CLI Development Workflow
+1. **Start with REPL**: Use `./bin/kumi -i` for rapid prototyping and testing
+2. **Test with files**: Create `.rb` schema files and `.json/.yaml` data files
+3. **Iterate quickly**: Use `-k key1,key2` to focus on specific outputs
+4. **Debug with explain**: Use `-e key_name` to understand computation flow
+5. **Validate with different data**: Test edge cases with varied input data
+
+### Common CLI Patterns
+```bash
+# Interactive development
+./bin/kumi -i
+kumi> schema examples/my_schema.rb
+kumi> data test_data.json
+kumi> get result
+
+# File-based execution
+./bin/kumi -f examples/tax_schema.rb -d examples/tax_data.json -k total_tax,effective_rate
+
+# Debugging computations
+./bin/kumi -f examples/complex_schema.rb -d examples/data.json -e complex_calculation
+
+# Output formats for integration
+./bin/kumi -f schema.rb -d data.json -k results -o json | jq '.results'
+```
+
+### Troubleshooting Schema Issues
+- **Parse Errors**: Check function syntax (avoid empty `fn()` calls)
+- **Module Not Found**: Ensure proper module structure and naming
+- **UnsatDetector Errors**: Review trait logic for contradictions
+- **Type Errors**: Check input block type declarations match usage
+- **Runtime Errors**: Use explain to trace computation dependencies
 
 ## Input Block System Details
 
