@@ -78,22 +78,20 @@ cells  = Array.new(width * height, 0)
 # Glider pattern
 [[1, 1], [2, 3], [3, 1], [3, 2], [3, 3]].each { |r, c| cells[(r * width) + c] = 1 }
 
-compiled_schema = GameOfLife.__compiled_schema__
-wrapper = Kumi::EvaluationWrapper.new(cells: cells)
-
 10_000.times do |gen|
   system("clear") || system("cls")
   puts "Conway's Game of Life - Generation #{gen}"
   puts ""
 
+  # Create schema instance for this generation
+  runner = GameOfLife.from(cells: cells)
+
   # Render using Kumi instead of Ruby function!
-  rendered_output = compiled_schema.evaluate_binding(:rendered_grid, wrapper)
+  rendered_output = runner[:rendered_grid]
   puts rendered_output
 
   # Calculate next generation with single schema call!
-  result = compiled_schema.evaluate_binding(:next_cells, wrapper)
-  cells.replace(result)
-  wrapper.clear
+  cells = runner[:next_cells]
 
-  sleep 0.001
+  sleep 0.1
 end
