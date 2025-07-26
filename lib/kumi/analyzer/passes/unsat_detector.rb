@@ -52,7 +52,12 @@ module Kumi
             end
 
             # Add children to stack for processing
-            current.children.each { |child| stack << child } if current.respond_to?(:children)
+            # IMPORTANT: Skip CascadeExpression children to avoid false positives
+            # Cascades are handled separately by check_cascade_expression() and are disjunctive,
+            # but gather_atoms() treats all collected atoms as conjunctive
+            if current.respond_to?(:children) && !current.is_a?(CascadeExpression)
+              current.children.each { |child| stack << child }
+            end
           end
 
           list

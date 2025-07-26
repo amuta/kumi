@@ -196,6 +196,105 @@ RSpec.describe "UnsatDetector Special Cases" do
     end
   end
 
+  describe "values depending on cascades with mutually exclusive conditions" do
+    it "allows values that depend on cascades with mutually exclusive conditions" do
+      expect do
+        build_schema do
+          input do
+            integer :amount, domain: 0..Float::INFINITY
+          end
+
+          trait :small, input.amount, :<, 100
+          trait :large, input.amount, :>=, 100
+
+          value :category do
+            on :small, "Small Amount"
+            on :large, "Large Amount"
+            base "Unknown"
+          end
+
+          value :description, fn(:concat, "Category: ", category)
+        end
+      end.not_to raise_error
+    end
+
+    it "handles complex tax calculation with mutually exclusive brackets" do
+      expect do
+        build_schema do
+          input do
+            integer :income, domain: 0..Float::INFINITY
+            integer :deductions, domain: 0..Float::INFINITY
+            integer :dependents, domain: 0..20
+          end
+
+          value :taxable_income, fn(:max, [fn(:subtract, input.income, input.deductions), 0])
+
+          trait :low_bracket, taxable_income, :<, 11_000
+          trait :mid_bracket, fn(:and,
+                                  fn(:>=, taxable_income, 11_000),
+                                  fn(:<, taxable_income, 44_725))
+
+          value :federal_tax do
+            on :low_bracket, fn(:multiply, taxable_income, 0.10)
+            on :mid_bracket, fn(:add, 1_100, fn(:multiply, fn(:subtract, taxable_income, 11_000), 0.12))
+            base fn(:add, 5_147, fn(:multiply, fn(:subtract, taxable_income, 44_725), 0.22))
+          end
+
+          trait :has_dependents, input.dependents, :>, 0
+          value :child_credit, fn(:if, has_dependents, fn(:multiply, input.dependents, 2_000), 0)
+
+          value :total_tax, fn(:max, [fn(:subtract, federal_tax, child_credit), 0])
+          value :effective_rate, fn(:divide, total_tax, fn(:max, [input.income, 1]))
+        end
+      end.not_to raise_error
+    end
+
+    it "works fine when traits are not mutually exclusive" do
+      expect do
+        build_schema do
+          input do
+            integer :amount, domain: 0..Float::INFINITY
+            boolean :is_premium
+          end
+
+          trait :small, input.amount, :<, 100
+          trait :premium, input.is_premium, :==, true
+
+          value :category do
+            on :premium, "Premium Category"
+            on :small, "Small Amount"
+            base "Standard"
+          end
+
+          value :description, fn(:concat, "Category: ", category)
+        end
+      end.not_to raise_error
+    end
+
+    it "handles complex cascade dependencies correctly" do
+      expect do
+        build_schema do
+          input do
+            integer :value, domain: 0..Float::INFINITY
+          end
+
+          trait :low, input.value, :<, 50
+          trait :high, input.value, :>=, 50
+
+          value :tier do
+            on :low, "Bronze"
+            on :high, "Gold"
+            base "Unknown"
+          end
+
+          value :display_name, fn(:concat, "Tier: ", tier)
+          value :is_premium, fn(:==, tier, "Gold")
+          value :discount_rate, fn(:if, is_premium, 0.10, 0.05)
+        end
+      end.not_to raise_error
+    end
+  end
+
   describe "string-based cascades (current workaround)" do
     it "works fine with string equality conditions" do
       # This currently works because string equalities don't trigger the numerical analysis
