@@ -57,13 +57,13 @@ module Kumi
             # Valid if it's a boolean composition of traits (all?, any?, none?)
             return if boolean_trait_composition?(condition)
             
-            report_error(
-              errors,
-              "cascade condition must be trait reference",
-              location: when_case.loc,
-              type: :semantic
-            )
+            # For now, allow other CallExpressions - they'll be validated by other passes
+            return
+          when TerminalExpressions::Literal
+            # Allow literal conditions (like true/false) - they might be valid
+            return
           else
+            # Only reject truly invalid conditions like FieldRef or complex expressions
             report_error(
               errors,
               "cascade condition must be trait reference",

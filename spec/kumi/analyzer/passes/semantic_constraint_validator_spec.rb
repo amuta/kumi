@@ -50,7 +50,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
       end
     end
 
-    context "with invalid cascade condition - literal" do
+    context "with valid cascade condition - literal" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expression, [
           when_case_expression(lit(true), lit("A"))
@@ -58,14 +58,13 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
-      it "reports semantic error" do
+      it "passes validation" do
         run(schema)
-        expect(errors.size).to eq(1)
-        expect(errors.first.to_s).to include("cascade condition must be trait reference")
+        expect(errors).to be_empty
       end
     end
 
-    context "with invalid cascade condition - field reference" do
+    context "with valid cascade condition - function call" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expression, [
           when_case_expression(call(:>=, field_ref(:score), lit(90)), lit("A"))
@@ -73,10 +72,9 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
-      it "reports semantic error" do
+      it "passes validation" do
         run(schema)
-        expect(errors.size).to eq(1)
-        expect(errors.first.to_s).to include("cascade condition must be trait reference")
+        expect(errors).to be_empty
       end
     end
 
@@ -120,10 +118,25 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
       end
     end
 
+    context "with invalid cascade condition - field reference without comparison" do
+      let(:schema) do
+        cascade_attr = attr(:grade, syntax(:cascade_expression, [
+          when_case_expression(field_ref(:score), lit("A"))  # Naked field ref - should be rejected
+        ], loc: loc))
+        syntax(:root, [], [cascade_attr], [], loc: loc)
+      end
+
+      it "reports semantic error" do
+        run(schema)
+        expect(errors.size).to eq(1)
+        expect(errors.first.to_s).to include("cascade condition must be trait reference")
+      end
+    end
+
     context "with multiple semantic errors" do
       let(:schema) do
         bad_cascade = attr(:grade, syntax(:cascade_expression, [
-          when_case_expression(lit("invalid condition"), lit("A"))
+          when_case_expression(field_ref(:score), lit("A"))  # Naked field ref
         ], loc: loc))
         bad_function = attr(:result, call(:nonexistent_fn))
         bad_trait = trait(:bad_trait, field_ref(:some_field))

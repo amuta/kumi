@@ -16,7 +16,7 @@ module FederalTax2024
   schema do
     input do
       float  :income
-      string :filing_status
+      string :filing_status, domain: %w[single married_joint]
     end
     
     # Standard deduction by filing status
@@ -57,6 +57,8 @@ result[:after_tax]   # => 78,509.00
 ```
 
 Real tax calculation with brackets, deductions, and FICA caps. Validation happens during schema definition.
+
+Is is well-suited for scenarios with complex, interdependent calculations, enforcing ...
 
 ## Installation
 
