@@ -1,28 +1,35 @@
+# frozen_string_literal: true
+
 # U.S. federal income‑tax plus FICA
 
+require "pry"
 require_relative "../lib/kumi"
 
-module CompositeTax2024
-  extend Kumi::Schema
+module Tax2024
   FED_BREAKS_SINGLE   = [11_600, 47_150, 100_525, 191_950,
-                         243_725, 609_350, Float::INFINITY]
+                         243_725, 609_350, Float::INFINITY].freeze
 
   FED_BREAKS_MARRIED  = [23_200, 94_300, 201_050, 383_900,
-                         487_450, 731_200, Float::INFINITY]
+                         487_450, 731_200, Float::INFINITY].freeze
 
   FED_BREAKS_SEPARATE = [11_600, 47_150, 100_525, 191_950,
-                         243_725, 365_600, Float::INFINITY]
+                         243_725, 365_600, Float::INFINITY].freeze
 
   FED_BREAKS_HOH      = [16_550, 63_100, 100_500, 191_950,
-                         243_700, 609_350, Float::INFINITY]
-  
+                         243_700, 609_350, Float::INFINITY].freeze
+
   FED_RATES           = [0.10, 0.12, 0.22, 0.24,
-                         0.32, 0.35, 0.37]
+                         0.32, 0.35, 0.37].freeze
+end
+
+module FederalTaxCalculator
+  extend Kumi::Schema
+  include Tax2024
 
   schema do
     input do
       float  :income
-      string :filing_status
+      string :filing_status, domain: %(single married_joint married_separate head_of_household)
     end
 
     # ── standard deduction table ───────────────────────────────────────
@@ -38,10 +45,8 @@ module CompositeTax2024
       base           21_900 # HOH default
     end
 
-    value :taxable_income,
-          fn(:max, [input.income - std_deduction, 0])
+    value :taxable_income, [input.income - std_deduction, 0].max
 
-    # ── FEDERAL brackets (single shown; others similar if needed) ──────
     value :fed_breaks do
       on  :single,   FED_BREAKS_SINGLE
       on  :married,  FED_BREAKS_MARRIED
@@ -49,13 +54,13 @@ module CompositeTax2024
       on  :hoh,      FED_BREAKS_HOH
     end
 
-    value :fed_rates,  FED_RATES
+    value :fed_rates, FED_RATES
     value :fed_calc,
           fn(:piecewise_sum, taxable_income, fed_breaks, fed_rates)
 
     value :fed_tax,       fed_calc[0]
     value :fed_marginal,  fed_calc[1]
-    value :fed_eff,       fed_tax / fn(:max, [input.income, 1.0])
+    value :fed_eff,       fed_tax / f[input.income, 1.0].max
 
     # ── FICA (employee share) ─────────────────────────────────────────────
     value :ss_wage_base, 168_600.0
@@ -73,32 +78,26 @@ module CompositeTax2024
     end
 
     # social‑security portion (capped)
-    value :ss_tax,
-          fn(:min, [input.income, ss_wage_base]) * ss_rate
+    value :ss_tax, [input.income, ss_wage_base].min * ss_rate
 
     # medicare (1.45 % on everything)
     value :med_tax, input.income * med_base_rate
 
     # additional medicare on income above threshold
-    value :addl_med_tax,
-          fn(:max, [input.income - addl_threshold, 0]) * addl_med_rate
+    value :addl_med_tax, [input.income - addl_threshold, 0].max * addl_med_rate
 
     value :fica_tax,  ss_tax + med_tax + addl_med_tax
-    value :fica_eff,  fica_tax / fn(:max, [input.income, 1.0])
+    value :fica_eff,  fica_tax / [input.income, 1.0].max
 
     # ── Totals ─────────────────────────────────────────────────────────
-    value :total_tax,
-          fed_tax + fica_tax
+    value :total_tax, fed_tax + fica_tax
 
-    value :total_eff,   total_tax / fn(:max, [input.income, 1.0])
-    value :after_tax,   input.income - total_tax
+    value :total_eff, total_tax / fn(:max, [input.income, 1.0])
+    value :after_tax, input.income - total_tax
   end
 end
 
-def example(income: 1_000_000, status: "single")
-  # Create a runner for the schema
-  r = CompositeTax2024.from(income: income, filing_status: status)
-  # puts r.inspect
+def calculate_tax(calculator, income: 1_000_000, status: "single")
   puts "\n=== 2024 U.S. Income‑Tax Example ==="
   printf "Income:                      $%0.2f\n", income
   puts   "Filing status:               #{status}\n\n"
@@ -109,4 +108,4 @@ def example(income: 1_000_000, status: "single")
   puts "After-tax income:        $#{r[:after_tax].round(2)}"
 end
 
-example
+calculate_tax(FederalTaxCalculator, income: 1_000_000, status: "single")

@@ -3,375 +3,184 @@
 [![CI](https://github.com/amuta/kumi/workflows/CI/badge.svg)](https://github.com/amuta/kumi/actions)
 [![Gem Version](https://badge.fury.io/rb/kumi.svg)](https://badge.fury.io/rb/kumi)
 
-Kumi is a declarative rule‑and‑calculation DSL for Ruby that turns scattered business logic into a statically‑checked dependency graph.
+Kumi is a computational rules engine for Ruby (plus static validation, dependency tracking, and more)
 
-Every input, trait, and formula is compiled into a typed AST node, so the entire graph is explicit and introspectable.
+## What can you build?
 
-Note: The examples here are small for the sake of readability. I would not recommend using this gem unless you need to keep track of 100+ conditions/variables.
+Calculate U.S. federal taxes in 30 lines of validated, readable code:
 
+```ruby
+module FederalTax2024
+  extend Kumi::Schema
+  
+  schema do
+    input do
+      float  :income
+      string :filing_status
+    end
+    
+    # Standard deduction by filing status
+    trait :single,  input.filing_status == "single"
+    trait :married, input.filing_status == "married_joint"
+    
+    value :std_deduction do
+      on :single,  14_600
+      on :married, 29_200
+      base        21_900  # head_of_household
+    end
+    
+    value :taxable_income, fn(:max, [input.income - std_deduction, 0])
+    
+    # Federal tax brackets
+    value :fed_breaks do
+      on :single,  [11_600, 47_150, 100_525, 191_950, 243_725, 609_350, Float::INFINITY]
+      on :married, [23_200, 94_300, 201_050, 383_900, 487_450, 731_200, Float::INFINITY]
+    end
+    
+    value :fed_rates, [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]
+    value :fed_calc,  fn(:piecewise_sum, taxable_income, fed_breaks, fed_rates)
+    value :fed_tax,   fed_calc[0]
+    
+    # FICA taxes
+    value :ss_tax, fn(:min, [input.income, 168_600]) * 0.062
+    value :medicare_tax, input.income * 0.0145
+    
+    value :total_tax, fed_tax + ss_tax + medicare_tax
+    value :after_tax, input.income - total_tax
+  end
+end
 
-## How to get started
-
-Install Kumi and try running the examples below or explore the `./examples` directory of this repository.
+# Use it
+result = FederalTax2024.from(income: 100_000, filing_status: "single")
+result[:total_tax]   # => 21,491.00
+result[:after_tax]   # => 78,509.00
 ```
+
+Real tax calculation with brackets, deductions, and FICA caps. Validation happens during schema definition.
+
+## Installation
+
+```bash
 gem install kumi
 ```
 
-## Example
+## Core Features
 
-**Instead of scattered logic:**
-```ruby
-def calculate_loan_approval(credit_score, income, debt_ratio)
-  good_credit = credit_score >= 700
-  sufficient_income = income >= 50_000  
-  low_debt = debt_ratio <= 0.3
-  
-  if good_credit && sufficient_income && low_debt
-    { approved: true, rate: 3.5 }
-  else
-    { approved: false, rate: nil }
-  end
-end
-```
+### Static Analysis
 
-**You can write:**
+Kumi catches real business logic errors during schema definition:
+
 ```ruby
-module LoanApproval
+module CommissionCalculator
   extend Kumi::Schema
-
+  
   schema do
     input do
-      integer :credit_score
-      float :income
-      float :debt_to_income_ratio
+      float :sales_amount, domain: 0..Float::INFINITY
+      integer :years_experience, domain: 0..50
+      string :region, domain: %w[east west north south]
     end
-
-    trait :good_credit, input.credit_score >= 700
-    trait :sufficient_income, input.income >= 50_000
-    trait :low_debt, input.debt_to_income_ratio <= 0.3
-    trait :approved, good_credit & sufficient_income & low_debt
     
-    value :interest_rate do
-      on :approved, 3.5
-      base 0.0
+    # Commission tiers based on experience
+    trait :junior, input.years_experience < 2
+    trait :senior, input.years_experience >= 5
+    trait :veteran, input.years_experience >= 10
+    
+    # Base commission rates
+    value :base_rate do
+      on :veteran, 0.08
+      on :senior, 0.06
+      on :junior, 0.04
+      base 0.05
+    end
+    
+    # Regional multipliers
+    value :regional_bonus do
+      on input.region == "west", 1.2  # West coast bonus
+      on input.region == "east", 1.1  # East coast bonus
+      base 1.0
+    end
+    
+    # Problem: Veteran bonus conflicts with senior cap
+    value :experience_bonus do
+      on :veteran, 2.0      # Veterans get 2x bonus
+      on :senior, 1.5       # Seniors get 1.5x bonus  
+      base 1.0
+    end
+    
+    value :total_rate, base_rate * regional_bonus * experience_bonus
+    
+    # Business rule error: Veterans (10+ years) are also seniors (5+ years)
+    # This creates impossible logic in commission caps
+    trait :capped_senior, :senior & (total_rate <= 0.10)  # Senior cap
+    trait :uncapped_veteran, :veteran & (total_rate > 0.10)  # Veteran override
+    
+    value :final_commission do
+      on :capped_senior & :uncapped_veteran, "Impossible!"  # Can't be both
+      on :uncapped_veteran, input.sales_amount * total_rate
+      on :capped_senior, input.sales_amount * 0.10
+      base input.sales_amount * total_rate
     end
   end
 end
 
-runner = LoanApproval.from(credit_score: 750, income: 60_000, debt_to_income_ratio: 0.25)
-puts runner[:approved]       # => true
-puts runner[:interest_rate]  # => 3.5
+# => conjunction `capped_senior AND uncapped_veteran` is impossible
 ```
 
-This gets you:
-- Static analysis catches impossible logic combinations at compile time
-- Automatic dependency tracking prevents circular references  
-- Type safety with domain constraints (age: 0..150, status: %w[active inactive])
-- Microsecond performance not much different than optimized pure ruby
-- Introspectable - see exactly how any value was computed
+### Automatic Memoization
 
-## Static Analysis & Safety
-
-Kumi analyzes your rules to catch logical impossibilities:
+Each value is computed exactly once:
 
 ```ruby
-module ImpossibleLogic
-  extend Kumi::Schema
+runner = FederalTax2024.from(income: 250_000, filing_status: "married_joint")
 
-  schema do
-    input {}  # No inputs needed
+# First access computes full dependency chain
+runner[:total_tax]     # => 52,937.50
 
-    value :x, 100
-    trait :x_less_than_100, x < 100        # false: 100 < 100
-    
-    value :y, x * 10                       # 1000  
-    trait :y_greater_than_1000, y > 1000   # false: 1000 > 1000
-
-    value :result do
-      # This is impossible
-      on :x_less_than_100 & :y_greater_than_1000, "Impossible!"
-      base "Default"
-    end
-  end
-end
-
-# Kumi::Errors::SemanticError: conjunction `x_less_than_100 AND y_greater_than_1000` is impossible
+# Subsequent access uses cached values
+runner[:fed_tax]       # => 37,437.50 (cached)
+runner[:after_tax]     # => 197,062.50 (cached)
 ```
 
-Cycle detection:
+### Introspection
+
+See exactly how any value was calculated:
+
 ```ruby
-module CircularDependency
-  extend Kumi::Schema
-
-  schema do
-    input { float :base }
-
-    # These create a circular dependency
-    value :monthly_rate, yearly_rate / 12
-    value :yearly_rate, monthly_rate * 12
-  end
-end
-
-# Kumi::Errors::SemanticError: cycle detected involving: monthly_rate → yearly_rate → monthly_rate
+Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_status: "single"})
+# => fed_tax = fed_calc[0]
+#    = (fed_calc = piecewise_sum(taxable_income, fed_breaks, fed_rates)
+#       = piecewise_sum(85,400, [11,600, 47,150, ...], [0.10, 0.12, ...])
+#       = [15,099.50, 0.22])
+#    = 15,099.50
 ```
+
+## Use Cases
+
+**Suitable for:**
+- Complex interdependent business rules
+- Mathematical calculations with multiple steps
+- Conditional logic with overlapping categories
+- Rules requiring static validation and audit trails
+
+**Not suitable for:**
+- Simple conditional statements
+- Sequential procedural workflows  
+- Rules that change during execution
+- High-frequency real-time processing
 
 ## Performance
 
-Kumi has microsecond evaluation times through automatic memoization:
+Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
+- 50-deep dependency chain: **740,000/sec** (analysis <50ms)
+- 1,000 attributes:         **131,000/sec** (analysis <50ms)
+- 10,000 attributes:        **14,200/sec**  (analysis ~300ms)
 
-### Deep Dependency Chains
-```
-=== Evaluation Performance (with Memoization) ===
-eval  50-deep:  817,497 i/s  (1.22 μs/i)
-eval 100-deep:  509,567 i/s  (1.96 μs/i) 
-eval 150-deep:  376,429 i/s  (2.66 μs/i)
-eval 200-deep:  282,243 i/s  (3.54 μs/i)
-```
+## Learn More
 
-### Wide Complex Schemas  
-```
-=== Evaluation Performance (with Memoization) ===
-eval  1,000-wide:  127,652 i/s  (7.83 μs/i)
-eval  5,000-wide:   26,604 i/s  (37.59 μs/i) 
-eval 10,000-wide:   13,670 i/s  (73.15 μs/i)
-```
+- [DSL Syntax Reference](documents/SYNTAX.md)
+- [Examples](examples/)/
 
-Here's how the memoization works:
-```ruby
-module ProductPricing
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      float :base_price
-      float :tax_rate
-      integer :quantity
-    end
-    
-    value :unit_price_with_tax, input.base_price * (1 + input.tax_rate)
-    value :total_before_discount, unit_price_with_tax * input.quantity
-    value :bulk_discount, input.quantity >= 10 ? 0.1 : 0.0
-    value :final_total, total_before_discount * (1 - bulk_discount)
-  end
-end
+## License
 
-runner = ProductPricing.from(base_price: 100.0, tax_rate: 0.08, quantity: 15)
-
-# First access: computes and caches all intermediate values
-puts runner[:final_total]           # => 1458.0 (computed + cached)
-
-# Subsequent accesses: pure cache lookups (microsecond performance)
-puts runner[:unit_price_with_tax]   # => 108.0 (from cache)
-puts runner[:bulk_discount]         # => 0.1 (from cache) 
-puts runner[:final_total]           # => 1458.0 (from cache)
-```
-
-Architecture notes:
-- Compile-once, evaluate-many: Schema compilation happens once, evaluations are pure computation
-- `EvaluationWrapper` caches computed values automatically for subsequent access
-- Stack-safe algorithms: Iterative cycle detection and dependency resolution prevent stack overflow
-- Type-safe execution: No runtime type checking overhead after compilation
-
-## DSL Features
-
-### Domain Constraints
-```ruby
-module UserProfile
-  extend Kumi::Schema
-
-  schema do
-    input do
-      integer :age, domain: 0..150
-      string :status, domain: %w[active inactive suspended]
-      float :score, domain: 0.0..100.0
-    end
-
-    trait :adult, input.age >= 18
-    trait :active_user, input.status == "active"
-  end
-end
-
-# Valid data works fine
-UserProfile.from(age: 25, status: "active", score: 85.5)
-
-# Invalid data raises detailed errors
-UserProfile.from(age: 200, status: "invalid", score: -10)
-# => Kumi::Errors::DomainViolationError: Domain constraint violations...
-```
-
-### Cascade Logic
-```ruby
-module ShippingCost
-  extend Kumi::Schema
-
-  schema do
-    input do
-      float :order_total
-      string :membership_level
-    end
-
-    trait :premium_member, input.membership_level == "premium"
-    trait :large_order, input.order_total >= 100
-
-    value :shipping_cost do
-      on :premium_member, 0.0
-      on :large_order, 5.0
-      base 15.0
-    end
-  end
-end
-
-runner = ShippingCost.from(order_total: 75, membership_level: "standard")
-puts runner[:shipping_cost]  # => 15.0
-```
-
-### Functions
-```ruby
-module Statistics
-  extend Kumi::Schema
-
-  schema do
-    input do
-      array :scores, elem: { type: :float }
-    end
-
-    value :total, fn(:sum, input.scores)
-    value :count, fn(:size, input.scores)
-    value :average, total / count
-    value :max_score, fn(:max, input.scores)
-  end
-end
-
-runner = Statistics.from(scores: [85.5, 92.0, 78.5, 96.0])
-puts runner[:average]    # => 88.0
-puts runner[:max_score]  # => 96.0
-```
-
-## Introspection
-
-You can see exactly how any value was computed:
-
-```ruby
-module TaxCalculator
-  extend Kumi::Schema
-
-  schema do
-    input do
-      float :income
-      float :tax_rate
-      float :deductions
-    end
-
-    value :taxable_income, input.income - input.deductions
-    value :tax_amount, taxable_income * input.tax_rate
-  end
-end
-
-inputs = { income: 100_000, tax_rate: 0.25, deductions: 12_000 }
-
-puts Kumi::Explain.call(TaxCalculator, :taxable_income, inputs: inputs)
-# => taxable_income = input.income - deductions = (input.income = 100 000) - (deductions = 12 000) => 88 000
-
-puts Kumi::Explain.call(TaxCalculator, :tax_amount, inputs: inputs)  
-# => tax_amount = taxable_income × input.tax_rate = (taxable_income = 88 000) × (input.tax_rate = 0.25) => 22 000
-```
-
-## Try It Yourself
-
-Run the performance benchmarks:
-```bash
-bundle exec ruby examples/wide_schema_compilation_and_evaluation_benchmark.rb
-bundle exec ruby examples/deep_schema_compilation_and_evaluation_benchmark.rb
-```
-
-## DSL Syntax Reference
-
-See [`documents/SYNTAX.md`](documents/SYNTAX.md) for complete syntax documentation with sugar vs sugar-free examples.
-
-## Advanced Features
-
-### Custom Functions
-Register your own Ruby methods as Kumi functions:
-
-```ruby
-def celsius_to_fahrenheit(celsius)
-  celsius * 9.0 / 5.0 + 32
-end
-
-Kumi::FunctionRegistry.register_with_metadata(
-  :c_to_f, 
-  method(:celsius_to_fahrenheit),
-  return_type: :float, 
-  arity: 1,
-  param_types: [:float],
-  description: "Convert Celsius to Fahrenheit"
-)
-
-module Weather
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      float :celsius
-    end
-    
-    value :fahrenheit, fn(:c_to_f, input.celsius)
-  end
-end
-```
-
-### Array Indexing
-Direct array element access:
-
-```ruby
-schema do
-  input do
-    array :scores, elem: { type: :integer }
-  end
-  
-  value :first_score, input.scores[0]
-  value :third_score, input.scores[2]
-end
-```
-
-### Logical OR
-Use `|` for logical OR operations:
-
-```ruby
-trait :weekend, (input.day == "Saturday") | (input.day == "Sunday")
-trait :holiday_or_weekend, weekend | (input.is_holiday == true)
-```
-
-### Programmatic DSL
-Generate declarations dynamically:
-
-```ruby
-schema do
-  input do
-    array :cells, elem: { type: :integer }
-  end
-  
-  # Generate cell declarations programmatically
-  (0...100).each do |i|
-    value :"cell_#{i}", input.cells[i]
-    trait :"cell_#{i}_alive", input.cells[i] == 1
-  end
-  
-  # Use generated declarations
-  value :alive_count, fn(:sum, 
-    (0...100).map { |i| fn(:conditional, ref(:"cell_#{i}_alive"), 1, 0) }
-  )
-end
-```
-
-### Schema Export/Import
-Serialize schemas for storage or transmission:
-
-```ruby
-# Export to JSON
-syntax_tree = MySchema.__syntax_tree__
-json = Kumi::Export.to_json(syntax_tree)
-
-# Import from JSON
-restored_tree = Kumi::Export.from_json(json)
-```
+MIT License. See [LICENSE](LICENSE).

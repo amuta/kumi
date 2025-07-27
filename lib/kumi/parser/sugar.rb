@@ -5,10 +5,22 @@ module Kumi
     module Sugar
       include Syntax
 
-      ARITHMETIC_OPS = { :+ => :add, :- => :subtract, :* => :multiply,
-                         :/ => :divide, :% => :modulo, :** => :power }.freeze
+      ARITHMETIC_OPS = { 
+        :+ => :add, :- => :subtract, :* => :multiply,
+        :/ => :divide, :% => :modulo, :** => :power 
+      }.freeze
+      
       COMPARISON_OPS = %i[< <= > >= == !=].freeze
-      LITERAL_TYPES = [Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp].freeze
+      
+      LITERAL_TYPES = [
+        Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp
+      ].freeze
+
+      # Collection methods that can be applied to arrays/syntax nodes
+      COLLECTION_METHODS = %i[
+        sum size length first last sort reverse unique min max empty? flatten
+        map_with_index indices
+      ].freeze
 
       def self.ensure_literal(obj)
         return Literal.new(obj) if LITERAL_TYPES.any? { |type| obj.is_a?(type) }
@@ -22,97 +34,60 @@ module Kumi
         obj.is_a?(Syntax::Node) || obj.respond_to?(:to_ast_node)
       end
 
+      # Create a call expression with consistent error handling
+      def self.create_call_expression(fn_name, args)
+        Syntax::CallExpression.new(fn_name, args)
+      end
+
       module ExpressionRefinement
         refine Syntax::Node do
+          # Arithmetic operations
           ARITHMETIC_OPS.each do |op, op_name|
             define_method(op) do |other|
               other_node = Sugar.ensure_literal(other)
-              Syntax::CallExpression.new(op_name, [self, other_node])
+              Sugar.create_call_expression(op_name, [self, other_node])
             end
           end
 
+          # Comparison operations
           COMPARISON_OPS.each do |op|
             define_method(op) do |other|
               other_node = Sugar.ensure_literal(other)
-              Syntax::CallExpression.new(op, [self, other_node])
+              Sugar.create_call_expression(op, [self, other_node])
             end
           end
 
+          # Array access
           def [](index)
-            Syntax::CallExpression.new(:at, [self, Sugar.ensure_literal(index)])
+            Sugar.create_call_expression(:at, [self, Sugar.ensure_literal(index)])
           end
 
+          # Unary minus
           def -@
-            Syntax::CallExpression.new(:subtract, [Sugar.ensure_literal(0), self])
+            Sugar.create_call_expression(:subtract, [Sugar.ensure_literal(0), self])
           end
 
+          # Logical operations
           def &(other)
-            Syntax::CallExpression.new(:and, [self, Sugar.ensure_literal(other)])
+            Sugar.create_call_expression(:and, [self, Sugar.ensure_literal(other)])
           end
 
           def |(other)
-            Syntax::CallExpression.new(:or, [self, Sugar.ensure_literal(other)])
+            Sugar.create_call_expression(:or, [self, Sugar.ensure_literal(other)])
           end
 
-          # Collection methods
-          def map_with_index
-            Syntax::CallExpression.new(:map_with_index, [self])
+          # Collection methods - single argument (self)
+          COLLECTION_METHODS.each do |method_name|
+            next if method_name == :include? # Special case with element argument
+
+            define_method(method_name) do
+              Sugar.create_call_expression(method_name, [self])
+            end
           end
 
-          def indices
-            Syntax::CallExpression.new(:indices, [self])
-          end
-
-          def flatten
-            Syntax::CallExpression.new(:flatten, [self])
-          end
-
-          def sum
-            Syntax::CallExpression.new(:sum, [self])
-          end
-
-          def size
-            Syntax::CallExpression.new(:size, [self])
-          end
-
-          def length
-            Syntax::CallExpression.new(:length, [self])
-          end
-
-          def reverse
-            Syntax::CallExpression.new(:reverse, [self])
-          end
-
-          def sort
-            Syntax::CallExpression.new(:sort, [self])
-          end
-
-          def unique
-            Syntax::CallExpression.new(:unique, [self])
-          end
-
-          def first
-            Syntax::CallExpression.new(:first, [self])
-          end
-
-          def last
-            Syntax::CallExpression.new(:last, [self])
-          end
-
-          def empty?
-            Syntax::CallExpression.new(:empty?, [self])
-          end
-
+          # Special case: include? takes an element argument
           def include?(element)
-            Syntax::CallExpression.new(:include?, [self, Sugar.ensure_literal(element)])
-          end
-
-          def min
-            Syntax::CallExpression.new(:min, [self])
-          end
-
-          def max
-            Syntax::CallExpression.new(:max, [self])
+            Sugar.create_call_expression(:include?, [self, Sugar.ensure_literal(element)])
           end
         end
       end
@@ -120,22 +95,24 @@ module Kumi
       module NumericRefinement
         [Integer, Float].each do |klass|
           refine klass do
+            # Arithmetic operations with syntax expressions
             ARITHMETIC_OPS.each do |op, op_name|
               define_method(op) do |other|
                 if Sugar.syntax_expression?(other)
-                  other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                  Syntax::CallExpression.new(op_name, [Syntax::Literal.new(self), other_node])
+                  other_node = Sugar.ensure_literal(other)
+                  Sugar.create_call_expression(op_name, [Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
               end
             end
 
+            # Comparison operations with syntax expressions
             COMPARISON_OPS.each do |op|
               define_method(op) do |other|
                 if Sugar.syntax_expression?(other)
-                  other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                  Syntax::CallExpression.new(op, [Syntax::Literal.new(self), other_node])
+                  other_node = Sugar.ensure_literal(other)
+                  Sugar.create_call_expression(op, [Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
@@ -149,8 +126,8 @@ module Kumi
         refine String do
           def +(other)
             if Sugar.syntax_expression?(other)
-              other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-              Syntax::CallExpression.new(:concat, [Syntax::Literal.new(self), other_node])
+              other_node = Sugar.ensure_literal(other)
+              Sugar.create_call_expression(:concat, [Syntax::Literal.new(self), other_node])
             else
               super
             end
@@ -159,8 +136,8 @@ module Kumi
           %i[== !=].each do |op|
             define_method(op) do |other|
               if Sugar.syntax_expression?(other)
-                other_node = other.respond_to?(:to_ast_node) ? other.to_ast_node : other
-                Syntax::CallExpression.new(op, [Syntax::Literal.new(self), other_node])
+                other_node = Sugar.ensure_literal(other)
+                Sugar.create_call_expression(op, [Syntax::Literal.new(self), other_node])
               else
                 super(other)
               end
@@ -171,114 +148,37 @@ module Kumi
 
       module ArrayRefinement
         refine Array do
-          def sum
-            # Convert array of Kumi syntax nodes to a Kumi array literal, then sum
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:sum, [array_literal])
-            else
-              super
+          # Helper method to check if array contains only syntax expressions
+          def all_syntax_expressions?
+            all? { |item| Sugar.syntax_expression?(item) }
+          end
+
+          # Convert array to syntax list expression
+          def to_syntax_list
+            Syntax::ListExpression.new(self)
+          end
+
+          # Create array method that works with syntax expressions
+          def self.define_array_syntax_method(method_name, has_argument: false)
+            define_method(method_name) do |*args|
+              if all_syntax_expressions?
+                array_literal = to_syntax_list
+                call_args = [array_literal]
+                call_args.concat(args.map { |arg| Sugar.ensure_literal(arg) }) if has_argument
+                Sugar.create_call_expression(method_name, call_args)
+              else
+                super(*args)
+              end
             end
           end
 
-          def size
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:size, [array_literal])
-            else
-              super
-            end
+          # Define collection methods without arguments
+          %i[sum size length first last sort reverse unique min max empty? flatten].each do |method_name|
+            define_array_syntax_method(method_name)
           end
 
-          def length
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:length, [array_literal])
-            else
-              super
-            end
-          end
-
-          def first
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:first, [array_literal])
-            else
-              super
-            end
-          end
-
-          def last
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:last, [array_literal])
-            else
-              super
-            end
-          end
-
-          def sort
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:sort, [array_literal])
-            else
-              super
-            end
-          end
-
-          def reverse
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:reverse, [array_literal])
-            else
-              super
-            end
-          end
-
-          def unique
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:unique, [array_literal])
-            else
-              super
-            end
-          end
-
-          def min
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:min, [array_literal])
-            else
-              super
-            end
-          end
-
-          def max
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:max, [array_literal])
-            else
-              super
-            end
-          end
-
-          def empty?
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:empty?, [array_literal])
-            else
-              super
-            end
-          end
-
-          def include?(element)
-            if all? { |item| Sugar.syntax_expression?(item) }
-              array_literal = Syntax::ListExpression.new(self)
-              Syntax::CallExpression.new(:include?, [array_literal, Sugar.ensure_literal(element)])
-            else
-              super
-            end
-          end
+          # Define methods with arguments
+          define_array_syntax_method(:include?, has_argument: true)
         end
       end
 

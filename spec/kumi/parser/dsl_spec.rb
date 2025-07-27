@@ -102,7 +102,7 @@ RSpec.describe Kumi::Parser::Dsl do
           build_schema do
             value :name, { some: :hash }
           end
-        end.to raise_error(error_class, /Invalid expression/)
+        end.to raise_error(error_class, /Cannot convert.*Hash to AST node/)
       end
     end
 
@@ -133,12 +133,14 @@ RSpec.describe Kumi::Parser::Dsl do
     end
 
     context "when using invalid expressions" do
-      it "raises an error for unknown expression types in a call" do
+      it "allows unknown expression types in a call (parsing succeeds, analysis may fail later)" do
+        # The DSL parser should accept self and convert it to a literal
+        # Analysis failures happen later, not during parsing
         expect do
           build_schema do
             value :my_value, fn(:foo, self)
           end
-        end.to raise_error(error_class, /Invalid expression/)
+        end.not_to raise_error
       end
 
       it "raises an error for unsupported operators" do
