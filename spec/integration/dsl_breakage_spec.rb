@@ -263,7 +263,6 @@ RSpec.describe "DSL Breakage Integration Tests" do
 
     describe "Domain constraint violations" do
       it "catches invalid domain specifications" do
-        pending "Domain constraints type checking not yet implemented"
         error = expect_semantic_error do
           schema do
             input do

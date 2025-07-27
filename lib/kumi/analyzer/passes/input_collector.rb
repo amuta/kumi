@@ -36,12 +36,16 @@ module Kumi
                              location: field_decl.loc)
               end
 
+              # Validate domain type if provided
+              validate_domain_type(field_decl, errors) if field_decl.domain
+              
               # Merge metadata (later declarations override nil values)
               input_meta[name] = {
                 type: field_decl.type || existing[:type],
                 domain: field_decl.domain || existing[:domain]
               }
             else
+              validate_domain_type(field_decl, errors) if field_decl.domain
               input_meta[name] = {
                 type: field_decl.type,
                 domain: field_decl.domain
@@ -50,6 +54,21 @@ module Kumi
           end
 
           state.with(:input_meta, input_meta.freeze)
+        end
+
+        private
+
+        def validate_domain_type(field_decl, errors)
+          domain = field_decl.domain
+          return if valid_domain_type?(domain)
+
+          report_error(errors,
+                       "Field :#{field_decl.name} has invalid domain constraint: #{domain.inspect}. Domain must be a Range, Array, or Proc",
+                       location: field_decl.loc)
+        end
+
+        def valid_domain_type?(domain)
+          domain.is_a?(Range) || domain.is_a?(Array) || domain.is_a?(Proc)
         end
       end
     end
