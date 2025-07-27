@@ -9,7 +9,7 @@ RSpec.describe "Kumi Default Functions" do
         end
 
         value :test_value do
-          on :test_trait, "result"
+          on test_trait, "result"
           base "default"
         end
 

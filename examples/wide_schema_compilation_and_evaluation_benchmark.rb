@@ -41,7 +41,7 @@ def build_wide_schema(width)
             ref(:sum_all), :>, (width * (width + 1) / 2)
 
       value :final_total do
-        on :large_total, fn(:add, ref(:sum_all), ref(:avg_all))
+        on large_total, fn(:add, ref(:sum_all), ref(:avg_all))
         base ref(:sum_all)
       end
     end

@@ -25,17 +25,17 @@ module MinimalCascadeTest
 
     # Test 1: String-based cascade (should work)
     value :tax_status do
-      on :single, "Single Filer"
-      on :married, "Married Filing Jointly"
-      on :divorced, "Head of Household"
+      on single, "Single Filer"
+      on married, "Married Filing Jointly"
+      on divorced, "Head of Household"
       base "Status Unknown"
     end
 
     # Test 2: Age-based cascade with non-conflicting single traits (should work)
     value :age_group do
-      on :young, "Young Professional"
-      on :middle, "Mid-Career"
-      on :senior, "Senior Professional"
+      on young, "Young Professional"
+      on middle, "Mid-Career"
+      on senior, "Senior Professional"
       base "Age Unknown"
     end
 
@@ -44,8 +44,8 @@ module MinimalCascadeTest
     trait :senior_married, senior & married
 
     value :demographic do
-      on :young_single, "Young Single Person"
-      on :senior_married, "Senior Married Person"
+      on young_single, "Young Single Person"
+      on senior_married, "Senior Married Person"
       base "Other Demographic"
     end
   end

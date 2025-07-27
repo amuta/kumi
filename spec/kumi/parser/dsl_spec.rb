@@ -168,7 +168,7 @@ RSpec.describe Kumi::Parser::Dsl do
       it "accepts <symbol> with a block" do
         schema = build_schema do
           value :status do
-            on :active, input.active
+            on active, input.active
           end
         end
 
@@ -194,8 +194,8 @@ RSpec.describe Kumi::Parser::Dsl do
       let(:schema) do
         build_schema do
           value :status do
-            on :active, input.active
-            on :verified, input.verified
+            on active, input.active
+            on verified, input.verified
             base input.base_status
           end
         end

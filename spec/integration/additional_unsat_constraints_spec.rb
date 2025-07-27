@@ -15,7 +15,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :age_greater_than_name, input.age, :>, input.name
 
           value :result do
-            on :age_greater_than_name, "Impossible type comparison"
+            on age_greater_than_name, "Impossible type comparison"
             base "Normal"
           end
         end
@@ -33,7 +33,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :age_less_than_name, input.age, :<, input.name
 
           value :result do
-            on :age_less_than_name, "Impossible"
+            on age_less_than_name, "Impossible"
             base "Normal"
           end
         end
@@ -51,7 +51,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :ages_equal, input.age1, :==, input.age2
 
           value :result do
-            on :ages_equal, "Same type comparison"
+            on ages_equal, "Same type comparison"
             base "Normal"
           end
         end
@@ -71,7 +71,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :impossible_bound, doubled, :>, 25 # impossible since max is 20
 
           value :result do
-            on :impossible_bound, "Impossible bound"
+            on impossible_bound, "Impossible bound"
             base "Normal"
           end
         end
@@ -89,7 +89,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :impossible_negative, still_positive, :<, 0   # impossible
 
           value :result do
-            on :impossible_negative, "Impossible negative"
+            on impossible_negative, "Impossible negative"
             base "Normal"
           end
         end
@@ -107,7 +107,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :valid_bound, doubled, :>, 15 # possible since max is 20
 
           value :result do
-            on :valid_bound, "Valid bound"
+            on valid_bound, "Valid bound"
             base "Normal"
           end
         end
@@ -128,7 +128,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :contradictory, fn(:and, active, inactive) # logically impossible
 
           value :result do
-            on :contradictory, "Impossible logic"
+            on contradictory, "Impossible logic"
             base "Normal"
           end
         end
@@ -146,7 +146,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_false, input.flag, :==, false
 
           value :result do
-            on :is_true, :is_false, "Both true and false" # impossible
+            on is_true,is_false, "Both true and false" # impossible
             base "Normal"
           end
         end
@@ -166,7 +166,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :both, fn(:and, active, verified) # possible
 
           value :result do
-            on :both, "Both active and verified"
+            on both, "Both active and verified"
             base "Normal"
           end
         end
@@ -184,7 +184,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_inactive, status, :==, "inactive" # impossible
 
           value :result do
-            on :is_inactive, "Impossible"
+            on is_inactive, "Impossible"
             base "Normal"
           end
         end
@@ -200,7 +200,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_zero, count, :==, 0 # impossible
 
           value :result do
-            on :is_zero, "Impossible"
+            on is_zero, "Impossible"
             base "Normal"
           end
         end
@@ -216,7 +216,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_active, status, :==, "active" # valid
 
           value :result do
-            on :is_active, "Valid"
+            on is_active, "Valid"
             base "Normal"
           end
         end
@@ -239,7 +239,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :impossible_high, final, :>, 20      # impossible since max is 13
 
           value :result do
-            on :impossible_high, "Impossible through chain"
+            on impossible_high, "Impossible through chain"
             base "Normal"
           end
         end
@@ -265,7 +265,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
                 fn(:or, input.value == 2, input.value == 3)
 
           value :result do
-            on :valid_or_condition, "Valid"
+            on valid_or_condition, "Valid"
             base "Invalid"
           end
         end
@@ -292,7 +292,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
                    input.neighbors == 3)
 
           value :next_state do
-            on :survives_or_born, 1
+            on survives_or_born, 1
             base 0
           end
         end
@@ -315,7 +315,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
                 fn(:or, input.value == 1, input.value == 2)
 
           value :result do
-            on :impossible_or, "Should be impossible"
+            on impossible_or, "Should be impossible"
             base "Normal"
           end
         end
@@ -335,7 +335,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
                 fn(:or, input.value == 1, input.value == 7)
 
           value :result do
-            on :partially_possible_or, "Possible"
+            on partially_possible_or, "Possible"
             base "Normal"
           end
         end
@@ -358,7 +358,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
                    fn(:or, input.b == 9, input.b == 10))
 
           value :result do
-            on :complex_or, "Complex OR satisfied"
+            on complex_or, "Complex OR satisfied"
             base "Normal"
           end
         end

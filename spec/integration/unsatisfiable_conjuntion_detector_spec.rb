@@ -312,8 +312,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           # This cascade condition should be impossible
           value :eligibility do
-            on :young, :old, :high_score, "impossible" # age < 25 AND age > 65 is impossible
-            on :high_score, "eligible"
+            on young,old,high_score, "impossible" # age < 25 AND age > 65 is impossible
+            on high_score, "eligible"
             base "not_eligible"
           end
         end
@@ -335,9 +335,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           # Multiple impossible combinations
           value :system_state do
-            on :hot, :cold, "impossible_temp" # temp > 80 AND temp < 20
-            on :high_pressure, :low_pressure, "impossible_pressure" # pressure > 100 AND pressure < 50
-            on :hot, :high_pressure, "normal"
+            on hot,cold, "impossible_temp" # temp > 80 AND temp < 20
+            on high_pressure,low_pressure, "impossible_pressure" # pressure > 100 AND pressure < 50
+            on hot,high_pressure, "normal"
             base "unknown"
           end
         end
@@ -358,8 +358,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           # Impossible: same age variable cannot be both < 16 AND > 65
           value :profile_type do
-            on :child, :adult, "impossible_age" # age < 16 AND age > 65
-            on :adult, :has_experience, "experienced_adult"
+            on child,adult, "impossible_age" # age < 16 AND age > 65
+            on adult,has_experience, "experienced_adult"
             base "normal"
           end
         end
@@ -379,10 +379,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :has_bonus, input.bonus, :>, 0
 
           value :grade do
-            on :excellent_score, :has_bonus, "A+"
-            on :excellent_score, "A"
-            on :good_score, :has_bonus, "B+"
-            on :good_score, "B"
+            on excellent_score,has_bonus, "A+"
+            on excellent_score, "A"
+            on good_score,has_bonus, "B+"
+            on good_score, "B"
             base "C"
           end
         end
@@ -401,8 +401,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :total_small, input.total, :<, 50
 
           value :analysis do
-            on :total_large, :total_small, "impossible_total" # total > 100 AND total < 50
-            on :total_large, "large"
+            on total_large,total_small, "impossible_total" # total > 100 AND total < 50
+            on total_large, "large"
             base "normal"
           end
         end
@@ -425,15 +425,15 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :loan_eligibility do
             # Valid combinations
-            on :high_balance, :excellent_credit, "pre_approved"
-            on :excellent_credit, "eligible"
+            on high_balance,excellent_credit, "pre_approved"
+            on excellent_credit, "eligible"
 
             # This should be caught as potentially impossible -
             # minors typically can't have both high balances and excellent credit
-            on :minor, :high_balance, :excellent_credit, "exceptional_minor"
+            on minor,high_balance,excellent_credit, "exceptional_minor"
 
             # This is impossible - same credit score can't be both > 800 and < 500
-            on :excellent_credit, :poor_credit, "impossible_credit"
+            on excellent_credit,poor_credit, "impossible_credit"
 
             base "not_eligible"
           end
@@ -468,15 +468,15 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           # Loan approval logic with impossible combinations
           value :loan_approval do
             # Impossible: same credit score cannot be both > 800 and < 500
-            on :excellent_credit, :poor_credit, "impossible_credit_contradiction"
+            on excellent_credit,poor_credit, "impossible_credit_contradiction"
 
             # Impossible: same employment status cannot be both employed and unemployed
-            on :employed, :unemployed, :high_income, "impossible_employment_contradiction"
+            on employed,unemployed,high_income, "impossible_employment_contradiction"
 
             # Valid combinations
-            on :excellent_credit, :high_income, :employed, "pre_approved"
-            on :good_credit, :employed, "approved"
-            on :poor_credit, :high_income, "conditional"
+            on excellent_credit,high_income,employed, "pre_approved"
+            on good_credit,employed, "approved"
+            on poor_credit,high_income, "conditional"
 
             base "denied"
           end
@@ -508,18 +508,18 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           # Fraud risk assessment with logical contradictions
           value :risk_level do
             # Impossible: transaction amount cannot be both < 10 and > 1000
-            on :micro_transaction, :large_transaction, "impossible_amount"
+            on micro_transaction,large_transaction, "impossible_amount"
 
             # Impossible: account cannot be both new (< 30 days) and established (> 365 days)
-            on :new_account, :established_account, "impossible_account_age"
+            on new_account,established_account, "impossible_account_age"
 
             # Impossible: device cannot be both trusted (> 80) and suspicious (< 20)
-            on :trusted_device, :suspicious_device, "impossible_device_trust"
+            on trusted_device,suspicious_device, "impossible_device_trust"
 
             # Valid risk combinations
-            on :large_transaction, :new_account, :suspicious_device, "high_risk"
-            on :micro_transaction, :trusted_device, "low_risk"
-            on :established_account, :trusted_device, "low_risk"
+            on large_transaction,new_account,suspicious_device, "high_risk"
+            on micro_transaction,trusted_device, "low_risk"
+            on established_account,trusted_device, "low_risk"
 
             base "medium_risk"
           end
@@ -551,13 +551,13 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           # Discount calculation - all combinations are logically possible
           value :discount_percentage do
-            on :vip_customer, :large_purchase, 15.0
-            on :vip_customer, :high_loyalty, 12.0
-            on :premium_customer, :large_purchase, :high_loyalty, 10.0
-            on :premium_customer, :large_purchase, 8.0
-            on :standard_customer, :high_loyalty, 5.0
-            on :large_purchase, 3.0
-            on :high_loyalty, 2.0
+            on vip_customer,large_purchase, 15.0
+            on vip_customer,high_loyalty, 12.0
+            on premium_customer,large_purchase,high_loyalty, 10.0
+            on premium_customer,large_purchase, 8.0
+            on standard_customer,high_loyalty, 5.0
+            on large_purchase, 3.0
+            on high_loyalty, 2.0
             base 0.0
           end
         end
@@ -577,9 +577,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :adult, input.age, :>=, 18
 
           value :category do
-            on :child, :adult, "impossible" # age < 16 AND age >= 18
-            on :child, "child"
-            on :adult, "adult"
+            on child,adult, "impossible" # age < 16 AND age >= 18
+            on child, "child"
+            on adult, "adult"
             base "teen"
           end
         end
@@ -597,8 +597,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :high_score, input.score, :>, 80
 
           value :grade do
-            on :low_score, :high_score, "impossible" # score <= 50 AND score > 80
-            on :high_score, "A"
+            on low_score,high_score, "impossible" # score <= 50 AND score > 80
+            on high_score, "A"
             base "B"
           end
         end
@@ -616,8 +616,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :at_or_above_threshold, input.value, :>=, 100
 
           value :status do
-            on :below_threshold, :at_or_above_threshold, "impossible" # value < 100 AND value >= 100
-            on :below_threshold, "below"
+            on below_threshold,at_or_above_threshold, "impossible" # value < 100 AND value >= 100
+            on below_threshold, "below"
             base "above"
           end
         end
@@ -635,8 +635,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :not_too_hot, input.temperature, :<=, 30
 
           value :comfort do
-            on :not_too_cold, :not_too_hot, "comfortable"  # temp >= 10 AND temp <= 30 (valid range [10,30])
-            on :not_too_cold, "warm_enough"
+            on not_too_cold,not_too_hot, "comfortable"  # temp >= 10 AND temp <= 30 (valid range [10,30])
+            on not_too_cold, "warm_enough"
             base "too_cold"
           end
         end
@@ -654,8 +654,8 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :at_least_100, input.limit, :>=, 100
 
           value :boundary_check do
-            on :at_most_100, :at_least_100, "exactly_100"  # limit <= 100 AND limit >= 100 (limit = 100)
-            on :at_most_100, "under_limit"
+            on at_most_100,at_least_100, "exactly_100"  # limit <= 100 AND limit >= 100 (limit = 100)
+            on at_most_100, "under_limit"
             base "over_limit"
           end
         end
@@ -673,7 +673,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :greater_or_equal, input.number, :>=, 50
 
           value :mixed_check do
-            on :strictly_less, :greater_or_equal, "impossible" # number < 50 AND number >= 50
+            on strictly_less,greater_or_equal, "impossible" # number < 50 AND number >= 50
             base "valid"
           end
         end

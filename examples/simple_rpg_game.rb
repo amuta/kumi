@@ -158,10 +158,10 @@ module DamageReduction
 
     # Armor type resistances
     value :armor_resistance do
-      on :heavy_vs_magic, 0.8  # Heavy armor weak to magic
-      on :light_vs_magic, 1.1  # Light armor resists magic
-      on :heavy_armor, 1.2  # Heavy armor good vs physical
-      on :light_armor, 0.9  # Light armor weak vs physical
+      on heavy_vs_magic, 0.8  # Heavy armor weak to magic
+      on light_vs_magic, 1.1  # Light armor resists magic
+      on heavy_armor, 1.2  # Heavy armor good vs physical
+      on light_armor, 0.9  # Light armor weak vs physical
       base 1.0
     end
 
@@ -170,7 +170,7 @@ module DamageReduction
 
     # Dodge calculation
     value :dodge_chance do
-      on :high_agility, fn(:min, [(input.agility * 0.05), 0.3])
+      on high_agility, fn(:min, [(input.agility * 0.05), 0.3])
       base fn(:min, [(input.agility * 0.02), 0.15])
     end
 
@@ -179,9 +179,9 @@ module DamageReduction
 
     # Defense description for UI
     value :defense_description do
-      on :has_shield, "🛡️ Shield Active!"
-      on :heavy_armor, "⚔️ Heavy Armor Protection"
-      on :light_armor, "🏃 Light Armor Agility"
+      on has_shield, "🛡️ Shield Active!"
+      on heavy_armor, "⚔️ Heavy Armor Protection"
+      on light_armor, "🏃 Light Armor Agility"
       base "🛡️ Defending"
     end
   end
@@ -213,32 +213,32 @@ module Equipment
     trait :light_armor, fn(:include?, ["leather", "robe"], input.armor_type)
 
     value :total_weapon_damage do
-      on :ranged_weapon, (input.weapon_damage + 4)
-      on :magic_weapon, (input.weapon_damage + 3)
-      on :has_weapon, (input.weapon_damage + 2)
+      on ranged_weapon, (input.weapon_damage + 4)
+      on magic_weapon, (input.weapon_damage + 3)
+      on has_weapon, (input.weapon_damage + 2)
       base 2
     end
 
     value :total_armor_defense do
-      on :has_armor, (input.armor_defense + 1)
+      on has_armor, (input.armor_defense + 1)
       base 0
     end
 
     value :equipment_agility_modifier do
-      on :heavy_armor, -2
-      on :light_armor, 1
+      on heavy_armor, -2
+      on light_armor, 1
       base 0
     end
 
     value :equipment_strength_modifier do
-      on :melee_weapon, 2
+      on melee_weapon, 2
       base 0
     end
 
     value :equipment_description do
-      on :has_weapon, :has_armor, :has_accessory, fn(:concat, [input.weapon_name, ", ", input.armor_name, ", ", input.accessory_name])
-      on :has_weapon, :has_armor, fn(:concat, [input.weapon_name, ", ", input.armor_name])
-      on :has_weapon, fn(:concat, [input.weapon_name, " (Unarmored)"])
+      on has_weapon,has_armor,has_accessory, fn(:concat, [input.weapon_name, ", ", input.armor_name, ", ", input.accessory_name])
+      on has_weapon,has_armor, fn(:concat, [input.weapon_name, ", ", input.armor_name])
+      on has_weapon, fn(:concat, [input.weapon_name, " (Unarmored)"])
       base "Basic gear"
     end
   end
@@ -293,15 +293,15 @@ module PlayerEntity
     
     # Basic combat stats (for UI display)
     value :base_weapon_bonus do
-      on :has_sword, 8
-      on :has_dagger, 5
-      on :has_staff, 3
-      on :has_bow, 6
+      on has_sword, 8
+      on has_dagger, 5
+      on has_staff, 3
+      on has_bow, 6
       base 2
     end
 
     value :equipment_defense_bonus do
-      on :well_equipped, 2
+      on well_equipped, 2
       base 0
     end
 
@@ -309,14 +309,14 @@ module PlayerEntity
     value :total_attack, (15 + input.strength + fn(:fetch, input.equipment, "weapon_damage", 12) + base_weapon_bonus)
     value :defense_rating, (10 + input.defense + fn(:fetch, input.equipment, "armor_defense", 5) + (input.level / 2))
     value :dodge_chance do
-      on :agile, fn(:min, [(input.agility * 0.05), 0.3])
+      on agile, fn(:min, [(input.agility * 0.05), 0.3])
       base fn(:min, [(input.agility * 0.02), 0.15])
     end
 
     value :health_status_description do
-      on :dead, "💀 Dead"
-      on :low_health, "⚠️ Critically wounded"
-      on :full_health, "💚 Perfect condition"
+      on dead, "💀 Dead"
+      on low_health, "⚠️ Critically wounded"
+      on full_health, "💚 Perfect condition"
       base "🩹 Injured"
     end
 
@@ -352,17 +352,17 @@ module Enemy
     trait :agile_enemy, (input.dodge_chance >= 0.2)
 
     value :threat_level do
-      on :boss, "💀 BOSS"
-      on :dangerous, "⚡ Dangerous"
-      on :weak, "🩹 Weakened"
+      on boss, "💀 BOSS"
+      on dangerous, "⚡ Dangerous"
+      on weak, "🩹 Weakened"
       base "⚔️ Normal"
     end
 
     value :experience_reward, ((input.level * 25) + (fn(:size, input.abilities) * 10))
     
     value :gold_reward do
-      on :boss, ((input.level * 50) + 200)
-      on :dangerous, ((input.level * 30) + 50)
+      on boss, ((input.level * 50) + 200)
+      on dangerous, ((input.level * 30) + 50)
       base ((input.level * 20) + 10)
     end
 
@@ -397,15 +397,15 @@ module CombatCalculation
     value :base_damage, fn(:max, [(input.attacker_attack - input.defender_defense), 1])
     
     value :damage_multiplier do
-      on :critical_precision, 3.0
-      on :is_critical, 2.0
-      on :has_rage, 1.5
-      on :is_special, 1.3
+      on critical_precision, 3.0
+      on is_critical, 2.0
+      on has_rage, 1.5
+      on is_special, 1.3
       base 1.0
     end
 
     value :final_damage do
-      on :hit_connects, fn(:round, (base_damage * damage_multiplier))
+      on hit_connects, fn(:round, (base_damage * damage_multiplier))
       base 0
     end
 
@@ -413,9 +413,9 @@ module CombatCalculation
     trait :special_hit_connects, hit_connects & is_special
     
     value :attack_result do
-      on :critical_hit_connects, "💥 CRITICAL HIT!"
-      on :special_hit_connects, "✨ Special Attack!"
-      on :hit_connects, "⚔️ Hit!"
+      on critical_hit_connects, "💥 CRITICAL HIT!"
+      on special_hit_connects, "✨ Special Attack!"
+      on hit_connects, "⚔️ Hit!"
       base "💨 Miss!"
     end
   end
@@ -444,10 +444,10 @@ module GameState
     trait :combat_ongoing, in_combat & both_alive
 
     value :turn_description do
-      on :game_over, "💀 GAME OVER"
-      on :victorious, "🎉 VICTORY!"
-      on :combat_ongoing, "⚔️ Combat"
-      on :exploring, "🗺️ Exploring..."
+      on game_over, "💀 GAME OVER"
+      on victorious, "🎉 VICTORY!"
+      on combat_ongoing, "⚔️ Combat"
+      on exploring, "🗺️ Exploring..."
       base "📋 Main Menu"
     end
 

@@ -19,7 +19,7 @@ RSpec.describe "Incremental Updates" do
         trait :high_value, fn(:>, computed_value, 50)
 
         value :status do
-          on :high_value, "HIGH"
+          on high_value, "HIGH"
           base "LOW"
         end
       end
@@ -119,14 +119,14 @@ RSpec.describe "Incremental Updates" do
         trait :honor_roll, input.score, :>=, 90
 
         value :status do
-          on :honor_roll, "HONORS"
-          on :passing, "PASS"
+          on honor_roll, "HONORS"
+          on passing, "PASS"
           base "FAIL"
         end
 
         value :certificate do
-          on :honor_roll, "Gold Certificate"
-          on :passing, "Standard Certificate"
+          on honor_roll, "Gold Certificate"
+          on passing, "Standard Certificate"
           base "No Certificate"
         end
 
@@ -245,12 +245,12 @@ RSpec.describe "Incremental Updates" do
         trait :is_dark_mode, input.dark_mode, :==, true
 
         value :accent_color do
-          on :is_dark_mode, fn(:concat, input.primary_color, "-light")
+          on is_dark_mode, fn(:concat, input.primary_color, "-light")
           base fn(:concat, input.primary_color, "-dark")
         end
 
         value :text_color do
-          on :is_dark_mode, "#ffffff"
+          on is_dark_mode, "#ffffff"
           base "#000000"
         end
 

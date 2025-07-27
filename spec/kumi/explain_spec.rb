@@ -20,7 +20,7 @@ RSpec.describe Kumi::Explain do
           trait :high_earner, fn(:>, input.income, 100_000)
 
           value :status do
-            on :high_earner, "High Income"
+            on high_earner, "High Income"
             base "Regular Income"
           end
         end

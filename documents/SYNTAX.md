@@ -224,17 +224,17 @@ end
 
 # LEGACY: Symbol syntax (still supported for backward compatibility)
 value :grade_letter do
-  on :excellent_student, "A+"      # Symbol - legacy syntax
-  on :high_scorer, "A"             # Symbol - legacy syntax  
-  on :above_average, "B"           # Symbol - legacy syntax
-  on :needs_improvement, "C"       # Symbol - legacy syntax
+  on excellent_student, "A+"      # Symbol - legacy syntax
+  on high_scorer, "A"             # Symbol - legacy syntax  
+  on above_average, "B"           # Symbol - legacy syntax
+  on needs_improvement, "C"       # Symbol - legacy syntax
   base "F"
 end
 
 # MIXED: Both syntaxes work together
 value :grade_letter do
   on excellent_student, "A+"       # Bare identifier
-  on :high_scorer, "A"             # Symbol - both work!
+  on high_scorer, "A"             # Symbol - both work!
   base "F"
 end
 ```
@@ -294,9 +294,9 @@ module StudentEvaluation
 
     # Cascade with sugar-defined traits
     value :scholarship_amount do
-      on :scholarship_candidate, 10000
-      on :high_performer, 5000
-      on :math_excellence, 2500
+      on scholarship_candidate, 10000
+      on high_performer, 5000
+      on math_excellence, 2500
       base 0
     end
   end
@@ -331,9 +331,9 @@ module StudentEvaluation
 
     # Cascade with sugar-free defined traits
     value :scholarship_amount do
-      on :scholarship_candidate, 10000
-      on :high_performer, 5000
-      on :math_excellence, 2500
+      on scholarship_candidate, 10000
+      on high_performer, 5000
+      on math_excellence, 2500
       base 0
     end
   end

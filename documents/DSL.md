@@ -109,13 +109,13 @@ For conditional logic, a `value` takes a block to create a **cascade**. Cascades
 ```ruby
 value :access_level do
   # `on` implies AND: user must be :premium AND :verified.
-  on :premium, :verified, "Full Access"
+  on premium,verified, "Full Access"
 
   # `on_any` implies OR: user can be :staff OR :admin.
-  on_any :staff, :admin, "Elevated Access"
+  on_any staff,admin, "Elevated Access"
 
   # `on_none` implies NOT (A OR B): user is neither :blocked NOR :suspended.
-  on_none :blocked, :suspended, "Limited Access"
+  on_none blocked,suspended, "Limited Access"
 
   # `base` is the default if no other conditions match.
   base "No Access"

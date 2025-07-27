@@ -115,18 +115,18 @@ RSpec.describe "Kumi Performance" do
       trait :low_maintenance, ref(:check_low_maintenance), :==, true
 
       value :customer_tier do
-        on :senior, "Senior VIP"
-        on :valuable_customer, :engaged_customer, "Gold"
-        on :premium_account, "Premium"
-        on :adult, "Standard"
+        on senior, "Senior VIP"
+        on valuable_customer,engaged_customer, "Gold"
+        on premium_account, "Premium"
+        on adult, "Standard"
         base "Basic"
       end
 
       value :marketing_segment do
-        on :valuable_customer, :low_maintenance, "Champion"
-        on :engaged_customer, "Loyal Customer"
-        on :high_balance, :recent_activity, "Big Spender"
-        on :frequent_buyer, "Frequent Buyer"
+        on valuable_customer,low_maintenance, "Champion"
+        on engaged_customer, "Loyal Customer"
+        on high_balance,recent_activity, "Big Spender"
+        on frequent_buyer, "Frequent Buyer"
         base "Potential"
       end
 

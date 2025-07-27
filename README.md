@@ -24,8 +24,8 @@ module FederalTax2024
     trait :married, input.filing_status == "married_joint"
     
     value :std_deduction do
-      on :single,  14_600
-      on :married, 29_200
+      on single,  14_600
+      on married, 29_200
       base        21_900  # head_of_household
     end
     
@@ -33,8 +33,8 @@ module FederalTax2024
     
     # Federal tax brackets
     value :fed_breaks do
-      on :single,  [11_600, 47_150, 100_525, 191_950, 243_725, 609_350, Float::INFINITY]
-      on :married, [23_200, 94_300, 201_050, 383_900, 487_450, 731_200, Float::INFINITY]
+      on single,  [11_600, 47_150, 100_525, 191_950, 243_725, 609_350, Float::INFINITY]
+      on married, [23_200, 94_300, 201_050, 383_900, 487_450, 731_200, Float::INFINITY]
     end
     
     value :fed_rates, [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]
@@ -88,9 +88,9 @@ module CommissionCalculator
     
     # Base commission rates
     value :base_rate do
-      on :veteran, 0.08
-      on :senior, 0.06
-      on :junior, 0.04
+      on veteran, 0.08
+      on senior, 0.06
+      on junior, 0.04
       base 0.05
     end
     
@@ -103,8 +103,8 @@ module CommissionCalculator
     
     # Problem: Veteran bonus conflicts with senior cap
     value :experience_bonus do
-      on :veteran, 2.0      # Veterans get 2x bonus
-      on :senior, 1.5       # Seniors get 1.5x bonus  
+      on veteran, 2.0      # Veterans get 2x bonus
+      on senior, 1.5       # Seniors get 1.5x bonus  
       base 1.0
     end
     
@@ -116,9 +116,9 @@ module CommissionCalculator
     trait :uncapped_veteran, :veteran & (total_rate > 0.10)  # Veteran override
     
     value :final_commission do
-      on :capped_senior & :uncapped_veteran, "Impossible!"  # Can't be both
-      on :uncapped_veteran, input.sales_amount * total_rate
-      on :capped_senior, input.sales_amount * 0.10
+      on capped_senior & uncapped_veteran, "Impossible!"  # Can't be both
+      on uncapped_veteran, input.sales_amount * total_rate
+      on capped_senior, input.sales_amount * 0.10
       base input.sales_amount * total_rate
     end
   end

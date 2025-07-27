@@ -18,9 +18,9 @@ module SimpleCascadeTest
 
     # Simple cascade - should each 'on' be independent?
     value :performance_category do
-      on :high_performer, "Exceptional"
-      on :avg_performer, "Satisfactory"
-      on :poor_performer, "Needs Improvement"
+      on high_performer, "Exceptional"
+      on avg_performer, "Satisfactory"
+      on poor_performer, "Needs Improvement"
       base "Not Evaluated"
     end
   end

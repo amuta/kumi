@@ -38,19 +38,19 @@ module FederalTaxCalculator
     trait :hoh,        input.filing_status == "head_of_household"
 
     value :std_deduction do
-      on  :single,   14_600
-      on  :married,  29_200
-      on  :separate, 14_600
+      on  single,   14_600
+      on  married,  29_200
+      on  separate, 14_600
       base           21_900 # HOH default
     end
 
     value :taxable_income, [input.income - std_deduction, 0].max
 
     value :fed_breaks do
-      on  :single,   FED_BREAKS_SINGLE
-      on  :married,  FED_BREAKS_MARRIED
-      on  :separate, FED_BREAKS_SEPARATE
-      on  :hoh,      FED_BREAKS_HOH
+      on  single,   FED_BREAKS_SINGLE
+      on  married,  FED_BREAKS_MARRIED
+      on  separate, FED_BREAKS_SEPARATE
+      on  hoh,      FED_BREAKS_HOH
     end
 
     value :fed_rates, FED_RATES
@@ -70,9 +70,9 @@ module FederalTaxCalculator
 
     # additional‑Medicare threshold depends on filing status
     value :addl_threshold do
-      on  :single,   200_000
-      on  :married,  250_000
-      on  :separate, 125_000
+      on  single,   200_000
+      on  married,  250_000
+      on  separate, 125_000
       base           200_000 # HOH same as single
     end
 

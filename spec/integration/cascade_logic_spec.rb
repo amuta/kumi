@@ -14,8 +14,8 @@ RSpec.describe "Kumi Cascade Logic" do
 
       # -- Attribute with Cascade Logic --
       value :permission_level do
-        on_any :is_staff, :is_admin, "Full Access" # [cite: 5]
-        on_none :is_staff, :is_admin, "Read-Only" # [cite: 6]
+        on_any is_staff,is_admin, "Full Access" # [cite: 5]
+        on_none is_staff,is_admin, "Read-Only" # [cite: 6]
         base "No Access" # [cite: 7]
       end
     end

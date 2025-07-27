@@ -140,7 +140,7 @@ end
 ```ruby
 # CORRECT - use symbols for trait references in cascades
 value :status do
-  on :trait_name, "Result"
+  on trait_name, "Result"
   base "Default"
 end
 
@@ -185,8 +185,8 @@ end
 In cascade expressions (`value :name do ... end`), trait references use **symbols**, not bare identifiers:
 ```ruby
 value :status do
-  on :adult, "Adult Status"      # ✅ Correct - use :trait_name symbol
-  on :verified, "Verified User"
+  on adult, "Adult Status"      # ✅ Correct - use trait_name symbol
+  on verified, "Verified User"
   base "Unverified"
 end
 

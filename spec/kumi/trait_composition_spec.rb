@@ -133,7 +133,7 @@ RSpec.describe "Trait Composition" do
 
           # Traditional trait usage should still work
           value :score_category do
-            on :high_score, "excellent"
+            on high_score, "excellent"
             base "average"
           end
         end
@@ -163,7 +163,7 @@ RSpec.describe "Trait Composition" do
 
           # Trait that depends on composed trait
           value :status do
-            on :eligible, "qualified"
+            on eligible, "qualified"
             base "not_qualified"
           end
         end

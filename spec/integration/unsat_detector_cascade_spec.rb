@@ -13,7 +13,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :y_gt_1000, y, :>, 1000
 
           value :result do
-            on :x_lt_100, :y_gt_1000, "Impossible"
+            on x_lt_100,y_gt_1000, "Impossible"
             base "Default"
           end
         end
@@ -40,7 +40,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :val5_lt_50, val5, :<, 50    # val5 < 50 (impossible if val5 > 100)
 
           value :deep_result do
-            on :val5_gt_100, :val5_lt_50, "Impossible Combination"
+            on val5_gt_100,val5_lt_50, "Impossible Combination"
             base "Valid"
           end
         end
@@ -64,7 +64,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :derived_is_40, derived_value, :==, 40
 
           value :result do
-            on :base_is_50, :derived_is_40, "Mathematical Impossibility"
+            on base_is_50,derived_is_40, "Mathematical Impossibility"
             base "Valid"
           end
         end
@@ -91,7 +91,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :final_is_20, final, :==, 20
 
           value :chain_result do
-            on :start_is_10, :final_is_20, "Multi-step mathematical impossibility"
+            on start_is_10,final_is_20, "Multi-step mathematical impossibility"
             base "Valid"
           end
         end
@@ -113,7 +113,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :y_is_10, y, :==, 10
 
           value :subtract_result do
-            on :x_is_20, :y_is_10, "Impossible"
+            on x_is_20,y_is_10, "Impossible"
             base "Valid"
           end
         end
@@ -143,7 +143,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :v5_is_ten, v5, :==, 10
 
           value :deep_chain_result do
-            on :seed_is_zero, :v5_is_ten, "Deep chain impossibility"
+            on seed_is_zero,v5_is_ten, "Deep chain impossibility"
             base "Valid"
           end
         end
@@ -167,9 +167,9 @@ RSpec.describe "UnsatDetector Special Cases" do
           # This cascade should be VALID - each condition is satisfiable individually
           # Only ONE condition will be evaluated at runtime (they're mutually exclusive by design)
           value :performance_category do
-            on :high_performer, "Exceptional"       # Check: is high_performer satisfiable? YES
-            on :avg_performer, "Satisfactory"       # Check: is avg_performer satisfiable? YES
-            on :poor_performer, "Needs Improvement" # Check: is poor_performer satisfiable? YES
+            on high_performer, "Exceptional"       # Check: is high_performer satisfiable? YES
+            on avg_performer, "Satisfactory"       # Check: is avg_performer satisfiable? YES
+            on poor_performer, "Needs Improvement" # Check: is poor_performer satisfiable? YES
             base "Not Evaluated"
           end
         end
@@ -186,8 +186,8 @@ RSpec.describe "UnsatDetector Special Cases" do
         trait :poor_performer, input.score, :<, 60.0
 
         value :performance_category do
-          on :high_performer, "Exceptional"
-          on :poor_performer, "Needs Improvement"
+          on high_performer, "Exceptional"
+          on poor_performer, "Needs Improvement"
           base "Average"
         end
       end
@@ -217,9 +217,9 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           # This should be valid - each individual condition can be satisfied
           value :age_group do
-            on :young, "Young Adult"      # age < 30 (satisfiable)
-            on :senior, "Senior"          # age >= 65 (satisfiable)
-            on :middle, "Middle Aged"     # age >= 30 (satisfiable)
+            on young, "Young Adult"      # age < 30 (satisfiable)
+            on senior, "Senior"          # age >= 65 (satisfiable)
+            on middle, "Middle Aged"     # age >= 30 (satisfiable)
             base "Unknown"
           end
         end
@@ -237,8 +237,8 @@ RSpec.describe "UnsatDetector Special Cases" do
       trait :poor_performer, input.score, :<, 60.0
 
       value :performance_category do
-        on :high_performer, "Exceptional"
-        on :poor_performer, "Needs Improvement"
+        on high_performer, "Exceptional"
+        on poor_performer, "Needs Improvement"
         base "Average"
       end
     end
@@ -269,7 +269,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           # This should be flagged because combining very_young AND very_old is impossible
           value :age_category do
-            on :very_young, :very_old, "Impossible" # Combining these is impossible
+            on very_young,very_old, "Impossible" # Combining these is impossible
             base "Normal"
           end
         end
@@ -290,8 +290,8 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           # This should be flagged - combining young AND old in one condition is impossible
           value :impossible_combo do
-            on :young_and_old, "Impossible Combination" # young AND old is impossible
-            on :other_impossible, "Also Impossible" # another impossible trait
+            on young_and_old, "Impossible Combination" # young AND old is impossible
+            on other_impossible, "Also Impossible" # another impossible trait
             base "Normal"
           end
         end
@@ -313,8 +313,8 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           # This should be flagged - combining young AND old in one condition is impossible
           value :impossible_combo do
-            on :young_and_old, "Impossible Combination" # young AND old is impossible
-            on :other_impossible, "Also Impossible"     # another impossible trait
+            on young_and_old, "Impossible Combination" # young AND old is impossible
+            on other_impossible, "Also Impossible"     # another impossible trait
             base "Normal"
           end
         end
@@ -338,8 +338,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :large, input.amount, :>=, 100
 
           value :category do
-            on :small, "Small Amount"
-            on :large, "Large Amount"
+            on small, "Small Amount"
+            on large, "Large Amount"
             base "Unknown"
           end
 
@@ -365,8 +365,8 @@ RSpec.describe "UnsatDetector Special Cases" do
                                  fn(:<, taxable_income, 44_725))
 
           value :federal_tax do
-            on :low_bracket, fn(:multiply, taxable_income, 0.10)
-            on :mid_bracket, fn(:add, 1_100, fn(:multiply, fn(:subtract, taxable_income, 11_000), 0.12))
+            on low_bracket, fn(:multiply, taxable_income, 0.10)
+            on mid_bracket, fn(:add, 1_100, fn(:multiply, fn(:subtract, taxable_income, 11_000), 0.12))
             base fn(:add, 5_147, fn(:multiply, fn(:subtract, taxable_income, 44_725), 0.22))
           end
 
@@ -391,8 +391,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :premium, input.is_premium, :==, true
 
           value :category do
-            on :premium, "Premium Category"
-            on :small, "Small Amount"
+            on premium, "Premium Category"
+            on small, "Small Amount"
             base "Standard"
           end
 
@@ -412,8 +412,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :high, input.value, :>=, 50
 
           value :tier do
-            on :low, "Bronze"
-            on :high, "Gold"
+            on low, "Bronze"
+            on high, "Gold"
             base "Unknown"
           end
 
@@ -439,9 +439,9 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :divorced, input.status, :==, "divorced"
 
           value :filing_status do
-            on :single, "Single Filer"
-            on :married, "Married Filing Jointly"
-            on :divorced, "Head of Household"
+            on single, "Single Filer"
+            on married, "Married Filing Jointly"
+            on divorced, "Head of Household"
             base "Unknown Status"
           end
         end
@@ -458,9 +458,9 @@ RSpec.describe "UnsatDetector Special Cases" do
         trait :divorced, input.status, :==, "divorced"
 
         value :filing_status do
-          on :single, "Single Filer"
-          on :married, "Married Filing Jointly"
-          on :divorced, "Head of Household"
+          on single, "Single Filer"
+          on married, "Married Filing Jointly"
+          on divorced, "Head of Household"
           base "Unknown Status"
         end
       end
@@ -486,8 +486,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :magic_weapon, input.weapon_type, :==, "staff"
 
           value :total_weapon_damage do
-            on :ranged_weapon, :magic_weapon, 99 # its impossible
-            on :has_weapon, 10
+            on ranged_weapon,magic_weapon, 99 # its impossible
+            on has_weapon, 10
             base 2
           end
         end
@@ -508,8 +508,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_guest, input.role, :==, "guest"
 
           value :permission_level do
-            on_any :is_staff, :is_admin, "Full Access"
-            on :is_guest, "Read-Only"
+            on_any is_staff,is_admin, "Full Access"
+            on is_guest, "Read-Only"
             base "No Access"
           end
         end
@@ -527,8 +527,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_admin, input.role, :==, "admin"
 
           value :permission_level do
-            on_any :is_staff, :is_admin, "Full Access"
-            on_none :is_staff, :is_admin, "Read-Only"
+            on_any is_staff,is_admin, "Full Access"
+            on_none is_staff,is_admin, "Read-Only"
             base "No Access"
           end
         end
@@ -547,7 +547,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           value :damage do
             # This should fail - impossible conjunction with on (all?)
-            on :ranged_weapon, :magic_weapon, 99
+            on ranged_weapon,magic_weapon, 99
             base 1
           end
         end
@@ -567,8 +567,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :suspended_user, input.status, :==, "suspended"
 
           value :user_permissions do
-            on :active_user, :inactive_user, "Limited Access" # Impossible
-            on :suspended_user, "No Access"
+            on active_user,inactive_user, "Limited Access" # Impossible
+            on suspended_user, "No Access"
             base "Unknown"
           end
         end
@@ -594,7 +594,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_approved, fixed_status, :==, "approved"
 
           value :result do
-            on :is_approved, "This is impossible"
+            on is_approved, "This is impossible"
             base "Normal"
           end
         end
@@ -612,7 +612,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_basic, input.category, :==, "basic"
 
           value :access_level do
-            on :is_enterprise, :is_basic, "Impossible combination"
+            on is_enterprise,is_basic, "Impossible combination"
             base "Normal"
           end
         end
@@ -630,7 +630,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_guest, the_role, :==, "guest"
 
           value :permissions do
-            on :is_guest, "Guest permissions"
+            on is_guest, "Guest permissions"
             base "User permissions"
           end
         end
@@ -648,8 +648,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_suspended, input.status, :==, "suspended"
 
           value :access_level do
-            on :is_active, "Full access"
-            on :is_suspended, "No access"
+            on is_active, "Full access"
+            on is_suspended, "No access"
             base "Limited access"
           end
         end
