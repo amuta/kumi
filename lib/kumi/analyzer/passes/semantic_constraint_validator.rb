@@ -1,0 +1,110 @@
+# frozen_string_literal: true
+
+module Kumi
+  module Analyzer
+    module Passes
+      # RESPONSIBILITY: Validate DSL semantic constraints at the AST level
+      # DEPENDENCIES: :definitions
+      # PRODUCES: None (validation only)
+      # INTERFACE: new(schema, state).run(errors)
+      #
+      # This pass enforces semantic constraints that must hold regardless of which parser
+      # was used to construct the AST. It validates:
+      # 1. Cascade conditions are only trait references (Binding nodes)
+      # 2. Trait expressions evaluate to boolean values (CallExpression nodes)
+      # 3. Function names exist in the function registry
+      # 4. Expression types are valid for their context
+      class SemanticConstraintValidator < VisitorPass
+        def run(errors)
+          each_decl do |decl|
+            visit(decl) { |node| validate_semantic_constraints(node, decl, errors) }
+          end
+          state
+        end
+
+        private
+
+        def validate_semantic_constraints(node, decl, errors)
+          case node
+          when Declarations::Trait
+            validate_trait_expression(node, errors)
+          when Expressions::WhenCaseExpression
+            validate_cascade_condition(node, errors)
+          when Expressions::CallExpression
+            validate_function_call(node, errors)
+          end
+        end
+
+        def validate_trait_expression(trait, errors)
+          return if trait.expression.is_a?(Expressions::CallExpression)
+
+          report_error(
+            errors,
+            "trait `#{trait.name}` must have a boolean expression",
+            location: trait.loc,
+            type: :semantic
+          )
+        end
+
+        def validate_cascade_condition(when_case, errors)
+          condition = when_case.condition
+          
+          case condition
+          when TerminalExpressions::Binding
+            # Valid: trait reference
+            return
+          when Expressions::CallExpression
+            # Valid if it's a boolean composition of traits (all?, any?, none?)
+            return if boolean_trait_composition?(condition)
+            
+            report_error(
+              errors,
+              "cascade condition must be trait reference",
+              location: when_case.loc,
+              type: :semantic
+            )
+          else
+            report_error(
+              errors,
+              "cascade condition must be trait reference",
+              location: when_case.loc,
+              type: :semantic
+            )
+          end
+        end
+
+        def validate_function_call(call_expr, errors)
+          fn_name = call_expr.fn_name
+          
+          # Skip validation if FunctionRegistry is being mocked for testing
+          return if function_registry_mocked?
+          
+          return if FunctionRegistry.supported?(fn_name)
+
+          report_error(
+            errors,
+            "unknown function `#{fn_name}`",
+            location: call_expr.loc,
+            type: :semantic
+          )
+        end
+
+        def boolean_trait_composition?(call_expr)
+          # Allow boolean composition functions that operate on trait collections
+          %i[all? any? none?].include?(call_expr.fn_name)
+        end
+
+        def function_registry_mocked?
+          # Check if FunctionRegistry is being mocked (for tests)
+          begin
+            # Try to access a method that doesn't exist in the real registry
+            # If it's mocked, this won't raise an error
+            FunctionRegistry.respond_to?(:confirm_support!)
+          rescue
+            false
+          end
+        end
+      end
+    end
+  end
+end

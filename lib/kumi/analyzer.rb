@@ -9,15 +9,16 @@ module Kumi
     module_function
 
     DEFAULT_PASSES = [
-      Passes::NameIndexer,            # 1. Finds all names and checks for duplicates.
-      Passes::InputCollector,         # 2. Collects field metadata from input declarations.
-      Passes::DefinitionValidator,    # 3. Checks the basic structure of each rule.
-      Passes::DependencyResolver,     # 4. Builds the dependency graph.
-      Passes::UnsatDetector,          # 5. Detects unsatisfiable constraints in rules.
-      Passes::Toposorter,             # 6. Creates the final evaluation order.
-      Passes::TypeInferencer,         # 7. Infers types for all declarations (pure annotation).
-      Passes::TypeConsistencyChecker, # 8. Validates declared vs inferred type consistency.
-      Passes::TypeChecker             # 9. Validates types using inferred information.
+      Passes::NameIndexer,                # 1. Finds all names and checks for duplicates.
+      Passes::InputCollector,             # 2. Collects field metadata from input declarations.
+      Passes::DefinitionValidator,        # 3. Checks the basic structure of each rule.
+      Passes::SemanticConstraintValidator, # 4. Validates DSL semantic constraints at AST level.
+      Passes::DependencyResolver,         # 5. Builds the dependency graph.
+      Passes::UnsatDetector,              # 6. Detects unsatisfiable constraints in rules.
+      Passes::Toposorter,                 # 7. Creates the final evaluation order.
+      Passes::TypeInferencer,             # 8. Infers types for all declarations (pure annotation).
+      Passes::TypeConsistencyChecker,     # 9. Validates declared vs inferred type consistency.
+      Passes::TypeChecker                 # 10. Validates types using inferred information.
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)
