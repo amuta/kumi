@@ -66,8 +66,8 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             integer :value, domain: 1..10
           end
 
-          value :doubled, fn(:multiply, input.value, 2)  # range: 2..20
-          trait :impossible_bound, doubled, :>, 25      # impossible since max is 20
+          value :doubled, fn(:multiply, input.value, 2) # range: 2..20
+          trait :impossible_bound, doubled, :>, 25 # impossible since max is 20
 
           value :result do
             on :impossible_bound, "Impossible bound"
@@ -102,8 +102,8 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             integer :value, domain: 1..10
           end
 
-          value :doubled, fn(:multiply, input.value, 2)  # range: 2..20
-          trait :valid_bound, doubled, :>, 15           # possible since max is 20
+          value :doubled, fn(:multiply, input.value, 2) # range: 2..20
+          trait :valid_bound, doubled, :>, 15 # possible since max is 20
 
           value :result do
             on :valid_bound, "Valid bound"
@@ -123,7 +123,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           end
 
           value :full_name, fn(:concat, input.prefix, "_role")
-          trait :impossible_suffix, full_name, :==, "guest_role"  # impossible
+          trait :impossible_suffix, full_name, :==, "guest_role" # impossible
 
           value :result do
             on :impossible_suffix, "Impossible suffix"
@@ -183,7 +183,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_false, input.flag, :==, false
 
           value :result do
-            on :is_true, :is_false, "Both true and false"  # impossible
+            on :is_true, :is_false, "Both true and false" # impossible
             base "Normal"
           end
         end
@@ -200,7 +200,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
 
           trait :active, input.is_active, :==, true
           trait :verified, input.is_verified, :==, true
-          trait :both, fn(:and, active, verified)  # possible
+          trait :both, fn(:and, active, verified) # possible
 
           value :result do
             on :both, "Both active and verified"
@@ -218,7 +218,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           input {}
 
           value :status, "active"
-          trait :is_inactive, status, :==, "inactive"  # impossible
+          trait :is_inactive, status, :==, "inactive" # impossible
 
           value :result do
             on :is_inactive, "Impossible"
@@ -234,7 +234,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           input {}
 
           value :count, 42
-          trait :is_zero, count, :==, 0  # impossible
+          trait :is_zero, count, :==, 0 # impossible
 
           value :result do
             on :is_zero, "Impossible"
@@ -250,7 +250,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           input {}
 
           value :status, "active"
-          trait :is_active, status, :==, "active"  # valid
+          trait :is_active, status, :==, "active" # valid
 
           value :result do
             on :is_active, "Valid"
@@ -269,7 +269,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             integer :base, domain: 1..5
           end
 
-          value :step1, fn(:multiply, input.base, 2)  # range: 2..10
+          value :step1, fn(:multiply, input.base, 2) # range: 2..10
           value :step2, fn(:add, step1, 3)           # range: 5..13
           value :final, step2
 
@@ -294,7 +294,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           value :category_upper, fn(:concat, category_copy, "_TIER")
           value :final_category, category_upper
 
-          trait :is_enterprise, final_category, :==, "enterprise_TIER"  # impossible
+          trait :is_enterprise, final_category, :==, "enterprise_TIER" # impossible
 
           value :result do
             on :is_enterprise, "Impossible transformation"

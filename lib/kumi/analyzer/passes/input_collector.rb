@@ -38,7 +38,7 @@ module Kumi
 
               # Validate domain type if provided
               validate_domain_type(field_decl, errors) if field_decl.domain
-              
+
               # Merge metadata (later declarations override nil values)
               input_meta[name] = {
                 type: field_decl.type || existing[:type],

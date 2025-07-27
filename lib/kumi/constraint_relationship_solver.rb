@@ -59,14 +59,14 @@ module Kumi
 
       # Propagate constraints through relationships
       derived_constraints = propagate_constraints(atoms, relationships, debug: debug)
-      
+
       # Check if any derived constraints violate domain constraints
       return true if domain_constraint_violation?(derived_constraints, input_meta, debug: debug)
-      
+
       # Check if any derived constraints create contradictions
-      all_constraints = atoms + derived_constraints.map { |dc| 
+      all_constraints = atoms + derived_constraints.map do |dc|
         Kumi::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
-      }
+      end
 
       Kumi::AtomUnsatSolver.unsat?(all_constraints, debug: debug)
     end
@@ -104,8 +104,6 @@ module Kumi
         # Direct field reference: target = input.field
         # Create identity relationship so we can propagate constraints
         Relationship.new(target, :identity, [expression.name])
-      else
-        nil
       end
     end
 
@@ -119,22 +117,22 @@ module Kumi
       when :add
         operands = extract_operands(call_expr.args)
         return nil unless operands
-        
+
         Relationship.new(target, :add, operands)
       when :subtract
         operands = extract_operands(call_expr.args)
         return nil unless operands
-        
+
         Relationship.new(target, :subtract, operands)
       when :multiply
         operands = extract_operands(call_expr.args)
         return nil unless operands
-        
+
         Relationship.new(target, :multiply, operands)
       when :divide
         operands = extract_operands(call_expr.args)
         return nil unless operands
-        
+
         Relationship.new(target, :divide, operands)
       else
         # Unsupported operation for relationship extraction
@@ -149,7 +147,7 @@ module Kumi
     def extract_operands(args)
       return nil if args.empty?
 
-      operands = args.map do |arg|
+      args.map do |arg|
         case arg
         when Kumi::Syntax::TerminalExpressions::Binding
           arg.name
@@ -163,8 +161,6 @@ module Kumi
           return nil
         end
       end
-
-      operands
     end
 
     # Propagates constraints through mathematical relationships to derive new constraints
@@ -177,7 +173,7 @@ module Kumi
     def propagate_constraints(atoms, relationships, debug: false)
       all_derived_constraints = []
       current_atoms = atoms.dup
-      max_iterations = relationships.size + 1  # Prevent infinite loops
+      max_iterations = relationships.size + 1 # Prevent infinite loops
       iteration = 0
 
       loop do
@@ -189,10 +185,8 @@ module Kumi
         relationships.each do |rel|
           derived = derive_constraints_for_relationship(rel, constraint_map, debug: debug)
           round_derived.concat(derived)
-        end
 
-        # Reverse propagation: from target constraints to operand constraints
-        relationships.each do |rel|
+          # Reverse propagation: from target constraints to operand constraints
           derived = reverse_derive_constraints(rel, constraint_map, debug: debug)
           round_derived.concat(derived)
         end
@@ -200,14 +194,14 @@ module Kumi
         # Check if we derived any new constraints this round
         new_constraints = round_derived.reject do |dc|
           # Check if this constraint already exists in current_atoms or all_derived_constraints
-          existing_atom = current_atoms.find { |atom| 
-            atom.lhs == dc.variable && atom.op == dc.operation && atom.rhs == dc.value 
-          }
-          existing_derived = all_derived_constraints.find { |existing_dc|
-            existing_dc.variable == dc.variable && 
-            existing_dc.operation == dc.operation && 
-            existing_dc.value == dc.value
-          }
+          existing_atom = current_atoms.find do |atom|
+            atom.lhs == dc.variable && atom.op == dc.operation && atom.rhs == dc.value
+          end
+          existing_derived = all_derived_constraints.find do |existing_dc|
+            existing_dc.variable == dc.variable &&
+              existing_dc.operation == dc.operation &&
+              existing_dc.value == dc.value
+          end
           existing_atom || existing_derived
         end
 
@@ -216,9 +210,9 @@ module Kumi
         puts "Iteration #{iteration}: derived #{new_constraints.size} new constraints" if debug
 
         # Add new constraints to our working set for next iteration
-        new_atoms = new_constraints.map { |dc| 
+        new_atoms = new_constraints.map do |dc|
           Kumi::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
-        }
+        end
         current_atoms.concat(new_atoms)
         all_derived_constraints.concat(new_constraints)
       end
@@ -233,11 +227,9 @@ module Kumi
     # @return [Hash] variable name to array of constraints
     def build_constraint_map(atoms)
       constraint_map = Hash.new { |h, k| h[k] = [] }
-      
+
       atoms.each do |atom|
-        if atom.lhs.is_a?(Symbol)
-          constraint_map[atom.lhs] << atom
-        end
+        constraint_map[atom.lhs] << atom if atom.lhs.is_a?(Symbol)
       end
 
       constraint_map
@@ -251,7 +243,7 @@ module Kumi
     # @return [Array<DerivedConstraint>] derived constraints on target
     def derive_constraints_for_relationship(relationship, constraint_map, debug: false)
       derived = []
-      
+
       # Handle different operand patterns
       if relationship.operands.size == 2
         # Case 1: One variable and one constant (e.g., x + 5)
@@ -263,15 +255,15 @@ module Kumi
             next unless constraint.op == :==
 
             derived_value = apply_operation(relationship.operation, constraint.rhs, const_operand, var_operand == relationship.operands[0])
-            if derived_value
-              derived << DerivedConstraint.new(
-                relationship.target,
-                :==,
-                derived_value,
-                [var_operand]
-              )
-              puts "Derived: #{relationship.target} == #{derived_value} (from #{var_operand} == #{constraint.rhs})" if debug
-            end
+            next unless derived_value
+
+            derived << DerivedConstraint.new(
+              relationship.target,
+              :==,
+              derived_value,
+              [var_operand]
+            )
+            puts "Derived: #{relationship.target} == #{derived_value} (from #{var_operand} == #{constraint.rhs})" if debug
           end
         end
 
@@ -283,21 +275,23 @@ module Kumi
           # If we have constraints on var1, try to derive constraints involving var2
           constraint_map[var1].each do |constraint|
             next unless constraint.op == :==
-            
+
             # For now, only handle addition with two variables: target = var1 + var2
             # If var1 == value, then target == value + var2
-            if relationship.operation == :add && constraint_map[var2].any?
-              constraint_map[var2].each do |var2_constraint|
-                next unless var2_constraint.op == :==
-                
-                derived_value = constraint.rhs + var2_constraint.rhs
-                derived << DerivedConstraint.new(
-                  relationship.target,
-                  :==,
-                  derived_value,
-                  [var1, var2]
-                )
-                puts "Derived: #{relationship.target} == #{derived_value} (from #{var1} == #{constraint.rhs} and #{var2} == #{var2_constraint.rhs})" if debug
+            next unless relationship.operation == :add && constraint_map[var2].any?
+
+            constraint_map[var2].each do |var2_constraint|
+              next unless var2_constraint.op == :==
+
+              derived_value = constraint.rhs + var2_constraint.rhs
+              derived << DerivedConstraint.new(
+                relationship.target,
+                :==,
+                derived_value,
+                [var1, var2]
+              )
+              if debug
+                puts "Derived: #{relationship.target} == #{derived_value} (from #{var1} == #{constraint.rhs} and #{var2} == #{var2_constraint.rhs})"
               end
             end
           end
@@ -308,7 +302,7 @@ module Kumi
         if operand.is_a?(Symbol) && constraint_map[operand].any?
           constraint_map[operand].each do |constraint|
             next unless constraint.op == :==
-            
+
             derived << DerivedConstraint.new(
               relationship.target,
               :==,
@@ -341,16 +335,17 @@ module Kumi
           constraint_map[relationship.target].each do |constraint|
             next unless constraint.op == :==
 
-            derived_value = reverse_operation(relationship.operation, constraint.rhs, const_operand, var_operand == relationship.operands[0])
-            if derived_value
-              derived << DerivedConstraint.new(
-                var_operand,
-                :==,
-                derived_value,
-                [relationship.target]
-              )
-              puts "Reverse derived: #{var_operand} == #{derived_value} (from #{relationship.target} == #{constraint.rhs})" if debug
-            end
+            derived_value = reverse_operation(relationship.operation, constraint.rhs, const_operand,
+                                              var_operand == relationship.operands[0])
+            next unless derived_value
+
+            derived << DerivedConstraint.new(
+              var_operand,
+              :==,
+              derived_value,
+              [relationship.target]
+            )
+            puts "Reverse derived: #{var_operand} == #{derived_value} (from #{relationship.target} == #{constraint.rhs})" if debug
           end
         end
       elsif relationship.operands.size == 1 && relationship.operation == :identity
@@ -359,7 +354,7 @@ module Kumi
         if operand.is_a?(Symbol) && constraint_map[relationship.target].any?
           constraint_map[relationship.target].each do |constraint|
             next unless constraint.op == :==
-            
+
             derived << DerivedConstraint.new(
               operand,
               :==,
@@ -390,10 +385,9 @@ module Kumi
       when :multiply
         var_value * const_value
       when :divide
-        return nil if const_value == 0
+        return nil if const_value.zero?
+
         var_is_first ? var_value / const_value : const_value / var_value
-      else
-        nil
       end
     end
 
@@ -411,12 +405,11 @@ module Kumi
       when :subtract
         var_is_first ? target_value + const_value : const_value - target_value
       when :multiply
-        return nil if const_value == 0
+        return nil if const_value.zero?
+
         target_value / const_value
       when :divide
         var_is_first ? target_value * const_value : const_value / target_value
-      else
-        nil
       end
     end
 

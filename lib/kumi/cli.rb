@@ -21,7 +21,7 @@ module Kumi
 
       def run(args = ARGV)
         parse_options(args)
-        
+
         if @options[:interactive]
           start_repl
         elsif @options[:schema_file]
@@ -29,7 +29,7 @@ module Kumi
         else
           show_help_and_exit
         end
-      rescue => e
+      rescue StandardError => e
         puts "Error: #{e.message}"
         exit 1
       end
@@ -62,7 +62,7 @@ module Kumi
             @options[:explain] = key.to_sym
           end
 
-          opts.on("-o", "--format FORMAT", [:pretty, :json, :yaml], "Output format: pretty, json, yaml") do |format|
+          opts.on("-o", "--format FORMAT", %i[pretty json yaml], "Output format: pretty, json, yaml") do |format|
             @options[:output_format] = format
           end
 
@@ -134,53 +134,43 @@ module Kumi
       end
 
       def load_schema_file(file_path)
-        unless File.exist?(file_path)
-          raise "Schema file not found: #{file_path}"
-        end
+        raise "Schema file not found: #{file_path}" unless File.exist?(file_path)
 
         # Load the file and extract the module
         require_relative File.expand_path(file_path)
-        
+
         # Find the module name from the file
         module_name = extract_module_name_from_file(file_path)
-        
-        if module_name
-          # Get the module constant
-          schema_module = Object.const_get(module_name)
-          
-          unless schema_module.__compiled_schema__
-            raise "Module #{module_name} does not have a compiled schema"
-          end
-          
-          schema_module
-        else
-          raise "Could not find module extending Kumi::Schema in #{file_path}"
-        end
+
+        raise "Could not find module extending Kumi::Schema in #{file_path}" unless module_name
+
+        # Get the module constant
+        schema_module = Object.const_get(module_name)
+
+        raise "Module #{module_name} does not have a compiled schema" unless schema_module.__compiled_schema__
+
+        schema_module
       end
 
       def extract_module_name_from_file(file_path)
         content = File.read(file_path)
-        
+
         # Look for "module ModuleName" pattern
-        if match = content.match(/^\s*module\s+(\w+)/)
+        if (match = content.match(/^\s*module\s+(\w+)/))
           match[1]
-        else
-          nil
         end
       end
 
       def load_input_data(file_path)
         return {} unless file_path
 
-        unless File.exist?(file_path)
-          raise "Input file not found: #{file_path}"
-        end
+        raise "Input file not found: #{file_path}" unless File.exist?(file_path)
 
         case File.extname(file_path).downcase
         when ".json"
           JSON.parse(File.read(file_path), symbolize_names: true)
         when ".yml", ".yaml"
-          YAML.safe_load(File.read(file_path), symbolize_names: true)
+          YAML.safe_load_file(file_path, symbolize_names: true)
         else
           raise "Unsupported input file format. Use .json or .yaml"
         end
@@ -255,17 +245,17 @@ module Kumi
         when "help"
           show_help
         when /^schema\s+(.+)/
-          load_schema_command($1)
+          load_schema_command(::Regexp.last_match(1))
         when /^data\s+(.+)/
-          load_data_command($1)
+          load_data_command(::Regexp.last_match(1))
         when /^set\s+(\w+)\s+(.+)/
-          set_data_command($1, $2)
+          set_data_command(::Regexp.last_match(1), ::Regexp.last_match(2))
         when /^get\s+(.+)/
-          get_value_command($1)
+          get_value_command(::Regexp.last_match(1))
         when /^explain\s+(.+)/
-          explain_command($1)
+          explain_command(::Regexp.last_match(1))
         when /^slice\s+(.+)/
-          slice_command($1)
+          slice_command(::Regexp.last_match(1))
         when "keys"
           show_keys
         when "clear"
@@ -275,7 +265,7 @@ module Kumi
         else
           puts "Unknown command. Type 'help' for available commands."
         end
-      rescue => e
+      rescue StandardError => e
         puts "Error: #{e.message}"
         puts e.backtrace.first if ENV["DEBUG"]
       end
@@ -313,8 +303,8 @@ module Kumi
       end
 
       def load_schema_command(file_path)
-        file_path = file_path.strip.gsub(/^["']|["']$/, '') # Remove quotes
-        
+        file_path = file_path.strip.gsub(/^["']|["']$/, "") # Remove quotes
+
         unless File.exist?(file_path)
           puts "Schema file not found: #{file_path}"
           return
@@ -322,19 +312,19 @@ module Kumi
 
         @schema_module = Module.new
         @schema_module.extend(Kumi::Schema)
-        
+
         schema_content = File.read(file_path)
         @schema_module.module_eval(schema_content, file_path)
-        
+
         puts "✅ Schema loaded from #{file_path}"
         refresh_runner
-      rescue => e
+      rescue StandardError => e
         puts "❌ Failed to load schema: #{e.message}"
       end
 
       def load_data_command(file_path)
-        file_path = file_path.strip.gsub(/^["']|["']$/, '') # Remove quotes
-        
+        file_path = file_path.strip.gsub(/^["']|["']$/, "") # Remove quotes
+
         unless File.exist?(file_path)
           puts "Data file not found: #{file_path}"
           return
@@ -344,7 +334,7 @@ module Kumi
         when ".json"
           @input_data = JSON.parse(File.read(file_path), symbolize_names: true)
         when ".yml", ".yaml"
-          @input_data = YAML.safe_load(File.read(file_path), symbolize_names: true)
+          @input_data = YAML.safe_load_file(file_path, symbolize_names: true)
         else
           puts "Unsupported file format. Use .json or .yaml"
           return
@@ -353,7 +343,7 @@ module Kumi
         puts "✅ Data loaded from #{file_path}"
         puts "Keys: #{@input_data.keys.join(', ')}"
         refresh_runner
-      rescue => e
+      rescue StandardError => e
         puts "❌ Failed to load data: #{e.message}"
       end
 
@@ -379,33 +369,33 @@ module Kumi
 
       def get_value_command(key)
         ensure_runner_ready
-        
+
         key_sym = key.strip.to_sym
         result = @runner[key_sym]
         puts "#{key_sym}: #{format_value(result)}"
-      rescue => e
+      rescue StandardError => e
         puts "❌ Error getting #{key}: #{e.message}"
       end
 
       def explain_command(key)
         ensure_runner_ready
-        
+
         key_sym = key.strip.to_sym
         puts @schema_module.explain(@input_data, key_sym)
-      rescue => e
+      rescue StandardError => e
         puts "❌ Error explaining #{key}: #{e.message}"
       end
 
       def slice_command(keys_str)
         ensure_runner_ready
-        
-        keys = keys_str.split(',').map { |k| k.strip.to_sym }
+
+        keys = keys_str.split(",").map { |k| k.strip.to_sym }
         result = @runner.slice(*keys)
-        
+
         result.each do |key, value|
           puts "#{key}: #{format_value(value)}"
         end
-      rescue => e
+      rescue StandardError => e
         puts "❌ Error getting slice: #{e.message}"
       end
 
@@ -425,21 +415,19 @@ module Kumi
       end
 
       def ensure_runner_ready
-        unless @schema_module
-          raise "No schema loaded. Use 'schema <file>' to load a schema."
-        end
-        
-        unless @runner
-          raise "No runner available. Load data with 'data <file>' or set values with 'set <key> <value>'"
-        end
+        raise "No schema loaded. Use 'schema <file>' to load a schema." unless @schema_module
+
+        return if @runner
+
+        raise "No runner available. Load data with 'data <file>' or set values with 'set <key> <value>'"
       end
 
       def refresh_runner
         return unless @schema_module
-        
+
         @runner = @schema_module.from(@input_data)
         puts "✅ Runner refreshed with current data"
-      rescue => e
+      rescue StandardError => e
         puts "⚠️  Runner refresh failed: #{e.message}"
         @runner = nil
       end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../constraint_relationship_solver"
-
 module Kumi
   module Analyzer
     module Passes
@@ -14,6 +12,7 @@ module Kumi
         def run(errors)
           definitions = get_state(:definitions)
           @input_meta = get_state(:input_meta) || {}
+          @definitions = definitions
           @evaluator = ConstantEvaluator.new(definitions)
 
           each_decl do |decl|
@@ -31,7 +30,7 @@ module Kumi
                            else
                              Kumi::AtomUnsatSolver.unsat?(atoms)
                            end
-              
+
               report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
             end
           end
@@ -52,14 +51,14 @@ module Kumi
 
             if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
               lhs, rhs = current.args
-              
+
               # Check for domain constraint violations before creating atom
-              if impossible_constraint?(lhs, rhs, current.fn_name)
-                # Create a special impossible atom that will always trigger unsat
-                list << Atom.new(:==, :__impossible__, true)
-              else
-                list << Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
-              end
+              list << if impossible_constraint?(lhs, rhs, current.fn_name)
+                        # Create a special impossible atom that will always trigger unsat
+                        Atom.new(:==, :__impossible__, true)
+                      else
+                        Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
+                      end
             elsif current.is_a?(CallExpression) && current.fn_name == :all?
               # For all? function, add all trait arguments to the stack
               current.args.each { |arg| stack << arg }
@@ -78,9 +77,7 @@ module Kumi
             # IMPORTANT: Skip CascadeExpression children to avoid false positives
             # Cascades are handled separately by check_cascade_expression() and are disjunctive,
             # but gather_atoms() treats all collected atoms as conjunctive
-            if current.respond_to?(:children) && !current.is_a?(CascadeExpression)
-              current.children.each { |child| stack << child }
-            end
+            current.children.each { |child| stack << child } if current.respond_to?(:children) && !current.is_a?(CascadeExpression)
           end
 
           list
@@ -96,19 +93,17 @@ module Kumi
             next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
 
             # Skip non-conjunctive conditions (any?, none?) as they are disjunctive
-            if when_case.condition.is_a?(CallExpression) && [:any?, :none?].include?(when_case.condition.fn_name)
-              next
-            end
-            
+            next if when_case.condition.is_a?(CallExpression) && %i[any? none?].include?(when_case.condition.fn_name)
+
             # Skip single-trait 'on' branches: trait-level unsat detection covers these
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
               # Handle both ListExpression (old format) and multiple args (new format)
               if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ListExpression)
                 list = when_case.condition.args.first
                 next if list.elements.size == 1
-              else
+              elsif when_case.condition.args.size == 1
                 # Multiple args format
-                next if when_case.condition.args.size == 1
+                next
               end
             end
             # Gather atoms from this individual condition only
@@ -141,8 +136,8 @@ module Kumi
                                else
                                  when_case.condition.args
                                end
-              
-              if trait_bindings.all? { |e| e.is_a?(Binding) }
+
+              if trait_bindings.all?(Binding)
                 traits = trait_bindings.map(&:name).join(" AND ")
                 report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
                 next
@@ -169,7 +164,7 @@ module Kumi
           when FieldRef
             # Check if FieldRef points to a field with domain constraints
             field_meta = @input_meta[node.name]
-            return unless field_meta&.dig(:domain)
+            nil unless field_meta&.dig(:domain)
 
             # For FieldRef, the constraint comes from trait conditions
             # We don't flag here since the FieldRef itself is valid
@@ -185,9 +180,9 @@ module Kumi
           end
         end
 
-        def check_value_against_domains(var_name, value, errors, location)
+        def check_value_against_domains(_var_name, value, _errors, _location)
           # Check if this value violates any input domain constraints
-          @input_meta.each do |field_name, field_meta|
+          @input_meta.each_value do |field_meta|
             domain = field_meta[:domain]
             next unless domain
 
