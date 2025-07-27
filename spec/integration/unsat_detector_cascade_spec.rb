@@ -132,7 +132,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           # Build dependency chain: v0 = seed, v1 = v0 + 1, v2 = v1 + 2, etc.
           value :v0, input.seed
           value :v1, fn(:add, v0, 1)
-          value :v2, fn(:add, v1, 2) 
+          value :v2, fn(:add, v1, 2)
           value :v3, fn(:add, v2, 3)
           value :v4, fn(:add, v3, 4)
           value :v5, fn(:add, v4, 5)
@@ -579,6 +579,81 @@ RSpec.describe "UnsatDetector Special Cases" do
       expect(error).not_to be_nil
       expect(error.message).to include("conjunction `active_user AND inactive_user` is impossible")
       expect(error.message).not_to include("user_permissions")
+    end
+  end
+
+  describe "set membership impossibilities" do
+    it "detects impossible trait when value is constrained to set that excludes trait condition" do
+      expect do
+        build_schema do
+          input do
+            string :status, domain: %w[pending approved]
+          end
+
+          value :fixed_status, "rejected"
+          trait :is_approved, fixed_status, :==, "approved"
+
+          value :result do
+            on :is_approved, "This is impossible"
+            base "Normal"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_approved` is impossible/)
+    end
+
+    it "detects impossible conjunction when trait checks value outside input domain" do
+      expect do
+        build_schema do
+          input do
+            string :category, domain: %w[basic premium]
+          end
+
+          trait :is_enterprise, input.category, :==, "enterprise"
+          trait :is_basic, input.category, :==, "basic"
+
+          value :access_level do
+            on :is_enterprise, :is_basic, "Impossible combination"
+            base "Normal"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_enterprise AND is_basic` is impossible/)
+    end
+
+    it "detects impossible trait when value reference violates domain through dependency chain" do
+      expect do
+        build_schema do
+          input do
+            string :role, domain: %w[user admin]
+          end
+
+          value :the_role, input.role
+          trait :is_guest, the_role, :==, "guest"
+
+          value :permissions do
+            on :is_guest, "Guest permissions"
+            base "User permissions"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_guest` is impossible/)
+    end
+
+    it "allows valid trait conditions within input domain" do
+      expect do
+        build_schema do
+          input do
+            string :status, domain: %w[active inactive suspended]
+          end
+
+          trait :is_active, input.status, :==, "active"
+          trait :is_suspended, input.status, :==, "suspended"
+
+          value :access_level do
+            on :is_active, "Full access"
+            on :is_suspended, "No access"
+            base "Limited access"
+          end
+        end
+      end.not_to raise_error
     end
   end
 end

@@ -38,6 +38,9 @@ module Kumi
     # @param debug [Boolean] enable debug output
     # @return [Boolean] true if constraints are unsatisfiable
     def unsat?(atoms, debug: false)
+      # Pass 0: Check for special impossible atoms (domain violations, etc.)
+      return true if impossible_atoms_exist?(atoms, debug: debug)
+
       # Pass 1: Check numerical bound contradictions (symbol vs numeric)
       return true if numerical_contradiction?(atoms, debug: debug)
 
@@ -49,6 +52,21 @@ module Kumi
       puts "edges: #{edges.map { |e| "#{e.from}→#{e.to}" }.join(', ')}" if debug
 
       StrictInequalitySolver.cycle?(edges, debug: debug)
+    end
+
+    # Pass 0: Detects special impossible atoms (domain violations, etc.)
+    # These atoms are created by UnsatDetector when it finds statically impossible constraints
+    #
+    # @param atoms [Array<Atom>] constraint atoms
+    # @param debug [Boolean] enable debug output
+    # @return [Boolean] true if impossible atoms exist
+    def impossible_atoms_exist?(atoms, debug: false)
+      impossible_found = atoms.any? do |atom|
+        atom.lhs == :__impossible__ || atom.rhs == :__impossible__
+      end
+
+      puts "impossible atom detected (domain violation or static impossibility)" if impossible_found && debug
+      impossible_found
     end
 
     # Pass 1: Detects numerical bound contradictions using interval analysis
@@ -217,23 +235,23 @@ module Kumi
     # @return [Boolean] true if conflicting equalities exist
     def conflicting_equalities?(atoms, debug: false)
       equalities = atoms.select { |atom| atom.op == :== }
-      
+
       # Group equalities by their left-hand side
       by_lhs = equalities.group_by(&:lhs)
-      
+
       # Check each variable for conflicting equality constraints
       by_lhs.each do |lhs, atoms_for_lhs|
         next if atoms_for_lhs.size < 2
-        
+
         # Get all values this variable is constrained to equal
         values = atoms_for_lhs.map(&:rhs).uniq
-        
+
         if values.size > 1
-          puts "conflicting equalities detected: #{lhs} == #{values.join(' AND #{lhs} == ')}" if debug
+          puts "conflicting equalities detected: #{lhs} == #{values.join(" AND #{lhs} == ")}" if debug
           return true
         end
       end
-      
+
       false
     end
 

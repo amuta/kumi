@@ -46,9 +46,10 @@ module Kumi
     #
     # @param atoms [Array<Atom>] basic constraint atoms
     # @param definitions [Hash] variable definitions for relationship building
+    # @param input_meta [Hash] input field metadata with domain constraints
     # @param debug [Boolean] enable debug output
     # @return [Boolean] true if constraints are unsatisfiable
-    def unsat?(atoms, definitions, debug: false)
+    def unsat?(atoms, definitions, input_meta: {}, debug: false)
       # First run the standard unsat solver
       return true if Kumi::AtomUnsatSolver.unsat?(atoms, debug: debug)
 
@@ -58,6 +59,9 @@ module Kumi
 
       # Propagate constraints through relationships
       derived_constraints = propagate_constraints(atoms, relationships, debug: debug)
+      
+      # Check if any derived constraints violate domain constraints
+      return true if domain_constraint_violation?(derived_constraints, input_meta, debug: debug)
       
       # Check if any derived constraints create contradictions
       all_constraints = atoms + derived_constraints.map { |dc| 
@@ -349,6 +353,22 @@ module Kumi
             end
           end
         end
+      elsif relationship.operands.size == 1 && relationship.operation == :identity
+        # Handle reverse propagation for identity relationships
+        operand = relationship.operands[0]
+        if operand.is_a?(Symbol) && constraint_map[relationship.target].any?
+          constraint_map[relationship.target].each do |constraint|
+            next unless constraint.op == :==
+            
+            derived << DerivedConstraint.new(
+              operand,
+              :==,
+              constraint.rhs,
+              [relationship.target]
+            )
+            puts "Reverse derived: #{operand} == #{constraint.rhs} (identity from #{relationship.target})" if debug
+          end
+        end
       end
 
       derived
@@ -397,6 +417,54 @@ module Kumi
         var_is_first ? target_value * const_value : const_value / target_value
       else
         nil
+      end
+    end
+
+    # Checks if any derived constraints violate input field domain constraints
+    #
+    # @param derived_constraints [Array<DerivedConstraint>] constraints derived from relationships
+    # @param input_meta [Hash] input field metadata with domain constraints
+    # @param debug [Boolean] enable debug output
+    # @return [Boolean] true if domain constraint violation exists
+    def domain_constraint_violation?(derived_constraints, input_meta, debug: false)
+      return false if input_meta.empty?
+
+      derived_constraints.each do |constraint|
+        # Only check equality constraints for now
+        next unless constraint.operation == :==
+
+        # Check if this variable corresponds to an input field with domain constraints
+        field_meta = input_meta[constraint.variable]
+        next unless field_meta&.dig(:domain)
+
+        domain = field_meta[:domain]
+        value = constraint.value
+
+        if violates_domain?(value, domain)
+          puts "Domain violation detected: #{constraint.variable} == #{value} violates domain #{domain.inspect}" if debug
+          return true
+        end
+      end
+
+      false
+    end
+
+    # Checks if a value violates a domain constraint
+    #
+    # @param value [Object] the value to check
+    # @param domain [Range, Array, Proc] the domain constraint
+    # @return [Boolean] true if value violates domain
+    def violates_domain?(value, domain)
+      case domain
+      when Range
+        !domain.include?(value)
+      when Array
+        !domain.include?(value)
+      when Proc
+        # For Proc domains, we can't statically analyze
+        false
+      else
+        false
       end
     end
   end
