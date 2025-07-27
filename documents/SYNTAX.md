@@ -191,7 +191,7 @@ value :sorted_scores, fn(:sort, input.score_array)
 |----------|-------|------------|
 | **Arithmetic** | `+`, `-`, `*`, `/`, `**` | `fn(:add, a, b)`, `fn(:subtract, a, b)`, etc. |
 | **Comparison** | `>`, `<`, `>=`, `<=`, `==`, `!=` | `fn(:>, a, b)`, `fn(:<, a, b)`, etc. |
-| **Logical** | `&` (AND only) | `fn(:and, a, b)`, `fn(:or, a, b)`, `fn(:not, a)` |
+| **Logical** | `&` `|` | `fn(:and, a, b)`, `fn(:or, a, b)`, `fn(:not, a)` |
 | **Math** | `abs`, `round`, `ceil`, `floor` | `fn(:abs, x)`, `fn(:round, x)`, etc. |
 | **String** | `.length`, `.upcase`, `.downcase` | `fn(:string_length, s)`, `fn(:upcase, s)`, etc. |
 | **Collection** | `.sum`, `.size`, `.max`, `.min` | `fn(:sum, arr)`, `fn(:size, arr)`, etc. |
@@ -351,8 +351,8 @@ end
 ## Syntax Limitations
 
 ### Sugar Syntax Limitations:
-- Only supports `&` for logical AND (no `&&` due to Ruby precedence)
-- No logical OR sugar syntax (must use `fn(:or, a, b)`)
+- Supports `&` for logical AND (no `&&` due to Ruby precedence)
+- Supports `|` for logical OR
 - Limited operator precedence control
 - Some Ruby methods not available as sugar
 

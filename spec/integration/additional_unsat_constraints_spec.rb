@@ -246,4 +246,122 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
       end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_high` is impossible/)
     end
   end
+
+  describe "disjunctive (OR) logic validation" do
+    it "correctly handles OR expressions as disjunctive (not conjunctive)" do
+      # OR expressions should be disjunctive: (A | B) means "A OR B", not "A AND B"
+      # This tests that UnsatDetector properly handles OR logic
+      # FIXED: Our OR logic fix resolved the false positive
+      expect do
+        build_schema do
+          input do
+            integer :value, domain: 0..10
+          end
+
+          # This should be valid: value can be 2 OR 3
+          # OR logic should be treated as disjunctive
+          # Using fn(:or) syntax since | sugar doesn't work in test method blocks
+          trait :valid_or_condition,
+                fn(:or, (input.value == 2), (input.value == 3))
+
+          value :result do
+            on :valid_or_condition, "Valid"
+            base "Invalid"
+          end
+        end
+      end.not_to raise_error
+    end
+
+    it "correctly validates complex OR expressions with Game of Life logic" do
+      # Complex OR expressions with AND components should work
+      # Game of Life rule: (current_alive AND neighbors == 2) OR (neighbors == 3)
+      expect do
+        build_schema do
+          input do
+            integer :current_state, domain: 0..1  # 0 = dead, 1 = alive
+            integer :neighbors, domain: 0..8      # 0-8 neighbors possible
+          end
+
+          # Game of Life survival/birth rule: 
+          # - Live cell with 2-3 neighbors survives
+          # - Dead cell with exactly 3 neighbors becomes alive
+          # Using fn(:or) syntax for test method compatibility
+          trait :survives_or_born,
+                fn(:or, 
+                   fn(:and, (input.current_state == 1), (input.neighbors == 2)),
+                   (input.neighbors == 3))
+
+          value :next_state do
+            on :survives_or_born, 1
+            base 0
+          end
+        end
+      end.not_to raise_error
+    end
+
+    it "detects impossible OR expressions where both sides are outside domain" do
+      # This test verifies that impossible OR expressions (where BOTH sides are impossible)
+      # are correctly detected and raise an error
+      expect do
+        build_schema do
+          input do
+            integer :value, domain: 5..10  # constrained to 5-10
+          end
+
+          # Both sides impossible: value can't be 1 OR 2 (both outside domain 5-10)
+          # OR is impossible only when BOTH sides are impossible
+          trait :impossible_or,
+                fn(:or, (input.value == 1), (input.value == 2))
+
+          value :result do
+            on :impossible_or, "Should be impossible"
+            base "Normal"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_or` is impossible/)
+    end
+
+    it "allows OR expressions where one side is possible" do
+      # OR should be valid if at least one side is satisfiable
+      expect do
+        build_schema do
+          input do
+            integer :value, domain: 5..10  # constrained to 5-10
+          end
+
+          # One side possible: value can be 1 (impossible) OR 7 (possible)
+          trait :partially_possible_or,
+                fn(:or, (input.value == 1), (input.value == 7))
+
+          value :result do
+            on :partially_possible_or, "Possible"
+            base "Normal"
+          end
+        end
+      end.not_to raise_error
+    end
+
+    it "handles nested OR expressions correctly" do
+      # Complex nested OR logic should work when properly structured
+      expect do
+        build_schema do
+          input do
+            integer :a, domain: 1..10
+            integer :b, domain: 1..10
+          end
+
+          # Nested OR: (a == 1 OR a == 2) OR (b == 9 OR b == 10)
+          trait :complex_or,
+                fn(:or,
+                   fn(:or, (input.a == 1), (input.a == 2)),
+                   fn(:or, (input.b == 9), (input.b == 10)))
+
+          value :result do
+            on :complex_or, "Complex OR satisfied"
+            base "Normal"
+          end
+        end
+      end.not_to raise_error
+    end
+  end
 end

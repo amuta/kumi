@@ -20,24 +20,63 @@ module Kumi
               # Special handling for cascade expressions
               check_cascade_expression(decl, definitions, errors)
             else
-              # Normal handling for non-cascade expressions
-              atoms = gather_atoms(decl.expression, definitions, Set.new)
-              next if atoms.empty?
+              # Check for OR expressions which need special disjunctive handling
+              if decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
+                impossible = check_or_expression(decl.expression, definitions, errors)
+                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
+              else
+                # Normal handling for non-cascade expressions
+                atoms = gather_atoms(decl.expression, definitions, Set.new)
+                next if atoms.empty?
 
-              # Use enhanced solver that can detect cross-variable mathematical constraints
-              impossible = if definitions && !definitions.empty?
-                             Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
-                           else
-                             Kumi::AtomUnsatSolver.unsat?(atoms)
-                           end
+                # Use enhanced solver that can detect cross-variable mathematical constraints
+                impossible = if definitions && !definitions.empty?
+                               Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
+                             else
+                               Kumi::AtomUnsatSolver.unsat?(atoms)
+                             end
 
-              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
+                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
+              end
             end
           end
           state
         end
 
         private
+
+        def check_or_expression(or_expr, definitions, errors)
+          # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
+          # If either side is satisfiable, the OR is satisfiable
+          left_side, right_side = or_expr.args
+
+          # Check if left side is impossible
+          left_atoms = gather_atoms(left_side, definitions, Set.new)
+          left_impossible = if !left_atoms.empty?
+                              if definitions && !definitions.empty?
+                                Kumi::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
+                              else
+                                Kumi::AtomUnsatSolver.unsat?(left_atoms)
+                              end
+                            else
+                              false
+                            end
+
+          # Check if right side is impossible
+          right_atoms = gather_atoms(right_side, definitions, Set.new)
+          right_impossible = if !right_atoms.empty?
+                               if definitions && !definitions.empty?
+                                 Kumi::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
+                               else
+                                 Kumi::AtomUnsatSolver.unsat?(right_atoms)
+                               end
+                             else
+                               false
+                             end
+
+          # OR is impossible only if BOTH sides are impossible
+          left_impossible && right_impossible
+        end
 
         def gather_atoms(node, defs, visited, list = [])
           return list unless node
@@ -59,6 +98,11 @@ module Kumi
                       else
                         Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
                       end
+            elsif current.is_a?(CallExpression) && current.fn_name == :or
+              # Special handling for OR expressions - they are disjunctive, not conjunctive
+              # We should NOT add OR children to the stack as they would be treated as AND
+              # OR expressions need separate analysis in the main run() method
+              next
             elsif current.is_a?(CallExpression) && current.fn_name == :all?
               # For all? function, add all trait arguments to the stack
               current.args.each { |arg| stack << arg }
