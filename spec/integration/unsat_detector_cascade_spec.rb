@@ -231,8 +231,8 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           trait :low_bracket, taxable_income, :<, 11_000
           trait :mid_bracket, fn(:and,
-                                  fn(:>=, taxable_income, 11_000),
-                                  fn(:<, taxable_income, 44_725))
+                                 fn(:>=, taxable_income, 11_000),
+                                 fn(:<, taxable_income, 44_725))
 
           value :federal_tax do
             on :low_bracket, fn(:multiply, taxable_income, 0.10)
@@ -340,6 +340,115 @@ RSpec.describe "UnsatDetector Special Cases" do
 
       married_result = runner.from(status: "married")
       expect(married_result[:filing_status]).to eq("Married Filing Jointly")
+    end
+  end
+
+  describe "complex cascade with multiple conditions" do
+    it "detects impossible conjunctions in cascade conditions" do
+      expect do
+        build_schema do
+          input do
+            string :weapon_type, domain: %w[sword dagger bow staff]
+          end
+
+          trait :has_weapon, input.weapon_type, :!=, "fists"
+          trait :ranged_weapon, input.weapon_type, :==, "bow"
+          trait :magic_weapon, input.weapon_type, :==, "staff"
+
+          value :total_weapon_damage do
+            on :ranged_weapon, :magic_weapon, 99 # its impossible
+            on :has_weapon, 10
+            base 2
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
+    end
+  end
+
+  describe "cascade logic with disjunctive conditions" do
+    it "allows on_any conditions with mutually exclusive traits" do
+      expect do
+        build_schema do
+          input do
+            string :role, domain: %w[staff admin guest]
+          end
+
+          trait :is_staff, input.role, :==, "staff"
+          trait :is_admin, input.role, :==, "admin"
+          trait :is_guest, input.role, :==, "guest"
+
+          value :permission_level do
+            on_any :is_staff, :is_admin, "Full Access"
+            on :is_guest, "Read-Only"
+            base "No Access"
+          end
+        end
+      end.not_to raise_error
+    end
+
+    it "allows on_none conditions with mutually exclusive traits" do
+      expect do
+        build_schema do
+          input do
+            string :role, domain: %w[staff admin guest]
+          end
+
+          trait :is_staff, input.role, :==, "staff"
+          trait :is_admin, input.role, :==, "admin"
+
+          value :permission_level do
+            on_any :is_staff, :is_admin, "Full Access"
+            on_none :is_staff, :is_admin, "Read-Only"
+            base "No Access"
+          end
+        end
+      end.not_to raise_error
+    end
+
+    it "detects impossible conjunctions only in on (all?) conditions, not any? or none?" do
+      expect do
+        build_schema do
+          input do
+            string :weapon_type, domain: %w[sword dagger bow staff]
+          end
+
+          trait :ranged_weapon, input.weapon_type, :==, "bow"
+          trait :magic_weapon, input.weapon_type, :==, "staff"
+
+          value :damage do
+            # This should fail - impossible conjunction with on (all?)
+            on :ranged_weapon, :magic_weapon, 99
+            base 1
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
+    end
+
+    it "reports specific trait names in error messages, not declaration names" do
+      error = nil
+      begin
+        build_schema do
+          input do
+            string :status, domain: %w[active inactive suspended]
+          end
+
+          trait :active_user, input.status, :==, "active"
+          trait :inactive_user, input.status, :==, "inactive"
+          trait :suspended_user, input.status, :==, "suspended"
+
+          value :user_permissions do
+            on :active_user, :inactive_user, "Limited Access" # Impossible
+            on :suspended_user, "No Access"
+            base "Unknown"
+          end
+        end
+      rescue Kumi::Errors::SemanticError => e
+        error = e
+      end
+
+      expect(error).not_to be_nil
+      expect(error.message).to include("conjunction `active_user AND inactive_user` is impossible")
+      expect(error.message).not_to include("user_permissions")
     end
   end
 end

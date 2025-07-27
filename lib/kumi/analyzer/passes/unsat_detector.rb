@@ -43,6 +43,12 @@ module Kumi
             if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
               lhs, rhs = current.args
               list << Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
+            elsif current.is_a?(CallExpression) && current.fn_name == :all?
+              # For all? function, add all trait arguments to the stack
+              current.args.each { |arg| stack << arg }
+            elsif current.is_a?(ListExpression)
+              # For ListExpression, add all elements to the stack
+              current.elements.each { |elem| stack << elem }
             elsif current.is_a?(Binding)
               name = current.name
               unless visited.include?(name)
@@ -72,22 +78,49 @@ module Kumi
             # Skip the base case (it's typically a literal true condition)
             next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
 
+            # Skip non-conjunctive conditions (any?, none?) as they are disjunctive
+            if when_case.condition.is_a?(CallExpression) && [:any?, :none?].include?(when_case.condition.fn_name)
+              next
+            end
+            
             # Skip single-trait 'on' branches: trait-level unsat detection covers these
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              list = when_case.condition.args.first
-              next if list.is_a?(ListExpression) && list.elements.size < 2
+              # Handle both ListExpression (old format) and multiple args (new format)
+              if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ListExpression)
+                list = when_case.condition.args.first
+                next if list.elements.size == 1
+              else
+                # Multiple args format
+                next if when_case.condition.args.size == 1
+              end
             end
             # Gather atoms from this individual condition only
             condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
+            # DEBUG
+            # if when_case.condition.is_a?(CallExpression) && [:all?, :any?, :none?].include?(when_case.condition.fn_name)
+            #   puts "DEBUG: Processing #{when_case.condition.fn_name} condition"
+            #   puts "  Args: #{when_case.condition.args.inspect}"
+            #   puts "  Atoms found: #{condition_atoms.inspect}"
+            # end
 
             # Only flag if this individual condition is impossible
+            # if !condition_atoms.empty?
+            #   is_unsat = Kumi::AtomUnsatSolver.unsat?(condition_atoms)
+            #   puts "  Is unsat? #{is_unsat}"
+            # end
             next unless !condition_atoms.empty? && Kumi::AtomUnsatSolver.unsat?(condition_atoms)
 
             # For multi-trait on-clauses, report the trait names rather than the value name
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              list = when_case.condition.args.first
-              if list.is_a?(ListExpression) && list.elements.all?(Binding)
-                traits = list.elements.map(&:name).join(" AND ")
+              # Handle both ListExpression (old format) and multiple args (new format)
+              trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ListExpression)
+                                 when_case.condition.args.first.elements
+                               else
+                                 when_case.condition.args
+                               end
+              
+              if trait_bindings.all? { |e| e.is_a?(Binding) }
+                traits = trait_bindings.map(&:name).join(" AND ")
                 report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
                 next
               end

@@ -99,6 +99,7 @@ module Kumi
       equal_pairs, strict_pairs = collect_equality_pairs(atoms)
 
       return true if direct_equality_contradiction?(equal_pairs, strict_pairs, debug)
+      return true if conflicting_equalities?(atoms, debug: debug)
 
       transitive_equality_contradiction?(equal_pairs, strict_pairs, debug)
     end
@@ -208,6 +209,32 @@ module Kumi
 
       puts "equality contradiction detected" if debug
       true
+    end
+
+    # Checks for conflicting equalities (x == a AND x == b where a != b)
+    # @param atoms [Array<Atom>] constraint atoms
+    # @param debug [Boolean] enable debug output
+    # @return [Boolean] true if conflicting equalities exist
+    def conflicting_equalities?(atoms, debug: false)
+      equalities = atoms.select { |atom| atom.op == :== }
+      
+      # Group equalities by their left-hand side
+      by_lhs = equalities.group_by(&:lhs)
+      
+      # Check each variable for conflicting equality constraints
+      by_lhs.each do |lhs, atoms_for_lhs|
+        next if atoms_for_lhs.size < 2
+        
+        # Get all values this variable is constrained to equal
+        values = atoms_for_lhs.map(&:rhs).uniq
+        
+        if values.size > 1
+          puts "conflicting equalities detected: #{lhs} == #{values.join(' AND #{lhs} == ')}" if debug
+          return true
+        end
+      end
+      
+      false
     end
 
     # Checks for transitive equality contradictions using union-find
