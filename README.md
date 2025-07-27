@@ -5,6 +5,10 @@
 
 Kumi is a computational rules engine for Ruby (plus static validation, dependency tracking, and more)
 
+It is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
+
+
+
 ## What can you build?
 
 Calculate U.S. federal taxes in 30 lines of validated, readable code:
@@ -63,10 +67,58 @@ Is is well-suited for scenarios with complex, interdependent calculations, enfor
 ## Installation
 
 ```bash
+# Requires Ruby 3.0+
+# No external dependencies
 gem install kumi
 ```
 
 ## Core Features
+
+Here's a concise "Key Concepts" section for your README:
+
+## Key Concepts
+
+Kumi schemas are built from four simple primitives that compose into powerful business logic:
+
+**Inputs** define the data flowing into your schema with built-in validation:
+```ruby
+input do
+  float :price, domain: 0..1000.0      # Validates range
+  string :category, domain: %w[standard premium]  # Validates inclusion
+end
+```
+
+**Values** are computed attributes that automatically memoize their results
+```ruby
+value :subtotal, input.price * input.quantity
+value :tax_rate, 0.08
+value :tax_amount, subtotal * tax_rate
+```
+
+**Traits** are boolean conditions that enable branching logic:
+```ruby
+trait :bulk_order, input.quantity >= 100
+trait :premium_customer, input.tier == "premium"
+
+value :discount do
+  on bulk_order & premium_customer, 0.25  # 25% for bulk premium orders
+  on bulk_order, 0.15                     # 15% for bulk orders
+  on premium_customer, 0.10               # 10% for premium customers
+  base 0.0                                # No discount otherwise
+end
+```
+
+**Functions** provide computational building blocks:
+
+```ruby
+value :final_price, [subtotal - discount_amount, 0].max
+value :monthly_payment, fn(:pmt, rate: 0.05/12, nper: 36, pv: -loan_amount)
+```
+Note: You can find a list all core functions [FUNCTIONS.md](documents/FUNCTIONS.md)
+
+
+These primitives are statically analyzed during schema definition, catching logical errors before runtime and ensuring your business rules are internally consistent.
+
 
 ### Static Analysis
 
@@ -157,13 +209,14 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 #    = 15,099.50
 ```
 
-## Use Cases
+## Suggested Use Cases
 
-**Suitable for:**
 - Complex interdependent business rules
-- Mathematical calculations with multiple steps
-- Conditional logic with overlapping categories
-- Rules requiring static validation and audit trails
+- Tax calculation engines (as demonstrated)
+- Insurance premium calculators
+- Loan amortization schedules
+- Commission structures with complex tiers
+- Pricing engines with multiple discount rules
 
 **Not suitable for:**
 - Simple conditional statements
@@ -182,6 +235,10 @@ Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 
 - [DSL Syntax Reference](documents/SYNTAX.md)
 - [Examples](examples/)/
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/amuta/kumi.
 
 ## License
 
