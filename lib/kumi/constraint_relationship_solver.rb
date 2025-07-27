@@ -57,6 +57,9 @@ module Kumi
       relationships = build_relationships(definitions)
       return false if relationships.empty?
 
+      # Check for range-based impossibilities
+      return true if range_violation?(atoms, relationships, input_meta, debug: debug)
+
       # Propagate constraints through relationships
       derived_constraints = propagate_constraints(atoms, relationships, debug: debug)
 
@@ -410,6 +413,177 @@ module Kumi
         target_value / const_value
       when :divide
         var_is_first ? target_value * const_value : const_value / target_value
+      end
+    end
+
+    # Checks for range violations through mathematical operations
+    #
+    # @param atoms [Array<Atom>] basic constraint atoms
+    # @param relationships [Array<Relationship>] mathematical relationships
+    # @param input_meta [Hash] input field metadata with domain constraints
+    # @param debug [Boolean] enable debug output
+    # @return [Boolean] true if range violation exists
+    def range_violation?(atoms, relationships, input_meta, debug: false)
+      return false if input_meta.empty?
+
+      # Build range map for all variables
+      range_map = build_range_map(relationships, input_meta, debug: debug)
+      return false if range_map.empty?
+
+      # Check if any constraint violates computed ranges
+      atoms.each do |atom|
+        next unless atom.lhs.is_a?(Symbol) && atom.rhs.is_a?(Numeric)
+        next unless %i[> < >= <=].include?(atom.op)
+
+        range = range_map[atom.lhs]
+        next unless range
+
+        if range_constraint_impossible?(range, atom.op, atom.rhs)
+          puts "Range violation: #{atom.lhs} #{atom.op} #{atom.rhs} impossible with range #{range}" if debug
+          return true
+        end
+      end
+
+      false
+    end
+
+    # Builds a map of variable ranges based on mathematical relationships and input domains
+    #
+    # @param relationships [Array<Relationship>] mathematical relationships
+    # @param input_meta [Hash] input field metadata with domain constraints
+    # @param debug [Boolean] enable debug output
+    # @return [Hash] variable name to range mapping
+    def build_range_map(relationships, input_meta, debug: false)
+      range_map = {}
+
+      # Start with input field ranges
+      input_meta.each do |field_name, meta|
+        domain = meta[:domain]
+        next unless domain.is_a?(Range) && domain.first.is_a?(Numeric) && domain.last.is_a?(Numeric)
+
+        range_map[field_name] = domain
+        puts "Input range: #{field_name} -> #{domain}" if debug
+      end
+
+      # Propagate ranges through mathematical relationships
+      # Use iterative approach to handle chains
+      max_iterations = relationships.size + 1
+      iteration = 0
+
+      loop do
+        iteration += 1
+        new_ranges = {}
+
+        relationships.each do |rel|
+          range = compute_range_for_relationship(rel, range_map)
+          next unless range
+
+          if range_map[rel.target] != range
+            new_ranges[rel.target] = range
+            puts "Computed range: #{rel.target} -> #{range} (from #{rel.operation})" if debug
+          end
+        end
+
+        break if new_ranges.empty? || iteration > max_iterations
+
+        range_map.merge!(new_ranges)
+      end
+
+      range_map
+    end
+
+    # Computes the range for a variable based on its mathematical relationship
+    #
+    # @param relationship [Relationship] the mathematical relationship
+    # @param range_map [Hash] current variable to range mapping
+    # @return [Range, nil] computed range or nil if not computable
+    def compute_range_for_relationship(relationship, range_map)
+      # Handle identity relationships (simple variable copy)
+      if relationship.operation == :identity && relationship.operands.size == 1
+        var_operand = relationship.operands.first
+        return range_map[var_operand] if range_map.key?(var_operand)
+
+        return nil
+      end
+
+      return nil unless relationship.operands.size == 2
+
+      # Handle variable + constant pattern
+      var_operand = relationship.operands.find { |op| op.is_a?(Symbol) }
+      const_operand = relationship.operands.find { |op| op.is_a?(Numeric) }
+
+      return nil unless var_operand && const_operand
+
+      var_range = range_map[var_operand]
+      return nil unless var_range
+
+      transform_range(var_range, relationship.operation, const_operand, var_operand == relationship.operands[0])
+    end
+
+    # Transforms a range through a mathematical operation
+    #
+    # @param range [Range] the input range
+    # @param operation [Symbol] the mathematical operation
+    # @param constant [Numeric] the constant operand
+    # @param var_is_first [Boolean] whether variable is first operand
+    # @return [Range, nil] transformed range or nil if not computable
+    def transform_range(range, operation, constant, var_is_first)
+      min_val = range.first
+      max_val = range.last
+
+      case operation
+      when :add
+        (min_val + constant)..(max_val + constant)
+      when :subtract
+        if var_is_first
+          (min_val - constant)..(max_val - constant)
+        else
+          (constant - max_val)..(constant - min_val)
+        end
+      when :multiply
+        if constant >= 0
+          (min_val * constant)..(max_val * constant)
+        else
+          (max_val * constant)..(min_val * constant)
+        end
+      when :divide
+        return nil if constant.zero?
+
+        if var_is_first
+          if constant.positive?
+            (min_val / constant)..(max_val / constant)
+          else
+            (max_val / constant)..(min_val / constant)
+          end
+        else
+          # constant / range - more complex, skip for now
+          nil
+        end
+      end
+    end
+
+    # Checks if a constraint is impossible given a variable's range
+    #
+    # @param range [Range] the variable's possible range
+    # @param operator [Symbol] the constraint operator
+    # @param value [Numeric] the constraint value
+    # @return [Boolean] true if constraint is impossible
+    def range_constraint_impossible?(range, operator, value)
+      case operator
+      when :>
+        # x > value is impossible if max(x) <= value
+        range.last <= value
+      when :>=
+        # x >= value is impossible if max(x) < value
+        range.last < value
+      when :<
+        # x < value is impossible if min(x) >= value
+        range.first >= value
+      when :<=
+        # x <= value is impossible if min(x) > value
+        range.first > value
+      else
+        false
       end
     end
 

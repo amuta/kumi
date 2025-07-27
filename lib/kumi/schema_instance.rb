@@ -37,5 +37,77 @@ module Kumi
     def [](key_name)
       evaluate(key_name)[key_name]
     end
+
+    # Update input values and clear affected cached computations
+    def update(**changes)
+      changes.each do |field, value|
+        # Validate field exists
+        raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)
+
+        # Validate domain constraints
+        validate_domain_constraint(field, value)
+
+        # Update the input data
+        @context[field] = value
+
+        # Clear affected cached values using transitive closure by default
+        if ENV["KUMI_SIMPLE_CACHE"] == "true"
+          # Simple fallback: clear all cached values
+          @context.clear_cache
+        else
+          # Default: selective cache clearing using precomputed transitive closure
+          affected_keys = find_dependent_declarations_optimized(field)
+          affected_keys.each { |key| @context.clear_cache(key) }
+        end
+      end
+
+      self # Return self for chaining
+    end
+
+    def input
+      @context.ctx
+    end
+
+    private
+
+    def input_field_exists?(field)
+      # Check if field is declared in input block
+      input_meta = @analysis&.state&.dig(:input_meta) || {}
+      input_meta.key?(field) || @context.key?(field)
+    end
+
+    def validate_domain_constraint(field, value)
+      input_meta = @analysis&.state&.dig(:input_meta) || {}
+      field_meta = input_meta[field]
+      return unless field_meta&.dig(:domain)
+
+      domain = field_meta[:domain]
+      return unless violates_domain?(value, domain)
+
+      raise ArgumentError, "value #{value} is not in domain #{domain}"
+    end
+
+    def violates_domain?(value, domain)
+      case domain
+      when Range
+        !domain.include?(value)
+      when Array
+        !domain.include?(value)
+      when Proc
+        # For Proc domains, we can't statically analyze
+        false
+      else
+        false
+      end
+    end
+
+    def find_dependent_declarations_optimized(field)
+      # Use precomputed transitive closure for true O(1) lookup!
+      transitive_dependents = @analysis&.state&.dig(:transitive_dependents)
+      return [] unless transitive_dependents
+
+      # This is truly O(1) - just array lookup, no traversal needed
+      transitive_dependents[field] || []
+    end
   end
 end

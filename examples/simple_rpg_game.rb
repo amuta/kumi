@@ -31,9 +31,9 @@ module DamageCalculation
     end
 
     # Combat traits
-    trait :is_critical, input.critical_hit == true
-    trait :is_magic_attack, input.attack_type == "magic"
-    trait :is_special_attack, input.attack_type == "special"
+    trait :is_critical, (input.critical_hit == true)
+    trait :is_magic_attack, (input.attack_type == "magic")
+    trait :is_special_attack, (input.attack_type == "special")
     trait :has_rage, fn(:include?, input.status_effects, "rage")
     trait :has_blessing, fn(:include?, input.status_effects, "blessing")
     trait :is_poisoned, fn(:include?, input.status_effects, "poison")
@@ -42,11 +42,11 @@ module DamageCalculation
 
     # Weapon type traits
     trait :melee_weapon, fn(:include?, ["sword", "dagger"], input.weapon_type)
-    trait :ranged_weapon, input.weapon_type == "bow"
-    trait :magic_weapon, input.weapon_type == "staff"
+    trait :ranged_weapon, (input.weapon_type == "bow")
+    trait :magic_weapon, (input.weapon_type == "staff")
 
     # Strength traits
-    trait :high_strength, input.strength >= 15
+    trait :high_strength, (input.strength >= 15)
 
     # Base damage calculation
     value :strength_bonus do
@@ -54,9 +54,9 @@ module DamageCalculation
       base input.strength
     end
 
-    value :weapon_total_damage, input.weapon_damage + input.weapon_bonus
+    value :weapon_total_damage, (input.weapon_damage + input.weapon_bonus)
 
-    value :base_damage_value, input.base_attack + strength_bonus + weapon_total_damage
+    value :base_damage_value, (input.base_attack + strength_bonus + weapon_total_damage)
 
     # Status effect modifiers
     value :status_attack_multiplier do
@@ -76,7 +76,7 @@ module DamageCalculation
     end
 
     # Level scaling
-    value :level_bonus, fn(:divide, input.level, 3)
+    value :level_bonus, (input.level / 3)
 
     # Final damage calculation
     value :total_damage, fn(:round, (base_damage_value + level_bonus) * status_attack_multiplier * attack_type_multiplier)
@@ -123,14 +123,14 @@ module DamageReduction
     trait :has_shield, fn(:include?, input.status_effects, "shield")
     trait :has_blessing, fn(:include?, input.status_effects, "blessing")
     trait :is_poisoned, fn(:include?, input.status_effects, "poison")
-    trait :taking_magic_damage, input.damage_type == "magic"
-    trait :taking_special_damage, input.damage_type == "special"
-    trait :high_agility, input.agility >= 15
+    trait :taking_magic_damage, (input.damage_type == "magic")
+    trait :taking_special_damage, (input.damage_type == "special")
+    trait :high_agility, (input.agility >= 15)
     trait :heavy_armor, fn(:include?, ["chainmail", "plate"], input.armor_type)
     trait :light_armor, fn(:include?, ["leather", "robe"], input.armor_type)
 
     # Defense traits
-    trait :high_defense, input.defense_stat >= 15
+    trait :high_defense, (input.defense_stat >= 15)
     
     # Composite armor/damage type traits
     trait :heavy_vs_magic, heavy_armor & taking_magic_damage
@@ -138,15 +138,15 @@ module DamageReduction
 
     # Base defense calculation
     value :defense_bonus do
-      on :high_defense, input.defense_stat * 1.5
+      on :high_defense, (input.defense_stat * 1.5)
       base input.defense_stat
     end
 
-    value :equipment_defense, input.armor_defense + input.armor_bonus
+    value :equipment_defense, (input.armor_defense + input.armor_bonus)
 
-    value :level_defense_bonus, fn(:divide, input.level, 2)
+    value :level_defense_bonus, (input.level / 2)
 
-    value :base_defense_value, input.base_defense + defense_bonus + equipment_defense + level_defense_bonus
+    value :base_defense_value, (input.base_defense + defense_bonus + equipment_defense + level_defense_bonus)
 
     # Status effect defensive modifiers
     value :status_defense_multiplier do
@@ -170,12 +170,12 @@ module DamageReduction
 
     # Dodge calculation
     value :dodge_chance do
-      on :high_agility, fn(:min, [input.agility * 0.05, 0.3])
-      base fn(:min, [input.agility * 0.02, 0.15])
+      on :high_agility, fn(:min, [(input.agility * 0.05), 0.3])
+      base fn(:min, [(input.agility * 0.02), 0.15])
     end
 
     # Final damage after reduction
-    value :damage_after_defense, fn(:max, [input.incoming_damage - total_defense, 1])
+    value :damage_after_defense, fn(:max, [(input.incoming_damage - total_defense), 1])
 
     # Defense description for UI
     value :defense_description do
@@ -203,23 +203,24 @@ module Equipment
       integer :accessory_bonus, domain: 0..20
     end
 
-    trait :has_weapon, input.weapon_type != "fists"
-    trait :has_armor, input.armor_type != "none"
-    trait :has_accessory, input.accessory_type != "none"
+    trait :has_weapon, (input.weapon_type != "fists")
+    trait :has_armor, (input.armor_type != "none")
+    trait :has_accessory, (input.accessory_type != "none")
     trait :melee_weapon, fn(:include?, ["sword", "dagger"], input.weapon_type)
-    trait :ranged_weapon, input.weapon_type == "bow"
-    trait :magic_weapon, input.weapon_type == "staff"
+    trait :ranged_weapon, (input.weapon_type == "bow")
+    trait :magic_weapon, (input.weapon_type == "staff")
     trait :heavy_armor, fn(:include?, ["chainmail", "plate"], input.armor_type)
     trait :light_armor, fn(:include?, ["leather", "robe"], input.armor_type)
 
     value :total_weapon_damage do
-      on :ranged_weapon, :magic_weapon, 99
-      on :has_weapon, input.weapon_damage + 2
+      on :ranged_weapon, (input.weapon_damage + 4)
+      on :magic_weapon, (input.weapon_damage + 3)
+      on :has_weapon, (input.weapon_damage + 2)
       base 2
     end
 
     value :total_armor_defense do
-      on :has_armor, input.armor_defense + 1
+      on :has_armor, (input.armor_defense + 1)
       base 0
     end
 
@@ -259,9 +260,9 @@ module StatusEffects
     trait :blessed, fn(:include?, input.active_effects, "blessing")
     trait :enraged, fn(:include?, input.active_effects, "rage")
     trait :shielded, fn(:include?, input.active_effects, "shield")
-    trait :has_any_effects, fn(:size, input.active_effects) > 0
-    trait :debuffed, input.active_effects.include?("poison")
-    trait :buffed, input.active_effects.include?("blessing") | input.active_effects.include?("rage") | input.active_effects.include?("shield")
+    trait :has_any_effects, (fn(:size, input.active_effects) > 0)
+    trait :debuffed, fn(:include?, input.active_effects, "poison")
+    trait :buffed, fn(:any?, [blessed, enraged, shielded])
 
     value :attack_modifier do
       on :enraged, 1.5
@@ -276,7 +277,7 @@ module StatusEffects
     end
 
     value :poison_damage do
-      on :poisoned, 5 + input.poison_turns
+      on :poisoned, (5 + input.poison_turns)
       base 0
     end
 
@@ -333,26 +334,26 @@ module PlayerEntity
       integer :shield_turns, domain: 0..5
     end
 
-    trait :alive, input.health > 0
-    trait :dead, input.health <= 0
+    trait :alive, (input.health > 0)
+    trait :dead, (input.health <= 0)
     trait :low_health, (input.health <= input.max_health * 0.3) & alive
-    trait :full_health, input.health == input.max_health
-    trait :has_mana, input.mana > 0
-    trait :low_mana, input.mana <= input.max_mana * 0.2
-    trait :strong, input.strength >= 15
-    trait :agile, input.agility >= 15
-    trait :tanky, input.defense >= 15
-    trait :experienced, input.level >= 5
-    trait :has_sword, input.weapon == "sword"
-    trait :has_dagger, input.weapon == "dagger"
-    trait :has_staff, input.weapon == "staff"
-    trait :has_bow, input.weapon == "bow"
+    trait :full_health, (input.health == input.max_health)
+    trait :has_mana, (input.mana > 0)
+    trait :low_mana, (input.mana <= input.max_mana * 0.2)
+    trait :strong, (input.strength >= 15)
+    trait :agile, (input.agility >= 15)
+    trait :tanky, (input.defense >= 15)
+    trait :experienced, (input.level >= 5)
+    trait :has_sword, (input.weapon == "sword")
+    trait :has_dagger, (input.weapon == "dagger")
+    trait :has_staff, (input.weapon == "staff")
+    trait :has_bow, (input.weapon == "bow")
     trait :well_equipped, fn(:include?, input.inventory, "upgrade_token")
     trait :has_potions, fn(:include?, input.inventory, "potion")
-    trait :has_status_effects, fn(:size, input.status_effects) > 0
+    trait :has_status_effects, (fn(:size, input.status_effects) > 0)
 
-    value :health_percentage, fn(:divide, input.health * 100, input.max_health)
-    value :mana_percentage, fn(:divide, input.mana * 100, input.max_mana)
+    value :health_percentage, ((input.health * 100) / input.max_health)
+    value :mana_percentage, ((input.mana * 100) / input.max_mana)
     
     # Basic combat stats (for UI display)
     value :base_weapon_bonus do
@@ -369,11 +370,11 @@ module PlayerEntity
     end
 
     # Simplified values for UI - actual combat will use the damage schemas
-    value :total_attack, 15 + input.strength + fn(:fetch, input.equipment, "weapon_damage", 12) + base_weapon_bonus
-    value :defense_rating, 10 + input.defense + fn(:fetch, input.equipment, "armor_defense", 5) + fn(:divide, input.level, 2)
+    value :total_attack, (15 + input.strength + fn(:fetch, input.equipment, "weapon_damage", 12) + base_weapon_bonus)
+    value :defense_rating, (10 + input.defense + fn(:fetch, input.equipment, "armor_defense", 5) + (input.level / 2))
     value :dodge_chance do
-      on :agile, fn(:min, [input.agility * 0.05, 0.3])
-      base fn(:min, [input.agility * 0.02, 0.15])
+      on :agile, fn(:min, [(input.agility * 0.05), 0.3])
+      base fn(:min, [(input.agility * 0.02), 0.15])
     end
 
     value :health_status_description do
@@ -385,8 +386,8 @@ module PlayerEntity
 
     value :status_description, health_status_description
 
-    value :can_level_up, input.experience >= (input.level * 100)
-    value :next_level_exp, input.level * 100
+    value :can_level_up, (input.experience >= (input.level * 100))
+    value :next_level_exp, (input.level * 100)
   end
 end
 
@@ -407,12 +408,12 @@ module Enemy
       hash    :loot_table, key: { type: :string }, val: { type: :integer }
     end
 
-    trait :alive, input.health > 0
-    trait :dead, input.health <= 0
-    trait :boss, input.type == "dragon"
-    trait :weak, input.health <= input.max_health * 0.25
-    trait :dangerous, input.attack >= 50
-    trait :agile_enemy, input.dodge_chance >= 0.2
+    trait :alive, (input.health > 0)
+    trait :dead, (input.health <= 0)
+    trait :boss, (input.type == "dragon")
+    trait :weak, (input.health <= input.max_health * 0.25)
+    trait :dangerous, (input.attack >= 50)
+    trait :agile_enemy, (input.dodge_chance >= 0.2)
 
     value :threat_level do
       on :boss, "💀 BOSS"
@@ -421,17 +422,17 @@ module Enemy
       base "⚔️ Normal"
     end
 
-    value :experience_reward, input.level * 25 + fn(:size, input.abilities) * 10
+    value :experience_reward, ((input.level * 25) + (fn(:size, input.abilities) * 10))
     
     value :gold_reward do
-      on :boss, input.level * 50 + 200
-      on :dangerous, input.level * 30 + 50
-      base input.level * 20 + 10
+      on :boss, ((input.level * 50) + 200)
+      on :dangerous, ((input.level * 30) + 50)
+      base ((input.level * 20) + 10)
     end
 
     # Basic combat stats for UI - actual combat will use damage schemas
-    value :attack_damage, input.attack + fn(:divide, input.level, 2)
-    value :defense_rating, input.defense + fn(:divide, input.level, 3)
+    value :attack_damage, (input.attack + (input.level / 2))
+    value :defense_rating, (input.defense + (input.level / 3))
   end
 end
 
@@ -449,15 +450,15 @@ module CombatCalculation
       integer :attacker_level, domain: 1..100
     end
 
-    trait :hit_connects, 0.5 > input.defender_dodge
-    trait :is_critical, input.critical_hit == true
-    trait :is_magic, input.attack_type == "magic"
-    trait :is_special, input.attack_type == "special"
+    trait :hit_connects, (0.5 > input.defender_dodge)
+    trait :is_critical, (input.critical_hit == true)
+    trait :is_magic, (input.attack_type == "magic")
+    trait :is_special, (input.attack_type == "special")
     trait :has_rage, fn(:include?, input.attacker_abilities, "rage")
     trait :has_precision, fn(:include?, input.attacker_abilities, "precision")
     trait :critical_precision, is_critical & has_precision
 
-    value :base_damage, fn(:max, [input.attacker_attack - input.defender_defense, 1])
+    value :base_damage, fn(:max, [(input.attacker_attack - input.defender_defense), 1])
     
     value :damage_multiplier do
       on :critical_precision, 3.0
@@ -468,7 +469,7 @@ module CombatCalculation
     end
 
     value :final_damage do
-      on :hit_connects, fn(:round, base_damage * damage_multiplier)
+      on :hit_connects, fn(:round, (base_damage * damage_multiplier))
       base 0
     end
 
@@ -499,10 +500,10 @@ module GameState
       integer :gold, domain: 0..Float::INFINITY
     end
 
-    trait :in_combat, input.phase == "combat"
-    trait :exploring, input.phase == "exploration"
-    trait :game_over, input.phase == "defeat"
-    trait :victorious, input.phase == "victory"
+    trait :in_combat, (input.phase == "combat")
+    trait :exploring, (input.phase == "exploration")
+    trait :game_over, (input.phase == "defeat")
+    trait :victorious, (input.phase == "victory")
     trait :both_alive, input.player_alive & input.enemy_alive
     trait :combat_ongoing, in_combat & both_alive
 
@@ -518,7 +519,7 @@ module GameState
     value :can_attack, combat_ongoing
     value :can_explore, exploring & input.player_alive
 
-    value :progress_score, input.enemies_defeated * 100 + input.gold
+    value :progress_score, ((input.enemies_defeated * 100) + input.gold)
   end
 end
 
@@ -1046,8 +1047,8 @@ class SimpleGame
     puts "\n> (Simulating user input from: #{valid_options.join(', ')})"
     sleep(0.3)
 
-    # Real user get
-    choice = gets.chomp.strip
+    # Real user input
+    choice = gets&.chomp&.strip || valid_options.first
     
 
     # # Show equipment manageme3

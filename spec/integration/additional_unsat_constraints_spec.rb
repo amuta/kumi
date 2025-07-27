@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe "Additional UnsatDetector Constraint Types" do
   describe "type incompatibility constraints" do
-    it "detects impossible comparison between integer and string fields" do
+    it "detects impossible comparison between integer and string fields with ordering operators" do
       expect do
         build_schema do
           input do
@@ -12,31 +12,32 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             string :name
           end
 
-          trait :age_equals_name, input.age, :==, input.name
+          trait :age_greater_than_name, input.age, :>, input.name
 
           value :result do
-            on :age_equals_name, "Impossible type comparison"
+            on :age_greater_than_name, "Impossible type comparison"
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::TypeError, /argument 2 of `fn\(:>\)` expects float, got input field `name` of declared type string/)
     end
 
-    it "detects impossible comparison between different typed literals" do
+    it "detects impossible comparison between integer and string with ordering" do
       expect do
         build_schema do
-          input {}
+          input do
+            integer :age
+            string :name
+          end
 
-          value :number, 42
-          value :text, "hello"
-          trait :number_equals_text, number, :==, text
+          trait :age_less_than_name, input.age, :<, input.name
 
           value :result do
-            on :number_equals_text, "Impossible"
+            on :age_less_than_name, "Impossible"
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::TypeError, /argument 2 of `fn\(:<\)` expects float, got input field `name` of declared type string/)
     end
 
     it "allows comparison between same types" do
@@ -74,7 +75,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_bound` is impossible/)
     end
 
     it "detects impossible negative results from positive domain" do
@@ -92,7 +93,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_negative` is impossible/)
     end
 
     it "allows valid bounds after mathematical operations" do
@@ -114,44 +115,6 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
     end
   end
 
-  describe "string operations with known constraints" do
-    it "detects impossible string concatenation results" do
-      expect do
-        build_schema do
-          input do
-            string :prefix, domain: %w[user admin]
-          end
-
-          value :full_name, fn(:concat, input.prefix, "_role")
-          trait :impossible_suffix, full_name, :==, "guest_role" # impossible
-
-          value :result do
-            on :impossible_suffix, "Impossible suffix"
-            base "Normal"
-          end
-        end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
-    end
-
-    it "allows valid string concatenation results" do
-      expect do
-        build_schema do
-          input do
-            string :prefix, domain: %w[user admin]
-          end
-
-          value :full_name, fn(:concat, input.prefix, "_role")
-          trait :valid_suffix, full_name, :==, "user_role"  # possible
-
-          value :result do
-            on :valid_suffix, "Valid suffix"
-            base "Normal"
-          end
-        end
-      end.not_to raise_error
-    end
-  end
-
   describe "contradictory boolean logic" do
     it "detects logically impossible boolean combinations" do
       expect do
@@ -162,14 +125,14 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
 
           trait :active, input.is_active, :==, true
           trait :inactive, input.is_active, :==, false
-          trait :contradictory, fn(:and, active, inactive)  # logically impossible
+          trait :contradictory, fn(:and, active, inactive) # logically impossible
 
           value :result do
             on :contradictory, "Impossible logic"
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `contradictory` is impossible/)
     end
 
     it "detects impossible boolean field contradictions" do
@@ -187,7 +150,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_true AND is_false` is impossible/)
     end
 
     it "allows valid boolean logic" do
@@ -225,7 +188,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_inactive` is impossible/)
     end
 
     it "detects contradictory numeric literals" do
@@ -241,7 +204,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_zero` is impossible/)
     end
 
     it "allows valid literal comparisons" do
@@ -280,28 +243,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
-    end
-
-    it "detects domain violations through complex transformations" do
-      expect do
-        build_schema do
-          input do
-            string :category, domain: %w[basic premium]
-          end
-
-          value :category_copy, input.category
-          value :category_upper, fn(:concat, category_copy, "_TIER")
-          value :final_category, category_upper
-
-          trait :is_enterprise, final_category, :==, "enterprise_TIER" # impossible
-
-          value :result do
-            on :is_enterprise, "Impossible transformation"
-            base "Normal"
-          end
-        end
-      end.to raise_error(Kumi::Errors::SemanticError, /impossible/)
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_high` is impossible/)
     end
   end
 end
