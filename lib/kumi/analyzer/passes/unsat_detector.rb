@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../constraint_relationship_solver"
+
 module Kumi
   module Analyzer
     module Passes
@@ -22,7 +24,14 @@ module Kumi
               atoms = gather_atoms(decl.expression, definitions, Set.new)
               next if atoms.empty?
 
-              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if Kumi::AtomUnsatSolver.unsat?(atoms)
+              # Use enhanced solver that can detect cross-variable mathematical constraints
+              impossible = if definitions && !definitions.empty?
+                             Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions)
+                           else
+                             Kumi::AtomUnsatSolver.unsat?(atoms)
+                           end
+              
+              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
             end
           end
           state
@@ -108,7 +117,13 @@ module Kumi
             #   is_unsat = Kumi::AtomUnsatSolver.unsat?(condition_atoms)
             #   puts "  Is unsat? #{is_unsat}"
             # end
-            next unless !condition_atoms.empty? && Kumi::AtomUnsatSolver.unsat?(condition_atoms)
+            # Use enhanced solver for cascade conditions too
+            impossible = if definitions && !definitions.empty?
+                           Kumi::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions)
+                         else
+                           Kumi::AtomUnsatSolver.unsat?(condition_atoms)
+                         end
+            next unless !condition_atoms.empty? && impossible
 
             # For multi-trait on-clauses, report the trait names rather than the value name
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?

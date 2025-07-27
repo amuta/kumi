@@ -19,6 +19,136 @@ RSpec.describe "UnsatDetector Special Cases" do
         end
       end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is impossible/)
     end
+
+    it "detects impossible conditions through deep dependency chains" do
+      expect do
+        build_schema do
+          input do
+            integer :base_value
+          end
+
+          # Build a deep dependency chain: val0 = base + 0, val1 = val0 + 1, val2 = val1 + 1, etc.
+          value :val0, fn(:add, input.base_value, 0)
+          value :val1, fn(:add, val0, 1)
+          value :val2, fn(:add, val1, 1)
+          value :val3, fn(:add, val2, 1)
+          value :val4, fn(:add, val3, 1)
+          value :val5, fn(:add, val4, 1)
+
+          # Create contradictory traits on the same deep value
+          trait :val5_gt_100, val5, :>, 100  # val5 > 100
+          trait :val5_lt_50, val5, :<, 50    # val5 < 50 (impossible if val5 > 100)
+
+          value :deep_result do
+            on :val5_gt_100, :val5_lt_50, "Impossible Combination"
+            base "Valid"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `val5_gt_100 AND val5_lt_50` is impossible/)
+    end
+
+    it "detects mathematical impossibilities across dependency chains with enhanced solver" do
+      expect do
+        build_schema do
+          input do
+            integer :base
+          end
+
+          # Build a simple chain where relationships are mathematically constrained
+          value :derived_value, fn(:add, input.base, 10) # derived = base + 10
+
+          # These constraints are mathematically impossible:
+          # If base == 50, then derived == 60, so derived == 40 is impossible
+          # The enhanced solver should detect this cross-variable relationship
+          trait :base_is_50, input.base, :==, 50
+          trait :derived_is_40, derived_value, :==, 40
+
+          value :result do
+            on :base_is_50, :derived_is_40, "Mathematical Impossibility"
+            base "Valid"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `base_is_50 AND derived_is_40` is impossible/)
+    end
+
+    it "detects impossibilities through multi-step dependency chains with iterative propagation" do
+      # Enhanced solver can now chain multiple relationships together using iterative propagation
+      expect do
+        build_schema do
+          input do
+            integer :start
+          end
+
+          # Build a longer chain: start -> step1 -> step2 -> final
+          value :step1, fn(:add, input.start, 5)  # step1 = start + 5
+          value :step2, fn(:multiply, step1, 2)   # step2 = (start + 5) * 2 = 2*start + 10
+          value :final, fn(:subtract, step2, 3)   # final = 2*start + 10 - 3 = 2*start + 7
+
+          # If start == 10, then final == 27
+          # So final == 20 is impossible when start == 10
+          # Enhanced solver should now detect this through iterative propagation
+          trait :start_is_10, input.start, :==, 10
+          trait :final_is_20, final, :==, 20
+
+          value :chain_result do
+            on :start_is_10, :final_is_20, "Multi-step mathematical impossibility"
+            base "Valid"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `start_is_10 AND final_is_20` is impossible/)
+    end
+
+    it "detects contradictions with subtraction operations" do
+      expect do
+        build_schema do
+          input do
+            integer :x
+          end
+
+          value :y, fn(:subtract, input.x, 15) # y = x - 15
+
+          # If x == 20, then y == 5
+          # So y == 10 is impossible when x == 20
+          trait :x_is_20, input.x, :==, 20
+          trait :y_is_10, y, :==, 10
+
+          value :subtract_result do
+            on :x_is_20, :y_is_10, "Impossible"
+            base "Valid"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_is_20 AND y_is_10` is impossible/)
+    end
+
+    it "detects impossibilities in deep dependency chains like the benchmark example" do
+      # Based on the deep_schema_compilation_and_evaluation_benchmark.rb pattern
+      # Build a deep chain similar to: v0 = seed, v1 = v0 + 1, v2 = v1 + 2, etc.
+      expect do
+        build_schema do
+          input do
+            integer :seed
+          end
+
+          # Build dependency chain: v0 = seed, v1 = v0 + 1, v2 = v1 + 2, etc.
+          value :v0, input.seed
+          value :v1, fn(:add, v0, 1)
+          value :v2, fn(:add, v1, 2) 
+          value :v3, fn(:add, v2, 3)
+          value :v4, fn(:add, v3, 4)
+          value :v5, fn(:add, v4, 5)
+
+          # If seed == 0, then v5 = 0 + 1 + 2 + 3 + 4 + 5 = 15
+          # So v5 == 10 is impossible when seed == 0
+          trait :seed_is_zero, input.seed, :==, 0
+          trait :v5_is_ten, v5, :==, 10
+
+          value :deep_chain_result do
+            on :seed_is_zero, :v5_is_ten, "Deep chain impossibility"
+            base "Valid"
+          end
+        end
+      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `seed_is_zero AND v5_is_ten` is impossible/)
+    end
   end
 
   describe "cascade with mutually exclusive numerical conditions" do
