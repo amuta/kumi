@@ -2,7 +2,6 @@
 
 # U.S. federal income‑tax plus FICA
 
-require "pry"
 require_relative "../lib/kumi"
 
 module Tax2024

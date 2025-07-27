@@ -50,7 +50,7 @@ module DamageCalculation
 
     # Base damage calculation
     value :strength_bonus do
-      on :high_strength, input.strength * 2
+      on high_strength, input.strength * 2  # NEW: bare identifier syntax
       base input.strength
     end
 
@@ -60,18 +60,18 @@ module DamageCalculation
 
     # Status effect modifiers
     value :status_attack_multiplier do
-      on :has_rage, 1.5
-      on :is_poisoned, 0.8
-      on :has_blessing, 1.1
+      on has_rage, 1.5      # NEW: bare identifier syntax
+      on is_poisoned, 0.8   # NEW: bare identifier syntax
+      on has_blessing, 1.1  # NEW: bare identifier syntax
       base 1.0
     end
 
     # Critical and special attack modifiers
     value :attack_type_multiplier do
-      on :critical_precision, 3.0
-      on :is_critical, 2.0
-      on :is_special_attack, 1.3
-      on :is_magic_attack, 1.2
+      on critical_precision, 3.0  # NEW: bare identifier syntax
+      on is_critical, 2.0          # NEW: bare identifier syntax
+      on is_special_attack, 1.3    # NEW: bare identifier syntax
+      on is_magic_attack, 1.2      # NEW: bare identifier syntax
       base 1.0
     end
 
@@ -83,10 +83,10 @@ module DamageCalculation
 
     # Damage description for UI
     value :damage_description do
-      on :critical_precision, "💥🎯 PRECISION CRITICAL!"
-      on :is_critical, "💥 CRITICAL HIT!"
-      on :is_special_attack, "✨ Special Attack!"
-      on :is_magic_attack, "🔮 Magic Attack!"
+      on critical_precision, "💥🎯 PRECISION CRITICAL!"  # NEW: bare identifier syntax
+      on is_critical, "💥 CRITICAL HIT!"                 # NEW: bare identifier syntax
+      on is_special_attack, "✨ Special Attack!"         # NEW: bare identifier syntax
+      on is_magic_attack, "🔮 Magic Attack!"             # NEW: bare identifier syntax
       base "⚔️ Attack!"
     end
   end
@@ -138,7 +138,7 @@ module DamageReduction
 
     # Base defense calculation
     value :defense_bonus do
-      on :high_defense, (input.defense_stat * 1.5)
+      on high_defense, (input.defense_stat * 1.5)  # NEW: bare identifier syntax
       base input.defense_stat
     end
 
@@ -150,9 +150,9 @@ module DamageReduction
 
     # Status effect defensive modifiers
     value :status_defense_multiplier do
-      on :has_shield, 1.4
-      on :has_blessing, 1.2
-      on :is_poisoned, 0.9
+      on has_shield, 1.4    # NEW: bare identifier syntax
+      on has_blessing, 1.2  # NEW: bare identifier syntax  
+      on is_poisoned, 0.9   # NEW: bare identifier syntax
       base 1.0
     end
 

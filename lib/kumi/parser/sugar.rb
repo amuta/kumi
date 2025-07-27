@@ -5,13 +5,13 @@ module Kumi
     module Sugar
       include Syntax
 
-      ARITHMETIC_OPS = { 
+      ARITHMETIC_OPS = {
         :+ => :add, :- => :subtract, :* => :multiply,
-        :/ => :divide, :% => :modulo, :** => :power 
+        :/ => :divide, :% => :modulo, :** => :power
       }.freeze
-      
+
       COMPARISON_OPS = %i[< <= > >= == !=].freeze
-      
+
       LITERAL_TYPES = [
         Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp
       ].freeze
@@ -148,20 +148,21 @@ module Kumi
 
       module ArrayRefinement
         refine Array do
-          # Helper method to check if array contains only syntax expressions
-          def all_syntax_expressions?
-            all? { |item| Sugar.syntax_expression?(item) }
+          # Helper method to check if array contains any syntax expressions
+          def any_syntax_expressions?
+            any? { |item| Sugar.syntax_expression?(item) }
           end
 
-          # Convert array to syntax list expression
+          # Convert array to syntax list expression with all elements as syntax nodes
           def to_syntax_list
-            Syntax::ListExpression.new(self)
+            syntax_elements = map { |item| Sugar.ensure_literal(item) }
+            Syntax::ListExpression.new(syntax_elements)
           end
 
           # Create array method that works with syntax expressions
           def self.define_array_syntax_method(method_name, has_argument: false)
             define_method(method_name) do |*args|
-              if all_syntax_expressions?
+              if any_syntax_expressions?
                 array_literal = to_syntax_list
                 call_args = [array_literal]
                 call_args.concat(args.map { |arg| Sugar.ensure_literal(arg) }) if has_argument

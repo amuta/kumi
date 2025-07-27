@@ -124,10 +124,11 @@ RSpec.describe "Potential Breakage Cases" do
         schema do
           input { boolean :flag }
           trait :condition, (input.flag == true)
+          trait :not_condition, (input.flag == false)
 
           value :a do
             on condition, ref(:b)
-            on !condition, ref(:c)
+            on not_condition, ref(:c)
             base "default_a"
           end
 

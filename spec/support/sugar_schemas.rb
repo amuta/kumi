@@ -117,3 +117,22 @@ SugarTestHelper.register_schema(:mixed_chaining, Kumi.schema do
   trait :experienced, input.years_experience > 5
   trait :senior_well_paid, well_paid & experienced
 end)
+
+# Array max with computed values
+SugarTestHelper.register_schema(:array_max_sugar, Kumi.schema do
+  input do
+    float :income
+    float :std_deduction
+  end
+
+  value :taxable_income, [input.income - input.std_deduction, 0].max
+end)
+
+SugarTestHelper.register_schema(:array_with_mixed_types, Kumi.schema do
+  input do
+    integer :count
+  end
+
+  # Array with mixed types (integers and strings)
+  value :mixed_max, [input.count * 2, 1].max
+end)

@@ -20,7 +20,8 @@ module Kumi
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = create_function_call(:all?, trait_names, on_loc)
+        trait_bindings = convert_trait_names_to_bindings(trait_names, on_loc)
+        condition = create_fn(:all?, trait_bindings)
         result = ensure_syntax(expr)
         add_case(condition, result)
       end
@@ -32,7 +33,8 @@ module Kumi
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = create_function_call(:any?, trait_names, on_loc)
+        trait_bindings = convert_trait_names_to_bindings(trait_names, on_loc)
+        condition = create_fn(:any?, trait_bindings)
         result = ensure_syntax(expr)
         add_case(condition, result)
       end
@@ -44,7 +46,8 @@ module Kumi
         trait_names = args[0..-2]
         expr = args.last
 
-        condition = create_function_call(:none?, trait_names, on_loc)
+        trait_bindings = convert_trait_names_to_bindings(trait_names, on_loc)
+        condition = create_fn(:none?, trait_bindings)
         result = ensure_syntax(expr)
         add_case(condition, result)
       end
@@ -80,9 +83,17 @@ module Kumi
         raise_error("cascade '#{method_name}' requires an expression as the last argument", location)
       end
 
-      def create_function_call(function_name, trait_names, location)
-        trait_bindings = trait_names.map { |name| create_binding(name, location) }
-        create_fn(function_name, trait_bindings)
+      def convert_trait_names_to_bindings(trait_names, location)
+        trait_names.map do |name|
+          case name
+          when Symbol
+            create_binding(name, location)
+          when Binding
+            name  # Already a binding from method_missing
+          else
+            raise_error("trait reference must be a symbol or bare identifier, got #{name.class}", location)
+          end
+        end
       end
 
       def add_case(condition, result)

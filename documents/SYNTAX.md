@@ -210,29 +210,36 @@ value :formatted_name, fn(:add, fn(:add, input.first_name, " "), input.last_name
 
 ## Cascade Logic
 
-Cascade syntax is the same in both approaches, but conditions use different syntax:
+Cascade syntax supports both bare identifiers and symbols for trait references:
 
 ```ruby
-# With Sugar
+# NEW: Unified syntax - bare identifiers (recommended)
 value :grade_letter do
-  on :excellent_student, "A+"
-  on :high_scorer, "A"
-  on :above_average, "B"
-  on :needs_improvement, "C"
+  on excellent_student, "A+"       # Bare identifier - consistent with expressions
+  on high_scorer, "A"              # Bare identifier - same syntax as regular expressions
+  on above_average, "B"            # Bare identifier 
+  on needs_improvement, "C"        # Bare identifier
   base "F"
 end
 
-# Sugar-Free  
+# LEGACY: Symbol syntax (still supported for backward compatibility)
 value :grade_letter do
-  on :excellent_student, "A+"
-  on :high_scorer, "A"
-  on :above_average, "B"
-  on :needs_improvement, "C"
+  on :excellent_student, "A+"      # Symbol - legacy syntax
+  on :high_scorer, "A"             # Symbol - legacy syntax  
+  on :above_average, "B"           # Symbol - legacy syntax
+  on :needs_improvement, "C"       # Symbol - legacy syntax
+  base "F"
+end
+
+# MIXED: Both syntaxes work together
+value :grade_letter do
+  on excellent_student, "A+"       # Bare identifier
+  on :high_scorer, "A"             # Symbol - both work!
   base "F"
 end
 ```
 
-The difference is in how the traits referenced in cascade conditions are defined (see Trait Declarations above).
+**Note**: The bare identifier syntax is now recommended for consistency with regular expressions.
 
 ## References
 
