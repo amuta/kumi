@@ -362,6 +362,7 @@ end
 - Supports `|` for logical OR
 - Limited operator precedence control
 - Some Ruby methods not available as sugar
+- **Refinement scope**: Array methods like `.max` on syntax expressions may not work in certain contexts (e.g., test helpers, Ruby < 3.0). Use `fn(:max, array)` instead.
 
 ### Sugar-Free Advantages:
 - Full access to all registered functions

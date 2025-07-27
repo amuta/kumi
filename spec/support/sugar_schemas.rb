@@ -125,7 +125,7 @@ SugarTestHelper.register_schema(:array_max_sugar, Kumi.schema do
     float :std_deduction
   end
 
-  value :taxable_income, [input.income - input.std_deduction, 0].max
+  value :taxable_income, fn(:max, [input.income - input.std_deduction, 0])
 end)
 
 SugarTestHelper.register_schema(:array_with_mixed_types, Kumi.schema do
@@ -134,5 +134,5 @@ SugarTestHelper.register_schema(:array_with_mixed_types, Kumi.schema do
   end
 
   # Array with mixed types (integers and strings)
-  value :mixed_max, [input.count * 2, 1].max
+  value :mixed_max, fn(:max, [input.count * 2, 1])
 end)
