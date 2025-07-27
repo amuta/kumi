@@ -64,10 +64,6 @@ module Kumi
       self # Return self for chaining
     end
 
-    def input
-      @context.ctx
-    end
-
     private
 
     def input_field_exists?(field)
