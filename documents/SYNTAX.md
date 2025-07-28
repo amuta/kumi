@@ -187,6 +187,8 @@ value :sorted_scores, fn(:sort, input.score_array)
 
 ### Built-in Functions Available
 
+See [FUNCTIONS.md](documents/FUNCTIONS.md)
+
 | Category | Sugar | Sugar-Free |
 |----------|-------|------------|
 | **Arithmetic** | `+`, `-`, `*`, `/`, `**` | `fn(:add, a, b)`, `fn(:subtract, a, b)`, etc. |
@@ -210,36 +212,17 @@ value :formatted_name, fn(:add, fn(:add, input.first_name, " "), input.last_name
 
 ## Cascade Logic
 
-Cascade syntax supports both bare identifiers and symbols for trait references:
-
+Cascades are similar to Ruby when case, where each case is one of more trait reference and finally the value if that branch is true.
 ```ruby
-# NEW: Unified syntax - bare identifiers (recommended)
 value :grade_letter do
-  on excellent_student, "A+"       # Bare identifier - consistent with expressions
-  on high_scorer, "A"              # Bare identifier - same syntax as regular expressions
-  on above_average, "B"            # Bare identifier 
-  on needs_improvement, "C"        # Bare identifier
-  base "F"
-end
-
-# LEGACY: Symbol syntax (still supported for backward compatibility)
-value :grade_letter do
-  on excellent_student, "A+"      # Symbol - legacy syntax
-  on high_scorer, "A"             # Symbol - legacy syntax  
-  on above_average, "B"           # Symbol - legacy syntax
-  on needs_improvement, "C"       # Symbol - legacy syntax
-  base "F"
-end
-
-# MIXED: Both syntaxes work together
-value :grade_letter do
-  on excellent_student, "A+"       # Bare identifier
-  on high_scorer, "A"             # Symbol - both work!
+  on excellent_student, "A+"       
+  on high_scorer, "A"              
+  on above_average, "B"            
+  on needs_improvement, "C"        
   base "F"
 end
 ```
 
-**Note**: The bare identifier syntax is now recommended for consistency with regular expressions.
 
 ## References
 
