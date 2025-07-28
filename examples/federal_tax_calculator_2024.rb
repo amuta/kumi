@@ -28,7 +28,7 @@ module FederalTaxCalculator
   schema do
     input do
       float  :income
-      string :filing_status, domain: %(single married_joint married_separate head_of_household)
+      string :filing_status, domain: %w[single married_joint married_separate head_of_household]
     end
 
     # ── standard deduction table ───────────────────────────────────────
@@ -59,7 +59,7 @@ module FederalTaxCalculator
 
     value :fed_tax,       fed_calc[0]
     value :fed_marginal,  fed_calc[1]
-    value :fed_eff,       fed_tax / f[input.income, 1.0].max
+    value :fed_eff,       fed_tax / [input.income, 1.0].max
 
     # ── FICA (employee share) ─────────────────────────────────────────────
     value :ss_wage_base, 168_600.0
@@ -96,10 +96,11 @@ module FederalTaxCalculator
   end
 end
 
-def calculate_tax(calculator, income: 1_000_000, status: "single")
+def print_tax_summary(args)
+  r = FederalTaxCalculator.from(args)
   puts "\n=== 2024 U.S. Income‑Tax Example ==="
-  printf "Income:                      $%0.2f\n", income
-  puts   "Filing status:               #{status}\n\n"
+  printf "Income:                      $%0.2f\n", args[:income]
+  puts   "Filing status:               #{args[:filing_status]}\n\n"
 
   puts "Federal tax:             $#{r[:fed_tax].round(2)} (#{(r[:fed_eff] * 100).round(2)}% effective)"
   puts "FICA tax:                $#{r[:fica_tax].round(2)} (#{(r[:fica_eff] * 100).round(2)}% effective)"
@@ -107,4 +108,8 @@ def calculate_tax(calculator, income: 1_000_000, status: "single")
   puts "After-tax income:        $#{r[:after_tax].round(2)}"
 end
 
-calculate_tax(FederalTaxCalculator, income: 1_000_000, status: "single")
+
+input = {  income: 1_000_000,
+  filing_status: "single"
+}
+print_tax_summary(input)
