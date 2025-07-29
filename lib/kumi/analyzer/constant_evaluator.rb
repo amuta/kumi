@@ -23,7 +23,7 @@ module Kumi
         return node.value if node.is_a?(Literal)
 
         result = case node
-                 when Binding then evaluate_binding(node, visited)
+                 when DeclarationReference then evaluate_binding(node, visited)
                  when CallExpression then evaluate_call_expression(node, visited)
                  else :unknown
                  end

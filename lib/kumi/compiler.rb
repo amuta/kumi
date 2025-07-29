@@ -43,12 +43,12 @@ module Kumi
 
     # Map node classes to compiler methods
     DISPATCH = {
-      Syntax::TerminalExpressions::Literal => :compile_literal,
-      Syntax::TerminalExpressions::FieldRef => :compile_field_node,
-      Syntax::TerminalExpressions::Binding => :compile_binding_node,
-      Syntax::Expressions::ListExpression => :compile_list,
-      Syntax::Expressions::CallExpression => :compile_call,
-      Syntax::Expressions::CascadeExpression => :compile_cascade
+      Kumi::Syntax::Literal => :compile_literal,
+      Kumi::Syntax::InputReference => :compile_field_node,
+      Kumi::Syntax::DeclarationReference => :compile_binding_node,
+      Kumi::Syntax::ArrayExpression => :compile_list,
+      Kumi::Syntax::CallExpression => :compile_call,
+      Kumi::Syntax::CascadeExpression => :compile_cascade
     }.freeze
 
     def self.compile(schema, analyzer:)
@@ -80,7 +80,7 @@ module Kumi
     end
 
     def compile_declaration(decl)
-      kind = decl.is_a?(Syntax::Declarations::Trait) ? :trait : :attr
+      kind = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? :trait : :attr
       fn   = compile_expr(decl.expression)
       @bindings[decl.name] = [kind, fn]
     end

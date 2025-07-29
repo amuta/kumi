@@ -33,17 +33,17 @@ module Kumi
 
       # Create a reference to another declaration
       # @param name [Symbol] The name to reference
-      # @return [Syntax::Binding] Reference node
+      # @return [Syntax::DeclarationReference] Reference node
       def ref(name)
         validate_reference_name(name)
-        Binding.new(name, loc: current_location)
+        Kumi::Syntax::DeclarationReference.new(name, loc: current_location)
       end
 
       # Create a literal value node
       # @param value [Object] The literal value
       # @return [Syntax::Literal] Literal node
       def literal(value)
-        Literal.new(value, loc: current_location)
+        Kumi::Syntax::Literal.new(value, loc: current_location)
       end
 
       # Create a function call expression
@@ -53,7 +53,7 @@ module Kumi
       def fn(fn_name, *args)
         validate_function_name(fn_name)
         expr_args = convert_arguments(args)
-        CallExpression.new(fn_name, expr_args, loc: current_location)
+        Kumi::Syntax::CallExpression.new(fn_name, expr_args, loc: current_location)
       end
 
       # Access the input proxy for field references
@@ -72,12 +72,12 @@ module Kumi
       private
 
       def create_literal(value)
-        Literal.new(value, loc: current_location)
+        Kumi::Syntax::Literal.new(value, loc: current_location)
       end
 
       def create_list(array)
         elements = array.map { |element| ensure_syntax(element) }
-        ListExpression.new(elements, loc: current_location)
+        Kumi::Syntax::ArrayExpression.new(elements, loc: current_location)
       end
 
       def handle_custom_object(obj)

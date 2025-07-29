@@ -66,7 +66,7 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
       it "converts arrays to list expressions" do
         result = converter.ensure_syntax([1, "hello", true])
         
-        expect(result).to be_a(Kumi::Syntax::ListExpression)
+        expect(result).to be_a(Kumi::Syntax::ArrayExpression)
         expect(result.elements.size).to eq(3)
         
         expect(result.elements[0]).to be_a(Kumi::Syntax::Literal)
@@ -82,18 +82,18 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
       it "handles nested arrays" do
         result = converter.ensure_syntax([1, [2, 3], 4])
         
-        expect(result).to be_a(Kumi::Syntax::ListExpression)
+        expect(result).to be_a(Kumi::Syntax::ArrayExpression)
         expect(result.elements.size).to eq(3)
         
         nested_list = result.elements[1]
-        expect(nested_list).to be_a(Kumi::Syntax::ListExpression)
+        expect(nested_list).to be_a(Kumi::Syntax::ArrayExpression)
         expect(nested_list.elements.size).to eq(2)
       end
 
       it "handles empty arrays" do
         result = converter.ensure_syntax([])
         
-        expect(result).to be_a(Kumi::Syntax::ListExpression)
+        expect(result).to be_a(Kumi::Syntax::ArrayExpression)
         expect(result.elements).to be_empty
       end
     end
@@ -135,7 +135,7 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
       it "creates binding nodes with correct name and location" do
         result = converter.ref(:test_name)
         
-        expect(result).to be_a(Kumi::Syntax::Binding)
+        expect(result).to be_a(Kumi::Syntax::DeclarationReference)
         expect(result.name).to eq(:test_name)
         expect(result.loc).to eq(location)
       end
@@ -221,7 +221,7 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
       it "converts arguments through ensure_syntax" do
         result = converter.fn(:test_fn, [1, 2], "string", true)
         
-        expect(result.args[0]).to be_a(Kumi::Syntax::ListExpression)
+        expect(result.args[0]).to be_a(Kumi::Syntax::ArrayExpression)
         expect(result.args[1]).to be_a(Kumi::Syntax::Literal)
         expect(result.args[2]).to be_a(Kumi::Syntax::Literal)
       end
@@ -326,11 +326,11 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
       expect(result.args.size).to eq(2)
       
       # First arg should be converted array
-      expect(result.args[0]).to be_a(Kumi::Syntax::ListExpression)
+      expect(result.args[0]).to be_a(Kumi::Syntax::ArrayExpression)
       expect(result.args[0].elements.size).to eq(2)
       
       # Second arg should be reference
-      expect(result.args[1]).to be_a(Kumi::Syntax::Binding)
+      expect(result.args[1]).to be_a(Kumi::Syntax::DeclarationReference)
       expect(result.args[1].name).to eq(:other_value)
     end
 

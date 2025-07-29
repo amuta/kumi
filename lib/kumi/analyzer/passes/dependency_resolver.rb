@@ -39,10 +39,10 @@ module Kumi
 
         def process_node(node, decl, graph, reverse_deps, leaves, definitions, input_meta, errors, context)
           case node
-          when Binding
+          when DeclarationReference
             report_error(errors, "undefined reference to `#{node.name}`", location: node.loc) unless definitions.key?(node.name)
             add_dependency_edge(graph, reverse_deps, decl.name, node.name, :ref, context[:via])
-          when FieldRef
+          when InputReference
             report_error(errors, "undeclared input `#{node.name}`", location: node.loc) unless input_meta.key?(node.name)
             add_dependency_edge(graph, reverse_deps, decl.name, node.name, :key, context[:via])
             leaves[decl.name] << node # put it back
@@ -97,7 +97,7 @@ module Kumi
 
           yield(node, context)
 
-          new_context = if node.is_a?(Expressions::CallExpression)
+          new_context = if node.is_a?(Kumi::Syntax::CallExpression)
                           { via: node.fn_name }
                         else
                           context

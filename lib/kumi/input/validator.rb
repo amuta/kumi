@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "type_matcher"
-require_relative "violation_creator"
-
 module Kumi
   module Input
     class Validator

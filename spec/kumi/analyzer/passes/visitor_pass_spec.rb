@@ -24,8 +24,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
           @visited_expressions << [node.class.name, decl.name]
         end
 
-        visit_nodes_of_type(Kumi::Syntax::TerminalExpressions::Literal,
-                            Kumi::Syntax::Expressions::CallExpression,
+        visit_nodes_of_type(Kumi::Syntax::Literal,
+                            Kumi::Syntax::CallExpression,
                             errors: errors) do |node, decl, _errs|
           @visited_nodes << [node.class.name, decl.name]
         end
@@ -76,8 +76,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       pass_instance.send(:visit, test_node) { |node| yielded_nodes << node }
 
       expect(yielded_nodes.size).to eq(5)
-      expect(yielded_nodes.first).to be_a(Kumi::Syntax::Expressions::CallExpression)
-      expect(yielded_nodes.last).to be_a(Kumi::Syntax::TerminalExpressions::Literal)
+      expect(yielded_nodes.first).to be_a(Kumi::Syntax::CallExpression)
+      expect(yielded_nodes.last).to be_a(Kumi::Syntax::Literal)
     end
   end
 
@@ -101,9 +101,9 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
                                   decl_type: decl.class.name.split("::").last }
       end
 
-      # Verify we get both attributes and traits
+      # Verify we get both attributes and traits (using new class names)
       decl_types = visited_with_context.map { |v| v[:decl_type] }.uniq
-      expect(decl_types).to contain_exactly("Attribute", "Trait")
+      expect(decl_types).to contain_exactly("ValueDeclaration", "TraitDeclaration")
     end
 
     it "handles empty schema" do
@@ -124,8 +124,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_nodes = pass_instance.visited_nodes
       node_types = visited_nodes.map(&:first).uniq
 
-      # Should only have Literal and CallExpression nodes, not Field or Binding
-      expect(node_types).to contain_exactly("Kumi::Syntax::TerminalExpressions::Literal", "Kumi::Syntax::Expressions::CallExpression")
+      # Should only have Literal and CallExpression nodes, not Field or Binding (using new class names)
+      expect(node_types).to contain_exactly("Kumi::Syntax::Literal", "Kumi::Syntax::CallExpression")
     end
 
     it "visits nodes across all declarations" do
@@ -142,7 +142,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_literals = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Syntax::TerminalExpressions::Literal,
+                         Kumi::Syntax::Literal,
                          errors: errors) do |node, decl, _errs|
         visited_literals << [node.value, decl.name]
       end
@@ -156,15 +156,15 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_mixed = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Syntax::TerminalExpressions::FieldRef,
-                         Kumi::Syntax::TerminalExpressions::Binding,
+                         Kumi::Syntax::InputReference,
+                         Kumi::Syntax::DeclarationReference,
                          errors: errors) do |node, decl, _errs|
         visited_mixed << [node.class.name.split("::").last, node.name, decl.name]
       end
 
-      # Should find both FieldRef and Binding nodes
+      # Should find both FieldRef and Binding nodes (using new class names)
       node_types = visited_mixed.map(&:first).uniq
-      expect(node_types).to include("FieldRef", "Binding")
+      expect(node_types).to include("InputReference", "DeclarationReference")
     end
 
     it "handles non-matching node types gracefully" do
@@ -201,7 +201,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
         def run(errors)
           # Use visitor methods
           literal_count = 0
-          visit_nodes_of_type(Kumi::Syntax::TerminalExpressions::Literal, errors: errors) do |_node, _decl, _errs|
+          visit_nodes_of_type(Kumi::Syntax::Literal, errors: errors) do |_node, _decl, _errs|
             literal_count += 1
           end
 

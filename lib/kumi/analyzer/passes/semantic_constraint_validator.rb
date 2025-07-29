@@ -10,7 +10,7 @@ module Kumi
       #
       # This pass enforces semantic constraints that must hold regardless of which parser
       # was used to construct the AST. It validates:
-      # 1. Cascade conditions are only trait references (Binding nodes)
+      # 1. Cascade conditions are only trait references (DeclarationReference nodes)
       # 2. Trait expressions evaluate to boolean values (CallExpression nodes)
       # 3. Function names exist in the function registry
       # 4. Expression types are valid for their context
@@ -26,17 +26,17 @@ module Kumi
 
         def validate_semantic_constraints(node, decl, errors)
           case node
-          when Declarations::Trait
+          when Kumi::Syntax::TraitDeclaration
             validate_trait_expression(node, errors)
-          when Expressions::WhenCaseExpression
+          when Kumi::Syntax::CaseExpression
             validate_cascade_condition(node, errors)
-          when Expressions::CallExpression
+          when Kumi::Syntax::CallExpression
             validate_function_call(node, errors)
           end
         end
 
         def validate_trait_expression(trait, errors)
-          return if trait.expression.is_a?(Expressions::CallExpression)
+          return if trait.expression.is_a?(Kumi::Syntax::CallExpression)
 
           report_error(
             errors,
@@ -50,20 +50,20 @@ module Kumi
           condition = when_case.condition
           
           case condition
-          when TerminalExpressions::Binding
+          when Kumi::Syntax::DeclarationReference
             # Valid: trait reference
             return
-          when Expressions::CallExpression
+          when Kumi::Syntax::CallExpression
             # Valid if it's a boolean composition of traits (all?, any?, none?)
             return if boolean_trait_composition?(condition)
             
             # For now, allow other CallExpressions - they'll be validated by other passes
             return
-          when TerminalExpressions::Literal
+          when Kumi::Syntax::Literal
             # Allow literal conditions (like true/false) - they might be valid
             return
           else
-            # Only reject truly invalid conditions like FieldRef or complex expressions
+            # Only reject truly invalid conditions like InputReference or complex expressions
             report_error(
               errors,
               "cascade condition must be trait reference",

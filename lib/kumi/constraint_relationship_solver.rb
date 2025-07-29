@@ -98,12 +98,12 @@ module Kumi
     # @return [Relationship, nil] the relationship or nil if not extractable
     def extract_relationship(target, expression)
       case expression
-      when Kumi::Syntax::Expressions::CallExpression
+      when Kumi::Syntax::CallExpression
         extract_call_relationship(target, expression)
-      when Kumi::Syntax::TerminalExpressions::Binding
+      when Kumi::Syntax::DeclarationReference
         # Simple alias: target = other_variable
         Relationship.new(target, :identity, [expression.name])
-      when Kumi::Syntax::TerminalExpressions::FieldRef
+      when Kumi::Syntax::InputReference
         # Direct field reference: target = input.field
         # Create identity relationship so we can propagate constraints
         Relationship.new(target, :identity, [expression.name])
@@ -152,11 +152,11 @@ module Kumi
 
       args.map do |arg|
         case arg
-        when Kumi::Syntax::TerminalExpressions::Binding
+        when Kumi::Syntax::DeclarationReference
           arg.name
-        when Kumi::Syntax::TerminalExpressions::Literal
+        when Kumi::Syntax::Literal
           arg.value
-        when Kumi::Syntax::TerminalExpressions::FieldRef
+        when Kumi::Syntax::InputReference
           # Use the field name directly to match how atoms represent input fields
           arg.name
         else

@@ -12,12 +12,12 @@ module Kumi
 
       def key(name, type: :any, domain: nil)
         normalized_type = normalize_type(type, name)
-        @context.inputs << FieldDecl.new(name, domain, normalized_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, loc: @context.current_location)
       end
 
       %i[integer float string boolean any].each do |type_name|
         define_method(type_name) do |name, domain: nil|
-          @context.inputs << FieldDecl.new(name, domain, type_name, loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, type_name, loc: @context.current_location)
         end
       end
 
@@ -59,7 +59,7 @@ module Kumi
         elem_type = elem_spec.is_a?(Hash) && elem_spec[:type] ? elem_spec[:type] : :any
 
         array_type = create_array_type(field_name, elem_type)
-        @context.inputs << FieldDecl.new(field_name, domain, array_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, loc: @context.current_location)
       end
 
       def create_array_type(field_name, elem_type)
@@ -77,7 +77,7 @@ module Kumi
         val_type = extract_type(val_spec)
 
         hash_type = create_hash_type(field_name, key_type, val_type)
-        @context.inputs << FieldDecl.new(field_name, domain, hash_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, loc: @context.current_location)
       end
 
       def extract_type(spec)

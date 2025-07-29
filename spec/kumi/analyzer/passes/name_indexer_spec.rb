@@ -32,8 +32,8 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
         expect(errors).to be_empty
         definitions = result_state[:definitions]
         expect(definitions.keys).to contain_exactly(:price, :vip)
-        expect(definitions[:price]).to be_a(Kumi::Syntax::Declarations::Attribute)
-        expect(definitions[:vip]).to be_a(Kumi::Syntax::Declarations::Trait)
+        expect(definitions[:price]).to be_a(Kumi::Syntax::ValueDeclaration)
+        expect(definitions[:vip]).to be_a(Kumi::Syntax::TraitDeclaration)
       end
     end
 
@@ -62,7 +62,7 @@ RSpec.describe Kumi::Analyzer::Passes::NameIndexer do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors.size).to eq(1)
-        expect(result_state[:definitions][:conflict]).to be_a(Kumi::Syntax::Declarations::Trait)
+        expect(result_state[:definitions][:conflict]).to be_a(Kumi::Syntax::TraitDeclaration)
       end
     end
   end

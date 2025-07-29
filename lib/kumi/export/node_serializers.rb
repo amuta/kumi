@@ -66,7 +66,7 @@ module Kumi
         }
       end
 
-      # Binding Reference: critical for dependency resolution
+      # DeclarationReference Reference: critical for dependency resolution
       def serialize_binding_reference(node)
         {
           binding_name: node.name.to_s,

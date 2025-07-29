@@ -88,7 +88,7 @@ module Kumi
           case name
           when Symbol
             create_binding(name, location)
-          when Binding
+          when DeclarationReference
             name  # Already a binding from method_missing
           else
             raise_error("trait reference must be a symbol or bare identifier, got #{name.class}", location)
@@ -97,7 +97,7 @@ module Kumi
       end
 
       def add_case(condition, result)
-        @cases << WhenCaseExpression.new(condition, result)
+        @cases << Kumi::Syntax::CaseExpression.new(condition, result)
       end
 
       def ref(name)
@@ -129,7 +129,7 @@ module Kumi
       end
 
       def create_binding(name, location)
-        Binding.new(name, loc: location)
+        Kumi::Syntax::DeclarationReference.new(name, loc: location)
       end
     end
   end

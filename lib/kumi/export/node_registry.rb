@@ -6,20 +6,34 @@ module Kumi
       # Maps AST classes to JSON type names
       SERIALIZATION_MAP = {
         "Kumi::Syntax::Root" => "root",
-        "Kumi::Syntax::Declarations::FieldDecl" => "field_declaration",
-        "Kumi::Syntax::Declarations::Attribute" => "attribute_declaration",
-        "Kumi::Syntax::Declarations::Trait" => "trait_declaration",
-        "Kumi::Syntax::Expressions::CallExpression" => "call_expression",
-        "Kumi::Syntax::TerminalExpressions::Literal" => "literal",
-        "Kumi::Syntax::TerminalExpressions::FieldRef" => "field_reference",
-        "Kumi::Syntax::TerminalExpressions::Binding" => "binding_reference",
-        "Kumi::Syntax::Expressions::ListExpression" => "list_expression",
-        "Kumi::Syntax::Expressions::CascadeExpression" => "cascade_expression",
-        "Kumi::Syntax::Expressions::WhenCaseExpression" => "when_case_expression"
+        "Kumi::Syntax::InputDeclaration" => "field_declaration",
+        "Kumi::Syntax::ValueDeclaration" => "attribute_declaration", 
+        "Kumi::Syntax::TraitDeclaration" => "trait_declaration",
+        "Kumi::Syntax::CallExpression" => "call_expression",
+        "Kumi::Syntax::ArrayExpression" => "list_expression",
+        "Kumi::Syntax::HashExpression" => "hash_expression",
+        "Kumi::Syntax::CascadeExpression" => "cascade_expression",
+        "Kumi::Syntax::CaseExpression" => "when_case_expression",
+        "Kumi::Syntax::Literal" => "literal",
+        "Kumi::Syntax::InputReference" => "field_reference",
+        "Kumi::Syntax::DeclarationReference" => "binding_reference"
       }.freeze
 
-      # Maps JSON type names back to AST classes
-      DESERIALIZATION_MAP = SERIALIZATION_MAP.invert.freeze
+      # Maps JSON type names back to AST classes (using new canonical class names)
+      DESERIALIZATION_MAP = {
+        "root" => "Kumi::Syntax::Root",
+        "field_declaration" => "Kumi::Syntax::InputDeclaration",
+        "attribute_declaration" => "Kumi::Syntax::ValueDeclaration", 
+        "trait_declaration" => "Kumi::Syntax::TraitDeclaration",
+        "call_expression" => "Kumi::Syntax::CallExpression",
+        "list_expression" => "Kumi::Syntax::ArrayExpression",
+        "hash_expression" => "Kumi::Syntax::HashExpression",
+        "cascade_expression" => "Kumi::Syntax::CascadeExpression",
+        "when_case_expression" => "Kumi::Syntax::CaseExpression",
+        "literal" => "Kumi::Syntax::Literal",
+        "field_reference" => "Kumi::Syntax::InputReference",
+        "binding_reference" => "Kumi::Syntax::DeclarationReference"
+      }.freeze
 
       def self.type_name_for(node)
         SERIALIZATION_MAP[node.class.name] or

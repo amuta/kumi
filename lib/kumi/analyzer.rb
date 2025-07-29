@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "analyzer/analysis_state"
-
 module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)

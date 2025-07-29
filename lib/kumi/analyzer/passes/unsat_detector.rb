@@ -106,10 +106,10 @@ module Kumi
             elsif current.is_a?(CallExpression) && current.fn_name == :all?
               # For all? function, add all trait arguments to the stack
               current.args.each { |arg| stack << arg }
-            elsif current.is_a?(ListExpression)
-              # For ListExpression, add all elements to the stack
+            elsif current.is_a?(ArrayExpression)
+              # For ArrayExpression, add all elements to the stack
               current.elements.each { |elem| stack << elem }
-            elsif current.is_a?(Binding)
+            elsif current.is_a?(DeclarationReference)
               name = current.name
               unless visited.include?(name)
                 visited << name
@@ -141,8 +141,8 @@ module Kumi
 
             # Skip single-trait 'on' branches: trait-level unsat detection covers these
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              # Handle both ListExpression (old format) and multiple args (new format)
-              if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ListExpression)
+              # Handle both ArrayExpression (old format) and multiple args (new format)
+              if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
                 list = when_case.condition.args.first
                 next if list.elements.size == 1
               elsif when_case.condition.args.size == 1
@@ -174,14 +174,14 @@ module Kumi
 
             # For multi-trait on-clauses, report the trait names rather than the value name
             if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              # Handle both ListExpression (old format) and multiple args (new format)
-              trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ListExpression)
+              # Handle both ArrayExpression (old format) and multiple args (new format)
+              trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
                                  when_case.condition.args.first.elements
                                else
                                  when_case.condition.args
                                end
 
-              if trait_bindings.all?(Binding)
+              if trait_bindings.all?(DeclarationReference)
                 traits = trait_bindings.map(&:name).join(" AND ")
                 report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
                 next
@@ -193,7 +193,7 @@ module Kumi
 
         def term(node, _defs)
           case node
-          when FieldRef, Binding
+          when InputReference, DeclarationReference
             val = @evaluator.evaluate(node)
             val == :unknown ? node.name : val
           when Literal
@@ -205,14 +205,14 @@ module Kumi
 
         def check_domain_constraints(node, definitions, errors)
           case node
-          when FieldRef
-            # Check if FieldRef points to a field with domain constraints
+          when InputReference
+            # Check if InputReference points to a field with domain constraints
             field_meta = @input_meta[node.name]
             nil unless field_meta&.dig(:domain)
 
-            # For FieldRef, the constraint comes from trait conditions
-            # We don't flag here since the FieldRef itself is valid
-          when Binding
+            # For InputReference, the constraint comes from trait conditions
+            # We don't flag here since the InputReference itself is valid
+          when DeclarationReference
             # Check if this binding evaluates to a value that violates domain constraints
             definition = definitions[node.name]
             return unless definition
@@ -254,18 +254,18 @@ module Kumi
         end
 
         def impossible_constraint?(lhs, rhs, operator)
-          # Case 1: FieldRef compared against value outside its domain
-          if lhs.is_a?(FieldRef) && rhs.is_a?(Literal)
+          # Case 1: InputReference compared against value outside its domain
+          if lhs.is_a?(InputReference) && rhs.is_a?(Literal)
             return field_literal_impossible?(lhs, rhs, operator)
-          elsif rhs.is_a?(FieldRef) && lhs.is_a?(Literal)
+          elsif rhs.is_a?(InputReference) && lhs.is_a?(Literal)
             # Reverse case: literal compared to field
             return field_literal_impossible?(rhs, lhs, flip_operator(operator))
           end
 
-          # Case 2: Binding that evaluates to literal compared against impossible value
-          if lhs.is_a?(Binding) && rhs.is_a?(Literal)
+          # Case 2: DeclarationReference that evaluates to literal compared against impossible value
+          if lhs.is_a?(DeclarationReference) && rhs.is_a?(Literal)
             return binding_literal_impossible?(lhs, rhs, operator)
-          elsif rhs.is_a?(Binding) && lhs.is_a?(Literal)
+          elsif rhs.is_a?(DeclarationReference) && lhs.is_a?(Literal)
             return binding_literal_impossible?(rhs, lhs, flip_operator(operator))
           end
 

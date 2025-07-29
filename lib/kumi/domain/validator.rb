@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "range_analyzer"
-require_relative "enum_analyzer"
-require_relative "violation_formatter"
-
 module Kumi
   module Domain
     class Validator

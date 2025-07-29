@@ -8,18 +8,18 @@ module ASTFactory
   # Dispatch table:  tag symbol → lambda(*args, loc:) → node instance
   NODE = {
     literal: ->(value, loc:) { S::Literal.new(value, loc: loc) },
-    field_ref: ->(name, loc:) { S::FieldRef.new(name, loc: loc) },
-    binding_ref: ->(name, loc:) { S::Binding.new(name, loc: loc) },
-    field_decl: ->(name, domain = nil, type = nil, loc:) { S::FieldDecl.new(name, domain, type, loc: loc) },
+    field_ref: ->(name, loc:) { S::InputReference.new(name, loc: loc) },
+    binding_ref: ->(name, loc:) { S::DeclarationReference.new(name, loc: loc) },
+    field_decl: ->(name, domain = nil, type = nil, loc:) { S::InputDeclaration.new(name, domain, type, loc: loc) },
 
     call_expression: ->(fn_name, *args, loc:) { S::CallExpression.new(fn_name, args, loc: loc) },
 
-    attribute: ->(name, expr, loc:) { S::Attribute.new(name, expr, loc: loc) },
-    trait: ->(name, trait, loc:) { S::Trait.new(name, trait, loc: loc) },
+    attribute: ->(name, expr, loc:) { S::ValueDeclaration.new(name, expr, loc: loc) },
+    trait: ->(name, trait, loc:) { S::TraitDeclaration.new(name, trait, loc: loc) },
 
     cascade_expression: ->(cases, loc:) { S::CascadeExpression.new(cases, loc: loc) },
     when_case_expression: lambda { |trait, then_expr, loc:|
-      S::WhenCaseExpression.new(trait, then_expr, loc: loc)
+      S::CaseExpression.new(trait, then_expr, loc: loc)
     },
 
     # Root and Location are special because they are used in the

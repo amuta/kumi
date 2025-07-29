@@ -20,7 +20,7 @@ module Kumi
 
         # Helper to visit each declaration's expression tree
         # @param errors [Array] Error accumulator
-        # @yield [Syntax::Node, Syntax::Declarations::Base] Each node and its containing declaration
+        # @yield [Syntax::Node, Syntax::Base] Each node and its containing declaration
         def visit_all_expressions(errors)
           each_decl do |decl|
             visit(decl.expression) { |node| yield(node, decl, errors) }
@@ -30,7 +30,7 @@ module Kumi
         # Helper to visit only specific node types
         # @param node_types [Array<Class>] Node types to match
         # @param errors [Array] Error accumulator
-        # @yield [Syntax::Node, Syntax::Declarations::Base] Matching nodes and their declarations
+        # @yield [Syntax::Node, Syntax::Base] Matching nodes and their declarations
         def visit_nodes_of_type(*node_types, errors:)
           visit_all_expressions(errors) do |node, decl, errs|
             yield(node, decl, errs) if node_types.any? { |type| node.is_a?(type) }

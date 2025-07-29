@@ -35,16 +35,16 @@ module Kumi
           case expr
           when Literal
             Types.infer_from_value(expr.value)
-          when FieldRef
+          when InputReference
             # Look up type from field metadata
             input_meta = get_state(:input_meta, required: false) || {}
             meta = input_meta[expr.name]
             meta&.dig(:type) || :any
-          when Binding
+          when DeclarationReference
             type_context[expr.name] || :any
           when CallExpression
             infer_call_type(expr, type_context)
-          when ListExpression
+          when ArrayExpression
             infer_list_type(expr, type_context)
           when CascadeExpression
             infer_cascade_type(expr, type_context)

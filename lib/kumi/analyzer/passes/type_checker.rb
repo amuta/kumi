@@ -9,7 +9,7 @@ module Kumi
       # INTERFACE: new(schema, state).run(errors)
       class TypeChecker < VisitorPass
         def run(errors)
-          visit_nodes_of_type(Expressions::CallExpression, errors: errors) do |node, _decl, errs|
+          visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
             validate_function_call(node, errs)
           end
           state
@@ -67,15 +67,15 @@ module Kumi
 
         def get_expression_type(expr)
           case expr
-          when TerminalExpressions::Literal
+          when Kumi::Syntax::Literal
             # Inferred type from literal value
             Kumi::Types.infer_from_value(expr.value)
 
-          when TerminalExpressions::FieldRef
+          when Kumi::Syntax::InputReference
             # Declared type from input block (user-specified)
             get_declared_field_type(expr.name)
 
-          when TerminalExpressions::Binding
+          when Kumi::Syntax::DeclarationReference
             # Inferred type from type inference results
             get_inferred_declaration_type(expr.name)
 
@@ -101,10 +101,10 @@ module Kumi
 
         def describe_expression_type(expr, type)
           case expr
-          when TerminalExpressions::Literal
+          when Kumi::Syntax::Literal
             "`#{expr.value}` of type #{type} (literal value)"
 
-          when TerminalExpressions::FieldRef
+          when Kumi::Syntax::InputReference
             input_meta = get_state(:input_meta, required: false) || {}
             field_meta = input_meta[expr.name]
 
@@ -117,17 +117,17 @@ module Kumi
               "undeclared input field `#{expr.name}` (inferred as #{type})"
             end
 
-          when TerminalExpressions::Binding
+          when Kumi::Syntax::DeclarationReference
             # This type was inferred from the declaration's expression
             "reference to declaration `#{expr.name}` of inferred type #{type}"
 
-          when Expressions::CallExpression
+          when Kumi::Syntax::CallExpression
             "result of function `#{expr.fn_name}` returning #{type}"
 
-          when Expressions::ListExpression
+          when Kumi::Syntax::ArrayExpression
             "list expression of type #{type}"
 
-          when Expressions::CascadeExpression
+          when Kumi::Syntax::CascadeExpression
             "cascade expression of type #{type}"
 
           else

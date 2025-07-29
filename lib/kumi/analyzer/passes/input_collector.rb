@@ -8,14 +8,13 @@ module Kumi
       # PRODUCES: :input_meta - Hash mapping field names to {type:, domain:} metadata
       # INTERFACE: new(schema, state).run(errors)
       class InputCollector < PassBase
-        include Syntax::TerminalExpressions
 
         def run(errors)
           input_meta = {}
 
           schema.inputs.each do |field_decl|
-            unless field_decl.is_a?(FieldDecl)
-              report_error(errors, "Expected FieldDecl node, got #{field_decl.class}", location: field_decl.loc)
+            unless field_decl.is_a?(Kumi::Syntax::InputDeclaration)
+              report_error(errors, "Expected InputDeclaration node, got #{field_decl.class}", location: field_decl.loc)
               next
             end
 

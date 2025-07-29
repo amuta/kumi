@@ -60,9 +60,17 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 **Syntax Tree** (`lib/kumi/syntax/`):
 - `node.rb` - Base node class with location tracking
 - `root.rb` - Root schema node containing inputs, attributes, and traits
-- `declarations.rb` - Attribute and trait declaration nodes  
-- `expressions.rb` - Expression nodes (calls, lists, cascades)
-- `terminal_expressions.rb` - Terminal nodes (literals, field references, bindings, field declarations)
+- `value_declaration.rb` - Value declaration nodes (formerly Attribute)
+- `trait_declaration.rb` - Trait declaration nodes (formerly Trait)
+- `input_declaration.rb` - Input field declaration nodes (formerly FieldDecl)
+- `call_expression.rb` - Function call expression nodes
+- `array_expression.rb` - Array expression nodes (formerly ListExpression)
+- `hash_expression.rb` - Hash expression nodes (for future hash literals)
+- `cascade_expression.rb` - Cascade expression nodes (conditional values)
+- `case_expression.rb` - Case expression nodes (formerly WhenCaseExpression)
+- `literal.rb` - Literal value nodes
+- `input_reference.rb` - Input field reference nodes (formerly FieldRef)  
+- `declaration_reference.rb` - Declaration reference nodes (formerly Binding)
 
 **Analyzer** (`lib/kumi/analyzer.rb`):
 - Multi-pass analysis system that validates schemas and builds dependency graphs
