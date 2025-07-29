@@ -74,8 +74,6 @@ gem install kumi
 
 ## Core Features
 
-Here's a concise "Key Concepts" section for your README:
-
 ## Key Concepts
 
 Kumi schemas are built from four simple primitives that compose into powerful business logic:
