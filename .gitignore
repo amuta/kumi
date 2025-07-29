@@ -13,6 +13,7 @@
 /TODO.md
 /GUIDELINES.md
 /README_PLAN.md
-/examples/
+/examples/*
 /NOTES.md
 *.gem
+/test_*

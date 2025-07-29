@@ -3,6 +3,7 @@
 !! Remember, this gem is not on production yet, so no backward compatilibity is necessary. But do not change the public interfaces (e.g. DSL, Schema) without explicitly requested or demanded. 
 !! We are using zeitwerk, i.e.: no requires
 !! Do not care about linter or coverage unless asked to do so.
+!! IMPORTANT: Communication style - Write direct, factual statements. Avoid promotional language, unnecessary claims, or marketing speak. State what the system does, not what benefits it provides. Use TODOs for missing information rather than placeholder claims.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
