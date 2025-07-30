@@ -13,7 +13,7 @@ module Kumi
       COMPARISON_OPS = %i[< <= > >= == !=].freeze
 
       LITERAL_TYPES = [
-        Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp
+        Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp, NilClass
       ].freeze
 
       # Collection methods that can be applied to arrays/syntax nodes

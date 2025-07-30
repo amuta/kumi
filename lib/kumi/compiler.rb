@@ -55,11 +55,78 @@ module Kumi
       end
 
       def compile_cascade(expr)
-        pairs = expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
-        lambda do |ctx|
-          pairs.each { |cond, res| return res.call(ctx) if cond.call(ctx) }
-          nil
+        # Check if current declaration is vectorized
+        broadcast_meta = @analysis.state[:broadcast_metadata]
+        is_vectorized = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)
+        
+        
+        # For vectorized cascades, we need to transform conditions that use all?
+        if is_vectorized
+          pairs = expr.cases.map do |c|
+            condition_fn = transform_vectorized_condition(c.condition)
+            result_fn = compile_expr(c.result)
+            [condition_fn, result_fn]
+          end
+        else
+          pairs = expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
         end
+        
+        if is_vectorized
+          lambda do |ctx|
+            # This cascade can be vectorized - check if we actually need to at runtime
+            # Evaluate all conditions and results to check for arrays
+            cond_results = pairs.map { |cond, _res| cond.call(ctx) }
+            res_results = pairs.map { |_cond, res| res.call(ctx) }
+            
+            # Check if any conditions or results are arrays (vectorized)
+            has_vectorized_data = (cond_results + res_results).any? { |v| v.is_a?(Array) }
+            
+            if has_vectorized_data
+              # Apply element-wise cascade evaluation
+              array_length = cond_results.find { |v| v.is_a?(Array) }&.length || 
+                           res_results.find { |v| v.is_a?(Array) }&.length || 1
+              
+              (0...array_length).map do |i|
+                pairs.each_with_index do |(cond, res), pair_idx|
+                  cond_val = cond_results[pair_idx].is_a?(Array) ? cond_results[pair_idx][i] : cond_results[pair_idx]
+                  
+                  if cond_val
+                    res_val = res_results[pair_idx].is_a?(Array) ? res_results[pair_idx][i] : res_results[pair_idx]
+                    break res_val
+                  end
+                end || nil
+              end
+            else
+              # All data is scalar - use regular cascade evaluation
+              pairs.each_with_index do |(cond, res), pair_idx|
+                return res_results[pair_idx] if cond_results[pair_idx]
+              end
+              nil
+            end
+          end
+        else
+          lambda do |ctx|
+            pairs.each { |cond, res| return res.call(ctx) if cond.call(ctx) }
+            nil
+          end
+        end
+      end
+
+      def transform_vectorized_condition(condition_expr)
+        # If this is fn(:all?, [trait_ref]), extract the trait_ref for vectorized cascades
+        if condition_expr.is_a?(Kumi::Syntax::CallExpression) && 
+           condition_expr.fn_name == :all? && 
+           condition_expr.args.length == 1
+          
+          arg = condition_expr.args.first
+          if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
+            trait_ref = arg.elements.first
+            return compile_expr(trait_ref)
+          end
+        end
+        
+        # Otherwise compile normally
+        compile_expr(condition_expr)
       end
     end
 
@@ -123,9 +190,11 @@ module Kumi
     end
 
     def compile_declaration(decl)
+      @current_declaration = decl.name
       kind = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? :trait : :attr
       fn = compile_expr(decl.expression)
       @bindings[decl.name] = [kind, fn]
+      @current_declaration = nil
     end
 
     # Dispatch to the appropriate compile_* method
