@@ -3,32 +3,35 @@
 module ASTFactory
   module_function # expose module-functions only
 
-  S = Kumi::Syntax
+  include Kumi::Syntax
 
   # Dispatch table:  tag symbol → lambda(*args, loc:) → node instance
   NODE = {
-    literal: ->(value, loc:) { S::Literal.new(value, loc: loc) },
-    field_ref: ->(name, loc:) { S::InputReference.new(name, loc: loc) },
-    binding_ref: ->(name, loc:) { S::DeclarationReference.new(name, loc: loc) },
-    field_decl: ->(name, domain = nil, type = nil, loc:) { S::InputDeclaration.new(name, domain, type, loc: loc) },
+    literal: ->(value, loc:) { Literal.new(value, loc: loc) },
+    input_ref: ->(name, loc:) { InputReference.new(name, loc: loc) },
+    declaration_ref: ->(name, loc:) { DeclarationReference.new(name, loc: loc) },
+    input_decl: ->(name, domain = nil, type = nil, loc:) { InputDeclaration.new(name, domain, type, loc: loc) },
 
-    call_expression: ->(fn_name, *args, loc:) { S::CallExpression.new(fn_name, args, loc: loc) },
+    call_expr: ->(fn_name, *args, loc:) { CallExpression.new(fn_name, args, loc: loc) },
 
-    attribute: ->(name, expr, loc:) { S::ValueDeclaration.new(name, expr, loc: loc) },
-    trait: ->(name, trait, loc:) { S::TraitDeclaration.new(name, trait, loc: loc) },
+    value_decl: ->(name, expr, loc:) { ValueDeclaration.new(name, expr, loc: loc) },
+    trait_decl: ->(name, trait, loc:) { TraitDeclaration.new(name, trait, loc: loc) },
 
-    cascade_expression: ->(cases, loc:) { S::CascadeExpression.new(cases, loc: loc) },
-    when_case_expression: lambda { |trait, then_expr, loc:|
-      S::CaseExpression.new(trait, then_expr, loc: loc)
+    cascade_expr: ->(cases, loc:) { CascadeExpression.new(cases, loc: loc) },
+    case_expr: lambda { |trait, then_expr, loc:|
+      CaseExpression.new(trait, then_expr, loc: loc)
     },
+
+    array_expr: ->(elements, loc:) { ArrayExpression.new(elements, loc: loc) },
+    hash_expr: ->(pairs, loc:) { HashExpression.new(pairs, loc: loc) },
 
     # Root and Location are special because they are used in the
     # ASTFactory constructor to build the initial Root.
     # They are not used in the AST itself.
 
-    root: ->(inputs = [], attributes = [], traits = [], loc:) { S::Root.new(inputs, attributes, traits, loc: loc) },
+    root: ->(inputs = [], attributes = [], traits = [], loc:) { Root.new(inputs, attributes, traits, loc: loc) },
 
-    location: ->(file, line, column) { S::Location.new(file: file, line: line, column: column) }
+    location: ->(file, line, column) { Location.new(file: file, line: line, column: column) }
   }.freeze
 
   # Public constructor used in specs
@@ -40,30 +43,35 @@ module ASTFactory
   def loc(off = 0) = syntax(:location, __FILE__, __LINE__ + off)
 
   def attr(name, expr = syntax(:literal, 1, loc: loc))
-    syntax(:attribute, name, expr, loc: loc)
+    syntax(:value_decl, name, expr, loc: loc)
   end
 
   def trait(name, trait)
-    syntax(:trait, name, trait, loc: loc)
+    syntax(:trait_decl, name, trait, loc: loc)
   end
 
-  def binding_ref(name) = syntax(:binding_ref, name, loc: loc)
+  def binding_ref(name) = syntax(:declaration_ref, name, loc: loc)
   alias ref binding_ref
+  alias declaration_ref binding_ref
 
-  def call(fn_name, *args) = syntax(:call_expression, fn_name, *args, loc: loc)
+  def call(fn_name, *args) = syntax(:call_expr, fn_name, *args, loc: loc)
 
   def lit(value) = syntax(:literal, value, loc: loc)
 
-  def field_ref(name) = syntax(:field_ref, name, loc: loc)
-  def field_decl(name, domain = nil, type = nil) = syntax(:field_decl, name, domain, type, loc: loc)
+  def field_ref(name) = syntax(:input_ref, name, loc: loc)
+  alias input_ref field_ref
+
+  def field_decl(name, domain = nil, type = nil) = syntax(:input_decl, name, domain, type, loc: loc)
+  alias input_decl field_decl
   #
   # def Root(attrs = [], traits = [])
   #   # syntax(:Root, attrs, traits, loc: loc)
   # end
 
   def when_case_expression(trait, then_expr)
-    syntax(:when_case_expression, trait, then_expr, loc: loc)
+    syntax(:case_expr, trait, then_expr, loc: loc)
   end
+  alias case_expr when_case_expression
 
   # Dependency graph factory methods for analyzer pass tests
   def dependency_edge(to:, type: :ref, via: nil)

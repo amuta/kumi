@@ -26,10 +26,10 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
 
     context "with valid traits" do
       let(:schema) do
-        valid_trait = trait(:expensive, call(:>, field_ref(:price), lit(100)))
+        valid_trait = trait(:expensive, call(:>, input_ref(:price), lit(100)))
         valid_trait_complex = trait(:eligible, call(:and,
-                                                    call(:>, field_ref(:age), lit(18)),
-                                                    call(:==, field_ref(:verified), lit(true))))
+                                                    call(:>, input_ref(:age), lit(18)),
+                                                    call(:==, input_ref(:verified), lit(true))))
         syntax(:root, [], [], [valid_trait, valid_trait_complex], loc: loc)
       end
 
@@ -42,7 +42,7 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
     context "with attribute missing expression" do
       let(:schema) do
         # Create an attribute with nil expression
-        invalid_attr = syntax(:attribute, :broken, nil, loc: loc)
+        invalid_attr = syntax(:value_decl, :broken, nil, loc: loc)
         syntax(:root, [], [invalid_attr], [], loc: loc)
       end
 
@@ -72,7 +72,7 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
     context "with trait containing field reference" do
       let(:schema) do
         # Trait with field reference instead of call expression
-        invalid_trait = trait(:bad_trait, field_ref(:some_field))
+        invalid_trait = trait(:bad_trait, input_ref(:some_field))
         syntax(:root, [], [], [invalid_trait], loc: loc)
       end
 
@@ -101,9 +101,9 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
 
     context "with multiple validation errors" do
       let(:schema) do
-        broken_attr = syntax(:attribute, :broken_attr, nil, loc: loc)
+        broken_attr = syntax(:value_decl, :broken_attr, nil, loc: loc)
         broken_trait = trait(:broken_trait, lit(false))
-        another_broken_trait = trait(:another_broken, field_ref(:field))
+        another_broken_trait = trait(:another_broken, input_ref(:field))
 
         syntax(:root, [], [broken_attr], [broken_trait, another_broken_trait], loc: loc)
       end
@@ -124,7 +124,7 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
       let(:schema) do
         # Attributes can have any expression type, not just calls
         literal_attr = attr(:literal, lit(42))
-        field_attr = attr(:field, field_ref(:user_input))
+        field_attr = attr(:field, input_ref(:user_input))
         ref_attr = attr(:ref, ref(:other_value))
         call_attr = attr(:call, call(:add, lit(1), lit(2)))
 
@@ -140,10 +140,10 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
     context "with cascade expressions in attributes" do
       let(:schema) do
         # Create a cascade expression manually since the block syntax doesn't work in tests
-        case1 = when_case_expression(call(:>, field_ref(:amount), lit(1000)), lit(0.2))
-        case2 = when_case_expression(call(:>, field_ref(:amount), lit(500)), lit(0.1))
+        case1 = when_case_expression(call(:>, input_ref(:amount), lit(1000)), lit(0.2))
+        case2 = when_case_expression(call(:>, input_ref(:amount), lit(500)), lit(0.1))
         default_case = when_case_expression(lit(true), lit(0.05))
-        cascade_expr = syntax(:cascade_expression, [case1, case2, default_case], loc: loc)
+        cascade_expr = syntax(:cascade_expr, [case1, case2, default_case], loc: loc)
 
         cascade_attr = attr(:discount, cascade_expr)
         syntax(:root, [], [cascade_attr], [], loc: loc)
@@ -160,9 +160,9 @@ RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
         # Test that validator traverses nested structures correctly
         complex_attr = attr(:complex, call(:if,
                                            call(:and,
-                                                call(:>, field_ref(:price), lit(0)),
-                                                call(:<=, field_ref(:price), lit(1000))),
-                                           call(:multiply, field_ref(:price), lit(1.2)),
+                                                call(:>, input_ref(:price), lit(0)),
+                                                call(:<=, input_ref(:price), lit(1000))),
+                                           call(:multiply, input_ref(:price), lit(1.2)),
                                            lit(0)))
 
         syntax(:root, [], [complex_attr], [], loc: loc)

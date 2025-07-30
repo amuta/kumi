@@ -181,7 +181,7 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
         case1 = when_case_expression(call(:>, ref(:price), lit(1000)), lit(0.2))
         case2 = when_case_expression(call(:>, ref(:price), lit(500)), lit(0.1))
         default_case = when_case_expression(lit(true), lit(0.05))
-        cascade_expr = syntax(:cascade_expression, [case1, case2, default_case], loc: loc)
+        cascade_expr = syntax(:cascade_expr, [case1, case2, default_case], loc: loc)
 
         cascade = attr(:discount_rate, cascade_expr)
         syntax(:root, [], [cascade], [], loc: loc)

@@ -13,7 +13,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
   describe "#run" do
     context "with valid trait expressions" do
       let(:schema) do
-        valid_trait = trait(:adult, call(:>=, field_ref(:age), lit(18)))
+        valid_trait = trait(:adult, call(:>=, input_ref(:age), lit(18)))
         syntax(:root, [], [], [valid_trait], loc: loc)
       end
 
@@ -38,7 +38,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with valid cascade conditions" do
       let(:schema) do
-        cascade_attr = attr(:grade, syntax(:cascade_expression, [
+        cascade_attr = attr(:grade, syntax(:cascade_expr, [
           when_case_expression(binding_ref(:high_performer), lit("A"))
         ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
@@ -52,7 +52,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with valid cascade condition - literal" do
       let(:schema) do
-        cascade_attr = attr(:grade, syntax(:cascade_expression, [
+        cascade_attr = attr(:grade, syntax(:cascade_expr, [
           when_case_expression(lit(true), lit("A"))
         ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
@@ -66,8 +66,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with valid cascade condition - function call" do
       let(:schema) do
-        cascade_attr = attr(:grade, syntax(:cascade_expression, [
-          when_case_expression(call(:>=, field_ref(:score), lit(90)), lit("A"))
+        cascade_attr = attr(:grade, syntax(:cascade_expr, [
+          when_case_expression(call(:>=, input_ref(:score), lit(90)), lit("A"))
         ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
@@ -81,7 +81,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with valid boolean trait composition in cascade" do
       let(:schema) do
         # Create a simple cascade with just binding refs for now
-        cascade_attr = attr(:grade, syntax(:cascade_expression, [
+        cascade_attr = attr(:grade, syntax(:cascade_expr, [
           when_case_expression(binding_ref(:high_performer), lit("A+"))
         ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
@@ -95,7 +95,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with valid function calls" do
       let(:schema) do
-        calc_attr = attr(:total, call(:add, field_ref(:a), field_ref(:b)))
+        calc_attr = attr(:total, call(:add, input_ref(:a), input_ref(:b)))
         syntax(:root, [], [calc_attr], [], loc: loc)
       end
 
@@ -107,7 +107,7 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with invalid function calls" do
       let(:schema) do
-        invalid_attr = attr(:result, call(:unknown_function, field_ref(:input)))
+        invalid_attr = attr(:result, call(:unknown_function, input_ref(:input)))
         syntax(:root, [], [invalid_attr], [], loc: loc)
       end
 
@@ -120,8 +120,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with invalid cascade condition - field reference without comparison" do
       let(:schema) do
-        cascade_attr = attr(:grade, syntax(:cascade_expression, [
-          when_case_expression(field_ref(:score), lit("A"))  # Naked field ref - should be rejected
+        cascade_attr = attr(:grade, syntax(:cascade_expr, [
+          when_case_expression(input_ref(:score), lit("A"))  # Naked field ref - should be rejected
         ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
@@ -135,11 +135,11 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
 
     context "with multiple semantic errors" do
       let(:schema) do
-        bad_cascade = attr(:grade, syntax(:cascade_expression, [
-          when_case_expression(field_ref(:score), lit("A"))  # Naked field ref
+        bad_cascade = attr(:grade, syntax(:cascade_expr, [
+          when_case_expression(input_ref(:score), lit("A"))  # Naked field ref
         ], loc: loc))
         bad_function = attr(:result, call(:nonexistent_fn))
-        bad_trait = trait(:bad_trait, field_ref(:some_field))
+        bad_trait = trait(:bad_trait, input_ref(:some_field))
         
         syntax(:root, [], [bad_cascade, bad_function], [bad_trait], loc: loc)
       end
