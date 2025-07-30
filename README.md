@@ -112,7 +112,7 @@ end
 value :final_price, [subtotal - discount_amount, 0].max
 value :monthly_payment, fn(:pmt, rate: 0.05/12, nper: 36, pv: -loan_amount)
 ```
-Note: You can find a list all core functions [FUNCTIONS.md](documents/FUNCTIONS.md)
+Note: You can find a list all core functions [FUNCTIONS.md](docs/FUNCTIONS.md)
 
 
 These primitives are statically analyzed during schema definition, catching logical errors before runtime and ensuring your business rules are internally consistent.
@@ -265,7 +265,7 @@ Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 
 ## Learn More
 
-- [DSL Syntax Reference](documents/SYNTAX.md)
+- [DSL Syntax Reference](docs/SYNTAX.md)
 - [Examples](examples/)/
 
 ## Contributing

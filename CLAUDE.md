@@ -271,12 +271,13 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 7. `lib/kumi/analyzer/passes/type_checker.rb` - Type validation with enhanced error messages
 8. `spec/kumi/input_block_spec.rb` - Input block syntax and behavior
 9. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
-10. `documents/DSL.md` - Concise DSL syntax reference
-11. `documents/AST.md` - AST node types and structure reference
-12. `documents/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
+10. `docs/DSL.md` - Concise DSL syntax reference
+11. `docs/AST.md` - AST node types and structure reference
+12. `docs/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
 13. `lib/kumi/cli.rb` - CLI implementation with REPL and file execution
 14. `examples/simple_tax_schema.rb` - CLI-compatible schema example
 15. `docs/features/analysis-cascade-mutual-exclusion.md` - Cascade mutual exclusion detection feature documentation
+16. `docs/features/array-broadcasting.md` - Array broadcasting and vectorization system documentation
 
 ## CLI Usage and Best Practices
 
@@ -356,6 +357,39 @@ input do
   any          :misc
 end
 ```
+
+### Array Broadcasting System
+
+**Automatic Vectorization**: Field access on array inputs (`input.items.price`) applies operations element-wise with intelligent map/reduce detection.
+
+**Basic Broadcasting**:
+```ruby
+input do
+  array :line_items do
+    float   :price
+    integer :quantity  
+    string  :category
+  end
+end
+
+# Element-wise computation - broadcasts over each item
+value :subtotals, input.line_items.price * input.line_items.quantity
+trait :is_taxable, (input.line_items.category != "digital")
+```
+
+**Aggregation Operations**: Functions consuming arrays automatically detected:
+```ruby
+value :total_subtotal, fn(:sum, subtotals)
+value :avg_price, fn(:avg, input.line_items.price)
+value :max_quantity, fn(:max, input.line_items.quantity)
+```
+
+**Implementation Components**:
+- **InputElementReference** AST nodes for nested field access paths
+- **BroadcastDetector** analyzer pass identifies vectorized vs scalar operations  
+- **Compiler** generates appropriate map/reduce functions based on usage context
+- **Type Inference** automatically infers types for array element operations
+- Supports arbitrary depth field access with nested arrays and hashes
 
 ### Trait Syntax Evolution
 

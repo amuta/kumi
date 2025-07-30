@@ -10,6 +10,7 @@ This document provides a comprehensive comparison of Kumi's DSL syntax showing b
 - [Trait Declarations](#trait-declarations)
 - [Expressions](#expressions)
 - [Functions](#functions)
+- [Array Broadcasting](#array-broadcasting)
 - [Cascade Logic](#cascade-logic)
 - [References](#references)
 
@@ -187,7 +188,7 @@ value :sorted_scores, fn(:sort, input.score_array)
 
 ### Built-in Functions Available
 
-See [FUNCTIONS.md](documents/FUNCTIONS.md)
+See [FUNCTIONS.md](FUNCTIONS.md)
 
 | Category | Sugar | Sugar-Free |
 |----------|-------|------------|
@@ -209,6 +210,97 @@ value :formatted_name, input.first_name + " " + input.last_name
 value :clamped_score, fn(:clamp, input.raw_score, 0, 1600)
 value :formatted_name, fn(:add, fn(:add, input.first_name, " "), input.last_name)
 ```
+
+## Array Broadcasting
+
+Array broadcasting enables element-wise operations on array fields with automatic vectorization.
+
+### Array Input Declarations
+
+```ruby
+input do
+  array :line_items do
+    float   :price
+    integer :quantity
+    string  :category
+  end
+  
+  array :orders do
+    array :items do
+      hash :product do
+        string :name
+        float  :base_price
+      end
+      integer :quantity
+    end
+  end
+end
+```
+
+### Element-wise Operations
+
+```ruby
+# With Sugar - Automatic Broadcasting
+value :subtotals, input.line_items.price * input.line_items.quantity
+trait :is_taxable, (input.line_items.category != "digital")
+value :discounted_prices, input.line_items.price * 0.9
+
+# Sugar-Free - Explicit Broadcasting  
+value :subtotals, fn(:multiply, input.line_items.price, input.line_items.quantity)
+trait :is_taxable, fn(:!=, input.line_items.category, "digital")
+value :discounted_prices, fn(:multiply, input.line_items.price, 0.9)
+```
+
+### Aggregation Operations
+
+```ruby
+# With Sugar - Automatic Aggregation Detection
+value :total_subtotal, fn(:sum, subtotals)
+value :avg_price, fn(:avg, input.line_items.price)
+value :max_quantity, fn(:max, input.line_items.quantity)
+value :item_count, fn(:size, input.line_items)
+
+# Sugar-Free - Same Syntax
+value :total_subtotal, fn(:sum, subtotals)
+value :avg_price, fn(:avg, input.line_items.price)
+value :max_quantity, fn(:max, input.line_items.quantity)
+value :item_count, fn(:size, input.line_items)
+```
+
+### Nested Array Access
+
+```ruby
+# With Sugar - Deep Field Access
+value :all_product_names, input.orders.items.product.name
+value :total_values, input.orders.items.product.base_price * input.orders.items.quantity
+
+# Sugar-Free - Same Deep Access
+value :all_product_names, input.orders.items.product.name
+value :total_values, fn(:multiply, input.orders.items.product.base_price, input.orders.items.quantity)
+```
+
+### Mixed Operations
+
+```ruby
+# With Sugar - Element-wise then Aggregation
+value :line_totals, input.items.price * input.items.quantity
+value :order_total, fn(:sum, line_totals)
+value :avg_line_total, fn(:avg, line_totals)
+trait :has_expensive, fn(:any?, expensive_items)
+
+# Sugar-Free - Same Pattern
+value :line_totals, fn(:multiply, input.items.price, input.items.quantity)
+value :order_total, fn(:sum, line_totals)
+value :avg_line_total, fn(:avg, line_totals)
+trait :has_expensive, fn(:any?, expensive_items)
+```
+
+### Broadcasting Type Inference
+
+The type system automatically infers appropriate types:
+- `input.items.price` (float array) → inferred as `:float` per element
+- `input.items.price * input.items.quantity` → element-wise `:float` result
+- `fn(:sum, input.items.price)` → scalar `:float` result
 
 ## Cascade Logic
 
