@@ -3,8 +3,8 @@
 module Kumi
   module Analyzer
     module Passes
-      # RESPONSIBILITY: Compute topological ordering of declarations from dependency graph
-      # DEPENDENCIES: :dependency_graph from DependencyResolver, :definitions from NameIndexer
+      # RESPONSIBILITY: Compute topological ordering of declarations, allowing safe conditional cycles
+      # DEPENDENCIES: :dependency_graph from DependencyResolver, :definitions from NameIndexer, :cascade_metadata from UnsatDetector
       # PRODUCES: :topo_order - Array of declaration names in evaluation order
       # INTERFACE: new(schema, state).run(errors)
       class Toposorter < PassBase
@@ -22,17 +22,26 @@ module Kumi
           temp_marks = Set.new
           perm_marks = Set.new
           order = []
+          cascade_metadata = get_state(:cascade_metadata) || {}
 
-          visit_node = lambda do |node|
+          visit_node = lambda do |node, path = []|
             return if perm_marks.include?(node)
 
             if temp_marks.include?(node)
-              report_unexpected_cycle(temp_marks, node, errors)
-              return
+              # Check if this is a safe conditional cycle
+              cycle_path = path + [node]
+              if safe_conditional_cycle?(cycle_path, graph, cascade_metadata)
+                # Allow this cycle - it's safe due to cascade mutual exclusion
+                return
+              else
+                report_unexpected_cycle(temp_marks, node, errors)
+                return
+              end
             end
 
             temp_marks << node
-            Array(graph[node]).each { |edge| visit_node.call(edge.to) }
+            current_path = path + [node]
+            Array(graph[node]).each { |edge| visit_node.call(edge.to, current_path) }
             temp_marks.delete(node)
             perm_marks << node
 
@@ -48,6 +57,33 @@ module Kumi
           definitions.each_key { |node| visit_node.call(node) }
 
           order.freeze
+        end
+
+        def safe_conditional_cycle?(cycle_path, graph, cascade_metadata)
+          return false if cycle_path.nil? || cycle_path.size < 2
+          
+          # Find where the cycle starts - look for the first occurrence of the repeated node
+          last_node = cycle_path.last
+          return false if last_node.nil?
+          
+          cycle_start = cycle_path.index(last_node)
+          return false unless cycle_start && cycle_start < cycle_path.size - 1
+          
+          cycle_nodes = cycle_path[cycle_start..-1]
+          
+          # Check if all edges in the cycle are conditional
+          cycle_nodes.each_cons(2) do |from, to|
+            edges = graph[from] || []
+            edge = edges.find { |e| e.to == to }
+            
+            return false unless edge&.conditional
+            
+            # Check if the cascade has mutually exclusive conditions
+            cascade_meta = cascade_metadata[edge.cascade_owner]
+            return false unless cascade_meta&.dig(:all_mutually_exclusive)
+          end
+          
+          true
         end
 
         def report_unexpected_cycle(temp_marks, current_node, errors)

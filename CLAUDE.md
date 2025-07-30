@@ -244,6 +244,7 @@ end
 The `examples/` directory contains comprehensive examples showing Kumi usage patterns:
 - `cascade_demonstration.rb` - Demonstrates cascade logic with UnsatDetector fixes (working)
 - `working_comprehensive_schema.rb` - Complete feature showcase (current best practices, working)
+- Mathematical predicate examples - Safe mutual recursion patterns using cascade mutual exclusion
 - `federal_tax_calculator_2024.rb` - Real-world tax calculation example (working)
 - `tax_2024.rb` - Simple tax example with explain functionality (working)
 - `wide_schema_compilation_and_evaluation_benchmark.rb` - Performance benchmark for wide schemas (compilation and evaluation scaling)
@@ -275,6 +276,7 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 12. `documents/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
 13. `lib/kumi/cli.rb` - CLI implementation with REPL and file execution
 14. `examples/simple_tax_schema.rb` - CLI-compatible schema example
+15. `docs/features/analysis-cascade-mutual-exclusion.md` - Cascade mutual exclusion detection feature documentation
 
 ## CLI Usage and Best Practices
 

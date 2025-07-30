@@ -9,6 +9,13 @@ Analyzes rule combinations to detect logical impossibilities across dependency c
 - Validates domain constraints
 - Reports multiple errors
 
+### [Cascade Mutual Exclusion](analysis-cascade-mutual-exclusion.md)
+Enables safe mutual recursion when cascade conditions are mutually exclusive.
+
+- Allows mathematically sound recursive patterns
+- Detects mutually exclusive conditions
+- Prevents unsafe cycles while enabling safe ones
+
 ### [Type Inference](analysis-type-inference.md)  
 Determines types from expressions and propagates them through dependencies.
 
@@ -33,5 +40,6 @@ Processes large schemas with optimized algorithms.
 ## Integration
 
 - Type inference uses input declarations
-- Mathematical reasoning uses type information for validation
+- Unsatisfiability detection uses type information for validation
+- Cascade mutual exclusion integrates with dependency analysis and cycle detection
 - Performance optimizations apply to all analysis passes

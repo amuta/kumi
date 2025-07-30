@@ -209,7 +209,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         error = expect_semantic_error do
           schema do
             input { any :condition }
-            trait :flag, (input.condition == true)
+            trait :flag, input.condition, :==, true
             value :a do
               on flag, ref(:b)
               base "default"

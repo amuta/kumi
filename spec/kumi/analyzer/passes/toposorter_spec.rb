@@ -7,7 +7,8 @@ RSpec.describe Kumi::Analyzer::Passes::Toposorter do
     graph = dependency_graph(**graph_spec)
     state = Kumi::Analyzer::AnalysisState.new(
       dependency_graph: graph,
-      definitions: graph_spec.keys.to_h { |k| [k, true] }
+      definitions: graph_spec.keys.to_h { |k| [k, true] },
+      cascade_metadata: {}
     )
     result_state = described_class.new(nil, state).run([])
     result_state[:topo_order]

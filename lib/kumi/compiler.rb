@@ -15,8 +15,12 @@ module Kumi
       end
 
       def compile_binding_node(expr)
-        fn = @bindings[expr.name].last
-        ->(ctx) { fn.call(ctx) }
+        name = expr.name
+        # Handle forward references in cycles by deferring binding lookup to runtime
+        ->(ctx) do
+          fn = @bindings[name].last
+          fn.call(ctx)
+        end
       end
 
       def compile_list(expr)

@@ -179,6 +179,40 @@ end
 # => conjunction `capped_senior AND uncapped_veteran` is impossible
 ```
 
+Kumi also enables safe recursive patterns when conditions are mutually exclusive:
+
+```ruby
+module MathematicalPredicates
+  extend Kumi::Schema
+  
+  schema do
+    input do
+      integer :n
+    end
+
+    trait :n_is_zero, input.n, :==, 0
+    trait :n_is_one, input.n, :==, 1
+
+    value :is_even do
+      on n_is_zero, true
+      on n_is_one, false
+      base fn(:not, is_odd)  # Safe mutual recursion
+    end
+
+    value :is_odd do
+      on n_is_zero, false  
+      on n_is_one, true
+      base fn(:not, is_even)  # Safe mutual recursion
+    end
+  end
+end
+
+# Compiles successfully - conditions are mutually exclusive
+runner = MathematicalPredicates.from(n: 0)
+runner[:is_even]  # => true
+runner[:is_odd]   # => false
+```
+
 ### Automatic Memoization
 
 Each value is computed exactly once:

@@ -3,6 +3,10 @@
 module Kumi
   module Analyzer
     module Passes
+      # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
+      # DEPENDENCIES: :definitions from NameIndexer, :input_meta from InputCollector
+      # PRODUCES: :cascade_metadata - Hash of cascade mutual exclusion analysis results
+      # INTERFACE: new(schema, state).run(errors)
       class UnsatDetector < VisitorPass
         include Syntax
 
@@ -15,6 +19,17 @@ module Kumi
           @definitions = definitions
           @evaluator = ConstantEvaluator.new(definitions)
 
+          # First pass: analyze cascade conditions for mutual exclusion
+          cascade_metadata = {}
+          each_decl do |decl|
+            if decl.expression.is_a?(CascadeExpression)
+              cascade_metadata[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions)
+            end
+          end
+
+          # Store cascade metadata for later passes
+
+          # Second pass: check for unsatisfiable constraints
           each_decl do |decl|
             if decl.expression.is_a?(CascadeExpression)
               # Special handling for cascade expressions
@@ -40,10 +55,95 @@ module Kumi
               end
             end
           end
-          state
+          state.with(:cascade_metadata, cascade_metadata)
         end
 
         private
+
+        def analyze_cascade_mutual_exclusion(decl, definitions)
+          conditions = []
+          condition_traits = []
+          
+          # Extract all cascade conditions (except base case)
+          decl.expression.cases[0...-1].each do |when_case|
+            next unless when_case.condition
+            
+            if when_case.condition.is_a?(DeclarationReference)
+              trait_name = when_case.condition.name
+              trait = definitions[trait_name]
+              if trait
+                conditions << trait.expression
+                condition_traits << trait_name
+              end
+            elsif when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+              # Cascade condition like `on n_is_zero, true` becomes `all?([n_is_zero])`
+              when_case.condition.args.each do |arg|
+                if arg.is_a?(ArrayExpression)
+                  arg.elements.each do |element|
+                    if element.is_a?(DeclarationReference)
+                      trait_name = element.name
+                      trait = definitions[trait_name]
+                      if trait
+                        conditions << trait.expression
+                        condition_traits << trait_name
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+          
+          # Check mutual exclusion for all pairs
+          total_pairs = conditions.size * (conditions.size - 1) / 2
+          exclusive_pairs = 0
+          
+          if conditions.size >= 2
+            conditions.combination(2).each do |cond1, cond2|
+              if conditions_mutually_exclusive?(cond1, cond2)
+                exclusive_pairs += 1
+              end
+            end
+          end
+          
+          all_mutually_exclusive = (total_pairs > 0) && (exclusive_pairs == total_pairs)
+          
+          {
+            condition_traits: condition_traits,
+            condition_count: conditions.size,
+            all_mutually_exclusive: all_mutually_exclusive,
+            exclusive_pairs: exclusive_pairs,
+            total_pairs: total_pairs
+          }
+        end
+        
+        def conditions_mutually_exclusive?(cond1, cond2)
+          # Simple case: both are equality comparisons on the same field
+          if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
+             cond2.is_a?(CallExpression) && cond2.fn_name == :==
+            
+            c1_field, c1_value = cond1.args
+            c2_field, c2_value = cond2.args
+            
+            # Same field, different values = mutually exclusive
+            if same_field?(c1_field, c2_field) && different_values?(c1_value, c2_value)
+              return true
+            end
+          end
+          
+          false
+        end
+        
+        def same_field?(field1, field2)
+          return false unless field1.is_a?(InputReference) && field2.is_a?(InputReference)
+          field1.name == field2.name
+        end
+        
+        def different_values?(val1, val2)
+          return false unless val1.is_a?(Literal) && val2.is_a?(Literal)
+          val1.value != val2.value
+        end
+        
 
         def check_or_expression(or_expr, definitions, errors)
           # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
