@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::DefinitionValidator do
+RSpec.describe Kumi::Analyzer::Passes::DeclarationValidator do
   include ASTFactory
 
   let(:state) { Kumi::Analyzer::AnalysisState.new }

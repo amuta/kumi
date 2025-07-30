@@ -9,7 +9,7 @@ module Kumi
     DEFAULT_PASSES = [
       Passes::NameIndexer,                # 1. Finds all names and checks for duplicates.
       Passes::InputCollector,             # 2. Collects field metadata from input declarations.
-      Passes::DefinitionValidator,        # 3. Checks the basic structure of each rule.
+      Passes::DeclarationValidator,        # 3. Checks the basic structure of each rule.
       Passes::SemanticConstraintValidator, # 4. Validates DSL semantic constraints at AST level.
       Passes::DependencyResolver,         # 5. Builds the dependency graph with conditional dependencies.
       Passes::UnsatDetector,              # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.

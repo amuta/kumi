@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Infer types for all declarations based on expression analysis
-      # DEPENDENCIES: Toposorter (needs topo_order), DefinitionValidator (needs definitions)
+      # DEPENDENCIES: Toposorter (needs topo_order), DeclarationValidator (needs definitions)
       # PRODUCES: decl_types hash mapping declaration names to inferred types
       # INTERFACE: new(schema, state).run(errors)
       class TypeInferencer < PassBase

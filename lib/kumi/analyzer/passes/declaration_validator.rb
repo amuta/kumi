@@ -7,7 +7,7 @@ module Kumi
       # DEPENDENCIES: :definitions
       # PRODUCES: None (validation only)
       # INTERFACE: new(schema, state).run(errors)
-      class DefinitionValidator < VisitorPass
+      class DeclarationValidator < VisitorPass
         def run(errors)
           each_decl do |decl|
             visit(decl) { |node| validate_node(node, errors) }
