@@ -8,8 +8,8 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
   it "preserves all analyzer results for simple schema" do
     # Build a simple but complete schema
     inputs = [
-      field_decl(:name, nil, :string),
-      field_decl(:age, nil, :integer)
+      input_decl(:name, :string),
+      input_decl(:age, :integer)
     ]
 
     attributes = [
@@ -56,7 +56,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
 
   it "enables compilation of imported schemas" do
     # Build schema with dependencies
-    inputs = [field_decl(:base_price, nil, :float)]
+    inputs = [input_decl(:base_price, :float)]
 
     attributes = [
       attr(:discount, call(:multiply, field_ref(:base_price), lit(0.1))),
@@ -88,8 +88,8 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
   it "preserves complex nested expressions" do
     # Build schema with complex nesting
     inputs = [
-      field_decl(:scores, nil, { array: :float }),
-      field_decl(:threshold, nil, :float)
+      input_decl(:scores, { array: :float }),
+      input_decl(:threshold, :float)
     ]
 
     attributes = [

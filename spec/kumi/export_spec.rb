@@ -8,7 +8,7 @@ RSpec.describe Kumi::Export do
   describe ".to_json" do
     it "exports a simple schema to JSON" do
       # Build a simple schema AST
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       attributes = [attr(:greeting, field_ref(:name))]
       traits = []
 
@@ -21,7 +21,7 @@ RSpec.describe Kumi::Export do
     end
 
     it "exports with pretty formatting when requested" do
-      inputs = [field_decl(:age, type: :integer)]
+      inputs = [input_decl(:age, :integer)]
       attributes = []
       traits = [trait(:adult, call(:>=, field_ref(:age), lit(18)))]
 
@@ -37,7 +37,7 @@ RSpec.describe Kumi::Export do
   describe ".from_json" do
     it "imports a simple schema from JSON" do
       # Create original AST
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       attributes = [attr(:greeting, field_ref(:name))]
       traits = []
 
@@ -58,8 +58,8 @@ RSpec.describe Kumi::Export do
     it "preserves simple schemas" do
       # Build a simple but complete schema
       inputs = [
-        field_decl(:name, type: :string),
-        field_decl(:age, type: :integer)
+        input_decl(:name, :string),
+        input_decl(:age, :integer)
       ]
 
       attributes = [
@@ -90,7 +90,7 @@ RSpec.describe Kumi::Export do
 
   describe ".to_file" do
     it "writes schema to file" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       syntax_root = syntax(:root, inputs, [], [])
 
       Dir.mktmpdir do |dir|
@@ -104,7 +104,7 @@ RSpec.describe Kumi::Export do
     end
 
     it "writes pretty formatted JSON when requested" do
-      inputs = [field_decl(:age, type: :integer)]
+      inputs = [input_decl(:age, :integer)]
       syntax_root = syntax(:root, inputs, [], [])
 
       Dir.mktmpdir do |dir|
@@ -121,7 +121,7 @@ RSpec.describe Kumi::Export do
 
   describe ".from_file" do
     it "reads schema from file" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       attributes = [attr(:greeting, field_ref(:name))]
       original_ast = syntax(:root, inputs, attributes, [])
 
@@ -147,7 +147,7 @@ RSpec.describe Kumi::Export do
 
   describe "serializer options" do
     it "exports with location information when requested" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       syntax_root = syntax(:root, inputs, [], [])
 
       json_string = described_class.to_json(syntax_root, include_locations: true)
@@ -159,7 +159,7 @@ RSpec.describe Kumi::Export do
     end
 
     it "exports compact JSON by default" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       syntax_root = syntax(:root, inputs, [], [])
 
       json_string = described_class.to_json(syntax_root)
@@ -179,7 +179,7 @@ RSpec.describe Kumi::Export do
     end
 
     it "skips validation when requested" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       syntax_root = syntax(:root, inputs, [], [])
 
       json_string = described_class.to_json(syntax_root)
@@ -209,7 +209,7 @@ RSpec.describe Kumi::Export do
     end
 
     it "handles file write errors gracefully" do
-      inputs = [field_decl(:name, type: :string)]
+      inputs = [input_decl(:name, :string)]
       syntax_root = syntax(:root, inputs, [], [])
 
       expect do
@@ -226,7 +226,7 @@ RSpec.describe Kumi::Export do
 
   describe ".valid?" do
     it "returns true for valid JSON" do
-      inputs = [field_decl(:test, type: :string)]
+      inputs = [input_decl(:test, :string)]
       syntax_root = syntax(:root, inputs, [], [])
       json_string = described_class.to_json(syntax_root)
 

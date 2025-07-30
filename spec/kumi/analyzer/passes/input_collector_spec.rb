@@ -3,12 +3,13 @@
 RSpec.describe Kumi::Analyzer::Passes::InputCollector do
   include ASTFactory
 
+  let(:state) { Kumi::Analyzer::AnalysisState.new }
+
   describe ".run" do
     context "when the schema has no inputs" do
       let(:schema) { syntax(:root, [], [], [], loc: loc) }
 
       it "leaves the input_meta empty and records no errors" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -23,7 +24,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [age_field, name_field], [], [], loc: loc) }
 
       it "stores metadata for each field and reports zero errors" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -42,7 +42,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [age_field, status_field, custom_field], [], [], loc: loc) }
 
       it "stores domain metadata and validates domain types" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -59,7 +58,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [bad_field], [], [], loc: loc) }
 
       it "reports an error for invalid domain constraint" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         described_class.new(schema, state).run(errors)
 
@@ -75,7 +73,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field1, field2], [], [], loc: loc) }
 
       it "merges without error since metadata matches" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -90,7 +87,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field1, field2], [], [], loc: loc) }
 
       it "reports a type conflict error" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         described_class.new(schema, state).run(errors)
 
@@ -105,7 +101,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field1, field2], [], [], loc: loc) }
 
       it "reports a domain conflict error" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         described_class.new(schema, state).run(errors)
 
@@ -120,7 +115,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field1, field2], [], [], loc: loc) }
 
       it "merges non-nil values without conflict" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -135,7 +129,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [bad_node, good_field], [], [], loc: loc) }
 
       it "reports an error for unexpected node type" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -153,7 +146,6 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field1, field2, field3], [], [], loc: loc) }
 
       it "reports errors for each invalid domain" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
@@ -170,11 +162,54 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       let(:schema) { syntax(:root, [field], [], [], loc: loc) }
 
       it "returns a frozen input_meta hash" do
-        state = Kumi::Analyzer::AnalysisState.new
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
         expect(result_state[:input_meta]).to be_frozen
+      end
+    end
+
+    context "with nested input declarations for vectorized arrays" do
+      let(:schema) do
+        inputs = [
+          input_decl(:user_name, :string),
+          input_decl(:line_items, :array, children: [
+                       input_decl(:item_name, :string),
+                       input_decl(:quantity, :integer),
+                       input_decl(:tags, :array, children: [
+                                    input_decl(:tag_name, :string)
+                                  ])
+                     ])
+        ]
+        syntax(:root, inputs, [], [], loc: loc)
+      end
+
+      it "builds a nested metadata hash that mirrors the AST structure" do
+        errors = []
+        result_state = described_class.new(schema, state).run(errors)
+        input_meta = result_state[:input_meta]
+
+        expect(errors).to be_empty
+        expect(input_meta.keys).to contain_exactly(:user_name, :line_items)
+        expect(input_meta[:user_name]).to eq({ type: :string, domain: nil })
+
+        # Verify the nested structure for line_items
+        line_items_meta = input_meta[:line_items]
+        expect(line_items_meta[:type]).to eq(:array)
+        expect(line_items_meta).to have_key(:children)
+
+        # Verify the children of the line_items elements
+        item_children = line_items_meta[:children]
+        expect(item_children.keys).to contain_exactly(:item_name, :quantity, :tags)
+        expect(item_children[:item_name]).to eq({ type: :string, domain: nil })
+        expect(item_children[:quantity]).to eq({ type: :integer, domain: nil })
+
+        # Verify the deeply nested structure for tags
+        tags_meta = item_children[:tags]
+        expect(tags_meta[:type]).to eq(:array)
+        expect(tags_meta[:children]).to eq({
+                                             tag_name: { type: :string, domain: nil }
+                                           })
       end
     end
   end

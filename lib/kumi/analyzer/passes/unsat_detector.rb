@@ -66,18 +66,11 @@ module Kumi
 
             next unless when_case.condition.fn_name == :all?
 
-            # puts "DEBUG: Analyzing cascade condition: #{when_case.condition}"
-            # elsif when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-            # Cascade condition like `on n_is_zero, true` becomes `all?([n_is_zero])`
             when_case.condition.args.each do |arg|
               next unless arg.is_a?(ArrayExpression)
 
               arg.elements.each do |element|
-                puts "DEBUG: Processing element #{element}"
-                unless element.is_a?(DeclarationReference)
-                  puts "DEBUG: Skipping non-declaration element #{element}"
-                  next
-                end
+                next unless element.is_a?(DeclarationReference)
 
                 trait_name = element.name
                 trait = definitions[trait_name]
@@ -112,7 +105,6 @@ module Kumi
         end
 
         def conditions_mutually_exclusive?(cond1, cond2)
-          puts "DEBUG: Checking mutual exclusion between #{cond1} and #{cond2}"
           if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
              cond2.is_a?(CallExpression) && cond2.fn_name == :==
 
@@ -243,7 +235,6 @@ module Kumi
             condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
             # DEBUG
             # if when_case.condition.is_a?(CallExpression) && [:all?, :any?, :none?].include?(when_case.condition.fn_name)
-            #   puts "DEBUG: Processing #{when_case.condition.fn_name} condition"
             #   puts "  Args: #{when_case.condition.args.inspect}"
             #   puts "  Atoms found: #{condition_atoms.inspect}"
             # end

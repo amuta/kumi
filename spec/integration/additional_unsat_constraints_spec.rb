@@ -146,7 +146,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           trait :is_false, input.flag, :==, false
 
           value :result do
-            on is_true,is_false, "Both true and false" # impossible
+            on is_true, is_false, "Both true and false" # impossible
             base "Normal"
           end
         end
@@ -299,28 +299,29 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
       end.not_to raise_error
     end
 
-    xit "detects impossible OR expressions where both sides are outside domain" do
-      # This does not work in the current implementation
-      # This test verifies that impossible OR expressions (where BOTH sides are impossible)
-      # are correctly detected and raise an error
-      expect do
-        build_schema do
-          input do
-            integer :value, domain: 5..10 # constrained to 5-10
-          end
+    # xit "detects impossible OR expressions where both sides are outside domain" do
+    #  TODO: Uncomment and make this work :D
+    #   # This does not work in the current implementation
+    #   # This test verifies that impossible OR expressions (where BOTH sides are impossible)
+    #   # are correctly detected and raise an error
+    #   expect do
+    #     build_schema do
+    #       input do
+    #         integer :value, domain: 5..10 # constrained to 5-10
+    #       end
 
-          # Both sides impossible: value can't be 1 OR 2 (both outside domain 5-10)
-          # OR is impossible only when BOTH sides are impossible
-          trait :impossible_or,
-                fn(:or, input.value == 1, input.value == 2)
+    #       # Both sides impossible: value can't be 1 OR 2 (both outside domain 5-10)
+    #       # OR is impossible only when BOTH sides are impossible
+    #       trait :impossible_or,
+    #             fn(:or, input.value == 1, input.value == 2)
 
-          value :result do
-            on impossible_or, "Should be impossible"
-            base "Normal"
-          end
-        end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_or` is impossible/)
-    end
+    #       value :result do
+    #         on impossible_or, "Should be impossible"
+    #         base "Normal"
+    #       end
+    #     end
+    #   end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_or` is impossible/)
+    # end
 
     it "allows OR expressions where one side is possible" do
       # OR should be valid if at least one side is satisfiable

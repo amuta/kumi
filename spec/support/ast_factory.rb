@@ -10,7 +10,7 @@ module ASTFactory
     literal: ->(value, loc:) { Literal.new(value, loc: loc) },
     input_ref: ->(name, loc:) { InputReference.new(name, loc: loc) },
     declaration_ref: ->(name, loc:) { DeclarationReference.new(name, loc: loc) },
-    input_decl: ->(name, domain = nil, type = nil, loc:) { InputDeclaration.new(name, domain, type, loc: loc) },
+    input_decl: ->(name, domain = nil, type = nil, children = [], loc:) { InputDeclaration.new(name, domain, type, children, loc: loc) },
 
     call_expr: ->(fn_name, *args, loc:) { CallExpression.new(fn_name, args, loc: loc) },
 
@@ -58,15 +58,11 @@ module ASTFactory
 
   def lit(value) = syntax(:literal, value, loc: loc)
 
-  def field_ref(name) = syntax(:input_ref, name, loc: loc)
-  alias input_ref field_ref
+  def input_ref(name) = syntax(:input_ref, name, loc: loc)
+  alias field_ref input_ref
 
-  def field_decl(name, domain = nil, type = nil) = syntax(:input_decl, name, domain, type, loc: loc)
-  alias input_decl field_decl
-  #
-  # def Root(attrs = [], traits = [])
-  #   # syntax(:Root, attrs, traits, loc: loc)
-  # end
+  def input_decl(name, type = nil, domain = nil, children: []) = syntax(:input_decl, name, domain, type, children, loc: loc)
+  alias field_decl input_decl
 
   def when_case_expression(trait, then_expr)
     syntax(:case_expr, trait, then_expr, loc: loc)

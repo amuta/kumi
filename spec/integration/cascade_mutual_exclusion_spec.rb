@@ -79,39 +79,40 @@ RSpec.describe "Cascade mutual exclusion detection" do
       # Should compile - all conditions are mutually exclusive (no exception means success)
     end
 
-    it "works with identities (value is the same as input)" do
-      pending "We can't detect the mutual exclusion through identities yet"
-      # Maybe we should do the mutual exclusion detection within ConstraintRelationshipSolver
-      # because it already handles node's identity propagation.
-      module TestMutualRecursionSchema
-        extend Kumi::Schema
+    # it "works with identities (value is the same as input)" do
+    #   pending "We can't detect the mutual exclusion through identities yet"
+    #   # Maybe we should do the mutual exclusion detection within ConstraintRelationshipSolver
+    #   # because it already handles node's identity propagation.
+    #   module TestMutualRecursionSchema
+    #     extend Kumi::Schema
 
-        schema do
-          input do
-            integer :n
-          end
+    # TODO: Uncomment and make this work :D
+    #     schema do
+    #       input do
+    #         integer :n
+    #       end
 
-          trait :n_is_zero, input.n, :==, 0
-          value :value_input_n, input.n
-          trait :n_is_one, value_input_n, :==, 1
+    #       trait :n_is_zero, input.n, :==, 0
+    #       value :value_input_n, input.n
+    #       trait :n_is_one, value_input_n, :==, 1
 
-          value :is_even do
-            on n_is_zero, true
-            on n_is_one, false
-            base fn(:not, is_odd)
-          end
+    #       value :is_even do
+    #         on n_is_zero, true
+    #         on n_is_one, false
+    #         base fn(:not, is_odd)
+    #       end
 
-          value :is_odd do
-            on n_is_zero, false
-            on n_is_one, true
-            base fn(:not, is_even)
-          end
-        end
-      end
+    #       value :is_odd do
+    #         on n_is_zero, false
+    #         on n_is_one, true
+    #         base fn(:not, is_even)
+    #       end
+    #     end
+    #   end
 
-      # Should compile - the mutual exclusion only applies to the even/odd conditions,
-      # not the positive/negative ones (no exception means success)
-    end
+    #   # Should compile - the mutual exclusion only applies to the even/odd conditions,
+    #   # not the positive/negative ones (no exception means success)
+    # end
   end
 
   context "when cascade conditions are NOT mutually exclusive" do
