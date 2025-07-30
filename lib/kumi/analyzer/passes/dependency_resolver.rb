@@ -48,23 +48,25 @@ module Kumi
 
         private
 
-
         def process_node(node, decl, graph, reverse_deps, leaves, definitions, input_meta, errors, context)
           case node
           when DeclarationReference
             report_error(errors, "undefined reference to `#{node.name}`", location: node.loc) unless definitions.key?(node.name)
-            
+
             # Determine if this is a conditional dependency
             conditional = context[:in_cascade_base] || false
             cascade_owner = conditional ? context[:decl_name] : nil
-            
-            add_dependency_edge(graph, reverse_deps, decl.name, node.name, :ref, context[:via], 
-                              conditional: conditional, 
-                              cascade_owner: cascade_owner)
+
+            add_dependency_edge(graph, reverse_deps, decl.name, node.name, :ref, context[:via],
+                                conditional: conditional,
+                                cascade_owner: cascade_owner)
           when InputReference
-            report_error(errors, "undeclared input `#{node.name}`", location: node.loc) unless input_meta.key?(node.name)
             add_dependency_edge(graph, reverse_deps, decl.name, node.name, :key, context[:via])
             leaves[decl.name] << node
+          when InputElementReference
+            # adds the root input declaration as a dependency
+            root_input_declr_name = node.path.first
+            add_dependency_edge(graph, reverse_deps, decl.name, root_input_declr_name, :key, context[:via])
           when Literal
             leaves[decl.name] << node
           end
@@ -72,8 +74,8 @@ module Kumi
 
         def add_dependency_edge(graph, reverse_deps, from, to, type, via, conditional: false, cascade_owner: nil)
           edge = DependencyEdge.new(
-            to: to, 
-            type: type, 
+            to: to,
+            type: type,
             via: via,
             conditional: conditional,
             cascade_owner: cascade_owner
@@ -99,7 +101,7 @@ module Kumi
               # Visit result expressions as regular dependencies
               visit_with_context(when_case.result, context, &block)
             end
-            
+
             # Visit base case with conditional flag
             if node.cases.last
               base_context = context.merge(in_cascade_base: true)

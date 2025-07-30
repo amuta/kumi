@@ -13,8 +13,8 @@ module Kumi
       private
 
       def method_missing(method_name, *_args)
-        # Create an InputReference node for the given method name
-        Kumi::Syntax::InputReference.new(method_name, loc: @context.current_location)
+        # Create InputFieldProxy that can handle further field access
+        InputFieldProxy.new(method_name, @context)
       end
 
       # This method is called when the user tries to access a field

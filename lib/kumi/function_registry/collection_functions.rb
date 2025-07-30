@@ -6,10 +6,10 @@ module Kumi
     module CollectionFunctions
       def self.definitions
         {
-          # Collection queries
-          empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?),
-          size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer),
-          length: FunctionBuilder.collection_unary(:length, "Get collection length", :length, return_type: :integer),
+          # Collection queries (these are reducers - they reduce arrays to scalars)
+          empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
+          size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: true),
+          length: FunctionBuilder.collection_unary(:length, "Get collection length", :length, return_type: :integer, reducer: true),
 
           # Element access
           first: FunctionBuilder::Entry.new(
@@ -17,7 +17,8 @@ module Kumi
             arity: 1,
             param_types: [Kumi::Types.array(:any)],
             return_type: :any,
-            description: "Get first element of collection"
+            description: "Get first element of collection",
+            reducer: true
           ),
 
           last: FunctionBuilder::Entry.new(
@@ -25,7 +26,8 @@ module Kumi
             arity: 1,
             param_types: [Kumi::Types.array(:any)],
             return_type: :any,
-            description: "Get last element of collection"
+            description: "Get last element of collection",
+            reducer: true
           ),
 
           # Mathematical operations on collections
@@ -34,7 +36,8 @@ module Kumi
             arity: 1,
             param_types: [Kumi::Types.array(:float)],
             return_type: :float,
-            description: "Sum all numeric elements in collection"
+            description: "Sum all numeric elements in collection",
+            reducer: true
           ),
 
           min: FunctionBuilder::Entry.new(
@@ -42,7 +45,8 @@ module Kumi
             arity: 1,
             param_types: [Kumi::Types.array(:float)],
             return_type: :float,
-            description: "Find minimum value in numeric collection"
+            description: "Find minimum value in numeric collection",
+            reducer: true
           ),
 
           max: FunctionBuilder::Entry.new(
@@ -50,7 +54,8 @@ module Kumi
             arity: 1,
             param_types: [Kumi::Types.array(:float)],
             return_type: :float,
-            description: "Find maximum value in numeric collection"
+            description: "Find maximum value in numeric collection",
+            reducer: true
           ),
 
           # Collection operations

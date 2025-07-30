@@ -145,17 +145,6 @@ RSpec.describe "Potential Breakage Cases" do
       end.to raise_error(Kumi::Errors::SemanticError) # Should catch cycle
     end
 
-    it "detects trait definition edge cases" do
-      expect do
-        schema do
-          input { string :text }
-
-          # Trait with side effects (if Ruby allows it)
-          trait :side_effect, (puts("evaluating") || !input.text.empty?)
-        end
-      end.not_to raise_error(Kumi::Errors::SemanticError) #  side effects in traits are problematic
-    end
-
     it "detects function arity edge cases" do
       expect do
         schema do

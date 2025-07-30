@@ -9,6 +9,7 @@ module ASTFactory
   NODE = {
     literal: ->(value, loc:) { Literal.new(value, loc: loc) },
     input_ref: ->(name, loc:) { InputReference.new(name, loc: loc) },
+    input_elem_ref: ->(path, loc:) { InputElementReference.new(path, loc: loc) },
     declaration_ref: ->(name, loc:) { DeclarationReference.new(name, loc: loc) },
     input_decl: ->(name, domain = nil, type = nil, children = [], loc:) { InputDeclaration.new(name, domain, type, children, loc: loc) },
 
@@ -60,6 +61,8 @@ module ASTFactory
 
   def input_ref(name) = syntax(:input_ref, name, loc: loc)
   alias field_ref input_ref
+
+  def input_elem_ref(path) = syntax(:input_elem_ref, path, loc: loc)
 
   def input_decl(name, type = nil, domain = nil, children: []) = syntax(:input_decl, name, domain, type, children, loc: loc)
   alias field_decl input_decl

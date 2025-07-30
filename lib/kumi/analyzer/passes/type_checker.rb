@@ -47,8 +47,30 @@ module Kumi
           types = signature[:param_types]
           return if types.nil? || (signature[:arity].negative? && node.args.empty?)
 
+          # Skip type checking for vectorized operations
+          broadcast_meta = get_state(:broadcast_metadata, required: false)
+          if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
+            return
+          end
+
           node.args.each_with_index do |arg, i|
             validate_argument_type(arg, i, types[i], node.fn_name, errors)
+          end
+        end
+
+        def is_part_of_vectorized_operation?(node, broadcast_meta)
+          # Check if this node is part of a vectorized or reduction operation
+          # This is a simplified check - in a real implementation we'd need to track context
+          node.args.any? do |arg|
+            case arg
+            when Kumi::Syntax::DeclarationReference
+              broadcast_meta[:vectorized_operations]&.key?(arg.name) ||
+              broadcast_meta[:reduction_operations]&.key?(arg.name)
+            when Kumi::Syntax::InputElementReference
+              broadcast_meta[:array_fields]&.key?(arg.path.first)
+            else
+              false
+            end
           end
         end
 

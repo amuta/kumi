@@ -213,5 +213,31 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
         expect(leaf_map.values.all?(&:frozen?)).to be true
       end
     end
+
+    context "when referencing a nested input field" do
+      let(:schema) do
+        inputs = [
+          input_decl(:user, :object, children: [
+                       input_decl(:name, :string),
+                       input_decl(:age, :integer)
+                     ])
+        ]
+        total = attr(:total, call(:add, input_elem_ref(%i[user name]), input_elem_ref(%i[user age])))
+        syntax(:root, inputs, [total], [], loc: loc)
+      end
+
+      it "correctly resolves nested input references" do
+        run(schema)
+
+        graph = dependency_graph
+        expect(graph[:total].size).to eq(2)
+
+        name_edge = graph[:total].find { |e| e.to == :user }
+        age_edge = graph[:total].find { |e| e.to == :user }
+
+        expect(name_edge.type).to eq(:key)
+        expect(age_edge.type).to eq(:key)
+      end
+    end
   end
 end

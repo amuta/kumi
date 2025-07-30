@@ -57,7 +57,8 @@ module Kumi
       def method_missing(method_name, *args, &block)
         if args.empty? && !block_given?
           update_location
-          Kumi::Syntax::DeclarationReference.new(method_name, loc: @context.current_location)
+          # Create proxy for declaration references (traits/values)
+          DeclarationReferenceProxy.new(method_name, @context)
         else
           super
         end

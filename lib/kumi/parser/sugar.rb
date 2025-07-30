@@ -204,6 +204,58 @@ module Kumi
           end
         end
       end
+
+      # Shared refinement for proxy objects that need to handle operators
+      # Both DeclarationReferenceProxy and InputFieldProxy can use this
+      module ProxyRefinement
+        def self.extended(proxy_class)
+          # Add operator methods directly to the proxy class
+          proxy_class.class_eval do
+            # Arithmetic operations
+            ARITHMETIC_OPS.each do |op, op_name|
+              define_method(op) do |other|
+                ast_node = to_ast_node
+                other_node = Sugar.ensure_literal(other)
+                Sugar.create_call_expression(op_name, [ast_node, other_node])
+              end
+            end
+
+            # Comparison operations (including == and != that don't work with refinements)
+            COMPARISON_OPS.each do |op|
+              define_method(op) do |other|
+                ast_node = to_ast_node
+                other_node = Sugar.ensure_literal(other)
+                Sugar.create_call_expression(op, [ast_node, other_node])
+              end
+            end
+
+            # Logical operations
+            define_method(:&) do |other|
+              ast_node = to_ast_node
+              other_node = Sugar.ensure_literal(other)
+              Sugar.create_call_expression(:and, [ast_node, other_node])
+            end
+
+            define_method(:|) do |other|
+              ast_node = to_ast_node
+              other_node = Sugar.ensure_literal(other)
+              Sugar.create_call_expression(:or, [ast_node, other_node])
+            end
+
+            # Array access
+            define_method(:[]) do |index|
+              ast_node = to_ast_node
+              Sugar.create_call_expression(:at, [ast_node, Sugar.ensure_literal(index)])
+            end
+
+            # Unary minus
+            define_method(:-@) do
+              ast_node = to_ast_node
+              Sugar.create_call_expression(:subtract, [Sugar.ensure_literal(0), ast_node])
+            end
+          end
+        end
+      end
     end
   end
 end

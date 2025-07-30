@@ -12,17 +12,20 @@ module Kumi
 
       def key(name, type: :any, domain: nil)
         normalized_type = normalize_type(type, name)
-        @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, [], loc: @context.current_location)
       end
 
-      %i[integer float string boolean any].each do |type_name|
-        define_method(type_name) do |name, domain: nil|
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, type_name, loc: @context.current_location)
+      %i[integer float string boolean any scalar].each do |type_name|
+        define_method(type_name) do |name, type: nil, domain: nil|
+          actual_type = type || (type_name == :scalar ? :any : type_name)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, actual_type, [], loc: @context.current_location)
         end
       end
 
-      def array(name_or_elem_type, **kwargs)
-        if kwargs.any?
+      def array(name_or_elem_type, **kwargs, &block)
+        if block_given?
+          create_array_field_with_block(name_or_elem_type, kwargs, &block)
+        elsif kwargs.any?
           create_array_field(name_or_elem_type, kwargs)
         else
           Kumi::Types.array(name_or_elem_type)
@@ -36,7 +39,7 @@ module Kumi
       end
 
       def method_missing(method_name, *_args)
-        allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'array', and 'hash'"
+        allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'scalar', 'array', and 'hash'"
         raise_syntax_error("Unknown method '#{method_name}' in input block. Only #{allowed_methods} are allowed.",
                            location: @context.current_location)
       end
@@ -59,7 +62,7 @@ module Kumi
         elem_type = elem_spec.is_a?(Hash) && elem_spec[:type] ? elem_spec[:type] : :any
 
         array_type = create_array_type(field_name, elem_type)
-        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], loc: @context.current_location)
       end
 
       def create_array_type(field_name, elem_type)
@@ -77,7 +80,7 @@ module Kumi
         val_type = extract_type(val_spec)
 
         hash_type = create_hash_type(field_name, key_type, val_type)
-        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, loc: @context.current_location)
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], loc: @context.current_location)
       end
 
       def extract_type(spec)
@@ -88,6 +91,34 @@ module Kumi
         Kumi::Types.hash(key_type, val_type)
       rescue ArgumentError => e
         raise_syntax_error("Invalid types for hash `#{field_name}`: #{e.message}", location: @context.current_location)
+      end
+
+      def create_array_field_with_block(field_name, options, &block)
+        domain = options[:domain]
+
+        # Collect children by creating a nested context
+        children = collect_array_children(&block)
+
+        # Create the InputDeclaration with children
+        @context.inputs << Kumi::Syntax::InputDeclaration.new(
+          field_name,
+          domain,
+          :array,
+          children,
+          loc: @context.current_location
+        )
+      end
+
+      def collect_array_children(&block)
+        # Create a temporary nested context to collect children
+        nested_inputs = []
+        nested_context = NestedInput.new(nested_inputs, @context.current_location)
+        nested_builder = InputBuilder.new(nested_context)
+
+        # Execute the block in the nested context
+        nested_builder.instance_eval(&block)
+
+        nested_inputs
       end
     end
   end

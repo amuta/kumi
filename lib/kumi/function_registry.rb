@@ -36,7 +36,7 @@ module Kumi
 
       # Register with custom metadata
       def register_with_metadata(name, fn_lambda, arity:, param_types: [:any], return_type: :any, description: nil,
-                                 inverse: nil)
+                                 inverse: nil, reducer: false)
         raise ArgumentError, "Function #{name.inspect} already registered" if @functions.key?(name)
 
         @functions[name] = Entry.new(
@@ -45,7 +45,8 @@ module Kumi
           param_types: param_types,
           return_type: return_type,
           description: description,
-          inverse: inverse
+          inverse: inverse,
+          reducer: reducer
         )
       end
 
@@ -89,6 +90,11 @@ module Kumi
 
       def all_functions
         @functions.keys
+      end
+
+      def reducer?(name)
+        entry = @functions.fetch(name) { return false }
+        entry.reducer || false
       end
 
       # Alias for compatibility

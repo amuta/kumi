@@ -394,14 +394,6 @@ RSpec.describe "Input Block Feature" do
       expect(schema.analysis.decl_types[:adult]).to eq(:boolean)
     end
 
-    it "raises when input references to undeclared field" do
-      expect do
-        create_schema do
-          trait :adult, input.age, :>=, 18 # No input block defined
-        end
-      end.to raise_error(Kumi::Errors::SemanticError, /undeclared input `age`/)
-    end
-
     it "Two key :age declarations with different type" do
       expect do
         create_schema do

@@ -7,16 +7,17 @@ module Kumi
     module_function
 
     DEFAULT_PASSES = [
-      Passes::NameIndexer,                # 1. Finds all names and checks for duplicates.
-      Passes::InputCollector,             # 2. Collects field metadata from input declarations.
-      Passes::DeclarationValidator,        # 3. Checks the basic structure of each rule.
-      Passes::SemanticConstraintValidator, # 4. Validates DSL semantic constraints at AST level.
-      Passes::DependencyResolver,         # 5. Builds the dependency graph with conditional dependencies.
-      Passes::UnsatDetector,              # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Passes::Toposorter,                 # 7. Creates the final evaluation order, allowing safe cycles.
-      Passes::TypeInferencer,             # 8. Infers types for all declarations (pure annotation).
-      Passes::TypeConsistencyChecker,     # 9. Validates declared vs inferred type consistency.
-      Passes::TypeChecker                 # 10. Validates types using inferred information.
+      Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
+      Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
+      Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
+      Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+      Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+      Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+      Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      Passes::BroadcastDetector, # 8. Detects which operations should be broadcast over arrays (must run before type inference).
+      Passes::TypeInferencer,                  # 9. Infers types for all declarations (uses vectorization metadata).
+      Passes::TypeConsistencyChecker,          # 10. Validates declared vs inferred type consistency.
+      Passes::TypeChecker                      # 11. Validates types using inferred information.
     ].freeze
 
     def analyze!(schema, passes: DEFAULT_PASSES, **opts)
