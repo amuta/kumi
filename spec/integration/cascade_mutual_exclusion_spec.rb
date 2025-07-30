@@ -5,10 +5,9 @@ require "spec_helper"
 RSpec.describe "Cascade mutual exclusion detection" do
   context "when cascade conditions are mutually exclusive" do
     it "allows mutual recursion through cascade base cases" do
-      
       module TestMutualRecursionSchema
         extend Kumi::Schema
-        
+
         schema do
           input do
             integer :n
@@ -32,28 +31,27 @@ RSpec.describe "Cascade mutual exclusion detection" do
       end
 
       # Should compile without cycle error - no exception means success
-      
+
       # Should work correctly
       runner = TestMutualRecursionSchema.from(n: 0)
       result = runner.slice(:is_even, :is_odd)
       expect(result[:is_even]).to eq(true)
       expect(result[:is_odd]).to eq(false)
-      
+
       runner = TestMutualRecursionSchema.from(n: 1)
       result = runner.slice(:is_even, :is_odd)
       expect(result[:is_even]).to eq(false)
       expect(result[:is_odd]).to eq(true)
-      
-      # Note: Base case (n=2) would cause infinite recursion since neither n==0 nor n==1
+
+      # NOTE: Base case (n=2) would cause infinite recursion since neither n==0 nor n==1
       # This is expected - the mutual exclusion feature only ensures safe cycles can be compiled,
       # not that they terminate. Proper termination logic needs to be implemented separately.
     end
-    
+
     it "detects when ALL cascade conditions are mutually exclusive" do
-      
       module TestAllMutuallyExclusiveSchema
         extend Kumi::Schema
-        
+
         schema do
           input do
             string :status
@@ -69,7 +67,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
             on is_cancelled, "stop_processing"
             base process_flow # Self-reference cycle
           end
-          
+
           value :reverse_flow do
             on is_active, "reverse_active"
             on is_pending, "reverse_pending"
@@ -80,8 +78,42 @@ RSpec.describe "Cascade mutual exclusion detection" do
 
       # Should compile - all conditions are mutually exclusive (no exception means success)
     end
+
+    it "works with identities (value is the same as input)" do
+      pending "We can't detect the mutual exclusion through identities yet"
+      # Maybe we should do the mutual exclusion detection within ConstraintRelationshipSolver
+      # because it already handles node's identity propagation.
+      module TestMutualRecursionSchema
+        extend Kumi::Schema
+
+        schema do
+          input do
+            integer :n
+          end
+
+          trait :n_is_zero, input.n, :==, 0
+          value :value_input_n, input.n
+          trait :n_is_one, value_input_n, :==, 1
+
+          value :is_even do
+            on n_is_zero, true
+            on n_is_one, false
+            base fn(:not, is_odd)
+          end
+
+          value :is_odd do
+            on n_is_zero, false
+            on n_is_one, true
+            base fn(:not, is_even)
+          end
+        end
+      end
+
+      # Should compile - the mutual exclusion only applies to the even/odd conditions,
+      # not the positive/negative ones (no exception means success)
+    end
   end
-  
+
   context "when cascade conditions are NOT mutually exclusive" do
     it "still detects unsafe cycles" do
       expect do
@@ -101,7 +133,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
         end
       end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
     end
-    
+
     it "detects cycles with no cascade conditions" do
       expect do
         Kumi.schema do
@@ -112,13 +144,12 @@ RSpec.describe "Cascade mutual exclusion detection" do
       end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
     end
   end
-  
+
   context "complex mutual exclusion patterns" do
     it "handles cascades with multiple mutually exclusive condition groups" do
-      
       module TestMultipleGroupsSchema
         extend Kumi::Schema
-        
+
         schema do
           input do
             integer :x
@@ -128,7 +159,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
           # Group 1: x conditions (mutually exclusive)
           trait :x_is_zero, input.x, :==, 0
           trait :x_is_one, input.x, :==, 1
-          
+
           # Group 2: y conditions (mutually exclusive)
           trait :y_is_zero, input.y, :==, 0
           trait :y_is_one, input.y, :==, 1
@@ -149,7 +180,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
 
       # Should compile - the mutual dependency only happens in base cases when no conditions match
       # Both cascades have mutually exclusive conditions within each cascade (no exception means success)
-      
+
       # Test execution with conditions that match
       runner = TestMultipleGroupsSchema.from(x: 1, y: 0)
       result = runner.slice(:x_category, :y_category)
@@ -157,7 +188,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
       expect(result[:y_category]).to eq("y_zero")
     end
   end
-  
+
   context "partial mutual exclusion" do
     it "requires ALL conditions to be mutually exclusive for safety" do
       expect do
@@ -176,7 +207,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
             on n_is_positive, true
             base fn(:not, partial_exclusive_2)
           end
-          
+
           value :partial_exclusive_2 do
             base fn(:not, partial_exclusive)
           end
@@ -184,13 +215,12 @@ RSpec.describe "Cascade mutual exclusion detection" do
       end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
     end
   end
-  
+
   describe "metadata availability" do
     it "exposes cascade mutual exclusion information in analyzer result" do
-      
       module TestMetadataSchema
         extend Kumi::Schema
-        
+
         schema do
           input do
             integer :n
@@ -212,19 +242,19 @@ RSpec.describe "Cascade mutual exclusion detection" do
           end
         end
       end
-      
+
       # Access the analyzer result through the module instance variables
       analyzer_result = TestMetadataSchema.instance_variable_get(:@__analyzer_result__)
       cascade_metadata = analyzer_result.state[:cascade_metadata]
-      
+
       expect(cascade_metadata).to include(:is_even, :is_odd)
       expect(cascade_metadata[:is_even]).to include(
-        condition_traits: [:n_is_zero, :n_is_one],
+        condition_traits: %i[n_is_zero n_is_one],
         all_mutually_exclusive: true,
         condition_count: 2
       )
       expect(cascade_metadata[:is_odd]).to include(
-        condition_traits: [:n_is_zero, :n_is_one],
+        condition_traits: %i[n_is_zero n_is_one],
         all_mutually_exclusive: true,
         condition_count: 2
       )

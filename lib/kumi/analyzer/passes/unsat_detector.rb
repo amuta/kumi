@@ -22,9 +22,7 @@ module Kumi
           # First pass: analyze cascade conditions for mutual exclusion
           cascade_metadata = {}
           each_decl do |decl|
-            if decl.expression.is_a?(CascadeExpression)
-              cascade_metadata[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions)
-            end
+            cascade_metadata[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
           end
 
           # Store cascade metadata for later passes
@@ -34,25 +32,23 @@ module Kumi
             if decl.expression.is_a?(CascadeExpression)
               # Special handling for cascade expressions
               check_cascade_expression(decl, definitions, errors)
-            else
+            elsif decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
               # Check for OR expressions which need special disjunctive handling
-              if decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
-                impossible = check_or_expression(decl.expression, definitions, errors)
-                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
-              else
-                # Normal handling for non-cascade expressions
-                atoms = gather_atoms(decl.expression, definitions, Set.new)
-                next if atoms.empty?
+              impossible = check_or_expression(decl.expression, definitions, errors)
+              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
+            else
+              # Normal handling for non-cascade expressions
+              atoms = gather_atoms(decl.expression, definitions, Set.new)
+              next if atoms.empty?
 
-                # Use enhanced solver that can detect cross-variable mathematical constraints
-                impossible = if definitions && !definitions.empty?
-                               Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
-                             else
-                               Kumi::AtomUnsatSolver.unsat?(atoms)
-                             end
+              # Use enhanced solver that can detect cross-variable mathematical constraints
+              impossible = if definitions && !definitions.empty?
+                             Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
+                           else
+                             Kumi::AtomUnsatSolver.unsat?(atoms)
+                           end
 
-                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
-              end
+              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
             end
           end
           state.with(:cascade_metadata, cascade_metadata)
@@ -63,51 +59,49 @@ module Kumi
         def analyze_cascade_mutual_exclusion(decl, definitions)
           conditions = []
           condition_traits = []
-          
+
           # Extract all cascade conditions (except base case)
           decl.expression.cases[0...-1].each do |when_case|
             next unless when_case.condition
-            
-            if when_case.condition.is_a?(DeclarationReference)
-              trait_name = when_case.condition.name
-              trait = definitions[trait_name]
-              if trait
-                conditions << trait.expression
-                condition_traits << trait_name
-              end
-            elsif when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              # Cascade condition like `on n_is_zero, true` becomes `all?([n_is_zero])`
-              when_case.condition.args.each do |arg|
-                if arg.is_a?(ArrayExpression)
-                  arg.elements.each do |element|
-                    if element.is_a?(DeclarationReference)
-                      trait_name = element.name
-                      trait = definitions[trait_name]
-                      if trait
-                        conditions << trait.expression
-                        condition_traits << trait_name
-                      end
-                    end
-                  end
+
+            next unless when_case.condition.fn_name == :all?
+
+            # puts "DEBUG: Analyzing cascade condition: #{when_case.condition}"
+            # elsif when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+            # Cascade condition like `on n_is_zero, true` becomes `all?([n_is_zero])`
+            when_case.condition.args.each do |arg|
+              next unless arg.is_a?(ArrayExpression)
+
+              arg.elements.each do |element|
+                puts "DEBUG: Processing element #{element}"
+                unless element.is_a?(DeclarationReference)
+                  puts "DEBUG: Skipping non-declaration element #{element}"
+                  next
+                end
+
+                trait_name = element.name
+                trait = definitions[trait_name]
+                if trait
+                  conditions << trait.expression
+                  condition_traits << trait_name
                 end
               end
             end
+            # end
           end
-          
+
           # Check mutual exclusion for all pairs
           total_pairs = conditions.size * (conditions.size - 1) / 2
           exclusive_pairs = 0
-          
+
           if conditions.size >= 2
             conditions.combination(2).each do |cond1, cond2|
-              if conditions_mutually_exclusive?(cond1, cond2)
-                exclusive_pairs += 1
-              end
+              exclusive_pairs += 1 if conditions_mutually_exclusive?(cond1, cond2)
             end
           end
-          
+
           all_mutually_exclusive = (total_pairs > 0) && (exclusive_pairs == total_pairs)
-          
+
           {
             condition_traits: condition_traits,
             condition_count: conditions.size,
@@ -116,34 +110,33 @@ module Kumi
             total_pairs: total_pairs
           }
         end
-        
+
         def conditions_mutually_exclusive?(cond1, cond2)
-          # Simple case: both are equality comparisons on the same field
+          puts "DEBUG: Checking mutual exclusion between #{cond1} and #{cond2}"
           if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
              cond2.is_a?(CallExpression) && cond2.fn_name == :==
-            
+
             c1_field, c1_value = cond1.args
             c2_field, c2_value = cond2.args
-            
+
             # Same field, different values = mutually exclusive
-            if same_field?(c1_field, c2_field) && different_values?(c1_value, c2_value)
-              return true
-            end
+            return true if same_field?(c1_field, c2_field) && different_values?(c1_value, c2_value)
           end
-          
+
           false
         end
-        
+
         def same_field?(field1, field2)
           return false unless field1.is_a?(InputReference) && field2.is_a?(InputReference)
+
           field1.name == field2.name
         end
-        
+
         def different_values?(val1, val2)
           return false unless val1.is_a?(Literal) && val2.is_a?(Literal)
+
           val1.value != val2.value
         end
-        
 
         def check_or_expression(or_expr, definitions, errors)
           # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
@@ -152,26 +145,22 @@ module Kumi
 
           # Check if left side is impossible
           left_atoms = gather_atoms(left_side, definitions, Set.new)
-          left_impossible = if !left_atoms.empty?
-                              if definitions && !definitions.empty?
-                                Kumi::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
-                              else
-                                Kumi::AtomUnsatSolver.unsat?(left_atoms)
-                              end
-                            else
+          left_impossible = if left_atoms.empty?
                               false
+                            elsif definitions && !definitions.empty?
+                              Kumi::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
+                            else
+                              Kumi::AtomUnsatSolver.unsat?(left_atoms)
                             end
 
           # Check if right side is impossible
           right_atoms = gather_atoms(right_side, definitions, Set.new)
-          right_impossible = if !right_atoms.empty?
-                               if definitions && !definitions.empty?
-                                 Kumi::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
-                               else
-                                 Kumi::AtomUnsatSolver.unsat?(right_atoms)
-                               end
-                             else
+          right_impossible = if right_atoms.empty?
                                false
+                             elsif definitions && !definitions.empty?
+                               Kumi::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
+                             else
+                               Kumi::AtomUnsatSolver.unsat?(right_atoms)
                              end
 
           # OR is impossible only if BOTH sides are impossible
