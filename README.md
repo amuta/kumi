@@ -3,7 +3,7 @@
 [![CI](https://github.com/amuta/kumi/workflows/CI/badge.svg)](https://github.com/amuta/kumi/actions)
 [![Gem Version](https://badge.fury.io/rb/kumi.svg)](https://badge.fury.io/rb/kumi)
 
-Kumi is a Declarative logic framework with static analysis for Ruby.
+Kumi is a Declarative logic and rules engine framework with static analysis for Ruby.
 
 It is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
 
