@@ -11,7 +11,7 @@ It is well-suited for scenarios with complex, interdependent calculations, enfor
 
 ## What can you build?
 
-Calculate U.S. federal taxes in 30 lines of validated, readable code:
+Calculate U.S. federal taxes:
 
 ```ruby
 module FederalTax2024
@@ -62,7 +62,7 @@ result[:after_tax]   # => 78,509.00
 
 Real tax calculation with brackets, deductions, and FICA caps. Validation happens during schema definition.
 
-Is is well-suited for scenarios with complex, interdependent calculations, enforcing ...
+Kumi is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
 
 ## Installation
 
@@ -75,76 +75,18 @@ gem install kumi
 ## Core Features
 
 <details>
-<summary><strong>🔍 Array Broadcasting</strong> - Automatic vectorization over array fields</summary>
-
-### Array Broadcasting
-
-Kumi automatically broadcasts operations over array fields, enabling natural syntax for element-wise computation:
-
-```ruby
-schema do
-  input do
-    array :line_items do
-      float   :price
-      integer :quantity
-      string  :category
-    end
-    float :tax_rate
-  end
-
-  # Element-wise computation - broadcasts over each item
-  value :subtotals, input.line_items.price * input.line_items.quantity
-  
-  # Element-wise traits - applied to each item
-  trait :is_taxable, (input.line_items.category != "digital")
-  
-  # Aggregation operations - consume arrays to produce scalars
-  value :total_subtotal, fn(:sum, subtotals)
-  value :item_count, fn(:size, input.line_items)
-end
-```
-
-**Dimension Mismatch Detection**: Operations across different arrays are caught with detailed error messages:
-
-```ruby
-schema do
-  input do
-    array :items do
-      string :name
-    end
-    array :logs do  
-      string :user_name
-    end
-  end
-
-  # This generates a detailed error
-  trait :same_name, input.items.name == input.logs.user_name
-end
-
-# Error:
-# Cannot broadcast operation across arrays from different sources: items, logs. 
-# Problem: Multiple operands are arrays from different sources:
-#   - Operand 1 resolves to array(string) from array 'items'
-#   - Operand 2 resolves to array(string) from array 'logs'
-# Direct operations on arrays from different sources is ambiguous and not supported.
-```
-
-</details>
-
-## Key Concepts
-
-<details>
 <summary><strong>📊 Schema Primitives</strong> - Four building blocks for business logic</summary>
 
 ### Schema Primitives
 
-Kumi schemas are built from four simple primitives that compose into powerful business logic:
+Kumi schemas are built from four primitives:
 
 **Inputs** define the data flowing into your schema with built-in validation:
 ```ruby
 input do
   float :price, domain: 0..1000.0      # Validates range
-  string :category, domain: %w[standard premium]  # Validates inclusion
+  integer :quantity, domain: 1..10000   # Validates range
+  string :tier, domain: %w[standard premium]  # Validates inclusion
 end
 ```
 
@@ -174,9 +116,9 @@ end
 value :final_price, [subtotal - discount_amount, 0].max
 value :monthly_payment, fn(:pmt, rate: 0.05/12, nper: 36, pv: -loan_amount)
 ```
-Note: You can find a list all core functions [FUNCTIONS.md](docs/FUNCTIONS.md)
+Note: You can find a list all core functions in [docs/FUNCTIONS.md](docs/FUNCTIONS.md)
 
-These primitives are statically analyzed during schema definition, catching logical errors before runtime and ensuring your business rules are internally consistent.
+These primitives are statically analyzed during schema definition to catch logical errors before runtime.
 
 </details>
 
@@ -185,7 +127,7 @@ These primitives are statically analyzed during schema definition, catching logi
 
 ### Static Analysis
 
-Kumi catches subtle business logic errors that would cause runtime failures or silent bugs:
+Kumi catches business logic errors that cause runtime failures or silent bugs:
 
 ```ruby
 module InsurancePolicyPricer
@@ -254,7 +196,7 @@ module InsurancePolicyPricer
   end
 end
 
-# Static analysis catches ALL these subtle errors:
+# Static analysis catches these errors:
 # ❌ Circular reference: experience_factor → experience_discount → experience_factor
 # ❌ Undefined reference: low_risk (should be input.risk_category == "low")
 # ❌ Type mismatch: integer + string in experience_discount
@@ -264,7 +206,7 @@ end
 # ❌ Function arity error: divide expects 2 arguments, got 1
 ```
 
-**Bounded Recursion**: Kumi allows safe mutual recursion when cascade conditions are mutually exclusive:
+**Bounded Recursion**: Kumi allows mutual recursion when cascade conditions are mutually exclusive:
 
 ```ruby
 trait :is_forward, input.operation == "forward"
@@ -289,7 +231,64 @@ end
 # operation="unknown", value=10  => both: "invalid operation"
 ```
 
-This compiles successfully because `operation` can only be "forward" OR "reverse", never both. At runtime, each recursion executes exactly one step before hitting a direct calculation, making it bounded and safe.
+This compiles because `operation` can only be "forward" or "reverse", never both. Each recursion executes one step before hitting a direct calculation.
+
+</details>
+
+<details>
+<summary><strong>🔍 Array Broadcasting</strong> - Automatic vectorization over array fields</summary>
+
+### Array Broadcasting
+
+Kumi broadcasts operations over array fields for element-wise computation:
+
+```ruby
+schema do
+  input do
+    array :line_items do
+      float   :price
+      integer :quantity
+      string  :category
+    end
+    float :tax_rate
+  end
+
+  # Element-wise computation - broadcasts over each item
+  value :subtotals, input.line_items.price * input.line_items.quantity
+  
+  # Element-wise traits - applied to each item
+  trait :is_taxable, (input.line_items.category != "digital")
+  
+  # Aggregation operations - consume arrays to produce scalars
+  value :total_subtotal, fn(:sum, subtotals)
+  value :item_count, fn(:size, input.line_items)
+end
+```
+
+**Dimension Mismatch Detection**: Operations across different arrays generate error messages:
+
+```ruby
+schema do
+  input do
+    array :items do
+      string :name
+    end
+    array :logs do  
+      string :user_name
+    end
+  end
+
+  # This generates an error
+  trait :same_name, input.items.name == input.logs.user_name
+end
+
+# Error:
+# Cannot broadcast operation across arrays from different sources: items, logs. 
+# Problem: Multiple operands are arrays from different sources:
+#   - Operand 1 resolves to array(string) from array 'items'
+#   - Operand 2 resolves to array(string) from array 'logs'
+# Direct operations on arrays from different sources is ambiguous and not supported.
+```
 
 </details>
 
@@ -318,7 +317,7 @@ runner[:after_tax]     # => 196,844.80 (cached)
 
 ### Introspection
 
-See exactly how any value was calculated:
+Show how values are calculated:
 
 ```ruby
 Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_status: "single"})
@@ -331,10 +330,12 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 
 </details>
 
+## Key Concepts
+
 <details>
 <summary><strong>🎯 Suggested Use Cases</strong> - When to use Kumi</summary>
 
-**✅ Great for:**
+**Suitable for:**
 - Complex interdependent business rules
 - Tax calculation engines (as demonstrated)
 - Insurance premium calculators
@@ -342,7 +343,7 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 - Commission structures with complex tiers
 - Pricing engines with multiple discount rules
 
-**❌ Not suitable for:**
+**Not suitable for:**
 - Simple conditional statements
 - Sequential procedural workflows  
 - Rules that change during execution
