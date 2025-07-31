@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Manual loading entry point for text parser
+# Usage: require "kumi/text_parser"
+
 require_relative "text_parser/parser"
 
 module Kumi

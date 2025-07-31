@@ -54,7 +54,7 @@ module Kumi
 
     # Immediately raise a syntax error
     def raise_syntax_error(message, location: nil, context: {})
-      raise_localized_error(message, location: location, error_class: Errors::SyntaxError, type: :syntax, context: context)
+      raise_localized_error(message, location: location, error_class: Kumi::Errors::SyntaxError, type: :syntax, context: context)
     end
 
     # Immediately raise a type error

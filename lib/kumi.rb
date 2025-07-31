@@ -5,6 +5,7 @@ require "zeitwerk"
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
+loader.ignore("#{__dir__}/kumi/text_parser")
 loader.setup
 
 module Kumi

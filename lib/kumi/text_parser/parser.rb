@@ -3,6 +3,8 @@
 require_relative "grammar"
 require_relative "transform"
 require_relative "../error_reporting"
+require_relative "../errors"
+require_relative "../error_reporter"
 
 module Kumi
   module TextParser
@@ -44,6 +46,11 @@ module Kumi
           input_decls = ast[:input][:declarations] || []
           input_decls = [input_decls] unless input_decls.is_a?(Array)
           
+          # Process input declarations
+          processed_input_decls = input_decls.map do |input_decl|
+            process_input_declaration(input_decl)
+          end
+          
           other_decls = ast[:declarations] || []
           other_decls = [other_decls] unless other_decls.is_a?(Array)
           
@@ -68,7 +75,7 @@ module Kumi
             end
           end
           
-          Syntax::Root.new(input_decls, values, traits, loc: create_location("<parslet>", 1, 1))
+          Syntax::Root.new(processed_input_decls, values, traits, loc: create_location("<parslet>", 1, 1))
         else
           ast
         end
@@ -108,6 +115,53 @@ module Kumi
         end
       end
       
+      def process_input_declaration(input_decl)
+        return input_decl if input_decl.is_a?(Syntax::InputDeclaration)
+        
+        if input_decl.is_a?(Hash)
+          if input_decl[:nested_fields]
+            # Array input declaration
+            nested_fields = input_decl[:nested_fields] || []
+            nested_fields = [nested_fields] unless nested_fields.is_a?(Array)
+            
+            processed_fields = nested_fields.map do |field|
+              if field.is_a?(Hash) && field[:type] && field[:name]
+                Syntax::InputDeclaration.new(
+                  field[:name], 
+                  field[:domain], 
+                  field[:type].to_sym, 
+                  [], 
+                  loc: create_location("<parslet>", 1, 1)
+                )
+              else
+                field
+              end
+            end
+            
+            Syntax::InputDeclaration.new(
+              input_decl[:name], 
+              nil, 
+              :array, 
+              processed_fields, 
+              loc: create_location("<parslet>", 1, 1)
+            )
+          elsif input_decl[:type] && input_decl[:name]
+            # Simple input declaration
+            Syntax::InputDeclaration.new(
+              input_decl[:name], 
+              input_decl[:domain], 
+              input_decl[:type].to_sym, 
+              [], 
+              loc: create_location("<parslet>", 1, 1)
+            )
+          else
+            input_decl
+          end
+        else
+          input_decl
+        end
+      end
+
       def create_location(file, line, column)
         Syntax::Location.new(file: file, line: line, column: column)
       end

@@ -8,6 +8,7 @@ require_relative "../syntax/value_declaration"
 require_relative "../syntax/trait_declaration"
 require_relative "../syntax/call_expression"
 require_relative "../syntax/input_reference"
+require_relative "../syntax/input_element_reference"
 require_relative "../syntax/declaration_reference"
 require_relative "../syntax/literal"
 
@@ -28,7 +29,16 @@ module Kumi
       rule(symbol: simple(:name)) { name.to_sym }
       
       # Input and declaration references
-      rule(input_ref: simple(:name)) { Syntax::InputReference.new(name.to_sym, loc: LOC) }
+      rule(input_ref: simple(:path)) do
+        # Handle multi-level paths like "items.price"
+        path_parts = path.to_s.split('.')
+        if path_parts.length == 1
+          Syntax::InputReference.new(path_parts[0].to_sym, loc: LOC)
+        else
+          Syntax::InputElementReference.new(path_parts.map(&:to_sym), loc: LOC)
+        end
+      end
+      
       rule(decl_ref: simple(:name)) { Syntax::DeclarationReference.new(name.to_sym, loc: LOC) }
       
       # Function calls
@@ -62,9 +72,59 @@ module Kumi
       
       rule(left: simple(:l), comp: nil) { l }
       
-      # Declarations
+      # Simple input declarations
       rule(type: simple(:type), name: simple(:name)) do
         Syntax::InputDeclaration.new(name, nil, type.to_sym, [], loc: LOC)
+      end
+      
+      # Nested array declarations
+      rule(name: simple(:name), nested_fields: sequence(:fields)) do
+        # Transform nested field hashes to InputDeclaration objects
+        transformed_fields = fields.map do |field|
+          if field.is_a?(Hash) && field[:type] && field[:name]
+            Syntax::InputDeclaration.new(
+              field[:name], 
+              field[:domain], 
+              field[:type].to_sym, 
+              [], 
+              loc: LOC
+            )
+          else
+            field
+          end
+        end
+        
+        # Create an array input declaration with nested fields
+        Syntax::InputDeclaration.new(
+          name, 
+          nil, 
+          :array, 
+          transformed_fields, 
+          loc: LOC
+        )
+      end
+      
+      rule(name: simple(:name), nested_fields: simple(:field)) do
+        # Single nested field case
+        transformed_field = if field.is_a?(Hash) && field[:type] && field[:name]
+          Syntax::InputDeclaration.new(
+            field[:name], 
+            field[:domain], 
+            field[:type].to_sym, 
+            [], 
+            loc: LOC
+          )
+        else
+          field
+        end
+        
+        Syntax::InputDeclaration.new(
+          name, 
+          nil, 
+          :array, 
+          [transformed_field], 
+          loc: LOC
+        )
       end
       
       rule(name: simple(:name), expr: simple(:expr)) do

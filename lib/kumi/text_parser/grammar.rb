@@ -97,9 +97,13 @@ module Kumi
       
       rule(:expression) { logical_or_expr }
       
-      # Input references: input.field
+      # Input references: input.field or input.field.subfield
       rule(:input_reference) {
-        str('input.') >> identifier.as(:input_ref)
+        str('input.') >> input_path.as(:input_ref)
+      }
+      
+      rule(:input_path) {
+        identifier >> (str('.') >> identifier).repeat
       }
       
       # Declaration references: just identifier
@@ -109,13 +113,67 @@ module Kumi
       
       # Input declarations
       rule(:input_declaration) {
-        space? >> type_name.as(:type) >> space >> symbol.as(:name) >> space? >> newline?
+        nested_array_declaration | simple_input_declaration
+      }
+      
+      rule(:simple_input_declaration) {
+        space? >> type_name.as(:type) >> space >> symbol.as(:name) >> 
+        (str(',') >> space? >> domain_spec).maybe.as(:domain) >> space? >> newline?
+      }
+      
+      rule(:nested_array_declaration) {
+        space? >> str('array') >> space >> symbol.as(:name) >> space >> do_kw >> space? >> newline? >>
+        input_declaration.repeat.as(:nested_fields) >>
+        space? >> end_kw >> space? >> newline?
+      }
+      
+      rule(:domain_spec) {
+        str('domain:') >> space? >> domain_value.as(:domain_value)
+      }
+      
+      rule(:domain_value) {
+        # Ranges: 1..10, 1...10, 0.0..100.0
+        range_value | 
+        # Word arrays: %w[active inactive]
+        word_array_value |
+        # String arrays: ["active", "inactive"] 
+        string_array_value
+      }
+      
+      rule(:range_value) {
+        (float | integer) >> str('..') >> (float | integer)
+      }
+      
+      rule(:word_array_value) {
+        str('%w[') >> (identifier >> space?).repeat.as(:words) >> str(']')
+      }
+      
+      rule(:string_array_value) {
+        str('[') >> space? >> 
+        (string_literal >> (str(',') >> space? >> string_literal).repeat).maybe >>
+        space? >> str(']')
       }
       
       # Value declarations
       rule(:value_declaration) {
+        cascade_value_declaration | simple_value_declaration
+      }
+      
+      rule(:simple_value_declaration) {
         space? >> value_kw >> space >> symbol.as(:name) >> str(',') >> space? >>
         expression.as(:expr) >> space? >> newline?
+      }
+      
+      rule(:cascade_value_declaration) {
+        space? >> value_kw >> space >> symbol.as(:name) >> space >> do_kw >> space? >> newline? >>
+        cascade_case.repeat.as(:cases) >>
+        space? >> end_kw >> space? >> newline?
+      }
+      
+      rule(:cascade_case) {
+        (space? >> str('on') >> space >> identifier.as(:condition) >> str(',') >> space? >> 
+         expression.as(:result) >> space? >> newline?) |
+        (space? >> str('base') >> space >> expression.as(:base_result) >> space? >> newline?)
       }
       
       # Trait declarations  
