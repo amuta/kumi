@@ -570,5 +570,50 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         expect(runner[:count_items_with_price]).to eq(2)
       end
     end
+
+    describe "dimension mismatch errors" do
+      it "detects and reports dimension mismatches between different array inputs" do
+        expect {
+          analyze_and_compile do
+            input do
+              array :items do
+                string :name
+              end
+              array :logs do  
+                string :user_name
+              end
+            end
+
+            # This should error - comparing arrays from different inputs
+            trait :same_name, input.items.name == input.logs.user_name
+          end
+        }.to raise_error(
+          Kumi::Errors::SemanticError,
+          /Cannot broadcast operation across arrays from different sources: items, logs.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(string\) from array 'items'.*- Operand.*resolves to array\(string\) from array 'logs'/m
+        )
+      end
+
+
+      it "provides descriptive error messages for mixed array operations" do
+        expect {
+          analyze_and_compile do
+            input do
+              array :products do
+                float :price
+              end
+              array :orders do
+                integer :quantity
+              end
+            end
+
+            # This should error with descriptive message
+            value :totals, input.products.price * input.orders.quantity
+          end
+        }.to raise_error(
+          Kumi::Errors::SemanticError,
+          /Cannot broadcast operation across arrays from different sources: products, orders.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(float\) from array 'products'.*- Operand.*resolves to array\(integer\) from array 'orders'/m
+        )
+      end
+    end
   end
 end

@@ -35,11 +35,13 @@ module Kumi
             case result[:type]
             when :vectorized
               compiler_metadata[:vectorized_operations][name] = result[:info]
-              vectorized_values[name] = true
+              # Store array source information for dimension checking
+              array_source = extract_array_source(result[:info], array_fields)
+              vectorized_values[name] = { vectorized: true, array_source: array_source }
             when :reduction
               compiler_metadata[:reduction_operations][name] = result[:info]
               # Reduction produces scalar, not vectorized
-              vectorized_values[name] = false
+              vectorized_values[name] = { vectorized: false }
             end
           end
           
@@ -72,7 +74,8 @@ module Kumi
             
           when Kumi::Syntax::DeclarationReference
             # Check if this references a vectorized value
-            if vectorized_values[expr.name]
+            vector_info = vectorized_values[expr.name]
+            if vector_info && vector_info[:vectorized]
               { type: :vectorized, info: { source: :vectorized_declaration, name: expr.name } }
             else
               { type: :scalar }
@@ -108,7 +111,7 @@ module Kumi
               arg = expr.args.first
               if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
                 trait_ref = arg.elements.first
-                if trait_ref.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[trait_ref.name]
+                if trait_ref.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[trait_ref.name]&.[](:vectorized)
                   return { type: :vectorized, info: { source: :cascade_condition_with_vectorized_trait, trait: trait_ref.name } }
                 end
               end
@@ -118,6 +121,18 @@ module Kumi
             arg_infos = expr.args.map { |arg| analyze_argument_vectorization(arg, array_fields, vectorized_values) }
             
             if arg_infos.any? { |info| info[:vectorized] }
+              # Check for dimension mismatches when multiple arguments are vectorized
+              vectorized_sources = arg_infos.select { |info| info[:vectorized] }.map { |info| info[:array_source] }.compact.uniq
+              
+              if vectorized_sources.length > 1
+                # Multiple different array sources - this is a dimension mismatch
+                # Generate enhanced error message with type information
+                enhanced_message = build_dimension_mismatch_error(expr, arg_infos, array_fields, vectorized_sources)
+                
+                report_error(errors, enhanced_message, location: expr.loc, type: :semantic)
+                return { type: :scalar }  # Treat as scalar to prevent further errors
+              end
+              
               # This is a vectorized operation - ANY function supports broadcasting
               { type: :vectorized, info: { 
                 operation: expr.fn_name, 
@@ -133,15 +148,17 @@ module Kumi
           case arg
           when Kumi::Syntax::InputElementReference
             if array_fields.key?(arg.path.first)
-              { vectorized: true, source: :array_field }
+              { vectorized: true, source: :array_field, array_source: arg.path.first }
             else
               { vectorized: false }
             end
             
           when Kumi::Syntax::DeclarationReference
             # Check if this references a vectorized value
-            if vectorized_values[arg.name]
-              { vectorized: true, source: :vectorized_value }
+            vector_info = vectorized_values[arg.name]
+            if vector_info && vector_info[:vectorized]
+              array_source = vector_info[:array_source]
+              { vectorized: true, source: :vectorized_value, array_source: array_source }
             else
               { vectorized: false }
             end
@@ -153,6 +170,18 @@ module Kumi
             
           else
             { vectorized: false }
+          end
+        end
+
+        def extract_array_source(info, array_fields)
+          case info[:source]
+          when :array_field_access
+            info[:path]&.first
+          when :cascade_condition_with_vectorized_trait
+            # For cascades, we'd need to trace back to the original source
+            nil  # TODO: Could be enhanced to trace through trait dependencies
+          else
+            nil
           end
         end
 
@@ -178,6 +207,41 @@ module Kumi
             { type: :vectorized, info: { source: :cascade_with_vectorized_conditions_or_results } }
           else
             { type: :scalar }
+          end
+        end
+
+        def build_dimension_mismatch_error(_expr, arg_infos, array_fields, vectorized_sources)
+          # Build detailed error message with type information
+          summary = "Cannot broadcast operation across arrays from different sources: #{vectorized_sources.join(', ')}. "
+          
+          problem_desc = "Problem: Multiple operands are arrays from different sources:\n"
+          
+          vectorized_args = arg_infos.select { |info| info[:vectorized] }
+          vectorized_args.each_with_index do |arg_info, index|
+            array_source = arg_info[:array_source]
+            next unless array_source && array_fields[array_source]
+
+            # Determine the type based on array field metadata
+            type_desc = determine_array_type(array_source, array_fields)
+            problem_desc += "  - Operand #{index + 1} resolves to #{type_desc} from array '#{array_source}'\n"
+          end
+          
+          explanation = "Direct operations on arrays from different sources is ambiguous and not supported. " \
+                        "Vectorized operations can only work on fields from the same array input."
+          
+          "#{summary}#{problem_desc}#{explanation}"
+        end
+
+        def determine_array_type(array_source, array_fields)
+          field_info = array_fields[array_source]
+          return "array(any)" unless field_info[:element_types]
+
+          # For nested arrays (like items.name where items is an array), this represents array(element_type)
+          element_types = field_info[:element_types].values.uniq
+          if element_types.length == 1
+            "array(#{element_types.first})"
+          else
+            "array(mixed)"
           end
         end
 
