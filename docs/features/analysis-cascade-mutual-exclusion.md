@@ -14,27 +14,29 @@ The system performs three-stage analysis:
 2. **Mutual Exclusion Analysis** - UnsatDetector determines if cascade conditions are mutually exclusive  
 3. **Safe Cycle Detection** - Toposorter allows cycles where all edges are conditional and conditions are mutually exclusive
 
-## Example: Mathematical Predicates
+## Example: Processing Workflow
 
 ```ruby
 schema do
   input do
-    integer :n
+    string :operation  # "forward", "reverse", "unknown"
+    integer :value
   end
 
-  trait :n_is_zero, input.n, :==, 0
-  trait :n_is_one, input.n, :==, 1
+  trait :is_forward, input.operation == "forward"
+  trait :is_reverse, input.operation == "reverse"
 
-  value :is_even do
-    on n_is_zero, true
-    on n_is_one, false
-    base fn(:not, is_odd)  # Safe mutual recursion
+  # Safe mutual recursion - conditions are mutually exclusive
+  value :forward_processor do
+    on is_forward, input.value * 2        # Direct calculation
+    on is_reverse, reverse_processor + 10  # Delegates to reverse (safe)
+    base "invalid operation"               # Fallback for unknown operations
   end
 
-  value :is_odd do
-    on n_is_zero, false  
-    on n_is_one, true
-    base fn(:not, is_even)  # Safe mutual recursion
+  value :reverse_processor do
+    on is_forward, forward_processor - 5   # Delegates to forward (safe)
+    on is_reverse, input.value / 2         # Direct calculation
+    base "invalid operation"               # Fallback for unknown operations
   end
 end
 ```
@@ -42,9 +44,9 @@ end
 ## Safety Guarantees
 
 **Allowed**: Cycles where conditions are mutually exclusive
-- `n_is_zero` and `n_is_one` cannot both be true
-- Base case recursion only occurs when both conditions are false
-- Mathematical soundness preserved
+- `is_forward` and `is_reverse` cannot both be true (operation has single value)
+- Each recursion executes exactly one step before hitting direct calculation
+- Bounded recursion with guaranteed termination
 
 **Rejected**: Cycles with overlapping conditions
 ```ruby
@@ -71,7 +73,7 @@ Conditions are analyzed for mutual exclusion:
 Analysis results stored in `cascade_metadata` state:
 ```ruby
 {
-  condition_traits: [:n_is_zero, :n_is_one],
+  condition_traits: [:is_forward, :is_reverse],
   condition_count: 2,
   all_mutually_exclusive: true,
   exclusive_pairs: 1,
@@ -81,7 +83,7 @@ Analysis results stored in `cascade_metadata` state:
 
 ## Use Cases
 
-- Mathematical predicates (even/odd, prime/composite)
-- State machine fallback logic
+- Processing workflows with bidirectional logic
+- State machine fallback patterns  
 - Recursive decision trees with termination conditions
-- Complex business rules with safe defaults
+- Complex business rules with safe delegation patterns

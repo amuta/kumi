@@ -74,7 +74,69 @@ gem install kumi
 
 ## Core Features
 
+<details>
+<summary><strong>🔍 Array Broadcasting</strong> - Automatic vectorization over array fields</summary>
+
+### Array Broadcasting
+
+Kumi automatically broadcasts operations over array fields, enabling natural syntax for element-wise computation:
+
+```ruby
+schema do
+  input do
+    array :line_items do
+      float   :price
+      integer :quantity
+      string  :category
+    end
+    float :tax_rate
+  end
+
+  # Element-wise computation - broadcasts over each item
+  value :subtotals, input.line_items.price * input.line_items.quantity
+  
+  # Element-wise traits - applied to each item
+  trait :is_taxable, (input.line_items.category != "digital")
+  
+  # Aggregation operations - consume arrays to produce scalars
+  value :total_subtotal, fn(:sum, subtotals)
+  value :item_count, fn(:size, input.line_items)
+end
+```
+
+**Dimension Mismatch Detection**: Operations across different arrays are caught with detailed error messages:
+
+```ruby
+schema do
+  input do
+    array :items do
+      string :name
+    end
+    array :logs do  
+      string :user_name
+    end
+  end
+
+  # This generates a detailed error
+  trait :same_name, input.items.name == input.logs.user_name
+end
+
+# Error:
+# Cannot broadcast operation across arrays from different sources: items, logs. 
+# Problem: Multiple operands are arrays from different sources:
+#   - Operand 1 resolves to array(string) from array 'items'
+#   - Operand 2 resolves to array(string) from array 'logs'
+# Direct operations on arrays from different sources is ambiguous and not supported.
+```
+
+</details>
+
 ## Key Concepts
+
+<details>
+<summary><strong>📊 Schema Primitives</strong> - Four building blocks for business logic</summary>
+
+### Schema Primitives
 
 Kumi schemas are built from four simple primitives that compose into powerful business logic:
 
@@ -99,7 +161,7 @@ trait :bulk_order, input.quantity >= 100
 trait :premium_customer, input.tier == "premium"
 
 value :discount do
-  on bulk_order & premium_customer, 0.25  # 25% for bulk premium orders
+  on bulk_order, premium_customer, 0.25  # 25% for bulk premium orders
   on bulk_order, 0.15                     # 15% for bulk orders
   on premium_customer, 0.10               # 10% for premium customers
   base 0.0                                # No discount otherwise
@@ -114,104 +176,125 @@ value :monthly_payment, fn(:pmt, rate: 0.05/12, nper: 36, pv: -loan_amount)
 ```
 Note: You can find a list all core functions [FUNCTIONS.md](docs/FUNCTIONS.md)
 
-
 These primitives are statically analyzed during schema definition, catching logical errors before runtime and ensuring your business rules are internally consistent.
 
+</details>
+
+<details>
+<summary><strong>🔍 Static Analysis</strong> - Catch business logic errors at definition time</summary>
 
 ### Static Analysis
 
-Kumi catches real business logic errors during schema definition:
+Kumi catches subtle business logic errors that would cause runtime failures or silent bugs:
 
 ```ruby
-module CommissionCalculator
+module InsurancePolicyPricer
   extend Kumi::Schema
   
   schema do
     input do
-      float :sales_amount, domain: 0..Float::INFINITY
+      integer :age, domain: 18..80
+      string :risk_category, domain: %w[low medium high]
+      float :coverage_amount, domain: 50_000..2_000_000
       integer :years_experience, domain: 0..50
-      string :region, domain: %w[east west north south]
+      boolean :has_claims
     end
     
-    # Commission tiers based on experience
-    trait :junior, input.years_experience < 2
-    trait :senior, input.years_experience >= 5
-    trait :veteran, input.years_experience >= 10
+    # Risk assessment with subtle interdependencies
+    trait :young_driver, input.age < 25
+    trait :experienced, input.years_experience >= 5
+    trait :high_risk, input.risk_category == "high"
+    trait :senior_driver, input.age >= 65
     
-    # Base commission rates
-    value :base_rate do
-      on veteran, 0.08
-      on senior, 0.06
-      on junior, 0.04
-      base 0.05
-    end
+    # Base premium calculation
+    value :base_premium, input.coverage_amount * 0.02
     
-    # Regional multipliers
-    value :regional_bonus do
-      on input.region == "west", 1.2  # West coast bonus
-      on input.region == "east", 1.1  # East coast bonus
+    # Experience adjustment with subtle circular reference
+    value :experience_factor do
+      on experienced & young_driver, experience_discount * 0.8  # ❌ Uses experience_discount before it's defined
+      on experienced, 0.85
+      on young_driver, 1.25
       base 1.0
     end
     
-    # Problem: Veteran bonus conflicts with senior cap
-    value :experience_bonus do
-      on veteran, 2.0      # Veterans get 2x bonus
-      on senior, 1.5       # Seniors get 1.5x bonus  
+    # Risk multipliers that create impossible combinations
+    value :risk_multiplier do
+      on high_risk & experienced, 1.5    # High risk but experienced
+      on high_risk, 2.0                  # Just high risk
+      on low_risk & young_driver, 0.9    # ❌ low_risk is undefined (typo for input.risk_category)
       base 1.0
     end
     
-    value :total_rate, base_rate * regional_bonus * experience_bonus
+    # Claims history impact
+    trait :claims_free, fn(:not, input.has_claims)
+    trait :perfect_record, claims_free & experienced & fn(:not, young_driver)
     
-    # Business rule error: Veterans (10+ years) are also seniors (5+ years)
-    # This creates impossible logic in commission caps
-    trait :capped_senior, :senior & (total_rate <= 0.10)  # Senior cap
-    trait :uncapped_veteran, :veteran & (total_rate > 0.10)  # Veteran override
-    
-    value :final_commission do
-      on capped_senior & uncapped_veteran, "Impossible!"  # Can't be both
-      on uncapped_veteran, input.sales_amount * total_rate
-      on capped_senior, input.sales_amount * 0.10
-      base input.sales_amount * total_rate
+    # Discount calculation with type error
+    value :experience_discount do
+      on perfect_record, input.years_experience + "%" # ❌ String concatenation with integer
+      on claims_free, 0.95
+      base 1.0
     end
+    
+    # Premium calculation chain
+    value :adjusted_premium, base_premium * experience_factor * risk_multiplier
+    
+    # Age-based impossible logic
+    trait :mature_professional, senior_driver & experienced & young_driver  # ❌ Can't be senior AND young
+    
+    # Final premium with self-referencing cascade
+    value :final_premium do
+      on mature_professional, adjusted_premium * 0.8
+      on senior_driver, adjusted_premium * senior_adjustment  # ❌ senior_adjustment undefined
+      base final_premium * 1.1  # ❌ Self-reference in base case
+    end
+    
+    # Monthly payment calculation with function arity error
+    value :monthly_payment, fn(:divide, final_premium)  # ❌ divide needs 2 arguments, got 1
   end
 end
 
-# => conjunction `capped_senior AND uncapped_veteran` is impossible
+# Static analysis catches ALL these subtle errors:
+# ❌ Circular reference: experience_factor → experience_discount → experience_factor
+# ❌ Undefined reference: low_risk (should be input.risk_category == "low")
+# ❌ Type mismatch: integer + string in experience_discount
+# ❌ Impossible conjunction: senior_driver & young_driver
+# ❌ Undefined reference: senior_adjustment
+# ❌ Self-reference cycle: final_premium references itself in base case
+# ❌ Function arity error: divide expects 2 arguments, got 1
 ```
 
-Kumi also enables safe recursive patterns when conditions are mutually exclusive:
+**Bounded Recursion**: Kumi allows safe mutual recursion when cascade conditions are mutually exclusive:
 
 ```ruby
-module MathematicalPredicates
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      integer :n
-    end
+trait :is_forward, input.operation == "forward"
+trait :is_reverse, input.operation == "reverse"
 
-    trait :n_is_zero, input.n, :==, 0
-    trait :n_is_one, input.n, :==, 1
-
-    value :is_even do
-      on n_is_zero, true
-      on n_is_one, false
-      base fn(:not, is_odd)  # Safe mutual recursion
-    end
-
-    value :is_odd do
-      on n_is_zero, false  
-      on n_is_one, true
-      base fn(:not, is_even)  # Safe mutual recursion
-    end
-  end
+# Safe mutual recursion - conditions are mutually exclusive
+value :forward_processor do
+  on is_forward, input.value * 2        # Direct calculation
+  on is_reverse, reverse_processor + 10  # Delegates to reverse (safe)
+  base "invalid operation"
 end
 
-# Compiles successfully - conditions are mutually exclusive
-runner = MathematicalPredicates.from(n: 0)
-runner[:is_even]  # => true
-runner[:is_odd]   # => false
+value :reverse_processor do
+  on is_forward, forward_processor - 5   # Delegates to forward (safe) 
+  on is_reverse, input.value / 2         # Direct calculation
+  base "invalid operation"
+end
+
+# Usage examples:
+# operation="forward", value=10  => forward: 20, reverse: 15
+# operation="reverse", value=10  => forward: 15, reverse: 5  
+# operation="unknown", value=10  => both: "invalid operation"
 ```
+
+This compiles successfully because `operation` can only be "forward" OR "reverse", never both. At runtime, each recursion executes exactly one step before hitting a direct calculation, making it bounded and safe.
+
+</details>
+
+<details>
+<summary><strong>💾 Automatic Memoization</strong> - Each value computed exactly once</summary>
 
 ### Automatic Memoization
 
@@ -221,12 +304,17 @@ Each value is computed exactly once:
 runner = FederalTax2024.from(income: 250_000, filing_status: "married_joint")
 
 # First access computes full dependency chain
-runner[:total_tax]     # => 52,937.50
+runner[:total_tax]     # => 53,155.20
 
 # Subsequent access uses cached values
-runner[:fed_tax]       # => 37,437.50 (cached)
-runner[:after_tax]     # => 197,062.50 (cached)
+runner[:fed_tax]       # => 39,077.00 (cached)
+runner[:after_tax]     # => 196,844.80 (cached)
 ```
+
+</details>
+
+<details>
+<summary><strong>🔍 Introspection</strong> - See exactly how values are calculated</summary>
 
 ### Introspection
 
@@ -241,8 +329,12 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 #    = 15,099.50
 ```
 
-## Suggested Use Cases
+</details>
 
+<details>
+<summary><strong>🎯 Suggested Use Cases</strong> - When to use Kumi</summary>
+
+**✅ Great for:**
 - Complex interdependent business rules
 - Tax calculation engines (as demonstrated)
 - Insurance premium calculators
@@ -250,18 +342,23 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 - Commission structures with complex tiers
 - Pricing engines with multiple discount rules
 
-**Not suitable for:**
+**❌ Not suitable for:**
 - Simple conditional statements
 - Sequential procedural workflows  
 - Rules that change during execution
 - High-frequency real-time processing
 
-## Performance
+</details>
+
+<details>
+<summary><strong>⚡ Performance</strong> - Benchmarks and characteristics</summary>
 
 Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 - 50-deep dependency chain: **740,000/sec** (analysis <50ms)
 - 1,000 attributes:         **131,000/sec** (analysis <50ms)
 - 10,000 attributes:        **14,200/sec**  (analysis ~300ms)
+
+</details>
 
 ## Learn More
 

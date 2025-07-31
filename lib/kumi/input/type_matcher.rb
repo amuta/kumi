@@ -15,6 +15,9 @@ module Kumi
           value.is_a?(TrueClass) || value.is_a?(FalseClass)
         when :symbol
           value.is_a?(Symbol)
+        when :array
+          # Simple :array type - just check if it's an Array
+          value.is_a?(Array)
         when :any
           true
         else

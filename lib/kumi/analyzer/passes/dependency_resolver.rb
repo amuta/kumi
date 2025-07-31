@@ -54,8 +54,8 @@ module Kumi
             report_error(errors, "undefined reference to `#{node.name}`", location: node.loc) unless definitions.key?(node.name)
 
             # Determine if this is a conditional dependency
-            conditional = context[:in_cascade_base] || false
-            cascade_owner = conditional ? context[:decl_name] : nil
+            conditional = context[:in_cascade_branch] || context[:in_cascade_base] || false
+            cascade_owner = conditional ? (context[:cascade_owner] || context[:decl_name]) : nil
 
             add_dependency_edge(graph, reverse_deps, decl.name, node.name, :ref, context[:via],
                                 conditional: conditional,
@@ -98,8 +98,9 @@ module Kumi
                 # Visit condition normally
                 visit_with_context(when_case.condition, context, &block)
               end
-              # Visit result expressions as regular dependencies
-              visit_with_context(when_case.result, context, &block)
+              # Visit result expressions as conditional dependencies
+              conditional_context = context.merge(in_cascade_branch: true, cascade_owner: context[:decl_name])
+              visit_with_context(when_case.result, conditional_context, &block)
             end
 
             # Visit base case with conditional flag

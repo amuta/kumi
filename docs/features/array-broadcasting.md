@@ -127,6 +127,41 @@ value :order_total, fn(:sum, line_totals)
 value :avg_line_total, fn(:avg, line_totals)
 ```
 
+## Error Handling
+
+### Dimension Mismatch Detection
+
+Array broadcasting operations are only valid within the same array source. Attempting to broadcast across different arrays generates detailed error messages:
+
+```ruby
+schema do
+  input do
+    array :items do
+      string :name
+    end
+    array :logs do  
+      string :user_name
+    end
+  end
+
+  # This will generate a dimension mismatch error
+  trait :same_name, input.items.name == input.logs.user_name
+end
+
+# Error:
+# Cannot broadcast operation across arrays from different sources: items, logs. 
+# Problem: Multiple operands are arrays from different sources:
+#   - Operand 1 resolves to array(string) from array 'items'
+#   - Operand 2 resolves to array(string) from array 'logs'
+# Direct operations on arrays from different sources is ambiguous and not supported. 
+# Vectorized operations can only work on fields from the same array input.
+```
+
+The error messages provide:
+- **Quick Summary**: Identifies the conflicting array sources
+- **Type Information**: Shows the resolved types of each operand  
+- **Clear Explanation**: Why the operation is ambiguous and not supported
+
 ## Performance Characteristics
 
 - **Single Pass** - Each array is traversed once per computation chain
