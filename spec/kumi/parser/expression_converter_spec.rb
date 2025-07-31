@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Parser::ExpressionConverter do
+RSpec.describe Kumi::RubyParser::ExpressionConverter do
   let(:context) { double("context", current_location: location) }
   let(:location) { double("location", file: "test.rb", line: 10, column: 5) }
   let(:converter) { described_class.new(context) }
@@ -252,7 +252,7 @@ RSpec.describe Kumi::Parser::ExpressionConverter do
     it "creates input proxy with context" do
       result = converter.input
       
-      expect(result).to be_a(Kumi::Parser::InputProxy)
+      expect(result).to be_a(Kumi::RubyParser::InputProxy)
       # Note: We can't easily test the internal context without exposing it
       # This test verifies the type and that it doesn't raise an error
     end

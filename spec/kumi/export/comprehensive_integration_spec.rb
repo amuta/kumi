@@ -54,7 +54,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   let(:comprehensive_schema) do
     # Create the most comprehensive schema possible with all syntax features
-    Kumi::Parser::Dsl.build_syntax_tree do
+    Kumi::RubyParser::Dsl.build_syntax_tree do
       input do
         # All primitive types
         key :name, type: :string

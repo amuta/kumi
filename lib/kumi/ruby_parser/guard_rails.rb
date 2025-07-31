@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     module GuardRails
       RESERVED = %i[input trait value fn lit ref].freeze
 

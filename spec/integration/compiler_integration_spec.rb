@@ -53,7 +53,7 @@ RSpec.describe "Kumi Compiler Integration" do
       # Notice how traits build on other traits, attributes reference multiple traits,
       # and functions consume both raw fields and computed attributes.
 
-      Kumi::Parser::Dsl.build_syntax_tree do
+      Kumi::RubyParser::Dsl.build_syntax_tree do
         input do
           key :name, type: :string # Kumi::Types::STRING
           key :age, type: :integer # Kumi::Types::INT

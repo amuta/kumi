@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe "Kumi::Parser::Sugar" do
+RSpec.describe "Kumi::RubyParser::Sugar" do
   describe "arithmetic operators on expressions" do
     it "creates correct CallExpression nodes for arithmetic operators" do
       runner = run_sugar_schema(:arithmetic, a: 10.0, b: 3.0, x: 7, y: 2)

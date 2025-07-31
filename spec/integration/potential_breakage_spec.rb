@@ -99,7 +99,7 @@ RSpec.describe "Potential Breakage Cases" do
 
       expect do
         eval <<~RUBY
-          Kumi.schema do
+          Kumi::schema do
             input { integer :x }
             value :result, #{nested}
           end

@@ -46,7 +46,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
       it "catches unclosed blocks and parentheses" do
         expect do
           eval <<~RUBY
-            Kumi.schema do
+            Kumi::schema do
               input { any :field
               value :result, 42
             end
@@ -103,7 +103,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
       it "catches invalid field references" do
         expect do
           eval <<~RUBY
-            Kumi.schema do
+            Kumi::schema do
               input { any :x }
               value :result, input.
             end
@@ -114,7 +114,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
       it "catches broken operator chaining" do
         expect do
           eval <<~RUBY
-            Kumi.schema do
+            Kumi::schema do
               input { any :x }
               trait :test, (input.x >=)
             end

@@ -95,7 +95,7 @@ RSpec.describe "Kumi Performance" do
   end
 
   let(:schema_definition) do
-    Kumi::Parser::Dsl.build_syntax_tree do
+    Kumi::RubyParser::Dsl.build_syntax_tree do
       trait :adult, input.age, :>=, 18
       trait :senior, input.age, :>=, 65
       trait :high_balance, input.account_balance, :>=, 10_000

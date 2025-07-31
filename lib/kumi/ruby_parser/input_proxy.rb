@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     # Proxy object for input field references (input.field_name)
     class InputProxy
       include Syntax

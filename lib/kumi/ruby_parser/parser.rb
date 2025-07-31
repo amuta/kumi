@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
+    # Main parser class for Ruby DSL
     class Parser
       include Syntax
       include ErrorReporting
@@ -33,13 +34,17 @@ module Kumi
       private
 
       def enable_refinements(rule_block)
-        rule_block.binding.eval("using Kumi::Parser::Sugar::ExpressionRefinement")
-        rule_block.binding.eval("using Kumi::Parser::Sugar::NumericRefinement")
-        rule_block.binding.eval("using Kumi::Parser::Sugar::StringRefinement")
-        rule_block.binding.eval("using Kumi::Parser::Sugar::ArrayRefinement")
-        rule_block.binding.eval("using Kumi::Parser::Sugar::ModuleRefinement")
+        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ExpressionRefinement")
+        rule_block.binding.eval("using Kumi::RubyParser::Sugar::NumericRefinement")
+        rule_block.binding.eval("using Kumi::RubyParser::Sugar::StringRefinement")
+        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ArrayRefinement")
+        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ModuleRefinement")
       rescue RuntimeError, NoMethodError
         # Refinements disabled in method scope - continue without them
+      end
+
+      def build_syntax_tree
+        Root.new(@context.inputs, @context.attributes, @context.traits)
       end
 
       def handle_parse_error(error)
@@ -58,10 +63,6 @@ module Kumi
 
       def literal_comparison_error?(error)
         error.message =~ /comparison of Integer with Kumi::Syntax::/i
-      end
-
-      def build_syntax_tree
-        Root.new(@context.inputs, @context.attributes, @context.traits)
       end
     end
   end

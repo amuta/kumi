@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     # Converts Ruby objects and DSL expressions into AST nodes
     # This is the bridge between Ruby's native types and Kumi's syntax tree
     class ExpressionConverter

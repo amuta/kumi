@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     # Proxy for input field access that can handle arbitrary depth nesting
     # Handles input.field.subfield.subsubfield... syntax by building up path arrays
     class InputFieldProxy

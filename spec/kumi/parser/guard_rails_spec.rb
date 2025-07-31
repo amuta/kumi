@@ -2,7 +2,7 @@
 
 RSpec.describe "DSL Guard Rails" do
   def build_schema(&block)
-    Kumi::Parser::Parser.new.parse(&block)
+    Kumi::RubyParser::Parser.new.parse(&block)
   end
 
   it "rejects unknown keywords" do
@@ -25,12 +25,12 @@ RSpec.describe "DSL Guard Rails" do
 
   it "fails when someone redefines a reserved keyword" do
     # Save original method to restore it after the test
-    original_value_method = Kumi::Parser::SchemaBuilder.instance_method(:value)
+    original_value_method = Kumi::RubyParser::SchemaBuilder.instance_method(:value)
 
     begin
       expect do
         module Kumi
-          module Parser
+          module RubyParser
             class SchemaBuilder
               # shadow!
               def value(*); end
@@ -42,7 +42,7 @@ RSpec.describe "DSL Guard Rails" do
       # Restore the original method because even that the GuardRails raise an error
       # the method is still redefined in the class.
       begin
-        Kumi::Parser::SchemaBuilder.define_method(:value, original_value_method)
+        Kumi::RubyParser::SchemaBuilder.define_method(:value, original_value_method)
       rescue StandardError
       end
     end

@@ -5,9 +5,22 @@ require "zeitwerk"
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
-loader.ignore("#{__dir__}/kumi/text_parser")
 loader.setup
 
 module Kumi
   extend Schema
+
+  def self.inspector_from_schema
+    Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
+  end
+
+  def self.reset!
+    @__syntax_tree__ = nil
+    @__analyzer_result__ = nil
+    @__compiled_schema__ = nil
+    @__schema_metadata__ = nil
+  end
+
+  # Reset on require to avoid state leakage in tests
+  reset!
 end

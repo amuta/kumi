@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     class BuildContext
       attr_reader :inputs, :attributes, :traits
       attr_accessor :current_location

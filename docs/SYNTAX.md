@@ -131,13 +131,8 @@ trait :needs_review, fn(:and, needs_improvement, fn(:>, input.attempts, 2))
 ### String Operations
 
 ```ruby
-# With Sugar  
-trait :long_name, input.name.length > 20
-trait :starts_with_a, input.name.start_with?("A")
-trait :contains_space, input.name.include?(" ")
-
-# Sugar-Free
-trait :long_name, fn(:>, fn(:string_length, input.name), 20)
+# All string operations use function syntax
+trait :long_name, fn(:string_length, input.name) >  20
 trait :starts_with_a, fn(:start_with?, input.name, "A")
 trait :contains_space, fn(:contains?, input.name, " ")
 ```

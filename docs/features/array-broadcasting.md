@@ -24,7 +24,7 @@ schema do
       integer :quantity
       string  :category
     end
-    scalar :tax_rate, type: :float
+    float :tax_rate, type: :float
   end
 
   # Element-wise computation - broadcasts over each item

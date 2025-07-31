@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     # DSL proxy for declaration references (traits and values)
     # Handles references to declared items and field access on them
     class DeclarationReferenceProxy

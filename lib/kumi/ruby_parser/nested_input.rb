@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     # Simple context struct for nested input collection
     class NestedInput
       attr_reader :inputs, :current_location

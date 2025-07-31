@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Parser
+  module RubyParser
     class InputBuilder
       include Syntax
       include ErrorReporting

@@ -5,11 +5,9 @@
 !! Do not care about linter or coverage unless asked to do so.
 !! IMPORTANT: Communication style - Write direct, factual statements. Avoid promotional language, unnecessary claims, or marketing speak. State what the system does, not what benefits it provides. Use TODOs for missing information rather than placeholder claims.
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-Kumi is a declarative decision-modeling compiler for Ruby that transforms complex business rules into executable dependency graphs. It features a multi-pass analyzer that validates rule interdependencies, detects cycles, infers types, and generates optimized evaluation functions. The system separates input field declarations from business logic through an explicit input block syntax.
+Kumi is a Declarative logic and rules engine framework with static analysis for Ruby.
 
 ## Development Commands
 
@@ -18,28 +16,10 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - `bundle exec rspec spec/path/to/specific_spec.rb` - Run specific test file
 - `bundle exec rspec spec/path/to/specific_spec.rb:123` - Run specific test at line
 
-### Linting & Code Quality
-- `bundle exec rubocop` - Run RuboCop linter
-- `bundle exec rubocop -a` - Auto-fix RuboCop issues where possible
-- `rake` - Run default task (includes rspec and rubocop)
-
 ### Gem Management
 - `bundle install` - Install dependencies
 - `gem build kumi.gemspec` - Build the gem
 - `gem install ./kumi-*.gem` - Install locally built gem
-
-### Kumi CLI
-- `./bin/kumi -i` - Start interactive REPL mode for rapid schema testing
-- `./bin/kumi -f schema.rb -d data.json` - Execute schema file with input data
-- `./bin/kumi -f schema.rb -k key1,key2` - Extract specific keys from schema
-- `./bin/kumi -f schema.rb -e key_name` - Explain how a key is computed
-- `./bin/kumi -f schema.rb -d data.json -o json` - Output results in JSON format
-
-**CLI Features**:
-- Interactive REPL with schema loading, data manipulation, and live evaluation
-- File-based schema execution with JSON/YAML input data support
-- Selective key extraction and explain functionality for debugging
-- Multiple output formats (pretty, JSON, YAML) for integration
 
 ## Architecture Overview
 
@@ -50,13 +30,7 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - Provides the `schema(&block)` DSL method that builds the syntax tree, runs analysis, and compiles to executable form
 - Generates a `Runner` instance for executing queries against input data
 
-**Parser** (`lib/kumi/parser/`):
-- `dsl.rb` - Main DSL parser that converts Ruby block syntax into AST nodes
-- `dsl_builder_context.rb` - Context for building DSL elements with input/value/trait methods
-- `dsl_cascade_builder.rb` - Specialized builder for cascade expressions
-- `dsl_proxy.rb` - Proxy object for method delegation during parsing
-- `input_dsl_proxy.rb` - Proxy for input block DSL supporting both `key` method and type-specific DSL methods
-- `input_proxy.rb` - Proxy for `input.field_name` references in expressions
+**Parser** (`lib/kumi/ruby_parser{/*,.rb}`):
 
 **Syntax Tree** (`lib/kumi/syntax/`):
 - `node.rb` - Base node class with location tracking
@@ -66,12 +40,13 @@ Kumi is a declarative decision-modeling compiler for Ruby that transforms comple
 - `input_declaration.rb` - Input field declaration nodes (formerly FieldDecl)
 - `call_expression.rb` - Function call expression nodes
 - `array_expression.rb` - Array expression nodes (formerly ListExpression)
-- `hash_expression.rb` - Hash expression nodes (for future hash literals)
+- `hash_expression.rb` - Hash expression nodes (for future hash literals) (currently not used)
 - `cascade_expression.rb` - Cascade expression nodes (conditional values)
 - `case_expression.rb` - Case expression nodes (formerly WhenCaseExpression)
 - `literal.rb` - Literal value nodes
-- `input_reference.rb` - Input field reference nodes (formerly FieldRef)  
-- `declaration_reference.rb` - Declaration reference nodes (formerly Binding)
+- `input_reference.rb` - Input field reference nodes (formerly FieldRef) 
+- `input_element_reference.rb` - Reference to nested input field (array -> obj.field) 
+- `declaration_reference.rb` - Declaration reference value or trait nodes
 
 **Analyzer** (`lib/kumi/analyzer.rb`):
 - Multi-pass analysis system that validates schemas and builds dependency graphs
@@ -135,10 +110,7 @@ end
 ```
 
 **Function Call Syntax**:
-- **Symbol style**: `fn(:function_name, arg1, arg2)` - Always works, explicit
-- **Method style**: `fn.function_name(arg1, arg2)` - Also works, more readable
-- **Incorrect**: `fn()` - Empty function calls cause parse errors
-- **Incorrect**: `fn.function_name()` - Empty method calls cause parse errors
+- **Symbol style**: `fn(:function_name, arg1, arg2, ...)` - The only supported function call syntax 
 
 **Arithmetic Operations**:
 - **Sugar Syntax**: `input.field1 + input.field2` - Works for input fields and value references
@@ -152,21 +124,9 @@ value :status do
   on trait_name, "Result"
   base "Default"
 end
-
-# INCORRECT - bare identifiers don't work in cascade conditions
-value :status do
-  on trait_name, "Result"  # This will fail
-  base "Default"
-end
 ```
 
-**UnsatDetector Considerations**:
-- Cascades with mutually exclusive conditions are valid (e.g., `amount < 100` vs `amount >= 100`)
-- Values that depend on such cascades are also valid (fixed in recent update)
-- Use clear, non-contradictory trait names to avoid confusion
-
 ### Key Patterns
-
 **DSL Structure**:
 ```ruby
 schema do
@@ -176,6 +136,14 @@ schema do
     integer :number_field, domain: 0..100
     array   :scores, elem: { type: :float }
     hash    :metadata, key: { type: :string }, val: { type: :any }
+
+    array :line_items do
+      float   :price
+      integer :quantity
+      string  :category
+    end
+
+
 
     # Fields with no declared type
     any     :misc_field
@@ -260,72 +228,26 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 - `spec/fixtures/` - Test fixtures and sample schemas
 - `spec/support/` - Test helpers (`ast_factory.rb`, `schema_generator.rb`)
 
-## Key Files for Understanding
+## Files for Understanding
 
-1. `lib/kumi/schema.rb` - Start here to understand the main API
-2. `examples/input_block_typing_showcase.rb` - Comprehensive example of current features
-3. `lib/kumi/analyzer.rb` - Core analysis pipeline with multi-pass system
-4. `lib/kumi/types.rb` - Static type system implementation
-5. `lib/kumi/function_registry.rb` - Available functions and extension patterns
-6. `lib/kumi/analyzer/passes/type_inferencer.rb` - Type inference algorithm
-7. `lib/kumi/analyzer/passes/type_checker.rb` - Type validation with enhanced error messages
-8. `spec/kumi/input_block_spec.rb` - Input block syntax and behavior
-9. `spec/integration/compiler_integration_spec.rb` - End-to-end test examples
-10. `docs/DSL.md` - Concise DSL syntax reference
-11. `docs/AST.md` - AST node types and structure reference
-12. `docs/SYNTAX.md` - Comprehensive sugar vs sugar-free syntax comparison with examples
-13. `lib/kumi/cli.rb` - CLI implementation with REPL and file execution
-14. `examples/simple_tax_schema.rb` - CLI-compatible schema example
-15. `docs/features/analysis-cascade-mutual-exclusion.md` - Cascade mutual exclusion detection feature documentation
-16. `docs/features/array-broadcasting.md` - Array broadcasting and vectorization system documentation
-
-## CLI Usage and Best Practices
-
-### Schema File Requirements
-- **Must use module structure**: `module SchemaName; extend Kumi::Schema; schema do ... end; end`
-- **Must have proper require**: `require_relative "../lib/kumi"` at the top
-- **Must have input block**: Even empty `input {}` blocks are required
-- **Avoid inline definitions**: Don't define schemas directly in methods or blocks
-
-### CLI Development Workflow
-1. **Start with REPL**: Use `./bin/kumi -i` for rapid prototyping and testing
-2. **Test with files**: Create `.rb` schema files and `.json/.yaml` data files
-3. **Iterate quickly**: Use `-k key1,key2` to focus on specific outputs
-4. **Debug with explain**: Use `-e key_name` to understand computation flow
-5. **Validate with different data**: Test edge cases with varied input data
-
-### Common CLI Patterns
-```bash
-# Interactive development
-./bin/kumi -i
-kumi> schema examples/my_schema.rb
-kumi> data test_data.json
-kumi> get result
-
-# File-based execution
-./bin/kumi -f examples/tax_schema.rb -d examples/tax_data.json -k total_tax,effective_rate
-
-# Debugging computations
-./bin/kumi -f examples/complex_schema.rb -d examples/data.json -e complex_calculation
-
-# Output formats for integration
-./bin/kumi -f schema.rb -d data.json -k results -o json | jq '.results'
-```
+. `docs/*` - Documents about Kumi, its features, DSL syntax, ... 
+- `examples/*` Random examples of very diverse contexts.
 
 ### Troubleshooting Schema Issues
 - **Parse Errors**: Check function syntax (avoid empty `fn()` calls)
-- **Module Not Found**: Ensure proper module structure and naming
-- **UnsatDetector Errors**: Review trait logic for contradictions
-- **Type Errors**: Check input block type declarations match usage
-- **Runtime Errors**: Use explain to trace computation dependencies
+- **Module Not Found**: Ensure proper module structure and naming, see examples
+- **UnsatDetector Errors**: Review trait logic for contradictions, add debugs!
+- **Type Errors**: Check input block type declarations match usage, add debugs!
+- **Runtime Errors**: Use explain to trace computation dependencies, add debugs!
 
 ## Input Block System Details
 
 ### Required Input Blocks
-- **All schemas must have an input block** - This is now mandatory
+- **All schemas must have an input block** -
 - Input blocks declare expected fields with optional type and domain constraints
-- **Empty input blocks are allowed** - Use `input {}` for schemas that don't require external data
-- Fields are accessed via `input.field_name` syntax (replaces deprecated `key(:field)`)
+- **Empty input blocks are allowed** -`input {}` Even if its not very useful.
+- Fields are accessed via `input.field_name` or `input.field.nested_field.nested_nested_field` which
+works for referencing nested array input declarations.
 
 ### Type System Integration
 - **Declared Types**: Explicit type declarations in input blocks (e.g. `integer :field`, `string :name`, `any :field`)
@@ -335,26 +257,21 @@ kumi> get result
 - **Helper Functions**: Use `array(:type)` and `hash(:key_type, :value_type)` for complex types
 
 ### Parser Components
-- `input_dsl_proxy.rb` - Supports type-specific DSL methods (`integer`, `float`, `string`, `boolean`, `array`, `hash`, `any`)
-- `input_proxy.rb` - Handles `input.field_name` references in expressions
-- `input_collector.rb` - Collects and validates field metadata consistency
+See `lib/kumi/ruby_parser/parser.rb`
 
 ### Domain Constraints
 - Can be declared: `integer :age, domain: 18..65`
-- **Implemented**: Domain validation is active and enforced at runtime
 - Supports Range domains (`18..65`), Array domains (`%w[active inactive]`), and Proc domains for custom validation
-- Field metadata includes domain information and runtime validation occurs during `Schema.from()`
-
+- Analyzer do some limited domain UNSAT detection, and its used to validated against input at Runtime
 ### Type Examples
 ```ruby
 input do
-  # New type-specific DSL methods (recommended)
   string       :name
   integer      :age, domain: 18..65
   hash         :metadata, key: { type: :string }, val: { type: :any }
 
-  # For untyped/any fields
-  any          :misc
+  #generic type
+  any          :misc # this will make Kumi lose most of its analyze/inference power
 end
 ```
 
@@ -437,59 +354,20 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 3. Add pass to `PASSES` array in `lib/kumi/analyzer.rb` in correct order
 4. Consider dependencies on other passes (e.g., TypeChecker needs TypeInferencer)
 
-### Working with AST Nodes
-- All nodes include `Node` module for location tracking
-- Use `spec/support/ast_factory.rb` helpers in tests
-- Field declarations use `FieldDecl` nodes with name, domain, and type
-- Field references use `FieldRef` nodes (from `input.field_name`) with operator methods
-- FieldRef operator methods (>=, <=, >, <, ==, !=) create CallExpression nodes
-- CallExpression `&` method enables logical AND chaining
-
-### Testing Input Block Features
-- See `spec/kumi/input_block_spec.rb` for comprehensive input block tests
-- Use `schema_generator.rb` helper for creating test schemas
-- All integration tests now require input blocks
-
 ## Architecture Design Principles
 
 - **Multi-pass Analysis**: Each analysis pass has a single responsibility and builds on previous passes
 - **Immutable Syntax Tree**: AST nodes are immutable; analysis results stored separately in analyzer state
 - **Dependency-driven Evaluation**: All computation follows dependency graph to ensure correct order
 - **Type Safety**: Optional but comprehensive type checking without breaking existing schemas
-- **Backward Compatibility**: New features maintain compatibility with existing DSL and APIs
 - **Ruby Integration**: Leverages Ruby's metaprogramming while providing structured analysis
-- **Separation of Concerns**: Input metadata (types, domains) separated from business logic
-- **Class Decomposition**: Large classes split into focused, single-responsibility components following RuboCop guidelines
-- **Delegation Pattern**: Complex operations delegated to specialized analyzer and formatter classes
 - **Unified Error Reporting**: Consistent, localized error messages throughout the system with clear interface patterns
 
 ## Code Organization Patterns
 
-### Modular Validation Architecture
-- **Coordinator Classes**: Main classes like `Input::Validator` and `Domain::Validator` coordinate but delegate complex logic
-- **Specialized Analyzers**: Domain-specific classes like `RangeAnalyzer` and `EnumAnalyzer` handle specific constraint types
-- **Formatter Classes**: Dedicated classes like `ViolationFormatter` handle message formatting with consistent patterns
-- **Creator Classes**: Classes like `ViolationCreator` centralize object creation with standardized structure
-
 ### Testing Best Practices
 - **Spec Organization**: Tests organized by component with clear separation between unit and integration tests
 - **Error Variable Extraction**: RSpec patterns avoid multiline block chains by extracting error variables for assertion
-- **Shared Contexts**: Use `schema_generator` and other shared contexts for consistent test setup
-
-### RuboCop Compliance
-- **Method Length**: Keep methods under 10 lines through extraction and delegation
-- **Class Length**: Break classes over 100 lines into focused components
-- **Complexity Metrics**: Reduce cyclomatic and ABC complexity through single-responsibility design
-- **Style Consistency**: Follow Ruby style guidelines for readability and maintainability
-
-### Error Reporting Architecture
-- **Unified Interface**: Use `ErrorReporter` module and `ErrorReporting` mixin for consistent error handling
-- **Location Information**: All errors must include proper file:line:column location data
-- **Precise Location Tracking**: Error objects preserve location data in `.location` attribute for programmatic access
-- **User Code Location**: Errors point to actual user DSL code, not internal library files
-- **Backward Compatibility**: Support both legacy `[location, message]` and new `ErrorEntry` formats
-- **Type Categorization**: Errors categorized as `:syntax`, `:semantic`, `:type`, `:runtime`
-- **Enhanced Messaging**: Support for error suggestions, context, and similar name detection
 
 ## Development Guides and Standards
 
@@ -522,18 +400,5 @@ end
 - Use `spec/integration/dsl_breakage_spec.rb` patterns for comprehensive error testing
 - Use `spec/integration/potential_breakage_spec.rb` for edge cases break
 - Use `spec/fixtures/location_tracking_test_schema.rb` fixture for testing different syntax error types  
-- Test backward compatibility with existing analyzer pass specs
-
-### Key Development Files
-12. `lib/kumi/error_reporter.rb` - Central error reporting functionality
-13. `lib/kumi/error_reporting.rb` - Mixin for consistent error interfaces  
-14. `spec/integration/location_tracking_spec.rb` - Comprehensive tests for error location accuracy
-15. `spec/fixtures/location_tracking_test_schema.rb` - Fixture with intentional syntax errors for location testing
-16. `ERROR_REPORTING_INTERFACE.md` - Detailed error reporting implementation guide
-17. `ON_ERRORS.md` - Comprehensive analysis of DSL breakage scenarios and error quality
-18. `spec/integration/dsl_breakage_spec.rb` - Integration tests for all DSL breakage scenarios
-19. `spec/integration/potential_breakage_spec.rb` - Edge cases that should break but might not
-20. `docs/development/README.md` - Development guides directory index
-21. `docs/development/error-reporting.md` - Comprehensive error reporting standards and patterns
 
 # 

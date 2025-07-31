@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Parser::Dsl do
+RSpec.describe Kumi::RubyParser::Dsl do
   def build_schema(&block)
     subject.build_syntax_tree(&block)
   end

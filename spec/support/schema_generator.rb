@@ -11,7 +11,7 @@ module SchemaGenerator
     cascade_size:  4,
     fields:        %i[age balance purchases]
   )
-    Kumi::Parser::Dsl.build_syntax_tree do
+    Kumi::RubyParser::Dsl.build_syntax_tree do
       input do
         fields.each do |field|
           key field, type: Kumi::Types::INT
@@ -51,7 +51,7 @@ module SchemaGenerator
 
   # Helper to create a schema with proper analysis and compilation
   def create_schema(&block)
-    syntax_tree = Kumi::Parser::Dsl.build_syntax_tree(&block)
+    syntax_tree = Kumi::RubyParser::Dsl.build_syntax_tree(&block)
     analyzer = Kumi::Analyzer.analyze!(syntax_tree)
     compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
 

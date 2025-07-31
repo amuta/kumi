@@ -41,7 +41,7 @@ module Kumi
     end
 
     def schema(&block)
-      @__syntax_tree__ = Kumi::Parser::Dsl.build_syntax_tree(&block).freeze
+      @__syntax_tree__ = Kumi::RubyParser::Dsl.build_syntax_tree(&block).freeze
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
       @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 
