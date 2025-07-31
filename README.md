@@ -330,14 +330,11 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 
 </details>
 
-## Key Concepts
-
-<details>
-<summary><strong>🎯 Suggested Use Cases</strong> - When to use Kumi</summary>
+## Usage
 
 **Suitable for:**
 - Complex interdependent business rules
-- Tax calculation engines (as demonstrated)
+- Tax calculation engines
 - Insurance premium calculators
 - Loan amortization schedules
 - Commission structures with complex tiers
@@ -349,17 +346,12 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 - Rules that change during execution
 - High-frequency real-time processing
 
-</details>
-
-<details>
-<summary><strong>⚡ Performance</strong> - Benchmarks and characteristics</summary>
+## Performance
 
 Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 - 50-deep dependency chain: **740,000/sec** (analysis <50ms)
 - 1,000 attributes:         **131,000/sec** (analysis <50ms)
 - 10,000 attributes:        **14,200/sec**  (analysis ~300ms)
-
-</details>
 
 ## Learn More
 
