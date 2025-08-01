@@ -6,12 +6,12 @@ module Kumi
     # Handles input.field.subfield.subsubfield... syntax by building up path arrays
     class InputFieldProxy
       include Syntax
-      
+
       # Use shared operator methods instead of refinements
       extend Sugar::ProxyRefinement
 
       def initialize(path, context)
-        @path = Array(path)  # Ensure it's always an array
+        @path = Array(path) # Ensure it's always an array
         @context = context
       end
 

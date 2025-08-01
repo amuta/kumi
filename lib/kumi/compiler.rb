@@ -27,7 +27,6 @@ module Kumi
         end
       end
 
-
       def compile_binding_node(expr)
         name = expr.name
         # Handle forward references in cycles by deferring binding lookup to runtime
@@ -45,7 +44,7 @@ module Kumi
       def compile_call(expr)
         fn_name = expr.fn_name
         arg_fns = expr.args.map { |a| compile_expr(a) }
-        
+
         # Check if this is a vectorized operation
         if vectorized_operation?(expr)
           ->(ctx) { invoke_vectorized_function(fn_name, arg_fns, ctx, expr.loc) }
@@ -58,38 +57,37 @@ module Kumi
         # Check if current declaration is vectorized
         broadcast_meta = @analysis.state[:broadcasts]
         is_vectorized = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)
-        
-        
+
         # For vectorized cascades, we need to transform conditions that use all?
-        if is_vectorized
-          pairs = expr.cases.map do |c|
-            condition_fn = transform_vectorized_condition(c.condition)
-            result_fn = compile_expr(c.result)
-            [condition_fn, result_fn]
-          end
-        else
-          pairs = expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
-        end
-        
+        pairs = if is_vectorized
+                  expr.cases.map do |c|
+                    condition_fn = transform_vectorized_condition(c.condition)
+                    result_fn = compile_expr(c.result)
+                    [condition_fn, result_fn]
+                  end
+                else
+                  expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
+                end
+
         if is_vectorized
           lambda do |ctx|
             # This cascade can be vectorized - check if we actually need to at runtime
             # Evaluate all conditions and results to check for arrays
             cond_results = pairs.map { |cond, _res| cond.call(ctx) }
             res_results = pairs.map { |_cond, res| res.call(ctx) }
-            
+
             # Check if any conditions or results are arrays (vectorized)
-            has_vectorized_data = (cond_results + res_results).any? { |v| v.is_a?(Array) }
-            
+            has_vectorized_data = (cond_results + res_results).any?(Array)
+
             if has_vectorized_data
               # Apply element-wise cascade evaluation
-              array_length = cond_results.find { |v| v.is_a?(Array) }&.length || 
-                           res_results.find { |v| v.is_a?(Array) }&.length || 1
-              
+              array_length = cond_results.find { |v| v.is_a?(Array) }&.length ||
+                             res_results.find { |v| v.is_a?(Array) }&.length || 1
+
               (0...array_length).map do |i|
-                pairs.each_with_index do |(cond, res), pair_idx|
+                pairs.each_with_index do |(_cond, _res), pair_idx|
                   cond_val = cond_results[pair_idx].is_a?(Array) ? cond_results[pair_idx][i] : cond_results[pair_idx]
-                  
+
                   if cond_val
                     res_val = res_results[pair_idx].is_a?(Array) ? res_results[pair_idx][i] : res_results[pair_idx]
                     break res_val
@@ -98,7 +96,7 @@ module Kumi
               end
             else
               # All data is scalar - use regular cascade evaluation
-              pairs.each_with_index do |(cond, res), pair_idx|
+              pairs.each_with_index do |(_cond, _res), pair_idx|
                 return res_results[pair_idx] if cond_results[pair_idx]
               end
               nil
@@ -114,17 +112,17 @@ module Kumi
 
       def transform_vectorized_condition(condition_expr)
         # If this is fn(:all?, [trait_ref]), extract the trait_ref for vectorized cascades
-        if condition_expr.is_a?(Kumi::Syntax::CallExpression) && 
-           condition_expr.fn_name == :all? && 
+        if condition_expr.is_a?(Kumi::Syntax::CallExpression) &&
+           condition_expr.fn_name == :all? &&
            condition_expr.args.length == 1
-          
+
           arg = condition_expr.args.first
           if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
             trait_ref = arg.elements.first
             return compile_expr(trait_ref)
           end
         end
-        
+
         # Otherwise compile normally
         compile_expr(condition_expr)
       end
@@ -218,12 +216,10 @@ module Kumi
       # Check if this operation uses vectorized inputs
       broadcast_meta = @analysis.state[:broadcasts]
       return false unless broadcast_meta
-      
+
       # Reduction functions are NOT vectorized operations - they consume arrays
-      if FunctionRegistry.reducer?(expr.fn_name)
-        return false
-      end
-      
+      return false if FunctionRegistry.reducer?(expr.fn_name)
+
       expr.args.any? do |arg|
         case arg
         when Kumi::Syntax::InputElementReference
@@ -235,15 +231,14 @@ module Kumi
         end
       end
     end
-    
-    
+
     def invoke_vectorized_function(name, arg_fns, ctx, loc)
       # Evaluate arguments
       values = arg_fns.map { |fn| fn.call(ctx) }
-      
+
       # Check if any argument is vectorized (array)
-      has_vectorized_args = values.any? { |v| v.is_a?(Array) }
-      
+      has_vectorized_args = values.any?(Array)
+
       if has_vectorized_args
         # Apply function with broadcasting to all vectorized arguments
         vectorized_function_call(name, values)
@@ -259,27 +254,26 @@ module Kumi
       runtime_error.define_singleton_method(:cause) { e }
       raise runtime_error
     end
-    
+
     def vectorized_function_call(fn_name, values)
       # Get the function from registry
       fn = FunctionRegistry.fetch(fn_name)
-      
+
       # Find array dimensions for broadcasting
       array_values = values.select { |v| v.is_a?(Array) }
       return fn.call(*values) if array_values.empty?
-      
+
       # All arrays should have the same length (validation could be added)
       array_length = array_values.first.size
-      
+
       # Broadcast and apply function element-wise
       (0...array_length).map do |i|
         element_args = values.map do |v|
-          v.is_a?(Array) ? v[i] : v  # Broadcast scalars
+          v.is_a?(Array) ? v[i] : v # Broadcast scalars
         end
         fn.call(*element_args)
       end
     end
-    
 
     def invoke_function(name, arg_fns, ctx, loc)
       fn = FunctionRegistry.fetch(name)

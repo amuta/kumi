@@ -146,19 +146,19 @@ RSpec.describe "Comprehensive AST Export Integration" do
       # === MULTIPLE CASCADE EXPRESSIONS ===
       # Complex cascades with multiple conditions per case
       value :customer_tier do
-        on senior,high_balance, "Senior VIP"
-        on elite_customer,premium_eligible, "Gold"
-        on premium_account,frequent_buyer, "Premium Plus"
+        on senior, high_balance, "Senior VIP"
+        on elite_customer, premium_eligible, "Gold"
+        on premium_account, frequent_buyer, "Premium Plus"
         on premium_account, "Premium"
-        on adult,has_referrals, "Standard Plus"
+        on adult, has_referrals, "Standard Plus"
         on adult, "Standard"
         base "Basic"
       end
 
       value :marketing_segment do
-        on elite_customer,premium_eligible, "Champion"
-        on frequent_buyer,recent_activity, "Loyal Customer"
-        on high_balance,recent_activity, "Big Spender"
+        on elite_customer, premium_eligible, "Champion"
+        on frequent_buyer, recent_activity, "Loyal Customer"
+        on high_balance, recent_activity, "Big Spender"
         on frequent_buyer, "Frequent Buyer"
         on has_referrals, "Referrer"
         base "Potential"
@@ -166,7 +166,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
       value :communication_preference do
         on senior, "Phone"
-        on premium_account,recent_activity, "Email Premium"
+        on premium_account, recent_activity, "Email Premium"
         on recent_activity, "Email"
         on high_balance, "Mail"
         base "SMS"

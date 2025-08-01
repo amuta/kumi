@@ -8,7 +8,7 @@ module Kumi
         @schema = json_schema
       end
 
-      def validate(data)
+      def validate(_data)
         # Placeholder implementation
         # In a real implementation, this would validate data against the JSON Schema
         {

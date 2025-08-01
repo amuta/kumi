@@ -6,7 +6,7 @@ module Kumi
     # Handles references to declared items and field access on them
     class DeclarationReferenceProxy
       include Syntax
-      
+
       # Use shared operator methods
       extend Sugar::ProxyRefinement
 

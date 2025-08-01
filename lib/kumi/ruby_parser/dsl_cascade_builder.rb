@@ -89,7 +89,7 @@ module Kumi
           when Symbol
             create_binding(name, location)
           when DeclarationReference
-            name  # Already a binding from method_missing
+            name # Already a binding from method_missing
           else
             raise_error("trait reference must be a symbol or bare identifier, got #{name.class}", location)
           end

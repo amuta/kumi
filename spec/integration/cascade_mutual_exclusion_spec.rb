@@ -35,13 +35,13 @@ RSpec.describe "Cascade mutual exclusion detection" do
       # Should work correctly
       runner = TestMutualRecursionSchema.from(n: 0)
       result = runner.slice(:is_even, :is_odd)
-      expect(result[:is_even]).to eq(true)
-      expect(result[:is_odd]).to eq(false)
+      expect(result[:is_even]).to be(true)
+      expect(result[:is_odd]).to be(false)
 
       runner = TestMutualRecursionSchema.from(n: 1)
       result = runner.slice(:is_even, :is_odd)
-      expect(result[:is_even]).to eq(false)
-      expect(result[:is_odd]).to eq(true)
+      expect(result[:is_even]).to be(false)
+      expect(result[:is_odd]).to be(true)
 
       # NOTE: Base case (n=2) would cause infinite recursion since neither n==0 nor n==1
       # This is expected - the mutual exclusion feature only ensures safe cycles can be compiled,

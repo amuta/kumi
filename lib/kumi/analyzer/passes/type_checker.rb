@@ -49,9 +49,7 @@ module Kumi
 
           # Skip type checking for vectorized operations
           broadcast_meta = get_state(:broadcasts, required: false)
-          if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
-            return
-          end
+          return if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
 
           node.args.each_with_index do |arg, i|
             validate_argument_type(arg, i, types[i], node.fn_name, errors)
@@ -65,7 +63,7 @@ module Kumi
             case arg
             when Kumi::Syntax::DeclarationReference
               broadcast_meta[:vectorized_operations]&.key?(arg.name) ||
-              broadcast_meta[:reduction_operations]&.key?(arg.name)
+                broadcast_meta[:reduction_operations]&.key?(arg.name)
             when Kumi::Syntax::InputElementReference
               broadcast_meta[:array_fields]&.key?(arg.path.first)
             else

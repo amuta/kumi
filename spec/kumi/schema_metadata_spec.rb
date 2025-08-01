@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe Kumi::SchemaMetadata do
   let(:test_schema) do
     Class.new do
       extend Kumi::Schema
-      
+
       schema do
         input do
           float :amount, domain: 0.0..1000.0
@@ -12,15 +14,15 @@ RSpec.describe Kumi::SchemaMetadata do
           integer :count
           any :metadata
         end
-        
+
         trait :large_amount, (input.amount > 100.0)
         trait :credit_type, (input.type == "credit")
-        
+
         value :fee do
           on large_amount, fn(:multiply, input.amount, 0.02)
           base 5.0
         end
-        
+
         value :multiplier, fn(:multiply, input.count, 2)
       end
     end
@@ -110,7 +112,7 @@ RSpec.describe Kumi::SchemaMetadata do
       functions = metadata.functions
       expect(functions).to have_key(:multiply)
       expect(functions[:multiply]).to include(
-        param_types: [:float, :float],
+        param_types: %i[float float],
         return_type: :float
       )
     end
@@ -130,7 +132,7 @@ RSpec.describe Kumi::SchemaMetadata do
     it "converts to JSON cleanly" do
       json = metadata.to_json
       parsed = JSON.parse(json, symbolize_names: true)
-      
+
       expect(parsed[:inputs]).not_to be_empty
       expect(parsed[:values]).not_to be_empty
       expect(parsed[:traits]).not_to be_empty
@@ -141,17 +143,17 @@ RSpec.describe Kumi::SchemaMetadata do
   describe "#to_json_schema" do
     it "generates JSON Schema compatible structure" do
       schema = metadata.to_json_schema
-      
+
       expect(schema[:type]).to eq("object")
       expect(schema[:required]).to contain_exactly(:amount, :type, :count, :metadata)
-      
+
       properties = schema[:properties]
       expect(properties[:amount]).to include(
         type: "number",
         minimum: 0.0,
         maximum: 1000.0
       )
-      
+
       expect(properties[:type]).to include(
         type: "string",
         enum: %w[credit debit]
@@ -169,13 +171,13 @@ RSpec.describe Kumi::SchemaMetadata do
     let(:range_schema) do
       Class.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             integer :exclusive_range, domain: 1...10
             integer :inclusive_range, domain: 1..10
             string :enum_field, domain: %w[a b c]
-            integer :custom_field, domain: ->(x) { x.even? }
+            integer :custom_field, domain: lambda(&:even?)
           end
         end
       end
@@ -217,15 +219,15 @@ RSpec.describe Kumi::SchemaMetadata do
     let(:complex_schema) do
       Class.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :config, key: { type: :string }, val: { type: :any }
             array :items, elem: { type: :float }
           end
-          
+
           trait :has_items, fn(:>, fn(:size, input.items), 0)
-          
+
           value :total do
             on has_items, fn(:sum, input.items)
             base 0.0
@@ -236,7 +238,7 @@ RSpec.describe Kumi::SchemaMetadata do
 
     it "handles complex input types" do
       metadata = complex_schema.schema_metadata
-      
+
       expect(metadata.inputs[:config]).to include(type: :hash)
       expect(metadata.inputs[:items]).to include(type: :array)
     end

@@ -89,21 +89,21 @@ module Kumi
       end
 
       def validate_reference_name(name)
-        unless name.is_a?(Symbol)
-          raise_syntax_error(
-            "Reference name must be a symbol, got #{name.class}",
-            location: current_location
-          )
-        end
+        return if name.is_a?(Symbol)
+
+        raise_syntax_error(
+          "Reference name must be a symbol, got #{name.class}",
+          location: current_location
+        )
       end
 
       def validate_function_name(fn_name)
-        unless fn_name.is_a?(Symbol)
-          raise_syntax_error(
-            "Function name must be a symbol, got #{fn_name.class}",
-            location: current_location
-          )
-        end
+        return if fn_name.is_a?(Symbol)
+
+        raise_syntax_error(
+          "Function name must be a symbol, got #{fn_name.class}",
+          location: current_location
+        )
       end
 
       def convert_arguments(args)

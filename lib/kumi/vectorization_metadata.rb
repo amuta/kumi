@@ -46,7 +46,7 @@ module Kumi
 
       # Check if a function call should be treated as a reducer
       def reducer_function?(fn_name, args)
-        REDUCER_FUNCTIONS.include?(fn_name) && 
+        REDUCER_FUNCTIONS.include?(fn_name) &&
           args.any? { |arg| vectorized_expression?(arg) }
       end
 
@@ -62,7 +62,7 @@ module Kumi
 
       def vectorized_element_reference?(elem_ref)
         return false unless elem_ref.path.size >= 2
-        
+
         array_name, _field_name = elem_ref.path
         @array_tracker.array_declaration?(array_name)
       end
@@ -76,7 +76,7 @@ module Kumi
 
       def initialize
         @vectorized_values = Set.new
-        @reducer_values = Set.new  
+        @reducer_values = Set.new
         @scalar_values = Set.new
       end
 

@@ -7,7 +7,7 @@ module Kumi
       SERIALIZATION_MAP = {
         "Kumi::Syntax::Root" => "root",
         "Kumi::Syntax::InputDeclaration" => "field_declaration",
-        "Kumi::Syntax::ValueDeclaration" => "attribute_declaration", 
+        "Kumi::Syntax::ValueDeclaration" => "attribute_declaration",
         "Kumi::Syntax::TraitDeclaration" => "trait_declaration",
         "Kumi::Syntax::CallExpression" => "call_expression",
         "Kumi::Syntax::ArrayExpression" => "list_expression",
@@ -23,7 +23,7 @@ module Kumi
       DESERIALIZATION_MAP = {
         "root" => "Kumi::Syntax::Root",
         "field_declaration" => "Kumi::Syntax::InputDeclaration",
-        "attribute_declaration" => "Kumi::Syntax::ValueDeclaration", 
+        "attribute_declaration" => "Kumi::Syntax::ValueDeclaration",
         "trait_declaration" => "Kumi::Syntax::TraitDeclaration",
         "call_expression" => "Kumi::Syntax::CallExpression",
         "list_expression" => "Kumi::Syntax::ArrayExpression",

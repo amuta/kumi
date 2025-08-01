@@ -176,9 +176,7 @@ module Kumi
     end
 
     # @deprecated Use to_h instead for processed metadata
-    def state
-      @state
-    end
+    attr_reader :state
 
     # Returns JSON representation of processed metadata.
     #

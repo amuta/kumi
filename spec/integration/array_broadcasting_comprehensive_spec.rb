@@ -31,7 +31,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         value :discounted_prices, input.items.price * 0.9
         value :scaled_prices, input.items.price * input.multiplier
 
-        # Comparison operations  
+        # Comparison operations
         trait :expensive, input.items.price > 100.0
         trait :high_quantity, input.items.quantity >= 5
         trait :is_electronics, input.items.category == "electronics"
@@ -98,7 +98,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
         value :availability_status do
           on available, "In Stock"
-          on low_stock, "Low Stock"  
+          on low_stock, "Low Stock"
           base "Out of Stock"
         end
 
@@ -157,7 +157,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
         # Vectorized calculations
         trait :is_debit, input.transactions.type == "debit"
-        trait :is_credit, input.transactions.type == "credit"  
+        trait :is_credit, input.transactions.type == "credit"
         value :absolute_amounts, fn(:abs, input.transactions.amount)
 
         # Direct aggregations
@@ -179,7 +179,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
         value :total_debits, fn(:sum, debit_amounts)
         value :total_credits, fn(:sum, credit_amounts)
-        
+
         # Complex aggregations
         value :net_balance, total_credits + total_debits
       end
@@ -227,19 +227,19 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
         # Integer operations should remain integer arrays
         value :doubled_ints, input.numbers.int_val * 2
-        
+
         # Float operations should be float arrays
         value :scaled_floats, input.numbers.float_val * 1.5
-        
+
         # Mixed int/float should be float arrays
         value :mixed_math, input.numbers.int_val * input.numbers.float_val
-        
+
         # String operations should be string arrays
         value :uppercased, fn(:upcase, input.strings.text)
-        
+
         # Boolean operations should be boolean arrays
         trait :large_numbers, input.numbers.int_val > 10
-        
+
         # Aggregations should be scalars
         value :sum_ints, fn(:sum, doubled_ints)       # scalar integer
         value :avg_floats, fn(:avg, scaled_floats)    # scalar float
@@ -265,13 +265,13 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         trait :large_numbers, input.numbers.int_val > 10
         value :sum_ints, fn(:sum, doubled_ints)
       end
-      
+
       Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
     end
 
     it "infers correct types for vectorized operations" do
       types = analyzer_result.state[:inferred_types]
-      
+
       expect(types[:doubled_ints]).to eq({ array: :integer })
       expect(types[:scaled_floats]).to eq({ array: :float })
       expect(types[:mixed_math]).to eq({ array: :float })
@@ -281,7 +281,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
     it "infers correct types for aggregation operations" do
       types = analyzer_result.state[:inferred_types]
-      
+
       expect(types[:sum_ints]).to eq(:float)
     end
   end
@@ -301,11 +301,11 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         # Simple array field access
         value :customer_names, input.orders.customer_name
         value :order_totals, input.orders.order_total
-        
+
         # Conditions on array fields
         trait :high_value, input.orders.order_total > 100.0
         trait :completed, input.orders.status == "completed"
-        
+
         # Operations on array fields
         value :discounted_totals do
           on high_value, fn(:multiply, order_totals, fn(:subtract, 1, input.vip_discount))
@@ -328,7 +328,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
     let(:runner) { create_runner(array_access_schema, array_access_input) }
 
     it "handles array field access" do
-      expect(runner[:customer_names]).to eq(["Alice", "Bob", "Carol"])
+      expect(runner[:customer_names]).to eq(%w[Alice Bob Carol])
       expect(runner[:order_totals]).to eq([150.0, 50.0, 200.0])
     end
 
@@ -376,7 +376,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           end
 
           value :doubled, input.items.count * 2
-          trait :positive, input.items.count > 0
+          trait :positive, input.items.any?
           value :total, fn(:sum, doubled)
         end
       end
@@ -421,7 +421,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           # Multiple cascade conditions
           value :display_labels do
             on is_expensive, "Premium Item"
-            on is_on_sale, "Sale Item"  
+            on is_on_sale, "Sale Item"
             base "Regular Item"
           end
         end
@@ -461,7 +461,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           # Mix of vectorized and scalar values
           value :scaled_values, input.items.value * input.multiplier
           value :bonus_values, scaled_values + input.bonus
-          
+
           # Aggregation with scalar arithmetic
           value :total_with_bonus, fn(:sum, bonus_values)
           value :final_total, total_with_bonus * input.multiplier
@@ -501,8 +501,8 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           end
 
           # Vectorized operations with potential nils (sugar syntax)
-          trait :has_price, input.items.price != nil
-          trait :has_category, input.items.category != nil
+          trait :has_price, !input.items.price.nil?
+          trait :has_category, !input.items.category.nil?
           # Alternative functional syntax also works:
           trait :price_not_nil, fn(:!=, input.items.price, nil)
           value :prices_with_fallback do
@@ -517,7 +517,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
       end
 
       let(:nil_input) do
-        { 
+        {
           items: [
             { price: 100.0, category: "books" },
             { price: nil, category: "electronics" },
@@ -531,7 +531,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
       it "handles nil values in vectorized operations" do
         expect(runner[:has_price]).to eq([true, false, true])
         expect(runner[:has_category]).to eq([true, true, false])
-        expect(runner[:price_not_nil]).to eq([true, false, true])  # Functional syntax
+        expect(runner[:price_not_nil]).to eq([true, false, true]) # Functional syntax
         expect(runner[:prices_with_fallback]).to eq([100.0, 0.0, 50.0])
         expect(runner[:categories_with_fallback]).to eq(%w[books electronics unknown])
       end
@@ -545,27 +545,27 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             end
           end
 
-          trait :has_price, input.items.price != nil
+          trait :has_price, !input.items.price.nil?
           value :valid_prices do
             on has_price, input.items.price
             base 0.0
           end
           value :total_valid_prices, fn(:sum, valid_prices)
           value :array_size, fn(:size, has_price)
-          
+
           # Count actual true values using conditional mapping
           value :count_indicators, fn(:if, has_price, 1, 0)
           value :count_items_with_price, fn(:sum, count_indicators)
         end
 
         runner = create_runner(schema_with_aggregations, nil_input)
-        
+
         # Total should only include non-nil prices: 100.0 + 50.0 = 150.0
         expect(runner[:total_valid_prices]).to eq(150.0)
-        
+
         # Array size should be 3 (array has 3 elements)
         expect(runner[:array_size]).to eq(3)
-        
+
         # Count of items with price should be 2 (true, false, true = 2 items with price)
         expect(runner[:count_items_with_price]).to eq(2)
       end
@@ -573,13 +573,13 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
     describe "dimension mismatch errors" do
       it "detects and reports dimension mismatches between different array inputs" do
-        expect {
+        expect do
           analyze_and_compile do
             input do
               array :items do
                 string :name
               end
-              array :logs do  
+              array :logs do
                 string :user_name
               end
             end
@@ -587,15 +587,14 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             # This should error - comparing arrays from different inputs
             trait :same_name, input.items.name == input.logs.user_name
           end
-        }.to raise_error(
+        end.to raise_error(
           Kumi::Errors::SemanticError,
           /Cannot broadcast operation across arrays from different sources: items, logs.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(string\) from array 'items'.*- Operand.*resolves to array\(string\) from array 'logs'/m
         )
       end
 
-
       it "provides descriptive error messages for mixed array operations" do
-        expect {
+        expect do
           analyze_and_compile do
             input do
               array :products do
@@ -609,7 +608,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             # This should error with descriptive message
             value :totals, input.products.price * input.orders.quantity
           end
-        }.to raise_error(
+        end.to raise_error(
           Kumi::Errors::SemanticError,
           /Cannot broadcast operation across arrays from different sources: products, orders.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(float\) from array 'products'.*- Operand.*resolves to array\(integer\) from array 'orders'/m
         )

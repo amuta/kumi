@@ -13,7 +13,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :y_gt_1000, y, :>, 1000
 
           value :result do
-            on x_lt_100,y_gt_1000, "Impossible"
+            on x_lt_100, y_gt_1000, "Impossible"
             base "Default"
           end
         end
@@ -40,7 +40,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :val5_lt_50, val5, :<, 50    # val5 < 50 (impossible if val5 > 100)
 
           value :deep_result do
-            on val5_gt_100,val5_lt_50, "Impossible Combination"
+            on val5_gt_100, val5_lt_50, "Impossible Combination"
             base "Valid"
           end
         end
@@ -64,7 +64,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :derived_is_40, derived_value, :==, 40
 
           value :result do
-            on base_is_50,derived_is_40, "Mathematical Impossibility"
+            on base_is_50, derived_is_40, "Mathematical Impossibility"
             base "Valid"
           end
         end
@@ -91,7 +91,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :final_is_20, final, :==, 20
 
           value :chain_result do
-            on start_is_10,final_is_20, "Multi-step mathematical impossibility"
+            on start_is_10, final_is_20, "Multi-step mathematical impossibility"
             base "Valid"
           end
         end
@@ -113,7 +113,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :y_is_10, y, :==, 10
 
           value :subtract_result do
-            on x_is_20,y_is_10, "Impossible"
+            on x_is_20, y_is_10, "Impossible"
             base "Valid"
           end
         end
@@ -143,7 +143,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :v5_is_ten, v5, :==, 10
 
           value :deep_chain_result do
-            on seed_is_zero,v5_is_ten, "Deep chain impossibility"
+            on seed_is_zero, v5_is_ten, "Deep chain impossibility"
             base "Valid"
           end
         end
@@ -269,7 +269,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           # This should be flagged because combining very_young AND very_old is impossible
           value :age_category do
-            on very_young,very_old, "Impossible" # Combining these is impossible
+            on very_young, very_old, "Impossible" # Combining these is impossible
             base "Normal"
           end
         end
@@ -486,7 +486,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :magic_weapon, input.weapon_type, :==, "staff"
 
           value :total_weapon_damage do
-            on ranged_weapon,magic_weapon, 99 # its impossible
+            on ranged_weapon, magic_weapon, 99 # its impossible
             on has_weapon, 10
             base 2
           end
@@ -508,7 +508,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_guest, input.role, :==, "guest"
 
           value :permission_level do
-            on_any is_staff,is_admin, "Full Access"
+            on_any is_staff, is_admin, "Full Access"
             on is_guest, "Read-Only"
             base "No Access"
           end
@@ -527,8 +527,8 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_admin, input.role, :==, "admin"
 
           value :permission_level do
-            on_any is_staff,is_admin, "Full Access"
-            on_none is_staff,is_admin, "Read-Only"
+            on_any is_staff, is_admin, "Full Access"
+            on_none is_staff, is_admin, "Read-Only"
             base "No Access"
           end
         end
@@ -547,7 +547,7 @@ RSpec.describe "UnsatDetector Special Cases" do
 
           value :damage do
             # This should fail - impossible conjunction with on (all?)
-            on ranged_weapon,magic_weapon, 99
+            on ranged_weapon, magic_weapon, 99
             base 1
           end
         end
@@ -567,7 +567,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :suspended_user, input.status, :==, "suspended"
 
           value :user_permissions do
-            on active_user,inactive_user, "Limited Access" # Impossible
+            on active_user, inactive_user, "Limited Access" # Impossible
             on suspended_user, "No Access"
             base "Unknown"
           end
@@ -612,7 +612,7 @@ RSpec.describe "UnsatDetector Special Cases" do
           trait :is_basic, input.category, :==, "basic"
 
           value :access_level do
-            on is_enterprise,is_basic, "Impossible combination"
+            on is_enterprise, is_basic, "Impossible combination"
             base "Normal"
           end
         end

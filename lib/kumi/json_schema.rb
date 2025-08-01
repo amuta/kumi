@@ -6,7 +6,7 @@ require_relative "json_schema/validator"
 module Kumi
   module JsonSchema
     # Entry point for the JsonSchema functionality
-    # 
+    #
     # Available components:
     # - Generator: Converts Kumi metadata to JSON Schema
     # - Validator: Validates data against JSON Schema (placeholder)

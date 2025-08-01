@@ -39,8 +39,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with valid cascade conditions" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(binding_ref(:high_performer), lit("A"))
-        ], loc: loc))
+                                             when_case_expression(binding_ref(:high_performer), lit("A"))
+                                           ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
@@ -53,8 +53,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with valid cascade condition - literal" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(lit(true), lit("A"))
-        ], loc: loc))
+                                             when_case_expression(lit(true), lit("A"))
+                                           ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
@@ -67,8 +67,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with valid cascade condition - function call" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(call(:>=, input_ref(:score), lit(90)), lit("A"))
-        ], loc: loc))
+                                             when_case_expression(call(:>=, input_ref(:score), lit(90)), lit("A"))
+                                           ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
@@ -82,8 +82,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
       let(:schema) do
         # Create a simple cascade with just binding refs for now
         cascade_attr = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(binding_ref(:high_performer), lit("A+"))
-        ], loc: loc))
+                                             when_case_expression(binding_ref(:high_performer), lit("A+"))
+                                           ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
@@ -121,8 +121,8 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with invalid cascade condition - field reference without comparison" do
       let(:schema) do
         cascade_attr = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(input_ref(:score), lit("A"))  # Naked field ref - should be rejected
-        ], loc: loc))
+                                             when_case_expression(input_ref(:score), lit("A")) # Naked field ref - should be rejected
+                                           ], loc: loc))
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
@@ -136,18 +136,18 @@ RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
     context "with multiple semantic errors" do
       let(:schema) do
         bad_cascade = attr(:grade, syntax(:cascade_expr, [
-          when_case_expression(input_ref(:score), lit("A"))  # Naked field ref
-        ], loc: loc))
+                                            when_case_expression(input_ref(:score), lit("A")) # Naked field ref
+                                          ], loc: loc))
         bad_function = attr(:result, call(:nonexistent_fn))
         bad_trait = trait(:bad_trait, input_ref(:some_field))
-        
+
         syntax(:root, [], [bad_cascade, bad_function], [bad_trait], loc: loc)
       end
 
       it "reports all semantic errors" do
         run(schema)
         expect(errors.size).to eq(3)
-        
+
         error_messages = errors.map(&:to_s)
         expect(error_messages).to include(match(/cascade condition must be trait reference/))
         expect(error_messages).to include(match(/unknown function `nonexistent_fn`/))

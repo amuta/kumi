@@ -24,7 +24,7 @@ module Kumi
 
         private
 
-        def validate_semantic_constraints(node, decl, errors)
+        def validate_semantic_constraints(node, _decl, errors)
           case node
           when Kumi::Syntax::TraitDeclaration
             validate_trait_expression(node, errors)
@@ -48,20 +48,20 @@ module Kumi
 
         def validate_cascade_condition(when_case, errors)
           condition = when_case.condition
-          
+
           case condition
           when Kumi::Syntax::DeclarationReference
             # Valid: trait reference
-            return
+            nil
           when Kumi::Syntax::CallExpression
             # Valid if it's a boolean composition of traits (all?, any?, none?)
             return if boolean_trait_composition?(condition)
-            
+
             # For now, allow other CallExpressions - they'll be validated by other passes
-            return
+            nil
           when Kumi::Syntax::Literal
             # Allow literal conditions (like true/false) - they might be valid
-            return
+            nil
           else
             # Only reject truly invalid conditions like InputReference or complex expressions
             report_error(
@@ -75,10 +75,10 @@ module Kumi
 
         def validate_function_call(call_expr, errors)
           fn_name = call_expr.fn_name
-          
+
           # Skip validation if FunctionRegistry is being mocked for testing
           return if function_registry_mocked?
-          
+
           return if FunctionRegistry.supported?(fn_name)
 
           report_error(
@@ -96,13 +96,12 @@ module Kumi
 
         def function_registry_mocked?
           # Check if FunctionRegistry is being mocked (for tests)
-          begin
-            # Try to access a method that doesn't exist in the real registry
-            # If it's mocked, this won't raise an error
-            FunctionRegistry.respond_to?(:confirm_support!)
-          rescue
-            false
-          end
+
+          # Try to access a method that doesn't exist in the real registry
+          # If it's mocked, this won't raise an error
+          FunctionRegistry.respond_to?(:confirm_support!)
+        rescue StandardError
+          false
         end
       end
     end

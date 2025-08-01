@@ -12,7 +12,7 @@ module Kumi
           types = {}
           topo_order = get_state(:evaluation_order)
           definitions = get_state(:declarations)
-          
+
           # Get broadcast metadata from broadcast detector
           broadcast_meta = get_state(:broadcasts, required: false) || {}
 
@@ -68,7 +68,7 @@ module Kumi
         end
 
         def infer_call_type(call_expr, type_context, broadcast_metadata = {}, current_decl_name = nil)
-          fn_name = call_expr.fn_name  
+          fn_name = call_expr.fn_name
           args = call_expr.args
 
           # Check broadcast metadata first
@@ -116,7 +116,7 @@ module Kumi
           signature[:return_type] || :any
         end
 
-        def infer_vectorized_element_type(call_expr, type_context, broadcast_metadata)
+        def infer_vectorized_element_type(call_expr, _type_context, _broadcast_metadata)
           # For vectorized arithmetic operations, infer the element type
           # For now, assume arithmetic operations on floats produce floats
           case call_expr.fn_name
@@ -127,10 +127,10 @@ module Kumi
           end
         end
 
-        def infer_function_return_type(fn_name, args, type_context, broadcast_metadata)
+        def infer_function_return_type(fn_name, _args, _type_context, _broadcast_metadata)
           # Get the function signature
           return :any unless FunctionRegistry.supported?(fn_name)
-          
+
           signature = FunctionRegistry.signature(fn_name)
           signature[:return_type] || :any
         end
@@ -156,12 +156,12 @@ module Kumi
             input_meta = get_state(:inputs, required: false) || {}
             array_name = expr.path.first
             field_name = expr.path[1]
-            
+
             array_meta = input_meta[array_name]
             return :any unless array_meta&.dig(:type) == :array
-            
+
             array_meta.dig(:children, field_name, :type) || :any
-            
+
           when CallExpression
             # For arithmetic operations, infer from operands
             if %i[add subtract multiply divide].include?(expr.fn_name)
@@ -181,13 +181,13 @@ module Kumi
                   infer_expression_type(arg, type_context, vectorization_meta)
                 end
               end
-              
+
               # Unify types for arithmetic
               Types.unify(*arg_types) || :float
             else
               :any
             end
-            
+
           else
             :any
           end
@@ -196,18 +196,18 @@ module Kumi
         def infer_element_reference_type(expr)
           # Get array field metadata
           input_meta = get_state(:inputs, required: false) || {}
-          
+
           return :any unless expr.path.size >= 2
-          
+
           array_name = expr.path.first
           field_name = expr.path[1]
-          
+
           array_meta = input_meta[array_name]
           return :any unless array_meta&.dig(:type) == :array
-          
+
           # Get the field type from children metadata
           field_type = array_meta.dig(:children, field_name, :type) || :any
-          
+
           # Return array of field type (vectorized)
           { array: field_type }
         end

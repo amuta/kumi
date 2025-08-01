@@ -23,12 +23,10 @@ module Kumi
           cascades = {}
           each_decl do |decl|
             cascades[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
-          end
 
-          # Store cascade metadata for later passes
+            # Store cascade metadata for later passes
 
-          # Second pass: check for unsatisfiable constraints
-          each_decl do |decl|
+            # Second pass: check for unsatisfiable constraints
             if decl.expression.is_a?(CascadeExpression)
               # Special handling for cascade expressions
               check_cascade_expression(decl, definitions, errors)
@@ -93,7 +91,7 @@ module Kumi
             end
           end
 
-          all_mutually_exclusive = (total_pairs > 0) && (exclusive_pairs == total_pairs)
+          all_mutually_exclusive = total_pairs.positive? && (exclusive_pairs == total_pairs)
 
           {
             condition_traits: condition_traits,
@@ -130,7 +128,7 @@ module Kumi
           val1.value != val2.value
         end
 
-        def check_or_expression(or_expr, definitions, errors)
+        def check_or_expression(or_expr, definitions, _errors)
           # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
           # If either side is satisfiable, the OR is satisfiable
           left_side, right_side = or_expr.args

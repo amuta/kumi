@@ -48,7 +48,7 @@ module Kumi
 
         private
 
-        def process_node(node, decl, graph, reverse_deps, leaves, definitions, input_meta, errors, context)
+        def process_node(node, decl, graph, reverse_deps, leaves, definitions, _input_meta, errors, context)
           case node
           when DeclarationReference
             report_error(errors, "undefined reference to `#{node.name}`", location: node.loc) unless definitions.key?(node.name)

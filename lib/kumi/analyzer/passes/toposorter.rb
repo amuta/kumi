@@ -30,13 +30,13 @@ module Kumi
             if temp_marks.include?(node)
               # Check if this is a safe conditional cycle
               cycle_path = path + [node]
-              if safe_conditional_cycle?(cycle_path, graph, cascades)
-                # Allow this cycle - it's safe due to cascade mutual exclusion
-                return
-              else
-                report_unexpected_cycle(temp_marks, node, errors)
-                return
-              end
+              return if safe_conditional_cycle?(cycle_path, graph, cascades)
+
+              # Allow this cycle - it's safe due to cascade mutual exclusion
+
+              report_unexpected_cycle(temp_marks, node, errors)
+
+              return
             end
 
             temp_marks << node
@@ -61,28 +61,28 @@ module Kumi
 
         def safe_conditional_cycle?(cycle_path, graph, cascades)
           return false if cycle_path.nil? || cycle_path.size < 2
-          
+
           # Find where the cycle starts - look for the first occurrence of the repeated node
           last_node = cycle_path.last
           return false if last_node.nil?
-          
+
           cycle_start = cycle_path.index(last_node)
           return false unless cycle_start && cycle_start < cycle_path.size - 1
-          
-          cycle_nodes = cycle_path[cycle_start..-1]
-          
+
+          cycle_nodes = cycle_path[cycle_start..]
+
           # Check if all edges in the cycle are conditional
           cycle_nodes.each_cons(2) do |from, to|
             edges = graph[from] || []
             edge = edges.find { |e| e.to == to }
-            
+
             return false unless edge&.conditional
-            
+
             # Check if the cascade has mutually exclusive conditions
             cascade_meta = cascades[edge.cascade_owner]
             return false unless cascade_meta&.dig(:all_mutually_exclusive)
           end
-          
+
           true
         end
 
