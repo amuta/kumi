@@ -316,7 +316,7 @@ class IterativeKumiCoreMigrator
 
     core_modules = %w[
       Analyzer Compiler Types Syntax Export Input Domain RubyParser
-      FunctionRegistry SchemaInstance SchemaMetadata Explain CompiledSchema
+      Kumi::Registry.SchemaInstance SchemaMetadata Explain CompiledSchema
       EvaluationWrapper ErrorReporter ErrorReporting VectorizationMetadata
       JsonSchema AtomUnsatSolver ConstraintRelationshipSolver
     ]
@@ -367,7 +367,7 @@ class IterativeKumiCoreMigrator
 
     core_modules = %w[
       Analyzer Compiler Types Syntax Export Input Domain RubyParser
-      FunctionRegistry SchemaInstance SchemaMetadata Explain CompiledSchema
+      Kumi::Registry.SchemaInstance SchemaMetadata Explain CompiledSchema
       EvaluationWrapper ErrorReporter ErrorReporting VectorizationMetadata
       JsonSchema AtomUnsatSolver ConstraintRelationshipSolver
     ]
@@ -743,7 +743,7 @@ class IterativeKumiCoreMigrator
       # Only apply Core:: to modules that are actually in Core
       core_modules = %w[
         Analyzer Compiler Types Syntax Export Input Domain RubyParser
-        FunctionRegistry SchemaInstance SchemaMetadata Explain CompiledSchema
+        Kumi::Registry.SchemaInstance SchemaMetadata Explain CompiledSchema
         EvaluationWrapper ErrorReporter ErrorReporting VectorizationMetadata
         JsonSchema AtomUnsatSolver ConstraintRelationshipSolver
       ]

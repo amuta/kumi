@@ -28,16 +28,16 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
       it_behaves_like "a working function", :power, [0, 2], 0
 
       it "handles negative numbers" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:add)
+        fn = Kumi::Registry.fetch(:add)
         expect(fn.call(-5, 3)).to eq(-2)
         expect(fn.call(-5, -3)).to eq(-8)
       end
 
       it "handles decimal numbers" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:add)
+        fn = Kumi::Registry.fetch(:add)
         expect(fn.call(5.5, 2.3)).to be_within(0.001).of(7.8)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:divide)
+        fn = Kumi::Registry.fetch(:divide)
         expect(fn.call(7.0, 2.0)).to eq(3.5)
       end
     end
@@ -74,7 +74,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
 
     describe "round with different precisions" do
       it "rounds to different decimal places" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:round)
+        fn = Kumi::Registry.fetch(:round)
         expect(fn.call(3.14159, 0)).to eq(3)
         expect(fn.call(3.14159, 1)).to eq(3.1)
         expect(fn.call(3.14159, 2)).to eq(3.14)
@@ -82,7 +82,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
       end
 
       it "handles negative precision" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:round)
+        fn = Kumi::Registry.fetch(:round)
         expect(fn.call(1234.56, -1)).to eq(1230.0)
         expect(fn.call(1234.56, -2)).to eq(1200.0)
       end
@@ -99,7 +99,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
                     [:float, Kumi::Core::Types.array(:float), Kumi::Core::Types.array(:float)], Kumi::Core::Types.array(:float)
 
     it "calculates piecewise sum correctly" do
-      fn = Kumi::Core::FunctionRegistry.fetch(:piecewise_sum)
+      fn = Kumi::Registry.fetch(:piecewise_sum)
 
       # Basic tiered calculation: 25k * 0.1 + 25k * 0.2 = 2.5k + 5k = 7.5k
       result = fn.call(50_000, [25_000, 50_000, 100_000], [0.1, 0.2, 0.3])
@@ -113,7 +113,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
     end
 
     it "handles edge cases" do
-      fn = Kumi::Core::FunctionRegistry.fetch(:piecewise_sum)
+      fn = Kumi::Registry.fetch(:piecewise_sum)
 
       # Value below first break
       result = fn.call(10_000, [25_000, 50_000], [0.1, 0.2])
@@ -132,14 +132,14 @@ RSpec.describe Kumi::Core::FunctionRegistry::MathFunctions do
     end
 
     it "raises error for mismatched array sizes" do
-      fn = Kumi::Core::FunctionRegistry.fetch(:piecewise_sum)
+      fn = Kumi::Registry.fetch(:piecewise_sum)
       expect do
         fn.call(50_000, [25_000, 50_000], [0.1, 0.2, 0.3])
       end.to raise_error(ArgumentError, "breaks & rates size mismatch")
     end
 
     it "handles empty arrays" do
-      fn = Kumi::Core::FunctionRegistry.fetch(:piecewise_sum)
+      fn = Kumi::Registry.fetch(:piecewise_sum)
       expect do
         fn.call(50_000, [], [])
       end.not_to raise_error

@@ -49,19 +49,19 @@ end
 
 def function_categories
   {
-    "Logical Functions" => Kumi::Core::FunctionRegistry.logical_operations,
-    "Comparison Functions" => Kumi::Core::FunctionRegistry.comparison_operators,
-    "Math Functions" => Kumi::Core::FunctionRegistry.math_operations,
-    "String Functions" => Kumi::Core::FunctionRegistry.string_operations,
-    "Collection Functions" => Kumi::Core::FunctionRegistry.collection_operations,
-    "Conditional Functions" => Kumi::Core::FunctionRegistry.conditional_operations,
-    "Type & Hash Functions" => Kumi::Core::FunctionRegistry.type_operations
+    "Logical Functions" => Kumi::Registry.logical_operations,
+    "Comparison Functions" => Kumi::Registry.comparison_operators,
+    "Math Functions" => Kumi::Registry.math_operations,
+    "String Functions" => Kumi::Registry.string_operations,
+    "Collection Functions" => Kumi::Registry.collection_operations,
+    "Conditional Functions" => Kumi::Registry.conditional_operations,
+    "Type & Hash Functions" => Kumi::Registry.type_operations
   }
 end
 
 def add_functions_for_category(output, functions)
   functions.sort.each do |name|
-    signature = Kumi::Core::FunctionRegistry.signature(name)
+    signature = Kumi::Registry.signature(name)
     output << "* **`#{name}`**: #{signature[:description]}"
     output << "  * **Usage**: #{generate_signature(name, signature)}"
   end

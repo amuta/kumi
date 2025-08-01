@@ -16,7 +16,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::TypeChecker do
     context "when operator arity mismatch" do
       let(:schema) do
         # Create a schema where a function is called with the wrong number of arguments.
-        # FunctionRegistry's :> operator expects 2 arguments.
+        # Kumi::Registry.s :> operator expects 2 arguments.
         bad = trait(:bad, call(:>, lit(1)))
         syntax(:root, [], [bad])
       end

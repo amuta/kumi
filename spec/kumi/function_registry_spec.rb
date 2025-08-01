@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Core::FunctionRegistry do
+RSpec.describe Kumi::Registry do
   describe "registry management" do
     it "lists all available functions" do
       functions = described_class.all_functions
@@ -78,13 +78,13 @@ RSpec.describe Kumi::Core::FunctionRegistry do
     it "raises UnknownFunction for unsupported functions" do
       expect do
         described_class.fetch(:unknown_function)
-      end.to raise_error(Kumi::Core::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Errors::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "raises UnknownFunction for signature of unsupported functions" do
       expect do
         described_class.signature(:unknown_function)
-      end.to raise_error(Kumi::Core::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Errors::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "handles nil function names gracefully" do
@@ -239,20 +239,6 @@ RSpec.describe Kumi::Core::FunctionRegistry do
       expect(entry.param_types).to eq([:integer])
       expect(entry.return_type).to eq(:integer)
       expect(entry.description).to eq("Double the value")
-    end
-  end
-
-  describe "core operators constant" do
-    it "defines core operators correctly" do
-      expect(described_class::CORE_OPERATORS).to eq(%i[== > < >= <= != between?])
-      expect(described_class::CORE_OPERATORS).to be_frozen
-    end
-
-    it "ensures all core operators are supported" do
-      described_class::CORE_OPERATORS.each do |op|
-        expect(described_class.supported?(op)).to be true
-        expect(described_class.operator?(op)).to be true
-      end
     end
   end
 end

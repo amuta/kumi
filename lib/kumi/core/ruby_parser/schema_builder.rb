@@ -154,7 +154,7 @@ module Kumi
             raise_syntax_error("expects a symbol for an operator, got #{operator.class}", location: @context.current_location)
           end
 
-          return if FunctionRegistry.operator?(operator)
+          return if Kumi::Registry.operator?(operator)
 
           raise_syntax_error("unsupported operator `#{operator}`", location: @context.current_location)
         end

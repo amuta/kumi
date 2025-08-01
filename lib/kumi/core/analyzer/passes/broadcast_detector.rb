@@ -94,7 +94,7 @@ module Kumi
 
           def analyze_call_vectorization(_name, expr, array_fields, vectorized_values, errors)
             # Check if this is a reduction function using function registry metadata
-            if FunctionRegistry.reducer?(expr.fn_name)
+            if Kumi::Registry.reducer?(expr.fn_name)
               # Only treat as reduction if the argument is actually vectorized
               arg_info = analyze_argument_vectorization(expr.args.first, array_fields, vectorized_values)
               if arg_info[:vectorized]

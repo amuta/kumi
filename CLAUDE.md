@@ -62,7 +62,7 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 **Compiler** (`lib/kumi/compiler.rb`):
 - Transforms analyzed syntax tree into executable lambda functions
 - Maps each expression type to a compilation method
-- Handles function calls via `FunctionRegistry`
+- Handles function calls via `Kumi::Registry`
 - Produces `CompiledSchema` with executable bindings
 
 **Function Registry** (`lib/kumi/function_registry.rb`):

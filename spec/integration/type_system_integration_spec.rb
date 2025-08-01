@@ -166,7 +166,7 @@ RSpec.describe "Type System Integration" do
 
   describe "function registry type metadata" do
     it "includes type information in function signatures" do
-      signature = Kumi::Core::FunctionRegistry.signature(:add)
+      signature = Kumi::Registry.signature(:add)
 
       expect(signature).to have_key(:param_types)
       expect(signature).to have_key(:return_type)
@@ -175,8 +175,8 @@ RSpec.describe "Type System Integration" do
     end
 
     it "validates that all core functions have type metadata" do
-      Kumi::Core::FunctionRegistry.all.each do |fn_name|
-        signature = Kumi::Core::FunctionRegistry.signature(fn_name)
+      Kumi::Registry.all.each do |fn_name|
+        signature = Kumi::Registry.signature(fn_name)
 
         expect(signature[:param_types]).to be_an(Array), "Function #{fn_name} missing param_types"
         expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash)), "Function #{fn_name} missing return_type"

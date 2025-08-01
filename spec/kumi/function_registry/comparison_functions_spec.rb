@@ -32,9 +32,9 @@ RSpec.describe Kumi::Core::FunctionRegistry::ComparisonFunctions do
 
     describe "operator identification" do
       it "identifies core operators correctly" do
-        expect(Kumi::Core::FunctionRegistry.operator?(:==)).to be true
-        expect(Kumi::Core::FunctionRegistry.operator?(:add)).to be false
-        expect(Kumi::Core::FunctionRegistry.operator?("not_a_symbol")).to be false
+        expect(Kumi::Registry.operator?(:==)).to be true
+        expect(Kumi::Registry.operator?(:add)).to be false
+        expect(Kumi::Registry.operator?("not_a_symbol")).to be false
       end
     end
 

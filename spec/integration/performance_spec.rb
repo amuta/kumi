@@ -81,11 +81,11 @@ end
 RSpec.describe "Kumi Performance" do
   # Reuse the setup from the integration spec
   before(:all) do
-    Kumi::Core::FunctionRegistry.reset!
-    Kumi::Core::FunctionRegistry.register(:create_offers) { |*| ["Offer"] }
-    Kumi::Core::FunctionRegistry.register(:bonus_formula) { |*| 100.0 }
-    Kumi::Core::FunctionRegistry.register(:error!) { |_| "No Error" }
-    Kumi::Core::FunctionRegistry.register(:group_and_sum) do |purchases|
+    Kumi::Registry.reset!
+    Kumi::Registry.register(:create_offers) { |*| ["Offer"] }
+    Kumi::Registry.register(:bonus_formula) { |*| 100.0 }
+    Kumi::Registry.register(:error!) { |_| "No Error" }
+    Kumi::Registry.register(:group_and_sum) do |purchases|
       purchases
         .group_by   { |p| p[:category] }
         .map        { |_, items| items.sum { |i| i[:amount] } }

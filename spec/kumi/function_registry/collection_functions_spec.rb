@@ -16,26 +16,26 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
     describe "edge cases" do
       it "handles nested arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:size)
+        fn = Kumi::Registry.fetch(:size)
         expect(fn.call([[1, 2], [3, 4], [5]])).to eq(3)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:empty?)
+        fn = Kumi::Registry.fetch(:empty?)
         expect(fn.call([[], [], []])).to be false # array contains empty arrays, but isn't empty itself
       end
 
       it "works with strings (which respond to collection methods)" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:size)
+        fn = Kumi::Registry.fetch(:size)
         expect(fn.call("hello")).to eq(5)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:empty?)
+        fn = Kumi::Registry.fetch(:empty?)
         expect(fn.call("")).to be true
         expect(fn.call("hello")).to be false
       end
 
       it "size and length are equivalent" do
         arrays = [[], [1], [1, 2, 3], %w[a b c]]
-        size_fn = Kumi::Core::FunctionRegistry.fetch(:size)
-        length_fn = Kumi::Core::FunctionRegistry.fetch(:length)
+        size_fn = Kumi::Registry.fetch(:size)
+        length_fn = Kumi::Registry.fetch(:length)
 
         arrays.each do |arr|
           expect(size_fn.call(arr)).to eq(length_fn.call(arr))
@@ -53,36 +53,36 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
     describe "edge cases" do
       it "handles single element arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:first)
+        fn = Kumi::Registry.fetch(:first)
         expect(fn.call([42])).to eq(42)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:last)
+        fn = Kumi::Registry.fetch(:last)
         expect(fn.call([42])).to eq(42)
       end
 
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:first)
+        fn = Kumi::Registry.fetch(:first)
         expect(fn.call([])).to be_nil
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:last)
+        fn = Kumi::Registry.fetch(:last)
         expect(fn.call([])).to be_nil
       end
 
       it "handles mixed types" do
         array = [1, "hello", true, nil]
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:first)
+        fn = Kumi::Registry.fetch(:first)
         expect(fn.call(array)).to eq(1)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:last)
+        fn = Kumi::Registry.fetch(:last)
         expect(fn.call(array)).to be_nil
       end
 
       it "works with strings" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:first)
+        fn = Kumi::Registry.fetch(:first)
         expect(fn.call("hello".chars)).to eq("h")
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:last)
+        fn = Kumi::Registry.fetch(:last)
         expect(fn.call("hello".chars)).to eq("o")
       end
     end
@@ -99,50 +99,50 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
     describe "edge cases" do
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sum)
+        fn = Kumi::Registry.fetch(:sum)
         expect(fn.call([])).to eq(0)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:min)
+        fn = Kumi::Registry.fetch(:min)
         expect(fn.call([])).to be_nil
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:max)
+        fn = Kumi::Registry.fetch(:max)
         expect(fn.call([])).to be_nil
       end
 
       it "handles single element arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sum)
+        fn = Kumi::Registry.fetch(:sum)
         expect(fn.call([42])).to eq(42)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:min)
+        fn = Kumi::Registry.fetch(:min)
         expect(fn.call([42])).to eq(42)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:max)
+        fn = Kumi::Registry.fetch(:max)
         expect(fn.call([42])).to eq(42)
       end
 
       it "handles negative numbers" do
         array = [-5, -1, -10, -3]
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:sum)
+        fn = Kumi::Registry.fetch(:sum)
         expect(fn.call(array)).to eq(-19)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:min)
+        fn = Kumi::Registry.fetch(:min)
         expect(fn.call(array)).to eq(-10)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:max)
+        fn = Kumi::Registry.fetch(:max)
         expect(fn.call(array)).to eq(-1)
       end
 
       it "handles decimal numbers" do
         array = [1.5, 2.3, 0.7]
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:sum)
+        fn = Kumi::Registry.fetch(:sum)
         expect(fn.call(array)).to be_within(0.001).of(4.5)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:min)
+        fn = Kumi::Registry.fetch(:min)
         expect(fn.call(array)).to eq(0.7)
 
-        fn = Kumi::Core::FunctionRegistry.fetch(:max)
+        fn = Kumi::Registry.fetch(:max)
         expect(fn.call(array)).to eq(2.3)
       end
     end
@@ -162,7 +162,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
     describe "include? edge cases" do
       it "handles different types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:include?)
+        fn = Kumi::Registry.fetch(:include?)
         expect(fn.call([1, "hello", true], "hello")).to be true
         expect(fn.call([1, "hello", true], "world")).to be false
         expect(fn.call([1, "hello", true], 1)).to be true
@@ -170,13 +170,13 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
       end
 
       it "handles nil values" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:include?)
+        fn = Kumi::Registry.fetch(:include?)
         expect(fn.call([1, nil, 3], nil)).to be true
         expect(fn.call([1, 2, 3], nil)).to be false
       end
 
       it "works with strings (string contains substring)" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:include?)
+        fn = Kumi::Registry.fetch(:include?)
         expect(fn.call("hello world", "world")).to be true
         expect(fn.call("hello world", "xyz")).to be false
       end
@@ -184,17 +184,17 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
     describe "reverse edge cases" do
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:reverse)
+        fn = Kumi::Registry.fetch(:reverse)
         expect(fn.call([])).to eq([])
       end
 
       it "handles single element arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:reverse)
+        fn = Kumi::Registry.fetch(:reverse)
         expect(fn.call([42])).to eq([42])
       end
 
       it "preserves original array" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:reverse)
+        fn = Kumi::Registry.fetch(:reverse)
         original = [1, 2, 3]
         result = fn.call(original)
         expect(result).to eq([3, 2, 1])
@@ -202,66 +202,66 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
       end
 
       it "works with strings" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:reverse)
+        fn = Kumi::Registry.fetch(:reverse)
         expect(fn.call("hello")).to eq("olleh")
       end
     end
 
     describe "sort edge cases" do
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sort)
+        fn = Kumi::Registry.fetch(:sort)
         expect(fn.call([])).to eq([])
       end
 
       it "handles single element arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sort)
+        fn = Kumi::Registry.fetch(:sort)
         expect(fn.call([42])).to eq([42])
       end
 
       it "handles strings" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sort)
+        fn = Kumi::Registry.fetch(:sort)
         expect(fn.call(%w[zebra apple banana])).to eq(%w[apple banana zebra])
       end
 
       it "handles mixed comparable types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sort)
+        fn = Kumi::Registry.fetch(:sort)
         expect(fn.call([3, 1, 4, 1, 5])).to eq([1, 1, 3, 4, 5])
       end
 
       it "works with string characters" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:sort)
+        fn = Kumi::Registry.fetch(:sort)
         expect(fn.call("hello".chars).join).to eq("ehllo")
       end
     end
 
     describe "unique edge cases" do
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call([])).to eq([])
       end
 
       it "handles arrays with no duplicates" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call([1, 2, 3])).to eq([1, 2, 3])
       end
 
       it "handles arrays with all duplicates" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call([5, 5, 5, 5])).to eq([5])
       end
 
       it "preserves order of first occurrence" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call([3, 1, 2, 1, 3, 2])).to eq([3, 1, 2])
       end
 
       it "handles mixed types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call([1, "hello", 1, "world", "hello"])).to eq([1, "hello", "world"])
       end
 
       it "works with string characters" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:unique)
+        fn = Kumi::Registry.fetch(:unique)
         expect(fn.call("hello".chars).join).to eq("helo")
       end
     end

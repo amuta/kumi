@@ -85,12 +85,12 @@ module Kumi
             end
 
             # Check if function exists in registry
-            unless FunctionRegistry.supported?(fn_name)
+            unless Kumi::Registry.supported?(fn_name)
               # Don't push error here - let existing TypeChecker handle it
               return :any
             end
 
-            signature = FunctionRegistry.signature(fn_name)
+            signature = Kumi::Registry.signature(fn_name)
 
             # Validate arity if not variable
             if signature[:arity] >= 0 && args.size != signature[:arity]
@@ -130,9 +130,9 @@ module Kumi
 
           def infer_function_return_type(fn_name, _args, _type_context, _broadcast_metadata)
             # Get the function signature
-            return :any unless FunctionRegistry.supported?(fn_name)
+            return :any unless Kumi::Registry.supported?(fn_name)
 
-            signature = FunctionRegistry.signature(fn_name)
+            signature = Kumi::Registry.signature(fn_name)
             signature[:return_type] || :any
           end
 

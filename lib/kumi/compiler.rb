@@ -218,7 +218,7 @@ module Kumi
       return false unless broadcast_meta
 
       # Reduction functions are NOT vectorized operations - they consume arrays
-      return false if Core::FunctionRegistry.reducer?(expr.fn_name)
+      return false if Kumi::Registry.reducer?(expr.fn_name)
 
       expr.args.any? do |arg|
         case arg
@@ -244,7 +244,7 @@ module Kumi
         vectorized_function_call(name, values)
       else
         # All arguments are scalars - regular function call
-        fn = Core::FunctionRegistry.fetch(name)
+        fn = Kumi::Registry.fetch(name)
         fn.call(*values)
       end
     rescue StandardError => e
@@ -257,7 +257,7 @@ module Kumi
 
     def vectorized_function_call(fn_name, values)
       # Get the function from registry
-      fn = Core::FunctionRegistry.fetch(fn_name)
+      fn = Kumi::Registry.fetch(fn_name)
 
       # Find array dimensions for broadcasting
       array_values = values.select { |v| v.is_a?(Array) }
@@ -276,7 +276,7 @@ module Kumi
     end
 
     def invoke_function(name, arg_fns, ctx, loc)
-      fn = Core::FunctionRegistry.fetch(name)
+      fn = Kumi::Registry.fetch(name)
       values = arg_fns.map { |fn| fn.call(ctx) }
       fn.call(*values)
     rescue StandardError => e

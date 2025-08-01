@@ -2,15 +2,15 @@
 
 RSpec.describe "Kumi Compiler Integration" do
   before do
-    Kumi::Core::FunctionRegistry.reset!
+    Kumi::Registry.reset!
 
-    Kumi::Core::FunctionRegistry.register(:error!) do |should_error|
+    Kumi::Registry.register(:error!) do |should_error|
       raise "ErrorInsideCustomFunction" if should_error
 
       "No Error"
     end
 
-    Kumi::Core::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
+    Kumi::Registry.register(:create_offers) do |segment, tier, _balance|
       base_offers = case segment
                     when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
                     when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
@@ -25,7 +25,7 @@ RSpec.describe "Kumi Compiler Integration" do
       base_offers
     end
 
-    Kumi::Core::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
+    Kumi::Registry.register(:bonus_formula) do |years, is_valuable, engagement|
       base_bonus = years * 10
       base_bonus *= 2 if is_valuable
       (base_bonus * (engagement / 100.0)).round(2)

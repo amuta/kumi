@@ -22,6 +22,8 @@ module Kumi
         end
       end
 
+      class UnknownFunction < Error; end
+
       class SemanticError < LocatedError; end
 
       class TypeError < SemanticError; end

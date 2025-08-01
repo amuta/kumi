@@ -15,21 +15,21 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       it_behaves_like "a working function", :fetch, [{ "a" => 1, "b" => 2 }, "c", "default"], "default"
 
       it "works with 2 arguments (no default)" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
+        fn = Kumi::Registry.fetch(:fetch)
         hash = { "key" => "value" }
         expect(fn.call(hash, "key")).to eq("value")
         expect(fn.call(hash, "missing")).to be_nil
       end
 
       it "works with 3 arguments (with default)" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
+        fn = Kumi::Registry.fetch(:fetch)
         hash = { "key" => "value" }
         expect(fn.call(hash, "key", "default")).to eq("value")
         expect(fn.call(hash, "missing", "default")).to eq("default")
       end
 
       it "handles different key types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
+        fn = Kumi::Registry.fetch(:fetch)
         hash = { "string" => 1, :symbol => 2, 42 => 3 }
         expect(fn.call(hash, "string")).to eq(1)
         expect(fn.call(hash, :symbol)).to eq(2)
@@ -37,7 +37,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "handles nil values vs missing keys" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
+        fn = Kumi::Registry.fetch(:fetch)
         hash = { "exists" => nil }
         expect(fn.call(hash, "exists")).to be_nil
         expect(fn.call(hash, "missing")).to be_nil
@@ -46,7 +46,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "handles complex values" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
+        fn = Kumi::Registry.fetch(:fetch)
         hash = {
           "array" => [1, 2, 3],
           "hash" => { "nested" => "value" },
@@ -65,7 +65,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       it_behaves_like "a working function", :has_key?, [{ "a" => 1, "b" => 2 }, "c"], false
 
       it "handles different key types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:has_key?)
+        fn = Kumi::Registry.fetch(:has_key?)
         hash = { "string" => 1, :symbol => 2, 42 => 3 }
         expect(fn.call(hash, "string")).to be true
         expect(fn.call(hash, :symbol)).to be true
@@ -75,14 +75,14 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "distinguishes between nil values and missing keys" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:has_key?)
+        fn = Kumi::Registry.fetch(:has_key?)
         hash = { "exists" => nil }
         expect(fn.call(hash, "exists")).to be true # key exists, even with nil value
         expect(fn.call(hash, "missing")).to be false # key doesn't exist
       end
 
       it "handles empty hashes" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:has_key?)
+        fn = Kumi::Registry.fetch(:has_key?)
         expect(fn.call({}, "any_key")).to be false
       end
     end
@@ -91,19 +91,19 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       it_behaves_like "a working function", :keys, [{ "a" => 1, "b" => 2 }], %w[a b]
 
       it "handles empty hashes" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:keys)
+        fn = Kumi::Registry.fetch(:keys)
         expect(fn.call({})).to eq([])
       end
 
       it "handles mixed key types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:keys)
+        fn = Kumi::Registry.fetch(:keys)
         hash = { "string" => 1, :symbol => 2, 42 => 3 }
         keys = fn.call(hash)
         expect(keys).to contain_exactly("string", :symbol, 42)
       end
 
       it "returns keys in hash iteration order" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:keys)
+        fn = Kumi::Registry.fetch(:keys)
         # Ruby preserves insertion order for hashes
         hash = {}
         hash["first"] = 1
@@ -117,25 +117,25 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       it_behaves_like "a working function", :values, [{ "a" => 1, "b" => 2 }], [1, 2]
 
       it "handles empty hashes" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:values)
+        fn = Kumi::Registry.fetch(:values)
         expect(fn.call({})).to eq([])
       end
 
       it "handles mixed value types" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:values)
+        fn = Kumi::Registry.fetch(:values)
         hash = { "string" => "value", "number" => 42, "boolean" => true, "nil" => nil }
         values = fn.call(hash)
         expect(values).to contain_exactly("value", 42, true, nil)
       end
 
       it "handles duplicate values" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:values)
+        fn = Kumi::Registry.fetch(:values)
         hash = { "a" => 1, "b" => 1, "c" => 2 }
         expect(fn.call(hash)).to eq([1, 1, 2])
       end
 
       it "returns values in hash iteration order" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:values)
+        fn = Kumi::Registry.fetch(:values)
         # Ruby preserves insertion order for hashes
         hash = {}
         hash["first"] = "A"
@@ -154,7 +154,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       it_behaves_like "a working function", :at, [[10, 20, 30], -1], 30
 
       it "handles positive indices" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         array = %w[a b c d]
         expect(fn.call(array, 0)).to eq("a")
         expect(fn.call(array, 1)).to eq("b")
@@ -163,7 +163,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "handles negative indices" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         array = %w[a b c d]
         expect(fn.call(array, -1)).to eq("d")
         expect(fn.call(array, -2)).to eq("c")
@@ -172,20 +172,20 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "handles out of bounds indices" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         array = %w[a b c]
         expect(fn.call(array, 10)).to be_nil
         expect(fn.call(array, -10)).to be_nil
       end
 
       it "handles empty arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         expect(fn.call([], 0)).to be_nil
         expect(fn.call([], -1)).to be_nil
       end
 
       it "handles single element arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         array = [42]
         expect(fn.call(array, 0)).to eq(42)
         expect(fn.call(array, -1)).to eq(42)
@@ -193,7 +193,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "works with strings" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         expect(fn.call("hello", 0)).to eq("h")
         expect(fn.call("hello", 1)).to eq("e")
         expect(fn.call("hello", -1)).to eq("o")
@@ -201,7 +201,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
       end
 
       it "handles mixed types in arrays" do
-        fn = Kumi::Core::FunctionRegistry.fetch(:at)
+        fn = Kumi::Registry.fetch(:at)
         array = [1, "string", true, nil, [1, 2, 3]]
         expect(fn.call(array, 0)).to eq(1)
         expect(fn.call(array, 1)).to eq("string")
@@ -214,9 +214,9 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
 
   describe "type function combinations" do
     it "can combine hash and array operations" do
-      fetch_fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
-      at_fn = Kumi::Core::FunctionRegistry.fetch(:at)
-      keys_fn = Kumi::Core::FunctionRegistry.fetch(:keys)
+      fetch_fn = Kumi::Registry.fetch(:fetch)
+      at_fn = Kumi::Registry.fetch(:at)
+      keys_fn = Kumi::Registry.fetch(:keys)
 
       # Get array from hash, then access element
       data = { "numbers" => [10, 20, 30, 40] }
@@ -230,9 +230,9 @@ RSpec.describe Kumi::Core::FunctionRegistry::TypeFunctions do
     end
 
     it "demonstrates practical data access patterns" do
-      fetch_fn = Kumi::Core::FunctionRegistry.fetch(:fetch)
-      at_fn = Kumi::Core::FunctionRegistry.fetch(:at)
-      has_key_fn = Kumi::Core::FunctionRegistry.fetch(:has_key?)
+      fetch_fn = Kumi::Registry.fetch(:fetch)
+      at_fn = Kumi::Registry.fetch(:at)
+      has_key_fn = Kumi::Registry.fetch(:has_key?)
 
       # Nested data structure
       user_data = {

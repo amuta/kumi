@@ -77,10 +77,10 @@ module Kumi
           def validate_function_call(call_expr, errors)
             fn_name = call_expr.fn_name
 
-            # Skip validation if FunctionRegistry is being mocked for testing
+            # Skip validation if Kumi::Registry.is being mocked for testing
             return if function_registry_mocked?
 
-            return if FunctionRegistry.supported?(fn_name)
+            return if Kumi::Registry.supported?(fn_name)
 
             report_error(
               errors,
@@ -96,11 +96,11 @@ module Kumi
           end
 
           def function_registry_mocked?
-            # Check if FunctionRegistry is being mocked (for tests)
+            # Check if Kumi::Registry.is being mocked (for tests)
 
             # Try to access a method that doesn't exist in the real registry
             # If it's mocked, this won't raise an error
-            FunctionRegistry.respond_to?(:confirm_support!)
+            Kumi::Registry.respond_to?(:confirm_support!)
           rescue StandardError
             false
           end

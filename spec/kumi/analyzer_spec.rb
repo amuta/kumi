@@ -4,7 +4,7 @@ RSpec.describe Kumi::Analyzer do
   include ASTFactory
 
   before do
-    allow(Kumi::Core::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
+    allow(Kumi::Registry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   # Contract 1 – happy path on a complex acyclic schema
@@ -74,7 +74,7 @@ RSpec.describe Kumi::Analyzer do
       syntax(:root, [], [dup1, dup2], [undef_, bad, arity], loc: loc)
     end
 
-    before { allow(Kumi::Core::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
+    before { allow(Kumi::Registry).to receive(:signature).and_return({ arity: 2 }) }
 
     it "raises once, containing every problem" do
       expect do
