@@ -119,7 +119,6 @@ end
 
 **Cascade Condition Syntax**:
 ```ruby
-# CORRECT - use symbols for trait references in cascades
 value :status do
   on trait_name, "Result"
   base "Default"
@@ -159,18 +158,11 @@ end
 ```
 
 **IMPORTANT CASCADE CONDITION SYNTAX:**
-In cascade expressions (`value :name do ... end`), trait references use **symbols**, not bare identifiers:
+In cascade expressions (`value :name do ... end`), trait references use bare identifiers:
 ```ruby
 value :status do
-  on adult, "Adult Status"      # ✅ Correct - use trait_name symbol
+  on adult, "Adult Status"      
   on verified, "Verified User"
-  base "Unverified"
-end
-
-# NOT this:
-value :status do
-  on adult, "Adult Status"       # ❌ Wrong - don't use bare identifier in cascade
-  on verified, "Verified User"   # ❌ Wrong
   base "Unverified"
 end
 ```

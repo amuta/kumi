@@ -52,11 +52,11 @@ module Kumi
 
     def self.create_analysis_result(state)
       Result.new(
-        definitions: state[:definitions],
-        dependency_graph: state[:dependency_graph],
-        leaf_map: state[:leaf_map],
-        topo_order: state[:topo_order],
-        decl_types: state[:decl_types],
+        definitions: state[:declarations],
+        dependency_graph: state[:dependencies],
+        leaf_map: state[:leaves],
+        topo_order: state[:evaluation_order],
+        decl_types: state[:inferred_types],
         state: state.to_h
       )
     end

@@ -4,17 +4,17 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Infer types for all declarations based on expression analysis
-      # DEPENDENCIES: Toposorter (needs topo_order), DeclarationValidator (needs definitions)
-      # PRODUCES: decl_types hash mapping declaration names to inferred types
+      # DEPENDENCIES: Toposorter (needs evaluation_order), DeclarationValidator (needs declarations)
+      # PRODUCES: inferred_types hash mapping declaration names to inferred types
       # INTERFACE: new(schema, state).run(errors)
       class TypeInferencer < PassBase
         def run(errors)
           types = {}
-          topo_order = get_state(:topo_order)
-          definitions = get_state(:definitions)
+          topo_order = get_state(:evaluation_order)
+          definitions = get_state(:declarations)
           
           # Get broadcast metadata from broadcast detector
-          broadcast_meta = get_state(:broadcast_metadata, required: false) || {}
+          broadcast_meta = get_state(:broadcasts, required: false) || {}
 
           # Process declarations in topological order to ensure dependencies are resolved
           topo_order.each do |name|
@@ -37,7 +37,7 @@ module Kumi
             end
           end
 
-          state.with(:decl_types, types)
+          state.with(:inferred_types, types)
         end
 
         private
@@ -48,7 +48,7 @@ module Kumi
             Types.infer_from_value(expr.value)
           when InputReference
             # Look up type from field metadata
-            input_meta = get_state(:input_meta, required: false) || {}
+            input_meta = get_state(:inputs, required: false) || {}
             meta = input_meta[expr.name]
             meta&.dig(:type) || :any
           when DeclarationReference
@@ -153,7 +153,7 @@ module Kumi
           case expr
           when InputElementReference
             # Get the field type from metadata
-            input_meta = get_state(:input_meta, required: false) || {}
+            input_meta = get_state(:inputs, required: false) || {}
             array_name = expr.path.first
             field_name = expr.path[1]
             
@@ -195,7 +195,7 @@ module Kumi
 
         def infer_element_reference_type(expr)
           # Get array field metadata
-          input_meta = get_state(:input_meta, required: false) || {}
+          input_meta = get_state(:inputs, required: false) || {}
           
           return :any unless expr.path.size >= 2
           

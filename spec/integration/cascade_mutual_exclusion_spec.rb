@@ -246,15 +246,15 @@ RSpec.describe "Cascade mutual exclusion detection" do
 
       # Access the analyzer result through the module instance variables
       analyzer_result = TestMetadataSchema.instance_variable_get(:@__analyzer_result__)
-      cascade_metadata = analyzer_result.state[:cascade_metadata]
+      cascades = analyzer_result.state[:cascades]
 
-      expect(cascade_metadata).to include(:is_even, :is_odd)
-      expect(cascade_metadata[:is_even]).to include(
+      expect(cascades).to include(:is_even, :is_odd)
+      expect(cascades[:is_even]).to include(
         condition_traits: %i[n_is_zero n_is_one],
         all_mutually_exclusive: true,
         condition_count: 2
       )
-      expect(cascade_metadata[:is_odd]).to include(
+      expect(cascades[:is_odd]).to include(
         condition_traits: %i[n_is_zero n_is_one],
         all_mutually_exclusive: true,
         condition_count: 2

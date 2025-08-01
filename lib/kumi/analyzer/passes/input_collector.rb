@@ -5,7 +5,7 @@ module Kumi
     module Passes
       # RESPONSIBILITY: Collect field metadata from input declarations and validate consistency
       # DEPENDENCIES: :definitions
-      # PRODUCES: :input_meta - Hash mapping field names to {type:, domain:} metadata
+      # PRODUCES: :inputs - Hash mapping field names to {type:, domain:} metadata
       # INTERFACE: new(schema, state).run(errors)
       class InputCollector < PassBase
         def run(errors)
@@ -30,7 +30,7 @@ module Kumi
             end
           end
 
-          state.with(:input_meta, freeze_nested_hash(input_meta))
+          state.with(:inputs, freeze_nested_hash(input_meta))
         end
 
         private

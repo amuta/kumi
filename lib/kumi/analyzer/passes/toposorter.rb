@@ -4,16 +4,16 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Compute topological ordering of declarations, allowing safe conditional cycles
-      # DEPENDENCIES: :dependency_graph from DependencyResolver, :definitions from NameIndexer, :cascade_metadata from UnsatDetector
-      # PRODUCES: :topo_order - Array of declaration names in evaluation order
+      # DEPENDENCIES: :dependencies from DependencyResolver, :declarations from NameIndexer, :cascades from UnsatDetector
+      # PRODUCES: :evaluation_order - Array of declaration names in evaluation order
       # INTERFACE: new(schema, state).run(errors)
       class Toposorter < PassBase
         def run(errors)
-          dependency_graph = get_state(:dependency_graph, required: false) || {}
-          definitions = get_state(:definitions, required: false) || {}
+          dependency_graph = get_state(:dependencies, required: false) || {}
+          definitions = get_state(:declarations, required: false) || {}
 
           order = compute_topological_order(dependency_graph, definitions, errors)
-          state.with(:topo_order, order)
+          state.with(:evaluation_order, order)
         end
 
         private
@@ -22,7 +22,7 @@ module Kumi
           temp_marks = Set.new
           perm_marks = Set.new
           order = []
-          cascade_metadata = get_state(:cascade_metadata) || {}
+          cascades = get_state(:cascades) || {}
 
           visit_node = lambda do |node, path = []|
             return if perm_marks.include?(node)
@@ -30,7 +30,7 @@ module Kumi
             if temp_marks.include?(node)
               # Check if this is a safe conditional cycle
               cycle_path = path + [node]
-              if safe_conditional_cycle?(cycle_path, graph, cascade_metadata)
+              if safe_conditional_cycle?(cycle_path, graph, cascades)
                 # Allow this cycle - it's safe due to cascade mutual exclusion
                 return
               else
@@ -59,7 +59,7 @@ module Kumi
           order.freeze
         end
 
-        def safe_conditional_cycle?(cycle_path, graph, cascade_metadata)
+        def safe_conditional_cycle?(cycle_path, graph, cascades)
           return false if cycle_path.nil? || cycle_path.size < 2
           
           # Find where the cycle starts - look for the first occurrence of the repeated node
@@ -79,7 +79,7 @@ module Kumi
             return false unless edge&.conditional
             
             # Check if the cascade has mutually exclusive conditions
-            cascade_meta = cascade_metadata[edge.cascade_owner]
+            cascade_meta = cascades[edge.cascade_owner]
             return false unless cascade_meta&.dig(:all_mutually_exclusive)
           end
           

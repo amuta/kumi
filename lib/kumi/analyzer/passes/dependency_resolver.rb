@@ -4,8 +4,8 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Build dependency graph and detect conditional dependencies in cascades
-      # DEPENDENCIES: :definitions from NameIndexer, :input_meta from InputCollector
-      # PRODUCES: :dependency_graph, :transitive_dependents, :leaf_map - Dependency analysis results
+      # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
+      # PRODUCES: :dependencies, :dependents, :leaves - Dependency analysis results
       # INTERFACE: new(schema, state).run(errors)
       class DependencyResolver < PassBase
         # Enhanced edge with conditional flag and cascade metadata
@@ -24,8 +24,8 @@ module Kumi
         include Syntax
 
         def run(errors)
-          definitions = get_state(:definitions)
-          input_meta = get_state(:input_meta)
+          definitions = get_state(:declarations)
+          input_meta = get_state(:inputs)
 
           dependency_graph = Hash.new { |h, k| h[k] = [] }
           reverse_dependencies = Hash.new { |h, k| h[k] = [] }
@@ -41,9 +41,9 @@ module Kumi
           # Compute transitive closure of reverse dependencies
           transitive_dependents = compute_transitive_closure(reverse_dependencies)
 
-          state.with(:dependency_graph, dependency_graph.transform_values(&:freeze).freeze)
-               .with(:transitive_dependents, transitive_dependents.freeze)
-               .with(:leaf_map, leaf_map.transform_values(&:freeze).freeze)
+          state.with(:dependencies, dependency_graph.transform_values(&:freeze).freeze)
+               .with(:dependents, transitive_dependents.freeze)
+               .with(:leaves, leaf_map.transform_values(&:freeze).freeze)
         end
 
         private

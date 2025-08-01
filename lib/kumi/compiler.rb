@@ -56,7 +56,7 @@ module Kumi
 
       def compile_cascade(expr)
         # Check if current declaration is vectorized
-        broadcast_meta = @analysis.state[:broadcast_metadata]
+        broadcast_meta = @analysis.state[:broadcasts]
         is_vectorized = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)
         
         
@@ -216,7 +216,7 @@ module Kumi
 
     def vectorized_operation?(expr)
       # Check if this operation uses vectorized inputs
-      broadcast_meta = @analysis.state[:broadcast_metadata]
+      broadcast_meta = @analysis.state[:broadcasts]
       return false unless broadcast_meta
       
       # Reduction functions are NOT vectorized operations - they consume arrays

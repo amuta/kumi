@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
-      # DEPENDENCIES: :decl_types from TypeInferencer
+      # DEPENDENCIES: :inferred_types from TypeInferencer
       # PRODUCES: None (validation only)
       # INTERFACE: new(schema, state).run(errors)
       class TypeChecker < VisitorPass
@@ -48,7 +48,7 @@ module Kumi
           return if types.nil? || (signature[:arity].negative? && node.args.empty?)
 
           # Skip type checking for vectorized operations
-          broadcast_meta = get_state(:broadcast_metadata, required: false)
+          broadcast_meta = get_state(:broadcasts, required: false)
           if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
             return
           end
@@ -110,14 +110,14 @@ module Kumi
 
         def get_declared_field_type(field_name)
           # Get explicitly declared type from input metadata
-          input_meta = get_state(:input_meta, required: false) || {}
+          input_meta = get_state(:inputs, required: false) || {}
           field_meta = input_meta[field_name]
           field_meta&.dig(:type) || Kumi::Types::ANY
         end
 
         def get_inferred_declaration_type(decl_name)
           # Get inferred type from type inference results
-          decl_types = get_state(:decl_types, required: true)
+          decl_types = get_state(:inferred_types, required: true)
           decl_types[decl_name] || Kumi::Types::ANY
         end
 
@@ -127,7 +127,7 @@ module Kumi
             "`#{expr.value}` of type #{type} (literal value)"
 
           when Kumi::Syntax::InputReference
-            input_meta = get_state(:input_meta, required: false) || {}
+            input_meta = get_state(:inputs, required: false) || {}
             field_meta = input_meta[expr.name]
 
             if field_meta&.dig(:type)

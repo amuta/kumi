@@ -4,8 +4,8 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
-      # DEPENDENCIES: :definitions from NameIndexer, :input_meta from InputCollector
-      # PRODUCES: :cascade_metadata - Hash of cascade mutual exclusion analysis results
+      # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
+      # PRODUCES: :cascades - Hash of cascade mutual exclusion analysis results
       # INTERFACE: new(schema, state).run(errors)
       class UnsatDetector < VisitorPass
         include Syntax
@@ -14,15 +14,15 @@ module Kumi
         Atom        = Kumi::AtomUnsatSolver::Atom
 
         def run(errors)
-          definitions = get_state(:definitions)
-          @input_meta = get_state(:input_meta) || {}
+          definitions = get_state(:declarations)
+          @input_meta = get_state(:inputs) || {}
           @definitions = definitions
           @evaluator = ConstantEvaluator.new(definitions)
 
           # First pass: analyze cascade conditions for mutual exclusion
-          cascade_metadata = {}
+          cascades = {}
           each_decl do |decl|
-            cascade_metadata[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
+            cascades[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
           end
 
           # Store cascade metadata for later passes
@@ -51,7 +51,7 @@ module Kumi
               report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
             end
           end
-          state.with(:cascade_metadata, cascade_metadata)
+          state.with(:cascades, cascades)
         end
 
         private

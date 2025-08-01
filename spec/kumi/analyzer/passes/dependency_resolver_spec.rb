@@ -3,7 +3,7 @@
 RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
   include ASTFactory
 
-  let(:state) { Kumi::Analyzer::AnalysisState.new(definitions: definitions, input_meta: input_meta) }
+  let(:state) { Kumi::Analyzer::AnalysisState.new(declarations: definitions, inputs: input_meta) }
   let(:input_meta) { {} }
   let(:errors) { [] }
   let(:definitions) do
@@ -19,11 +19,11 @@ RSpec.describe Kumi::Analyzer::Passes::DependencyResolver do
   end
 
   def dependency_graph
-    @result_state[:dependency_graph]
+    @result_state[:dependencies]
   end
 
   def leaf_map
-    @result_state[:leaf_map]
+    @result_state[:leaves]
   end
 
   describe ".run" do

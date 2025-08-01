@@ -4,12 +4,12 @@ module Kumi
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate consistency between declared and inferred types
-      # DEPENDENCIES: :input_meta from InputCollector, :decl_types from TypeInferencer
+      # DEPENDENCIES: :inputs from InputCollector, :inferred_types from TypeInferencer
       # PRODUCES: None (validation only)
       # INTERFACE: new(schema, state).run(errors)
       class TypeConsistencyChecker < PassBase
         def run(errors)
-          input_meta = get_state(:input_meta, required: false) || {}
+          input_meta = get_state(:inputs, required: false) || {}
 
           # First, validate that all declared types are valid
           validate_declared_types(input_meta, errors)

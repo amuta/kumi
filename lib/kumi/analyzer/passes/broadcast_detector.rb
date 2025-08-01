@@ -4,12 +4,12 @@ module Kumi
   module Analyzer
     module Passes
       # Detects which operations should be broadcast over arrays
-      # DEPENDENCIES: :input_meta, :definitions
-      # PRODUCES: :broadcast_metadata
+      # DEPENDENCIES: :inputs, :declarations
+      # PRODUCES: :broadcasts
       class BroadcastDetector < PassBase
         def run(errors)
-          input_meta = get_state(:input_meta) || {}
-          definitions = get_state(:definitions) || {}
+          input_meta = get_state(:inputs) || {}
+          definitions = get_state(:declarations) || {}
           
           # Find array fields with their element types
           array_fields = find_array_fields(input_meta)
@@ -45,7 +45,7 @@ module Kumi
             end
           end
           
-          state.with(:broadcast_metadata, compiler_metadata.freeze)
+          state.with(:broadcasts, compiler_metadata.freeze)
         end
 
         private
