@@ -189,9 +189,7 @@ class IterativeKumiCoreMigrator
     files_to_update.each_with_index do |file, index|
       files_updated += 1 if update_file_module_declaration(file)
 
-      # Show progress for large operations
-      log_phase("   Progress: #{index + 1}/#{files_to_update.length} files processed") if (index + 1) % 20 == 0
-    end
+      end
 
     @stats[:files_updated] = files_updated
     log_phase("✅ Updated #{files_updated} files: Kumi:: → Kumi::Core::")
@@ -217,8 +215,7 @@ class IterativeKumiCoreMigrator
     content = apply_inline_fixes(content, file, :namespace_update)
 
     if content != original_content
-      changes_count = track_file_changes(file, original_content, content, :in_place_module_update)
-      log_phase("  Updated #{file} (#{changes_count} changes)")
+      track_file_changes(file, original_content, content, :in_place_module_update)
       File.write(file, content)
       return true
     end
@@ -362,8 +359,7 @@ class IterativeKumiCoreMigrator
 
     return unless content != original_content
 
-    changes_count = track_file_changes(file, original_content, content, change_type)
-    log_phase("    Updated #{file} (#{changes_count} changes)")
+    track_file_changes(file, original_content, content, change_type)
     File.write(file, content)
   end
 
@@ -395,8 +391,7 @@ class IterativeKumiCoreMigrator
 
     return unless content != original_content
 
-    changes_count = track_file_changes(file, original_content, content, :spec_reference_update)
-    log_phase("    Updated #{file} (#{changes_count} changes)")
+    track_file_changes(file, original_content, content, :spec_reference_update)
     File.write(file, content)
   end
 
@@ -460,7 +455,12 @@ class IterativeKumiCoreMigrator
       log_phase("   📊 #{summary_line.chomp}") if summary_line
     else
       log_phase("   ❌ Full test suite FAILED", :error)
-      log_test_error("Full Test Suite", stderr.empty? ? stdout : stderr, nil)
+      
+      # Write failed test logs to test_rspec.logs
+      test_output = stderr.empty? ? stdout : stderr
+      File.write("test_rspec.logs", test_output)
+      log_phase("   📝 Test failure logs written to test_rspec.logs")
+      
       record_error("Full test suite failed")
       raise "Full test suite failed"
     end
@@ -537,7 +537,6 @@ class IterativeKumiCoreMigrator
 
       File.write(file, content)
       fixes += 1
-      log_phase("    Fixed double Core:: in #{file}")
     end
 
     # Also check public interface files
@@ -553,7 +552,6 @@ class IterativeKumiCoreMigrator
 
       File.write(file, content)
       fixes += 1
-      log_phase("    Fixed double Core:: in #{file}")
     end
 
     fixes
@@ -601,7 +599,6 @@ class IterativeKumiCoreMigrator
 
       File.write(file, content)
       fixes += 1
-      log_phase("    Fixed missing Core:: references in #{file}")
     end
 
     fixes
@@ -645,12 +642,16 @@ class IterativeKumiCoreMigrator
   def restore_to_initial_state
     log_phase("🔄 Restoring to initial state...")
 
-    # Find the initial commit
+    # Find the initial commit from the first rollback point
     if @rollback_points.any?
       initial_commit = @rollback_points.first[:commit]
       log_phase("📍 Rolling back to initial commit #{initial_commit[0..7]}...")
-      system("git reset --hard #{initial_commit}")
-      log_phase("✅ Repository restored to initial state")
+      result = system("git reset --hard #{initial_commit}")
+      if result
+        log_phase("✅ Repository restored to initial state")
+      else
+        log_phase("❌ Failed to restore to initial state", :error)
+      end
     else
       log_phase("⚠️  No initial commit stored - cannot restore")
     end
@@ -691,11 +692,6 @@ class IterativeKumiCoreMigrator
       end
     end
 
-    # Log inline fixes if any were made
-    if content != original_content && context != :silent
-      inline_fixes = count_line_differences(original_content, content)
-      log_phase("    🔧 Applied #{inline_fixes} inline fixes to #{File.basename(file_path)}") if inline_fixes > 0
-    end
 
     content
   end
@@ -823,20 +819,6 @@ class IterativeKumiCoreMigrator
     log_phase("Migration committed as #{final_commit[0..7]}")
   end
 
-  def handle_failure(error)
-    log_phase("Handling migration failure...")
-
-    # Find the most recent rollback point
-    if @metadata[:rollback_points].any?
-      rollback_commit = @metadata[:rollback_points].last[:commit]
-      log_phase("Rolling back to #{rollback_commit[0..7]}...")
-      system("git reset --hard #{rollback_commit}")
-      log_phase("Rollback completed")
-    end
-
-    @metadata[:final_status] = :failed
-    record_error("Migration failed: #{error.message}")
-  end
 
   def record_error(message)
     @errors << {
