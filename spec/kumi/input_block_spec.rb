@@ -16,9 +16,9 @@ RSpec.describe "Input Block Feature" do
         trait :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(Kumi::Types::INT)
-      expect(schema.analysis.state[:input_meta][:age][:domain]).to eq(0..120)
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(Kumi::Types::STRING)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(Kumi::Types::INT)
+      expect(schema.analysis.state[:inputs][:age][:domain]).to eq(0..120)
+      expect(schema.analysis.state[:inputs][:name][:type]).to eq(Kumi::Types::STRING)
     end
 
     it "allows field reference via input.field_name syntax" do
@@ -84,7 +84,7 @@ RSpec.describe "Input Block Feature" do
       end
 
       # Check that field types are properly inferred
-      input_meta = schema.analysis.state[:input_meta]
+      input_meta = schema.analysis.state[:inputs]
       expect(input_meta[:age][:type]).to eq(Kumi::Types::INT)
       expect(input_meta[:name][:type]).to eq(Kumi::Types::STRING)
     end
@@ -139,7 +139,7 @@ RSpec.describe "Input Block Feature" do
         trait :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(:integer)
     end
 
     it "accepts :string as type parameter" do
@@ -151,7 +151,7 @@ RSpec.describe "Input Block Feature" do
         trait :has_name, input.name, :!=, ""
       end
 
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
+      expect(schema.analysis.state[:inputs][:name][:type]).to eq(:string)
     end
 
     it "accepts :float as type parameter" do
@@ -163,7 +163,7 @@ RSpec.describe "Input Block Feature" do
         trait :passing, input.score, :>=, 60.0
       end
 
-      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:float)
+      expect(schema.analysis.state[:inputs][:score][:type]).to eq(:float)
     end
 
     it "accepts :boolean as type parameter" do
@@ -176,8 +176,8 @@ RSpec.describe "Input Block Feature" do
         trait :is_active, input.active, :==, true
       end
 
-      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
-      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:inputs][:active][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:inputs][:enabled][:type]).to eq(:boolean)
     end
 
     it "accepts array type helper" do
@@ -190,7 +190,7 @@ RSpec.describe "Input Block Feature" do
       end
 
       expected_type = { array: :any }
-      expect(schema.analysis.state[:input_meta][:items][:type]).to eq(expected_type)
+      expect(schema.analysis.state[:inputs][:items][:type]).to eq(expected_type)
     end
 
     it "accepts hash type helper" do
@@ -203,7 +203,7 @@ RSpec.describe "Input Block Feature" do
       end
 
       expected_type = { hash: %i[string any] }
-      expect(schema.analysis.state[:input_meta][:config][:type]).to eq(expected_type)
+      expect(schema.analysis.state[:inputs][:config][:type]).to eq(expected_type)
     end
 
     it "still accepts legacy Kumi type constants" do
@@ -216,8 +216,8 @@ RSpec.describe "Input Block Feature" do
         trait :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:name][:type]).to eq(:string)
     end
 
     it "raises error for unknown types" do
@@ -244,9 +244,9 @@ RSpec.describe "Input Block Feature" do
         trait :passing, input.score, :>=, 60
       end
 
-      expect(schema.analysis.state[:input_meta][:score][:type]).to eq(:integer)
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
-      expect(schema.analysis.state[:input_meta][:age][:domain]).to eq(0..120)
+      expect(schema.analysis.state[:inputs][:score][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:age][:domain]).to eq(0..120)
     end
 
     it "supports float method" do
@@ -259,9 +259,9 @@ RSpec.describe "Input Block Feature" do
         trait :has_discount, input.base_discount, :>, 0.0
       end
 
-      expect(schema.analysis.state[:input_meta][:base_discount][:type]).to eq(:float)
-      expect(schema.analysis.state[:input_meta][:temperature][:type]).to eq(:float)
-      expect(schema.analysis.state[:input_meta][:temperature][:domain]).to eq(-50.0..50.0)
+      expect(schema.analysis.state[:inputs][:base_discount][:type]).to eq(:float)
+      expect(schema.analysis.state[:inputs][:temperature][:type]).to eq(:float)
+      expect(schema.analysis.state[:inputs][:temperature][:domain]).to eq(-50.0..50.0)
     end
 
     it "supports string method" do
@@ -274,9 +274,9 @@ RSpec.describe "Input Block Feature" do
         trait :is_premium, input.customer_tier, :==, "premium"
       end
 
-      expect(schema.analysis.state[:input_meta][:customer_tier][:type]).to eq(:string)
-      expect(schema.analysis.state[:input_meta][:name][:type]).to eq(:string)
-      expect(schema.analysis.state[:input_meta][:name][:domain]).to eq(%w[admin user guest])
+      expect(schema.analysis.state[:inputs][:customer_tier][:type]).to eq(:string)
+      expect(schema.analysis.state[:inputs][:name][:type]).to eq(:string)
+      expect(schema.analysis.state[:inputs][:name][:domain]).to eq(%w[admin user guest])
     end
 
     it "supports boolean method" do
@@ -289,8 +289,8 @@ RSpec.describe "Input Block Feature" do
         trait :is_active, input.active, :==, true
       end
 
-      expect(schema.analysis.state[:input_meta][:active][:type]).to eq(:boolean)
-      expect(schema.analysis.state[:input_meta][:enabled][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:inputs][:active][:type]).to eq(:boolean)
+      expect(schema.analysis.state[:inputs][:enabled][:type]).to eq(:boolean)
     end
 
     it "supports array method with default any type" do
@@ -303,7 +303,7 @@ RSpec.describe "Input Block Feature" do
       end
 
       expected_type = { array: :any }
-      expect(schema.analysis.state[:input_meta][:discounts][:type]).to eq(expected_type)
+      expect(schema.analysis.state[:inputs][:discounts][:type]).to eq(expected_type)
     end
 
     it "supports array method with element type specification" do
@@ -316,8 +316,8 @@ RSpec.describe "Input Block Feature" do
         trait :has_scores, fn(:size, input.scores), :>, 0
       end
 
-      expect(schema.analysis.state[:input_meta][:scores][:type]).to eq({ array: :float })
-      expect(schema.analysis.state[:input_meta][:tags][:type]).to eq({ array: :string })
+      expect(schema.analysis.state[:inputs][:scores][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:inputs][:tags][:type]).to eq({ array: :string })
     end
 
     it "supports hash method with default any:any type" do
@@ -330,7 +330,7 @@ RSpec.describe "Input Block Feature" do
       end
 
       expected_type = { hash: %i[any any] }
-      expect(schema.analysis.state[:input_meta][:product_to_discount][:type]).to eq(expected_type)
+      expect(schema.analysis.state[:inputs][:product_to_discount][:type]).to eq(expected_type)
     end
 
     it "supports hash method with key and value type specification" do
@@ -343,8 +343,8 @@ RSpec.describe "Input Block Feature" do
         trait :always_true, true, :==, true
       end
 
-      expect(schema.analysis.state[:input_meta][:metadata][:type]).to eq({ hash: %i[string any] })
-      expect(schema.analysis.state[:input_meta][:scores][:type]).to eq({ hash: %i[string float] })
+      expect(schema.analysis.state[:inputs][:metadata][:type]).to eq({ hash: %i[string any] })
+      expect(schema.analysis.state[:inputs][:scores][:type]).to eq({ hash: %i[string float] })
     end
 
     it "maintains backward compatibility with key method" do
@@ -357,8 +357,8 @@ RSpec.describe "Input Block Feature" do
         trait :both_work, fn(:add, input.old_style, input.new_style), :>, 0
       end
 
-      expect(schema.analysis.state[:input_meta][:old_style][:type]).to eq(:integer)
-      expect(schema.analysis.state[:input_meta][:new_style][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:old_style][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:new_style][:type]).to eq(:integer)
     end
 
     it "maintains backward compatibility with array and hash helper functions" do
@@ -373,10 +373,10 @@ RSpec.describe "Input Block Feature" do
         trait :arrays_equal, fn(:size, input.old_array), :==, fn(:size, input.new_array)
       end
 
-      expect(schema.analysis.state[:input_meta][:old_array][:type]).to eq({ array: :float })
-      expect(schema.analysis.state[:input_meta][:old_hash][:type]).to eq({ hash: %i[string integer] })
-      expect(schema.analysis.state[:input_meta][:new_array][:type]).to eq({ array: :float })
-      expect(schema.analysis.state[:input_meta][:new_hash][:type]).to eq({ hash: %i[string integer] })
+      expect(schema.analysis.state[:inputs][:old_array][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:inputs][:old_hash][:type]).to eq({ hash: %i[string integer] })
+      expect(schema.analysis.state[:inputs][:new_array][:type]).to eq({ array: :float })
+      expect(schema.analysis.state[:inputs][:new_hash][:type]).to eq({ hash: %i[string integer] })
     end
   end
 
@@ -390,7 +390,7 @@ RSpec.describe "Input Block Feature" do
         trait :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:input_meta][:age][:type]).to eq(:integer)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(:integer)
       expect(schema.analysis.decl_types[:adult]).to eq(:boolean)
     end
 

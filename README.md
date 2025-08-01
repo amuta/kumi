@@ -330,6 +330,37 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 
 </details>
 
+<details>
+<summary><strong>📋 Schema Metadata</strong> - Extract structured information for tooling</summary>
+
+### Schema Metadata
+
+Access structured metadata for building tools like form generators and dependency analyzers:
+
+```ruby
+metadata = FederalTax2024.schema_metadata
+
+# Processed metadata (tool-friendly)
+metadata.inputs           # Input field types and domains  
+metadata.values           # Value declarations with dependencies
+metadata.traits           # Trait conditions and metadata
+metadata.functions        # Function registry information
+
+# Raw analyzer state (advanced usage)
+metadata.dependencies     # Dependency graph between declarations
+metadata.evaluation_order # Topologically sorted computation order
+metadata.inferred_types   # Type inference results
+metadata.declarations     # Raw AST declaration nodes
+
+# Export formats
+metadata.to_h             # Serializable hash for JSON/APIs
+metadata.to_json_schema   # JSON Schema for input validation
+```
+
+The SchemaMetadata interface provides both processed metadata for tool development and raw analyzer state for advanced use cases. Complete documentation available in the SchemaMetadata class and [docs/schema_metadata.md](docs/schema_metadata.md).
+
+</details>
+
 ## Usage
 
 **Suitable for:**

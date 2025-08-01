@@ -65,7 +65,7 @@ module SchemaGenerator
 
     # Add the from method with input validation (type + domain)
     def schema.from(context)
-      input_meta = analysis.state[:input_meta] || {}
+      input_meta = analysis.state[:inputs] || {}
       violations = Kumi::Input::Validator.validate_context(context, input_meta)
 
       raise Kumi::Errors::InputValidationError, violations unless violations.empty?

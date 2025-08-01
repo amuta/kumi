@@ -244,7 +244,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
         end
       end
 
-      # Access the analyzer result through the module instance variables
+      # Access the metadata through the module instance variables
       analyzer_result = TestMetadataSchema.instance_variable_get(:@__analyzer_result__)
       cascades = analyzer_result.state[:cascades]
 

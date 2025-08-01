@@ -274,6 +274,18 @@ module Kumi
 
       raise ArgumentError, "Schema not found or not compiled" unless syntax_tree && analyzer_result
 
+      metadata = analyzer_result.state
+
+      # Create a minimal analyzer result structure for compatibility
+      analyzer_result = OpenStruct.new(
+        definitions: metadata[:declarations] || {},
+        dependency_graph: metadata[:dependencies] || {},
+        leaf_map: metadata[:leaves] || {},
+        topo_order: metadata[:evaluation_order] || [],
+        decl_types: metadata[:inferred_types] || {},
+        state: metadata
+      )
+
       generator = ExplanationGenerator.new(syntax_tree, analyzer_result, inputs)
       generator.explain(target_name)
     end

@@ -13,7 +13,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
-        expect(result_state[:input_meta]).to eq({})
+        expect(result_state[:inputs]).to eq({})
         expect(errors).to be_empty
       end
     end
@@ -28,7 +28,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        input_meta = result_state[:input_meta]
+        input_meta = result_state[:inputs]
         expect(input_meta.keys).to contain_exactly(:age, :name)
         expect(input_meta[:age]).to eq(type: :integer, domain: nil)
         expect(input_meta[:name]).to eq(type: :string, domain: nil)
@@ -46,7 +46,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        input_meta = result_state[:input_meta]
+        input_meta = result_state[:inputs]
         expect(input_meta[:age][:domain]).to eq(18..65)
         expect(input_meta[:status][:domain]).to eq(%w[active inactive])
         expect(input_meta[:custom][:domain]).to be_a(Proc)
@@ -77,7 +77,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:input_meta][:dup]).to eq(type: :integer, domain: nil)
+        expect(result_state[:inputs][:dup]).to eq(type: :integer, domain: nil)
       end
     end
 
@@ -119,7 +119,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:input_meta][:partial]).to eq(type: :integer, domain: 0..100)
+        expect(result_state[:inputs][:partial]).to eq(type: :integer, domain: 0..100)
       end
     end
 
@@ -135,7 +135,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         expect(errors.size).to eq(1)
         expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Syntax::Literal/)
         # Should still process valid fields
-        expect(result_state[:input_meta][:good]).to eq(type: :string, domain: nil)
+        expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil)
       end
     end
 
@@ -153,7 +153,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         expect(errors[0].message).to match(/Field :bad1 has invalid domain constraint/)
         expect(errors[1].message).to match(/Field :bad2 has invalid domain constraint/)
         # Good field should still be processed
-        expect(result_state[:input_meta][:good]).to eq(type: :integer, domain: 0..10)
+        expect(result_state[:inputs][:good]).to eq(type: :integer, domain: 0..10)
       end
     end
 
@@ -165,7 +165,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
-        expect(result_state[:input_meta]).to be_frozen
+        expect(result_state[:inputs]).to be_frozen
       end
     end
 
@@ -187,7 +187,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
       it "builds a nested metadata hash that mirrors the AST structure" do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
-        input_meta = result_state[:input_meta]
+        input_meta = result_state[:inputs]
 
         expect(errors).to be_empty
         expect(input_meta.keys).to contain_exactly(:user_name, :line_items)

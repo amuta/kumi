@@ -264,8 +264,8 @@ RSpec.describe "Comprehensive AST Export Integration" do
     end
 
     # Verify input metadata preservation
-    original_input_meta = original_analysis.state[:input_meta]
-    imported_input_meta = imported_analysis.state[:input_meta]
+    original_input_meta = original_analysis.state[:inputs]
+    imported_input_meta = imported_analysis.state[:inputs]
 
     expect(imported_input_meta.keys).to match_array(original_input_meta.keys)
     original_input_meta.each do |field, meta|

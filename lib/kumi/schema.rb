@@ -16,19 +16,19 @@ module Kumi
       raise("No schema defined") unless @__compiled_schema__
 
       # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:input_meta] || {}
+      input_meta = @__analyzer_result__.state[:inputs] || {}
       violations = Input::Validator.validate_context(context, input_meta)
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      SchemaInstance.new(@__compiled_schema__, @__analyzer_result__, context)
+      SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
     end
 
     def explain(context, *keys)
       raise("No schema defined") unless @__compiled_schema__
 
       # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:input_meta] || {}
+      input_meta = @__analyzer_result__.state[:inputs] || {}
       violations = Input::Validator.validate_context(context, input_meta)
 
       raise Errors::InputValidationError, violations unless violations.empty?
@@ -50,8 +50,8 @@ module Kumi
 
     def schema_metadata
       raise("No schema defined") unless @__analyzer_result__
-      
-      @__schema_metadata__ ||= SchemaMetadata.new(@__analyzer_result__, @__syntax_tree__)
+
+      @schema_metadata ||= SchemaMetadata.new(@__analyzer_result__.state, @__syntax_tree__)
     end
   end
 end

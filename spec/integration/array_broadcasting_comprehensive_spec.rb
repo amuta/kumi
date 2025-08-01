@@ -270,7 +270,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
     end
 
     it "infers correct types for vectorized operations" do
-      types = analyzer_result.state[:decl_types]
+      types = analyzer_result.state[:inferred_types]
       
       expect(types[:doubled_ints]).to eq({ array: :integer })
       expect(types[:scaled_floats]).to eq({ array: :float })
@@ -280,7 +280,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
     end
 
     it "infers correct types for aggregation operations" do
-      types = analyzer_result.state[:decl_types]
+      types = analyzer_result.state[:inferred_types]
       
       expect(types[:sum_ints]).to eq(:float)
     end

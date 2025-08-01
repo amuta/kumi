@@ -11,11 +11,11 @@ module Kumi
   #   instance.input                   # original context (read‑only)
 
   class SchemaInstance
-    attr_reader :compiled_schema, :analysis, :context
+    attr_reader :compiled_schema, :metadata, :context
 
-    def initialize(compiled_schema, analysis, context)
+    def initialize(compiled_schema, metadata, context)
       @compiled_schema = compiled_schema # Kumi::CompiledSchema
-      @analysis = analysis # Analyzer result (for deps)
+      @metadata = metadata # Frozen state hash
       @context  = context.is_a?(EvaluationWrapper) ? context : EvaluationWrapper.new(context)
     end
 
@@ -68,12 +68,12 @@ module Kumi
 
     def input_field_exists?(field)
       # Check if field is declared in input block
-      input_meta = @analysis&.state&.dig(:input_meta) || {}
+      input_meta = @metadata[:inputs] || {}
       input_meta.key?(field) || @context.key?(field)
     end
 
     def validate_domain_constraint(field, value)
-      input_meta = @analysis&.state&.dig(:input_meta) || {}
+      input_meta = @metadata[:inputs] || {}
       field_meta = input_meta[field]
       return unless field_meta&.dig(:domain)
 
@@ -99,7 +99,7 @@ module Kumi
 
     def find_dependent_declarations_optimized(field)
       # Use precomputed transitive closure for true O(1) lookup!
-      transitive_dependents = @analysis&.state&.dig(:transitive_dependents)
+      transitive_dependents = @metadata[:dependents]
       return [] unless transitive_dependents
 
       # This is truly O(1) - just array lookup, no traversal needed
