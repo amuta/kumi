@@ -143,8 +143,8 @@ RSpec.describe "Kumi Performance" do
     it "compiles the schema within an acceptable time" do
       Benchmark.ips do |x|
         x.report("Kumi Schema Analyzer & Compile") do
-          analyzer_result = Kumi::Core::Analyzer.analyze!(schema_definition)
-          Kumi::Core::Compiler.compile(schema_definition, analyzer: analyzer_result)
+          analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
+          Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
         end
 
         x.compare!
@@ -162,8 +162,8 @@ RSpec.describe "Kumi Performance" do
   # This block measures the runtime performance after compilation
   context "execution phase" do
     let!(:compiled_schema) do
-      analyzer_result = Kumi::Core::Analyzer.analyze!(schema_definition)
-      Kumi::Core::Compiler.compile(schema_definition, analyzer: analyzer_result)
+      analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
+      Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
     end
 
     let!(:plain_ruby_segmenter) { PlainRubySegmenter.new }

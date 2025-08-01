@@ -238,7 +238,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "preserves complete schema through export/import cycle" do
     # Step 1: Analyze the original schema
-    original_analysis = Kumi::Core::Analyzer.analyze!(comprehensive_schema)
+    original_analysis = Kumi::Analyzer.analyze!(comprehensive_schema)
 
     # Step 2: Export to JSON
     json_export = Kumi::Core::Export.to_json(comprehensive_schema)
@@ -247,7 +247,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
     imported_schema = Kumi::Core::Export.from_json(json_export)
 
     # Step 4: Analyze the imported schema
-    imported_analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
+    imported_analysis = Kumi::Analyzer.analyze!(imported_schema)
 
     # Step 5: Compare analysis results
     expect(imported_analysis.definitions.keys).to match_array(original_analysis.definitions.keys)
@@ -276,14 +276,14 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "produces identical compilation and execution results" do
     # Compile original schema
-    original_analysis = Kumi::Core::Analyzer.analyze!(comprehensive_schema)
-    original_compiled = Kumi::Core::Compiler.compile(comprehensive_schema, analyzer: original_analysis)
+    original_analysis = Kumi::Analyzer.analyze!(comprehensive_schema)
+    original_compiled = Kumi::Compiler.compile(comprehensive_schema, analyzer: original_analysis)
 
     # Export, import, and compile
     json_export = Kumi::Core::Export.to_json(comprehensive_schema)
     imported_schema = Kumi::Core::Export.from_json(json_export)
-    imported_analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
-    imported_compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: imported_analysis)
+    imported_analysis = Kumi::Analyzer.analyze!(imported_schema)
+    imported_compiled = Kumi::Compiler.compile(imported_schema, analyzer: imported_analysis)
 
     # Execute both and compare results
     original_result = original_compiled.evaluate(customer_data)
@@ -304,8 +304,8 @@ RSpec.describe "Comprehensive AST Export Integration" do
     imported_schema = Kumi::Core::Export.from_json(json_export)
 
     # Compile and execute imported schema
-    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
+    analysis = Kumi::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
     result = compiled.evaluate(customer_data)
 
     # Test basic traits
@@ -416,8 +416,8 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
     # Import and verify it works
     imported_schema = Kumi::Core::Export.from_json(pretty_json)
-    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
+    analysis = Kumi::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
 
     result = compiled.evaluate(customer_data)
     expect(result[:customer_tier]).to eq("Gold")
@@ -440,8 +440,8 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
     # Import should still work
     imported_schema = Kumi::Core::Export.from_json(json_with_locations)
-    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
+    analysis = Kumi::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
 
     result = compiled.evaluate(customer_data)
     expect(result[:adult]).to be true

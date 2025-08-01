@@ -34,16 +34,16 @@ module Kumi
       raise Errors::InputValidationError, violations unless violations.empty?
 
       keys.each do |key|
-        puts Kumi::Core::Explain.call(self, key, inputs: context)
+        puts Core::Explain.call(self, key, inputs: context)
       end
 
       nil
     end
 
     def schema(&block)
-      @__syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
-      @__analyzer_result__ = Core::Analyzer.analyze!(@__syntax_tree__).freeze
-      @__compiled_schema__ = Core::Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
+      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+      @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
+      @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 
       Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
     end
@@ -51,7 +51,7 @@ module Kumi
     def schema_metadata
       raise("No schema defined") unless @__analyzer_result__
 
-      @schema_metadata ||= Core::SchemaMetadata.new(@__analyzer_result__.state, @__syntax_tree__)
+      @schema_metadata ||= SchemaMetadata.new(@__analyzer_result__.state, @__syntax_tree__)
     end
   end
 end

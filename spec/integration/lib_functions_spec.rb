@@ -16,8 +16,8 @@ RSpec.describe "Kumi Default Functions" do
         trait :test_trait, input.number, :between?, 6, 8
       end
 
-      analyzer = Kumi::Core::Analyzer.analyze!(syntax_tree)
-      compiled = Kumi::Core::Compiler.compile(syntax_tree, analyzer: analyzer)
+      analyzer = Kumi::Analyzer.analyze!(syntax_tree)
+      compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
 
       data = { number: 7 }
 

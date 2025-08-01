@@ -52,8 +52,8 @@ module SchemaGenerator
   # Helper to create a schema with proper analysis and compilation
   def create_schema(&block)
     syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
-    analyzer = Kumi::Core::Analyzer.analyze!(syntax_tree)
-    compiled = Kumi::Core::Compiler.compile(syntax_tree, analyzer: analyzer)
+    analyzer = Kumi::Analyzer.analyze!(syntax_tree)
+    compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
 
     # Create a schema-like object that includes the from method
     schema = OpenStruct.new(

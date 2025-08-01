@@ -156,8 +156,8 @@ RSpec.describe "Kumi Compiler Integration" do
       # 3. Compile into executable lambda functions
 
       parsed_schema = schema # Already parsed by the DSL
-      analyzer_result = Kumi::Core::Analyzer.analyze!(parsed_schema)
-      Kumi::Core::Compiler.compile(parsed_schema, analyzer: analyzer_result)
+      analyzer_result = Kumi::Analyzer.analyze!(parsed_schema)
+      Kumi::Compiler.compile(parsed_schema, analyzer: analyzer_result)
     end
 
     describe "full schema evaluation" do

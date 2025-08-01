@@ -4,8 +4,8 @@ RSpec.describe "Vectorized Inputs Integration" do
   # Helper to perform the full analysis and compilation pipeline
   def analyze_and_compile(&schema_block)
     syntax_tree = Kumi.schema(&schema_block)
-    analyzer_result = Kumi::Core::Analyzer.analyze!(syntax_tree.syntax_tree)
-    Kumi::Core::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
+    analyzer_result = Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
+    Kumi::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
   end
 
   let(:order_schema) do

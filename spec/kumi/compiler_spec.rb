@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Core::Compiler do
+RSpec.describe Kumi::Compiler do
   include ASTFactory # gives us `syntax`
 
   # Operator stubs for the test
@@ -10,7 +10,7 @@ RSpec.describe Kumi::Core::Compiler do
     syntax(:root, [], [a, b], [])
   end
 
-  let(:analysis) { Kumi::Core::Analyzer.analyze!(schema) }
+  let(:analysis) { Kumi::Analyzer.analyze!(schema) }
   let(:exec)     { described_class.compile(schema, analyzer: analysis) }
 
   # Expectations
@@ -48,7 +48,7 @@ RSpec.describe Kumi::Core::Compiler do
     )
     t_exec = described_class.compile(
       t_schema,
-      analyzer: Kumi::Core::Analyzer.analyze!(t_schema)
+      analyzer: Kumi::Analyzer.analyze!(t_schema)
     )
 
     result = t_exec.evaluate(age: 20)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Core::Analyzer do
+RSpec.describe Kumi::Analyzer do
   include ASTFactory
 
   before do
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Core::Analyzer do
     end
 
     it "returns an immutable Result" do
-      expect(result).to be_a(Kumi::Core::Analyzer::Result)
+      expect(result).to be_a(Kumi::Analyzer::Result)
       expect(result.dependency_graph.frozen?).to be true
       expect(result.leaf_map.frozen?).to         be true
       expect(result.topo_order.frozen?).to       be true
