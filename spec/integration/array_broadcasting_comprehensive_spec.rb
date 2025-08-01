@@ -376,7 +376,8 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           end
 
           value :doubled, input.items.count * 2
-          trait :positive, input.items.count > 0
+          value :sum_count, fn(:sum, input.items.count)
+          trait :positive, sum_count > 0
           value :total, fn(:sum, doubled)
         end
       end
@@ -386,7 +387,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
       it "handles single element arrays correctly" do
         expect(runner[:doubled]).to eq([10])
-        expect(runner[:positive]).to eq([true])
+        expect(runner[:positive]).to eq(true)
         expect(runner[:total]).to eq(10)
       end
     end

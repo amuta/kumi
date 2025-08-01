@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Syntax
-    HashExpression = Struct.new(:pairs) do
-      include Node
+module Kumi
+  module Core
+    module Syntax
+      HashExpression = Struct.new(:pairs) do
+        include Node
 
-      def children = pairs.flatten
+        def children = pairs.flatten
+      end
     end
   end
 end

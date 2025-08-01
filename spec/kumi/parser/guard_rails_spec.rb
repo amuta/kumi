@@ -30,10 +30,12 @@ RSpec.describe "DSL Guard Rails" do
     begin
       expect do
         module Kumi
-          module RubyParser
-            class SchemaBuilder
-              # shadow!
-              def value(*); end
+          module Core
+            module RubyParser
+              class SchemaBuilder
+                # shadow!
+                def value(*); end
+              end
             end
           end
         end

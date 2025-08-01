@@ -1,41 +1,43 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Analyzer
-    module Passes
-      # RESPONSIBILITY: Perform local structural validation on each declaration
-      # DEPENDENCIES: :definitions
-      # PRODUCES: None (validation only)
-      # INTERFACE: new(schema, state).run(errors)
-      class DeclarationValidator < VisitorPass
-        def run(errors)
-          each_decl do |decl|
-            visit(decl) { |node| validate_node(node, errors) }
+module Kumi
+  module Core
+    module Analyzer
+      module Passes
+        # RESPONSIBILITY: Perform local structural validation on each declaration
+        # DEPENDENCIES: :definitions
+        # PRODUCES: None (validation only)
+        # INTERFACE: new(schema, state).run(errors)
+        class DeclarationValidator < VisitorPass
+          def run(errors)
+            each_decl do |decl|
+              visit(decl) { |node| validate_node(node, errors) }
+            end
+            state
           end
-          state
-        end
 
-        private
+          private
 
-        def validate_node(node, errors)
-          case node
-          when Kumi::Core::Syntax::ValueDeclaration
-            validate_attribute(node, errors)
-          when Kumi::Core::Syntax::TraitDeclaration
-            validate_trait(node, errors)
+          def validate_node(node, errors)
+            case node
+            when Kumi::Core::Syntax::ValueDeclaration
+              validate_attribute(node, errors)
+            when Kumi::Core::Syntax::TraitDeclaration
+              validate_trait(node, errors)
+            end
           end
-        end
 
-        def validate_attribute(node, errors)
-          return unless node.expression.nil?
+          def validate_attribute(node, errors)
+            return unless node.expression.nil?
 
-          report_error(errors, "attribute `#{node.name}` requires an expression", location: node.loc)
-        end
+            report_error(errors, "attribute `#{node.name}` requires an expression", location: node.loc)
+          end
 
-        def validate_trait(node, errors)
-          return if node.expression.is_a?(Kumi::Core::Syntax::CallExpression)
+          def validate_trait(node, errors)
+            return if node.expression.is_a?(Kumi::Core::Syntax::CallExpression)
 
-          report_error(errors, "trait `#{node.name}` must wrap a CallExpression", location: node.loc)
+            report_error(errors, "trait `#{node.name}` must wrap a CallExpression", location: node.loc)
+          end
         end
       end
     end

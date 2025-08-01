@@ -1,401 +1,403 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Analyzer
-    module Passes
-      # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
-      # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
-      # PRODUCES: :cascades - Hash of cascade mutual exclusion analysis results
-      # INTERFACE: new(schema, state).run(errors)
-      class UnsatDetector < VisitorPass
-        include Syntax
+module Kumi
+  module Core
+    module Analyzer
+      module Passes
+        # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
+        # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
+        # PRODUCES: :cascades - Hash of cascade mutual exclusion analysis results
+        # INTERFACE: new(schema, state).run(errors)
+        class UnsatDetector < VisitorPass
+          include Syntax
 
-        COMPARATORS = %i[> < >= <= == !=].freeze
-        Atom        = Kumi::Core::AtomUnsatSolver::Atom
+          COMPARATORS = %i[> < >= <= == !=].freeze
+          Atom        = Kumi::Core::AtomUnsatSolver::Atom
 
-        def run(errors)
-          definitions = get_state(:declarations)
-          @input_meta = get_state(:inputs) || {}
-          @definitions = definitions
-          @evaluator = ConstantEvaluator.new(definitions)
+          def run(errors)
+            definitions = get_state(:declarations)
+            @input_meta = get_state(:inputs) || {}
+            @definitions = definitions
+            @evaluator = ConstantEvaluator.new(definitions)
 
-          # First pass: analyze cascade conditions for mutual exclusion
-          cascades = {}
-          each_decl do |decl|
-            cascades[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
+            # First pass: analyze cascade conditions for mutual exclusion
+            cascades = {}
+            each_decl do |decl|
+              cascades[decl.name] = analyze_cascade_mutual_exclusion(decl, definitions) if decl.expression.is_a?(CascadeExpression)
 
-            # Store cascade metadata for later passes
+              # Store cascade metadata for later passes
 
-            # Second pass: check for unsatisfiable constraints
-            if decl.expression.is_a?(CascadeExpression)
-              # Special handling for cascade expressions
-              check_cascade_expression(decl, definitions, errors)
-            elsif decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
-              # Check for OR expressions which need special disjunctive handling
-              impossible = check_or_expression(decl.expression, definitions, errors)
-              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
-            else
-              # Normal handling for non-cascade expressions
-              atoms = gather_atoms(decl.expression, definitions, Set.new)
-              next if atoms.empty?
+              # Second pass: check for unsatisfiable constraints
+              if decl.expression.is_a?(CascadeExpression)
+                # Special handling for cascade expressions
+                check_cascade_expression(decl, definitions, errors)
+              elsif decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
+                # Check for OR expressions which need special disjunctive handling
+                impossible = check_or_expression(decl.expression, definitions, errors)
+                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
+              else
+                # Normal handling for non-cascade expressions
+                atoms = gather_atoms(decl.expression, definitions, Set.new)
+                next if atoms.empty?
 
-              # Use enhanced solver that can detect cross-variable mathematical constraints
-              impossible = if definitions && !definitions.empty?
-                             Kumi::Core::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
-                           else
-                             Kumi::Core::AtomUnsatSolver.unsat?(atoms)
-                           end
-
-              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
-            end
-          end
-          state.with(:cascades, cascades)
-        end
-
-        private
-
-        def analyze_cascade_mutual_exclusion(decl, definitions)
-          conditions = []
-          condition_traits = []
-
-          # Extract all cascade conditions (except base case)
-          decl.expression.cases[0...-1].each do |when_case|
-            next unless when_case.condition
-
-            next unless when_case.condition.fn_name == :all?
-
-            when_case.condition.args.each do |arg|
-              next unless arg.is_a?(ArrayExpression)
-
-              arg.elements.each do |element|
-                next unless element.is_a?(DeclarationReference)
-
-                trait_name = element.name
-                trait = definitions[trait_name]
-                if trait
-                  conditions << trait.expression
-                  condition_traits << trait_name
-                end
-              end
-            end
-            # end
-          end
-
-          # Check mutual exclusion for all pairs
-          total_pairs = conditions.size * (conditions.size - 1) / 2
-          exclusive_pairs = 0
-
-          if conditions.size >= 2
-            conditions.combination(2).each do |cond1, cond2|
-              exclusive_pairs += 1 if conditions_mutually_exclusive?(cond1, cond2)
-            end
-          end
-
-          all_mutually_exclusive = total_pairs.positive? && (exclusive_pairs == total_pairs)
-
-          {
-            condition_traits: condition_traits,
-            condition_count: conditions.size,
-            all_mutually_exclusive: all_mutually_exclusive,
-            exclusive_pairs: exclusive_pairs,
-            total_pairs: total_pairs
-          }
-        end
-
-        def conditions_mutually_exclusive?(cond1, cond2)
-          if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
-             cond2.is_a?(CallExpression) && cond2.fn_name == :==
-
-            c1_field, c1_value = cond1.args
-            c2_field, c2_value = cond2.args
-
-            # Same field, different values = mutually exclusive
-            return true if same_field?(c1_field, c2_field) && different_values?(c1_value, c2_value)
-          end
-
-          false
-        end
-
-        def same_field?(field1, field2)
-          return false unless field1.is_a?(InputReference) && field2.is_a?(InputReference)
-
-          field1.name == field2.name
-        end
-
-        def different_values?(val1, val2)
-          return false unless val1.is_a?(Literal) && val2.is_a?(Literal)
-
-          val1.value != val2.value
-        end
-
-        def check_or_expression(or_expr, definitions, _errors)
-          # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
-          # If either side is satisfiable, the OR is satisfiable
-          left_side, right_side = or_expr.args
-
-          # Check if left side is impossible
-          left_atoms = gather_atoms(left_side, definitions, Set.new)
-          left_impossible = if left_atoms.empty?
-                              false
-                            elsif definitions && !definitions.empty?
-                              Kumi::Core::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
-                            else
-                              Kumi::Core::AtomUnsatSolver.unsat?(left_atoms)
-                            end
-
-          # Check if right side is impossible
-          right_atoms = gather_atoms(right_side, definitions, Set.new)
-          right_impossible = if right_atoms.empty?
-                               false
-                             elsif definitions && !definitions.empty?
-                               Kumi::Core::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
+                # Use enhanced solver that can detect cross-variable mathematical constraints
+                impossible = if definitions && !definitions.empty?
+                               Kumi::Core::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
                              else
-                               Kumi::Core::AtomUnsatSolver.unsat?(right_atoms)
+                               Kumi::Core::AtomUnsatSolver.unsat?(atoms)
                              end
 
-          # OR is impossible only if BOTH sides are impossible
-          left_impossible && right_impossible
-        end
-
-        def gather_atoms(node, defs, visited, list = [])
-          return list unless node
-
-          # Use iterative approach with stack to avoid SystemStackError on deep graphs
-          stack = [node]
-
-          until stack.empty?
-            current = stack.pop
-            next unless current
-
-            if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
-              lhs, rhs = current.args
-
-              # Check for domain constraint violations before creating atom
-              list << if impossible_constraint?(lhs, rhs, current.fn_name)
-                        # Create a special impossible atom that will always trigger unsat
-                        Atom.new(:==, :__impossible__, true)
-                      else
-                        Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
-                      end
-            elsif current.is_a?(CallExpression) && current.fn_name == :or
-              # Special handling for OR expressions - they are disjunctive, not conjunctive
-              # We should NOT add OR children to the stack as they would be treated as AND
-              # OR expressions need separate analysis in the main run() method
-              next
-            elsif current.is_a?(CallExpression) && current.fn_name == :all?
-              # For all? function, add all trait arguments to the stack
-              current.args.each { |arg| stack << arg }
-            elsif current.is_a?(ArrayExpression)
-              # For ArrayExpression, add all elements to the stack
-              current.elements.each { |elem| stack << elem }
-            elsif current.is_a?(DeclarationReference)
-              name = current.name
-              unless visited.include?(name)
-                visited << name
-                stack << defs[name].expression if defs.key?(name)
+                report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
               end
             end
-
-            # Add children to stack for processing
-            # IMPORTANT: Skip CascadeExpression children to avoid false positives
-            # Cascades are handled separately by check_cascade_expression() and are disjunctive,
-            # but gather_atoms() treats all collected atoms as conjunctive
-            current.children.each { |child| stack << child } if current.respond_to?(:children) && !current.is_a?(CascadeExpression)
+            state.with(:cascades, cascades)
           end
 
-          list
-        end
+          private
 
-        def check_cascade_expression(decl, definitions, errors)
-          # Analyze each cascade branch condition independently
-          # This is the correct behavior: each 'on' condition should be checked separately
-          # since only ONE will be evaluated at runtime (they're mutually exclusive by design)
+          def analyze_cascade_mutual_exclusion(decl, definitions)
+            conditions = []
+            condition_traits = []
 
-          decl.expression.cases.each_with_index do |when_case, _index|
-            # Skip the base case (it's typically a literal true condition)
-            next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
+            # Extract all cascade conditions (except base case)
+            decl.expression.cases[0...-1].each do |when_case|
+              next unless when_case.condition
 
-            # Skip non-conjunctive conditions (any?, none?) as they are disjunctive
-            next if when_case.condition.is_a?(CallExpression) && %i[any? none?].include?(when_case.condition.fn_name)
+              next unless when_case.condition.fn_name == :all?
 
-            # Skip single-trait 'on' branches: trait-level unsat detection covers these
-            if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              # Handle both ArrayExpression (old format) and multiple args (new format)
-              if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
-                list = when_case.condition.args.first
-                next if list.elements.size == 1
-              elsif when_case.condition.args.size == 1
-                # Multiple args format
-                next
+              when_case.condition.args.each do |arg|
+                next unless arg.is_a?(ArrayExpression)
+
+                arg.elements.each do |element|
+                  next unless element.is_a?(DeclarationReference)
+
+                  trait_name = element.name
+                  trait = definitions[trait_name]
+                  if trait
+                    conditions << trait.expression
+                    condition_traits << trait_name
+                  end
+                end
+              end
+              # end
+            end
+
+            # Check mutual exclusion for all pairs
+            total_pairs = conditions.size * (conditions.size - 1) / 2
+            exclusive_pairs = 0
+
+            if conditions.size >= 2
+              conditions.combination(2).each do |cond1, cond2|
+                exclusive_pairs += 1 if conditions_mutually_exclusive?(cond1, cond2)
               end
             end
-            # Gather atoms from this individual condition only
-            condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
-            # DEBUG
-            # if when_case.condition.is_a?(CallExpression) && [:all?, :any?, :none?].include?(when_case.condition.fn_name)
-            #   puts "  Args: #{when_case.condition.args.inspect}"
-            #   puts "  Atoms found: #{condition_atoms.inspect}"
-            # end
 
-            # Only flag if this individual condition is impossible
-            # if !condition_atoms.empty?
-            #   is_unsat = Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
-            #   puts "  Is unsat? #{is_unsat}"
-            # end
-            # Use enhanced solver for cascade conditions too
-            impossible = if definitions && !definitions.empty?
-                           Kumi::Core::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
-                         else
-                           Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
-                         end
-            next unless !condition_atoms.empty? && impossible
+            all_mutually_exclusive = total_pairs.positive? && (exclusive_pairs == total_pairs)
 
-            # For multi-trait on-clauses, report the trait names rather than the value name
-            if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-              # Handle both ArrayExpression (old format) and multiple args (new format)
-              trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
-                                 when_case.condition.args.first.elements
+            {
+              condition_traits: condition_traits,
+              condition_count: conditions.size,
+              all_mutually_exclusive: all_mutually_exclusive,
+              exclusive_pairs: exclusive_pairs,
+              total_pairs: total_pairs
+            }
+          end
+
+          def conditions_mutually_exclusive?(cond1, cond2)
+            if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
+               cond2.is_a?(CallExpression) && cond2.fn_name == :==
+
+              c1_field, c1_value = cond1.args
+              c2_field, c2_value = cond2.args
+
+              # Same field, different values = mutually exclusive
+              return true if same_field?(c1_field, c2_field) && different_values?(c1_value, c2_value)
+            end
+
+            false
+          end
+
+          def same_field?(field1, field2)
+            return false unless field1.is_a?(InputReference) && field2.is_a?(InputReference)
+
+            field1.name == field2.name
+          end
+
+          def different_values?(val1, val2)
+            return false unless val1.is_a?(Literal) && val2.is_a?(Literal)
+
+            val1.value != val2.value
+          end
+
+          def check_or_expression(or_expr, definitions, _errors)
+            # For OR expressions: A | B is impossible only if BOTH A AND B are impossible
+            # If either side is satisfiable, the OR is satisfiable
+            left_side, right_side = or_expr.args
+
+            # Check if left side is impossible
+            left_atoms = gather_atoms(left_side, definitions, Set.new)
+            left_impossible = if left_atoms.empty?
+                                false
+                              elsif definitions && !definitions.empty?
+                                Kumi::Core::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
+                              else
+                                Kumi::Core::AtomUnsatSolver.unsat?(left_atoms)
+                              end
+
+            # Check if right side is impossible
+            right_atoms = gather_atoms(right_side, definitions, Set.new)
+            right_impossible = if right_atoms.empty?
+                                 false
+                               elsif definitions && !definitions.empty?
+                                 Kumi::Core::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
                                else
-                                 when_case.condition.args
+                                 Kumi::Core::AtomUnsatSolver.unsat?(right_atoms)
                                end
 
-              if trait_bindings.all?(DeclarationReference)
-                traits = trait_bindings.map(&:name).join(" AND ")
-                report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
+            # OR is impossible only if BOTH sides are impossible
+            left_impossible && right_impossible
+          end
+
+          def gather_atoms(node, defs, visited, list = [])
+            return list unless node
+
+            # Use iterative approach with stack to avoid SystemStackError on deep graphs
+            stack = [node]
+
+            until stack.empty?
+              current = stack.pop
+              next unless current
+
+              if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
+                lhs, rhs = current.args
+
+                # Check for domain constraint violations before creating atom
+                list << if impossible_constraint?(lhs, rhs, current.fn_name)
+                          # Create a special impossible atom that will always trigger unsat
+                          Atom.new(:==, :__impossible__, true)
+                        else
+                          Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
+                        end
+              elsif current.is_a?(CallExpression) && current.fn_name == :or
+                # Special handling for OR expressions - they are disjunctive, not conjunctive
+                # We should NOT add OR children to the stack as they would be treated as AND
+                # OR expressions need separate analysis in the main run() method
                 next
+              elsif current.is_a?(CallExpression) && current.fn_name == :all?
+                # For all? function, add all trait arguments to the stack
+                current.args.each { |arg| stack << arg }
+              elsif current.is_a?(ArrayExpression)
+                # For ArrayExpression, add all elements to the stack
+                current.elements.each { |elem| stack << elem }
+              elsif current.is_a?(DeclarationReference)
+                name = current.name
+                unless visited.include?(name)
+                  visited << name
+                  stack << defs[name].expression if defs.key?(name)
+                end
+              end
+
+              # Add children to stack for processing
+              # IMPORTANT: Skip CascadeExpression children to avoid false positives
+              # Cascades are handled separately by check_cascade_expression() and are disjunctive,
+              # but gather_atoms() treats all collected atoms as conjunctive
+              current.children.each { |child| stack << child } if current.respond_to?(:children) && !current.is_a?(CascadeExpression)
+            end
+
+            list
+          end
+
+          def check_cascade_expression(decl, definitions, errors)
+            # Analyze each cascade branch condition independently
+            # This is the correct behavior: each 'on' condition should be checked separately
+            # since only ONE will be evaluated at runtime (they're mutually exclusive by design)
+
+            decl.expression.cases.each_with_index do |when_case, _index|
+              # Skip the base case (it's typically a literal true condition)
+              next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
+
+              # Skip non-conjunctive conditions (any?, none?) as they are disjunctive
+              next if when_case.condition.is_a?(CallExpression) && %i[any? none?].include?(when_case.condition.fn_name)
+
+              # Skip single-trait 'on' branches: trait-level unsat detection covers these
+              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+                # Handle both ArrayExpression (old format) and multiple args (new format)
+                if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
+                  list = when_case.condition.args.first
+                  next if list.elements.size == 1
+                elsif when_case.condition.args.size == 1
+                  # Multiple args format
+                  next
+                end
+              end
+              # Gather atoms from this individual condition only
+              condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
+              # DEBUG
+              # if when_case.condition.is_a?(CallExpression) && [:all?, :any?, :none?].include?(when_case.condition.fn_name)
+              #   puts "  Args: #{when_case.condition.args.inspect}"
+              #   puts "  Atoms found: #{condition_atoms.inspect}"
+              # end
+
+              # Only flag if this individual condition is impossible
+              # if !condition_atoms.empty?
+              #   is_unsat = Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
+              #   puts "  Is unsat? #{is_unsat}"
+              # end
+              # Use enhanced solver for cascade conditions too
+              impossible = if definitions && !definitions.empty?
+                             Kumi::Core::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
+                           else
+                             Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
+                           end
+              next unless !condition_atoms.empty? && impossible
+
+              # For multi-trait on-clauses, report the trait names rather than the value name
+              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
+                # Handle both ArrayExpression (old format) and multiple args (new format)
+                trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
+                                   when_case.condition.args.first.elements
+                                 else
+                                   when_case.condition.args
+                                 end
+
+                if trait_bindings.all?(DeclarationReference)
+                  traits = trait_bindings.map(&:name).join(" AND ")
+                  report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
+                  next
+                end
+              end
+              report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc)
+            end
+          end
+
+          def term(node, _defs)
+            case node
+            when InputReference, DeclarationReference
+              val = @evaluator.evaluate(node)
+              val == :unknown ? node.name : val
+            when Literal
+              node.value
+            else
+              :unknown
+            end
+          end
+
+          def check_domain_constraints(node, definitions, errors)
+            case node
+            when InputReference
+              # Check if InputReference points to a field with domain constraints
+              field_meta = @input_meta[node.name]
+              nil unless field_meta&.dig(:domain)
+
+              # For InputReference, the constraint comes from trait conditions
+              # We don't flag here since the InputReference itself is valid
+            when DeclarationReference
+              # Check if this binding evaluates to a value that violates domain constraints
+              definition = definitions[node.name]
+              return unless definition
+
+              if definition.expression.is_a?(Literal)
+                literal_value = definition.expression.value
+                check_value_against_domains(node.name, literal_value, errors, definition.loc)
               end
             end
-            report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc)
           end
-        end
 
-        def term(node, _defs)
-          case node
-          when InputReference, DeclarationReference
-            val = @evaluator.evaluate(node)
-            val == :unknown ? node.name : val
-          when Literal
-            node.value
-          else
-            :unknown
+          def check_value_against_domains(_var_name, value, _errors, _location)
+            # Check if this value violates any input domain constraints
+            @input_meta.each_value do |field_meta|
+              domain = field_meta[:domain]
+              next unless domain
+
+              if violates_domain?(value, domain)
+                # This indicates a constraint that can never be satisfied
+                # Rather than flagging the cascade, flag the impossible condition
+                return true
+              end
+            end
+            false
           end
-        end
 
-        def check_domain_constraints(node, definitions, errors)
-          case node
-          when InputReference
-            # Check if InputReference points to a field with domain constraints
-            field_meta = @input_meta[node.name]
-            nil unless field_meta&.dig(:domain)
-
-            # For InputReference, the constraint comes from trait conditions
-            # We don't flag here since the InputReference itself is valid
-          when DeclarationReference
-            # Check if this binding evaluates to a value that violates domain constraints
-            definition = definitions[node.name]
-            return unless definition
-
-            if definition.expression.is_a?(Literal)
-              literal_value = definition.expression.value
-              check_value_against_domains(node.name, literal_value, errors, definition.loc)
+          def violates_domain?(value, domain)
+            case domain
+            when Range
+              !domain.include?(value)
+            when Array
+              !domain.include?(value)
+            when Proc
+              # For Proc domains, we can't statically analyze
+              false
+            else
+              false
             end
           end
-        end
 
-        def check_value_against_domains(_var_name, value, _errors, _location)
-          # Check if this value violates any input domain constraints
-          @input_meta.each_value do |field_meta|
+          def impossible_constraint?(lhs, rhs, operator)
+            # Case 1: InputReference compared against value outside its domain
+            if lhs.is_a?(InputReference) && rhs.is_a?(Literal)
+              return field_literal_impossible?(lhs, rhs, operator)
+            elsif rhs.is_a?(InputReference) && lhs.is_a?(Literal)
+              # Reverse case: literal compared to field
+              return field_literal_impossible?(rhs, lhs, flip_operator(operator))
+            end
+
+            # Case 2: DeclarationReference that evaluates to literal compared against impossible value
+            if lhs.is_a?(DeclarationReference) && rhs.is_a?(Literal)
+              return binding_literal_impossible?(lhs, rhs, operator)
+            elsif rhs.is_a?(DeclarationReference) && lhs.is_a?(Literal)
+              return binding_literal_impossible?(rhs, lhs, flip_operator(operator))
+            end
+
+            false
+          end
+
+          def field_literal_impossible?(field_ref, literal, operator)
+            field_meta = @input_meta[field_ref.name]
+            return false unless field_meta&.dig(:domain)
+
             domain = field_meta[:domain]
-            next unless domain
+            literal_value = literal.value
 
-            if violates_domain?(value, domain)
-              # This indicates a constraint that can never be satisfied
-              # Rather than flagging the cascade, flag the impossible condition
-              return true
+            case operator
+            when :==
+              # field == value where value is not in domain
+              violates_domain?(literal_value, domain)
+            when :!=
+              # field != value where value is not in domain is always true (not impossible)
+              false
+            else
+              # For other operators, we'd need more sophisticated analysis
+              false
             end
           end
-          false
-        end
 
-        def violates_domain?(value, domain)
-          case domain
-          when Range
-            !domain.include?(value)
-          when Array
-            !domain.include?(value)
-          when Proc
-            # For Proc domains, we can't statically analyze
-            false
-          else
-            false
-          end
-        end
+          def binding_literal_impossible?(binding, literal, operator)
+            # Check if binding evaluates to a literal that conflicts with the comparison
+            evaluated_value = @evaluator.evaluate(binding)
+            return false if evaluated_value == :unknown
 
-        def impossible_constraint?(lhs, rhs, operator)
-          # Case 1: InputReference compared against value outside its domain
-          if lhs.is_a?(InputReference) && rhs.is_a?(Literal)
-            return field_literal_impossible?(lhs, rhs, operator)
-          elsif rhs.is_a?(InputReference) && lhs.is_a?(Literal)
-            # Reverse case: literal compared to field
-            return field_literal_impossible?(rhs, lhs, flip_operator(operator))
+            literal_value = literal.value
+
+            case operator
+            when :==
+              # binding == value where binding evaluates to different value
+              evaluated_value != literal_value
+            else
+              # For other operators, we could add more sophisticated checking
+              false
+            end
           end
 
-          # Case 2: DeclarationReference that evaluates to literal compared against impossible value
-          if lhs.is_a?(DeclarationReference) && rhs.is_a?(Literal)
-            return binding_literal_impossible?(lhs, rhs, operator)
-          elsif rhs.is_a?(DeclarationReference) && lhs.is_a?(Literal)
-            return binding_literal_impossible?(rhs, lhs, flip_operator(operator))
-          end
-
-          false
-        end
-
-        def field_literal_impossible?(field_ref, literal, operator)
-          field_meta = @input_meta[field_ref.name]
-          return false unless field_meta&.dig(:domain)
-
-          domain = field_meta[:domain]
-          literal_value = literal.value
-
-          case operator
-          when :==
-            # field == value where value is not in domain
-            violates_domain?(literal_value, domain)
-          when :!=
-            # field != value where value is not in domain is always true (not impossible)
-            false
-          else
-            # For other operators, we'd need more sophisticated analysis
-            false
-          end
-        end
-
-        def binding_literal_impossible?(binding, literal, operator)
-          # Check if binding evaluates to a literal that conflicts with the comparison
-          evaluated_value = @evaluator.evaluate(binding)
-          return false if evaluated_value == :unknown
-
-          literal_value = literal.value
-
-          case operator
-          when :==
-            # binding == value where binding evaluates to different value
-            evaluated_value != literal_value
-          else
-            # For other operators, we could add more sophisticated checking
-            false
-          end
-        end
-
-        def flip_operator(operator)
-          case operator
-          when :> then :<
-          when :>= then :<=
-          when :< then :>
-          when :<= then :>=
-          when :== then :==
-          when :!= then :!=
-          else operator
+          def flip_operator(operator)
+            case operator
+            when :> then :<
+            when :>= then :<=
+            when :< then :>
+            when :<= then :>=
+            when :== then :==
+            when :!= then :!=
+            else operator
+            end
           end
         end
       end

@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Syntax
-    DeclarationReference = Struct.new(:name) do
-      include Node
+module Kumi
+  module Core
+    module Syntax
+      DeclarationReference = Struct.new(:name) do
+        include Node
 
-      def children = []
+        def children = []
+      end
     end
   end
 end

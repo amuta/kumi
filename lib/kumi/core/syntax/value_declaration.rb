@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Syntax
-    ValueDeclaration = Struct.new(:name, :expression) do
-      include Node
+module Kumi
+  module Core
+    module Syntax
+      ValueDeclaration = Struct.new(:name, :expression) do
+        include Node
 
-      def children = [expression]
+        def children = [expression]
+      end
     end
   end
 end

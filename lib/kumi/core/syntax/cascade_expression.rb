@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-module Kumi::Core
-  module Syntax
-    CascadeExpression = Struct.new(:cases) do
-      include Node
+module Kumi
+  module Core
+    module Syntax
+      CascadeExpression = Struct.new(:cases) do
+        include Node
 
-      def children = cases
+        def children = cases
+      end
     end
   end
 end
