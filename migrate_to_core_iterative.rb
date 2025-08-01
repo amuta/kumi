@@ -637,6 +637,9 @@ class IterativeKumiCoreMigrator
       status_icon = phase[:status] == :success ? "✅" : "❌"
       log_phase("   #{status_icon} #{phase[:name]}")
     end
+  rescue StandardError => e
+    log_phase("⚠️  Error during failure handling: #{e.message}", :error)
+    @errors << "Error during failure handling: #{e.message}"
   end
 
   def restore_to_initial_state
