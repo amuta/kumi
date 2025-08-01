@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Explain do
+RSpec.describe Kumi::Core::Explain do
   describe ".call" do
     let(:test_schema) do
       Class.new do

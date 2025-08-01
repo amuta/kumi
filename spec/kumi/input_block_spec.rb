@@ -9,22 +9,22 @@ RSpec.describe "Input Block Feature" do
     it "allows field declarations with type and domain metadata" do
       schema = create_schema do
         input do
-          key :age, type: Kumi::Types::INT, domain: 0..120
-          key :name, type: Kumi::Types::STRING
+          key :age, type: Kumi::Core::Types::INT, domain: 0..120
+          key :name, type: Kumi::Core::Types::STRING
         end
 
         trait :adult, input.age, :>=, 18
       end
 
-      expect(schema.analysis.state[:inputs][:age][:type]).to eq(Kumi::Types::INT)
+      expect(schema.analysis.state[:inputs][:age][:type]).to eq(Kumi::Core::Types::INT)
       expect(schema.analysis.state[:inputs][:age][:domain]).to eq(0..120)
-      expect(schema.analysis.state[:inputs][:name][:type]).to eq(Kumi::Types::STRING)
+      expect(schema.analysis.state[:inputs][:name][:type]).to eq(Kumi::Core::Types::STRING)
     end
 
     it "allows field reference via input.field_name syntax" do
       schema = create_schema do
         input do
-          key :score, type: Kumi::Types::INT, domain: 0..100
+          key :score, type: Kumi::Core::Types::INT, domain: 0..100
         end
 
         trait :passing, input.score, :>=, 60
@@ -43,11 +43,11 @@ RSpec.describe "Input Block Feature" do
       expect do
         create_schema do
           input do
-            key :age, type: Kumi::Types::INT
-            key :age, type: Kumi::Types::STRING # Conflict!
+            key :age, type: Kumi::Core::Types::INT
+            key :age, type: Kumi::Core::Types::STRING # Conflict!
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conflicting types/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conflicting types/)
     end
 
     it "raises error for conflicting domain declarations" do
@@ -58,7 +58,7 @@ RSpec.describe "Input Block Feature" do
             key :score, domain: 1..10 # Conflict!
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conflicting domains/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conflicting domains/)
     end
 
     it "raises error for unknown methods in input block" do
@@ -68,7 +68,7 @@ RSpec.describe "Input Block Feature" do
             trait :invalid, true # Not allowed in input block
           end
         end
-      end.to raise_error(Kumi::Errors::SyntaxError, /Unknown method 'trait' in input block/)
+      end.to raise_error(Kumi::Core::Errors::SyntaxError, /Unknown method 'trait' in input block/)
     end
   end
 
@@ -76,8 +76,8 @@ RSpec.describe "Input Block Feature" do
     it "infers types from input block declarations" do
       schema = create_schema do
         input do
-          key :age, type: Kumi::Types::INT
-          key :name, type: Kumi::Types::STRING
+          key :age, type: Kumi::Core::Types::INT
+          key :name, type: Kumi::Core::Types::STRING
         end
 
         value :info, fn(:concat, input.name, " is ", input.age, " years old")
@@ -85,22 +85,22 @@ RSpec.describe "Input Block Feature" do
 
       # Check that field types are properly inferred
       input_meta = schema.analysis.state[:inputs]
-      expect(input_meta[:age][:type]).to eq(Kumi::Types::INT)
-      expect(input_meta[:name][:type]).to eq(Kumi::Types::STRING)
+      expect(input_meta[:age][:type]).to eq(Kumi::Core::Types::INT)
+      expect(input_meta[:name][:type]).to eq(Kumi::Core::Types::STRING)
     end
 
     it "raises error if input block is defined multiple times" do
       expect do
         create_schema do
           input do
-            key :age, type: Kumi::Types::INT
+            key :age, type: Kumi::Core::Types::INT
           end
 
           input do
-            key :name, type: Kumi::Types::STRING # Second input block should raise error
+            key :name, type: Kumi::Core::Types::STRING # Second input block should raise error
           end
         end
-      end.to raise_error(Kumi::Errors::SyntaxError, /input block already defined/)
+      end.to raise_error(Kumi::Core::Errors::SyntaxError, /input block already defined/)
     end
   end
 
@@ -108,8 +108,8 @@ RSpec.describe "Input Block Feature" do
     it "compiles and executes schemas with input blocks correctly" do
       schema = create_schema do
         input do
-          key :temperature, type: Kumi::Types::FLOAT
-          key :threshold, type: Kumi::Types::FLOAT
+          key :temperature, type: Kumi::Core::Types::FLOAT
+          key :threshold, type: Kumi::Core::Types::FLOAT
         end
 
         trait :hot, input.temperature, :>, input.threshold
@@ -209,8 +209,8 @@ RSpec.describe "Input Block Feature" do
     it "still accepts legacy Kumi type constants" do
       schema = create_schema do
         input do
-          key :age, type: Kumi::Types::INT
-          key :name, type: Kumi::Types::STRING
+          key :age, type: Kumi::Core::Types::INT
+          key :name, type: Kumi::Core::Types::STRING
         end
 
         trait :adult, input.age, :>=, 18
@@ -229,7 +229,7 @@ RSpec.describe "Input Block Feature" do
 
           trait :always_true, true, :==, true, :==, true
         end
-      end.to raise_error(Kumi::Errors::SyntaxError)
+      end.to raise_error(Kumi::Core::Errors::SyntaxError)
     end
   end
 
@@ -398,11 +398,11 @@ RSpec.describe "Input Block Feature" do
       expect do
         create_schema do
           input do
-            key :age, type: Kumi::Types::INT
-            key :age, type: Kumi::Types::STRING
+            key :age, type: Kumi::Core::Types::INT
+            key :age, type: Kumi::Core::Types::STRING
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conflicting types/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conflicting types/)
     end
   end
 end

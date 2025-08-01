@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::SemanticConstraintValidator do
+RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
   include ASTFactory
 
-  let(:state) { Kumi::Analyzer::AnalysisState.new }
+  let(:state) { Kumi::Core::Analyzer::AnalysisState.new }
   let(:errors) { [] }
 
   def run(schema)

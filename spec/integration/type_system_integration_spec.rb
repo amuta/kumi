@@ -12,23 +12,23 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analyzer_result.decl_types
 
-      expect(types[:int_val]).to eq(Kumi::Types::INT)
-      expect(types[:float_val]).to eq(Kumi::Types::FLOAT)
-      expect(types[:string_val]).to eq(Kumi::Types::STRING)
-      expect(types[:bool_val]).to eq(Kumi::Types::BOOL)
+      expect(types[:int_val]).to eq(Kumi::Core::Types::INT)
+      expect(types[:float_val]).to eq(Kumi::Core::Types::FLOAT)
+      expect(types[:string_val]).to eq(Kumi::Core::Types::STRING)
+      expect(types[:bool_val]).to eq(Kumi::Core::Types::BOOL)
     end
 
     it "uses annotated field types" do
       schema_result = Kumi.schema do
         input do
-          key :age, type: Kumi::Types::INT
+          key :age, type: Kumi::Core::Types::INT
         end
 
         value :age_check, fn(:>=, input.age, 18)
       end
 
       types = schema_result.analyzer_result.decl_types
-      expect(types[:age_check]).to eq(Kumi::Types::BOOL)
+      expect(types[:age_check]).to eq(Kumi::Core::Types::BOOL)
     end
 
     it "infers function return types" do
@@ -40,9 +40,9 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analyzer_result.decl_types
 
-      expect(types[:sum]).to eq(Kumi::Types::NUMERIC)
-      expect(types[:comparison]).to eq(Kumi::Types::BOOL)
-      expect(types[:text]).to eq(Kumi::Types::STRING)
+      expect(types[:sum]).to eq(Kumi::Core::Types::NUMERIC)
+      expect(types[:comparison]).to eq(Kumi::Core::Types::BOOL)
+      expect(types[:text]).to eq(Kumi::Core::Types::STRING)
     end
 
     it "infers array types" do
@@ -69,10 +69,10 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analyzer_result.decl_types
 
-      expect(types[:base_amount]).to eq(Kumi::Types::INT)
-      expect(types[:tax_rate]).to eq(Kumi::Types::FLOAT)
-      expect(types[:tax_amount]).to eq(Kumi::Types::NUMERIC)
-      expect(types[:total]).to eq(Kumi::Types::NUMERIC)
+      expect(types[:base_amount]).to eq(Kumi::Core::Types::INT)
+      expect(types[:tax_rate]).to eq(Kumi::Core::Types::FLOAT)
+      expect(types[:tax_amount]).to eq(Kumi::Core::Types::NUMERIC)
+      expect(types[:total]).to eq(Kumi::Core::Types::NUMERIC)
     end
   end
 
@@ -100,7 +100,7 @@ RSpec.describe "Type System Integration" do
         Kumi.schema do
           value :invalid, fn(:add, 1) # add expects 2 arguments
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /expects 2 args, got 1/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /expects 2 args, got 1/)
     end
 
     it "still validates unknown functions" do
@@ -108,7 +108,7 @@ RSpec.describe "Type System Integration" do
         Kumi.schema do
           value :invalid, fn(:unknown_function, 1, 2)
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /unsupported operator/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /unsupported operator/)
     end
   end
 
@@ -119,7 +119,7 @@ RSpec.describe "Type System Integration" do
       end
 
       types = schema_result.analyzer_result.decl_types
-      expect(types[:nested]).to eq(Kumi::Types::NUMERIC)
+      expect(types[:nested]).to eq(Kumi::Core::Types::NUMERIC)
     end
 
     it "handles list operations" do
@@ -143,12 +143,12 @@ RSpec.describe "Type System Integration" do
       expect do
         Kumi.schema do
           input do
-            key :name, type: Kumi::Types::STRING
+            key :name, type: Kumi::Core::Types::STRING
           end
 
           value :invalid, fn(:add, input.name, 1)
         end
-      end.to raise_error(Kumi::Errors::SemanticError,
+      end.to raise_error(Kumi::Core::Errors::SemanticError,
                          /argument 1 of `fn\(:add\)` expects float, got input field `name` of declared type string/)
     end
   end
@@ -160,13 +160,13 @@ RSpec.describe "Type System Integration" do
       end
 
       expect(schema_result.analyzer_result.decl_types).to have_key(:test_val)
-      expect(schema_result.analyzer_result.decl_types[:test_val]).to eq(Kumi::Types::INT)
+      expect(schema_result.analyzer_result.decl_types[:test_val]).to eq(Kumi::Core::Types::INT)
     end
   end
 
   describe "function registry type metadata" do
     it "includes type information in function signatures" do
-      signature = Kumi::FunctionRegistry.signature(:add)
+      signature = Kumi::Core::FunctionRegistry.signature(:add)
 
       expect(signature).to have_key(:param_types)
       expect(signature).to have_key(:return_type)
@@ -175,8 +175,8 @@ RSpec.describe "Type System Integration" do
     end
 
     it "validates that all core functions have type metadata" do
-      Kumi::FunctionRegistry.all.each do |fn_name|
-        signature = Kumi::FunctionRegistry.signature(fn_name)
+      Kumi::Core::FunctionRegistry.all.each do |fn_name|
+        signature = Kumi::Core::FunctionRegistry.signature(fn_name)
 
         expect(signature[:param_types]).to be_an(Array), "Function #{fn_name} missing param_types"
         expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash)), "Function #{fn_name} missing return_type"

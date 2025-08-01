@@ -3,7 +3,7 @@
 module ASTFactory
   module_function # expose module-functions only
 
-  include Kumi::Syntax
+  include Kumi::Core::Syntax
 
   # Dispatch table:  tag symbol → lambda(*args, loc:) → node instance
   NODE = {
@@ -74,7 +74,7 @@ module ASTFactory
 
   # Dependency graph factory methods for analyzer pass tests
   def dependency_edge(to:, type: :ref, via: nil)
-    Kumi::Analyzer::Passes::DependencyResolver::DependencyEdge.new(
+    Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge.new(
       to: to, type: type, via: via
     )
   end
@@ -87,7 +87,7 @@ module ASTFactory
           dependency_edge(to: edge_spec)
         when Hash
           dependency_edge(**edge_spec)
-        when Kumi::Analyzer::Passes::DependencyResolver::DependencyEdge
+        when Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge
           edge_spec
         else
           raise ArgumentError, "Invalid edge specification: #{edge_spec}"

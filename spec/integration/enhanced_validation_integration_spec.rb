@@ -57,7 +57,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.type_violations?).to be true
         type_violation = error.type_violations.first
@@ -81,7 +81,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations?).to be true
         domain_violation = error.domain_violations.first
@@ -104,7 +104,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations?).to be true
         domain_violation = error.domain_violations.first
@@ -127,7 +127,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.type_violations?).to be true
         type_violation = error.type_violations.first
@@ -150,7 +150,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.type_violations?).to be true
         type_violation = error.type_violations.first
@@ -218,7 +218,7 @@ RSpec.describe "Enhanced Validation Integration" do
 
         expect do
           nested_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError)
+        end.to raise_error(Kumi::Core::Errors::InputValidationError)
       end
     end
 
@@ -245,7 +245,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           mixed_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.multiple_violations?).to be true
         expect(error.type_violations.size).to eq(1)
@@ -268,7 +268,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           mixed_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.single_violation?).to be true
         expect(error.type_violations?).to be true
@@ -315,7 +315,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           proc_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations?).to be true
         domain_violation = error.domain_violations.first
@@ -332,7 +332,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           proc_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations?).to be true
         domain_violation = error.domain_violations.first
@@ -349,7 +349,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           proc_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.multiple_violations?).to be true
         expect(error.domain_violations.size).to eq(2)
@@ -392,7 +392,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           exclusive_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations?).to be true
         domain_violation = error.domain_violations.first
@@ -437,7 +437,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           legacy_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.type_violations.size).to eq(2)
         fields = error.type_violations.map { |v| v[:field] }
@@ -466,7 +466,7 @@ RSpec.describe "Enhanced Validation Integration" do
         error = nil
         expect do
           mixed_schema.from(invalid_data)
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.domain_violations.size).to eq(2)
         fields = error.domain_violations.map { |v| v[:field] }
@@ -500,7 +500,7 @@ RSpec.describe "Enhanced Validation Integration" do
       error = nil
       expect do
         error_schema.from(invalid_data)
-      end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+      end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
       expect(error.type_violations.size).to eq(2)
 
@@ -527,7 +527,7 @@ RSpec.describe "Enhanced Validation Integration" do
       error = nil
       expect do
         error_schema.from(invalid_data)
-      end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+      end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
       expect(error.domain_violations.size).to eq(1)
 
@@ -549,7 +549,7 @@ RSpec.describe "Enhanced Validation Integration" do
       error = nil
       expect do
         error_schema.from(invalid_data)
-      end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+      end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
       message = error.message
       expect(message).to include("Type violations:")

@@ -81,11 +81,11 @@ end
 RSpec.describe "Kumi Performance" do
   # Reuse the setup from the integration spec
   before(:all) do
-    Kumi::FunctionRegistry.reset!
-    Kumi::FunctionRegistry.register(:create_offers) { |*| ["Offer"] }
-    Kumi::FunctionRegistry.register(:bonus_formula) { |*| 100.0 }
-    Kumi::FunctionRegistry.register(:error!) { |_| "No Error" }
-    Kumi::FunctionRegistry.register(:group_and_sum) do |purchases|
+    Kumi::Core::FunctionRegistry.reset!
+    Kumi::Core::FunctionRegistry.register(:create_offers) { |*| ["Offer"] }
+    Kumi::Core::FunctionRegistry.register(:bonus_formula) { |*| 100.0 }
+    Kumi::Core::FunctionRegistry.register(:error!) { |_| "No Error" }
+    Kumi::Core::FunctionRegistry.register(:group_and_sum) do |purchases|
       purchases
         .group_by   { |p| p[:category] }
         .map        { |_, items| items.sum { |i| i[:amount] } }
@@ -95,7 +95,7 @@ RSpec.describe "Kumi Performance" do
   end
 
   let(:schema_definition) do
-    Kumi::RubyParser::Dsl.build_syntax_tree do
+    Kumi::Core::RubyParser::Dsl.build_syntax_tree do
       trait :adult, input.age, :>=, 18
       trait :senior, input.age, :>=, 65
       trait :high_balance, input.account_balance, :>=, 10_000
@@ -143,8 +143,8 @@ RSpec.describe "Kumi Performance" do
     it "compiles the schema within an acceptable time" do
       Benchmark.ips do |x|
         x.report("Kumi Schema Analyzer & Compile") do
-          analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
-          Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
+          analyzer_result = Kumi::Core::Analyzer.analyze!(schema_definition)
+          Kumi::Core::Compiler.compile(schema_definition, analyzer: analyzer_result)
         end
 
         x.compare!
@@ -162,8 +162,8 @@ RSpec.describe "Kumi Performance" do
   # This block measures the runtime performance after compilation
   context "execution phase" do
     let!(:compiled_schema) do
-      analyzer_result = Kumi::Analyzer.analyze!(schema_definition)
-      Kumi::Compiler.compile(schema_definition, analyzer: analyzer_result)
+      analyzer_result = Kumi::Core::Analyzer.analyze!(schema_definition)
+      Kumi::Core::Compiler.compile(schema_definition, analyzer: analyzer_result)
     end
 
     let!(:plain_ruby_segmenter) { PlainRubySegmenter.new }

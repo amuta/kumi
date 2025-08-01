@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Builder do
+RSpec.describe Kumi::Core::Types::Builder do
   describe ".array" do
     it "creates array types with valid element types" do
       result = described_class.array(:string)

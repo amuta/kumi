@@ -11,10 +11,10 @@ module SchemaGenerator
     cascade_size:  4,
     fields:        %i[age balance purchases]
   )
-    Kumi::RubyParser::Dsl.build_syntax_tree do
+    Kumi::Core::RubyParser::Dsl.build_syntax_tree do
       input do
         fields.each do |field|
-          key field, type: Kumi::Types::INT
+          key field, type: Kumi::Core::Types::INT
         end
       end
 
@@ -51,26 +51,26 @@ module SchemaGenerator
 
   # Helper to create a schema with proper analysis and compilation
   def create_schema(&block)
-    syntax_tree = Kumi::RubyParser::Dsl.build_syntax_tree(&block)
-    analyzer = Kumi::Analyzer.analyze!(syntax_tree)
-    compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
+    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
+    analyzer = Kumi::Core::Analyzer.analyze!(syntax_tree)
+    compiled = Kumi::Core::Compiler.compile(syntax_tree, analyzer: analyzer)
 
     # Create a schema-like object that includes the from method
     schema = OpenStruct.new(
       syntax_tree: syntax_tree,
       analysis: analyzer,
       compiled: compiled,
-      runner: Kumi::SchemaInstance.new(compiled, analyzer.definitions, {})
+      runner: Kumi::Core::SchemaInstance.new(compiled, analyzer.definitions, {})
     )
 
     # Add the from method with input validation (type + domain)
     def schema.from(context)
       input_meta = analysis.state[:inputs] || {}
-      violations = Kumi::Input::Validator.validate_context(context, input_meta)
+      violations = Kumi::Core::Input::Validator.validate_context(context, input_meta)
 
-      raise Kumi::Errors::InputValidationError, violations unless violations.empty?
+      raise Kumi::Core::Errors::InputValidationError, violations unless violations.empty?
 
-      Kumi::SchemaInstance.new(compiled, analysis.definitions, context)
+      Kumi::Core::SchemaInstance.new(compiled, analysis.definitions, context)
     end
 
     schema

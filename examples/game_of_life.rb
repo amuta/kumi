@@ -13,7 +13,7 @@ begin
       cells[neighbor_index]
     end.sum
   end
-  Kumi::FunctionRegistry.register_with_metadata(:neighbor_cells_sum, method(:neighbor_cells_sum_method),
+  Kumi::Core::FunctionRegistry.register_with_metadata(:neighbor_cells_sum, method(:neighbor_cells_sum_method),
                                                 return_type: :integer, arity: 5,
                                                 param_types: %i[array integer integer integer integer],
                                                 description: "Get neighbor cells for Conway's Game of Life")

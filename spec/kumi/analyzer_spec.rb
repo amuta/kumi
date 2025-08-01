@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer do
+RSpec.describe Kumi::Core::Analyzer do
   include ASTFactory
 
   before do
-    allow(Kumi::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
+    allow(Kumi::Core::FunctionRegistry).to receive_messages(confirm_support!: true, signature: { arity: 1 })
   end
 
   # Contract 1 – happy path on a complex acyclic schema
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Analyzer do
     end
 
     it "returns an immutable Result" do
-      expect(result).to be_a(Kumi::Analyzer::Result)
+      expect(result).to be_a(Kumi::Core::Analyzer::Result)
       expect(result.dependency_graph.frozen?).to be true
       expect(result.leaf_map.frozen?).to         be true
       expect(result.topo_order.frozen?).to       be true
@@ -74,12 +74,12 @@ RSpec.describe Kumi::Analyzer do
       syntax(:root, [], [dup1, dup2], [undef_, bad, arity], loc: loc)
     end
 
-    before { allow(Kumi::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
+    before { allow(Kumi::Core::FunctionRegistry).to receive(:signature).and_return({ arity: 2 }) }
 
     it "raises once, containing every problem" do
       expect do
         described_class.analyze!(schema)
-      end.to raise_error(Kumi::Errors::SemanticError) { |e|
+      end.to raise_error(Kumi::Core::Errors::SemanticError) { |e|
         msg = e.message
         expect(msg).to match(/duplicated definition `dup`/)
         expect(msg).to match(/undefined reference to `missing`/)
@@ -100,14 +100,14 @@ RSpec.describe Kumi::Analyzer do
     it "fails with a cycle diagnostic" do
       expect do
         described_class.analyze!(schema)
-      end.to raise_error(Kumi::Errors::SemanticError, /cycle detected: a → b → a/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /cycle detected: a → b → a/)
     end
   end
 
   # Convenience – caller supplies a partial pass list
   context "with a custom pass list containing only NameIndexer" do
     let(:schema) { syntax(:root, [], [attr(:foo)], [], loc: loc) }
-    let(:passes) { [Kumi::Analyzer::Passes::NameIndexer] }
+    let(:passes) { [Kumi::Core::Analyzer::Passes::NameIndexer] }
 
     it "runs without error but returns nils for data not produced" do
       res = described_class.analyze!(schema, passes: passes)

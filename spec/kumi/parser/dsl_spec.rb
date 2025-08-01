@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::RubyParser::Dsl do
+RSpec.describe Kumi::Core::RubyParser::Dsl do
   def build_schema(&block)
     subject.build_syntax_tree(&block)
   end
@@ -12,9 +12,9 @@ RSpec.describe Kumi::RubyParser::Dsl do
       end
 
       expect(schema.attributes.size).to eq(1)
-      expect(schema.attributes.first).to be_a(Kumi::Syntax::ValueDeclaration)
+      expect(schema.attributes.first).to be_a(Kumi::Core::Syntax::ValueDeclaration)
       expect(schema.attributes.first.name).to eq(:name)
-      expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::InputReference)
+      expect(schema.attributes.first.expression).to be_a(Kumi::Core::Syntax::InputReference)
       expect(schema.attributes.first.expression.name).to eq(:first_name)
     end
 
@@ -25,13 +25,13 @@ RSpec.describe Kumi::RubyParser::Dsl do
 
       expect(schema.traits.size).to eq(1)
       trait = schema.traits.first
-      expect(trait).to be_a(Kumi::Syntax::TraitDeclaration)
+      expect(trait).to be_a(Kumi::Core::Syntax::TraitDeclaration)
       expect(trait.name).to eq(:vip)
-      expect(trait.expression).to be_a(Kumi::Syntax::CallExpression)
+      expect(trait.expression).to be_a(Kumi::Core::Syntax::CallExpression)
       expect(trait.expression.fn_name).to eq(:==)
       expect(trait.expression.args.size).to eq(2)
-      expect(trait.expression.args.first).to be_a(Kumi::Syntax::InputReference)
-      expect(trait.expression.args.last).to be_a(Kumi::Syntax::Literal)
+      expect(trait.expression.args.first).to be_a(Kumi::Core::Syntax::InputReference)
+      expect(trait.expression.args.last).to be_a(Kumi::Core::Syntax::Literal)
     end
 
     it "can define multiple values, traits" do
@@ -52,23 +52,23 @@ RSpec.describe Kumi::RubyParser::Dsl do
       expect(schema.traits.map(&:name)).to contain_exactly(:adult, :senior)
 
       expect(schema.attributes.map { |attr| attr.expression.class }).to contain_exactly(
-        Kumi::Syntax::InputReference,
-        Kumi::Syntax::InputReference,
-        Kumi::Syntax::CallExpression
+        Kumi::Core::Syntax::InputReference,
+        Kumi::Core::Syntax::InputReference,
+        Kumi::Core::Syntax::CallExpression
       )
 
-      expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Syntax::CallExpression))
+      expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Core::Syntax::CallExpression))
       expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:>=, :>=)
       expect(schema.traits.map(&:expression).flat_map(&:args).to_set).to contain_exactly(
-        be_a(Kumi::Syntax::InputReference),
-        be_a(Kumi::Syntax::Literal),
-        be_a(Kumi::Syntax::Literal)
+        be_a(Kumi::Core::Syntax::InputReference),
+        be_a(Kumi::Core::Syntax::Literal),
+        be_a(Kumi::Core::Syntax::Literal)
       )
     end
   end
 
   describe "schema validation" do
-    let(:error_class) { Kumi::Errors::SyntaxError }
+    let(:error_class) { Kumi::Core::Errors::SyntaxError }
 
     context "when defining names" do
       it "raises an error if a value name is not a symbol" do
@@ -162,7 +162,7 @@ RSpec.describe Kumi::RubyParser::Dsl do
 
         expect(schema.attributes.size).to eq(1)
         expect(schema.attributes.first.name).to eq(:name)
-        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::InputReference)
+        expect(schema.attributes.first.expression).to be_a(Kumi::Core::Syntax::InputReference)
       end
 
       it "accepts <symbol> with a block" do
@@ -173,19 +173,19 @@ RSpec.describe Kumi::RubyParser::Dsl do
         end
 
         expect(schema.attributes.size).to eq(1)
-        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::CascadeExpression)
+        expect(schema.attributes.first.expression).to be_a(Kumi::Core::Syntax::CascadeExpression)
         expect(schema.attributes.first.expression.cases.size).to eq(1)
         cases = schema.attributes.first.expression.cases
         expect(cases.size).to eq(1)
-        expect(cases.first).to be_a(Kumi::Syntax::CaseExpression)
-        expect(cases.first.condition).to be_a(Kumi::Syntax::CallExpression)
+        expect(cases.first).to be_a(Kumi::Core::Syntax::CaseExpression)
+        expect(cases.first.condition).to be_a(Kumi::Core::Syntax::CallExpression)
         expect(cases.first.condition.fn_name).to eq(:all?)
         expect(cases.first.condition.args.size).to eq(1)
-        expect(cases.first.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
+        expect(cases.first.condition.args.first).to be_a(Kumi::Core::Syntax::ArrayExpression)
         expect(cases.first.condition.args.first.elements.size).to eq(1)
-        expect(cases.first.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(cases.first.condition.args.first.elements.first).to be_a(Kumi::Core::Syntax::DeclarationReference)
         expect(cases.first.condition.args.first.elements.first.name).to eq(:active)
-        expect(cases.first.result).to be_a(Kumi::Syntax::InputReference)
+        expect(cases.first.result).to be_a(Kumi::Core::Syntax::InputReference)
         expect(cases.first.result.name).to eq(:active)
       end
     end
@@ -206,38 +206,38 @@ RSpec.describe Kumi::RubyParser::Dsl do
       let(:base_case) { attribute_expr.cases[2] }
 
       it "creates a cascade expression with cases: whencases" do
-        expect(attribute_expr).to be_a(Kumi::Syntax::CascadeExpression)
+        expect(attribute_expr).to be_a(Kumi::Core::Syntax::CascadeExpression)
         expect(attribute_expr.cases.size).to eq(3)
       end
 
       it "creates the first case with a condition and result" do
-        expect(first_case.condition).to be_a(Kumi::Syntax::CallExpression)
+        expect(first_case.condition).to be_a(Kumi::Core::Syntax::CallExpression)
         expect(first_case.condition.fn_name).to eq(:all?)
         expect(first_case.condition.args.size).to eq(1)
-        expect(first_case.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
+        expect(first_case.condition.args.first).to be_a(Kumi::Core::Syntax::ArrayExpression)
         expect(first_case.condition.args.first.elements.size).to eq(1)
-        expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Core::Syntax::DeclarationReference)
         expect(first_case.condition.args.first.elements.first.name).to eq(:active)
-        expect(first_case.result).to be_a(Kumi::Syntax::InputReference)
+        expect(first_case.result).to be_a(Kumi::Core::Syntax::InputReference)
         expect(first_case.result.name).to eq(:active)
       end
 
       it "creates the second case with a condition and result" do
-        expect(second_case.condition).to be_a(Kumi::Syntax::CallExpression)
+        expect(second_case.condition).to be_a(Kumi::Core::Syntax::CallExpression)
         expect(second_case.condition.fn_name).to eq(:all?)
         expect(second_case.condition.args.size).to eq(1)
-        expect(second_case.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
+        expect(second_case.condition.args.first).to be_a(Kumi::Core::Syntax::ArrayExpression)
         expect(second_case.condition.args.first.elements.size).to eq(1)
-        expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Core::Syntax::DeclarationReference)
         expect(second_case.condition.args.first.elements.first.name).to eq(:verified)
-        expect(second_case.result).to be_a(Kumi::Syntax::InputReference)
+        expect(second_case.result).to be_a(Kumi::Core::Syntax::InputReference)
         expect(second_case.result.name).to eq(:verified)
       end
 
       it "creates the base case with a condition and result" do
-        expect(base_case.condition).to be_a(Kumi::Syntax::Literal)
+        expect(base_case.condition).to be_a(Kumi::Core::Syntax::Literal)
         expect(base_case.condition.value).to be(true) # Always matches
-        expect(base_case.result).to be_a(Kumi::Syntax::InputReference)
+        expect(base_case.result).to be_a(Kumi::Core::Syntax::InputReference)
         expect(base_case.result.name).to eq(:base_status)
       end
     end

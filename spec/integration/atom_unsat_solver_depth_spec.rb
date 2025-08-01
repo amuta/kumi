@@ -2,8 +2,8 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::AtomUnsatSolver, "depth safety" do
-  let(:atom_class) { Kumi::AtomUnsatSolver::Atom }
+RSpec.describe Kumi::Core::AtomUnsatSolver, "depth safety" do
+  let(:atom_class) { Kumi::Core::AtomUnsatSolver::Atom }
 
   describe "large acyclic graphs" do
     it "handles 30k-node strict ladder without stack overflow" do

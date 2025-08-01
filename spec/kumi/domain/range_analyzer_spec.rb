@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Domain::RangeAnalyzer do
+RSpec.describe Kumi::Core::Domain::RangeAnalyzer do
   describe ".analyze" do
     context "with integer ranges" do
       let(:range) { 18..65 }

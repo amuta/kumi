@@ -2,7 +2,7 @@
 
 RSpec.describe "DSL Guard Rails" do
   def build_schema(&block)
-    Kumi::RubyParser::Parser.new.parse(&block)
+    Kumi::Core::RubyParser::Parser.new.parse(&block)
   end
 
   it "rejects unknown keywords" do
@@ -19,13 +19,13 @@ RSpec.describe "DSL Guard Rails" do
   it "detects constant leakage" do
     expect do
       build_schema { Object.const_set(:Evil, 1) }
-    end.to raise_error(Kumi::Errors::SemanticError, /Evil/)
+    end.to raise_error(Kumi::Core::Errors::SemanticError, /Evil/)
     Object.send(:remove_const, :Evil) if Object.const_defined?(:Evil)
   end
 
   it "fails when someone redefines a reserved keyword" do
     # Save original method to restore it after the test
-    original_value_method = Kumi::RubyParser::SchemaBuilder.instance_method(:value)
+    original_value_method = Kumi::Core::RubyParser::SchemaBuilder.instance_method(:value)
 
     begin
       expect do
@@ -37,12 +37,12 @@ RSpec.describe "DSL Guard Rails" do
             end
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /reserved/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /reserved/)
     ensure
       # Restore the original method because even that the GuardRails raise an error
       # the method is still redefined in the class.
       begin
-        Kumi::RubyParser::SchemaBuilder.define_method(:value, original_value_method)
+        Kumi::Core::RubyParser::SchemaBuilder.define_method(:value, original_value_method)
       rescue StandardError
       end
     end

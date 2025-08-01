@@ -4,8 +4,8 @@ RSpec.describe "Vectorized Inputs Integration" do
   # Helper to perform the full analysis and compilation pipeline
   def analyze_and_compile(&schema_block)
     syntax_tree = Kumi.schema(&schema_block)
-    analyzer_result = Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
-    Kumi::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
+    analyzer_result = Kumi::Core::Analyzer.analyze!(syntax_tree.syntax_tree)
+    Kumi::Core::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
   end
 
   let(:order_schema) do
@@ -53,7 +53,7 @@ RSpec.describe "Vectorized Inputs Integration" do
     }
   end
 
-  let(:runner) { Kumi::SchemaInstance.new(order_schema, nil, input_data) }
+  let(:runner) { Kumi::Core::SchemaInstance.new(order_schema, nil, input_data) }
 
   it "correctly calculates vectorized values" do
     expect(runner[:subtotals]).to eq([200.0, 50.0, 100.0])

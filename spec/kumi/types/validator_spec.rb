@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Validator do
+RSpec.describe Kumi::Core::Types::Validator do
   describe ".valid_type?" do
     context "with primitive types" do
       it "validates primitive type symbols" do

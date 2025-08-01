@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::PassBase do
+RSpec.describe Kumi::Core::Analyzer::Passes::PassBase do
   include ASTFactory
 
   # Create a concrete test pass to test the base functionality
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
     syntax(:root, [], [attr1], [trait1], loc: loc)
   end
 
-  let(:state) { Kumi::Analyzer::AnalysisState.new(existing: "data") }
+  let(:state) { Kumi::Core::Analyzer::AnalysisState.new(existing: "data") }
   let(:errors) { [] }
   let(:pass_instance) { test_pass_class.new(schema, state) }
 
@@ -47,8 +47,8 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
 
       expect(declarations.size).to eq(2)
       expect(declarations.map(&:name)).to contain_exactly(:attr1, :trait1)
-      expect(declarations[0]).to be_a(Kumi::Syntax::ValueDeclaration)
-      expect(declarations[1]).to be_a(Kumi::Syntax::TraitDeclaration)
+      expect(declarations[0]).to be_a(Kumi::Core::Syntax::ValueDeclaration)
+      expect(declarations[1]).to be_a(Kumi::Core::Syntax::TraitDeclaration)
     end
 
     it "handles empty schema" do
@@ -83,7 +83,7 @@ RSpec.describe Kumi::Analyzer::Passes::PassBase do
 
   describe "#get_state" do
     context "when state key exists" do
-      let(:state) { Kumi::Analyzer::AnalysisState.new(existing_key: "existing_value") }
+      let(:state) { Kumi::Core::Analyzer::AnalysisState.new(existing_key: "existing_value") }
 
       it "returns the state value" do
         value = pass_instance.send(:get_state, :existing_key)

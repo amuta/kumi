@@ -4,9 +4,9 @@
 #
 # # TODO: Fix this spec after migration to AnalysisState - complex syntax errors from bulk replacements
 # # The TypeInferencer functionality is tested through integration tests
-# # RSpec.describe Kumi::Analyzer::Passes::TypeInferencer do
+# # RSpec.describe Kumi::Core::Analyzer::Passes::TypeInferencer do
 #   let(:schema) { instance_double("Schema") }
-#   let(:state) { Kumi::Analyzer::AnalysisState.new }
+#   let(:state) { Kumi::Core::Analyzer::AnalysisState.new }
 #   let(:errors) { [] }
 #   let(:pass) { described_class.new(schema, state) }
 #
@@ -25,9 +25,9 @@
 #     end
 #
 #     context "with basic declarations" do
-#       let(:literal_expr) { Kumi::Syntax::TerminalExpressions::Literal.new(42) }
-#       let(:field_expr) { Kumi::Syntax::TerminalExpressions::FieldRef.new(:age) }
-#       let(:binding_expr) { Kumi::Syntax::TerminalExpressions::Binding.new(:other) }
+#       let(:literal_expr) { Kumi::Core::Syntax::TerminalExpressions::Literal.new(42) }
+#       let(:field_expr) { Kumi::Core::Syntax::TerminalExpressions::FieldRef.new(:age) }
+#       let(:binding_expr) { Kumi::Core::Syntax::TerminalExpressions::Binding.new(:other) }
 #
 #       let(:literal_decl) { instance_double("Decl", expression: literal_expr, loc: nil) }
 #       let(:field_decl) { instance_double("Decl", expression: field_expr, loc: nil) }
@@ -68,21 +68,21 @@
 #
 #     context "with function calls" do
 #       let(:add_call) do
-#         Kumi::Syntax::Expressions::CallExpression.new(
+#         Kumi::Core::Syntax::Expressions::CallExpression.new(
 #           :add,
 #           [
-#             Kumi::Syntax::TerminalExpressions::Literal.new(1),
-#             Kumi::Syntax::TerminalExpressions::Literal.new(2)
+#             Kumi::Core::Syntax::TerminalExpressions::Literal.new(1),
+#             Kumi::Core::Syntax::TerminalExpressions::Literal.new(2)
 #           ]
 #         )
 #       end
 #
 #       let(:comparison_call) do
-#         Kumi::Syntax::Expressions::CallExpression.new(
+#         Kumi::Core::Syntax::Expressions::CallExpression.new(
 #           :>,
 #           [
-#             Kumi::Syntax::TerminalExpressions::Literal.new(5),
-#             Kumi::Syntax::TerminalExpressions::Literal.new(3)
+#             Kumi::Core::Syntax::TerminalExpressions::Literal.new(5),
+#             Kumi::Core::Syntax::TerminalExpressions::Literal.new(3)
 #           ]
 #         )
 #       end
@@ -101,22 +101,22 @@
 #       it "infers return types from function calls" do
 #         result_state = setup_pass.run(errors)
 #
-#         expect(result_state.get(:decl_types)[:sum]).to eq(Kumi::Types::NUMERIC)
-#         expect(result_state.get(:decl_types)[:is_greater]).to eq(Kumi::Types::BOOL)
+#         expect(result_state.get(:decl_types)[:sum]).to eq(Kumi::Core::Types::NUMERIC)
+#         expect(result_state.get(:decl_types)[:is_greater]).to eq(Kumi::Core::Types::BOOL)
 #       end
 #     end
 #
 #     context "with list expressions" do
 #       let(:list_expr) do
-#         Kumi::Syntax::Expressions::ListExpression.new([
-#                                                         Kumi::Syntax::TerminalExpressions::Literal.new(1),
-#                                                         Kumi::Syntax::TerminalExpressions::Literal.new(2),
-#                                                         Kumi::Syntax::TerminalExpressions::Literal.new(3)
+#         Kumi::Core::Syntax::Expressions::ListExpression.new([
+#                                                         Kumi::Core::Syntax::TerminalExpressions::Literal.new(1),
+#                                                         Kumi::Core::Syntax::TerminalExpressions::Literal.new(2),
+#                                                         Kumi::Core::Syntax::TerminalExpressions::Literal.new(3)
 #                                                       ])
 #       end
 #
 #       let(:empty_list_expr) do
-#         Kumi::Syntax::Expressions::ListExpression.new([])
+#         Kumi::Core::Syntax::Expressions::ListExpression.new([])
 #       end
 #
 #       let(:list_decl) { instance_double("Decl", expression: list_expr, loc: nil) }
@@ -146,11 +146,11 @@
 #     end
 #
 #     context "with cascade expressions" do
-#       let(:case_expr) { Kumi::Syntax::Expressions::WhenCaseExpression.new(nil, Kumi::Syntax::TerminalExpressions::Literal.new("yes")) }
-#       let(:base_expr) { Kumi::Syntax::Expressions::WhenCaseExpression.new(nil, Kumi::Syntax::TerminalExpressions::Literal.new("no")) }
+#       let(:case_expr) { Kumi::Core::Syntax::Expressions::WhenCaseExpression.new(nil, Kumi::Core::Syntax::TerminalExpressions::Literal.new("yes")) }
+#       let(:base_expr) { Kumi::Core::Syntax::Expressions::WhenCaseExpression.new(nil, Kumi::Core::Syntax::TerminalExpressions::Literal.new("no")) }
 #
 #       let(:cascade_expr) do
-#         Kumi::Syntax::Expressions::CascadeExpression.new([case_expr, base_expr])
+#         Kumi::Core::Syntax::Expressions::CascadeExpression.new([case_expr, base_expr])
 #       end
 #
 #       let(:cascade_decl) { instance_double("Decl", expression: cascade_expr, loc: nil) }
@@ -164,13 +164,13 @@
 #         result_state = setup_pass.run(errors)
 #
 #         decision_type = state[:decl_types][:decision]
-#         expect(decision_type).to eq(Kumi::Types::STRING)
+#         expect(decision_type).to eq(Kumi::Core::Types::STRING)
 #       end
 #     end
 #
 #     context "with dependencies between declarations" do
-#       let(:binding_expr) { Kumi::Syntax::TerminalExpressions::Binding.new(:base_value) }
-#       let(:literal_expr) { Kumi::Syntax::TerminalExpressions::Literal.new(10) }
+#       let(:binding_expr) { Kumi::Core::Syntax::TerminalExpressions::Binding.new(:base_value) }
+#       let(:literal_expr) { Kumi::Core::Syntax::TerminalExpressions::Literal.new(10) }
 #
 #       let(:dependent_decl) { instance_double("Decl", expression: binding_expr, loc: nil) }
 #       let(:base_decl) { instance_double("Decl", expression: literal_expr, loc: nil) }

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Domain::EnumAnalyzer do
+RSpec.describe Kumi::Core::Domain::EnumAnalyzer do
   describe ".analyze" do
     context "with string arrays" do
       let(:values) { %w[active inactive pending suspended] }

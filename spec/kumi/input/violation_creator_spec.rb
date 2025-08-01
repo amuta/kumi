@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Input::ViolationCreator do
+RSpec.describe Kumi::Core::Input::ViolationCreator do
   describe ".create_type_violation" do
     context "with basic type mismatches" do
       it "creates violation for string expected, integer provided" do

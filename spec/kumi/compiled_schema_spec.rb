@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::CompiledSchema do
+RSpec.describe Kumi::Core::CompiledSchema do
   let(:trait_lambda) { ->(data) { data[:age] >= 18 } }
   let(:attr_lambda) { ->(data) { data[:name].upcase } }
   let(:bindings) do
@@ -57,7 +57,7 @@ RSpec.describe Kumi::CompiledSchema do
       it "raises error for unknown keys" do
         expect do
           compiled_schema.evaluate(valid_data, :unknown_key)
-        end.to raise_error(Kumi::Errors::RuntimeError, /No binding named unknown_key/)
+        end.to raise_error(Kumi::Core::Errors::RuntimeError, /No binding named unknown_key/)
       end
     end
   end

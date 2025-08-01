@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Normalizer do
+RSpec.describe Kumi::Core::Types::Normalizer do
   describe ".normalize" do
     context "with symbols" do
       it "returns valid type symbols as-is" do
@@ -112,32 +112,32 @@ RSpec.describe Kumi::Types::Normalizer do
 
     context "with legacy constants" do
       it "converts STRING constant to :string" do
-        expect(described_class.coerce(Kumi::Types::STRING)).to eq(:string)
+        expect(described_class.coerce(Kumi::Core::Types::STRING)).to eq(:string)
       end
 
       it "converts INT constant to :integer" do
-        expect(described_class.coerce(Kumi::Types::INT)).to eq(:integer)
+        expect(described_class.coerce(Kumi::Core::Types::INT)).to eq(:integer)
       end
 
       it "converts FLOAT constant to :float" do
-        expect(described_class.coerce(Kumi::Types::FLOAT)).to eq(:float)
+        expect(described_class.coerce(Kumi::Core::Types::FLOAT)).to eq(:float)
       end
 
       it "converts NUMERIC constant to :float" do
-        expect(described_class.coerce(Kumi::Types::NUMERIC)).to eq(:float)
+        expect(described_class.coerce(Kumi::Core::Types::NUMERIC)).to eq(:float)
       end
 
       it "converts BOOL constant to :boolean" do
-        expect(described_class.coerce(Kumi::Types::BOOL)).to eq(:boolean)
+        expect(described_class.coerce(Kumi::Core::Types::BOOL)).to eq(:boolean)
       end
 
       it "converts other legacy constants" do
-        expect(described_class.coerce(Kumi::Types::ANY)).to eq(:any)
-        expect(described_class.coerce(Kumi::Types::SYMBOL)).to eq(:symbol)
-        expect(described_class.coerce(Kumi::Types::REGEXP)).to eq(:regexp)
-        expect(described_class.coerce(Kumi::Types::TIME)).to eq(:time)
-        expect(described_class.coerce(Kumi::Types::DATE)).to eq(:date)
-        expect(described_class.coerce(Kumi::Types::DATETIME)).to eq(:datetime)
+        expect(described_class.coerce(Kumi::Core::Types::ANY)).to eq(:any)
+        expect(described_class.coerce(Kumi::Core::Types::SYMBOL)).to eq(:symbol)
+        expect(described_class.coerce(Kumi::Core::Types::REGEXP)).to eq(:regexp)
+        expect(described_class.coerce(Kumi::Core::Types::TIME)).to eq(:time)
+        expect(described_class.coerce(Kumi::Core::Types::DATE)).to eq(:date)
+        expect(described_class.coerce(Kumi::Core::Types::DATETIME)).to eq(:datetime)
       end
     end
 

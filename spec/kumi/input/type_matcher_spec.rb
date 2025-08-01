@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Input::TypeMatcher do
+RSpec.describe Kumi::Core::Input::TypeMatcher do
   describe ".matches?" do
     context "with primitive types" do
       describe "integer type" do

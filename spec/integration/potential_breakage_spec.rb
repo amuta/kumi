@@ -142,7 +142,7 @@ RSpec.describe "Potential Breakage Cases" do
             base "default_c"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError) # Should catch cycle
+      end.to raise_error(Kumi::Core::Errors::SemanticError) # Should catch cycle
     end
 
     it "detects function arity edge cases" do

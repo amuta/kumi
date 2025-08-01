@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Compiler do
+RSpec.describe Kumi::Core::Compiler do
   include ASTFactory # gives us `syntax`
 
   # Operator stubs for the test
@@ -10,12 +10,12 @@ RSpec.describe Kumi::Compiler do
     syntax(:root, [], [a, b], [])
   end
 
-  let(:analysis) { Kumi::Analyzer.analyze!(schema) }
+  let(:analysis) { Kumi::Core::Analyzer.analyze!(schema) }
   let(:exec)     { described_class.compile(schema, analyzer: analysis) }
 
   # Expectations
-  it "returns an Kumi::CompiledSchema" do
-    expect(exec).to be_a(Kumi::CompiledSchema)
+  it "returns an Kumi::Core::CompiledSchema" do
+    expect(exec).to be_a(Kumi::Core::CompiledSchema)
   end
 
   it "computes values in a single evaluation pass" do
@@ -35,7 +35,7 @@ RSpec.describe Kumi::Compiler do
     exec = described_class.compile(schema, analyzer: analysis)
     context = { x: 10, y: "bad_input" }
     expect { exec.evaluate(context, :a) }.not_to raise_error
-    expect { exec.evaluate(context, :b) }.to raise_error(Kumi::Errors::RuntimeError, /Error calling fn\(:add/)
+    expect { exec.evaluate(context, :b) }.to raise_error(Kumi::Core::Errors::RuntimeError, /Error calling fn\(:add/)
   end
 
   it "evaluates traits independently" do
@@ -48,7 +48,7 @@ RSpec.describe Kumi::Compiler do
     )
     t_exec = described_class.compile(
       t_schema,
-      analyzer: Kumi::Analyzer.analyze!(t_schema)
+      analyzer: Kumi::Core::Analyzer.analyze!(t_schema)
     )
 
     result = t_exec.evaluate(age: 20)

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::Toposorter do
+RSpec.describe Kumi::Core::Analyzer::Passes::Toposorter do
   include ASTFactory
 
   def toposort(graph_spec)
     graph = dependency_graph(**graph_spec)
-    state = Kumi::Analyzer::AnalysisState.new(
+    state = Kumi::Core::Analyzer::AnalysisState.new(
       dependencies: graph,
       declarations: graph_spec.keys.to_h { |k| [k, true] },
       cascades: {}

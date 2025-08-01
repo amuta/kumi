@@ -17,7 +17,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z), ref(:z_gt_x)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects 2-element cycle: x > y > x" do
@@ -33,7 +33,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects 4-element cycle: a > b > c > d > a" do
@@ -53,7 +53,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:a_gt_b), ref(:b_gt_c), ref(:c_gt_d), ref(:d_gt_a)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -73,7 +73,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:x_gt_y), ref(:z_lt_y), ref(:z_gt_x)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects contradiction: x > y and y > x" do
@@ -89,7 +89,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :contradiction, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -112,7 +112,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:chain_xy_yz), ref(:z_gt_x)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -129,7 +129,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:x_gt_10), ref(:x_lt_5)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects contradiction: 5 > x and x > 10" do
@@ -144,7 +144,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :impossible, fn(:all?, [ref(:five_gt_x), ref(:x_gt_10)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -236,7 +236,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :c_gt_a, input.c, :>, input.a
           value :impossible_nested, fn(:all?, [ref(:chain_ab_bc), ref(:c_gt_a)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "allows complex but satisfiable constraint networks" do
@@ -293,7 +293,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :mixed_contradiction, fn(:all?, [ref(:x_eq_y), ref(:y_eq_z), ref(:x_gt_z)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -317,7 +317,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "not_eligible"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects contradictory traits in complex cascade chains" do
@@ -341,7 +341,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "unknown"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects impossible combinations on the same variable" do
@@ -363,7 +363,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "allows satisfiable cascade conditions with overlapping ranges" do
@@ -406,7 +406,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "handles complex business logic scenarios correctly" do
@@ -438,7 +438,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "not_eligible"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -481,7 +481,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "denied"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects impossible fraud risk scoring combinations" do
@@ -524,7 +524,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "medium_risk"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "allows complex but logically consistent business rules" do
@@ -583,7 +583,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "teen"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects gap contradictions" do
@@ -602,7 +602,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "B"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "detects boundary contradictions" do
@@ -621,7 +621,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "above"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
 
     it "allows overlapping non-strict ranges" do
@@ -677,7 +677,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             base "valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 
@@ -739,7 +739,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           value :contradiction_with_equality, fn(:all?, [ref(:x_eq_y), ref(:x_gt_y)])
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /logically impossible|unsatisfiable/i)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
   end
 end

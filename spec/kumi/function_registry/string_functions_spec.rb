@@ -3,7 +3,7 @@
 require "spec_helper"
 require "support/function_test_helpers"
 
-RSpec.describe Kumi::FunctionRegistry::StringFunctions do
+RSpec.describe Kumi::Core::FunctionRegistry::StringFunctions do
   describe "string transformations" do
     it_behaves_like "a function with correct metadata", :upcase, 1, [:string], :string
     it_behaves_like "a function with correct metadata", :downcase, 1, [:string], :string
@@ -23,26 +23,26 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
       it_behaves_like "a working function", :strip, ["   "], ""
 
       it "handles mixed case strings" do
-        fn = Kumi::FunctionRegistry.fetch(:upcase)
+        fn = Kumi::Core::FunctionRegistry.fetch(:upcase)
         expect(fn.call("HeLLo WoRLd")).to eq("HELLO WORLD")
 
-        fn = Kumi::FunctionRegistry.fetch(:downcase)
+        fn = Kumi::Core::FunctionRegistry.fetch(:downcase)
         expect(fn.call("HeLLo WoRLd")).to eq("hello world")
       end
 
       it "handles special characters" do
-        fn = Kumi::FunctionRegistry.fetch(:upcase)
+        fn = Kumi::Core::FunctionRegistry.fetch(:upcase)
         expect(fn.call("hello-world_123")).to eq("HELLO-WORLD_123")
 
-        fn = Kumi::FunctionRegistry.fetch(:strip)
+        fn = Kumi::Core::FunctionRegistry.fetch(:strip)
         expect(fn.call("\t\n hello \r\n\t")).to eq("hello")
       end
 
       it "handles unicode characters" do
-        fn = Kumi::FunctionRegistry.fetch(:upcase)
+        fn = Kumi::Core::FunctionRegistry.fetch(:upcase)
         expect(fn.call("héllo")).to eq("HÉLLO")
 
-        fn = Kumi::FunctionRegistry.fetch(:downcase)
+        fn = Kumi::Core::FunctionRegistry.fetch(:downcase)
         expect(fn.call("HÉLLO")).to eq("héllo")
       end
     end
@@ -51,20 +51,20 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
   describe "string length" do
     # NOTE: collection length overrides string length in the registry
     it_behaves_like "a function with correct metadata", :string_length, 1, [:string], :integer
-    it_behaves_like "a function with correct metadata", :length, 1, [Kumi::Types.array(:any)], :integer
+    it_behaves_like "a function with correct metadata", :length, 1, [Kumi::Core::Types.array(:any)], :integer
 
     it_behaves_like "a working function", :string_length, ["hello"], 5
     it_behaves_like "a working function", :string_length, [""], 0
 
     describe "edge cases" do
       it "handles unicode characters correctly" do
-        fn = Kumi::FunctionRegistry.fetch(:string_length)
+        fn = Kumi::Core::FunctionRegistry.fetch(:string_length)
         expect(fn.call("café")).to eq(4)
         expect(fn.call("🌟⭐")).to eq(2)
       end
 
       it "handles whitespace" do
-        fn = Kumi::FunctionRegistry.fetch(:string_length)
+        fn = Kumi::Core::FunctionRegistry.fetch(:string_length)
         expect(fn.call("   ")).to eq(3)
         expect(fn.call("\t\n")).to eq(2)
       end
@@ -73,7 +73,7 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
 
   describe "string queries" do
     # NOTE: collection include? overrides string include? in the registry
-    it_behaves_like "a function with correct metadata", :include?, 2, [Kumi::Types.array(:any), :any], :boolean
+    it_behaves_like "a function with correct metadata", :include?, 2, [Kumi::Core::Types.array(:any), :any], :boolean
     it_behaves_like "a function with correct metadata", :start_with?, 2, %i[string string], :boolean
     it_behaves_like "a function with correct metadata", :end_with?, 2, %i[string string], :boolean
 
@@ -83,13 +83,13 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
       it_behaves_like "a working function", :start_with?, ["hello world", ""], true
 
       it "handles case sensitivity" do
-        fn = Kumi::FunctionRegistry.fetch(:start_with?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:start_with?)
         expect(fn.call("Hello World", "hello")).to be false
         expect(fn.call("Hello World", "Hello")).to be true
       end
 
       it "handles edge cases" do
-        fn = Kumi::FunctionRegistry.fetch(:start_with?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:start_with?)
         expect(fn.call("", "")).to be true
         expect(fn.call("", "hello")).to be false
         expect(fn.call("hello", "hello world")).to be false
@@ -102,13 +102,13 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
       it_behaves_like "a working function", :end_with?, ["hello world", ""], true
 
       it "handles case sensitivity" do
-        fn = Kumi::FunctionRegistry.fetch(:end_with?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:end_with?)
         expect(fn.call("Hello World", "world")).to be false
         expect(fn.call("Hello World", "World")).to be true
       end
 
       it "handles edge cases" do
-        fn = Kumi::FunctionRegistry.fetch(:end_with?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:end_with?)
         expect(fn.call("", "")).to be true
         expect(fn.call("", "hello")).to be false
         expect(fn.call("world", "hello world")).to be false
@@ -125,17 +125,17 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
 
     describe "concat edge cases" do
       it "handles multiple strings" do
-        fn = Kumi::FunctionRegistry.fetch(:concat)
+        fn = Kumi::Core::FunctionRegistry.fetch(:concat)
         expect(fn.call("a", "b", "c", "d", "e")).to eq("abcde")
       end
 
       it "handles empty strings" do
-        fn = Kumi::FunctionRegistry.fetch(:concat)
+        fn = Kumi::Core::FunctionRegistry.fetch(:concat)
         expect(fn.call("", "hello", "", "world", "")).to eq("helloworld")
       end
 
       it "handles numbers and other types" do
-        fn = Kumi::FunctionRegistry.fetch(:concat)
+        fn = Kumi::Core::FunctionRegistry.fetch(:concat)
         expect(fn.call("Number: ", 42, " End")).to eq("Number: 42 End")
       end
     end
@@ -144,13 +144,13 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
   describe "string include? behavior with collection override" do
     # Since collection include? overrides string include?, test the actual behavior
     it "works with arrays (collection function)" do
-      fn = Kumi::FunctionRegistry.fetch(:include?)
+      fn = Kumi::Core::FunctionRegistry.fetch(:include?)
       expect(fn.call(%w[hello world], "hello")).to be true
       expect(fn.call(%w[hello world], "xyz")).to be false
     end
 
     it "also works with strings as arrays of characters" do
-      fn = Kumi::FunctionRegistry.fetch(:include?)
+      fn = Kumi::Core::FunctionRegistry.fetch(:include?)
       # String acts like a collection in this context
       expect(fn.call("hello world", "world")).to be true
       expect(fn.call("hello world", "xyz")).to be false
@@ -160,13 +160,13 @@ RSpec.describe Kumi::FunctionRegistry::StringFunctions do
   describe "string length behavior with collection override" do
     # Since collection length overrides string length, test the actual behavior
     it "works with arrays (collection function)" do
-      fn = Kumi::FunctionRegistry.fetch(:length)
+      fn = Kumi::Core::FunctionRegistry.fetch(:length)
       expect(fn.call([1, 2, 3])).to eq(3)
       expect(fn.call([])).to eq(0)
     end
 
     it "also works with strings" do
-      fn = Kumi::FunctionRegistry.fetch(:length)
+      fn = Kumi::Core::FunctionRegistry.fetch(:length)
       expect(fn.call("hello")).to eq(5)
       expect(fn.call("")).to eq(0)
     end

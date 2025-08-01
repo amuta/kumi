@@ -17,7 +17,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Default"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `x_lt_100 AND y_gt_1000` is impossible/)
     end
 
     it "detects impossible conditions through deep dependency chains" do
@@ -44,7 +44,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `val5_gt_100 AND val5_lt_50` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `val5_gt_100 AND val5_lt_50` is impossible/)
     end
 
     it "detects mathematical impossibilities across dependency chains with enhanced solver" do
@@ -68,7 +68,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `base_is_50 AND derived_is_40` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `base_is_50 AND derived_is_40` is impossible/)
     end
 
     it "detects impossibilities through multi-step dependency chains with iterative propagation" do
@@ -95,7 +95,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `start_is_10 AND final_is_20` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `start_is_10 AND final_is_20` is impossible/)
     end
 
     it "detects contradictions with subtraction operations" do
@@ -117,7 +117,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `x_is_20 AND y_is_10` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `x_is_20 AND y_is_10` is impossible/)
     end
 
     it "detects impossibilities in deep dependency chains like the benchmark example" do
@@ -147,7 +147,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Valid"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `seed_is_zero AND v5_is_ten` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `seed_is_zero AND v5_is_ten` is impossible/)
     end
   end
 
@@ -273,7 +273,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `very_young AND very_old` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `very_young AND very_old` is impossible/)
     end
 
     it "flags cascades combined impossible traits in multiple conditions" do
@@ -295,7 +295,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError,
+      end.to raise_error(Kumi::Core::Errors::SemanticError,
                          /(conjunction `young_and_old` is impossible|conjunction `other_impossible` is impossible)/)
     end
 
@@ -318,7 +318,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError) do |e|
+      end.to raise_error(Kumi::Core::Errors::SemanticError) do |e|
         expect(e.message).to match(/conjunction `young_and_old` is impossible/)
         expect(e.message).to match(/conjunction `other_impossible` is impossible/)
         expect(e.message).not_to match(/conjunction `impossible_combo` is impossible/)
@@ -491,7 +491,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base 2
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
     end
   end
 
@@ -551,7 +551,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base 1
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `ranged_weapon AND magic_weapon` is impossible/)
     end
 
     it "reports specific trait names in error messages, not declaration names" do
@@ -572,7 +572,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Unknown"
           end
         end
-      rescue Kumi::Errors::SemanticError => e
+      rescue Kumi::Core::Errors::SemanticError => e
         error = e
       end
 
@@ -598,7 +598,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_approved` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_approved` is impossible/)
     end
 
     it "detects impossible conjunction when trait checks value outside input domain" do
@@ -616,7 +616,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_enterprise AND is_basic` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_enterprise AND is_basic` is impossible/)
     end
 
     it "detects impossible trait when value reference violates domain through dependency chain" do
@@ -634,7 +634,7 @@ RSpec.describe "UnsatDetector Special Cases" do
             base "User permissions"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_guest` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_guest` is impossible/)
     end
 
     it "allows valid trait conditions within input domain" do

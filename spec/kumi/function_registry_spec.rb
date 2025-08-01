@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::FunctionRegistry do
+RSpec.describe Kumi::Core::FunctionRegistry do
   describe "registry management" do
     it "lists all available functions" do
       functions = described_class.all_functions
@@ -78,13 +78,13 @@ RSpec.describe Kumi::FunctionRegistry do
     it "raises UnknownFunction for unsupported functions" do
       expect do
         described_class.fetch(:unknown_function)
-      end.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Core::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "raises UnknownFunction for signature of unsupported functions" do
       expect do
         described_class.signature(:unknown_function)
-      end.to raise_error(Kumi::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Core::FunctionRegistry::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "handles nil function names gracefully" do
@@ -222,7 +222,7 @@ RSpec.describe Kumi::FunctionRegistry do
 
   describe "Entry struct compatibility" do
     it "exposes Entry struct for compatibility" do
-      expect(described_class::Entry).to eq(Kumi::FunctionRegistry::FunctionBuilder::Entry)
+      expect(described_class::Entry).to eq(Kumi::Core::FunctionRegistry::FunctionBuilder::Entry)
     end
 
     it "can create Entry instances" do

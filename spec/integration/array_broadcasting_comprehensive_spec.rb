@@ -4,13 +4,13 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
   # Helper to perform the full analysis and compilation pipeline
   def analyze_and_compile(&schema_block)
     syntax_tree = Kumi.schema(&schema_block)
-    analyzer_result = Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
-    Kumi::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
+    analyzer_result = Kumi::Core::Analyzer.analyze!(syntax_tree.syntax_tree)
+    Kumi::Core::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
   end
 
   # Helper to create a runner with compiled schema and input data
   def create_runner(schema, input_data)
-    Kumi::SchemaInstance.new(schema, nil, input_data)
+    Kumi::Core::SchemaInstance.new(schema, nil, input_data)
   end
 
   describe "Basic Element-wise Operations" do
@@ -266,7 +266,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         value :sum_ints, fn(:sum, doubled_ints)
       end
 
-      Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
+      Kumi::Core::Analyzer.analyze!(syntax_tree.syntax_tree)
     end
 
     it "infers correct types for vectorized operations" do
@@ -590,7 +590,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             trait :same_name, input.items.name == input.logs.user_name
           end
         end.to raise_error(
-          Kumi::Errors::SemanticError,
+          Kumi::Core::Errors::SemanticError,
           /Cannot broadcast operation across arrays from different sources: items, logs.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(string\) from array 'items'.*- Operand.*resolves to array\(string\) from array 'logs'/m
         )
       end
@@ -611,7 +611,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             value :totals, input.products.price * input.orders.quantity
           end
         end.to raise_error(
-          Kumi::Errors::SemanticError,
+          Kumi::Core::Errors::SemanticError,
           /Cannot broadcast operation across arrays from different sources: products, orders.*Problem: Multiple operands are arrays from different sources:.*- Operand.*resolves to array\(float\) from array 'products'.*- Operand.*resolves to array\(integer\) from array 'orders'/m
         )
       end

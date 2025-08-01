@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::SchemaMetadata do
+RSpec.describe Kumi::Core::SchemaMetadata do
   let(:test_schema) do
     Class.new do
       extend Kumi::Schema

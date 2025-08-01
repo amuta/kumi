@@ -2,7 +2,7 @@
 
 require "tmpdir"
 
-RSpec.describe Kumi::Export do
+RSpec.describe Kumi::Core::Export do
   include ASTFactory
 
   describe ".to_json" do
@@ -47,7 +47,7 @@ RSpec.describe Kumi::Export do
       json_string = described_class.to_json(original_ast)
       imported_ast = described_class.from_json(json_string)
 
-      expect(imported_ast).to be_a(Kumi::Syntax::Root)
+      expect(imported_ast).to be_a(Kumi::Core::Syntax::Root)
       expect(imported_ast.inputs.size).to eq(1)
       expect(imported_ast.attributes.size).to eq(1)
       expect(imported_ast.traits.size).to eq(0)
@@ -131,7 +131,7 @@ RSpec.describe Kumi::Export do
         described_class.to_file(original_ast, filepath)
         imported_ast = described_class.from_file(filepath)
 
-        expect(imported_ast).to be_a(Kumi::Syntax::Root)
+        expect(imported_ast).to be_a(Kumi::Core::Syntax::Root)
         expect(imported_ast.inputs.size).to eq(1)
         expect(imported_ast.attributes.size).to eq(1)
         expect(imported_ast.inputs.first.name).to eq(:name)
@@ -175,7 +175,7 @@ RSpec.describe Kumi::Export do
 
       expect do
         described_class.from_json(invalid_json)
-      end.to raise_error(Kumi::Export::Errors::DeserializationError, /Missing required fields/)
+      end.to raise_error(Kumi::Core::Export::Errors::DeserializationError, /Missing required fields/)
     end
 
     it "skips validation when requested" do
@@ -197,7 +197,7 @@ RSpec.describe Kumi::Export do
 
       expect do
         described_class.from_json(invalid_root_json)
-      end.to raise_error(Kumi::Export::Errors::DeserializationError, /Root node must have type 'root'/)
+      end.to raise_error(Kumi::Core::Export::Errors::DeserializationError, /Root node must have type 'root'/)
     end
   end
 
@@ -205,7 +205,7 @@ RSpec.describe Kumi::Export do
     it "raises DeserializationError for malformed JSON" do
       expect do
         described_class.from_json("{ invalid json")
-      end.to raise_error(Kumi::Export::Errors::DeserializationError, /Invalid JSON/)
+      end.to raise_error(Kumi::Core::Export::Errors::DeserializationError, /Invalid JSON/)
     end
 
     it "handles file write errors gracefully" do

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Domain::ViolationFormatter do
+RSpec.describe Kumi::Core::Domain::ViolationFormatter do
   describe ".format_message" do
     context "with range domains" do
       let(:field) { :age }

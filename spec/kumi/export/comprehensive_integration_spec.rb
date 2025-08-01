@@ -5,15 +5,15 @@ require "spec_helper"
 RSpec.describe "Comprehensive AST Export Integration" do
   # Register custom functions for testing
   before do
-    Kumi::FunctionRegistry.reset!
+    Kumi::Core::FunctionRegistry.reset!
 
-    Kumi::FunctionRegistry.register(:error!) do |should_error|
+    Kumi::Core::FunctionRegistry.register(:error!) do |should_error|
       raise "ErrorInsideCustomFunction" if should_error
 
       "No Error"
     end
 
-    Kumi::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
+    Kumi::Core::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
       base_offers = case segment
                     when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
                     when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
@@ -27,7 +27,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
       base_offers
     end
 
-    Kumi::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
+    Kumi::Core::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
       base_bonus = years * 10
       base_bonus *= 2 if is_valuable
       (base_bonus * (engagement / 100.0)).round(2)
@@ -54,7 +54,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   let(:comprehensive_schema) do
     # Create the most comprehensive schema possible with all syntax features
-    Kumi::RubyParser::Dsl.build_syntax_tree do
+    Kumi::Core::RubyParser::Dsl.build_syntax_tree do
       input do
         # All primitive types
         key :name, type: :string
@@ -238,16 +238,16 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "preserves complete schema through export/import cycle" do
     # Step 1: Analyze the original schema
-    original_analysis = Kumi::Analyzer.analyze!(comprehensive_schema)
+    original_analysis = Kumi::Core::Analyzer.analyze!(comprehensive_schema)
 
     # Step 2: Export to JSON
-    json_export = Kumi::Export.to_json(comprehensive_schema)
+    json_export = Kumi::Core::Export.to_json(comprehensive_schema)
 
     # Step 3: Import from JSON
-    imported_schema = Kumi::Export.from_json(json_export)
+    imported_schema = Kumi::Core::Export.from_json(json_export)
 
     # Step 4: Analyze the imported schema
-    imported_analysis = Kumi::Analyzer.analyze!(imported_schema)
+    imported_analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
 
     # Step 5: Compare analysis results
     expect(imported_analysis.definitions.keys).to match_array(original_analysis.definitions.keys)
@@ -276,14 +276,14 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "produces identical compilation and execution results" do
     # Compile original schema
-    original_analysis = Kumi::Analyzer.analyze!(comprehensive_schema)
-    original_compiled = Kumi::Compiler.compile(comprehensive_schema, analyzer: original_analysis)
+    original_analysis = Kumi::Core::Analyzer.analyze!(comprehensive_schema)
+    original_compiled = Kumi::Core::Compiler.compile(comprehensive_schema, analyzer: original_analysis)
 
     # Export, import, and compile
-    json_export = Kumi::Export.to_json(comprehensive_schema)
-    imported_schema = Kumi::Export.from_json(json_export)
-    imported_analysis = Kumi::Analyzer.analyze!(imported_schema)
-    imported_compiled = Kumi::Compiler.compile(imported_schema, analyzer: imported_analysis)
+    json_export = Kumi::Core::Export.to_json(comprehensive_schema)
+    imported_schema = Kumi::Core::Export.from_json(json_export)
+    imported_analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
+    imported_compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: imported_analysis)
 
     # Execute both and compare results
     original_result = original_compiled.evaluate(customer_data)
@@ -300,12 +300,12 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "handles all syntax features correctly after import" do
     # Export and import
-    json_export = Kumi::Export.to_json(comprehensive_schema)
-    imported_schema = Kumi::Export.from_json(json_export)
+    json_export = Kumi::Core::Export.to_json(comprehensive_schema)
+    imported_schema = Kumi::Core::Export.from_json(json_export)
 
     # Compile and execute imported schema
-    analysis = Kumi::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
     result = compiled.evaluate(customer_data)
 
     # Test basic traits
@@ -358,7 +358,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
   end
 
   it "validates JSON export structure and metadata" do
-    json_export = Kumi::Export.to_json(comprehensive_schema, pretty: true)
+    json_export = Kumi::Core::Export.to_json(comprehensive_schema, pretty: true)
     parsed_json = JSON.parse(json_export)
 
     # Verify JSON structure
@@ -408,16 +408,16 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "handles round-trip with pretty formatting" do
     # Export with pretty formatting
-    pretty_json = Kumi::Export.to_json(comprehensive_schema, pretty: true)
+    pretty_json = Kumi::Core::Export.to_json(comprehensive_schema, pretty: true)
 
     # Verify it's actually pretty formatted
     expect(pretty_json).to include("\n")
     expect(pretty_json).to include("  ") # indentation
 
     # Import and verify it works
-    imported_schema = Kumi::Export.from_json(pretty_json)
-    analysis = Kumi::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
+    imported_schema = Kumi::Core::Export.from_json(pretty_json)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
 
     result = compiled.evaluate(customer_data)
     expect(result[:customer_tier]).to eq("Gold")
@@ -426,7 +426,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
 
   it "preserves location information when included" do
     # Export with location information
-    json_with_locations = Kumi::Export.to_json(comprehensive_schema, include_locations: true)
+    json_with_locations = Kumi::Core::Export.to_json(comprehensive_schema, include_locations: true)
     parsed = JSON.parse(json_with_locations)
 
     # Verify some nodes have location information
@@ -439,9 +439,9 @@ RSpec.describe "Comprehensive AST Export Integration" do
     expect(attributes).to be_an(Array)
 
     # Import should still work
-    imported_schema = Kumi::Export.from_json(json_with_locations)
-    analysis = Kumi::Analyzer.analyze!(imported_schema)
-    compiled = Kumi::Compiler.compile(imported_schema, analyzer: analysis)
+    imported_schema = Kumi::Core::Export.from_json(json_with_locations)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_schema)
+    compiled = Kumi::Core::Compiler.compile(imported_schema, analyzer: analysis)
 
     result = compiled.evaluate(customer_data)
     expect(result[:adult]).to be true

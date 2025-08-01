@@ -22,7 +22,7 @@ begin
       value :yearly_rate, monthly_rate * 12
     end
   end
-rescue Kumi::Errors::SemanticError => e
+rescue Kumi::Core::Errors::SemanticError => e
   puts "   → #{e.message}"
 end
 
@@ -48,7 +48,7 @@ begin
       end
     end
   end
-rescue Kumi::Errors::SemanticError => e
+rescue Kumi::Core::Errors::SemanticError => e
   puts "   → #{e.message}"
 end
 
@@ -71,7 +71,7 @@ begin
       value :invalid_sum, input.name + input.age
     end
   end
-rescue Kumi::Errors::TypeError => e
+rescue Kumi::Core::Errors::TypeError => e
   puts "   → #{e.message}"
 end
 
@@ -94,7 +94,7 @@ begin
       trait :impossible_score, input.score == 150
     end
   end
-rescue Kumi::Errors::SemanticError => e
+rescue Kumi::Core::Errors::SemanticError => e
   puts "   → #{e.message}"
 end
 
@@ -114,7 +114,7 @@ begin
       value :result, ref(:nonexistent_trait) ? 100 : 0
     end
   end
-rescue Kumi::Errors::SemanticError => e
+rescue Kumi::Core::Errors::SemanticError => e
   puts "   → #{e.message}"
 end
 
@@ -134,7 +134,7 @@ begin
       value :result, fn(:nonexistent_function, input.text)
     end
   end
-rescue Kumi::Errors::TypeError => e
+rescue Kumi::Core::Errors::TypeError => e
   puts "   → #{e.message}"
 end
 
@@ -162,7 +162,7 @@ begin
       value :result, ref(:undefined_declaration)
     end
   end
-rescue Kumi::Errors::SemanticError => e
+rescue Kumi::Core::Errors::SemanticError => e
   puts "   → " + e.message.split("\n").join("\n   → ")
 end
 

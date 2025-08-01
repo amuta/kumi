@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::InputCollector do
+RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
   include ASTFactory
 
-  let(:state) { Kumi::Analyzer::AnalysisState.new }
+  let(:state) { Kumi::Core::Analyzer::AnalysisState.new }
 
   describe ".run" do
     context "when the schema has no inputs" do
@@ -133,7 +133,7 @@ RSpec.describe Kumi::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Syntax::Literal/)
+        expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Core::Syntax::Literal/)
         # Should still process valid fields
         expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil)
       end

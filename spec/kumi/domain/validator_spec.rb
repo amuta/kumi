@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Domain::Validator do
+RSpec.describe Kumi::Core::Domain::Validator do
   describe ".validate_field" do
     context "with Range domains" do
       it "accepts values within inclusive range" do

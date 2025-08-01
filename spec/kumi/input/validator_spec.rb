@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Input::Validator do
+RSpec.describe Kumi::Core::Input::Validator do
   describe ".validate_context" do
     let(:input_meta) do
       {

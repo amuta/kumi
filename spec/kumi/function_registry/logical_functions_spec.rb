@@ -3,7 +3,7 @@
 require "spec_helper"
 require "support/function_test_helpers"
 
-RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
+RSpec.describe Kumi::Core::FunctionRegistry::LogicalFunctions do
   describe "basic logical operations" do
     it_behaves_like "a function with correct metadata", :and, -1, [:boolean], :boolean
     it_behaves_like "a function with correct metadata", :or, -1, [:boolean], :boolean
@@ -16,19 +16,19 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       it_behaves_like "a working function", :and, [true, true, false], false
 
       it "handles single argument" do
-        fn = Kumi::FunctionRegistry.fetch(:and)
+        fn = Kumi::Core::FunctionRegistry.fetch(:and)
         expect(fn.call(true)).to be true
         expect(fn.call(false)).to be false
       end
 
       it "handles many arguments" do
-        fn = Kumi::FunctionRegistry.fetch(:and)
+        fn = Kumi::Core::FunctionRegistry.fetch(:and)
         expect(fn.call(true, true, true, true, true)).to be true
         expect(fn.call(true, true, true, false, true)).to be false
       end
 
       it "handles empty arguments" do
-        fn = Kumi::FunctionRegistry.fetch(:and)
+        fn = Kumi::Core::FunctionRegistry.fetch(:and)
         expect(fn.call).to be true # all? on empty array returns true
       end
     end
@@ -39,19 +39,19 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       it_behaves_like "a working function", :or, [false, false, true], true
 
       it "handles single argument" do
-        fn = Kumi::FunctionRegistry.fetch(:or)
+        fn = Kumi::Core::FunctionRegistry.fetch(:or)
         expect(fn.call(true)).to be true
         expect(fn.call(false)).to be false
       end
 
       it "handles many arguments" do
-        fn = Kumi::FunctionRegistry.fetch(:or)
+        fn = Kumi::Core::FunctionRegistry.fetch(:or)
         expect(fn.call(false, false, false, false, false)).to be false
         expect(fn.call(false, false, false, true, false)).to be true
       end
 
       it "handles empty arguments" do
-        fn = Kumi::FunctionRegistry.fetch(:or)
+        fn = Kumi::Core::FunctionRegistry.fetch(:or)
         expect(fn.call).to be false # any? on empty array returns false
       end
     end
@@ -63,16 +63,16 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
   end
 
   describe "collection logical operations" do
-    it_behaves_like "a function with correct metadata", :all?, 1, [Kumi::Types.array(:any)], :boolean
-    it_behaves_like "a function with correct metadata", :any?, 1, [Kumi::Types.array(:any)], :boolean
-    it_behaves_like "a function with correct metadata", :none?, 1, [Kumi::Types.array(:any)], :boolean
+    it_behaves_like "a function with correct metadata", :all?, 1, [Kumi::Core::Types.array(:any)], :boolean
+    it_behaves_like "a function with correct metadata", :any?, 1, [Kumi::Core::Types.array(:any)], :boolean
+    it_behaves_like "a function with correct metadata", :none?, 1, [Kumi::Core::Types.array(:any)], :boolean
 
     describe "all? function" do
       it_behaves_like "a working function", :all?, [[true, true, true]], true
       it_behaves_like "a working function", :all?, [[true, false, true]], false
 
       it "handles truthy/falsy values" do
-        fn = Kumi::FunctionRegistry.fetch(:all?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:all?)
         expect(fn.call([1, 2, 3])).to be true # all truthy
         expect(fn.call([true, false, true])).to be false # false is falsy
         expect(fn.call([1, nil, 3])).to be false # nil is falsy
@@ -80,7 +80,7 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       end
 
       it "handles empty arrays" do
-        fn = Kumi::FunctionRegistry.fetch(:all?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:all?)
         expect(fn.call([])).to be true
       end
     end
@@ -90,14 +90,14 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       it_behaves_like "a working function", :any?, [[false, false, false]], false
 
       it "handles truthy/falsy values" do
-        fn = Kumi::FunctionRegistry.fetch(:any?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:any?)
         expect(fn.call([nil, false])).to be false # all falsy (0 is truthy in Ruby)
         expect(fn.call([nil, false, 1])).to be true # one truthy
         expect(fn.call([nil, "", false])).to be true # empty string is truthy
       end
 
       it "handles empty arrays" do
-        fn = Kumi::FunctionRegistry.fetch(:any?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:any?)
         expect(fn.call([])).to be false
       end
     end
@@ -107,14 +107,14 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
       it_behaves_like "a working function", :none?, [[false, true, false]], false
 
       it "handles truthy/falsy values" do
-        fn = Kumi::FunctionRegistry.fetch(:none?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:none?)
         expect(fn.call([nil, false])).to be true # all falsy (0 is truthy in Ruby)
         expect(fn.call([nil, false, 1])).to be false # one truthy
         expect(fn.call([nil, "", false])).to be false # empty string is truthy
       end
 
       it "handles empty arrays" do
-        fn = Kumi::FunctionRegistry.fetch(:none?)
+        fn = Kumi::Core::FunctionRegistry.fetch(:none?)
         expect(fn.call([])).to be true
       end
     end
@@ -122,9 +122,9 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
 
   describe "logical combinations" do
     it "can combine logical operations" do
-      and_fn = Kumi::FunctionRegistry.fetch(:and)
-      or_fn = Kumi::FunctionRegistry.fetch(:or)
-      not_fn = Kumi::FunctionRegistry.fetch(:not)
+      and_fn = Kumi::Core::FunctionRegistry.fetch(:and)
+      or_fn = Kumi::Core::FunctionRegistry.fetch(:or)
+      not_fn = Kumi::Core::FunctionRegistry.fetch(:not)
 
       # (true AND false) OR (NOT false) = false OR true = true
       result1 = and_fn.call(true, false)
@@ -134,9 +134,9 @@ RSpec.describe Kumi::FunctionRegistry::LogicalFunctions do
     end
 
     it "demonstrates De Morgan's laws" do
-      and_fn = Kumi::FunctionRegistry.fetch(:and)
-      or_fn = Kumi::FunctionRegistry.fetch(:or)
-      not_fn = Kumi::FunctionRegistry.fetch(:not)
+      and_fn = Kumi::Core::FunctionRegistry.fetch(:and)
+      or_fn = Kumi::Core::FunctionRegistry.fetch(:or)
+      not_fn = Kumi::Core::FunctionRegistry.fetch(:not)
 
       # NOT (A AND B) = (NOT A) OR (NOT B)
       a = true

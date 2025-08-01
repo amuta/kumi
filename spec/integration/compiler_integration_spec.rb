@@ -2,15 +2,15 @@
 
 RSpec.describe "Kumi Compiler Integration" do
   before do
-    Kumi::FunctionRegistry.reset!
+    Kumi::Core::FunctionRegistry.reset!
 
-    Kumi::FunctionRegistry.register(:error!) do |should_error|
+    Kumi::Core::FunctionRegistry.register(:error!) do |should_error|
       raise "ErrorInsideCustomFunction" if should_error
 
       "No Error"
     end
 
-    Kumi::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
+    Kumi::Core::FunctionRegistry.register(:create_offers) do |segment, tier, _balance|
       base_offers = case segment
                     when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
                     when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
@@ -25,7 +25,7 @@ RSpec.describe "Kumi Compiler Integration" do
       base_offers
     end
 
-    Kumi::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
+    Kumi::Core::FunctionRegistry.register(:bonus_formula) do |years, is_valuable, engagement|
       base_bonus = years * 10
       base_bonus *= 2 if is_valuable
       (base_bonus * (engagement / 100.0)).round(2)
@@ -53,18 +53,18 @@ RSpec.describe "Kumi Compiler Integration" do
       # Notice how traits build on other traits, attributes reference multiple traits,
       # and functions consume both raw fields and computed attributes.
 
-      Kumi::RubyParser::Dsl.build_syntax_tree do
+      Kumi::Core::RubyParser::Dsl.build_syntax_tree do
         input do
-          key :name, type: :string # Kumi::Types::STRING
-          key :age, type: :integer # Kumi::Types::INT
-          key :account_balance, type: :float # Kumi::Types::FLOAT
-          key :years_customer, type: :integer # Kumi::Types::INT
-          key :last_purchase_days_ago, type: :integer # Kumi::Types::INT
-          key :total_purchases, type: :integer # Kumi::Types::INT
-          key :account_type, type: :string # Kumi::Types::STRING
-          key :referral_count, type: :integer # Kumi::Types::INT
-          key :support_tickets, type: :integer # Kumi::Types::INT
-          key :should_error, type: :boolean # Kumi::Types::BOOL
+          key :name, type: :string # Kumi::Core::Types::STRING
+          key :age, type: :integer # Kumi::Core::Types::INT
+          key :account_balance, type: :float # Kumi::Core::Types::FLOAT
+          key :years_customer, type: :integer # Kumi::Core::Types::INT
+          key :last_purchase_days_ago, type: :integer # Kumi::Core::Types::INT
+          key :total_purchases, type: :integer # Kumi::Core::Types::INT
+          key :account_type, type: :string # Kumi::Core::Types::STRING
+          key :referral_count, type: :integer # Kumi::Core::Types::INT
+          key :support_tickets, type: :integer # Kumi::Core::Types::INT
+          key :should_error, type: :boolean # Kumi::Core::Types::BOOL
         end
 
         # === BASE TRAITS ===
@@ -156,8 +156,8 @@ RSpec.describe "Kumi Compiler Integration" do
       # 3. Compile into executable lambda functions
 
       parsed_schema = schema # Already parsed by the DSL
-      analyzer_result = Kumi::Analyzer.analyze!(parsed_schema)
-      Kumi::Compiler.compile(parsed_schema, analyzer: analyzer_result)
+      analyzer_result = Kumi::Core::Analyzer.analyze!(parsed_schema)
+      Kumi::Core::Compiler.compile(parsed_schema, analyzer: analyzer_result)
     end
 
     describe "full schema evaluation" do
@@ -285,7 +285,7 @@ RSpec.describe "Kumi Compiler Integration" do
 
         expect do
           executable_schema.evaluate(incomplete_data)
-        end.to raise_error(Kumi::Errors::RuntimeError, /Key 'age' not found/)
+        end.to raise_error(Kumi::Core::Errors::RuntimeError, /Key 'age' not found/)
       end
 
       it "handles function errors with context information" do
@@ -294,7 +294,7 @@ RSpec.describe "Kumi Compiler Integration" do
         # Temporarily break a function to test error handling
         expect do
           executable_schema.evaluate(data_with_error_field)
-        end.to raise_error(Kumi::Errors::RuntimeError, /Error calling fn\(:error!\)/)
+        end.to raise_error(Kumi::Core::Errors::RuntimeError, /Error calling fn\(:error!\)/)
       end
     end
 

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Inference do
+RSpec.describe Kumi::Core::Types::Inference do
   describe ".infer_from_value" do
     context "with primitive values" do
       it "infers string type from string values" do

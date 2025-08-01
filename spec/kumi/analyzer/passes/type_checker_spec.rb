@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::TypeChecker do
+RSpec.describe Kumi::Core::Analyzer::Passes::TypeChecker do
   include ASTFactory
 
-  let(:state)  { Kumi::Analyzer::AnalysisState.new }
+  let(:state)  { Kumi::Core::Analyzer::AnalysisState.new }
   let(:errors) { [] }
 
   def run(schema)
     # The TypeChecker runs after the NameIndexer to have access to all definitions.
-    intermediate_state = Kumi::Analyzer::Passes::NameIndexer.new(schema, state).run(errors)
+    intermediate_state = Kumi::Core::Analyzer::Passes::NameIndexer.new(schema, state).run(errors)
     described_class.new(schema, intermediate_state).run(errors)
   end
 

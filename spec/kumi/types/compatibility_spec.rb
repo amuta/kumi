@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Compatibility do
+RSpec.describe Kumi::Core::Types::Compatibility do
   describe ".compatible?" do
     context "with identical types" do
       it "considers identical primitive types compatible" do

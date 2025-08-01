@@ -2,9 +2,9 @@
 
 RSpec.describe "Kumi Cascade Logic" do
   let(:syntax_tree) do
-    Kumi::RubyParser::Dsl.build_syntax_tree do
+    Kumi::Core::RubyParser::Dsl.build_syntax_tree do
       input do
-        key :role, type: Kumi::Types::STRING
+        key :role, type: Kumi::Core::Types::STRING
       end
 
       # -- Base Traits --
@@ -22,8 +22,8 @@ RSpec.describe "Kumi Cascade Logic" do
   end
 
   let(:executable_schema) do
-    analyzer_result = Kumi::Analyzer.analyze!(syntax_tree)
-    Kumi::Compiler.compile(syntax_tree, analyzer: analyzer_result)
+    analyzer_result = Kumi::Core::Analyzer.analyze!(syntax_tree)
+    Kumi::Core::Compiler.compile(syntax_tree, analyzer: analyzer_result)
   end
 
   context "when evaluating 'on_any'" do

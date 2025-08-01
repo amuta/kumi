@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
+RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
   include ASTFactory
 
   # Create a concrete test pass to test the visitor functionality
@@ -9,7 +9,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       attr_reader :visited_nodes, :visited_expressions
 
       def self.contract
-        Kumi::Analyzer::PassContract.new
+        Kumi::Core::Analyzer::PassContract.new
       end
 
       def initialize(schema, state)
@@ -24,8 +24,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
           @visited_expressions << [node.class.name, decl.name]
         end
 
-        visit_nodes_of_type(Kumi::Syntax::Literal,
-                            Kumi::Syntax::CallExpression,
+        visit_nodes_of_type(Kumi::Core::Syntax::Literal,
+                            Kumi::Core::Syntax::CallExpression,
                             errors: errors) do |node, decl, _errs|
           @visited_nodes << [node.class.name, decl.name]
         end
@@ -46,7 +46,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
     syntax(:root, [], [simple_attr, call_attr, ref_attr], [complex_trait], loc: loc)
   end
 
-  let(:state) { Kumi::Analyzer::AnalysisState.new }
+  let(:state) { Kumi::Core::Analyzer::AnalysisState.new }
   let(:errors) { [] }
   let(:pass_instance) { test_visitor_pass_class.new(schema, state) }
 
@@ -76,8 +76,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       pass_instance.send(:visit, test_node) { |node| yielded_nodes << node }
 
       expect(yielded_nodes.size).to eq(5)
-      expect(yielded_nodes.first).to be_a(Kumi::Syntax::CallExpression)
-      expect(yielded_nodes.last).to be_a(Kumi::Syntax::Literal)
+      expect(yielded_nodes.first).to be_a(Kumi::Core::Syntax::CallExpression)
+      expect(yielded_nodes.last).to be_a(Kumi::Core::Syntax::Literal)
     end
   end
 
@@ -125,7 +125,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       node_types = visited_nodes.map(&:first).uniq
 
       # Should only have Literal and CallExpression nodes, not Field or Binding (using new class names)
-      expect(node_types).to contain_exactly("Kumi::Syntax::Literal", "Kumi::Syntax::CallExpression")
+      expect(node_types).to contain_exactly("Kumi::Core::Syntax::Literal", "Kumi::Core::Syntax::CallExpression")
     end
 
     it "visits nodes across all declarations" do
@@ -142,7 +142,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_literals = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Syntax::Literal,
+                         Kumi::Core::Syntax::Literal,
                          errors: errors) do |node, decl, _errs|
         visited_literals << [node.value, decl.name]
       end
@@ -156,8 +156,8 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       visited_mixed = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Syntax::InputReference,
-                         Kumi::Syntax::DeclarationReference,
+                         Kumi::Core::Syntax::InputReference,
+                         Kumi::Core::Syntax::DeclarationReference,
                          errors: errors) do |node, decl, _errs|
         visited_mixed << [node.class.name.split("::").last, node.name, decl.name]
       end
@@ -183,7 +183,7 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
 
   describe "inheritance from PassBase" do
     it "inherits all PassBase functionality" do
-      expect(pass_instance).to be_a(Kumi::Analyzer::Passes::PassBase)
+      expect(pass_instance).to be_a(Kumi::Core::Analyzer::Passes::PassBase)
       expect(pass_instance).to respond_to(:run)
 
       # Should have access to PassBase protected methods
@@ -195,13 +195,13 @@ RSpec.describe Kumi::Analyzer::Passes::VisitorPass do
       # Create a pass that uses both base and visitor functionality
       mixed_pass_class = Class.new(described_class) do
         def self.contract
-          Kumi::Analyzer::PassContract.new(provides: %i[visitor_test literal_count])
+          Kumi::Core::Analyzer::PassContract.new(provides: %i[visitor_test literal_count])
         end
 
         def run(errors)
           # Use visitor methods
           literal_count = 0
-          visit_nodes_of_type(Kumi::Syntax::Literal, errors: errors) do |_node, _decl, _errs|
+          visit_nodes_of_type(Kumi::Core::Syntax::Literal, errors: errors) do |_node, _decl, _errs|
             literal_count += 1
           end
 

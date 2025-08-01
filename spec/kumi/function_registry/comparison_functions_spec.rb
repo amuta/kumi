@@ -3,7 +3,7 @@
 require "spec_helper"
 require "support/function_test_helpers"
 
-RSpec.describe Kumi::FunctionRegistry::ComparisonFunctions do
+RSpec.describe Kumi::Core::FunctionRegistry::ComparisonFunctions do
   describe "comparison functions" do
     it_behaves_like "a function with correct metadata", :==, 2, %i[any any], :boolean
     it_behaves_like "a function with correct metadata", :!=, 2, %i[any any], :boolean
@@ -32,9 +32,9 @@ RSpec.describe Kumi::FunctionRegistry::ComparisonFunctions do
 
     describe "operator identification" do
       it "identifies core operators correctly" do
-        expect(Kumi::FunctionRegistry.operator?(:==)).to be true
-        expect(Kumi::FunctionRegistry.operator?(:add)).to be false
-        expect(Kumi::FunctionRegistry.operator?("not_a_symbol")).to be false
+        expect(Kumi::Core::FunctionRegistry.operator?(:==)).to be true
+        expect(Kumi::Core::FunctionRegistry.operator?(:add)).to be false
+        expect(Kumi::Core::FunctionRegistry.operator?("not_a_symbol")).to be false
       end
     end
 

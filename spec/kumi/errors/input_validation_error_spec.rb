@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Errors::InputValidationError do
+RSpec.describe Kumi::Core::Errors::InputValidationError do
   describe "single violation" do
     context "with type violation" do
       let(:violation) do

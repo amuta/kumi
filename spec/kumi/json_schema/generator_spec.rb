@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::JsonSchema::Generator do
+RSpec.describe Kumi::Core::JsonSchema::Generator do
   subject(:generator) { described_class.new(mock_metadata) }
 
   let(:mock_metadata) do

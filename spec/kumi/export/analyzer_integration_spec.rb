@@ -28,14 +28,14 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
     original_ast = syntax(:root, inputs, attributes, traits)
 
     # Run original analysis
-    original_analysis = Kumi::Analyzer.analyze!(original_ast)
+    original_analysis = Kumi::Core::Analyzer.analyze!(original_ast)
 
     # Export and import
-    json = Kumi::Export.to_json(original_ast)
-    imported_ast = Kumi::Export.from_json(json)
+    json = Kumi::Core::Export.to_json(original_ast)
+    imported_ast = Kumi::Core::Export.from_json(json)
 
     # Run analysis on imported AST
-    imported_analysis = Kumi::Analyzer.analyze!(imported_ast)
+    imported_analysis = Kumi::Core::Analyzer.analyze!(imported_ast)
 
     # Results must be identical
     expect(imported_analysis.definitions.keys).to match_array(original_analysis.definitions.keys)
@@ -70,11 +70,11 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
     original_ast = syntax(:root, inputs, attributes, traits)
 
     # Export -> Import -> Compile -> Execute
-    json = Kumi::Export.to_json(original_ast)
-    imported_ast = Kumi::Export.from_json(json)
+    json = Kumi::Core::Export.to_json(original_ast)
+    imported_ast = Kumi::Core::Export.from_json(json)
 
-    analysis = Kumi::Analyzer.analyze!(imported_ast)
-    compiled = Kumi::Compiler.compile(imported_ast, analyzer: analysis)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_ast)
+    compiled = Kumi::Core::Compiler.compile(imported_ast, analyzer: analysis)
 
     # Should execute normally
     result = compiled.evaluate({ base_price: 120.0 })
@@ -108,11 +108,11 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
     original_ast = syntax(:root, inputs, attributes, [])
 
     # Round-trip and analyze
-    json = Kumi::Export.to_json(original_ast)
-    imported_ast = Kumi::Export.from_json(json)
+    json = Kumi::Core::Export.to_json(original_ast)
+    imported_ast = Kumi::Core::Export.from_json(json)
 
-    analysis = Kumi::Analyzer.analyze!(imported_ast)
-    compiled = Kumi::Compiler.compile(imported_ast, analyzer: analysis)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_ast)
+    compiled = Kumi::Core::Compiler.compile(imported_ast, analyzer: analysis)
 
     # Test execution with nested calls
     result = compiled.evaluate({ scores: [85, 92, 88], threshold: 80.0 })
@@ -124,11 +124,11 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
   it "handles empty schema correctly" do
     original_ast = syntax(:root, [], [], [])
 
-    json = Kumi::Export.to_json(original_ast)
-    imported_ast = Kumi::Export.from_json(json)
+    json = Kumi::Core::Export.to_json(original_ast)
+    imported_ast = Kumi::Core::Export.from_json(json)
 
-    analysis = Kumi::Analyzer.analyze!(imported_ast)
-    compiled = Kumi::Compiler.compile(imported_ast, analyzer: analysis)
+    analysis = Kumi::Core::Analyzer.analyze!(imported_ast)
+    compiled = Kumi::Core::Compiler.compile(imported_ast, analyzer: analysis)
 
     result = compiled.evaluate({})
     expect(result).to eq({})

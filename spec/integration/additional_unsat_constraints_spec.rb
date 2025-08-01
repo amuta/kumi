@@ -19,7 +19,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::TypeError, /argument 2 of `fn\(:>\)` expects float, got input field `name` of declared type string/)
+      end.to raise_error(Kumi::Core::Errors::TypeError, /argument 2 of `fn\(:>\)` expects float, got input field `name` of declared type string/)
     end
 
     it "detects impossible comparison between integer and string with ordering" do
@@ -37,7 +37,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::TypeError, /argument 2 of `fn\(:<\)` expects float, got input field `name` of declared type string/)
+      end.to raise_error(Kumi::Core::Errors::TypeError, /argument 2 of `fn\(:<\)` expects float, got input field `name` of declared type string/)
     end
 
     it "allows comparison between same types" do
@@ -75,7 +75,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_bound` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `impossible_bound` is impossible/)
     end
 
     it "detects impossible negative results from positive domain" do
@@ -93,7 +93,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_negative` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `impossible_negative` is impossible/)
     end
 
     it "allows valid bounds after mathematical operations" do
@@ -132,7 +132,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `contradictory` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `contradictory` is impossible/)
     end
 
     it "detects impossible boolean field contradictions" do
@@ -150,7 +150,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_true AND is_false` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_true AND is_false` is impossible/)
     end
 
     it "allows valid boolean logic" do
@@ -188,7 +188,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_inactive` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_inactive` is impossible/)
     end
 
     it "detects contradictory numeric literals" do
@@ -204,7 +204,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `is_zero` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `is_zero` is impossible/)
     end
 
     it "allows valid literal comparisons" do
@@ -243,7 +243,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_high` is impossible/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `impossible_high` is impossible/)
     end
   end
 
@@ -320,7 +320,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
     #         base "Normal"
     #       end
     #     end
-    #   end.to raise_error(Kumi::Errors::SemanticError, /conjunction `impossible_or` is impossible/)
+    #   end.to raise_error(Kumi::Core::Errors::SemanticError, /conjunction `impossible_or` is impossible/)
     # end
 
     it "allows OR expressions where one side is possible" do

@@ -3,7 +3,7 @@
 require "set"
 require "date"
 
-RSpec.describe Kumi::Types do
+RSpec.describe Kumi::Core::Types do
   describe "type validation" do
     it "validates primitive type symbols" do
       expect(described_class.valid_type?(:string)).to be true
@@ -193,17 +193,17 @@ RSpec.describe Kumi::Types do
 
   describe "legacy compatibility" do
     it "provides legacy constants" do
-      expect(Kumi::Types::STRING).to eq(:string)
-      expect(Kumi::Types::INT).to eq(:integer)
-      expect(Kumi::Types::FLOAT).to eq(:float)
-      expect(Kumi::Types::BOOL).to eq(:boolean)
-      expect(Kumi::Types::ANY).to eq(:any)
+      expect(Kumi::Core::Types::STRING).to eq(:string)
+      expect(Kumi::Core::Types::INT).to eq(:integer)
+      expect(Kumi::Core::Types::FLOAT).to eq(:float)
+      expect(Kumi::Core::Types::BOOL).to eq(:boolean)
+      expect(Kumi::Core::Types::ANY).to eq(:any)
     end
 
     it "handles legacy coercion" do
       expect(described_class.coerce(:string)).to eq(:string)
-      expect(described_class.coerce(Kumi::Types::STRING)).to eq(:string)
-      expect(described_class.coerce(Kumi::Types::INT)).to eq(:integer)
+      expect(described_class.coerce(Kumi::Core::Types::STRING)).to eq(:string)
+      expect(described_class.coerce(Kumi::Core::Types::INT)).to eq(:integer)
     end
   end
 end

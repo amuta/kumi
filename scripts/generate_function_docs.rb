@@ -9,7 +9,7 @@ require "kumi"
 
 # Helper to format the type information for display.
 def format_type(type)
-  Kumi::Types.type_to_s(type)
+  Kumi::Core::Types.type_to_s(type)
 end
 
 # Helper to generate a signature string for a function.
@@ -49,19 +49,19 @@ end
 
 def function_categories
   {
-    "Logical Functions" => Kumi::FunctionRegistry.logical_operations,
-    "Comparison Functions" => Kumi::FunctionRegistry.comparison_operators,
-    "Math Functions" => Kumi::FunctionRegistry.math_operations,
-    "String Functions" => Kumi::FunctionRegistry.string_operations,
-    "Collection Functions" => Kumi::FunctionRegistry.collection_operations,
-    "Conditional Functions" => Kumi::FunctionRegistry.conditional_operations,
-    "Type & Hash Functions" => Kumi::FunctionRegistry.type_operations
+    "Logical Functions" => Kumi::Core::FunctionRegistry.logical_operations,
+    "Comparison Functions" => Kumi::Core::FunctionRegistry.comparison_operators,
+    "Math Functions" => Kumi::Core::FunctionRegistry.math_operations,
+    "String Functions" => Kumi::Core::FunctionRegistry.string_operations,
+    "Collection Functions" => Kumi::Core::FunctionRegistry.collection_operations,
+    "Conditional Functions" => Kumi::Core::FunctionRegistry.conditional_operations,
+    "Type & Hash Functions" => Kumi::Core::FunctionRegistry.type_operations
   }
 end
 
 def add_functions_for_category(output, functions)
   functions.sort.each do |name|
-    signature = Kumi::FunctionRegistry.signature(name)
+    signature = Kumi::Core::FunctionRegistry.signature(name)
     output << "* **`#{name}`**: #{signature[:description]}"
     output << "  * **Usage**: #{generate_signature(name, signature)}"
   end

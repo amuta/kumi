@@ -132,7 +132,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
             base fn(:not, unsafe_cycle) # NOT mutually exclusive - both can be true
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /cycle detected/)
     end
 
     it "detects cycles with no cascade conditions" do
@@ -142,7 +142,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
             base fn(:not, always_cycles) # No conditions, always cycles
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /cycle detected/)
     end
   end
 
@@ -213,7 +213,7 @@ RSpec.describe "Cascade mutual exclusion detection" do
             base fn(:not, partial_exclusive)
           end
         end
-      end.to raise_error(Kumi::Errors::SemanticError, /cycle detected/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /cycle detected/)
     end
   end
 

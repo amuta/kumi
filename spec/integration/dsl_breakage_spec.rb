@@ -371,7 +371,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         # Simulate corrupted state by trying to fetch non-existent binding
         expect do
           schema.from(x: 5)[:non_existent]
-        end.to raise_error(Kumi::Errors::RuntimeError)
+        end.to raise_error(Kumi::Core::Errors::RuntimeError)
       end
     end
   end
@@ -507,7 +507,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         input { integer :age }
         trait :invalid, fn(:>, input.nonexistent_field, 0)
       end
-    rescue Kumi::Errors::SemanticError => e
+    rescue Kumi::Core::Errors::SemanticError => e
       expect(e.message).to include("nonexistent_field")
       expect(e.location).not_to be_nil
       expect(e.location.line).to be > 0
@@ -518,7 +518,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         input { integer :age }
         value :result, ref(:unknown_reference)
       end
-    rescue Kumi::Errors::SemanticError => e
+    rescue Kumi::Core::Errors::SemanticError => e
       expect(e.message).to include("unknown_reference")
     end
 
@@ -527,7 +527,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
         input { string :name }
         value :result, fn(:add, input.name, 5)
       end
-    rescue Kumi::Errors::TypeError => e
+    rescue Kumi::Core::Errors::TypeError => e
       expect(e.message).to include("add")
       expect(e.message).to include("string")
     end

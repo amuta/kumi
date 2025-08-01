@@ -23,7 +23,7 @@ RSpec.describe "Domain Validation Integration" do
       it "creates runner successfully" do
         runner = schema.from({ age: 25, score: 85.0, status: "active" })
 
-        expect(runner).to be_a(Kumi::SchemaInstance)
+        expect(runner).to be_a(Kumi::Core::SchemaInstance)
         expect(runner[:adult]).to be true
         expect(runner[:grade]).to eq("B")
       end
@@ -44,7 +44,7 @@ RSpec.describe "Domain Validation Integration" do
         error = nil
         expect do
           schema.from({ age: 17, score: 85.0, status: "active" })
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.single_violation?).to be true
         expect(error.violations.first[:field]).to eq(:age)
@@ -55,7 +55,7 @@ RSpec.describe "Domain Validation Integration" do
         error = nil
         expect do
           schema.from({ age: 16, score: 110.0, status: "unknown" })
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.multiple_violations?).to be true
         expect(error.violations.size).to eq(3)
@@ -73,7 +73,7 @@ RSpec.describe "Domain Validation Integration" do
         error = nil
         expect do
           schema.from({ age: 70, score: 85.0, status: "active" })
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         violation = error.violations.first
         expect(violation[:field]).to eq(:age)
@@ -125,7 +125,7 @@ RSpec.describe "Domain Validation Integration" do
         # This should fail - age violates domain
         expect do
           mixed_schema.from({ name: "Any Name", age: 17, comment: "Any comment" })
-        end.to raise_error(Kumi::Errors::InputValidationError)
+        end.to raise_error(Kumi::Core::Errors::InputValidationError)
       end
     end
   end
@@ -150,7 +150,7 @@ RSpec.describe "Domain Validation Integration" do
         error = nil
         expect do
           email_schema.from({ email: "invalid-email" })
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.message).to include("does not satisfy custom domain constraint")
       end
@@ -179,7 +179,7 @@ RSpec.describe "Domain Validation Integration" do
         error = nil
         expect do
           probability_schema.from({ probability: 1.0 })
-        end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+        end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
         expect(error.message).to include("(exclusive)")
       end
@@ -199,20 +199,20 @@ RSpec.describe "Domain Validation Integration" do
     it "formats range violation messages clearly" do
       expect do
         error_schema.from({ age: 17, status: "active" })
-      end.to raise_error(Kumi::Errors::InputValidationError, /Field :age value 17 is outside domain 18\.\.65/)
+      end.to raise_error(Kumi::Core::Errors::InputValidationError, /Field :age value 17 is outside domain 18\.\.65/)
     end
 
     it "formats array violation messages clearly" do
       expect do
         error_schema.from({ age: 25, status: "unknown" })
-      end.to raise_error(Kumi::Errors::InputValidationError, /Field :status value "unknown" is not in allowed values/)
+      end.to raise_error(Kumi::Core::Errors::InputValidationError, /Field :status value "unknown" is not in allowed values/)
     end
 
     it "formats multiple violations with clear structure" do
       error = nil
       expect do
         error_schema.from({ age: 17, status: "unknown" })
-      end.to raise_error(Kumi::Errors::InputValidationError) { |e| error = e }
+      end.to raise_error(Kumi::Core::Errors::InputValidationError) { |e| error = e }
 
       message = error.message
       expect(message).to include("Domain violations:")

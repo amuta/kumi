@@ -11,7 +11,7 @@ RSpec.describe "Location Tracking Accuracy" do
       it "reports accurate location for invalid value name syntax" do
         expect do
           load fixture_path
-        end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+        end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
           expect(error.message).to include("The name for 'value' must be a Symbol, got Array")
           expect(error.location.file).to end_with("location_tracking_test_schema.rb")
           expect(error.location.line).to eq(16) # Line with "value value :bad_name, 42"
@@ -27,7 +27,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             expect(error.message).to include("The name for 'value' must be a Symbol, got Array")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
@@ -44,7 +44,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             expect(error.message).to include("The name for 'trait' must be a Symbol, got String")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
@@ -61,7 +61,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             expect(error.message).to include("value 'incomplete_value' requires an expression or a block")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
@@ -78,7 +78,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             expect(error.message).to include("unsupported operator `invalid_op`")
             expect(error.location.file).to eq(temp_file)
             expect(error.location.line).to eq(15)
@@ -97,7 +97,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             # Should NOT point to internal schema_builder.rb
             expect(error.location.file).not_to include("schema_builder.rb")
             # Should point to the actual user file
@@ -117,7 +117,7 @@ RSpec.describe "Location Tracking Accuracy" do
         begin
           expect do
             load temp_file
-          end.to raise_error(Kumi::Errors::SyntaxError) do |error|
+          end.to raise_error(Kumi::Core::Errors::SyntaxError) do |error|
             # First error should be the value error on line 8
             expect(error.location.line).to eq(8)
             expect(error.message).to include("The name for 'value' must be a Symbol")

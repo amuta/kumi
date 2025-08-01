@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Types::Formatter do
+RSpec.describe Kumi::Core::Types::Formatter do
   describe ".type_to_s" do
     context "with primitive types" do
       it "converts primitive type symbols to strings" do

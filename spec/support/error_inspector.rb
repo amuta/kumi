@@ -79,7 +79,7 @@ module DSLBreakageHelpers
   def expect_syntax_error
     yield
     raise "Expected SyntaxError but none was raised"
-  rescue Kumi::Errors::SyntaxError => e
+  rescue Kumi::Core::Errors::SyntaxError => e
     e
   rescue SyntaxError => e
     # Handle Ruby syntax errors as well
@@ -89,14 +89,14 @@ module DSLBreakageHelpers
   def expect_semantic_error
     yield
     raise "Expected SemanticError but none was raised"
-  rescue Kumi::Errors::SemanticError => e
+  rescue Kumi::Core::Errors::SemanticError => e
     e
   end
 
   def expect_type_error
     yield
     raise "Expected TypeError but none was raised"
-  rescue Kumi::Errors::TypeError => e
+  rescue Kumi::Core::Errors::TypeError => e
     e
   end
 
@@ -105,9 +105,9 @@ module DSLBreakageHelpers
     yield if block_given?
     # If we get here without an error, fail the test
     raise "Expected runtime error but none was raised"
-  rescue Kumi::Errors::RuntimeError,
-         Kumi::Errors::InputValidationError,
-         Kumi::Errors::DomainViolationError => e
+  rescue Kumi::Core::Errors::RuntimeError,
+         Kumi::Core::Errors::InputValidationError,
+         Kumi::Core::Errors::DomainViolationError => e
     e
   end
 
