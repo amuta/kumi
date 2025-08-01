@@ -3,7 +3,7 @@
 require_relative "json_schema/generator"
 require_relative "json_schema/validator"
 
-module Kumi
+module Kumi::Core
   module JsonSchema
     # Entry point for the JsonSchema functionality
     #
