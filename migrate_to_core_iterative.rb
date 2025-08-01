@@ -140,8 +140,7 @@ class IterativeKumiCoreMigrator
     exclude_files = [
       "lib/kumi/cli.rb",
       "lib/kumi/version.rb",
-      "lib/kumi/schema.rb",
-      "lib/kumi/errors.rb"
+      "lib/kumi/schema.rb"
     ]
 
     Dir.glob("lib/kumi/**/*.rb").reject do |file|
@@ -157,7 +156,7 @@ class IterativeKumiCoreMigrator
 
     Dir.glob("lib/kumi/**/*.rb").each do |file|
       next if file.include?("/core/")
-      next if ["cli.rb", "version.rb", "schema.rb", "errors.rb"].any? { |skip| file.end_with?(skip) }
+      next if ["cli.rb", "version.rb", "schema.rb"].any? { |skip| file.end_with?(skip) }
 
       expected_count += 1
     end
@@ -180,7 +179,7 @@ class IterativeKumiCoreMigrator
 
     files_to_update = Dir.glob("lib/kumi/**/*.rb").reject do |file|
       file.include?("/core/") ||
-        ["cli.rb", "version.rb", "schema.rb", "errors.rb"].any? { |skip| file.end_with?(skip) }
+        ["cli.rb", "version.rb", "schema.rb"].any? { |skip| file.end_with?(skip) }
     end
 
     log_phase("   Processing #{files_to_update.length} files...")
@@ -188,8 +187,7 @@ class IterativeKumiCoreMigrator
     files_updated = 0
     files_to_update.each_with_index do |file, index|
       files_updated += 1 if update_file_module_declaration(file)
-
-      end
+    end
 
     @stats[:files_updated] = files_updated
     log_phase("✅ Updated #{files_updated} files: Kumi:: → Kumi::Core::")
@@ -375,7 +373,8 @@ class IterativeKumiCoreMigrator
     ]
 
     core_modules.each do |mod|
-      content.gsub!(/\bKumi::#{mod}\b/) { "Kumi::Core::#{mod}" }
+      # Apply Core prefix, but skip VERSION patterns
+      content.gsub!(/\bKumi::#{mod}(?!::[A-Z][a-zA-Z0-9]*::VERSION\b|::VERSION\b)/) { "Kumi::Core::#{mod}" }
     end
 
     # Special cases
@@ -408,9 +407,10 @@ class IterativeKumiCoreMigrator
     # Test 2: Core module structure
     test_core_module_structure
 
-    # Inline validation has been applied during file processing
+    # Test 3: Final cleanup pass for Errors references
+    fix_remaining_errors_references
 
-    # Test 3: Full test suite (after cleanup)
+    # Test 4: Full test suite (after cleanup)
     run_full_test_suite
 
     # Analyze change statistics
@@ -443,10 +443,38 @@ class IterativeKumiCoreMigrator
     raise "Core module structure is invalid"
   end
 
+  def fix_remaining_errors_references
+    log_phase("  Final cleanup pass for VERSION references...")
+
+    fixed_count = 0
+
+    # Find all files that might have incorrect VERSION references
+    files_to_check = Dir.glob("lib/**/*.rb") + Dir.glob("spec/**/*.rb") + Dir.glob("examples/**/*.rb")
+
+    files_to_check.each do |file|
+      content = File.read(file)
+      original_content = content.dup
+
+      # Only fix VERSION references like Kumi::Core::Export::Serializer::VERSION -> Kumi::VERSION
+      content.gsub!(/Kumi::Core::[A-Z]\w*(?:::[A-Z]\w*)*::VERSION\b/, "Kumi::VERSION")
+
+      if content != original_content
+        File.write(file, content)
+        fixed_count += 1
+      end
+    end
+
+    if fixed_count > 0
+      log_phase("  🔧 Fixed VERSION references in #{fixed_count} files")
+    else
+      log_phase("  ✅ No incorrect VERSION references found")
+    end
+  end
+
   def run_full_test_suite
     log_phase("🧪 Running full test suite...")
 
-    stdout, stderr, status = Open3.capture3("bundle exec rspec --fail-fast")
+    stdout, stderr, status = Open3.capture3("bundle exec rspec")
 
     if status.success?
       # Extract test summary from output
@@ -455,14 +483,41 @@ class IterativeKumiCoreMigrator
       log_phase("   📊 #{summary_line.chomp}") if summary_line
     else
       log_phase("   ❌ Full test suite FAILED", :error)
-      
-      # Write failed test logs to test_rspec.logs
+
+      # Analyze uninitialized constant errors before writing logs
       test_output = stderr.empty? ? stdout : stderr
+      analyze_uninitialized_constant_errors(test_output)
+
+      # Write failed test logs to test_rspec.logs
       File.write("test_rspec.logs", test_output)
       log_phase("   📝 Test failure logs written to test_rspec.logs")
-      
+
       record_error("Full test suite failed")
       raise "Full test suite failed"
+    end
+  end
+
+  def analyze_uninitialized_constant_errors(test_output)
+    log_phase("   🔍 Analyzing uninitialized constant errors...")
+
+    # Extract all uninitialized constant errors
+    constant_errors = []
+    test_output.lines.each do |line|
+      if line.match?(/NameError.*uninitialized constant ([A-Z][a-zA-Z0-9:]*[A-Z][a-zA-Z0-9]*)/)
+        constant = line.match(/NameError.*uninitialized constant ([A-Z][a-zA-Z0-9:]*[A-Z][a-zA-Z0-9]*)/)[1]
+        constant_errors << constant
+      end
+    end
+
+    if constant_errors.any?
+      unique_errors = constant_errors.uniq.sort
+      log_phase("   📋 Found #{constant_errors.length} uninitialized constant errors (#{unique_errors.length} unique):")
+      unique_errors.each do |const|
+        count = constant_errors.count(const)
+        log_phase("     #{count}x #{const}")
+      end
+    else
+      log_phase("   ✅ No uninitialized constant errors found")
     end
   end
 
@@ -642,6 +697,14 @@ class IterativeKumiCoreMigrator
   def restore_to_initial_state
     log_phase("🔄 Restoring to initial state...")
 
+    # Stash the migration script to avoid restoring it
+    script_name = File.basename(__FILE__)
+    if File.exist?(script_name)
+      system("cp #{script_name} #{script_name}.backup")
+      log_phase("📋 Backed up migration script")
+    end
+
+    return
     # Find the initial commit from the first rollback point
     if @rollback_points.any?
       initial_commit = @rollback_points.first[:commit]
@@ -649,6 +712,12 @@ class IterativeKumiCoreMigrator
       result = system("git reset --hard #{initial_commit}")
       if result
         log_phase("✅ Repository restored to initial state")
+
+        # Restore the migration script
+        if File.exist?("#{script_name}.backup")
+          system("mv #{script_name}.backup #{script_name}")
+          log_phase("📋 Restored migration script")
+        end
       else
         log_phase("❌ Failed to restore to initial state", :error)
       end
@@ -669,29 +738,46 @@ class IterativeKumiCoreMigrator
     content.gsub!("Kumi::Core::Core::", "Kumi::Core::")
     content.gsub!("Core::Core::", "Core::")
 
-    # Fix 2: Class instantiation patterns - detect Kumi::ClassName.new or similar
-    # Pattern matches: not preceded by module/class/struct, followed by Kumi::UppercaseWord
-    content.gsub!(/(?<!module\s)(?<!class\s)(?<!struct\s)\bKumi::([A-Z][a-zA-Z0-9]*(?:::[A-Z][a-zA-Z0-9]*)*)/) do |match|
-      module_path = ::Regexp.last_match(1)
-      # Skip if already has Core::
-      if module_path.start_with?("Core::")
-        match
-      else
-        "Kumi::Core::#{module_path}"
+    # Fix 2: For files in the core directory, be more selective about what gets the Core:: prefix
+    if file_path.include?("/core/")
+      # Only apply Core:: to modules that are actually in Core
+      core_modules = %w[
+        Analyzer Compiler Types Syntax Export Input Domain RubyParser
+        FunctionRegistry SchemaInstance SchemaMetadata Explain CompiledSchema
+        EvaluationWrapper ErrorReporter ErrorReporting VectorizationMetadata
+        JsonSchema AtomUnsatSolver ConstraintRelationshipSolver
+      ]
+
+      # Fix references to other core modules
+      core_modules.each do |mod|
+        # Replace Kumi::ModuleName with Core prefix, but skip VERSION references
+        content.gsub!(/\bKumi::#{mod}(?!::[A-Z][a-zA-Z0-9]*::VERSION\b|::VERSION\b)/) { "Kumi::Core::#{mod}" }
+      end
+    else
+      # For non-core files, apply broader fixes but exclude only top-level non-core modules
+      content.gsub!(/(?<!module\s)(?<!class\s)(?<!struct\s)\bKumi::([A-Z][a-zA-Z0-9]*(?:::[A-Z][a-zA-Z0-9]*)*)/) do |match|
+        module_path = ::Regexp.last_match(1)
+        # Skip if already has Core:: or if it's a root-level non-core module
+        first_part = module_path.split("::").first
+        if module_path.start_with?("Core::") ||
+           %w[Schema CLI VERSION].include?(first_part)
+          match
+        else
+          "Kumi::Core::#{module_path}"
+        end
       end
     end
 
-    # Fix 3: String literal references (eval, using statements, etc.)
+    # Fix 3: String literal references - be selective here too
     content.gsub!(/"using Kumi::([A-Z]\w+(?:::[A-Z]\w+)*)"/) do |match|
       module_path = ::Regexp.last_match(1)
-      # Avoid creating triple Core::
-      if module_path.start_with?("Core::")
+      # Don't move top-level non-core modules
+      if module_path.start_with?("Core::") || %w[Schema CLI VERSION].include?(module_path.split("::").first)
         "\"using Kumi::#{module_path}\""
       else
         "\"using Kumi::Core::#{module_path}\""
       end
     end
-
 
     content
   end
@@ -818,7 +904,6 @@ class IterativeKumiCoreMigrator
 
     log_phase("Migration committed as #{final_commit[0..7]}")
   end
-
 
   def record_error(message)
     @errors << {
