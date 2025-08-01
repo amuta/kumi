@@ -376,7 +376,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
           end
 
           value :doubled, input.items.count * 2
-          trait :positive, input.items.any?
+          trait :positive, input.items.count > 0
           value :total, fn(:sum, doubled)
         end
       end
@@ -500,9 +500,11 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             end
           end
 
+          # TODO: -> Better way?
+
           # Vectorized operations with potential nils (sugar syntax)
-          trait :has_price, !input.items.price.nil?
-          trait :has_category, !input.items.category.nil?
+          trait :has_price, fn(:!=, input.items.price, nil)
+          trait :has_category, fn(:!=, input.items.category, nil)
           # Alternative functional syntax also works:
           trait :price_not_nil, fn(:!=, input.items.price, nil)
           value :prices_with_fallback do
@@ -545,7 +547,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
             end
           end
 
-          trait :has_price, !input.items.price.nil?
+          trait :has_price, fn(:!=, input.items.price, nil)
           value :valid_prices do
             on has_price, input.items.price
             base 0.0
