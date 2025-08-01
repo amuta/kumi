@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # Base class for analyzer passes with simple immutable state
       class PassBase
-        include Kumi::Syntax
-        include Kumi::ErrorReporting
+        include Kumi::Core::Syntax
+        include Kumi::Core::ErrorReporting
 
         # @param schema [Syntax::Root] The schema to analyze
         # @param state [AnalysisState] Current analysis state

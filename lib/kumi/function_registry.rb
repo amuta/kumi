@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Registry for functions that can be used in Kumi schemas
   # This is the public interface for registering custom functions
   module FunctionRegistry

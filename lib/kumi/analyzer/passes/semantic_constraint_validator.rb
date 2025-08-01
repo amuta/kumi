@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate DSL semantic constraints at the AST level
@@ -26,17 +26,17 @@ module Kumi
 
         def validate_semantic_constraints(node, _decl, errors)
           case node
-          when Kumi::Syntax::TraitDeclaration
+          when Kumi::Core::Syntax::TraitDeclaration
             validate_trait_expression(node, errors)
-          when Kumi::Syntax::CaseExpression
+          when Kumi::Core::Syntax::CaseExpression
             validate_cascade_condition(node, errors)
-          when Kumi::Syntax::CallExpression
+          when Kumi::Core::Syntax::CallExpression
             validate_function_call(node, errors)
           end
         end
 
         def validate_trait_expression(trait, errors)
-          return if trait.expression.is_a?(Kumi::Syntax::CallExpression)
+          return if trait.expression.is_a?(Kumi::Core::Syntax::CallExpression)
 
           report_error(
             errors,
@@ -50,16 +50,16 @@ module Kumi
           condition = when_case.condition
 
           case condition
-          when Kumi::Syntax::DeclarationReference
+          when Kumi::Core::Syntax::DeclarationReference
             # Valid: trait reference
             nil
-          when Kumi::Syntax::CallExpression
+          when Kumi::Core::Syntax::CallExpression
             # Valid if it's a boolean composition of traits (all?, any?, none?)
             return if boolean_trait_composition?(condition)
 
             # For now, allow other CallExpressions - they'll be validated by other passes
             nil
-          when Kumi::Syntax::Literal
+          when Kumi::Core::Syntax::Literal
             # Allow literal conditions (like true/false) - they might be valid
             nil
           else

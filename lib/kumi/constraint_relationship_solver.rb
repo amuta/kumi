@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Enhanced constraint solver that can detect mathematical impossibilities
   # across dependency chains by tracking variable relationships.
   #
@@ -51,7 +51,7 @@ module Kumi
     # @return [Boolean] true if constraints are unsatisfiable
     def unsat?(atoms, definitions, input_meta: {}, debug: false)
       # First run the standard unsat solver
-      return true if Kumi::AtomUnsatSolver.unsat?(atoms, debug: debug)
+      return true if Kumi::Core::AtomUnsatSolver.unsat?(atoms, debug: debug)
 
       # Then check for relationship-based contradictions
       relationships = build_relationships(definitions)
@@ -68,10 +68,10 @@ module Kumi
 
       # Check if any derived constraints create contradictions
       all_constraints = atoms + derived_constraints.map do |dc|
-        Kumi::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
+        Kumi::Core::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
       end
 
-      Kumi::AtomUnsatSolver.unsat?(all_constraints, debug: debug)
+      Kumi::Core::AtomUnsatSolver.unsat?(all_constraints, debug: debug)
     end
 
     # Builds mathematical relationships from variable definitions
@@ -98,12 +98,12 @@ module Kumi
     # @return [Relationship, nil] the relationship or nil if not extractable
     def extract_relationship(target, expression)
       case expression
-      when Kumi::Syntax::CallExpression
+      when Kumi::Core::Syntax::CallExpression
         extract_call_relationship(target, expression)
-      when Kumi::Syntax::DeclarationReference
+      when Kumi::Core::Syntax::DeclarationReference
         # Simple alias: target = other_variable
         Relationship.new(target, :identity, [expression.name])
-      when Kumi::Syntax::InputReference
+      when Kumi::Core::Syntax::InputReference
         # Direct field reference: target = input.field
         # Create identity relationship so we can propagate constraints
         Relationship.new(target, :identity, [expression.name])
@@ -152,11 +152,11 @@ module Kumi
 
       args.map do |arg|
         case arg
-        when Kumi::Syntax::DeclarationReference
+        when Kumi::Core::Syntax::DeclarationReference
           arg.name
-        when Kumi::Syntax::Literal
+        when Kumi::Core::Syntax::Literal
           arg.value
-        when Kumi::Syntax::InputReference
+        when Kumi::Core::Syntax::InputReference
           # Use the field name directly to match how atoms represent input fields
           arg.name
         else
@@ -214,7 +214,7 @@ module Kumi
 
         # Add new constraints to our working set for next iteration
         new_atoms = new_constraints.map do |dc|
-          Kumi::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
+          Kumi::Core::AtomUnsatSolver::Atom.new(dc.operation, dc.variable, dc.value)
         end
         current_atoms.concat(new_atoms)
         all_derived_constraints.concat(new_constraints)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     # Simple context struct for nested input collection
     class NestedInput

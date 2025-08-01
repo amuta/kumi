@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Syntax
     # For field metadata declarations inside input blocks
     InputDeclaration = Struct.new(:name, :domain, :type, :children) do

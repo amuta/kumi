@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Ruby DSL parser for Kumi schemas
   # Converts Ruby block syntax into AST nodes
   module RubyParser

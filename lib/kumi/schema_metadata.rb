@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Primary interface for extracting structured metadata from analyzed Kumi schemas.
   #
   # SchemaMetadata provides both processed semantic metadata (inputs, values, traits, functions)
@@ -412,9 +412,9 @@ module Kumi
       end
 
       function_calls.each_with_object({}) do |func_name, result|
-        next unless Kumi::FunctionRegistry.supported?(func_name)
+        next unless Kumi::Core::FunctionRegistry.supported?(func_name)
 
-        function_info = Kumi::FunctionRegistry.signature(func_name)
+        function_info = Kumi::Core::FunctionRegistry.signature(func_name)
         result[func_name] = {
           param_types: function_info[:param_types],
           return_type: function_info[:return_type],

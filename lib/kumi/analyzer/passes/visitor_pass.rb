@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # Base class for analyzer passes that need to traverse the AST using the visitor pattern.

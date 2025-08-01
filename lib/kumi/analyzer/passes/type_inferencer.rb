@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Infer types for all declarations based on expression analysis
@@ -26,7 +26,7 @@ module Kumi
               if broadcast_meta[:vectorized_operations]&.key?(name)
                 # Infer the element type and wrap in array
                 element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
-                types[name] = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }
+                types[name] = decl.is_a?(Kumi::Core::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }
               else
                 # Normal type inference
                 inferred_type = infer_expression_type(decl.expression, types, broadcast_meta, name)

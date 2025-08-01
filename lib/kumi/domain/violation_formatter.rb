@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Domain
     class ViolationFormatter
       def self.format_message(field, value, domain)

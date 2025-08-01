@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   EvaluationWrapper = Struct.new(:ctx) do
     def initialize(ctx)
       super

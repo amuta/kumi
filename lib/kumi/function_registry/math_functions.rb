@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module FunctionRegistry
     # Mathematical operations
     module MathFunctions
@@ -59,10 +59,10 @@ module Kumi
             arity: 3,
             param_types: [
               :float,
-              Kumi::Types.array(:float),                   # breaks
-              Kumi::Types.array(:float)                    # rates
+              Kumi::Core::Types.array(:float),                   # breaks
+              Kumi::Core::Types.array(:float)                    # rates
             ],
-            return_type: Kumi::Types.array(:float),        # 2‑element [sum, marginal]
+            return_type: Kumi::Core::Types.array(:float),        # 2‑element [sum, marginal]
             description: "Accumulate over tiered ranges; returns [sum, marginal_rate]"
           )
         }

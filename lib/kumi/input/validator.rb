@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Input
     class Validator
       def self.validate_context(context, input_meta)

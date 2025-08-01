@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Types
     # Re-export constants for compatibility
     VALID_TYPES = Validator::VALID_TYPES

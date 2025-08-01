@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Syntax
     Literal = Struct.new(:value) do
       include Node

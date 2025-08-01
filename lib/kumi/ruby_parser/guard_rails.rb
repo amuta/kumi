@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     module GuardRails
       RESERVED = %i[input trait value fn lit ref].freeze
@@ -24,7 +24,7 @@ module Kumi
             end
 
             # This is a redefinition attempt, prevent it
-            raise Kumi::Errors::SemanticError,
+            raise Kumi::Core::Errors::SemanticError,
                   "DSL keyword `#{name}` is reserved; " \
                   "do not redefine it inside SchemaBuilder"
           end

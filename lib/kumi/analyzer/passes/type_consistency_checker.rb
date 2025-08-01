@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate consistency between declared and inferred types
@@ -25,7 +25,7 @@ module Kumi
           input_meta.each do |field_name, meta|
             declared_type = meta[:type]
             next unless declared_type # Skip fields without declared types
-            next if Kumi::Types.valid_type?(declared_type)
+            next if Kumi::Core::Types.valid_type?(declared_type)
 
             # Find the input field declaration for proper location information
             field_decl = find_input_field_declaration(field_name)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Types
     # Handles type compatibility and unification
     class Compatibility
@@ -52,7 +52,7 @@ module Kumi
           elem1 = type1[:array]
           elem2 = type2[:array]
           unified_elem = unify(elem1, elem2)
-          return Kumi::Types.array(unified_elem)
+          return Kumi::Core::Types.array(unified_elem)
         end
 
         # Hash unification
@@ -61,7 +61,7 @@ module Kumi
           key2, val2 = type2[:hash]
           unified_key = unify(key1, key2)
           unified_val = unify(val1, val2)
-          return Kumi::Types.hash(unified_key, unified_val)
+          return Kumi::Core::Types.hash(unified_key, unified_val)
         end
 
         # Fall back to :any for incompatible types

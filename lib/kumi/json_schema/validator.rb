@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module JsonSchema
     # Validates data against JSON Schema (placeholder for future implementation)
     class Validator

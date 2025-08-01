@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Syntax
     # Represents the root of the Abstract Syntax Tree.
     # It holds all the top-level declarations parsed from the source.

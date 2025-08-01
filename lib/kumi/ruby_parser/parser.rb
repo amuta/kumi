@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     # Main parser class for Ruby DSL
     class Parser
@@ -21,7 +21,7 @@ module Kumi
         added = ::Object.constants - before_consts
 
         unless added.empty?
-          raise Kumi::Errors::SemanticError,
+          raise Kumi::Core::Errors::SemanticError,
                 "DSL cannot define global constants: #{added.join(', ')}"
         end
 
@@ -34,11 +34,11 @@ module Kumi
       private
 
       def enable_refinements(rule_block)
-        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ExpressionRefinement")
-        rule_block.binding.eval("using Kumi::RubyParser::Sugar::NumericRefinement")
-        rule_block.binding.eval("using Kumi::RubyParser::Sugar::StringRefinement")
-        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ArrayRefinement")
-        rule_block.binding.eval("using Kumi::RubyParser::Sugar::ModuleRefinement")
+        rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::ExpressionRefinement")
+        rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::NumericRefinement")
+        rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::StringRefinement")
+        rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::ArrayRefinement")
+        rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::ModuleRefinement")
       rescue RuntimeError, NoMethodError
         # Refinements disabled in method scope - continue without them
       end
@@ -62,7 +62,7 @@ module Kumi
       end
 
       def literal_comparison_error?(error)
-        error.message =~ /comparison of Integer with Kumi::Syntax::/i
+        error.message =~ /comparison of Integer with Kumi::Core::Syntax::/i
       end
     end
   end

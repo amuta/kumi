@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Collect field metadata from input declarations and validate consistency
@@ -12,7 +12,7 @@ module Kumi
           input_meta = {}
 
           schema.inputs.each do |field_decl|
-            unless field_decl.is_a?(Kumi::Syntax::InputDeclaration)
+            unless field_decl.is_a?(Kumi::Core::Syntax::InputDeclaration)
               report_error(errors, "Expected InputDeclaration node, got #{field_decl.class}", location: field_decl.loc)
               next
             end
@@ -47,7 +47,7 @@ module Kumi
           if field_decl.children && !field_decl.children.empty?
             children_meta = {}
             field_decl.children.each do |child_decl|
-              unless child_decl.is_a?(Kumi::Syntax::InputDeclaration)
+              unless child_decl.is_a?(Kumi::Core::Syntax::InputDeclaration)
                 report_error(errors, "Expected InputDeclaration node in children, got #{child_decl.class}", location: child_decl.loc)
                 next
               end
@@ -91,7 +91,7 @@ module Kumi
             new_children = {}
 
             field_decl.children.each do |child_decl|
-              unless child_decl.is_a?(Kumi::Syntax::InputDeclaration)
+              unless child_decl.is_a?(Kumi::Core::Syntax::InputDeclaration)
                 report_error(errors, "Expected InputDeclaration node in children, got #{child_decl.class}", location: child_decl.loc)
                 next
               end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module FunctionRegistry
     # Conditional and control flow functions
     module ConditionalFunctions

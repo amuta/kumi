@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     class SchemaBuilder
       include GuardRails
@@ -18,7 +18,7 @@ module Kumi
         validate_value_args(name, expr, blk)
 
         expression = blk ? build_cascade(&blk) : ensure_syntax(expr)
-        @context.attributes << Kumi::Syntax::ValueDeclaration.new(name, expression, loc: @context.current_location)
+        @context.attributes << Kumi::Core::Syntax::ValueDeclaration.new(name, expression, loc: @context.current_location)
       end
 
       def trait(*args, **kwargs)
@@ -40,18 +40,18 @@ module Kumi
 
       def ref(name)
         update_location
-        Kumi::Syntax::DeclarationReference.new(name, loc: @context.current_location)
+        Kumi::Core::Syntax::DeclarationReference.new(name, loc: @context.current_location)
       end
 
       def literal(value)
         update_location
-        Kumi::Syntax::Literal.new(value, loc: @context.current_location)
+        Kumi::Core::Syntax::Literal.new(value, loc: @context.current_location)
       end
 
       def fn(fn_name, *args)
         update_location
         expr_args = args.map { |a| ensure_syntax(a) }
-        Kumi::Syntax::CallExpression.new(fn_name, expr_args, loc: @context.current_location)
+        Kumi::Core::Syntax::CallExpression.new(fn_name, expr_args, loc: @context.current_location)
       end
 
       def method_missing(method_name, *args, &block)
@@ -110,7 +110,7 @@ module Kumi
           name, expression = args
           validate_trait_name(name)
           expr = ensure_syntax(expression)
-          @context.traits << Kumi::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
+          @context.traits << Kumi::Core::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
         else
           handle_deprecated_trait_syntax(args)
         end
@@ -138,8 +138,8 @@ module Kumi
         validate_operator(operator)
 
         rhs_exprs = rhs.map { |r| ensure_syntax(r) }
-        expr = Kumi::Syntax::CallExpression.new(operator, [ensure_syntax(lhs)] + rhs_exprs, loc: @context.current_location)
-        @context.traits << Kumi::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
+        expr = Kumi::Core::Syntax::CallExpression.new(operator, [ensure_syntax(lhs)] + rhs_exprs, loc: @context.current_location)
+        @context.traits << Kumi::Core::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
       end
 
       def validate_trait_name(name)
@@ -162,7 +162,7 @@ module Kumi
         expression_converter = ExpressionConverter.new(@context)
         cascade_builder = DslCascadeBuilder.new(expression_converter, @context.current_location)
         cascade_builder.instance_eval(&blk)
-        Kumi::Syntax::CascadeExpression.new(cascade_builder.cases, loc: @context.current_location)
+        Kumi::Core::Syntax::CascadeExpression.new(cascade_builder.cases, loc: @context.current_location)
       end
 
       def ensure_syntax(obj)

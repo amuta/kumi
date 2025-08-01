@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
@@ -9,7 +9,7 @@ module Kumi
       # INTERFACE: new(schema, state).run(errors)
       class TypeChecker < VisitorPass
         def run(errors)
-          visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
+          visit_nodes_of_type(Kumi::Core::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
             validate_function_call(node, errs)
           end
           state
@@ -61,10 +61,10 @@ module Kumi
           # This is a simplified check - in a real implementation we'd need to track context
           node.args.any? do |arg|
             case arg
-            when Kumi::Syntax::DeclarationReference
+            when Kumi::Core::Syntax::DeclarationReference
               broadcast_meta[:vectorized_operations]&.key?(arg.name) ||
                 broadcast_meta[:reduction_operations]&.key?(arg.name)
-            when Kumi::Syntax::InputElementReference
+            when Kumi::Core::Syntax::InputElementReference
               broadcast_meta[:array_fields]&.key?(arg.path.first)
             else
               false
@@ -73,11 +73,11 @@ module Kumi
         end
 
         def validate_argument_type(arg, index, expected_type, fn_name, errors)
-          return if expected_type.nil? || expected_type == Kumi::Types::ANY
+          return if expected_type.nil? || expected_type == Kumi::Core::Types::ANY
 
           # Get the inferred type for this argument
           actual_type = get_expression_type(arg)
-          return if Kumi::Types.compatible?(actual_type, expected_type)
+          return if Kumi::Core::Types.compatible?(actual_type, expected_type)
 
           # Generate descriptive error message
           source_desc = describe_expression_type(arg, actual_type)
@@ -87,22 +87,22 @@ module Kumi
 
         def get_expression_type(expr)
           case expr
-          when Kumi::Syntax::Literal
+          when Kumi::Core::Syntax::Literal
             # Inferred type from literal value
-            Kumi::Types.infer_from_value(expr.value)
+            Kumi::Core::Types.infer_from_value(expr.value)
 
-          when Kumi::Syntax::InputReference
+          when Kumi::Core::Syntax::InputReference
             # Declared type from input block (user-specified)
             get_declared_field_type(expr.name)
 
-          when Kumi::Syntax::DeclarationReference
+          when Kumi::Core::Syntax::DeclarationReference
             # Inferred type from type inference results
             get_inferred_declaration_type(expr.name)
 
           else
             # For complex expressions, we should have type inference results
             # This is a simplified approach - in reality we'd need to track types for all expressions
-            Kumi::Types::ANY
+            Kumi::Core::Types::ANY
           end
         end
 
@@ -110,21 +110,21 @@ module Kumi
           # Get explicitly declared type from input metadata
           input_meta = get_state(:inputs, required: false) || {}
           field_meta = input_meta[field_name]
-          field_meta&.dig(:type) || Kumi::Types::ANY
+          field_meta&.dig(:type) || Kumi::Core::Types::ANY
         end
 
         def get_inferred_declaration_type(decl_name)
           # Get inferred type from type inference results
           decl_types = get_state(:inferred_types, required: true)
-          decl_types[decl_name] || Kumi::Types::ANY
+          decl_types[decl_name] || Kumi::Core::Types::ANY
         end
 
         def describe_expression_type(expr, type)
           case expr
-          when Kumi::Syntax::Literal
+          when Kumi::Core::Syntax::Literal
             "`#{expr.value}` of type #{type} (literal value)"
 
-          when Kumi::Syntax::InputReference
+          when Kumi::Core::Syntax::InputReference
             input_meta = get_state(:inputs, required: false) || {}
             field_meta = input_meta[expr.name]
 
@@ -137,17 +137,17 @@ module Kumi
               "undeclared input field `#{expr.name}` (inferred as #{type})"
             end
 
-          when Kumi::Syntax::DeclarationReference
+          when Kumi::Core::Syntax::DeclarationReference
             # This type was inferred from the declaration's expression
             "reference to declaration `#{expr.name}` of inferred type #{type}"
 
-          when Kumi::Syntax::CallExpression
+          when Kumi::Core::Syntax::CallExpression
             "result of function `#{expr.fn_name}` returning #{type}"
 
-          when Kumi::Syntax::ArrayExpression
+          when Kumi::Core::Syntax::ArrayExpression
             "list expression of type #{type}"
 
-          when Kumi::Syntax::CascadeExpression
+          when Kumi::Core::Syntax::CascadeExpression
             "cascade expression of type #{type}"
 
           else

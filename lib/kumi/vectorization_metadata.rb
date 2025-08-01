@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Metadata system for vectorization detection and handling
   module VectorizationMetadata
     # Tracks which declarations are arrays with children (vectorizable)
@@ -35,9 +35,9 @@ module Kumi
       # Check if an expression should be vectorized
       def vectorized_expression?(expression)
         case expression
-        when Kumi::Syntax::CallExpression
+        when Kumi::Core::Syntax::CallExpression
           vectorized_call?(expression)
-        when Kumi::Syntax::InputElementReference
+        when Kumi::Core::Syntax::InputElementReference
           vectorized_element_reference?(expression)
         else
           false

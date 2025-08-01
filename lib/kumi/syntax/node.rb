@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Syntax
     # A struct to hold standardized source location information.
     Location = Struct.new(:file, :line, :column, keyword_init: true)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Centralized error reporting interface for consistent location handling
   # and error message formatting across the entire codebase.
   #

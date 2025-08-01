@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     # Proxy for input field access that can handle arbitrary depth nesting
     # Handles input.field.subfield.subsubfield... syntax by building up path arrays
@@ -19,10 +19,10 @@ module Kumi
       def to_ast_node
         if @path.length == 1
           # Single field: input.field -> InputReference
-          Kumi::Syntax::InputReference.new(@path.first, loc: @context.current_location)
+          Kumi::Core::Syntax::InputReference.new(@path.first, loc: @context.current_location)
         else
           # Nested fields: input.field.subfield... -> InputElementReference
-          Kumi::Syntax::InputElementReference.new(@path, loc: @context.current_location)
+          Kumi::Core::Syntax::InputElementReference.new(@path, loc: @context.current_location)
         end
       end
 

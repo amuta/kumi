@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Syntax
     CallExpression = Struct.new(:fn_name, :args) do
       include Node

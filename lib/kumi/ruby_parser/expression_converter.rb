@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     # Converts Ruby objects and DSL expressions into AST nodes
     # This is the bridge between Ruby's native types and Kumi's syntax tree
@@ -36,14 +36,14 @@ module Kumi
       # @return [Syntax::DeclarationReference] Reference node
       def ref(name)
         validate_reference_name(name)
-        Kumi::Syntax::DeclarationReference.new(name, loc: current_location)
+        Kumi::Core::Syntax::DeclarationReference.new(name, loc: current_location)
       end
 
       # Create a literal value node
       # @param value [Object] The literal value
       # @return [Syntax::Literal] Literal node
       def literal(value)
-        Kumi::Syntax::Literal.new(value, loc: current_location)
+        Kumi::Core::Syntax::Literal.new(value, loc: current_location)
       end
 
       # Create a function call expression
@@ -53,7 +53,7 @@ module Kumi
       def fn(fn_name, *args)
         validate_function_name(fn_name)
         expr_args = convert_arguments(args)
-        Kumi::Syntax::CallExpression.new(fn_name, expr_args, loc: current_location)
+        Kumi::Core::Syntax::CallExpression.new(fn_name, expr_args, loc: current_location)
       end
 
       # Access the input proxy for field references
@@ -72,12 +72,12 @@ module Kumi
       private
 
       def create_literal(value)
-        Kumi::Syntax::Literal.new(value, loc: current_location)
+        Kumi::Core::Syntax::Literal.new(value, loc: current_location)
       end
 
       def create_list(array)
         elements = array.map { |element| ensure_syntax(element) }
-        Kumi::Syntax::ArrayExpression.new(elements, loc: current_location)
+        Kumi::Core::Syntax::ArrayExpression.new(elements, loc: current_location)
       end
 
       def handle_custom_object(obj)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module RubyParser
     # DSL proxy for declaration references (traits and values)
     # Handles references to declared items and field access on them
@@ -17,7 +17,7 @@ module Kumi
 
       # Convert to DeclarationReference AST node
       def to_ast_node
-        Kumi::Syntax::DeclarationReference.new(@name, loc: @context.current_location)
+        Kumi::Core::Syntax::DeclarationReference.new(@name, loc: @context.current_location)
       end
 
       private

@@ -2,7 +2,7 @@
 
 require "json"
 
-module Kumi
+module Kumi::Core
   module JsonSchema
     # Converts Kumi schema metadata to JSON Schema format
     class Generator

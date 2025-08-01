@@ -2,7 +2,7 @@
 
 require "json"
 
-module Kumi
+module Kumi::Core
   module Export
     # Core interface - only depends on Syntax::Root
     def self.to_json(syntax_root, **options)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Input
     class ViolationCreator
       def self.create_type_violation(field, value, expected_type)
@@ -20,7 +20,7 @@ module Kumi
           field: field,
           value: value,
           domain: domain,
-          message: Kumi::Domain::ViolationFormatter.format_message(field, value, domain)
+          message: Kumi::Core::Domain::ViolationFormatter.format_message(field, value, domain)
         }
       end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Explain
     class ExplanationGenerator
       def initialize(syntax_tree, analyzer_result, inputs)
@@ -37,17 +37,17 @@ module Kumi
 
       def format_expression(expr, indent_context: 0, nested: false)
         case expr
-        when Kumi::Syntax::InputReference
+        when Kumi::Core::Syntax::InputReference
           "input.#{expr.name}"
-        when Kumi::Syntax::DeclarationReference
+        when Kumi::Core::Syntax::DeclarationReference
           expr.name.to_s
-        when Kumi::Syntax::Literal
+        when Kumi::Core::Syntax::Literal
           format_value(expr.value)
-        when Kumi::Syntax::CallExpression
+        when Kumi::Core::Syntax::CallExpression
           format_call_expression(expr, indent_context: indent_context, nested: nested)
-        when Kumi::Syntax::ArrayExpression
+        when Kumi::Core::Syntax::ArrayExpression
           "[#{expr.elements.map { |e| format_expression(e, indent_context: indent_context, nested: nested) }.join(', ')}]"
-        when Kumi::Syntax::CascadeExpression
+        when Kumi::Core::Syntax::CascadeExpression
           format_cascade_expression(expr, indent_context: indent_context)
         else
           expr.class.name.split("::").last
@@ -72,11 +72,11 @@ module Kumi
             symbolic_format = symbolic_operands.join(" #{get_operator_symbol(fn_name)} ")
 
             evaluated_operands = all_operands.map do |op|
-              if op.is_a?(Kumi::Syntax::Literal)
+              if op.is_a?(Kumi::Core::Syntax::Literal)
                 format_expression(op, indent_context: 0, nested: true)
               else
                 arg_value = format_value(evaluate_expression(op))
-                if op.is_a?(Kumi::Syntax::DeclarationReference) && all_operands.length > 1
+                if op.is_a?(Kumi::Core::Syntax::DeclarationReference) && all_operands.length > 1
                   "(#{format_expression(op, indent_context: 0, nested: true)} = #{arg_value})"
                 else
                   arg_value
@@ -91,12 +91,12 @@ module Kumi
             symbolic_format = display_format(fn_name, symbolic_args)
 
             evaluated_args = expr.args.map do |arg|
-              if arg.is_a?(Kumi::Syntax::Literal)
+              if arg.is_a?(Kumi::Core::Syntax::Literal)
                 format_expression(arg, indent_context: 0, nested: true)
               else
                 arg_value = format_value(evaluate_expression(arg))
-                if arg.is_a?(Kumi::Syntax::DeclarationReference) &&
-                   expr.args.count { |a| !a.is_a?(Kumi::Syntax::Literal) } > 1
+                if arg.is_a?(Kumi::Core::Syntax::DeclarationReference) &&
+                   expr.args.count { |a| !a.is_a?(Kumi::Core::Syntax::Literal) } > 1
                   "(#{format_expression(arg, indent_context: 0, nested: true)} = #{arg_value})"
                 else
                   arg_value
@@ -119,7 +119,7 @@ module Kumi
 
         # Check if any argument is the same operator
         expr.args.any? do |arg|
-          arg.is_a?(Kumi::Syntax::CallExpression) && arg.fn_name == fn_name
+          arg.is_a?(Kumi::Core::Syntax::CallExpression) && arg.fn_name == fn_name
         end
       end
 
@@ -127,7 +127,7 @@ module Kumi
         operands = []
 
         expr.args.each do |arg|
-          if arg.is_a?(Kumi::Syntax::CallExpression) && arg.fn_name == operator
+          if arg.is_a?(Kumi::Core::Syntax::CallExpression) && arg.fn_name == operator
             # Recursively flatten nested operations of the same type
             operands.concat(flatten_operator_chain(arg, operator))
           else
@@ -176,8 +176,8 @@ module Kumi
           arg_desc = format_expression(arg, indent_context: indent_context)
 
           # For literals and literal lists, just show the value, no need for "100 = 100"
-          if arg.is_a?(Kumi::Syntax::Literal) ||
-             (arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.all?(Kumi::Syntax::Literal))
+          if arg.is_a?(Kumi::Core::Syntax::Literal) ||
+             (arg.is_a?(Kumi::Core::Syntax::ArrayExpression) && arg.elements.all?(Kumi::Core::Syntax::Literal))
             arg_desc
           else
             arg_value = evaluate_expression(arg)
@@ -197,8 +197,8 @@ module Kumi
 
       def needs_evaluation?(args)
         args.any? do |arg|
-          !arg.is_a?(Kumi::Syntax::Literal) &&
-            !(arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.all?(Kumi::Syntax::Literal))
+          !arg.is_a?(Kumi::Core::Syntax::Literal) &&
+            !(arg.is_a?(Kumi::Core::Syntax::ArrayExpression) && arg.elements.all?(Kumi::Core::Syntax::Literal))
         end
       end
 
@@ -252,11 +252,11 @@ module Kumi
 
       def evaluate_expression(expr)
         case expr
-        when Kumi::Syntax::DeclarationReference
+        when Kumi::Core::Syntax::DeclarationReference
           @compiled_schema.evaluate_binding(expr.name, @inputs)
-        when Kumi::Syntax::InputReference
+        when Kumi::Core::Syntax::InputReference
           @inputs[expr.name]
-        when Kumi::Syntax::Literal
+        when Kumi::Core::Syntax::Literal
           expr.value
         else
           # For complex expressions, compile and evaluate using existing compiler

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module FunctionRegistry
     # Comparison and equality functions
     module ComparisonFunctions

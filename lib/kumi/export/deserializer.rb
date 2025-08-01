@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Export
     class Deserializer
       include NodeBuilders
@@ -21,18 +21,18 @@ module Kumi
       def parse_json(json_string)
         JSON.parse(json_string, symbolize_names: true)
       rescue JSON::ParserError => e
-        raise Kumi::Export::Errors::DeserializationError, "Invalid JSON: #{e.message}"
+        raise Kumi::Core::Export::Errors::DeserializationError, "Invalid JSON: #{e.message}"
       end
 
       def validate_format(data)
         unless data[:kumi_version] && data[:ast]
-          raise Kumi::Export::Errors::DeserializationError,
+          raise Kumi::Core::Export::Errors::DeserializationError,
                 "Missing required fields: kumi_version, ast"
         end
 
         return if data[:ast][:type] == "root"
 
-        raise Kumi::Export::Errors::DeserializationError, "Root node must have type 'root'"
+        raise Kumi::Core::Export::Errors::DeserializationError, "Root node must have type 'root'"
       end
     end
   end

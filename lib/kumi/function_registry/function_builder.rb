@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module FunctionRegistry
     # Utility class to reduce repetition in function definitions
     class FunctionBuilder
@@ -82,7 +82,7 @@ module Kumi
         Entry.new(
           fn: proc(&operation),
           arity: 1,
-          param_types: [Kumi::Types.array(:any)],
+          param_types: [Kumi::Core::Types.array(:any)],
           return_type: return_type,
           description: description,
           reducer: reducer

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Domain
     class Validator
       def self.validate_field(_field_name, value, domain)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # AtomUnsatSolver detects logical contradictions in constraint systems using three analysis passes:
   # 1. Numerical bounds checking for symbol-numeric inequalities (e.g. x > 5, x < 3)
   # 2. Equality contradiction detection for same-type comparisons

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Domain
     class RangeAnalyzer
       def self.analyze(range)

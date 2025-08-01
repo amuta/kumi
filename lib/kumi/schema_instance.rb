@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # A bound pair of <compiled schema + context>.  Immutable.
   #
   # Public API ----------------------------------------------------------
@@ -14,7 +14,7 @@ module Kumi
     attr_reader :compiled_schema, :metadata, :context
 
     def initialize(compiled_schema, metadata, context)
-      @compiled_schema = compiled_schema # Kumi::CompiledSchema
+      @compiled_schema = compiled_schema # Kumi::Core::CompiledSchema
       @metadata = metadata # Frozen state hash
       @context  = context.is_a?(EvaluationWrapper) ? context : EvaluationWrapper.new(context)
     end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Analyzer
     module Passes
       # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
@@ -11,7 +11,7 @@ module Kumi
         include Syntax
 
         COMPARATORS = %i[> < >= <= == !=].freeze
-        Atom        = Kumi::AtomUnsatSolver::Atom
+        Atom        = Kumi::Core::AtomUnsatSolver::Atom
 
         def run(errors)
           definitions = get_state(:declarations)
@@ -41,9 +41,9 @@ module Kumi
 
               # Use enhanced solver that can detect cross-variable mathematical constraints
               impossible = if definitions && !definitions.empty?
-                             Kumi::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
+                             Kumi::Core::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
                            else
-                             Kumi::AtomUnsatSolver.unsat?(atoms)
+                             Kumi::Core::AtomUnsatSolver.unsat?(atoms)
                            end
 
               report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
@@ -138,9 +138,9 @@ module Kumi
           left_impossible = if left_atoms.empty?
                               false
                             elsif definitions && !definitions.empty?
-                              Kumi::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
+                              Kumi::Core::ConstraintRelationshipSolver.unsat?(left_atoms, definitions, input_meta: @input_meta)
                             else
-                              Kumi::AtomUnsatSolver.unsat?(left_atoms)
+                              Kumi::Core::AtomUnsatSolver.unsat?(left_atoms)
                             end
 
           # Check if right side is impossible
@@ -148,9 +148,9 @@ module Kumi
           right_impossible = if right_atoms.empty?
                                false
                              elsif definitions && !definitions.empty?
-                               Kumi::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
+                               Kumi::Core::ConstraintRelationshipSolver.unsat?(right_atoms, definitions, input_meta: @input_meta)
                              else
-                               Kumi::AtomUnsatSolver.unsat?(right_atoms)
+                               Kumi::Core::AtomUnsatSolver.unsat?(right_atoms)
                              end
 
           # OR is impossible only if BOTH sides are impossible
@@ -239,14 +239,14 @@ module Kumi
 
             # Only flag if this individual condition is impossible
             # if !condition_atoms.empty?
-            #   is_unsat = Kumi::AtomUnsatSolver.unsat?(condition_atoms)
+            #   is_unsat = Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
             #   puts "  Is unsat? #{is_unsat}"
             # end
             # Use enhanced solver for cascade conditions too
             impossible = if definitions && !definitions.empty?
-                           Kumi::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
+                           Kumi::Core::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
                          else
-                           Kumi::AtomUnsatSolver.unsat?(condition_atoms)
+                           Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
                          end
             next unless !condition_atoms.empty? && impossible
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   module Input
     class TypeMatcher
       def self.matches?(value, declared_type)

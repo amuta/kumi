@@ -2,7 +2,7 @@
 
 require "date"
 
-module Kumi
+module Kumi::Core
   module Types
     # Normalizes different type inputs to canonical forms
     class Normalizer

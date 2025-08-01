@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Kumi
+module Kumi::Core
   # Compiles an analyzed schema into executable lambdas
   class Compiler
     # ExprCompilers holds per-node compile implementations
@@ -112,12 +112,12 @@ module Kumi
 
       def transform_vectorized_condition(condition_expr)
         # If this is fn(:all?, [trait_ref]), extract the trait_ref for vectorized cascades
-        if condition_expr.is_a?(Kumi::Syntax::CallExpression) &&
+        if condition_expr.is_a?(Kumi::Core::Syntax::CallExpression) &&
            condition_expr.fn_name == :all? &&
            condition_expr.args.length == 1
 
           arg = condition_expr.args.first
-          if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
+          if arg.is_a?(Kumi::Core::Syntax::ArrayExpression) && arg.elements.length == 1
             trait_ref = arg.elements.first
             return compile_expr(trait_ref)
           end
@@ -132,13 +132,13 @@ module Kumi
 
     # Map node classes to compiler methods
     DISPATCH = {
-      Kumi::Syntax::Literal => :compile_literal,
-      Kumi::Syntax::InputReference => :compile_field_node,
-      Kumi::Syntax::InputElementReference => :compile_element_field_reference,
-      Kumi::Syntax::DeclarationReference => :compile_binding_node,
-      Kumi::Syntax::ArrayExpression => :compile_list,
-      Kumi::Syntax::CallExpression => :compile_call,
-      Kumi::Syntax::CascadeExpression => :compile_cascade
+      Kumi::Core::Syntax::Literal => :compile_literal,
+      Kumi::Core::Syntax::InputReference => :compile_field_node,
+      Kumi::Core::Syntax::InputElementReference => :compile_element_field_reference,
+      Kumi::Core::Syntax::DeclarationReference => :compile_binding_node,
+      Kumi::Core::Syntax::ArrayExpression => :compile_list,
+      Kumi::Core::Syntax::CallExpression => :compile_call,
+      Kumi::Core::Syntax::CascadeExpression => :compile_cascade
     }.freeze
 
     def self.compile(schema, analyzer:)
@@ -189,7 +189,7 @@ module Kumi
 
     def compile_declaration(decl)
       @current_declaration = decl.name
-      kind = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? :trait : :attr
+      kind = decl.is_a?(Kumi::Core::Syntax::TraitDeclaration) ? :trait : :attr
       fn = compile_expr(decl.expression)
       @bindings[decl.name] = [kind, fn]
       @current_declaration = nil
@@ -222,9 +222,9 @@ module Kumi
 
       expr.args.any? do |arg|
         case arg
-        when Kumi::Syntax::InputElementReference
+        when Kumi::Core::Syntax::InputElementReference
           broadcast_meta[:array_fields]&.key?(arg.path.first)
-        when Kumi::Syntax::DeclarationReference
+        when Kumi::Core::Syntax::DeclarationReference
           broadcast_meta[:vectorized_operations]&.key?(arg.name)
         else
           false
@@ -283,7 +283,7 @@ module Kumi
       # Preserve original error class and backtrace while adding context
       enhanced_message = "Error calling fn(:#{name}) at #{loc}: #{e.message}"
 
-      if e.is_a?(Kumi::Errors::Error)
+      if e.is_a?(Kumi::Core::Errors::Error)
         # Re-raise Kumi errors with enhanced message but preserve type
         e.define_singleton_method(:message) { enhanced_message }
         raise e
