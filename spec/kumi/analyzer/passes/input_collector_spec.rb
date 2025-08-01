@@ -133,7 +133,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors.size).to eq(1)
-        expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Core::Syntax::Literal/)
+        expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Syntax::Literal/)
         # Should still process valid fields
         expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil)
       end

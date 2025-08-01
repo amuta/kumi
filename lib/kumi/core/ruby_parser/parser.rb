@@ -63,7 +63,7 @@ module Kumi
         end
 
         def literal_comparison_error?(error)
-          error.message =~ /comparison of Integer with Kumi::Core::Syntax::/i
+          error.message =~ /comparison of Integer with Kumi::Syntax::/i
         end
       end
     end

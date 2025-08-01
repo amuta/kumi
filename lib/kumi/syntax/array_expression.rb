@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Core
-    module Syntax
+  module Syntax
       ArrayExpression = Struct.new(:elements) do
         include Node
 
@@ -12,6 +11,5 @@ module Kumi
           elements.size
         end
       end
-    end
   end
 end

@@ -20,10 +20,10 @@ module Kumi
         def to_ast_node
           if @path.length == 1
             # Single field: input.field -> InputReference
-            Kumi::Core::Syntax::InputReference.new(@path.first, loc: @context.current_location)
+            Kumi::Syntax::InputReference.new(@path.first, loc: @context.current_location)
           else
             # Nested fields: input.field.subfield... -> InputElementReference
-            Kumi::Core::Syntax::InputElementReference.new(@path, loc: @context.current_location)
+            Kumi::Syntax::InputElementReference.new(@path, loc: @context.current_location)
           end
         end
 

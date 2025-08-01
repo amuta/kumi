@@ -18,7 +18,7 @@ module Kumi
 
         # Convert to DeclarationReference AST node
         def to_ast_node
-          Kumi::Core::Syntax::DeclarationReference.new(@name, loc: @context.current_location)
+          Kumi::Syntax::DeclarationReference.new(@name, loc: @context.current_location)
         end
 
         private

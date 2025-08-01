@@ -8,7 +8,6 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 It is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
 
 
-
 ## What can you build?
 
 Calculate U.S. federal taxes:
@@ -118,16 +117,14 @@ value :monthly_payment, fn(:pmt, rate: 0.05/12, nper: 36, pv: -loan_amount)
 ```
 Note: You can find a list all core functions in [docs/FUNCTIONS.md](docs/FUNCTIONS.md)
 
-These primitives are statically analyzed during schema definition to catch logical errors before runtime.
-
 </details>
 
 <details>
-<summary><strong>🔍 Static Analysis</strong> - Catch business logic errors at definition time</summary>
+<summary><strong>🔍 Static Analysis</strong> - Catch errors at definition time and provides rich metadata</summary>
 
 ### Static Analysis
 
-Kumi catches business logic errors that cause runtime failures or silent bugs:
+Kumi catches many types of business logic errors that cause runtime failures or silent bugs:
 
 ```ruby
 module InsurancePolicyPricer
@@ -360,6 +357,12 @@ metadata.to_json_schema   # JSON Schema for input validation
 The SchemaMetadata interface provides both processed metadata for tool development and raw analyzer state for advanced use cases. Complete documentation available in the SchemaMetadata class and [docs/schema_metadata.md](docs/schema_metadata.md).
 
 </details>
+
+## Beyond Rules: What the Metadata Unlocks
+* **Auto-generated forms** – compile schema → field spec → React form
+* **Scenario explorer** – derive all trait combinations, Monte Carlo outcomes
+* **Coverage dashboard** – flag branches never hit in prod
+* **Schema diff** – highlight behaviour changes across versions
 
 ## Usage
 

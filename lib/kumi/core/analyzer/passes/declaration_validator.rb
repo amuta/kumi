@@ -20,9 +20,9 @@ module Kumi
 
           def validate_node(node, errors)
             case node
-            when Kumi::Core::Syntax::ValueDeclaration
+            when Kumi::Syntax::ValueDeclaration
               validate_attribute(node, errors)
-            when Kumi::Core::Syntax::TraitDeclaration
+            when Kumi::Syntax::TraitDeclaration
               validate_trait(node, errors)
             end
           end
@@ -34,7 +34,7 @@ module Kumi
           end
 
           def validate_trait(node, errors)
-            return if node.expression.is_a?(Kumi::Core::Syntax::CallExpression)
+            return if node.expression.is_a?(Kumi::Syntax::CallExpression)
 
             report_error(errors, "trait `#{node.name}` must wrap a CallExpression", location: node.loc)
           end

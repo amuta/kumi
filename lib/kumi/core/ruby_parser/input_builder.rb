@@ -13,13 +13,13 @@ module Kumi
 
         def key(name, type: :any, domain: nil)
           normalized_type = normalize_type(type, name)
-          @context.inputs << Kumi::Core::Syntax::InputDeclaration.new(name, domain, normalized_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, [], loc: @context.current_location)
         end
 
         %i[integer float string boolean any scalar].each do |type_name|
           define_method(type_name) do |name, type: nil, domain: nil|
             actual_type = type || (type_name == :scalar ? :any : type_name)
-            @context.inputs << Kumi::Core::Syntax::InputDeclaration.new(name, domain, actual_type, [], loc: @context.current_location)
+            @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, actual_type, [], loc: @context.current_location)
           end
         end
 
@@ -63,7 +63,7 @@ module Kumi
           elem_type = elem_spec.is_a?(Hash) && elem_spec[:type] ? elem_spec[:type] : :any
 
           array_type = create_array_type(field_name, elem_type)
-          @context.inputs << Kumi::Core::Syntax::InputDeclaration.new(field_name, domain, array_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], loc: @context.current_location)
         end
 
         def create_array_type(field_name, elem_type)
@@ -81,7 +81,7 @@ module Kumi
           val_type = extract_type(val_spec)
 
           hash_type = create_hash_type(field_name, key_type, val_type)
-          @context.inputs << Kumi::Core::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], loc: @context.current_location)
         end
 
         def extract_type(spec)
@@ -101,7 +101,7 @@ module Kumi
           children = collect_array_children(&block)
 
           # Create the InputDeclaration with children
-          @context.inputs << Kumi::Core::Syntax::InputDeclaration.new(
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
             :array,

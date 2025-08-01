@@ -26,8 +26,8 @@ module Kumi
             vectorized_values = {}
 
             # Analyze traits first, then values (to handle dependencies)
-            traits = definitions.select { |_name, decl| decl.is_a?(Kumi::Core::Syntax::TraitDeclaration) }
-            values = definitions.select { |_name, decl| decl.is_a?(Kumi::Core::Syntax::ValueDeclaration) }
+            traits = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::TraitDeclaration) }
+            values = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::ValueDeclaration) }
 
             (traits.to_a + values.to_a).each do |name, decl|
               result = analyze_value_vectorization(name, decl.expression, array_fields, vectorized_values, errors)
@@ -65,14 +65,14 @@ module Kumi
 
           def analyze_value_vectorization(name, expr, array_fields, vectorized_values, errors)
             case expr
-            when Kumi::Core::Syntax::InputElementReference
+            when Kumi::Syntax::InputElementReference
               if array_fields.key?(expr.path.first)
                 { type: :vectorized, info: { source: :array_field_access, path: expr.path } }
               else
                 { type: :scalar }
               end
 
-            when Kumi::Core::Syntax::DeclarationReference
+            when Kumi::Syntax::DeclarationReference
               # Check if this references a vectorized value
               vector_info = vectorized_values[expr.name]
               if vector_info && vector_info[:vectorized]
@@ -81,10 +81,10 @@ module Kumi
                 { type: :scalar }
               end
 
-            when Kumi::Core::Syntax::CallExpression
+            when Kumi::Syntax::CallExpression
               analyze_call_vectorization(name, expr, array_fields, vectorized_values, errors)
 
-            when Kumi::Core::Syntax::CascadeExpression
+            when Kumi::Syntax::CascadeExpression
               analyze_cascade_vectorization(name, expr, array_fields, vectorized_values, errors)
 
             else
@@ -109,9 +109,9 @@ module Kumi
               # for cascade condition purposes (they get transformed during compilation)
               if %i[all? any? none?].include?(expr.fn_name) && expr.args.length == 1
                 arg = expr.args.first
-                if arg.is_a?(Kumi::Core::Syntax::ArrayExpression) && arg.elements.length == 1
+                if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
                   trait_ref = arg.elements.first
-                  if trait_ref.is_a?(Kumi::Core::Syntax::DeclarationReference) && vectorized_values[trait_ref.name]&.[](:vectorized)
+                  if trait_ref.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[trait_ref.name]&.[](:vectorized)
                     return { type: :vectorized, info: { source: :cascade_condition_with_vectorized_trait, trait: trait_ref.name } }
                   end
                 end
@@ -146,14 +146,14 @@ module Kumi
 
           def analyze_argument_vectorization(arg, array_fields, vectorized_values)
             case arg
-            when Kumi::Core::Syntax::InputElementReference
+            when Kumi::Syntax::InputElementReference
               if array_fields.key?(arg.path.first)
                 { vectorized: true, source: :array_field, array_source: arg.path.first }
               else
                 { vectorized: false }
               end
 
-            when Kumi::Core::Syntax::DeclarationReference
+            when Kumi::Syntax::DeclarationReference
               # Check if this references a vectorized value
               vector_info = vectorized_values[arg.name]
               if vector_info && vector_info[:vectorized]
@@ -163,7 +163,7 @@ module Kumi
                 { vectorized: false }
               end
 
-            when Kumi::Core::Syntax::CallExpression
+            when Kumi::Syntax::CallExpression
               # Recursively check
               result = analyze_value_vectorization(nil, arg, array_fields, vectorized_values, [])
               { vectorized: result[:type] == :vectorized, source: :expression }

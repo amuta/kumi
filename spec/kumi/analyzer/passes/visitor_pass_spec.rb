@@ -24,8 +24,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
           @visited_expressions << [node.class.name, decl.name]
         end
 
-        visit_nodes_of_type(Kumi::Core::Syntax::Literal,
-                            Kumi::Core::Syntax::CallExpression,
+        visit_nodes_of_type(Kumi::Syntax::Literal,
+                            Kumi::Syntax::CallExpression,
                             errors: errors) do |node, decl, _errs|
           @visited_nodes << [node.class.name, decl.name]
         end
@@ -76,8 +76,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
       pass_instance.send(:visit, test_node) { |node| yielded_nodes << node }
 
       expect(yielded_nodes.size).to eq(5)
-      expect(yielded_nodes.first).to be_a(Kumi::Core::Syntax::CallExpression)
-      expect(yielded_nodes.last).to be_a(Kumi::Core::Syntax::Literal)
+      expect(yielded_nodes.first).to be_a(Kumi::Syntax::CallExpression)
+      expect(yielded_nodes.last).to be_a(Kumi::Syntax::Literal)
     end
   end
 
@@ -125,7 +125,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
       node_types = visited_nodes.map(&:first).uniq
 
       # Should only have Literal and CallExpression nodes, not Field or Binding (using new class names)
-      expect(node_types).to contain_exactly("Kumi::Core::Syntax::Literal", "Kumi::Core::Syntax::CallExpression")
+      expect(node_types).to contain_exactly("Kumi::Syntax::Literal", "Kumi::Syntax::CallExpression")
     end
 
     it "visits nodes across all declarations" do
@@ -142,7 +142,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
       visited_literals = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Core::Syntax::Literal,
+                         Kumi::Syntax::Literal,
                          errors: errors) do |node, decl, _errs|
         visited_literals << [node.value, decl.name]
       end
@@ -156,8 +156,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
       visited_mixed = []
 
       pass_instance.send(:visit_nodes_of_type,
-                         Kumi::Core::Syntax::InputReference,
-                         Kumi::Core::Syntax::DeclarationReference,
+                         Kumi::Syntax::InputReference,
+                         Kumi::Syntax::DeclarationReference,
                          errors: errors) do |node, decl, _errs|
         visited_mixed << [node.class.name.split("::").last, node.name, decl.name]
       end
@@ -201,7 +201,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
         def run(errors)
           # Use visitor methods
           literal_count = 0
-          visit_nodes_of_type(Kumi::Core::Syntax::Literal, errors: errors) do |_node, _decl, _errs|
+          visit_nodes_of_type(Kumi::Syntax::Literal, errors: errors) do |_node, _decl, _errs|
             literal_count += 1
           end
 

@@ -47,8 +47,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::PassBase do
 
       expect(declarations.size).to eq(2)
       expect(declarations.map(&:name)).to contain_exactly(:attr1, :trait1)
-      expect(declarations[0]).to be_a(Kumi::Core::Syntax::ValueDeclaration)
-      expect(declarations[1]).to be_a(Kumi::Core::Syntax::TraitDeclaration)
+      expect(declarations[0]).to be_a(Kumi::Syntax::ValueDeclaration)
+      expect(declarations[1]).to be_a(Kumi::Syntax::TraitDeclaration)
     end
 
     it "handles empty schema" do

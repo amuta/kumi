@@ -6,7 +6,7 @@ module Kumi
       module Passes
         # Base class for analyzer passes with simple immutable state
         class PassBase
-          include Kumi::Core::Syntax
+          include Kumi::Syntax
           include Kumi::Core::ErrorReporting
 
           # @param schema [Syntax::Root] The schema to analyze

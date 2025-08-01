@@ -3,7 +3,7 @@
 module ASTFactory
   module_function # expose module-functions only
 
-  include Kumi::Core::Syntax
+  include Kumi::Syntax
 
   # Dispatch table:  tag symbol → lambda(*args, loc:) → node instance
   NODE = {

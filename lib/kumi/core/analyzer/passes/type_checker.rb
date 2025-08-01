@@ -10,7 +10,7 @@ module Kumi
         # INTERFACE: new(schema, state).run(errors)
         class TypeChecker < VisitorPass
           def run(errors)
-            visit_nodes_of_type(Kumi::Core::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
+            visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
               validate_function_call(node, errs)
             end
             state
@@ -62,10 +62,10 @@ module Kumi
             # This is a simplified check - in a real implementation we'd need to track context
             node.args.any? do |arg|
               case arg
-              when Kumi::Core::Syntax::DeclarationReference
+              when Kumi::Syntax::DeclarationReference
                 broadcast_meta[:vectorized_operations]&.key?(arg.name) ||
                   broadcast_meta[:reduction_operations]&.key?(arg.name)
-              when Kumi::Core::Syntax::InputElementReference
+              when Kumi::Syntax::InputElementReference
                 broadcast_meta[:array_fields]&.key?(arg.path.first)
               else
                 false
@@ -88,15 +88,15 @@ module Kumi
 
           def get_expression_type(expr)
             case expr
-            when Kumi::Core::Syntax::Literal
+            when Kumi::Syntax::Literal
               # Inferred type from literal value
               Kumi::Core::Types.infer_from_value(expr.value)
 
-            when Kumi::Core::Syntax::InputReference
+            when Kumi::Syntax::InputReference
               # Declared type from input block (user-specified)
               get_declared_field_type(expr.name)
 
-            when Kumi::Core::Syntax::DeclarationReference
+            when Kumi::Syntax::DeclarationReference
               # Inferred type from type inference results
               get_inferred_declaration_type(expr.name)
 
@@ -122,10 +122,10 @@ module Kumi
 
           def describe_expression_type(expr, type)
             case expr
-            when Kumi::Core::Syntax::Literal
+            when Kumi::Syntax::Literal
               "`#{expr.value}` of type #{type} (literal value)"
 
-            when Kumi::Core::Syntax::InputReference
+            when Kumi::Syntax::InputReference
               input_meta = get_state(:inputs, required: false) || {}
               field_meta = input_meta[expr.name]
 
@@ -138,17 +138,17 @@ module Kumi
                 "undeclared input field `#{expr.name}` (inferred as #{type})"
               end
 
-            when Kumi::Core::Syntax::DeclarationReference
+            when Kumi::Syntax::DeclarationReference
               # This type was inferred from the declaration's expression
               "reference to declaration `#{expr.name}` of inferred type #{type}"
 
-            when Kumi::Core::Syntax::CallExpression
+            when Kumi::Syntax::CallExpression
               "result of function `#{expr.fn_name}` returning #{type}"
 
-            when Kumi::Core::Syntax::ArrayExpression
+            when Kumi::Syntax::ArrayExpression
               "list expression of type #{type}"
 
-            when Kumi::Core::Syntax::CascadeExpression
+            when Kumi::Syntax::CascadeExpression
               "cascade expression of type #{type}"
 
             else

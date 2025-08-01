@@ -47,7 +47,7 @@ RSpec.describe Kumi::Core::Export do
       json_string = described_class.to_json(original_ast)
       imported_ast = described_class.from_json(json_string)
 
-      expect(imported_ast).to be_a(Kumi::Core::Syntax::Root)
+      expect(imported_ast).to be_a(Kumi::Syntax::Root)
       expect(imported_ast.inputs.size).to eq(1)
       expect(imported_ast.attributes.size).to eq(1)
       expect(imported_ast.traits.size).to eq(0)
@@ -131,7 +131,7 @@ RSpec.describe Kumi::Core::Export do
         described_class.to_file(original_ast, filepath)
         imported_ast = described_class.from_file(filepath)
 
-        expect(imported_ast).to be_a(Kumi::Core::Syntax::Root)
+        expect(imported_ast).to be_a(Kumi::Syntax::Root)
         expect(imported_ast.inputs.size).to eq(1)
         expect(imported_ast.attributes.size).to eq(1)
         expect(imported_ast.inputs.first.name).to eq(:name)

@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module Kumi
-  module Core
-    module Syntax
+  module Syntax
       # Represents the root of the Abstract Syntax Tree.
       # It holds all the top-level declarations parsed from the source.
       Root = Struct.new(:inputs, :attributes, :traits) do
@@ -10,6 +9,5 @@ module Kumi
 
         def children = [inputs, attributes, traits]
       end
-    end
   end
 end

@@ -24,11 +24,11 @@ module Kumi
         ].freeze
 
         def self.ensure_literal(obj)
-          return Kumi::Core::Syntax::Literal.new(obj) if LITERAL_TYPES.any? { |type| obj.is_a?(type) }
+          return Kumi::Syntax::Literal.new(obj) if LITERAL_TYPES.any? { |type| obj.is_a?(type) }
           return obj if obj.is_a?(Syntax::Node)
           return obj.to_ast_node if obj.respond_to?(:to_ast_node)
 
-          Kumi::Core::Syntax::Literal.new(obj)
+          Kumi::Syntax::Literal.new(obj)
         end
 
         def self.syntax_expression?(obj)
@@ -37,7 +37,7 @@ module Kumi
 
         # Create a call expression with consistent error handling
         def self.create_call_expression(fn_name, args)
-          Kumi::Core::Syntax::CallExpression.new(fn_name, args)
+          Kumi::Syntax::CallExpression.new(fn_name, args)
         end
 
         module ExpressionRefinement
@@ -101,7 +101,7 @@ module Kumi
                 define_method(op) do |other|
                   if Sugar.syntax_expression?(other)
                     other_node = Sugar.ensure_literal(other)
-                    Sugar.create_call_expression(op_name, [Kumi::Core::Syntax::Literal.new(self), other_node])
+                    Sugar.create_call_expression(op_name, [Kumi::Syntax::Literal.new(self), other_node])
                   else
                     super(other)
                   end
@@ -113,7 +113,7 @@ module Kumi
                 define_method(op) do |other|
                   if Sugar.syntax_expression?(other)
                     other_node = Sugar.ensure_literal(other)
-                    Sugar.create_call_expression(op, [Kumi::Core::Syntax::Literal.new(self), other_node])
+                    Sugar.create_call_expression(op, [Kumi::Syntax::Literal.new(self), other_node])
                   else
                     super(other)
                   end
@@ -128,7 +128,7 @@ module Kumi
             def +(other)
               if Sugar.syntax_expression?(other)
                 other_node = Sugar.ensure_literal(other)
-                Sugar.create_call_expression(:concat, [Kumi::Core::Syntax::Literal.new(self), other_node])
+                Sugar.create_call_expression(:concat, [Kumi::Syntax::Literal.new(self), other_node])
               else
                 super
               end
@@ -138,7 +138,7 @@ module Kumi
               define_method(op) do |other|
                 if Sugar.syntax_expression?(other)
                   other_node = Sugar.ensure_literal(other)
-                  Sugar.create_call_expression(op, [Kumi::Core::Syntax::Literal.new(self), other_node])
+                  Sugar.create_call_expression(op, [Kumi::Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
@@ -157,7 +157,7 @@ module Kumi
             # Convert array to syntax list expression with all elements as syntax nodes
             def to_syntax_list
               syntax_elements = map { |item| Sugar.ensure_literal(item) }
-              Kumi::Core::Syntax::ArrayExpression.new(syntax_elements)
+              Kumi::Syntax::ArrayExpression.new(syntax_elements)
             end
 
             # Create array method that works with syntax expressions

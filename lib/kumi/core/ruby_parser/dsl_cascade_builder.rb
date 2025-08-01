@@ -98,7 +98,7 @@ module Kumi
         end
 
         def add_case(condition, result)
-          @cases << Kumi::Core::Syntax::CaseExpression.new(condition, result)
+          @cases << Kumi::Syntax::CaseExpression.new(condition, result)
         end
 
         def ref(name)
@@ -130,7 +130,7 @@ module Kumi
         end
 
         def create_binding(name, location)
-          Kumi::Core::Syntax::DeclarationReference.new(name, loc: location)
+          Kumi::Syntax::DeclarationReference.new(name, loc: location)
         end
       end
     end

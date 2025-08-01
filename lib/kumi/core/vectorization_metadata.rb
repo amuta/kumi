@@ -36,9 +36,9 @@ module Kumi
         # Check if an expression should be vectorized
         def vectorized_expression?(expression)
           case expression
-          when Kumi::Core::Syntax::CallExpression
+          when Kumi::Syntax::CallExpression
             vectorized_call?(expression)
-          when Kumi::Core::Syntax::InputElementReference
+          when Kumi::Syntax::InputElementReference
             vectorized_element_reference?(expression)
           else
             false

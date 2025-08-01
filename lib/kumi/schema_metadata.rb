@@ -33,7 +33,7 @@ module Kumi
   #   end
   class SchemaMetadata
     # @param state_hash [Hash] Raw analyzer state from multi-pass analysis
-    # @param syntax_tree [Core::Syntax::Root] Parsed AST of the schema definition
+    # @param syntax_tree [Syntax::Root] Parsed AST of the schema definition
     def initialize(state_hash, syntax_tree)
       @state = state_hash
       @syntax_tree = syntax_tree
@@ -322,7 +322,7 @@ module Kumi
 
       @state[:declarations].transform_values do |node|
         {
-          type: node.is_a?(Core::Syntax::TraitDeclaration) ? :trait : :value,
+          type: node.is_a?(Syntax::TraitDeclaration) ? :trait : :value,
           expression: expression_to_string(node.expression)
         }
       end
@@ -355,7 +355,7 @@ module Kumi
     def extract_values
       return {} unless @state[:dependencies]
 
-      value_nodes = (@syntax_tree.values || []).flatten.select { |node| node.is_a?(Core::Syntax::ValueDeclaration) }
+      value_nodes = (@syntax_tree.values || []).flatten.select { |node| node.is_a?(Syntax::ValueDeclaration) }
       dependency_graph = @state[:dependencies] || {}
       inferred_types = @state[:inferred_types] || {}
 
@@ -369,7 +369,7 @@ module Kumi
           dependencies: dependencies,
           computed: true
         }.tap do |spec|
-          if node.expression.is_a?(Core::Syntax::CascadeExpression)
+          if node.expression.is_a?(Syntax::CascadeExpression)
             spec[:cascade] = extract_cascade_info(node.expression)
           else
             spec[:expression] = expression_to_string(node.expression)
@@ -381,7 +381,7 @@ module Kumi
     def extract_traits
       return {} unless @state[:dependencies]
 
-      trait_nodes = (@syntax_tree.traits || []).flatten.select { |node| node.is_a?(Core::Syntax::TraitDeclaration) }
+      trait_nodes = (@syntax_tree.traits || []).flatten.select { |node| node.is_a?(Syntax::TraitDeclaration) }
       dependency_graph = @state[:dependencies] || {}
 
       trait_nodes.each_with_object({}) do |node, result|
@@ -400,8 +400,8 @@ module Kumi
     def extract_functions
       function_calls = Set.new
 
-      value_nodes = (@syntax_tree.values || []).flatten.select { |node| node.is_a?(Core::Syntax::ValueDeclaration) }
-      trait_nodes = (@syntax_tree.traits || []).flatten.select { |node| node.is_a?(Core::Syntax::TraitDeclaration) }
+      value_nodes = (@syntax_tree.values || []).flatten.select { |node| node.is_a?(Syntax::ValueDeclaration) }
+      trait_nodes = (@syntax_tree.traits || []).flatten.select { |node| node.is_a?(Syntax::TraitDeclaration) }
 
       value_nodes.each do |node|
         collect_function_calls(node.expression, function_calls)
@@ -481,16 +481,16 @@ module Kumi
 
     def expression_to_string(expr)
       case expr
-      when Core::Syntax::Literal
+      when Syntax::Literal
         expr.value.inspect
-      when Core::Syntax::InputReference
+      when Syntax::InputReference
         "input.#{expr.name}"
-      when Core::Syntax::DeclarationReference
+      when Syntax::DeclarationReference
         expr.name.to_s
-      when Core::Syntax::CallExpression
+      when Syntax::CallExpression
         args = expr.args.map { |arg| expression_to_string(arg) }.join(", ")
         "#{expr.fn_name}(#{args})"
-      when Core::Syntax::CascadeExpression
+      when Syntax::CascadeExpression
         "cascade"
       else
         expr.class.name.split("::").last
@@ -498,22 +498,22 @@ module Kumi
     end
 
     def literal_value(expr)
-      expr.is_a?(Core::Syntax::Literal) ? expr.value : expression_to_string(expr)
+      expr.is_a?(Syntax::Literal) ? expr.value : expression_to_string(expr)
     end
 
     def collect_function_calls(expr, function_calls)
       case expr
-      when Core::Syntax::CallExpression
+      when Syntax::CallExpression
         function_calls << expr.fn_name
         expr.args.each { |arg| collect_function_calls(arg, function_calls) }
-      when Core::Syntax::CascadeExpression
+      when Syntax::CascadeExpression
         expr.cases.each do |case_expr|
           collect_function_calls(case_expr.condition, function_calls) if case_expr.condition
           collect_function_calls(case_expr.result, function_calls)
         end
-      when Core::Syntax::ArrayExpression
+      when Syntax::ArrayExpression
         expr.elements.each { |elem| collect_function_calls(elem, function_calls) }
-      when Core::Syntax::HashExpression
+      when Syntax::HashExpression
         expr.pairs.each do |pair|
           collect_function_calls(pair.key, function_calls)
           collect_function_calls(pair.value, function_calls)
