@@ -325,6 +325,19 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 #    = 15,099.50
 ```
 
+**Debug AST Structure**: Visualize the parsed schema as S-expressions:
+
+```ruby
+puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
+# => (Root
+#      inputs: [
+#        (InputDeclaration :income :float)
+#        (InputDeclaration :filing_status :string domain: ["single", "married_joint"])
+#      ]
+#      traits: [...]
+#      attributes: [...])
+```
+
 </details>
 
 <details>

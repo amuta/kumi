@@ -37,6 +37,13 @@ Processes large schemas with optimized algorithms.
 - Result caching
 - Selective evaluation
 
+### [S-Expression Printer](s-expression-printer.md)
+Debug and inspect AST structures with readable S-expression notation output.
+
+- Visitor pattern implementation for all node types
+- Proper indentation and hierarchical structure
+- Useful for debugging schema parsing and AST analysis
+
 ## Integration
 
 - Type inference uses input declarations

@@ -39,6 +39,13 @@ InputReference = Struct.new(:name)
 # Has operator methods: >=, <=, >, <, ==, != that create CallExpression nodes
 ```
 
+**InputElementReference**: Access of nested input fields (`input.field_name.element.subelement.subsubelement`)
+```ruby
+InputElementReference = Struct.new(:path)
+# Represents nested input access
+# DSL: input.address.street → InputElementReference([:address, :street])
+```
+
 **DeclarationReference**: References to other declarations
 ```ruby
 DeclarationReference = Struct.new(:name)
