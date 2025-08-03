@@ -4,7 +4,7 @@ module DualModeHelpers
   # RSpec helper to enable dual mode for a test block
   def with_dual_mode(&block)
     if node_available?
-      Kumi::DualRunner.with_dual_mode(&block)
+      DualRunner.with_dual_mode(&block)
     else
       skip "Node.js not available for dual mode testing"
     end
@@ -13,8 +13,8 @@ module DualModeHelpers
   # RSpec helper to enable dual mode with debug output
   def with_dual_mode_debug(&block)
     if node_available?
-      Kumi::DualRunner.with_dual_mode do
-        Kumi::DualRunner.with_debug(&block)
+      DualRunner.with_dual_mode do
+        DualRunner.with_debug(&block)
       end
     else
       skip "Node.js not available for dual mode testing"
@@ -24,7 +24,7 @@ module DualModeHelpers
   # RSpec helper to enable dual mode with metrics but no debug output
   def with_dual_mode_silent(&block)
     if node_available?
-      Kumi::DualRunner.with_dual_mode(&block)
+      DualRunner.with_dual_mode(&block)
     else
       skip "Node.js not available for dual mode testing"
     end
@@ -39,7 +39,7 @@ module DualModeHelpers
     def with_dual_mode_enabled(&block)
       around(:each) do |example|
         if node_available?
-          Kumi::DualRunner.with_dual_mode { example.run }
+          DualRunner.with_dual_mode { example.run }
         else
           skip "Node.js not available for dual mode testing"
         end

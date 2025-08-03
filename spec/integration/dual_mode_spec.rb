@@ -137,11 +137,27 @@ RSpec.describe "Dual Mode Execution" do
     context "without dual mode" do
       it "works normally without JavaScript execution" do
         test_data = { age: 25, salary: 50_000.0 }
-        runner = simple_schema.from(test_data, dual_mode: false)
+        
+        # Temporarily restore original from method behavior
+        original_from = simple_schema.method(:from)
+        simple_schema.define_singleton_method(:from) do |context|
+          raise("No schema defined") unless @__compiled_schema__
+
+          input_meta = @__analyzer_result__.state[:inputs] || {}
+          violations = Kumi::Core::Input::Validator.validate_context(context, input_meta)
+          raise Kumi::Errors::InputValidationError, violations unless violations.empty?
+
+          Kumi::Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
+        end
+
+        runner = simple_schema.from(test_data)
 
         expect(runner[:adult]).to eq(true)
         expect(runner[:monthly_salary]).to be_within(0.01).of(4_166.67)
         expect(runner[:status]).to eq("Adult")
+        
+        # Restore dual mode behavior
+        simple_schema.define_singleton_method(:from, &original_from)
       end
     end
 

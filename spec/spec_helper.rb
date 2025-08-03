@@ -25,6 +25,24 @@ require "open3"
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
 
+# Override Schema#from to use dual mode for all specs
+module Kumi
+  module Schema
+    def from(context)
+      raise("No schema defined") unless @__compiled_schema__
+
+      # Validate input types and domain constraints
+      input_meta = @__analyzer_result__.state[:inputs] || {}
+      violations = Core::Input::Validator.validate_context(context, input_meta)
+
+      raise Errors::InputValidationError, violations unless violations.empty?
+
+      require_relative "support/dual_runner"
+      DualRunner.new(self, context)
+    end
+  end
+end
+
 RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect

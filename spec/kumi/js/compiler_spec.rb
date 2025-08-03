@@ -74,14 +74,17 @@ RSpec.describe Kumi::Js::Compiler do
         expect(js_code).to include("slice(...keys)")
       end
 
-      it "includes all function registry mappings" do
+      it "includes function registry mappings for used functions" do
         js_code = Kumi::Js.compile(simple_schema)
         
-        # Check for key functions
-        expect(js_code).to include("add: (a, b) => a + b")
+        # Check for functions actually used by the schema
         expect(js_code).to include("divide: (a, b) => a / b")
         expect(js_code).to include('">=": (a, b) => a >= b')
-        expect(js_code).to include("sum: (collection) => collection.reduce")
+        expect(js_code).to include('"all?": (collection) => collection.every(x => x)')
+        
+        # Should not include unused functions (optimized out)
+        expect(js_code).not_to include("add: (a, b) => a + b")
+        expect(js_code).not_to include("sum: (collection) => collection.reduce")
       end
 
       it "generates bindings for all schema declarations" do
