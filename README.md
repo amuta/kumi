@@ -308,26 +308,52 @@ runner[:total_tax]     # => 53,155.20
 runner[:fed_tax]       # => 39,077.00 (cached)
 runner[:after_tax]     # => 196,844.80 (cached)
 ```
-
 </details>
 
 <details>
-<summary><strong>🔍 Introspection</strong> - See exactly how values are calculated</summary>
+<summary><strong>🔍 Introspection & Metadata</strong> - Analyze, debug, and build tools on your schemas</summary>
 
-### Introspection
+### Introspection & Metadata
 
-Show how values are calculated:
+Kumi schemas are not black boxes. You can inspect their structure, debug their calculations, and extract rich metadata to build powerful developer tools.
+
+#### **Explainability: Trace a Calculation**
+
+See exactly how any value is computed, step-by-step. This is invaluable for debugging complex logic and auditing results.
 
 ```ruby
 Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_status: "single"})
 # => fed_tax = fed_calc[0]
 #    = (fed_calc = piecewise_sum(taxable_income, fed_breaks, fed_rates)
-#       = piecewise_sum(85,400, [11,600, 47,150, ...], [0.10, 0.12, ...])
-#       = [15,099.50, 0.22])
-#    = 15,099.50
+#       = piecewise_sum(85_400, [11_600, 47_150, ...], [0.10, 0.12, ...])
+#       = [15_099.50, 0.22])
+#    = 15_099.50
 ```
 
-**Debug AST Structure**: Visualize the parsed schema as S-expressions:
+#### **Schema Metadata API: Build Tooling**
+
+Programmatically access the analyzed structure of your schema to build tools like form generators, documentation sites, or custom validators.
+
+```ruby
+metadata = FederalTax2024.schema_metadata
+
+# Processed, tool-friendly metadata
+metadata.inputs           # => { name: { type: :string, domain: ... } }
+metadata.values           # => { name: { dependencies: [...], expression: "..." } }
+metadata.traits           # => { name: { condition: "...", dependencies: [...] } }
+
+# Raw analyzer state for deep analysis
+metadata.dependencies     # Dependency graph between all declarations
+metadata.evaluation_order # Topologically sorted computation order
+
+# Export to standard formats
+metadata.to_h             # => Serializable hash for JSON/APIs
+metadata.to_json_schema   # => JSON Schema for input validation
+```
+
+#### **AST Visualization: See the Structure**
+
+For deep debugging, you can print the raw Abstract Syntax Tree (AST) of a schema.
 
 ```ruby
 puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
@@ -342,43 +368,6 @@ puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
 
 </details>
 
-<details>
-<summary><strong>📋 Schema Metadata</strong> - Extract structured information for tooling</summary>
-
-### Schema Metadata
-
-Access structured metadata for building tools like form generators and dependency analyzers:
-
-```ruby
-metadata = FederalTax2024.schema_metadata
-
-# Processed metadata (tool-friendly)
-metadata.inputs           # Input field types and domains  
-metadata.values           # Value declarations with dependencies
-metadata.traits           # Trait conditions and metadata
-metadata.functions        # Function registry information
-
-# Raw analyzer state (advanced usage)
-metadata.dependencies     # Dependency graph between declarations
-metadata.evaluation_order # Topologically sorted computation order
-metadata.inferred_types   # Type inference results
-metadata.declarations     # Raw AST declaration nodes
-
-# Export formats
-metadata.to_h             # Serializable hash for JSON/APIs
-metadata.to_json_schema   # JSON Schema for input validation
-```
-
-The SchemaMetadata interface provides both processed metadata for tool development and raw analyzer state for advanced use cases. Complete documentation available in the SchemaMetadata class and [docs/schema_metadata.md](docs/schema_metadata.md).
-
-</details>
-
-## Beyond Rules: What the Metadata Unlocks
-* **Auto-generated forms** – compile schema → field spec → React form
-* **Scenario explorer** – derive all trait combinations, Monte Carlo outcomes
-* **Coverage dashboard** – flag branches never hit in prod
-* **Schema diff** – highlight behaviour changes across versions
-
 ## Usage
 
 **Suitable for:**
@@ -392,7 +381,6 @@ The SchemaMetadata interface provides both processed metadata for tool developme
 **Not suitable for:**
 - Simple conditional statements
 - Sequential procedural workflows  
-- Rules that change during execution
 - High-frequency real-time processing
 
 ## JavaScript Transpiler
