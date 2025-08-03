@@ -203,7 +203,7 @@ end
 # ❌ Function arity error: divide expects 2 arguments, got 1
 ```
 
-**Bounded Recursion**: Kumi supports mutual recursion when cascade conditions are mutually exclusive:
+**Mutual Recursion**: Kumi supports mutual recursion when cascade conditions are mutually exclusive:
 
 ```ruby
 trait :is_forward, input.operation == "forward"
