@@ -193,6 +193,41 @@ module Kumi
               param_types: [Kumi::Core::Types.array(:any)],
               return_type: Kumi::Core::Types.array(:integer),
               description: "Generate array of indices for the collection"
+            ),
+
+            # Conditional aggregation functions
+            count_if: FunctionBuilder::Entry.new(
+              fn: ->(condition_array) { condition_array.count(true) },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:boolean)],
+              return_type: :integer,
+              description: "Count number of true values in boolean array",
+              reducer: true
+            ),
+
+            sum_if: FunctionBuilder::Entry.new(
+              fn: lambda { |value_array, condition_array|
+                value_array.zip(condition_array).sum { |value, condition| condition ? value : 0 }
+              },
+              arity: 2,
+              param_types: [Kumi::Core::Types.array(:float), Kumi::Core::Types.array(:boolean)],
+              return_type: :float,
+              description: "Sum values where corresponding condition is true",
+              reducer: true
+            ),
+
+            avg_if: FunctionBuilder::Entry.new(
+              fn: lambda { |value_array, condition_array|
+                pairs = value_array.zip(condition_array)
+                true_values = pairs.filter_map { |value, condition| value if condition }
+                return 0.0 if true_values.empty?
+                true_values.sum.to_f / true_values.size
+              },
+              arity: 2,
+              param_types: [Kumi::Core::Types.array(:float), Kumi::Core::Types.array(:boolean)],
+              return_type: :float,
+              description: "Average values where corresponding condition is true",
+              reducer: true
             )
           }
         end

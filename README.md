@@ -74,7 +74,7 @@ gem install kumi
 ## Core Features
 
 <details>
-<summary><strong>📊 Schema Primitives</strong> - Four building blocks for business logic</summary>
+<summary><strong>Schema Primitives</strong> - Four building blocks for business logic</summary>
 
 ### Schema Primitives
 
@@ -96,7 +96,7 @@ value :tax_rate, 0.08
 value :tax_amount, subtotal * tax_rate
 ```
 
-**Traits** are boolean conditions that enable branching logic:
+**Traits** are boolean conditions for branching logic:
 ```ruby
 trait :bulk_order, input.quantity >= 100
 trait :premium_customer, input.tier == "premium"
@@ -109,7 +109,7 @@ value :discount do
 end
 ```
 
-**Functions** provide computational building blocks:
+**Functions** are computational building blocks:
 
 ```ruby
 value :final_price, [subtotal - discount_amount, 0].max
@@ -120,7 +120,7 @@ Note: You can find a list all core functions in [docs/FUNCTIONS.md](docs/FUNCTIO
 </details>
 
 <details>
-<summary><strong>🔍 Static Analysis</strong> - Catch errors at definition time and extract metadata</summary>
+<summary><strong>Static Analysis</strong> - Catch errors at definition time and extract metadata</summary>
 
 ### Static Analysis
 
@@ -203,7 +203,7 @@ end
 # ❌ Function arity error: divide expects 2 arguments, got 1
 ```
 
-**Bounded Recursion**: Kumi allows mutual recursion when cascade conditions are mutually exclusive:
+**Bounded Recursion**: Kumi supports mutual recursion when cascade conditions are mutually exclusive:
 
 ```ruby
 trait :is_forward, input.operation == "forward"
@@ -233,34 +233,65 @@ This compiles because `operation` can only be "forward" or "reverse", never both
 </details>
 
 <details>
-<summary><strong>🔍 Array Broadcasting</strong> - Automatic vectorization over array fields</summary>
+<summary><strong>Array Broadcasting</strong> - Vectorization over array fields</summary>
 
 ### Array Broadcasting
 
-Kumi broadcasts operations over array fields for element-wise computation.
+Kumi broadcasts operations over array fields with conditional aggregation functions.
 
 See [docs/features/array-broadcasting.md](docs/features/array-broadcasting.md) for detailed documentation.
 
-```ruby
-schema do
-  input do
-    array :line_items do
-      float   :price
-      integer :quantity
-      string  :category
-    end
-    float :tax_rate
-  end
+**Business Scenario**: E-commerce checkout with dynamic pricing rules
 
-  # Element-wise computation - broadcasts over each item
-  value :subtotals, input.line_items.price * input.line_items.quantity
+> **"As an e-commerce platform, I need to calculate order totals with complex discount rules:**
+> - Premium members get 15% off electronics
+> - Bulk orders (5+ items) get 10% off that item
+> - Free shipping on orders over $100
+> - Calculate: item subtotals, total discounts, shipping, final total
+> 
+> **The challenge:** Each order has different items, quantities, categories, and customer tiers. The discount logic involves multiple conditions - some items qualify for multiple discounts, others for none. Traditional pricing code requires nested if-statements and manual calculations."
+
+**Kumi Solution** (16 lines of declarative pricing logic):
+```ruby
+module OrderPricing
+  extend Kumi::Schema
   
-  # Element-wise traits - applied to each item
-  trait :is_taxable, (input.line_items.category != "digital")
-  
-  # Aggregation operations - consume arrays to produce scalars
-  value :total_subtotal, fn(:sum, subtotals)
-  value :item_count, fn(:size, input.line_items)
+  schema do
+    input do
+      array :items do
+        float   :price
+        integer :quantity
+        string  :category
+      end
+      string :customer_tier
+      float  :shipping_threshold
+    end
+    
+    # Calculate item subtotals and discount eligibility
+    value :subtotals, input.items.price * input.items.quantity
+    trait :electronics, input.items.category == "electronics"
+    trait :bulk_item, input.items.quantity >= 5
+    trait :premium_customer, input.customer_tier == "premium"
+    
+    # Apply layered discounts (premium + bulk can stack)
+    trait :premium_electronics, premium_customer & electronics
+    trait :stacked_discount, premium_electronics & bulk_item
+    
+    value :discounted_prices do
+      on stacked_discount, input.items.price * 0.75      # 15% + 10% = 25% off
+      on premium_electronics, input.items.price * 0.85   # 15% off
+      on bulk_item, input.items.price * 0.90             # 10% off
+      base input.items.price                              # No discount
+    end
+    
+    value :final_subtotals, discounted_prices * input.items.quantity
+    
+    # Order totals and conditional shipping
+    value :subtotal, fn(:sum, final_subtotals)
+    value :total_savings, fn(:sum, subtotals) - subtotal
+    value :shipping, subtotal > input.shipping_threshold ? 0.0 : 9.99
+    value :total, subtotal + shipping
+  end
 end
 ```
 
@@ -292,9 +323,9 @@ end
 </details>
 
 <details>
-<summary><strong>💾 Automatic Memoization</strong> - Each value computed exactly once</summary>
+<summary><strong>Memoization</strong> - Each value computed exactly once</summary>
 
-### Automatic Memoization
+### Memoization
 
 Each value is computed exactly once:
 
@@ -315,7 +346,7 @@ runner[:after_tax]     # => 196,844.80 (cached)
 
 ### Introspection & Metadata
 
-Kumi schemas are not black boxes. You can inspect their structure, debug their calculations, and extract rich metadata to build powerful developer tools.
+Kumi schemas are not black boxes. You can inspect their structure, debug their calculations, and extract metadata to build developer tools.
 
 #### **Explainability: Trace a Calculation**
 
@@ -379,9 +410,9 @@ puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
 - Pricing engines with multiple discount rules
 
 **Not suitable for:**
-- Simple conditional statements
+- Basic conditional statements
 - Sequential procedural workflows  
-- High-frequency real-time processing
+- High-frequency processing
 
 ## JavaScript Transpiler
 
@@ -399,7 +430,7 @@ console.log(calculator.fetch('total_tax'));   // 21491
 
 Generated JavaScript includes only functions used by the schema.
 
-All tests run in dual mode to ensure compiled schemas produce identical results in both Ruby and JavaScript.
+All tests run in dual mode to verify compiled schemas produce identical results in both Ruby and JavaScript.
 
 ## Performance
 

@@ -206,7 +206,18 @@ module Kumi
 
           # Higher-order collection functions
           map_with_index: "(collection) => collection.map((item, index) => [item, index])",
-          indices: "(collection) => Array.from({length: collection.length}, (_, i) => i)"
+          indices: "(collection) => Array.from({length: collection.length}, (_, i) => i)",
+
+          # Conditional aggregation functions
+          count_if: "(condition_array) => condition_array.filter(x => x === true).length",
+          sum_if: "(value_array, condition_array) => value_array.reduce((sum, value, i) => sum + (condition_array[i] ? value : 0), 0)",
+          avg_if: <<~JS.strip
+            (value_array, condition_array) => {
+              const pairs = value_array.map((value, i) => [value, condition_array[i]]);
+              const true_values = pairs.filter(([_, condition]) => condition).map(([value, _]) => value);
+              return true_values.length === 0 ? 0.0 : true_values.reduce((a, b) => a + b, 0) / true_values.length;
+            }
+          JS
         }
       end
 
