@@ -3,6 +3,7 @@
 require "bundler/setup"
 require "kumi"
 require "pry"
+require "open3"
 
 # require "simplecov"
 # SimpleCov.start do
@@ -28,6 +29,8 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+  
+  config.include DualModeHelpers
 end
 
 # Suppress warnings about potentially false-positive raise_error matchers

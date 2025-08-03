@@ -18,3 +18,4 @@
 /NOTES.md
 *.gem
 /test_*
+/scripts/check_docs.rb

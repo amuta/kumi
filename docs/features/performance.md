@@ -1,8 +1,6 @@
 # Performance
 
-TODO: Add benchmark data
-
-Processes large schemas with optimized algorithms for analysis, compilation, and execution.
+Analysis, compilation, and execution performance for large schemas.
 
 ## Execution Model
 

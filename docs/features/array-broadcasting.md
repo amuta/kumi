@@ -165,6 +165,6 @@ The error messages provide:
 ## Performance Characteristics
 
 - **Single Pass** - Each array is traversed once per computation chain
-- **Lazy Evaluation** - Operations are composed into efficient pipelines  
+- **Lazy Evaluation** - Operations are composed into pipelines  
 - **Memory Efficient** - No intermediate array allocations for simple operations
 - **Type Safe** - Full compile-time type checking for array element operations

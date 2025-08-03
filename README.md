@@ -5,7 +5,7 @@
 
 Kumi is a Declarative logic and rules engine framework with static analysis for Ruby.
 
-It is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
+It handles complex, interdependent calculations with validation and consistency checking.
 
 
 ## What can you build?
@@ -61,7 +61,7 @@ result[:after_tax]   # => 78,509.00
 
 Real tax calculation with brackets, deductions, and FICA caps. Validation happens during schema definition.
 
-Kumi is well-suited for scenarios with complex, interdependent calculations, enforcing validation and consistency across your business rules while maintaining performance.
+Kumi handles complex, interdependent calculations with validation and consistency checking.
 
 ## Installation
 
@@ -120,7 +120,7 @@ Note: You can find a list all core functions in [docs/FUNCTIONS.md](docs/FUNCTIO
 </details>
 
 <details>
-<summary><strong>🔍 Static Analysis</strong> - Catch errors at definition time and provides rich metadata</summary>
+<summary><strong>🔍 Static Analysis</strong> - Catch errors at definition time and extract metadata</summary>
 
 ### Static Analysis
 
@@ -237,7 +237,9 @@ This compiles because `operation` can only be "forward" or "reverse", never both
 
 ### Array Broadcasting
 
-Kumi broadcasts operations over array fields for element-wise computation:
+Kumi broadcasts operations over array fields for element-wise computation.
+
+See [docs/features/array-broadcasting.md](docs/features/array-broadcasting.md) for detailed documentation.
 
 ```ruby
 schema do
@@ -393,12 +395,32 @@ The SchemaMetadata interface provides both processed metadata for tool developme
 - Rules that change during execution
 - High-frequency real-time processing
 
+## JavaScript Transpiler
+
+Transpiles compiled schemas to standalone JavaScript code. See [docs/features/javascript-transpiler.md](docs/features/javascript-transpiler.md) for details.
+
+```ruby
+Kumi::Js.export_to_file(FederalTax2024, "federal-tax-2024.js")
+```
+
+```javascript
+const { schema } = require('./federal-tax-2024.js');
+const calculator = schema.from({ income: 100_000, filing_status: "single" });
+console.log(calculator.fetch('total_tax'));   // 21491
+```
+
+Generated JavaScript includes only functions used by the schema.
+
+All tests run in dual mode to ensure compiled schemas produce identical results in both Ruby and JavaScript.
+
 ## Performance
 
 Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 - 50-deep dependency chain: **740,000/sec** (analysis <50ms)
 - 1,000 attributes:         **131,000/sec** (analysis <50ms)
 - 10,000 attributes:        **14,200/sec**  (analysis ~300ms)
+
+See [docs/features/performance.md](docs/features/performance.md) for detailed benchmarks.
 
 ## Learn More
 

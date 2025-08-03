@@ -52,14 +52,14 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:modulo, float arg1, float arg2)` → `float`
 * **`multiply`**: Multiply two numbers
   * **Usage**: `fn(:multiply, float arg1, float arg2)` → `float`
+* **`piecewise_sum`**: Accumulate over tiered ranges; returns [sum, marginal_rate]
+  * **Usage**: `fn(:piecewise_sum, float arg1, array(float) arg2, array(float) arg3)` → `array(float)`
 * **`power`**: Raise first number to power of second
   * **Usage**: `fn(:power, float arg1, float arg2)` → `float`
 * **`round`**: Round number to specified precision
   * **Usage**: `fn(:round, float1, float2, ...)` → `float`
 * **`subtract`**: Subtract second number from first
   * **Usage**: `fn(:subtract, float arg1, float arg2)` → `float`
-* **`piecewise_sum`**: Accumulate over tiered ranges; returns [sum, marginal_rate]
-  * **Usage**: `fn(:piecewise_sum, float arg1, array(float) arg2, array(float) arg3)` → `array(float)`
 
 ## String Functions
 
@@ -67,16 +67,22 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:capitalize, string arg1)` → `string`
 * **`concat`**: Concatenate multiple strings
   * **Usage**: `fn(:concat, string1, string2, ...)` → `string`
+* **`contains?`**: Check if string contains substring
+  * **Usage**: `fn(:contains?, string arg1, string arg2)` → `boolean`
 * **`downcase`**: Convert string to lowercase
   * **Usage**: `fn(:downcase, string arg1)` → `string`
 * **`end_with?`**: Check if string ends with suffix
   * **Usage**: `fn(:end_with?, string arg1, string arg2)` → `boolean`
-* **`include?`**: Check if collection includes element
-  * **Usage**: `fn(:include?, array(any) arg1, any arg2)` → `boolean`
+* **`includes?`**: Check if string contains substring
+  * **Usage**: `fn(:includes?, string arg1, string arg2)` → `boolean`
 * **`length`**: Get collection length
   * **Usage**: `fn(:length, array(any) arg1)` → `integer`
 * **`start_with?`**: Check if string starts with prefix
   * **Usage**: `fn(:start_with?, string arg1, string arg2)` → `boolean`
+* **`string_include?`**: Check if string contains substring
+  * **Usage**: `fn(:string_include?, string arg1, string arg2)` → `boolean`
+* **`string_length`**: Get string length
+  * **Usage**: `fn(:string_length, string arg1)` → `integer`
 * **`strip`**: Remove leading and trailing whitespace
   * **Usage**: `fn(:strip, string arg1)` → `string`
 * **`upcase`**: Convert string to uppercase
@@ -84,20 +90,42 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
 
 ## Collection Functions
 
+* **`build_array`**: Build array of given size with index values
+  * **Usage**: `fn(:build_array, integer arg1)` → `array(any)`
+* **`each_slice`**: Group array elements into subarrays of given size
+  * **Usage**: `fn(:each_slice, array arg1, integer arg2)` → `array(array)`
 * **`empty?`**: Check if collection is empty
   * **Usage**: `fn(:empty?, array(any) arg1)` → `boolean`
 * **`first`**: Get first element of collection
   * **Usage**: `fn(:first, array(any) arg1)` → `any`
+* **`flatten`**: Flatten nested arrays into a single array
+  * **Usage**: `fn(:flatten, array(any) arg1)` → `array(any)`
 * **`include?`**: Check if collection includes element
   * **Usage**: `fn(:include?, array(any) arg1, any arg2)` → `boolean`
+* **`indices`**: Generate array of indices for the collection
+  * **Usage**: `fn(:indices, array(any) arg1)` → `array(integer)`
+* **`join`**: Join array elements into string with separator
+  * **Usage**: `fn(:join, array arg1, string arg2)` → `string`
 * **`last`**: Get last element of collection
   * **Usage**: `fn(:last, array(any) arg1)` → `any`
 * **`length`**: Get collection length
   * **Usage**: `fn(:length, array(any) arg1)` → `integer`
+* **`map_add`**: Add value to each element
+  * **Usage**: `fn(:map_add, array(float) arg1, float arg2)` → `array(float)`
+* **`map_conditional`**: Transform elements based on condition: if element == condition_value then true_value else false_value
+  * **Usage**: `fn(:map_conditional, array arg1, any arg2, any arg3, any arg4)` → `array`
+* **`map_join_rows`**: Join 2D array into string with row and column separators
+  * **Usage**: `fn(:map_join_rows, array(array) arg1, string arg2, string arg3)` → `string`
+* **`map_multiply`**: Multiply each element by factor
+  * **Usage**: `fn(:map_multiply, array(float) arg1, float arg2)` → `array(float)`
+* **`map_with_index`**: Map collection elements to [element, index] pairs
+  * **Usage**: `fn(:map_with_index, array(any) arg1)` → `array(any)`
 * **`max`**: Find maximum value in numeric collection
   * **Usage**: `fn(:max, array(float) arg1)` → `float`
 * **`min`**: Find minimum value in numeric collection
   * **Usage**: `fn(:min, array(float) arg1)` → `float`
+* **`range`**: Generate range of integers from start to finish (exclusive)
+  * **Usage**: `fn(:range, integer arg1, integer arg2)` → `array(integer)`
 * **`reverse`**: Reverse collection order
   * **Usage**: `fn(:reverse, array(any) arg1)` → `array(any)`
 * **`size`**: Get collection size

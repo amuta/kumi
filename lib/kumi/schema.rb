@@ -12,7 +12,7 @@ module Kumi
       end
     end
 
-    def from(context)
+    def from(context, dual_mode: nil)
       raise("No schema defined") unless @__compiled_schema__
 
       # Validate input types and domain constraints
@@ -21,7 +21,17 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
+      # Determine if dual mode should be enabled
+      use_dual_mode = dual_mode.nil? ? 
+        (ENV['KUMI_DUAL_MODE'] == 'true' || Thread.current[:kumi_dual_mode]) : 
+        dual_mode
+
+      if use_dual_mode
+        require_relative "dual_runner"
+        DualRunner.new(self, context)
+      else
+        Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
+      end
     end
 
     def explain(context, *keys)

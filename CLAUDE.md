@@ -27,7 +27,7 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 
 **Schema System** (`lib/kumi/schema.rb`):
 - Entry point that ties together parsing, analysis, and compilation
-- Provides the `schema(&block)` DSL method that builds the syntax tree, runs analysis, and compiles to executable form
+- DSL method `schema(&block)` builds the syntax tree, runs analysis, and compiles to executable form
 - Generates a `Runner` instance for executing queries against input data
 
 **Parser** (`lib/kumi/ruby_parser{/*,.rb}`):
@@ -60,14 +60,14 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 - **Pass 8**: `type_checker.rb` - Validate function types and compatibility using inferred types
 
 **Compiler** (`lib/kumi/compiler.rb`):
-- Transforms analyzed syntax tree into executable lambda functions
+- Compiles analyzed syntax tree into executable lambda functions
 - Maps each expression type to a compilation method
 - Handles function calls via `Kumi::Registry`
 - Produces `CompiledSchema` with executable bindings
 
 **Function Registry** (`lib/kumi/function_registry.rb`):
 - Registry of available functions (operators, math, string, logical, collection operations)
-- Supports custom function registration with comprehensive type metadata
+- Supports custom function registration with type metadata
 - Each function includes param_types, return_type, arity, and description
 - Core functions include: `==`, `>`, `<`, `add`, `multiply`, `and`, `or`, `clamp`, etc.
 - Maintains backward compatibility with legacy type checking system
@@ -75,9 +75,9 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 
 **Runner** (`lib/kumi/runner.rb`):
 - Executes compiled schemas against input data
-- Provides `fetch(key)` for individual value retrieval with caching
-- Provides `slice(*keys)` for batch evaluation
-- Provides `explain(key)` for detailed execution tracing
+- `fetch(key)` retrieves individual values with caching
+- `slice(*keys)` evaluates multiple values
+- `explain(key)` traces execution details
 
 **Input Validation System** (`lib/kumi/input/` and `lib/kumi/domain/`):
 - `input/validator.rb` - Main validation coordinator for type and domain checking
@@ -115,7 +115,7 @@ end
 **Arithmetic Operations**:
 - **Sugar Syntax**: `input.field1 + input.field2` - Works for input fields and value references
 - **Function Syntax**: `fn(:add, input.field1, input.field2)` - Always works, more explicit
-- **Mixed**: Use sugar for simple operations, functions for complex ones
+- **Mixed**: Sugar syntax for basic operations, function syntax for complex ones
 
 **Cascade Condition Syntax**:
 ```ruby
@@ -190,9 +190,9 @@ end
 4. Execute with Runner
 
 **Type System** (`lib/kumi/types.rb`):
-- Simple symbol-based type system for clean and intuitive declaration
+- Symbol-based type system
 - **Dual Type System**: Declared types (from input blocks) and inferred types (from expressions)
-- Automatic type inference for all declarations based on expression analysis
+- Type inference for all declarations based on expression analysis
 - Type primitives: `:string`, `:integer`, `:float`, `:boolean`, `:any`, `:symbol`, `:regexp`, `:time`, `:date`, `:datetime`
 - Collection types: `array(:element_type)` and `hash(:key_type, :value_type)` helper functions
 - Type compatibility checking and unification algorithms for numeric types
@@ -201,13 +201,13 @@ end
 
 ### Examples Directory
 
-The `examples/` directory contains comprehensive examples showing Kumi usage patterns:
+The `examples/` directory contains examples showing Kumi usage patterns:
 - `cascade_demonstration.rb` - Demonstrates cascade logic with UnsatDetector fixes (working)
-- `working_comprehensive_schema.rb` - Complete feature showcase (current best practices, working)
+- `working_comprehensive_schema.rb` - Feature showcase (current best practices, working)
 - Mathematical predicate examples - Safe mutual recursion patterns using cascade mutual exclusion
 - `federal_tax_calculator_2024.rb` - Real-world tax calculation example (working)
-- `tax_2024.rb` - Simple tax example with explain functionality (working)
-- `wide_schema_compilation_and_evaluation_benchmark.rb` - Performance benchmark for wide schemas (compilation and evaluation scaling)
+- `tax_2024.rb` - Tax example with explain functionality (working)
+- `wide_schema_compilation_and_evaluation_benchmark.rb` - Benchmark for wide schemas (compilation and evaluation)
 - `deep_schema_compilation_and_evaluation_benchmark.rb` - Performance benchmark for deep dependency chains (stack-safe evaluation)
 - `comprehensive_god_schema.rb` - Complex example (currently has UnsatDetector semantic errors)
 
@@ -223,11 +223,11 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 ## Files for Understanding
 
 . `docs/*` - Documents about Kumi, its features, DSL syntax, ... 
-- `examples/*` Random examples of very diverse contexts.
+- `examples/*` Random examples of diverse contexts.
 
 ### Troubleshooting Schema Issues
 - **Parse Errors**: Check function syntax (avoid empty `fn()` calls)
-- **Module Not Found**: Ensure proper module structure and naming, see examples
+- **Module Not Found**: Check module structure and naming, see examples
 - **UnsatDetector Errors**: Review trait logic for contradictions, add debugs!
 - **Type Errors**: Check input block type declarations match usage, add debugs!
 - **Runtime Errors**: Use explain to trace computation dependencies, add debugs!
@@ -237,7 +237,7 @@ The `examples/` directory contains comprehensive examples showing Kumi usage pat
 ### Required Input Blocks
 - **All schemas must have an input block** -
 - Input blocks declare expected fields with optional type and domain constraints
-- **Empty input blocks are allowed** -`input {}` Even if its not very useful.
+- **Empty input blocks are allowed** -`input {}` Even if not useful.
 - Fields are accessed via `input.field_name` or `input.field.nested_field.nested_nested_field` which
 works for referencing nested array input declarations.
 
@@ -263,13 +263,13 @@ input do
   hash         :metadata, key: { type: :string }, val: { type: :any }
 
   #generic type
-  any          :misc # this will make Kumi lose most of its analyze/inference power
+  any          :misc # this reduces Kumi's analyze/inference capabilities
 end
 ```
 
 ### Array Broadcasting System
 
-**Automatic Vectorization**: Field access on array inputs (`input.items.price`) applies operations element-wise with intelligent map/reduce detection.
+**Vectorization**: Field access on array inputs (`input.items.price`) applies operations element-wise with map/reduce detection.
 
 **Basic Broadcasting**:
 ```ruby
@@ -286,7 +286,7 @@ value :subtotals, input.line_items.price * input.line_items.quantity
 trait :is_taxable, (input.line_items.category != "digital")
 ```
 
-**Aggregation Operations**: Functions consuming arrays automatically detected:
+**Aggregation Operations**: Functions consuming arrays are detected:
 ```ruby
 value :total_subtotal, fn(:sum, subtotals)
 value :avg_price, fn(:avg, input.line_items.price)
@@ -297,7 +297,7 @@ value :max_quantity, fn(:max, input.line_items.quantity)
 - **InputElementReference** AST nodes for nested field access paths
 - **BroadcastDetector** analyzer pass identifies vectorized vs scalar operations  
 - **Compiler** generates appropriate map/reduce functions based on usage context
-- **Type Inference** automatically infers types for array element operations
+- **Type Inference** infers types for array element operations
 - Supports arbitrary depth field access with nested arrays and hashes
 
 ### Trait Syntax Evolution
@@ -330,7 +330,7 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 ```
 
 **Key Changes**:
-- **NEW**: Bare identifier syntax allows direct trait reference: `adult` instead of `ref(:adult)`
+- **NEW**: Bare identifier syntax for direct trait reference: `adult` instead of `ref(:adult)`
 - New syntax uses parenthesized expressions: `trait :name, (expression)`  
 - FieldRef nodes have operator methods that create CallExpression nodes
 - Logical AND chaining via `&` operator (Ruby limitation prevents `&&`)
@@ -350,9 +350,9 @@ trait :qualified, input.age, :>=, 21, input.score  # OLD - shows deprecation war
 
 - **Multi-pass Analysis**: Each analysis pass has a single responsibility and builds on previous passes
 - **Immutable Syntax Tree**: AST nodes are immutable; analysis results stored separately in analyzer state
-- **Dependency-driven Evaluation**: All computation follows dependency graph to ensure correct order
-- **Type Safety**: Optional but comprehensive type checking without breaking existing schemas
-- **Ruby Integration**: Leverages Ruby's metaprogramming while providing structured analysis
+- **Dependency-driven Evaluation**: All computation follows dependency graph for correct order
+- **Type Safety**: Optional type checking without breaking existing schemas
+- **Ruby Integration**: Leverages Ruby's metaprogramming with structured analysis
 - **Unified Error Reporting**: Consistent, localized error messages throughout the system with clear interface patterns
 
 ## Code Organization Patterns
@@ -370,7 +370,7 @@ class MyParser
   include ErrorReporting
   
   def parse_something
-    # Immediate error raising
+    # Error raising
     raise_syntax_error("Invalid syntax", location: current_location)
   end
 end
@@ -389,7 +389,7 @@ class MyAnalyzerPass < PassBase
 end
 ```
 ### Testing Error Scenarios
-- Use `spec/integration/dsl_breakage_spec.rb` patterns for comprehensive error testing
+- Use `spec/integration/dsl_breakage_spec.rb` patterns for error testing
 - Use `spec/integration/potential_breakage_spec.rb` for edge cases break
 - Use `spec/fixtures/location_tracking_test_schema.rb` fixture for testing different syntax error types  
 

@@ -6,14 +6,18 @@ module Kumi
       module Passes
         # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
         # DEPENDENCIES: :inferred_types from TypeInferencer
-        # PRODUCES: None (validation only)
+        # PRODUCES: :functions_required - Set of function names used in the schema
         # INTERFACE: new(schema, state).run(errors)
         class TypeChecker < VisitorPass
           def run(errors)
+            functions_required = Set.new
+            
             visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
               validate_function_call(node, errs)
+              functions_required.add(node.fn_name)
             end
-            state
+            
+            state.with(:functions_required, functions_required)
           end
 
           private

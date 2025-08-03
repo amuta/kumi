@@ -39,6 +39,10 @@ module Kumi
         evaluate(key_name)[key_name]
       end
 
+      def functions_used
+        @metadata[:functions_required]&.to_a || []
+      end
+
       # Update input values and clear affected cached computations
       def update(**changes)
         changes.each do |field, value|
@@ -106,6 +110,7 @@ module Kumi
         # This is truly O(1) - just array lookup, no traversal needed
         transitive_dependents[field] || []
       end
+
     end
   end
 end

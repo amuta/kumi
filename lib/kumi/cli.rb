@@ -15,7 +15,8 @@ module Kumi
           input_file: nil,
           output_format: :pretty,
           keys: [],
-          explain: false
+          explain: false,
+          export_js: nil
         }
       end
 
@@ -62,6 +63,10 @@ module Kumi
             @options[:explain] = key.to_sym
           end
 
+          opts.on("--export-js FILE", "Export schema to JavaScript file") do |file|
+            @options[:export_js] = file
+          end
+
           opts.on("-o", "--format FORMAT", %i[pretty json yaml], "Output format: pretty, json, yaml") do |format|
             @options[:output_format] = format
           end
@@ -84,6 +89,7 @@ module Kumi
             kumi -f schema.rb -d data.json       # Execute schema with data
             kumi -f schema.rb -k key1,key2       # Extract specific keys
             kumi -f schema.rb -e key_name        # Explain computation
+            kumi -f schema.rb --export-js file.js # Export to JavaScript
 
           Examples:
             # Interactive mode for rapid testing
@@ -97,6 +103,9 @@ module Kumi
 
             # Debug a specific computation
             kumi -f my_schema.rb -d input.json -e total_compensation
+
+            # Export schema to JavaScript for client-side use
+            kumi -f my_schema.rb --export-js my_schema.js
 
           For more information, see: https://github.com/amuta/kumi
         HELP
@@ -114,8 +123,13 @@ module Kumi
 
       def execute_schema_file
         schema_module = load_schema_file(@options[:schema_file])
-        input_data = load_input_data(@options[:input_file])
 
+        if @options[:export_js]
+          export_to_javascript(schema_module, @options[:export_js])
+          return
+        end
+
+        input_data = load_input_data(@options[:input_file])
         runner = schema_module.from(input_data)
 
         if @options[:explain]
@@ -216,6 +230,34 @@ module Kumi
           value.inspect
         else
           value.to_s
+        end
+      end
+
+      def export_to_javascript(schema_module, output_file)
+        # Load the JS module dynamically
+        require_relative "js"
+        
+        puts "Exporting schema to JavaScript..."
+        
+        begin
+          js_code = Kumi::Js.compile(schema_module, format: :standalone)
+          File.write(output_file, js_code)
+          
+          puts "✅ Successfully exported to #{output_file}"
+          puts "📄 File size: #{File.size(output_file)} bytes"
+          
+          # Show some useful information
+          available_bindings = schema_module.__compiled_schema__.bindings.keys
+          puts "🔧 Available bindings: #{available_bindings.join(', ')}"
+          puts ""
+          puts "Usage in browser/Node.js:"
+          puts "  const runner = schema.from({your: 'input', data: 'here'});"
+          puts "  console.log(runner.fetch('binding_name'));"
+          
+        rescue => e
+          puts "❌ Export failed: #{e.message}"
+          puts e.backtrace if $DEBUG
+          exit 1
         end
       end
     end

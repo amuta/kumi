@@ -1,6 +1,6 @@
 # Schema Metadata
 
-Kumi's SchemaMetadata interface provides structured access to analyzed schema information for building external tools like form generators, documentation systems, and analysis utilities.
+Kumi's SchemaMetadata interface accesses analyzed schema information for building external tools like form generators, documentation systems, and analysis utilities.
 
 ## Primary Interface
 
@@ -10,7 +10,7 @@ SchemaMetadata is the main interface for extracting metadata from Kumi schemas:
 metadata = MySchema.schema_metadata
 ```
 
-See the comprehensive API documentation in the SchemaMetadata class for detailed method documentation, examples, and usage patterns.
+See the API documentation in the SchemaMetadata class for method documentation, examples, and usage patterns.
 
 ## Processed Metadata (Tool-Friendly)
 
@@ -83,24 +83,24 @@ metadata.values
 # }
 ```
 
-### Clean Public Interface Examples
+### Public Interface Examples
 ```ruby
-# Processed dependency information (clean hashes)
+# Processed dependency information
 metadata.dependencies
 # => { :tax_amount => [{ to: :income, conditional: false }, { to: :tax_rate, conditional: false }] }
 
-# Processed declaration metadata (clean hashes)
+# Processed declaration metadata
 metadata.declarations  
 # => { :adult => { type: :trait, expression: ">=(input.age, 18)" }, :tax_amount => { type: :value, expression: "multiply(input.income, tax_rate)" } }
 
-# Type inference results (clean data)
+# Type inference results
 metadata.inferred_types
 # => { :adult => :boolean, :tax_amount => :float, :item_totals => { array: :float } }
 ```
 
 ### Raw Analyzer State (Advanced Usage)
 ```ruby
-# Complete raw state hash with internal objects (AST nodes, Edge objects)
+# Raw state hash with internal objects (AST nodes, Edge objects)
 metadata.analyzer_state
 # => { declarations: {AST nodes...}, dependencies: {Edge objects...}, ... }
 ```

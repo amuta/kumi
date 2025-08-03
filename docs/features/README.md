@@ -31,8 +31,7 @@ Defines expected inputs with types and constraints.
 - Separates input metadata from business logic
 
 ### [Performance](performance.md)
-TODO: Add benchmark data
-Processes large schemas with optimized algorithms.
+Processes large schemas.
 
 - Result caching
 - Selective evaluation
@@ -43,6 +42,13 @@ Debug and inspect AST structures with readable S-expression notation output.
 - Visitor pattern implementation for all node types
 - Proper indentation and hierarchical structure
 - Useful for debugging schema parsing and AST analysis
+
+### [JavaScript Transpiler](javascript-transpiler.md)
+Transpiles compiled schemas to standalone JavaScript code.
+
+- Generates bundles with only required functions
+- Supports CommonJS and browser environments
+- Maintains identical behavior across platforms
 
 ## Integration
 
