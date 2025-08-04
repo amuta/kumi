@@ -17,13 +17,20 @@ module Kumi
       def compile_element_field_reference(expr)
         path = expr.path
 
-        lambda do |ctx|
-          # Start with the top-level collection from the context.
-          collection = ctx[path.first]
-
-          # Recursively map over the nested collections.
-          # The `dig_and_map` helper will handle any level of nesting.
-          dig_and_map(collection, path[1..])
+        # Check if we have nested paths metadata for this path
+        nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
+        if nested_paths && nested_paths[path]
+          # Determine operation mode based on context
+          operation_mode = determine_operation_mode_for_path(path)
+          lambda do |ctx|
+            traverse_nested_path(ctx, path, operation_mode)
+          end
+        else
+          # ERROR: All nested paths should have metadata from the analyzer
+          # If we reach here, it means the BroadcastDetector didn't process this path
+          raise Errors::CompilationError.new(
+            "Missing nested path metadata for #{path.inspect}. This indicates an analyzer bug."
+          )
         end
       end
 
@@ -45,87 +52,143 @@ module Kumi
         fn_name = expr.fn_name
         arg_fns = expr.args.map { |a| compile_expr(a) }
 
+        # Get compilation metadata once
+        compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
+
         # Check if this is a vectorized operation
         if vectorized_operation?(expr)
-          ->(ctx) { invoke_vectorized_function(fn_name, arg_fns, ctx, expr.loc) }
+          # Build vectorized executor at COMPILATION time
+          executor = Core::VectorizedFunctionBuilder.build_executor(fn_name, compilation_meta, @analysis.state)
+
+          lambda do |ctx|
+            # Evaluate arguments and use pre-built executor at RUNTIME
+            values = arg_fns.map { |fn| fn.call(ctx) }
+            executor.call(values, expr.loc)
+          end
         else
-          ->(ctx) { invoke_function(fn_name, arg_fns, ctx, expr.loc) }
+          # Use pre-computed function call strategy
+          function_strategy = compilation_meta&.dig(:function_call_strategy) || {}
+
+          if function_strategy[:flattening_required]
+            flattening_info = @analysis.state[:broadcasts][:flattening_declarations][@current_declaration]
+            ->(ctx) { invoke_function_with_flattening(fn_name, arg_fns, ctx, expr.loc, expr.args, flattening_info) }
+          else
+            ->(ctx) { invoke_function(fn_name, arg_fns, ctx, expr.loc) }
+          end
         end
       end
 
       def compile_cascade(expr)
-        # Check if current declaration is vectorized
+        # Use metadata to determine if this cascade is vectorized
         broadcast_meta = @analysis.state[:broadcasts]
-        is_vectorized = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)
+        cascade_info = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)
+        is_vectorized = cascade_info && cascade_info[:source] == :cascade_with_vectorized_conditions_or_results
 
-        # For vectorized cascades, we need to transform conditions that use all?
-        pairs = if is_vectorized
-                  expr.cases.map do |c|
-                    condition_fn = transform_vectorized_condition(c.condition)
-                    result_fn = compile_expr(c.result)
-                    [condition_fn, result_fn]
-                  end
-                else
-                  expr.cases.map { |c| [compile_expr(c.condition), compile_expr(c.result)] }
-                end
+        # Separate conditional cases from base case
+        conditional_cases = expr.cases.select(&:condition)
+        base_case = expr.cases.find { |c| c.condition.nil? }
+
+        # Compile conditional pairs
+        pairs = conditional_cases.map do |c|
+          condition_fn = if is_vectorized
+                           transform_vectorized_condition(c.condition)
+                         else
+                           compile_expr(c.condition)
+                         end
+          result_fn = compile_expr(c.result)
+          [condition_fn, result_fn]
+        end
+
+        # Compile base case
+        base_fn = base_case ? compile_expr(base_case.result) : nil
 
         if is_vectorized
+          # Capture the current declaration name in the closure
+          current_decl_name = @current_declaration
+          
+          # Get pre-computed cascade strategy
+          compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, current_decl_name)
+          cascade_info = compilation_meta&.dig(:cascade_info) || {}
+
+          # Build executor at COMPILATION time (outside the lambda)
+          strategy = @analysis.state[:broadcasts][:cascade_strategies][current_decl_name]
+          executor = strategy ? Core::CascadeExecutorBuilder.build_executor(strategy, @analysis.state) : nil
+
+          # Metadata-driven vectorized cascade evaluation
           lambda do |ctx|
-            # This cascade can be vectorized - check if we actually need to at runtime
-            # Evaluate all conditions and results to check for arrays
+            # Evaluate all conditions and results
             cond_results = pairs.map { |cond, _res| cond.call(ctx) }
             res_results = pairs.map { |_cond, res| res.call(ctx) }
+            base_result = base_fn ? base_fn.call(ctx) : nil
 
-            # Check if any conditions or results are arrays (vectorized)
-            has_vectorized_data = (cond_results + res_results).any?(Array)
+            if ENV["DEBUG_CASCADE"]
+              puts "DEBUG: Vectorized cascade evaluation for #{current_decl_name}:"
+              cond_results.each_with_index { |cr, i| puts "  cond_results[#{i}]: #{cr.inspect}" }
+              res_results.each_with_index { |rr, i| puts "  res_results[#{i}]: #{rr.inspect}" }
+              puts "  base_result: #{base_result.inspect}"
+              puts "  Pre-computed cascade_info: #{cascade_info.inspect}"
+            end
 
-            if has_vectorized_data
-              # Apply element-wise cascade evaluation
-              array_length = cond_results.find { |v| v.is_a?(Array) }&.length ||
-                             res_results.find { |v| v.is_a?(Array) }&.length || 1
-
-              (0...array_length).map do |i|
-                pairs.each_with_index do |(_cond, _res), pair_idx|
-                  cond_val = cond_results[pair_idx].is_a?(Array) ? cond_results[pair_idx][i] : cond_results[pair_idx]
-
-                  if cond_val
-                    res_val = res_results[pair_idx].is_a?(Array) ? res_results[pair_idx][i] : res_results[pair_idx]
-                    break res_val
-                  end
-                end || nil
-              end
+            # Use pre-built executor at RUNTIME
+            if executor
+              executor.call(cond_results, res_results, base_result, pairs)
             else
-              # All data is scalar - use regular cascade evaluation
+              # Fallback for cases without strategy
               pairs.each_with_index do |(_cond, _res), pair_idx|
                 return res_results[pair_idx] if cond_results[pair_idx]
               end
-              nil
+              base_result
             end
           end
         else
+          # Non-vectorized cascade - standard evaluation
           lambda do |ctx|
             pairs.each { |cond, res| return res.call(ctx) if cond.call(ctx) }
-            nil
+            # If no conditional case matched, return base case
+            base_fn ? base_fn.call(ctx) : nil
           end
         end
       end
 
       def transform_vectorized_condition(condition_expr)
-        # If this is fn(:all?, [trait_ref]), extract the trait_ref for vectorized cascades
         if condition_expr.is_a?(Kumi::Syntax::CallExpression) &&
-           condition_expr.fn_name == :all? &&
-           condition_expr.args.length == 1
+           condition_expr.fn_name == :cascade_and
 
-          arg = condition_expr.args.first
-          if arg.is_a?(Kumi::Syntax::ArrayExpression) && arg.elements.length == 1
-            trait_ref = arg.elements.first
-            return compile_expr(trait_ref)
-          end
+          puts "    transform_vectorized_condition: handling cascade_and with #{condition_expr.args.length} args" if ENV["DEBUG_CASCADE"]
+
+          # For cascade_and in vectorized contexts, we need to compile it as a structure-level operation
+          # rather than element-wise operation
+          return compile_cascade_and_for_hierarchical_broadcasting(condition_expr)
         end
 
         # Otherwise compile normally
         compile_expr(condition_expr)
       end
+
+      def compile_cascade_and_for_hierarchical_broadcasting(condition_expr)
+        # Compile individual trait references
+        trait_fns = condition_expr.args.map { |arg| compile_expr(arg) }
+
+        lambda do |ctx|
+          # Evaluate all traits to get their array structures
+          trait_values = trait_fns.map { |fn| fn.call(ctx) }
+
+          if ENV["DEBUG_CASCADE"]
+            puts "      cascade_and hierarchical broadcasting:"
+            trait_values.each_with_index { |tv, i| puts "        trait[#{i}]: #{tv.inspect}" }
+          end
+
+          # Use the cascade_and function directly on the array structures
+          # This will handle hierarchical broadcasting through element_wise_and
+          fn = Kumi::Registry.fetch(:cascade_and)
+          result = fn.call(*trait_values)
+
+          puts "        hierarchical cascade_and result: #{result.inspect}" if ENV["DEBUG_CASCADE"]
+
+          result
+        end
+      end
+
     end
 
     include ExprCompilers
@@ -169,21 +232,71 @@ module Kumi
       @schema.traits.each     { |t| @index[t.name] = t }
     end
 
-    def dig_and_map(collection, path_segments)
-      return collection unless collection.is_a?(Array)
+    def determine_operation_mode_for_path(path)
+      # Use pre-computed operation mode from analysis
+      compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
+      compilation_meta&.dig(:operation_mode) || :broadcast
+    end
 
-      current_segment = path_segments.first
-      remaining_segments = path_segments[1..]
+    # Metadata-driven nested array traversal using the traversal algorithm from our design
+    def traverse_nested_path(data, path, operation_mode)
+      result = traverse_path_recursive(data, path, operation_mode)
 
-      collection.map do |element|
-        value = element[current_segment]
+      # Post-process result based on operation mode
+      case operation_mode
+      when :flatten
+        # Completely flatten nested arrays for aggregation
+        flatten_completely(result)
+      else
+        result
+      end
+    end
 
-        # If there are more segments, recurse. Otherwise, return the value.
-        if remaining_segments.empty?
-          value
+    def traverse_path_recursive(data, path, operation_mode)
+      return data if path.empty?
+
+      field = path.first
+      remaining_path = path[1..]
+
+      if remaining_path.empty?
+        # Final field - extract based on operation mode
+        case operation_mode
+        when :broadcast, :flatten
+          # Extract field preserving array structure
+          extract_field_preserving_structure(data, field)
         else
-          dig_and_map(value, remaining_segments)
+          # Simple field access
+          data.is_a?(Array) ? data.map { |item| item[field] } : data[field]
         end
+      elsif data.is_a?(Array)
+        # Intermediate step - traverse deeper
+        # Array of items - traverse each item
+        data.map { |item| traverse_path_recursive(item[field], remaining_path, operation_mode) }
+      else
+        # Single item - traverse directly
+        traverse_path_recursive(data[field], remaining_path, operation_mode)
+      end
+    end
+
+    def extract_field_preserving_structure(data, field)
+      if data.is_a?(Array)
+        data.map { |item| extract_field_preserving_structure(item, field) }
+      else
+        data[field]
+      end
+    end
+
+    def flatten_completely(data)
+      result = []
+      flatten_recursive(data, result)
+      result
+    end
+
+    def flatten_recursive(data, result)
+      if data.is_a?(Array)
+        data.each { |item| flatten_recursive(item, result) }
+      else
+        result << data
       end
     end
 
@@ -213,71 +326,40 @@ module Kumi
     end
 
     def vectorized_operation?(expr)
-      # Check if this operation uses vectorized inputs
-      broadcast_meta = @analysis.state[:broadcasts]
-      return false unless broadcast_meta
+      # Use pre-computed vectorization decision from analysis
+      compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
+      return false unless compilation_meta
 
-      # Reduction functions are NOT vectorized operations - they consume arrays
+      # Check if current declaration is vectorized
+      if compilation_meta[:is_vectorized]
+        # For vectorized declarations, check if this specific operation should be vectorized
+        vectorized_ops = @analysis.state[:broadcasts][:vectorized_operations] || {}
+        current_decl_info = vectorized_ops[@current_declaration]
+
+        # For cascade declarations, check individual operations within them
+        return true if current_decl_info && current_decl_info[:operation] == expr.fn_name
+
+        # For cascade_with_vectorized_conditions_or_results, allow nested operations  
+        return true if current_decl_info && current_decl_info[:source] == :cascade_with_vectorized_conditions_or_results
+
+        # Check if this is a direct vectorized operation
+        return true if current_decl_info && current_decl_info[:operation]
+      end
+
+      # Fallback: Reduction functions are NOT vectorized operations - they consume arrays
       return false if Kumi::Registry.reducer?(expr.fn_name)
 
-      expr.args.any? do |arg|
-        case arg
-        when Kumi::Syntax::InputElementReference
-          broadcast_meta[:array_fields]&.key?(arg.path.first)
-        when Kumi::Syntax::DeclarationReference
-          broadcast_meta[:vectorized_operations]&.key?(arg.name)
-        else
-          false
-        end
-      end
-    end
-
-    def invoke_vectorized_function(name, arg_fns, ctx, loc)
-      # Evaluate arguments
-      values = arg_fns.map { |fn| fn.call(ctx) }
-
-      # Check if any argument is vectorized (array)
-      has_vectorized_args = values.any?(Array)
-
-      if has_vectorized_args
-        # Apply function with broadcasting to all vectorized arguments
-        vectorized_function_call(name, values)
-      else
-        # All arguments are scalars - regular function call
-        fn = Kumi::Registry.fetch(name)
-        fn.call(*values)
-      end
-    rescue StandardError => e
-      enhanced_message = "Error calling fn(:#{name}) at #{loc}: #{e.message}"
-      runtime_error = Errors::RuntimeError.new(enhanced_message)
-      runtime_error.set_backtrace(e.backtrace)
-      runtime_error.define_singleton_method(:cause) { e }
-      raise runtime_error
-    end
-
-    def vectorized_function_call(fn_name, values)
-      # Get the function from registry
-      fn = Kumi::Registry.fetch(fn_name)
-
-      # Find array dimensions for broadcasting
-      array_values = values.select { |v| v.is_a?(Array) }
-      return fn.call(*values) if array_values.empty?
-
-      # All arrays should have the same length (validation could be added)
-      array_length = array_values.first.size
-
-      # Broadcast and apply function element-wise
-      (0...array_length).map do |i|
-        element_args = values.map do |v|
-          v.is_a?(Array) ? v[i] : v # Broadcast scalars
-        end
-        fn.call(*element_args)
-      end
+      # Use pre-computed vectorization context for remaining cases
+      compilation_meta.dig(:vectorization_context, :needs_broadcasting) || false
     end
 
     def invoke_function(name, arg_fns, ctx, loc)
       fn = Kumi::Registry.fetch(name)
       values = arg_fns.map { |fn| fn.call(ctx) }
+
+      # REMOVED AUTO-FLATTENING: Let operations work on the structure they receive
+      # If flattening is needed, it should be handled by explicit operation modes
+      # in the InputElementReference compilation, not here.
       fn.call(*values)
     rescue StandardError => e
       # Preserve original error class and backtrace while adding context
@@ -294,6 +376,27 @@ module Kumi
         runtime_error.define_singleton_method(:cause) { e }
         raise runtime_error
       end
+    end
+
+    def invoke_function_with_flattening(name, arg_fns, ctx, loc, _original_args, _flattening_info)
+      fn = Kumi::Registry.fetch(name)
+
+      # Use pre-computed flattening indices from analysis
+      compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
+      flatten_indices = compilation_meta&.dig(:function_call_strategy, :flatten_argument_indices) || []
+
+      values = arg_fns.map.with_index do |arg_fn, index|
+        value = arg_fn.call(ctx)
+        flatten_indices.include?(index) ? flatten_completely(value) : value
+      end
+
+      fn.call(*values)
+    rescue StandardError => e
+      enhanced_message = "Error calling fn(:#{name}) at #{loc}: #{e.message}"
+      runtime_error = Errors::RuntimeError.new(enhanced_message)
+      runtime_error.set_backtrace(e.backtrace)
+      runtime_error.define_singleton_method(:cause) { e }
+      raise runtime_error
     end
   end
 end

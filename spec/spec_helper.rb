@@ -25,7 +25,21 @@ require "open3"
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
 
-# Override Schema#from to use dual mode for all specs
+RSpec::Expectations.configuration.on_potential_false_positives = :nothing
+
+RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+
+  config.include DualModeHelpers
+end
+
+# ENV["DUAL_MODE_ENABLED"] = "true"
+
+return unless ENV["DUAL_MODE_ENABLED"] == "true"
+
+# Override Schema from to use dual mode for all specs
 module Kumi
   module Schema
     def from(context)
@@ -43,13 +57,4 @@ module Kumi
   end
 end
 
-RSpec.configure do |config|
-  config.expect_with :rspec do |c|
-    c.syntax = :expect
-  end
-  
-  config.include DualModeHelpers
-end
-
 # Suppress warnings about potentially false-positive raise_error matchers
-RSpec::Expectations.configuration.on_potential_false_positives = :nothing

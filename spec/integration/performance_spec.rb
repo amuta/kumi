@@ -106,9 +106,9 @@ RSpec.describe "Kumi Performance" do
       trait :has_referrals, input.referral_count, :>, 0
       trait :low_support_usage, input.support_tickets, :<=, 3
 
-      value :check_engagement, fn(:all?, [ref(:recent_activity), ref(:frequent_buyer)])
-      value :check_value, fn(:all?, [ref(:high_balance), ref(:long_term_customer)])
-      value :check_low_maintenance, fn(:all?, [ref(:low_support_usage), ref(:has_referrals)])
+      value :check_engagement, fn(:cascade_and, ref(:recent_activity), ref(:frequent_buyer))
+      value :check_value, fn(:cascade_and, ref(:high_balance), ref(:long_term_customer))
+      value :check_low_maintenance, fn(:cascade_and, ref(:low_support_usage), ref(:has_referrals))
 
       trait :engaged_customer, ref(:check_engagement), :==, true
       trait :valuable_customer, ref(:check_value), :==, true

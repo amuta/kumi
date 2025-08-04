@@ -4,10 +4,10 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
 
 ## Logical Functions
 
-* **`all?`**: Check if all elements in collection are truthy
-  * **Usage**: `fn(:all?, array(any) arg1)` → `boolean`
 * **`and`**: Logical AND of multiple conditions
   * **Usage**: `fn(:and, boolean1, boolean2, ...)` → `boolean`
+* **`cascade_and`**: Element-wise AND for arrays with same nested structure
+  * **Usage**: `fn(:cascade_and, condition1, condition2, ...)` → `boolean` or `array(boolean)`
 * **`any?`**: Check if any element in collection is truthy
   * **Usage**: `fn(:any?, array(any) arg1)` → `boolean`
 * **`none?`**: Check if no elements in collection are truthy

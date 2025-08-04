@@ -40,12 +40,32 @@ module Kumi
                 atoms = gather_atoms(decl.expression, definitions, Set.new)
                 next if atoms.empty?
 
+                # DEBUG: Add detailed logging for hierarchical broadcasting debugging
+                if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                  puts "DEBUG UNSAT: Checking declaration '#{decl.name}' at #{decl.loc}"
+                  puts "  Expression: #{decl.expression.inspect}"
+                  puts "  Gathered atoms: #{atoms.map(&:inspect)}"
+                  puts "  Input meta: #{@input_meta.keys.inspect}" if @input_meta
+                end
+
                 # Use enhanced solver that can detect cross-variable mathematical constraints
                 impossible = if definitions && !definitions.empty?
-                               Kumi::Core::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
+                               result = Kumi::Core::ConstraintRelationshipSolver.unsat?(atoms, definitions, input_meta: @input_meta)
+                               if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                                 puts "  Enhanced solver result: #{result}"
+                               end
+                               result
                              else
-                               Kumi::Core::AtomUnsatSolver.unsat?(atoms)
+                               result = Kumi::Core::AtomUnsatSolver.unsat?(atoms)
+                               if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                                 puts "  Basic solver result: #{result}"
+                               end
+                               result
                              end
+
+                if impossible && (ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257')))
+                  puts "  -> FLAGGING AS IMPOSSIBLE: #{decl.name}"
+                end
 
                 report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
               end
@@ -63,15 +83,24 @@ module Kumi
             decl.expression.cases[0...-1].each do |when_case|
               next unless when_case.condition
 
-              next unless when_case.condition.fn_name == :all?
+              next unless when_case.condition.fn_name == :cascade_and
 
               when_case.condition.args.each do |arg|
-                next unless arg.is_a?(ArrayExpression)
+                if arg.is_a?(ArrayExpression)
+                  # Handle array elements (for array broadcasting)
+                  arg.elements.each do |element|
+                    next unless element.is_a?(DeclarationReference)
 
-                arg.elements.each do |element|
-                  next unless element.is_a?(DeclarationReference)
-
-                  trait_name = element.name
+                    trait_name = element.name
+                    trait = definitions[trait_name]
+                    if trait
+                      conditions << trait.expression
+                      condition_traits << trait_name
+                    end
+                  end
+                elsif arg.is_a?(DeclarationReference)
+                  # Handle direct trait references (simple case)
+                  trait_name = arg.name
                   trait = definitions[trait_name]
                   if trait
                     conditions << trait.expression
@@ -183,8 +212,8 @@ module Kumi
                 # We should NOT add OR children to the stack as they would be treated as AND
                 # OR expressions need separate analysis in the main run() method
                 next
-              elsif current.is_a?(CallExpression) && current.fn_name == :all?
-                # For all? function, add all trait arguments to the stack
+              elsif current.is_a?(CallExpression) && current.fn_name == :cascade_and
+                # cascade_and takes individual arguments (not wrapped in array)
                 current.args.each { |arg| stack << arg }
               elsif current.is_a?(ArrayExpression)
                 # For ArrayExpression, add all elements to the stack
@@ -212,7 +241,18 @@ module Kumi
             # This is the correct behavior: each 'on' condition should be checked separately
             # since only ONE will be evaluated at runtime (they're mutually exclusive by design)
 
-            decl.expression.cases.each_with_index do |when_case, _index|
+            # DEBUG: Add detailed logging for hierarchical broadcasting debugging
+            if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+              puts "DEBUG UNSAT CASCADE: Checking cascade '#{decl.name}' at #{decl.loc}"
+              puts "  Total cases: #{decl.expression.cases.length}"
+            end
+
+            decl.expression.cases.each_with_index do |when_case, index|
+              # DEBUG: Log each case
+              if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                puts "  Case #{index}: condition=#{when_case.condition.inspect}"
+              end
+
               # Skip the base case (it's typically a literal true condition)
               next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
 
@@ -220,51 +260,50 @@ module Kumi
               next if when_case.condition.is_a?(CallExpression) && %i[any? none?].include?(when_case.condition.fn_name)
 
               # Skip single-trait 'on' branches: trait-level unsat detection covers these
-              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-                # Handle both ArrayExpression (old format) and multiple args (new format)
-                if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
-                  list = when_case.condition.args.first
-                  next if list.elements.size == 1
-                elsif when_case.condition.args.size == 1
-                  # Multiple args format
-                  next
-                end
+              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :cascade_and
+                # cascade_and uses individual arguments - skip if only one trait
+                next if when_case.condition.args.size == 1
               end
               # Gather atoms from this individual condition only
               condition_atoms = gather_atoms(when_case.condition, definitions, Set.new, [])
-              # DEBUG
-              # if when_case.condition.is_a?(CallExpression) && [:all?, :any?, :none?].include?(when_case.condition.fn_name)
-              #   puts "  Args: #{when_case.condition.args.inspect}"
-              #   puts "  Atoms found: #{condition_atoms.inspect}"
-              # end
+              
+              # DEBUG: Add detailed logging for hierarchical broadcasting debugging
+              if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                puts "    Condition atoms: #{condition_atoms.map(&:inspect)}"
+              end
 
-              # Only flag if this individual condition is impossible
-              # if !condition_atoms.empty?
-              #   is_unsat = Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
-              #   puts "  Is unsat? #{is_unsat}"
-              # end
               # Use enhanced solver for cascade conditions too
               impossible = if definitions && !definitions.empty?
-                             Kumi::Core::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
+                             result = Kumi::Core::ConstraintRelationshipSolver.unsat?(condition_atoms, definitions, input_meta: @input_meta)
+                             if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                               puts "    Enhanced solver result: #{result}"
+                             end
+                             result
                            else
-                             Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
+                             result = Kumi::Core::AtomUnsatSolver.unsat?(condition_atoms)
+                             if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                               puts "    Basic solver result: #{result}"
+                             end
+                             result
                            end
               next unless !condition_atoms.empty? && impossible
 
               # For multi-trait on-clauses, report the trait names rather than the value name
-              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :all?
-                # Handle both ArrayExpression (old format) and multiple args (new format)
-                trait_bindings = if when_case.condition.args.size == 1 && when_case.condition.args.first.is_a?(ArrayExpression)
-                                   when_case.condition.args.first.elements
-                                 else
-                                   when_case.condition.args
-                                 end
+              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :cascade_and
+                # cascade_and uses individual arguments
+                trait_bindings = when_case.condition.args
 
                 if trait_bindings.all?(DeclarationReference)
                   traits = trait_bindings.map(&:name).join(" AND ")
+                  if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                    puts "    -> FLAGGING AS IMPOSSIBLE CASCADE CONDITION: #{traits}"
+                  end
                   report_error(errors, "conjunction `#{traits}` is impossible", location: decl.loc)
                   next
                 end
+              end
+              if ENV['DEBUG_UNSAT'] || (decl.loc && decl.loc.to_s.include?('hierarchical_broadcasting_spec.rb:257'))
+                puts "    -> FLAGGING AS IMPOSSIBLE CASCADE: #{decl.name}"
               end
               report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc)
             end
@@ -275,6 +314,12 @@ module Kumi
             when InputReference, DeclarationReference
               val = @evaluator.evaluate(node)
               val == :unknown ? node.name : val
+            when InputElementReference
+              # For hierarchical paths like input.companies.regions.offices.teams.department,
+              # create a unique identifier that represents the specific path
+              # This prevents false positives where different paths are treated as the same :unknown
+              path_identifier = "#{node.path.join('.')}"
+              path_identifier.to_sym
             when Literal
               node.value
             else

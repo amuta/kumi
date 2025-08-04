@@ -5,7 +5,7 @@ module Kumi
     module FunctionRegistry
       # Utility class to reduce repetition in function definitions
       class FunctionBuilder
-        Entry = Struct.new(:fn, :arity, :param_types, :return_type, :description, :inverse, :reducer, keyword_init: true)
+        Entry = Struct.new(:fn, :arity, :param_types, :return_type, :description, :inverse, :reducer, :structure_function, keyword_init: true)
 
         def self.comparison(_name, description, operation)
           Entry.new(
@@ -79,14 +79,15 @@ module Kumi
           )
         end
 
-        def self.collection_unary(_name, description, operation, return_type: :boolean, reducer: false)
+        def self.collection_unary(_name, description, operation, return_type: :boolean, reducer: false, structure_function: false)
           Entry.new(
             fn: proc(&operation),
             arity: 1,
             param_types: [Kumi::Core::Types.array(:any)],
             return_type: return_type,
             description: description,
-            reducer: reducer
+            reducer: reducer,
+            structure_function: structure_function
           )
         end
       end

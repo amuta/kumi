@@ -14,10 +14,10 @@ RSpec.describe "Dual Mode Execution" do
 
           trait :adult, (input.age >= 18)
           trait :senior, (input.age >= 65)
-          
+
           value :monthly_salary, input.salary / 12
           value :annual_bonus, input.salary * 0.1
-          
+
           value :status do
             on senior, "Senior"
             on adult, "Adult"
@@ -58,7 +58,7 @@ RSpec.describe "Dual Mode Execution" do
 
           value :sum_all, fn(:sum, input.numbers)
           value :average, sum_all / fn(:size, input.numbers)
-          # Count numbers greater than threshold  
+          # Count numbers greater than threshold
           trait :above_thresh, fn(:any?, fn(:map_conditional, input.numbers, input.threshold, true, false))
           value :above_threshold, fn(:sum, fn(:map_conditional, input.numbers, input.threshold, 1, 0))
         end
@@ -82,8 +82,8 @@ RSpec.describe "Dual Mode Execution" do
           runner = simple_schema.from(test_data)
 
           expect(runner.fetch(:senior)).to eq(true)
-          expect(runner.fetch(:adult)).to eq(true)  # seniors are also adults
-          expect(runner.fetch(:status)).to eq("Senior")  # but senior takes precedence
+          expect(runner.fetch(:adult)).to eq(true) # seniors are also adults
+          expect(runner.fetch(:status)).to eq("Senior") # but senior takes precedence
         end
 
         it "produces identical results for minors" do
@@ -104,10 +104,10 @@ RSpec.describe "Dual Mode Execution" do
           total_compensation = runner.fetch(:total_compensation)
           monthly_compensation = runner.fetch(:monthly_compensation)
 
-          expect(annual_bonus).to eq(15_000.0)  # 100k * 0.15
-          expect(experience_bonus).to eq(5_000.0)  # 5 * 1000
-          expect(total_compensation).to eq(120_000.0)  # 100k + 15k + 5k
-          expect(monthly_compensation).to be_within(0.01).of(10_000.0)  # 120k / 12
+          expect(annual_bonus).to eq(15_000.0) # 100k * 0.15
+          expect(experience_bonus).to eq(5_000.0) # 5 * 1000
+          expect(total_compensation).to eq(120_000.0) # 100k + 15k + 5k
+          expect(monthly_compensation).to be_within(0.01).of(10_000.0) # 120k / 12
         end
 
         it "handles array operations correctly" do
@@ -126,7 +126,7 @@ RSpec.describe "Dual Mode Execution" do
           runner = simple_schema.from(test_data)
 
           result = runner.slice(:adult, :monthly_salary, :status)
-          
+
           expect(result[:adult]).to eq(true)
           expect(result[:monthly_salary]).to be_within(0.01).of(7_083.33)
           expect(result[:status]).to eq("Adult")
@@ -137,7 +137,7 @@ RSpec.describe "Dual Mode Execution" do
     context "without dual mode" do
       it "works normally without JavaScript execution" do
         test_data = { age: 25, salary: 50_000.0 }
-        
+
         # Temporarily restore original from method behavior
         original_from = simple_schema.method(:from)
         simple_schema.define_singleton_method(:from) do |context|
@@ -155,7 +155,7 @@ RSpec.describe "Dual Mode Execution" do
         expect(runner[:adult]).to eq(true)
         expect(runner[:monthly_salary]).to be_within(0.01).of(4_166.67)
         expect(runner[:status]).to eq("Adult")
-        
+
         # Restore dual mode behavior
         simple_schema.define_singleton_method(:from, &original_from)
       end
@@ -164,7 +164,7 @@ RSpec.describe "Dual Mode Execution" do
     context "dual mode error handling" do
       # This would test cases where Ruby and JS produce different results
       # In a real scenario, this should never happen, but it's useful for debugging
-      
+
       it "raises clear errors when results don't match" do
         # This test would require modifying the JS compiler to produce incorrect results
         # Left as a placeholder for debugging scenarios
@@ -175,8 +175,8 @@ RSpec.describe "Dual Mode Execution" do
 
   describe "environment variable control" do
     it "enables dual mode via KUMI_DUAL_MODE=true" do
-      ENV['KUMI_DUAL_MODE'] = 'true'
-      
+      ENV["KUMI_DUAL_MODE"] = "true"
+
       begin
         test_schema = Class.new do
           extend Kumi::Schema
@@ -191,7 +191,7 @@ RSpec.describe "Dual Mode Execution" do
           expect(runner.fetch(:doubled)).to eq(10)
         end
       ensure
-        ENV.delete('KUMI_DUAL_MODE')
+        ENV.delete("KUMI_DUAL_MODE")
       end
     end
   end

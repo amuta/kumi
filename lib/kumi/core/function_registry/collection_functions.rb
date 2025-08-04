@@ -9,7 +9,7 @@ module Kumi
           {
             # Collection queries (these are reducers - they reduce arrays to scalars)
             empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
-            size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: true),
+            size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: false, structure_function: true),
             length: FunctionBuilder.collection_unary(:length, "Get collection length", :length, return_type: :integer, reducer: true),
 
             # Element access
@@ -98,7 +98,26 @@ module Kumi
               arity: 1,
               param_types: [Kumi::Core::Types.array(:any)],
               return_type: Kumi::Core::Types.array(:any),
-              description: "Flatten nested arrays into a single array"
+              description: "Flatten nested arrays into a single array",
+              structure_function: true
+            ),
+
+            flatten_one: FunctionBuilder::Entry.new(
+              fn: ->(array) { array.flatten(1) },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: Kumi::Core::Types.array(:any),
+              description: "Flatten nested arrays by one level only",
+              structure_function: true
+            ),
+
+            flatten_deep: FunctionBuilder::Entry.new(
+              fn: lambda(&:flatten),
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: Kumi::Core::Types.array(:any),
+              description: "Recursively flatten all nested arrays (alias for flatten)",
+              structure_function: true
             ),
 
             # Mathematical transformation functions
@@ -227,6 +246,34 @@ module Kumi
               param_types: [Kumi::Core::Types.array(:float), Kumi::Core::Types.array(:boolean)],
               return_type: :float,
               description: "Average values where corresponding condition is true",
+              reducer: true
+            ),
+
+            # Flattening utilities for hierarchical data
+            any_across: FunctionBuilder::Entry.new(
+              fn: ->(nested_array) { nested_array.flatten.any? },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: :boolean,
+              description: "Check if any element is truthy across all nested levels",
+              reducer: true
+            ),
+
+            all_across: FunctionBuilder::Entry.new(
+              fn: ->(nested_array) { nested_array.flatten.all? },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: :boolean,
+              description: "Check if all elements are truthy across all nested levels",
+              reducer: true
+            ),
+
+            count_across: FunctionBuilder::Entry.new(
+              fn: ->(nested_array) { nested_array.flatten.size },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: :integer,
+              description: "Count total elements across all nested levels",
               reducer: true
             )
           }

@@ -15,7 +15,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gt_z, input.y, :>, input.z
           trait :z_gt_x, input.z, :>, input.x
 
-          value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z), ref(:z_gt_x)])
+          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z), ref(:z_gt_x))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -31,7 +31,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_x, input.y, :>, input.x
 
-          value :impossible, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
+          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_x))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -51,7 +51,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :c_gt_d, input.c, :>, input.d
           trait :d_gt_a, input.d, :>, input.a
 
-          value :impossible, fn(:all?, [ref(:a_gt_b), ref(:b_gt_c), ref(:c_gt_d), ref(:d_gt_a)])
+          value :impossible, fn(:cascade_and, ref(:a_gt_b), ref(:b_gt_c), ref(:c_gt_d), ref(:d_gt_a))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -71,7 +71,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :z_lt_y, input.z, :<, input.y # equivalent to y > z
           trait :z_gt_x, input.z, :>, input.x
 
-          value :impossible, fn(:all?, [ref(:x_gt_y), ref(:z_lt_y), ref(:z_gt_x)])
+          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:z_lt_y), ref(:z_gt_x))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -87,7 +87,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_x, input.y, :>, input.x
 
-          value :contradiction, fn(:all?, [ref(:x_gt_y), ref(:y_gt_x)])
+          value :contradiction, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_x))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -108,9 +108,9 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :z_gt_x, input.z, :>, input.x
 
           # Trait that combines others
-          value :chain_xy_yz, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z)])
+          value :chain_xy_yz, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z))
 
-          value :impossible, fn(:all?, [ref(:chain_xy_yz), ref(:z_gt_x)])
+          value :impossible, fn(:cascade_and, ref(:chain_xy_yz), ref(:z_gt_x))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -127,7 +127,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_10, input.x, :>, 10
           trait :x_lt_5, input.x, :<, 5
 
-          value :impossible, fn(:all?, [ref(:x_gt_10), ref(:x_lt_5)])
+          value :impossible, fn(:cascade_and, ref(:x_gt_10), ref(:x_lt_5))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -142,7 +142,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :five_gt_x, 5, :>, input.x
           trait :x_gt_10, input.x, :>, 10
 
-          value :impossible, fn(:all?, [ref(:five_gt_x), ref(:x_gt_10)])
+          value :impossible, fn(:cascade_and, ref(:five_gt_x), ref(:x_gt_10))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -161,7 +161,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_z, input.y, :>, input.z
 
-          value :valid_chain, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z)])
+          value :valid_chain, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z))
         end
       end.not_to raise_error
     end
@@ -176,7 +176,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_10, input.x, :>, 10
           trait :x_lt_20, input.x, :<, 20
 
-          value :valid_range, fn(:all?, [ref(:x_gt_10), ref(:x_lt_20)])
+          value :valid_range, fn(:cascade_and, ref(:x_gt_10), ref(:x_lt_20))
         end
       end.not_to raise_error
     end
@@ -194,7 +194,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :a_gt_b, input.a, :>, input.b
           trait :x_gt_y, input.x, :>, input.y
 
-          value :independent, fn(:all?, [ref(:a_gt_b), ref(:x_gt_y)])
+          value :independent, fn(:cascade_and, ref(:a_gt_b), ref(:x_gt_y))
         end
       end.not_to raise_error
     end
@@ -213,7 +213,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gt_z, input.y, :>, input.z
           trait :w_gt_z, input.w, :>, input.z
 
-          value :partial_chain, fn(:all?, [ref(:x_gt_y), ref(:y_gt_z), ref(:w_gt_z)])
+          value :partial_chain, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z), ref(:w_gt_z))
         end
       end.not_to raise_error
     end
@@ -231,10 +231,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           trait :a_gt_b, input.a, :>, input.b
           trait :b_gt_c, input.b, :>, input.c
-          value :chain_ab_bc, fn(:all?, [ref(:a_gt_b), ref(:b_gt_c)])
+          value :chain_ab_bc, fn(:cascade_and, ref(:a_gt_b), ref(:b_gt_c))
 
           trait :c_gt_a, input.c, :>, input.a
-          value :impossible_nested, fn(:all?, [ref(:chain_ab_bc), ref(:c_gt_a)])
+          value :impossible_nested, fn(:cascade_and, ref(:chain_ab_bc), ref(:c_gt_a))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -255,7 +255,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_z, input.x, :>, input.z
           trait :y_gt_z, input.y, :>, input.z
 
-          value :tree_structure, fn(:all?, [ref(:w_gt_x), ref(:w_gt_y), ref(:x_gt_z), ref(:y_gt_z)])
+          value :tree_structure, fn(:cascade_and, ref(:w_gt_x), ref(:w_gt_y), ref(:x_gt_z), ref(:y_gt_z))
         end
       end.not_to raise_error
     end
@@ -273,7 +273,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :b_eq_c, input.b, :==, input.c
           # Don't explicitly state a_eq_c, let it be derived
 
-          value :all_equal, fn(:all?, [ref(:a_eq_b), ref(:b_eq_c)])
+          value :all_equal, fn(:cascade_and, ref(:a_eq_b), ref(:b_eq_c))
         end
       end.not_to raise_error
     end
@@ -291,7 +291,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_eq_z, input.y, :==, input.z
           trait :x_gt_z, input.x, :>, input.z # Contradicts transitivity of equality
 
-          value :mixed_contradiction, fn(:all?, [ref(:x_eq_y), ref(:y_eq_z), ref(:x_gt_z)])
+          value :mixed_contradiction, fn(:cascade_and, ref(:x_eq_y), ref(:y_eq_z), ref(:x_gt_z))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -695,7 +695,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gte_z, input.y, :>=, input.z
           trait :z_gte_x, input.z, :>=, input.x
 
-          value :non_strict_cycle, fn(:all?, [ref(:x_gte_y), ref(:y_gte_z), ref(:z_gte_x)])
+          value :non_strict_cycle, fn(:cascade_and, ref(:x_gte_y), ref(:y_gte_z), ref(:z_gte_x))
         end
       end.not_to raise_error # >= allows equality, so this is satisfiable
     end
@@ -707,7 +707,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          value :empty_all, fn(:all?, [])
+          value :empty_all, fn(:cascade_and, )
         end
       end.not_to raise_error
     end
@@ -737,7 +737,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_eq_y, input.x, :==, input.y
           trait :x_gt_y, input.x, :>, input.y
 
-          value :contradiction_with_equality, fn(:all?, [ref(:x_eq_y), ref(:x_gt_y)])
+          value :contradiction_with_equality, fn(:cascade_and, ref(:x_eq_y), ref(:x_gt_y))
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end

@@ -137,9 +137,9 @@ RSpec.describe "Kumi Compiler Integration" do
         # # === HELPER FUNCTIONS FOR COMPLEX LOGIC ===
         # # These functions encapsulate multi-condition logic, making traits more readable
 
-        value :check_engagement, fn(:all?, [recent_activity, frequent_buyer])
-        value :check_value, fn(:all?, [high_balance, long_term_customer])
-        value :check_low_maintenance, fn(:all?, [low_support_usage, has_referrals])
+        value :check_engagement, fn(:cascade_and, recent_activity, frequent_buyer)
+        value :check_value, fn(:cascade_and, high_balance, long_term_customer)
+        value :check_low_maintenance, fn(:cascade_and, low_support_usage, has_referrals)
 
         # # === DERIVED TRAITS ===
         # # These traits reference helper functions, showing clean trait definitions

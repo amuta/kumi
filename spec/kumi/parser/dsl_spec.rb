@@ -179,12 +179,10 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         expect(cases.size).to eq(1)
         expect(cases.first).to be_a(Kumi::Syntax::CaseExpression)
         expect(cases.first.condition).to be_a(Kumi::Syntax::CallExpression)
-        expect(cases.first.condition.fn_name).to eq(:all?)
+        expect(cases.first.condition.fn_name).to eq(:cascade_and)
         expect(cases.first.condition.args.size).to eq(1)
-        expect(cases.first.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
-        expect(cases.first.condition.args.first.elements.size).to eq(1)
-        expect(cases.first.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
-        expect(cases.first.condition.args.first.elements.first.name).to eq(:active)
+        expect(cases.first.condition.args.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(cases.first.condition.args.first.name).to eq(:active)
         expect(cases.first.result).to be_a(Kumi::Syntax::InputReference)
         expect(cases.first.result.name).to eq(:active)
       end
@@ -212,24 +210,20 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
 
       it "creates the first case with a condition and result" do
         expect(first_case.condition).to be_a(Kumi::Syntax::CallExpression)
-        expect(first_case.condition.fn_name).to eq(:all?)
+        expect(first_case.condition.fn_name).to eq(:cascade_and)
         expect(first_case.condition.args.size).to eq(1)
-        expect(first_case.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
-        expect(first_case.condition.args.first.elements.size).to eq(1)
-        expect(first_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
-        expect(first_case.condition.args.first.elements.first.name).to eq(:active)
+        expect(first_case.condition.args.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(first_case.condition.args.first.name).to eq(:active)
         expect(first_case.result).to be_a(Kumi::Syntax::InputReference)
         expect(first_case.result.name).to eq(:active)
       end
 
       it "creates the second case with a condition and result" do
         expect(second_case.condition).to be_a(Kumi::Syntax::CallExpression)
-        expect(second_case.condition.fn_name).to eq(:all?)
+        expect(second_case.condition.fn_name).to eq(:cascade_and)
         expect(second_case.condition.args.size).to eq(1)
-        expect(second_case.condition.args.first).to be_a(Kumi::Syntax::ArrayExpression)
-        expect(second_case.condition.args.first.elements.size).to eq(1)
-        expect(second_case.condition.args.first.elements.first).to be_a(Kumi::Syntax::DeclarationReference)
-        expect(second_case.condition.args.first.elements.first.name).to eq(:verified)
+        expect(second_case.condition.args.first).to be_a(Kumi::Syntax::DeclarationReference)
+        expect(second_case.condition.args.first.name).to eq(:verified)
         expect(second_case.result).to be_a(Kumi::Syntax::InputReference)
         expect(second_case.result.name).to eq(:verified)
       end

@@ -22,7 +22,7 @@ module Kumi
           expr = args.last
 
           trait_bindings = convert_trait_names_to_bindings(trait_names, on_loc)
-          condition = create_fn(:all?, trait_bindings)
+          condition = @context.fn(:cascade_and, *trait_bindings)
           result = ensure_syntax(expr)
           add_case(condition, result)
         end
@@ -92,7 +92,7 @@ module Kumi
             when DeclarationReference
               name # Already a binding from method_missing
             else
-              raise_error("trait reference must be a symbol or bare identifier, got #{name.class}", location)
+              raise_error("trait reference must be a bare trait identifier, got #{name.class}", location)
             end
           end
         end

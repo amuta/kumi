@@ -97,6 +97,11 @@ module Kumi
         entry.reducer || false
       end
 
+      def structure_function?(name)
+        entry = @functions.fetch(name) { return false }
+        entry.structure_function || false
+      end
+
       # Alias for compatibility
       def all
         @functions.keys

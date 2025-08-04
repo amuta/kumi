@@ -77,7 +77,7 @@ CaseExpression = Struct.new(:condition, :result)
 ```
 
 **Case type mappings**:
-- `on :a, :b, result` → `condition: fn(:all?, ref(:a), ref(:b))`  
+- `on :a, :b, result` → `condition: fn(:cascade_and, ref(:a), ref(:b))`  
 - `on_any :a, :b, result` → `condition: fn(:any?, ref(:a), ref(:b))`
 - `base result` → `condition: literal(true)`
 
