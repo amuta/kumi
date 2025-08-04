@@ -120,9 +120,13 @@ Note: You can find a list all core functions in [docs/FUNCTIONS.md](docs/FUNCTIO
 </details>
 
 <details>
-<summary><strong>Static Analysis</strong> - Catch errors at definition time and extract metadata</summary>
+<summary><strong>Analysis & Introspection</strong> - Static verification, runtime inspection, and metadata extraction</summary>
 
-### Static Analysis
+### Analysis & Introspection
+
+Kumi provides comprehensive analysis capabilities - catching errors at definition time and exposing schema structure for tooling and debugging.
+
+#### **Static Analysis: Catch Errors Early**
 
 Kumi catches many types of business logic errors that cause runtime failures or silent bugs:
 
@@ -212,7 +216,7 @@ trait :is_reverse, input.operation == "reverse"
 # Safe mutual recursion - conditions are mutually exclusive
 value :forward_processor do
   on is_forward, input.value * 2        # Direct calculation
-  on is_reverse, reverse_processor + 10  # Delegates to reverse (safe)
+  on is_reverse, reveAnalysisrse_processor + 10  # Delegates to reverse (safe)
   base "invalid operation"
 end
 
@@ -229,6 +233,55 @@ end
 ```
 
 This compiles because `operation` can only be "forward" or "reverse", never both. Each recursion executes one step before hitting a direct calculation.
+
+#### **Runtime Introspection: Debug and Understand**
+
+**Explainability**: Trace exactly how any value is computed, step-by-step. This is invaluable for debugging complex logic and auditing results.
+
+```ruby
+Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_status: "single"})
+# => fed_tax = fed_calc[0]
+#    = (fed_calc = piecewise_sum(taxable_income, fed_breaks, fed_rates)
+#       = piecewise_sum(85_400, [11_600, 47_150, ...], [0.10, 0.12, ...])
+#       = [15_099.50, 0.22])
+#    = 15_099.50
+```
+
+#### **Schema Metadata API: Build Tooling**
+
+Programmatically access the analyzed structure of your schema to build tools like form generators, documentation sites, or custom validators.
+
+```ruby
+metadata = FederalTax2024.schema_metadata
+
+# Processed, tool-friendly metadata
+metadata.inputs           # => { name: { type: :string, domain: ... } }
+metadata.values           # => { name: { dependencies: [...], expression: "..." } }
+metadata.traits           # => { name: { condition: "...", dependencies: [...] } }
+
+# Raw analyzer state for deep analysis
+metadata.dependencies     # Dependency graph between all declarations
+metadata.evaluation_order # Topologically sorted computation order
+
+# Export to standard formats
+metadata.to_h             # => Serializable hash for JSON/APIs
+metadata.to_json_schema   # => JSON Schema for input validation
+```
+
+#### **AST Visualization: See the Structure**
+
+For deep debugging, you can print the raw Abstract Syntax Tree (AST) of a schema.
+
+```ruby
+puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
+# => (Root
+#      inputs: [
+#        (InputDeclaration :income :float)
+#        (InputDeclaration :filing_status :string domain: ["single", "married_joint"])
+#      ]
+#      traits: [...]
+#      attributes: [...])
+```
 
 </details>
 
@@ -341,71 +394,12 @@ runner[:after_tax]     # => 196,844.80 (cached)
 ```
 </details>
 
-<details>
-<summary><strong>🔍 Introspection & Metadata</strong> - Analyze, debug, and build tools on your schemas</summary>
-
-### Introspection & Metadata
-
-Kumi schemas are not black boxes. You can inspect their structure, debug their calculations, and extract metadata to build developer tools.
-
-#### **Explainability: Trace a Calculation**
-
-See exactly how any value is computed, step-by-step. This is invaluable for debugging complex logic and auditing results.
-
-```ruby
-Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_status: "single"})
-# => fed_tax = fed_calc[0]
-#    = (fed_calc = piecewise_sum(taxable_income, fed_breaks, fed_rates)
-#       = piecewise_sum(85_400, [11_600, 47_150, ...], [0.10, 0.12, ...])
-#       = [15_099.50, 0.22])
-#    = 15_099.50
-```
-
-#### **Schema Metadata API: Build Tooling**
-
-Programmatically access the analyzed structure of your schema to build tools like form generators, documentation sites, or custom validators.
-
-```ruby
-metadata = FederalTax2024.schema_metadata
-
-# Processed, tool-friendly metadata
-metadata.inputs           # => { name: { type: :string, domain: ... } }
-metadata.values           # => { name: { dependencies: [...], expression: "..." } }
-metadata.traits           # => { name: { condition: "...", dependencies: [...] } }
-
-# Raw analyzer state for deep analysis
-metadata.dependencies     # Dependency graph between all declarations
-metadata.evaluation_order # Topologically sorted computation order
-
-# Export to standard formats
-metadata.to_h             # => Serializable hash for JSON/APIs
-metadata.to_json_schema   # => JSON Schema for input validation
-```
-
-#### **AST Visualization: See the Structure**
-
-For deep debugging, you can print the raw Abstract Syntax Tree (AST) of a schema.
-
-```ruby
-puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
-# => (Root
-#      inputs: [
-#        (InputDeclaration :income :float)
-#        (InputDeclaration :filing_status :string domain: ["single", "married_joint"])
-#      ]
-#      traits: [...]
-#      attributes: [...])
-```
-
-</details>
-
 ## Usage
 
 **Suitable for:**
 - Complex interdependent business rules
 - Tax calculation engines
 - Insurance premium calculators
-- Loan amortization schedules
 - Commission structures with complex tiers
 - Pricing engines with multiple discount rules
 
@@ -440,6 +434,10 @@ Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
 - 10,000 attributes:        **14,200/sec**  (analysis ~300ms)
 
 See [docs/features/performance.md](docs/features/performance.md) for detailed benchmarks.
+
+## What Kumi does not guarantee 
+
+Lambdas (e.g. -> inside the schema), external IO, floating-point vs bignum, JS transpiler edge cases, time-zone math differences, etc.
 
 ## Learn More
 
