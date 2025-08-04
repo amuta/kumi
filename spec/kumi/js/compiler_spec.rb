@@ -80,7 +80,7 @@ RSpec.describe Kumi::Js::Compiler do
         # Check for functions actually used by the schema
         expect(js_code).to include("divide: (a, b) => a / b")
         expect(js_code).to include('">=": (a, b) => a >= b')
-        expect(js_code).to include('"all?": (collection) => collection.every(x => x)')
+        expect(js_code).to include("cascade_and: (...conditions) =>")
         
         # Should not include unused functions (optimized out)
         expect(js_code).not_to include("add: (a, b) => a + b")

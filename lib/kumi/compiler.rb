@@ -2,7 +2,7 @@
 
 module Kumi
   # Compiles an analyzed schema into executable lambdas
-  class Compiler
+  class Compiler < Core::CompilerBase
     # ExprCompilers holds per-node compile implementations
     module ExprCompilers
       def compile_literal(expr)
@@ -193,24 +193,12 @@ module Kumi
 
     include ExprCompilers
 
-    # Map node classes to compiler methods
-    DISPATCH = {
-      Kumi::Syntax::Literal => :compile_literal,
-      Kumi::Syntax::InputReference => :compile_field_node,
-      Kumi::Syntax::InputElementReference => :compile_element_field_reference,
-      Kumi::Syntax::DeclarationReference => :compile_binding_node,
-      Kumi::Syntax::ArrayExpression => :compile_list,
-      Kumi::Syntax::CallExpression => :compile_call,
-      Kumi::Syntax::CascadeExpression => :compile_cascade
-    }.freeze
-
     def self.compile(schema, analyzer:)
       new(schema, analyzer).compile
     end
 
     def initialize(schema, analyzer)
-      @schema = schema
-      @analysis = analyzer
+      super
       @bindings = {}
     end
 
@@ -225,18 +213,6 @@ module Kumi
     end
 
     private
-
-    def build_index
-      @index = {}
-      @schema.attributes.each { |a| @index[a.name] = a }
-      @schema.traits.each     { |t| @index[t.name] = t }
-    end
-
-    def determine_operation_mode_for_path(path)
-      # Use pre-computed operation mode from analysis
-      compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
-      compilation_meta&.dig(:operation_mode) || :broadcast
-    end
 
     # Metadata-driven nested array traversal using the traversal algorithm from our design
     def traverse_nested_path(data, path, operation_mode)
@@ -308,12 +284,6 @@ module Kumi
       @current_declaration = nil
     end
 
-    # Dispatch to the appropriate compile_* method
-    def compile_expr(expr)
-      method = DISPATCH.fetch(expr.class)
-      send(method, expr)
-    end
-
     def compile_field(node)
       name = node.name
       loc  = node.loc
@@ -323,34 +293,6 @@ module Kumi
         raise Errors::RuntimeError,
               "Key '#{name}' not found at #{loc}. Available: #{ctx.respond_to?(:keys) ? ctx.keys.join(', ') : 'N/A'}"
       end
-    end
-
-    def vectorized_operation?(expr)
-      # Use pre-computed vectorization decision from analysis
-      compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
-      return false unless compilation_meta
-
-      # Check if current declaration is vectorized
-      if compilation_meta[:is_vectorized]
-        # For vectorized declarations, check if this specific operation should be vectorized
-        vectorized_ops = @analysis.state[:broadcasts][:vectorized_operations] || {}
-        current_decl_info = vectorized_ops[@current_declaration]
-
-        # For cascade declarations, check individual operations within them
-        return true if current_decl_info && current_decl_info[:operation] == expr.fn_name
-
-        # For cascade_with_vectorized_conditions_or_results, allow nested operations  
-        return true if current_decl_info && current_decl_info[:source] == :cascade_with_vectorized_conditions_or_results
-
-        # Check if this is a direct vectorized operation
-        return true if current_decl_info && current_decl_info[:operation]
-      end
-
-      # Fallback: Reduction functions are NOT vectorized operations - they consume arrays
-      return false if Kumi::Registry.reducer?(expr.fn_name)
-
-      # Use pre-computed vectorization context for remaining cases
-      compilation_meta.dig(:vectorization_context, :needs_broadcasting) || false
     end
 
     def invoke_function(name, arg_fns, ctx, loc)

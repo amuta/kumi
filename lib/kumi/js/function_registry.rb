@@ -130,7 +130,25 @@ module Kumi
           # Collection logical operations
           all?: "(collection) => collection.every(x => x)",
           any?: "(collection) => collection.some(x => x)",
-          none?: "(collection) => !collection.some(x => x)"
+          none?: "(collection) => !collection.some(x => x)",
+
+          # Element-wise AND for cascades - works on arrays with hierarchical broadcasting
+          cascade_and: <<~JS.strip
+            (...conditions) => {
+              if (conditions.length === 0) return false;
+              if (conditions.length === 1) return conditions[0];
+              
+              // Start with first condition
+              let result = conditions[0];
+              
+              // Apply element-wise AND with remaining conditions using hierarchical broadcasting
+              for (let i = 1; i < conditions.length; i++) {
+                result = kumiRuntime.elementWiseAnd(result, conditions[i]);
+              }
+              
+              return result;
+            }
+          JS
         }
       end
 
@@ -179,6 +197,8 @@ module Kumi
           sort: "(collection) => [...collection].sort()",
           unique: "(collection) => [...new Set(collection)]",
           flatten: "(collection) => collection.flat(Infinity)",
+          flatten_one: "(collection) => collection.flat(1)",
+          flatten_deep: "(collection) => collection.flat(Infinity)",
 
           # Array transformation functions
           map_multiply: "(collection, factor) => collection.map(x => x * factor)",
@@ -211,13 +231,18 @@ module Kumi
           # Conditional aggregation functions
           count_if: "(condition_array) => condition_array.filter(x => x === true).length",
           sum_if: "(value_array, condition_array) => value_array.reduce((sum, value, i) => sum + (condition_array[i] ? value : 0), 0)",
-          avg_if: <<~JS.strip
+          avg_if: <<~JS.strip,
             (value_array, condition_array) => {
               const pairs = value_array.map((value, i) => [value, condition_array[i]]);
               const true_values = pairs.filter(([_, condition]) => condition).map(([value, _]) => value);
               return true_values.length === 0 ? 0.0 : true_values.reduce((a, b) => a + b, 0) / true_values.length;
             }
           JS
+          
+          # Flattening utilities for hierarchical data
+          any_across: "(nested_array) => nested_array.flat(Infinity).some(x => x)",
+          all_across: "(nested_array) => nested_array.flat(Infinity).every(x => x)",
+          count_across: "(nested_array) => nested_array.flat(Infinity).length"
         }
       end
 
