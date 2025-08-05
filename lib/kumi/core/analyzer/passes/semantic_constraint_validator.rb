@@ -17,8 +17,14 @@ module Kumi
         # 4. Expression types are valid for their context
         class SemanticConstraintValidator < VisitorPass
           def run(errors)
+            # Visit value and trait declarations
             each_decl do |decl|
               visit(decl) { |node| validate_semantic_constraints(node, decl, errors) }
+            end
+
+            # Visit input declarations
+            schema.inputs.each do |input_decl|
+              visit(input_decl) { |node| validate_semantic_constraints(node, input_decl, errors) }
             end
             state
           end
@@ -33,6 +39,8 @@ module Kumi
               validate_cascade_condition(node, errors)
             when Kumi::Syntax::CallExpression
               validate_function_call(node, errors)
+            when Kumi::Syntax::InputDeclaration
+              validate_input_declaration(node, errors)
             end
           end
 
@@ -88,6 +96,25 @@ module Kumi
               location: call_expr.loc,
               type: :semantic
             )
+          end
+
+          def validate_input_declaration(input_decl, errors)
+            return unless input_decl.type == :array && input_decl.children.any?
+
+            # Validate that access_mode is consistent with children structure
+            if input_decl.access_mode == :element
+              # Element mode arrays can only have exactly one direct child
+              if input_decl.children.size > 1
+                error_msg = "array with access_mode :element can only have one direct child element, " \
+                            "but found #{input_decl.children.size} children"
+                report_error(errors, error_msg, location: input_decl.loc, type: :semantic)
+              end
+            elsif input_decl.access_mode == :object
+              # Object mode allows multiple children
+            end
+
+            # Recursively validate children
+            input_decl.children.each { |child| validate_input_declaration(child, errors) }
           end
 
           def boolean_trait_composition?(call_expr)

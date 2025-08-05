@@ -13,13 +13,13 @@ module Kumi
 
         def key(name, type: :any, domain: nil)
           normalized_type = normalize_type(type, name)
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, [], nil, loc: @context.current_location)
         end
 
         %i[integer float string boolean any scalar].each do |type_name|
           define_method(type_name) do |name, type: nil, domain: nil|
             actual_type = type || (type_name == :scalar ? :any : type_name)
-            @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, actual_type, [], loc: @context.current_location)
+            @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, actual_type, [], nil, loc: @context.current_location)
           end
         end
 
@@ -40,7 +40,7 @@ module Kumi
         end
 
         def method_missing(method_name, *_args)
-          allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'scalar', 'array', and 'hash'"
+          allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'scalar', 'array', 'hash', and 'element'"
           raise_syntax_error("Unknown method '#{method_name}' in input block. Only #{allowed_methods} are allowed.",
                              location: @context.current_location)
         end
@@ -63,7 +63,7 @@ module Kumi
           elem_type = elem_spec.is_a?(Hash) && elem_spec[:type] ? elem_spec[:type] : :any
 
           array_type = create_array_type(field_name, elem_type)
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], :object, loc: @context.current_location)
         end
 
         def create_array_type(field_name, elem_type)
@@ -81,7 +81,7 @@ module Kumi
           val_type = extract_type(val_spec)
 
           hash_type = create_hash_type(field_name, key_type, val_type)
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], nil, loc: @context.current_location)
         end
 
         def extract_type(spec)
@@ -98,14 +98,16 @@ module Kumi
           domain = options[:domain]
 
           # Collect children by creating a nested context
-          children = collect_array_children(&block)
+          children, elem_type, using_elements = collect_array_children(&block)
 
-          # Create the InputDeclaration with children
+          # Create the InputDeclaration with children and access_mode
+          access_mode = using_elements ? :element : :object
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
             :array,
             children,
+            access_mode,
             loc: @context.current_location
           )
         end
@@ -119,7 +121,58 @@ module Kumi
           # Execute the block in the nested context
           nested_builder.instance_eval(&block)
 
-          nested_inputs
+          # Determine element type based on what was declared
+          elem_type = determine_element_type(nested_builder, nested_inputs)
+          
+          # Check if element() was used
+          using_elements = nested_builder.instance_variable_get(:@using_elements) || false
+
+          [nested_inputs, elem_type, using_elements]
+        end
+
+        def determine_element_type(builder, inputs)
+          # Since element() always creates named children now, 
+          # we just use the standard logic
+          if inputs.any?
+            # If fields were declared, it's a hash/object structure
+            :hash
+          else
+            # No fields declared, default to :any
+            :any
+          end
+        end
+
+
+        def primitive_element_type?(elem_type)
+          %i[string integer float boolean bool any symbol].include?(elem_type)
+        end
+
+        # New method: element() declaration - always requires a name
+        def element(type_spec, name, &block)
+          if block_given?
+            # Named element with nested structure: element(:array, :rows) do ... end
+            # These don't set @using_elements because they create complex structures
+            case type_spec
+            when :array
+              create_array_field_with_block(name, {}, &block)
+            when :object
+              # Create nested object structure
+              create_object_element(name, &block)
+            else
+              raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :object types", location: @context.current_location)
+            end
+          else
+            # Named primitive element: element(:boolean, :active)
+            # Only primitive elements mark the parent as using element access
+            @using_elements = true
+            @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, type_spec, [], nil, loc: @context.current_location)
+          end
+        end
+
+        def create_object_element(name, &block)
+          # Similar to create_array_field_with_block but for objects
+          children, _ = collect_array_children(&block)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :object, children, nil, loc: @context.current_location)
         end
       end
     end
