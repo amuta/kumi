@@ -8,11 +8,11 @@ module Kumi
           @analyzer_result = analyzer_result
           @inputs = EvaluationWrapper.new(inputs)
           @definitions = analyzer_result.definitions
-          @compiled_schema = Compiler.compile(syntax_tree, analyzer: analyzer_result)
+          @compiled_schema = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer_result)
 
           # TODO: REFACTOR QUICK!
           # Set up compiler once for expression evaluation
-          @compiler = Compiler.new(syntax_tree, analyzer_result)
+          @compiler = Kumi::Compiler.new(syntax_tree, analyzer_result)
           @compiler.send(:build_index)
 
           # Populate bindings from the compiled schema
