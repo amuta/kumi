@@ -8,7 +8,7 @@ module Kumi
 
     Inspector = Struct.new(:syntax_tree, :analyzer_result, :compiled_schema) do
       def inspect
-        "#<#{self.class} syntax_tree: #{syntax_tree.inspect}, analyzer_result: #{analyzer_result.inspect}, schema: #{schema.inspect}>"
+        "#<#{self.class} syntax_tree: #{syntax_tree.inspect}, analyzer_result: #{analyzer_result.inspect}, compiled_schema: #{compiled_schema.inspect}>"
       end
     end
 

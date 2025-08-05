@@ -11,7 +11,7 @@ module Kumi
   extend Schema
 
   def self.inspector_from_schema
-    Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
+    Schema::Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
   end
 
   def self.reset!
