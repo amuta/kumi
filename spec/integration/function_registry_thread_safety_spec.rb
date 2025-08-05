@@ -9,19 +9,19 @@
 #   - Kumi::Registry.fetch(name)
 #   - Kumi::Registry.freeze!
 RSpec.describe Kumi::Registry, "thread-safety & immutability" do
-  before { Kumi::Registry.reset! }
+  before { described_class.reset! }
 
   context "single-threaded basics" do
     it "registers and looks up a function" do
-      Kumi::Registry.register(:double) { |x| x * 2 }
-      expect(Kumi::Registry.fetch(:double).call(3)).to eq 6
+      described_class.register(:double) { |x| x * 2 }
+      expect(described_class.fetch(:double).call(3)).to eq 6
     end
 
     it "rejects duplicate names" do
-      Kumi::Registry.register(:dup) { 1 }
+      described_class.register(:dup) { 1 }
 
       expect do
-        Kumi::Registry.register(:dup) { 2 }
+        described_class.register(:dup) { 2 }
       end.to raise_error(ArgumentError, /already registered/i)
     end
   end
@@ -34,7 +34,7 @@ RSpec.describe Kumi::Registry, "thread-safety & immutability" do
       threads = names.map do |name|
         Thread.new do
           barrier.pop # block until all threads are ready
-          Kumi::Registry.register(name) { name }
+          described_class.register(name) { name }
         end
       end
 
@@ -43,42 +43,42 @@ RSpec.describe Kumi::Registry, "thread-safety & immutability" do
       threads.each(&:join)
 
       names.each do |name|
-        expect(Kumi::Registry.fetch(name).call).to eq name
+        expect(described_class.fetch(name).call).to eq name
       end
     end
   end
 
   context "immutability after freeze!" do
     it "blocks further registrations once frozen" do
-      Kumi::Registry.register(:initial) { 0 }
-      Kumi::Registry.freeze!
+      described_class.register(:initial) { 0 }
+      described_class.freeze!
 
       expect do
-        Kumi::Registry.register(:later) { 1 }
+        described_class.register(:later) { 1 }
       end.to raise_error(RuntimeError, /frozen/i)
 
-      expect(Kumi::Registry.fetch(:initial).call).to eq 0
+      expect(described_class.fetch(:initial).call).to eq 0
     end
   end
 
   context "freeze semantics" do
     it "deep-freezes functions" do
-      Kumi::Registry.register(:foo) { |x| x }
-      Kumi::Registry.freeze!
+      described_class.register(:foo) { |x| x }
+      described_class.freeze!
 
       expect do
-        Kumi::Registry.register(:bar) { 1 }
+        described_class.register(:bar) { 1 }
       end.to raise_error(Kumi::Registry::FrozenError)
     end
 
     it "freezes the functions hash and every entry inside it" do
       # boot-time registration
-      Kumi::Registry.register(:foo) { |x| x }
+      described_class.register(:foo) { |x| x }
 
       # lock the registry
-      Kumi::Registry.freeze!
+      described_class.freeze!
 
-      functions = Kumi::Registry.instance_variable_get(:@functions)
+      functions = described_class.instance_variable_get(:@functions)
 
       # hash itself is frozen
       expect(functions).to be_frozen

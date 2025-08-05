@@ -28,7 +28,7 @@ module Kumi
         @schema.traits.each     { |t| @index[t.name] = t }
       end
 
-      def determine_operation_mode_for_path(path)
+      def determine_operation_mode_for_path(_path)
         # Use pre-computed operation mode from analysis
         compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, @current_declaration)
         compilation_meta&.dig(:operation_mode) || :broadcast
@@ -48,7 +48,7 @@ module Kumi
           # For cascade declarations, check individual operations within them
           return true if current_decl_info && current_decl_info[:operation] == expr.fn_name
 
-          # For cascade_with_vectorized_conditions_or_results, allow nested operations  
+          # For cascade_with_vectorized_conditions_or_results, allow nested operations
           return true if current_decl_info && current_decl_info[:source] == :cascade_with_vectorized_conditions_or_results
 
           # Check if this is a direct vectorized operation
@@ -62,7 +62,7 @@ module Kumi
         compilation_meta.dig(:vectorization_context, :needs_broadcasting) || false
       end
 
-      def is_cascade_vectorized?(expr)
+      def is_cascade_vectorized?(_expr)
         # Use metadata to determine if this cascade is vectorized
         broadcast_meta = @analysis.state[:broadcasts]
         cascade_info = @current_declaration && broadcast_meta&.dig(:vectorized_operations, @current_declaration)

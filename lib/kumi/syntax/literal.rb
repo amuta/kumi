@@ -2,10 +2,10 @@
 
 module Kumi
   module Syntax
-      Literal = Struct.new(:value) do
-        include Node
+    Literal = Struct.new(:value) do
+      include Node
 
-        def children = []
-      end
+      def children = []
+    end
   end
 end

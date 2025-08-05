@@ -387,7 +387,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
       it "handles single element arrays correctly" do
         expect(runner[:doubled]).to eq([10])
-        expect(runner[:positive]).to eq(true)
+        expect(runner[:positive]).to be(true)
         expect(runner[:total]).to eq(10)
       end
     end

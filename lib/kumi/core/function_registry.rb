@@ -29,6 +29,7 @@ module Kumi
             if registry.key?(name)
               raise ArgumentError, "Function #{name.inspect} is already registered. Found duplicate in function registry."
             end
+
             registry[name] = definition
           end
         end

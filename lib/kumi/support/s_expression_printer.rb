@@ -9,7 +9,7 @@ module Kumi
 
       def visit(node)
         return node.inspect unless node.respond_to?(:class)
-        
+
         case node
         when nil then "nil"
         when Array then visit_array(node)
@@ -38,7 +38,7 @@ module Kumi
 
       def visit_array(node)
         return "[]" if node.empty?
-        
+
         elements = node.map { |child| child_printer.visit(child) }
         "[\n#{indent_str(2)}#{elements.join("\n#{indent_str(2)}")}\n#{indent_str}]"
       end
@@ -48,7 +48,7 @@ module Kumi
           value = node.public_send(field)
           "#{field}: #{child_printer.visit(value)}"
         end.join("\n#{indent_str(2)}")
-        
+
         "(Root\n#{indent_str(2)}#{fields}\n#{indent_str})"
       end
 
@@ -65,7 +65,7 @@ module Kumi
         fields << ":#{node.type}" if node.respond_to?(:type) && node.type
         fields << "domain: #{node.domain.inspect}" if node.respond_to?(:domain) && node.domain
         fields << "access_mode: #{node.access_mode.inspect}" if node.respond_to?(:access_mode) && node.access_mode
-        
+
         if node.respond_to?(:children) && !node.children.empty?
           children_str = child_printer.visit(node.children)
           "(InputDeclaration #{fields.join(' ')}\n#{child_indent}#{children_str}\n#{indent_str})"
@@ -76,14 +76,14 @@ module Kumi
 
       def visit_call_expression(node)
         return "(CallExpression :#{node.fn_name})" if node.args.empty?
-        
+
         args = node.args.map { |arg| child_printer.visit(arg) }
         "(CallExpression :#{node.fn_name}\n#{indent_str(2)}#{args.join("\n#{indent_str(2)}")}\n#{indent_str})"
       end
 
       def visit_array_expression(node)
         return "(ArrayExpression)" if node.elements.empty?
-        
+
         elements = node.elements.map { |elem| child_printer.visit(elem) }
         "(ArrayExpression\n#{indent_str(2)}#{elements.join("\n#{indent_str(2)}")}\n#{indent_str})"
       end
@@ -92,7 +92,7 @@ module Kumi
         cases = node.cases.map do |case_expr|
           "(#{visit(case_expr.condition)} #{visit(case_expr.result)})"
         end.join("\n#{indent_str(2)}")
-        
+
         "(CascadeExpression\n#{indent_str(2)}#{cases}\n#{indent_str})"
       end
 
@@ -118,17 +118,17 @@ module Kumi
 
       def visit_hash_expression(node)
         return "(HashExpression)" if node.pairs.empty?
-        
+
         pairs = node.pairs.map do |pair|
           "(#{visit(pair.key)} #{visit(pair.value)})"
         end.join("\n#{indent_str(2)}")
-        
+
         "(HashExpression\n#{indent_str(2)}#{pairs}\n#{indent_str})"
       end
 
       def visit_generic(node)
-        class_name = node.class.name&.split('::')&.last || node.class.to_s
-        
+        class_name = node.class.name&.split("::")&.last || node.class.to_s
+
         if node.respond_to?(:children) && !node.children.empty?
           children = node.children.map { |child| child_printer.visit(child) }
           "(#{class_name}\n#{indent_str(2)}#{children.join("\n#{indent_str(2)}")}\n#{indent_str})"
@@ -137,9 +137,9 @@ module Kumi
             value = node[member]
             "#{member}: #{child_printer.visit(value)}"
           end
-          
+
           return "(#{class_name})" if fields.empty?
-          
+
           "(#{class_name}\n#{indent_str(2)}#{fields.join("\n#{indent_str(2)}")}\n#{indent_str})"
         else
           "(#{class_name} #{node.inspect})"
@@ -151,7 +151,7 @@ module Kumi
       end
 
       def indent_str(extra = 0)
-        ' ' * (@indent + extra)
+        " " * (@indent + extra)
       end
 
       def child_indent

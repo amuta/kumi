@@ -37,11 +37,9 @@ module Kumi
       # Generate JavaScript code for the function registry
       def self.generate_js_code(functions_required: nil)
         registry = generate_js_registry
-        
+
         # Filter registry to only include required functions if specified
-        if functions_required && !functions_required.empty?
-          registry = registry.select { |name, _| functions_required.include?(name) }
-        end
+        registry = registry.slice(*functions_required) if functions_required && !functions_required.empty?
 
         functions_js = registry.map do |name, js_code|
           # Handle symbol names that need quoting in JS
@@ -140,15 +138,15 @@ module Kumi
             (...conditions) => {
               if (conditions.length === 0) return false;
               if (conditions.length === 1) return conditions[0];
-              
+            #{'  '}
               // Start with first condition
               let result = conditions[0];
-              
+            #{'  '}
               // Apply element-wise AND with remaining conditions using hierarchical broadcasting
               for (let i = 1; i < conditions.length; i++) {
                 result = kumiRuntime.elementWiseAnd(result, conditions[i]);
               }
-              
+            #{'  '}
               return result;
             }
           JS
@@ -241,7 +239,7 @@ module Kumi
               return true_values.length === 0 ? 0.0 : true_values.reduce((a, b) => a + b, 0) / true_values.length;
             }
           JS
-          
+
           # Flattening utilities for hierarchical data
           any_across: "(nested_array) => nested_array.flat(Infinity).some(x => x)",
           all_across: "(nested_array) => nested_array.flat(Infinity).every(x => x)",
@@ -278,7 +276,7 @@ module Kumi
               if (array.length === 0) return 0;
               const sorted = [...array].sort((a, b) => a - b);
               const mid = Math.floor(sorted.length / 2);
-              return sorted.length % 2 === 0 
+              return sorted.length % 2 === 0#{' '}
                 ? (sorted[mid - 1] + sorted[mid]) / 2
                 : sorted[mid];
             }

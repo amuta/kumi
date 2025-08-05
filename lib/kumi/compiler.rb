@@ -19,20 +19,19 @@ module Kumi
 
         # Check if we have nested paths metadata for this path
         nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
-        if nested_paths && nested_paths[path]
-          # Determine operation mode based on context
-          operation_mode = determine_operation_mode_for_path(path)
-          path_metadata = nested_paths[path]
-          lambda do |ctx|
-            traverse_nested_path(ctx, path, operation_mode, path_metadata)
-          end
-        else
-          # ERROR: All nested paths should have metadata from the analyzer
-          # If we reach here, it means the BroadcastDetector didn't process this path
-          raise Errors::CompilationError.new(
-            "Missing nested path metadata for #{path.inspect}. This indicates an analyzer bug."
-          )
+        unless nested_paths && nested_paths[path]
+          raise Errors::CompilationError, "Missing nested path metadata for #{path.inspect}. This indicates an analyzer bug."
         end
+
+        # Determine operation mode based on context
+        operation_mode = determine_operation_mode_for_path(path)
+        path_metadata = nested_paths[path]
+        lambda do |ctx|
+          traverse_nested_path(ctx, path, operation_mode, path_metadata)
+        end
+
+        # ERROR: All nested paths should have metadata from the analyzer
+        # If we reach here, it means the BroadcastDetector didn't process this path
       end
 
       def compile_binding_node(expr)
@@ -120,7 +119,7 @@ module Kumi
             # Evaluate all conditions and results
             cond_results = pairs.map { |cond, _res| cond.call(ctx) }
             res_results = pairs.map { |_cond, res| res.call(ctx) }
-            base_result = base_fn ? base_fn.call(ctx) : nil
+            base_result = base_fn&.call(ctx)
 
             if ENV["DEBUG_CASCADE"]
               puts "DEBUG: Vectorized cascade evaluation for #{current_decl_name}:"
@@ -146,7 +145,7 @@ module Kumi
           lambda do |ctx|
             pairs.each { |cond, res| return res.call(ctx) if cond.call(ctx) }
             # If no conditional case matched, return base case
-            base_fn ? base_fn.call(ctx) : nil
+            base_fn&.call(ctx)
           end
         end
       end
@@ -217,13 +216,13 @@ module Kumi
     # Metadata-driven nested array traversal using the traversal algorithm from our design
     def traverse_nested_path(data, path, operation_mode, path_metadata = nil)
       access_mode = path_metadata&.dig(:access_mode) || :object
-      
+
       # Use specialized traversal for element access mode
-      if access_mode == :element
-        result = traverse_element_path(data, path, operation_mode)
-      else
-        result = traverse_path_recursive(data, path, operation_mode, access_mode)
-      end
+      result = if access_mode == :element
+                 traverse_element_path(data, path, operation_mode)
+               else
+                 traverse_path_recursive(data, path, operation_mode, access_mode)
+               end
 
       # Post-process result based on operation mode
       case operation_mode
@@ -238,12 +237,12 @@ module Kumi
     # Specialized traversal for element access mode
     # In element access, we need to extract the specific field from EvaluationWrapper
     # then apply progressive traversal based on path depth
-    def traverse_element_path(data, path, operation_mode)
+    def traverse_element_path(data, path, _operation_mode)
       # Handle EvaluationWrapper by extracting the specific field
       if data.is_a?(Core::EvaluationWrapper)
         field_name = path.first
         array_data = data[field_name]
-        
+
         # Always apply progressive traversal based on path depth
         # This gives us the structure at the correct nesting level for both
         # broadcast operations and structure operations
@@ -262,7 +261,7 @@ module Kumi
       # Track original path length to determine traversal depth
       original_path_length ||= path.length
       current_depth = original_path_length - path.length
-      
+
       return data if path.empty?
 
       field = path.first
@@ -276,15 +275,25 @@ module Kumi
           extract_field_preserving_structure(data, field, access_mode, current_depth)
         else
           # Simple field access
-          data.is_a?(Array) ? data.map { |item| access_field(item, field, access_mode, current_depth) } : access_field(data, field, access_mode, current_depth)
+          if data.is_a?(Array)
+            data.map do |item|
+              access_field(item, field, access_mode, current_depth)
+            end
+          else
+            access_field(data, field, access_mode, current_depth)
+          end
         end
       elsif data.is_a?(Array)
         # Intermediate step - traverse deeper
         # Array of items - traverse each item
-        data.map { |item| traverse_path_recursive(access_field(item, field, access_mode, current_depth), remaining_path, operation_mode, access_mode, original_path_length) }
+        data.map do |item|
+          traverse_path_recursive(access_field(item, field, access_mode, current_depth), remaining_path, operation_mode, access_mode,
+                                  original_path_length)
+        end
       else
         # Single item - traverse directly
-        traverse_path_recursive(access_field(data, field, access_mode, current_depth), remaining_path, operation_mode, access_mode, original_path_length)
+        traverse_path_recursive(access_field(data, field, access_mode, current_depth), remaining_path, operation_mode, access_mode,
+                                original_path_length)
       end
     end
 
@@ -296,7 +305,7 @@ module Kumi
       end
     end
 
-    def access_field(data, field, access_mode, depth = 0)
+    def access_field(data, field, access_mode, _depth = 0)
       case access_mode
       when :element
         # Element access mode - for nested arrays, we need to traverse one level deeper

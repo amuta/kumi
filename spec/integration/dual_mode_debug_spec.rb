@@ -26,6 +26,7 @@ RSpec.describe "Dual Mode Debug Output" do
       with_dual_mode_debug do
         schema = Class.new do
           extend Kumi::Schema
+
           schema do
             input do
               integer :age
@@ -39,7 +40,7 @@ RSpec.describe "Dual Mode Debug Output" do
             end
           end
         end
-        
+
         test_data = { age: 30, salary: 60_000.0 }
         runner = schema.from(test_data)
 
@@ -52,7 +53,7 @@ RSpec.describe "Dual Mode Debug Output" do
         slice_result = runner.slice(:adult, :status)
 
         # Verify results are correct
-        expect(result1).to eq(true)
+        expect(result1).to be(true)
         expect(result2).to be_within(0.01).of(5_000.0)
         expect(result3).to eq("Adult")
         expect(slice_result).to eq({ adult: true, status: "Adult" })
@@ -60,9 +61,9 @@ RSpec.describe "Dual Mode Debug Output" do
     end
 
     it "can be enabled via environment variable" do
-      ENV['KUMI_DUAL_DEBUG'] = 'true'
-      ENV['KUMI_DUAL_MODE'] = 'true'
-      
+      ENV["KUMI_DUAL_DEBUG"] = "true"
+      ENV["KUMI_DUAL_MODE"] = "true"
+
       begin
         test_data = { age: 25, salary: 50_000.0 }
         runner = test_schema.from(test_data)
@@ -71,8 +72,8 @@ RSpec.describe "Dual Mode Debug Output" do
         result = runner.fetch(:monthly_salary)
         expect(result).to be_within(0.01).of(4_166.67)
       ensure
-        ENV.delete('KUMI_DUAL_DEBUG')
-        ENV.delete('KUMI_DUAL_MODE')
+        ENV.delete("KUMI_DUAL_DEBUG")
+        ENV.delete("KUMI_DUAL_MODE")
       end
     end
   end

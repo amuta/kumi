@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 module MySchema
   extend Kumi::Schema
+
   schema do
     input do
       array :regions do

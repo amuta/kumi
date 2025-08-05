@@ -65,13 +65,13 @@ RSpec.describe "Dual Mode Execution" do
       end
     end
 
-    context "with dual mode enabled", :focus do
+    context "with dual mode enabled" do
       with_dual_mode_enabled do
         it "produces identical results for simple calculations" do
           test_data = { age: 30, salary: 75_000.0 }
           runner = simple_schema.from(test_data)
 
-          expect(runner.fetch(:adult)).to eq(true)
+          expect(runner.fetch(:adult)).to be(true)
           expect(runner.fetch(:monthly_salary)).to eq(6_250.0)
           expect(runner.fetch(:annual_bonus)).to eq(7_500.0)
           expect(runner.fetch(:status)).to eq("Adult")
@@ -81,8 +81,8 @@ RSpec.describe "Dual Mode Execution" do
           test_data = { age: 70, salary: 60_000.0 }
           runner = simple_schema.from(test_data)
 
-          expect(runner.fetch(:senior)).to eq(true)
-          expect(runner.fetch(:adult)).to eq(true) # seniors are also adults
+          expect(runner.fetch(:senior)).to be(true)
+          expect(runner.fetch(:adult)).to be(true) # seniors are also adults
           expect(runner.fetch(:status)).to eq("Senior") # but senior takes precedence
         end
 
@@ -90,8 +90,8 @@ RSpec.describe "Dual Mode Execution" do
           test_data = { age: 16, salary: 15_000.0 }
           runner = simple_schema.from(test_data)
 
-          expect(runner.fetch(:adult)).to eq(false)
-          expect(runner.fetch(:senior)).to eq(false)
+          expect(runner.fetch(:adult)).to be(false)
+          expect(runner.fetch(:senior)).to be(false)
           expect(runner.fetch(:status)).to eq("Minor")
         end
 
@@ -127,7 +127,7 @@ RSpec.describe "Dual Mode Execution" do
 
           result = runner.slice(:adult, :monthly_salary, :status)
 
-          expect(result[:adult]).to eq(true)
+          expect(result[:adult]).to be(true)
           expect(result[:monthly_salary]).to be_within(0.01).of(7_083.33)
           expect(result[:status]).to eq("Adult")
         end
@@ -152,7 +152,7 @@ RSpec.describe "Dual Mode Execution" do
 
         runner = simple_schema.from(test_data)
 
-        expect(runner[:adult]).to eq(true)
+        expect(runner[:adult]).to be(true)
         expect(runner[:monthly_salary]).to be_within(0.01).of(4_166.67)
         expect(runner[:status]).to eq("Adult")
 
@@ -169,6 +169,7 @@ RSpec.describe "Dual Mode Execution" do
       begin
         test_schema = Class.new do
           extend Kumi::Schema
+
           schema do
             input { integer :x }
             value :doubled, input.x * 2

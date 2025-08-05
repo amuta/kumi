@@ -328,8 +328,7 @@ RSpec.describe "Element Access Mode Integration" do
       expect(result[:pixel_count]).to eq(18)     # 18 total pixel values
 
       # Statistical operations - calculated from 0.1 to 1.8 (18 values)
-      expected_sum = (0.1..1.8).step(0.1).sum.round(1) # Sum from 0.1 to 1.8 step 0.1
-      expected_mean = expected_sum / 18.0
+      (0.1..1.8).step(0.1).sum.round(1) # Sum from 0.1 to 1.8 step 0.1
 
       expect(result[:mean_pixel_value]).to be_within(0.01).of(0.95)  # Average of 0.1 to 1.8
       expect(result[:max_pixel_value]).to eq(1.8)

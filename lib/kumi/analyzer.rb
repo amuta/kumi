@@ -4,8 +4,6 @@ module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
 
-    module_function
-
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
       Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.

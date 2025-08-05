@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   # Public interface for registering custom functions in Kumi schemas
   #
@@ -7,6 +9,7 @@ module Kumi
   #   end
   module Registry
     extend Core::FunctionRegistry
+
     Entry = Core::FunctionRegistry::FunctionBuilder::Entry
 
     @functions = Core::FunctionRegistry::CORE_FUNCTIONS.transform_values(&:dup)

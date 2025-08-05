@@ -79,13 +79,13 @@ class DualRunner
   def update(**changes)
     # Update the Ruby runner
     @ruby_runner.update(**changes)
-    
+
     # Update our input data for JS runner recreation
     @input_data = @input_data.merge(changes)
-    
+
     # Recreate JS runner with updated input data
     @js_runner = JavaScriptRunner.new(@schema_class, @input_data)
-    
+
     self
   end
 
@@ -94,7 +94,7 @@ class DualRunner
   end
 
   # Execute block with dual mode enabled
-  def self.with_dual_mode(&block)
+  def self.with_dual_mode
     # Dual mode is now globally enabled in specs, just execute the block
     yield
   end
@@ -108,7 +108,7 @@ class DualRunner
     Thread.current[:kumi_dual_debug] = false
   end
 
-  def self.with_debug(&block)
+  def self.with_debug
     old_value = Thread.current[:kumi_dual_debug]
     Thread.current[:kumi_dual_debug] = true
     yield
@@ -226,7 +226,7 @@ class DualRunner
         file.write(setup_code)
         file.flush
 
-        stdout, stderr, status = Open3.capture3("node", file.path)
+        _, stderr, status = Open3.capture3("node", file.path)
 
         raise "JavaScript setup failed: #{stderr}" unless status.success?
       end

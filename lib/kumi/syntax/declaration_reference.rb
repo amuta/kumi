@@ -2,10 +2,10 @@
 
 module Kumi
   module Syntax
-      DeclarationReference = Struct.new(:name) do
-        include Node
+    DeclarationReference = Struct.new(:name) do
+      include Node
 
-        def children = []
-      end
+      def children = []
+    end
   end
 end

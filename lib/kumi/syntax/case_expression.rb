@@ -2,10 +2,10 @@
 
 module Kumi
   module Syntax
-      CaseExpression = Struct.new(:condition, :result) do
-        include Node
+    CaseExpression = Struct.new(:condition, :result) do
+      include Node
 
-        def children = [condition, result]
-      end
+      def children = [condition, result]
+    end
   end
 end

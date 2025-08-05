@@ -28,7 +28,7 @@ module JsTestRunner
 
         # Execute with Node.js
         stdout, stderr, status = Open3.capture3("node", file.path)
-        
+
         if status.success?
           begin
             JSON.parse(stdout)
@@ -56,13 +56,13 @@ module JsTestRunner
         try {
           const input = #{test_data.to_json};
           const runner = schema.from(input);
-          
+        #{'  '}
           // Get all available bindings
           const bindings = #{test_data.keys.to_json};
           const availableBindings = ['monthly_salary', 'annual_bonus', 'senior', 'adult', 'status', 'total_annual_compensation']; // This should be dynamically determined
-          
+        #{'  '}
           const results = {};
-          
+        #{'  '}
           // Try to fetch each binding
           try {
             for (const binding of availableBindings) {
@@ -75,7 +75,7 @@ module JsTestRunner
           } catch (e) {
             results.__error__ = e.message;
           }
-          
+        #{'  '}
           console.log(JSON.stringify(results));
         } catch (error) {
           console.log(JSON.stringify({ error: error.message, stack: error.stack }));
@@ -88,37 +88,31 @@ module JsTestRunner
   def compare_ruby_js_execution(schema_class, input_data, keys_to_test = nil)
     # Get Ruby results
     ruby_runner = schema_class.from(input_data)
-    
+
     # Determine which keys to test
     available_keys = schema_class.__compiled_schema__.bindings.keys
     test_keys = keys_to_test || available_keys
-    
+
     ruby_results = {}
     test_keys.each do |key|
-      begin
-        ruby_results[key] = ruby_runner.fetch(key)
-      rescue => e
-        ruby_results[key] = { error: e.class.name, message: e.message }
-      end
+      ruby_results[key] = ruby_runner.fetch(key)
+    rescue StandardError => e
+      ruby_results[key] = { error: e.class.name, message: e.message }
     end
 
     # Get JavaScript results
     js_runner = NodeRunner.new
-    
-    unless js_runner.available?
-      skip "Node.js not available for JavaScript testing"
-    end
+
+    skip "Node.js not available for JavaScript testing" unless js_runner.available?
 
     # Compile to JavaScript
     require_relative "../../lib/kumi/js"
     js_code = Kumi::Js.compile(schema_class)
-    
+
     # Execute JavaScript
     js_results = js_runner.execute_js(js_code, input_data)
-    
-    if js_results[:error]
-      raise "JavaScript execution failed: #{js_results[:error]}"
-    end
+
+    raise "JavaScript execution failed: #{js_results[:error]}" if js_results[:error]
 
     # Compare results
     comparison = {
@@ -132,7 +126,7 @@ module JsTestRunner
       key_str = key.to_s
       ruby_val = ruby_results[key]
       js_val = js_results[key_str]
-      
+
       if values_equal?(ruby_val, js_val)
         comparison[:matches][key] = true
       else
@@ -157,13 +151,11 @@ module JsTestRunner
     end
 
     # Handle numeric precision differences
-    if ruby_val.is_a?(Float) && js_val.is_a?(Numeric)
-      return (ruby_val - js_val).abs < 0.0001
-    end
+    return (ruby_val - js_val).abs < 0.0001 if ruby_val.is_a?(Float) && js_val.is_a?(Numeric)
 
     # Handle arrays
     if ruby_val.is_a?(Array) && js_val.is_a?(Array)
-      return ruby_val.size == js_val.size && 
+      return ruby_val.size == js_val.size &&
              ruby_val.zip(js_val).all? { |r, j| values_equal?(r, j) }
     end
 

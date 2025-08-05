@@ -37,17 +37,16 @@ module Kumi
             values = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::ValueDeclaration) }
 
             (traits.to_a + values.to_a).each do |name, decl|
-              result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors, definitions)
+              result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors,
+                                                   definitions)
 
               case result[:type]
               when :vectorized
                 compiler_metadata[:vectorized_operations][name] = result[:info]
-                
+
                 # If this is a cascade with processing strategy, store it separately for easy compiler access
-                if result[:info][:processing_strategy]
-                  compiler_metadata[:cascade_strategies][name] = result[:info][:processing_strategy]
-                end
-                
+                compiler_metadata[:cascade_strategies][name] = result[:info][:processing_strategy] if result[:info][:processing_strategy]
+
                 # Store array source information for dimension checking
                 array_source = extract_array_source(result[:info], array_fields)
                 vectorized_values[name] = { vectorized: true, array_source: array_source }
@@ -58,10 +57,8 @@ module Kumi
                 # Reduction produces scalar, not vectorized
                 vectorized_values[name] = { vectorized: false }
               end
-            end
 
-            # Pre-compute compilation metadata for each declaration
-            (traits.to_a + values.to_a).each do |name, decl|
+              # Pre-compute compilation metadata for each declaration
               compilation_meta = compute_compilation_metadata(
                 name, decl, compiler_metadata, vectorized_values, array_fields
               )
@@ -73,9 +70,9 @@ module Kumi
 
           private
 
-          def compute_compilation_metadata(name, decl, compiler_metadata, vectorized_values, array_fields)
+          def compute_compilation_metadata(name, _decl, compiler_metadata, _vectorized_values, _array_fields)
             metadata = {
-              operation_mode: :broadcast,  # Default mode
+              operation_mode: :broadcast, # Default mode
               is_vectorized: false,
               vectorization_context: {},
               cascade_info: {},
@@ -86,14 +83,14 @@ module Kumi
             if compiler_metadata[:vectorized_operations][name]
               metadata[:is_vectorized] = true
               vectorized_info = compiler_metadata[:vectorized_operations][name]
-              
+
               # Pre-compute vectorization context
               metadata[:vectorization_context] = {
                 has_vectorized_args: true,
                 needs_broadcasting: true,
                 array_structure_depth: estimate_array_depth(vectorized_info, compiler_metadata[:nested_paths])
               }
-              
+
               # If this is a cascade, pre-compute cascade processing strategy
               if vectorized_info[:source] == :cascade_with_vectorized_conditions_or_results
                 strategy = compiler_metadata[:cascade_strategies][name]
@@ -109,7 +106,7 @@ module Kumi
             if compiler_metadata[:flattening_declarations][name]
               metadata[:operation_mode] = :flatten
               flattening_info = compiler_metadata[:flattening_declarations][name]
-              
+
               metadata[:function_call_strategy] = {
                 flattening_required: true,
                 flatten_argument_indices: flattening_info[:flatten_argument_indices] || [0],
@@ -134,7 +131,7 @@ module Kumi
 
           def needs_hierarchical_processing?(strategy)
             return false unless strategy
-            
+
             case strategy[:mode]
             when :nested_array, :deep_nested_array
               true
@@ -158,12 +155,12 @@ module Kumi
 
           def build_nested_paths_metadata(input_meta)
             nested_paths = {}
-            
+
             # Recursively build all possible nested paths from input metadata
             input_meta.each do |root_name, root_meta|
               collect_nested_paths(nested_paths, [root_name], root_meta, 0, nil)
             end
-            
+
             nested_paths
           end
 
@@ -172,40 +169,38 @@ module Kumi
             current_access_mode = parent_access_mode
             if current_meta[:type] == :array
               array_depth += 1
-              current_access_mode = current_meta[:access_mode] || :object  # Default to :object if not specified
+              current_access_mode = current_meta[:access_mode] || :object # Default to :object if not specified
             end
 
             # If this field has children, recurse into them
             if current_meta[:children]
               current_meta[:children].each do |child_name, child_meta|
                 child_path = current_path + [child_name]
-                
+
                 # Create metadata for this path if it involves arrays
-                if array_depth > 0
-                  nested_paths[child_path] = build_path_metadata(child_path, child_meta, array_depth, current_access_mode)
+                if array_depth.positive?
+                  nested_paths[child_path] =
+                    build_path_metadata(child_path, child_meta, array_depth, current_access_mode)
                 end
-                
+
                 # Recurse into child's children
                 collect_nested_paths(nested_paths, child_path, child_meta, array_depth, current_access_mode)
               end
-            else
+            elsif array_depth.positive?
               # Leaf field - create metadata if it involves arrays
-              if array_depth > 0
-                nested_paths[current_path] = build_path_metadata(current_path, current_meta, array_depth, current_access_mode)
-              end
+              nested_paths[current_path] = build_path_metadata(current_path, current_meta, array_depth, current_access_mode)
             end
           end
 
-          def build_path_metadata(path, field_meta, array_depth, parent_access_mode = nil)
+          def build_path_metadata(_path, field_meta, array_depth, parent_access_mode = nil)
             {
               array_depth: array_depth,
               element_type: field_meta[:type] || :any,
-              operation_mode: :broadcast,  # Default mode - may be overridden for aggregations
+              operation_mode: :broadcast, # Default mode - may be overridden for aggregations
               result_structure: array_depth > 1 ? :nested_array : :array,
-              access_mode: parent_access_mode  # Access mode of the parent array field
+              access_mode: parent_access_mode # Access mode of the parent array field
             }
           end
-
 
           def analyze_value_vectorization(name, expr, array_fields, nested_paths, vectorized_values, errors, definitions = nil)
             case expr
@@ -252,10 +247,10 @@ module Kumi
                   arg_vectorization = analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions)
                   flatten_indices << index if arg_vectorization[:vectorized]
                 end
-                
-                { type: :reduction, info: { 
-                  function: expr.fn_name, 
-                  source: arg_info[:source], 
+
+                { type: :reduction, info: {
+                  function: expr.fn_name,
+                  source: arg_info[:source],
                   argument: expr.args.first,
                   flatten_argument_indices: flatten_indices
                 } }
@@ -265,7 +260,7 @@ module Kumi
               end
 
             else
-              
+
               # Special case: cascade_and takes individual trait arguments
               if expr.fn_name == :cascade_and
                 # Check if any of the individual arguments are vectorized traits
@@ -278,7 +273,9 @@ module Kumi
               end
 
               # Analyze arguments to determine function behavior
-              arg_infos = expr.args.map { |arg| analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions) }
+              arg_infos = expr.args.map do |arg|
+                analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions)
+              end
 
               if arg_infos.any? { |info| info[:vectorized] }
                 # Check for dimension mismatches when multiple arguments are vectorized
@@ -362,12 +359,12 @@ module Kumi
           def analyze_cascade_vectorization(name, expr, array_fields, nested_paths, vectorized_values, errors, definitions = nil)
             # Enhanced cascade analysis with dimensional intelligence
             condition_sources = []
-            result_sources = []  
+            result_sources = []
             condition_dimensions = []
             result_dimensions = []
             is_vectorized = false
 
-            if ENV['DEBUG_CASCADE']
+            if ENV["DEBUG_CASCADE"]
               puts "DEBUG: analyze_cascade_vectorization for #{name}"
               puts "  Expression: #{expr.inspect}"
               puts "  Cases: #{expr.cases.length}"
@@ -375,7 +372,8 @@ module Kumi
 
             expr.cases.each do |case_expr|
               # Analyze result expression
-              result_info = analyze_value_vectorization(nil, case_expr.result, array_fields, nested_paths, vectorized_values, errors, definitions)
+              result_info = analyze_value_vectorization(nil, case_expr.result, array_fields, nested_paths, vectorized_values, errors,
+                                                        definitions)
               if result_info[:type] == :vectorized
                 is_vectorized = true
                 source, dimension = trace_dimensional_source(case_expr.result, result_info, vectorized_values, array_fields, definitions)
@@ -383,102 +381,89 @@ module Kumi
                 result_dimensions << dimension
               end
 
-              # Analyze condition expression  
-              condition_info = analyze_value_vectorization(nil, case_expr.condition, array_fields, nested_paths, vectorized_values, errors, definitions)
-              if condition_info[:type] == :vectorized
-                is_vectorized = true
-                
-                # Special handling for cascade_and to check all arguments for dimensional conflicts
-                if ENV['DEBUG_CASCADE']
-                  puts "  Checking condition type: #{case_expr.condition.class}"
-                  if case_expr.condition.is_a?(Kumi::Syntax::CallExpression)
-                    puts "  Condition fn_name: #{case_expr.condition.fn_name}"
+              # Analyze condition expression
+              condition_info = analyze_value_vectorization(nil, case_expr.condition, array_fields, nested_paths, vectorized_values, errors,
+                                                           definitions)
+              next unless condition_info[:type] == :vectorized
+
+              is_vectorized = true
+
+              # Special handling for cascade_and to check all arguments for dimensional conflicts
+              if ENV["DEBUG_CASCADE"]
+                puts "  Checking condition type: #{case_expr.condition.class}"
+                puts "  Condition fn_name: #{case_expr.condition.fn_name}" if case_expr.condition.is_a?(Kumi::Syntax::CallExpression)
+              end
+
+              if case_expr.condition.is_a?(Kumi::Syntax::CallExpression) && case_expr.condition.fn_name == :cascade_and
+                puts "  -> ENTERING CASCADE_AND SPECIAL HANDLING" if ENV["DEBUG_CASCADE"]
+                # For cascade_and, check all individual trait references for dimensional conflicts
+                cascade_sources = []
+                cascade_dimensions = []
+
+                puts "  cascade_and args: #{case_expr.condition.args.map(&:class)}" if ENV["DEBUG_CASCADE"]
+
+                case_expr.condition.args.each do |arg|
+                  puts "  Processing arg: #{arg.inspect}" if ENV["DEBUG_CASCADE"]
+                  next unless arg.is_a?(Kumi::Syntax::DeclarationReference)
+
+                  puts "  Looking up declaration: #{arg.name}" if ENV["DEBUG_CASCADE"]
+                  decl = definitions[arg.name] if definitions
+                  if decl
+                    puts "  Found declaration, tracing source..." if ENV["DEBUG_CASCADE"]
+                    arg_source, arg_dimension = trace_dimensional_source(decl.expression, condition_info, vectorized_values,
+                                                                         array_fields, definitions)
+                    puts "  Traced source: #{arg_source}, dimension: #{arg_dimension}" if ENV["DEBUG_CASCADE"]
+                    cascade_sources << arg_source
+                    cascade_dimensions << arg_dimension
+                  elsif ENV["DEBUG_CASCADE"]
+                    puts "  Declaration not found: #{arg.name}"
                   end
                 end
-                
-                if case_expr.condition.is_a?(Kumi::Syntax::CallExpression) && case_expr.condition.fn_name == :cascade_and
-                  if ENV['DEBUG_CASCADE']
-                    puts "  -> ENTERING CASCADE_AND SPECIAL HANDLING"
-                  end
-                  # For cascade_and, check all individual trait references for dimensional conflicts
-                  cascade_sources = []
-                  cascade_dimensions = []
-                  
-                  if ENV['DEBUG_CASCADE']
-                    puts "  cascade_and args: #{case_expr.condition.args.map(&:class)}"
-                  end
-                  
-                  case_expr.condition.args.each do |arg|
-                    if ENV['DEBUG_CASCADE']
-                      puts "  Processing arg: #{arg.inspect}"
-                    end
-                    if arg.is_a?(Kumi::Syntax::DeclarationReference)
-                      if ENV['DEBUG_CASCADE']
-                        puts "  Looking up declaration: #{arg.name}"
-                      end
-                      decl = definitions[arg.name] if definitions
-                      if decl
-                        if ENV['DEBUG_CASCADE']
-                          puts "  Found declaration, tracing source..."
-                        end
-                        arg_source, arg_dimension = trace_dimensional_source(decl.expression, condition_info, vectorized_values, array_fields, definitions)
-                        if ENV['DEBUG_CASCADE']
-                          puts "  Traced source: #{arg_source}, dimension: #{arg_dimension}"
-                        end
-                        cascade_sources << arg_source
-                        cascade_dimensions << arg_dimension
-                      else
-                        if ENV['DEBUG_CASCADE']
-                          puts "  Declaration not found: #{arg.name}"
-                        end
-                      end
-                    end
-                  end
-                  
-                  # Check for conflicts between cascade_and arguments
-                  unique_sources = cascade_sources.uniq
-                  unique_dimensions = cascade_dimensions.uniq
-                  
-                  if ENV['DEBUG_CASCADE']
-                    puts "  cascade_sources: #{cascade_sources.inspect}"
-                    puts "  cascade_dimensions: #{cascade_dimensions.inspect}"
-                    puts "  unique_sources: #{unique_sources.inspect}"
-                    puts "  unique_dimensions: #{unique_dimensions.inspect}"
-                  end
-                  
-                  # Check for dimensional conflicts - either different sources OR incompatible dimensions
-                  has_source_conflict = unique_sources.length > 1 && !unique_sources.any? { |s| s.to_s.include?('unknown') }
-                  has_dimension_conflict = unique_dimensions.length > 1 && !valid_hierarchical_broadcasting?(unique_dimensions)
-                  
-                  if ENV['DEBUG_CASCADE']
-                    puts "  has_source_conflict: #{has_source_conflict}"
-                    puts "  has_dimension_conflict: #{has_dimension_conflict}"
-                    if unique_dimensions.length > 1
-                      puts "  valid_hierarchical_broadcasting?: #{valid_hierarchical_broadcasting?(unique_dimensions)}"
-                    end
-                  end
-                  
-                  if has_source_conflict || has_dimension_conflict
-                    # Multiple different sources or incompatible dimensions in same cascade_and - this is invalid
-                    if ENV['DEBUG_CASCADE']
-                      puts "  -> FOUND CASCADE_AND DIMENSIONAL CONFLICT:"
-                      puts "    Sources: #{unique_sources.inspect}"
-                      puts "    Dimensions: #{unique_dimensions.inspect}"
-                      puts "    Source conflict: #{has_source_conflict}"
-                      puts "    Dimension conflict: #{has_dimension_conflict}"
-                    end
-                    report_cascade_dimension_mismatch(errors, expr, unique_sources, unique_dimensions)
-                    return { type: :scalar }
-                  end
-                  
-                  # Use the first valid source as the overall condition source
-                  condition_sources.concat(cascade_sources)
-                  condition_dimensions.concat(cascade_dimensions)
-                else
-                  source, dimension = trace_dimensional_source(case_expr.condition, condition_info, vectorized_values, array_fields, definitions)
-                  condition_sources << source
-                  condition_dimensions << dimension
+
+                # Check for conflicts between cascade_and arguments
+                unique_sources = cascade_sources.uniq
+                unique_dimensions = cascade_dimensions.uniq
+
+                if ENV["DEBUG_CASCADE"]
+                  puts "  cascade_sources: #{cascade_sources.inspect}"
+                  puts "  cascade_dimensions: #{cascade_dimensions.inspect}"
+                  puts "  unique_sources: #{unique_sources.inspect}"
+                  puts "  unique_dimensions: #{unique_dimensions.inspect}"
                 end
+
+                # Check for dimensional conflicts - either different sources OR incompatible dimensions
+                has_source_conflict = unique_sources.length > 1 && unique_sources.none? { |s| s.to_s.include?("unknown") }
+                has_dimension_conflict = unique_dimensions.length > 1 && !valid_hierarchical_broadcasting?(unique_dimensions)
+
+                if ENV["DEBUG_CASCADE"]
+                  puts "  has_source_conflict: #{has_source_conflict}"
+                  puts "  has_dimension_conflict: #{has_dimension_conflict}"
+                  if unique_dimensions.length > 1
+                    puts "  valid_hierarchical_broadcasting?: #{valid_hierarchical_broadcasting?(unique_dimensions)}"
+                  end
+                end
+
+                if has_source_conflict || has_dimension_conflict
+                  # Multiple different sources or incompatible dimensions in same cascade_and - this is invalid
+                  if ENV["DEBUG_CASCADE"]
+                    puts "  -> FOUND CASCADE_AND DIMENSIONAL CONFLICT:"
+                    puts "    Sources: #{unique_sources.inspect}"
+                    puts "    Dimensions: #{unique_dimensions.inspect}"
+                    puts "    Source conflict: #{has_source_conflict}"
+                    puts "    Dimension conflict: #{has_dimension_conflict}"
+                  end
+                  report_cascade_dimension_mismatch(errors, expr, unique_sources, unique_dimensions)
+                  return { type: :scalar }
+                end
+
+                # Use the first valid source as the overall condition source
+                condition_sources.concat(cascade_sources)
+                condition_dimensions.concat(cascade_dimensions)
+              else
+                source, dimension = trace_dimensional_source(case_expr.condition, condition_info, vectorized_values, array_fields,
+                                                             definitions)
+                condition_sources << source
+                condition_dimensions << dimension
               end
             end
 
@@ -486,8 +471,8 @@ module Kumi
               # Validate dimensional compatibility
               all_sources = (condition_sources + result_sources).compact.uniq
               all_dimensions = (condition_dimensions + result_dimensions).compact.uniq
-              
-              if ENV['DEBUG_CASCADE']
+
+              if ENV["DEBUG_CASCADE"]
                 puts "  is_vectorized: true"
                 puts "  condition_sources: #{condition_sources.inspect}"
                 puts "  result_sources: #{result_sources.inspect}"
@@ -496,27 +481,23 @@ module Kumi
                 puts "  all_sources: #{all_sources.inspect}"
                 puts "  all_dimensions: #{all_dimensions.inspect}"
               end
-              
+
               # For now, be less strict about dimensional validation
               # Only report mismatches for clearly incompatible sources
-              definite_sources = all_sources.reject { |s| s.to_s.include?('unknown') || s.to_s.include?('operation') }
-              
-              if ENV['DEBUG_CASCADE']
+              definite_sources = all_sources.reject { |s| s.to_s.include?("unknown") || s.to_s.include?("operation") }
+
+              if ENV["DEBUG_CASCADE"]
                 puts "  definite_sources: #{definite_sources.inspect}"
                 puts "  definite_sources.length: #{definite_sources.length}"
               end
-              
+
               if definite_sources.length > 1
                 # Check if sources are in valid hierarchical relationship (parent-child broadcasting)
                 is_valid_hierarchical = valid_hierarchical_broadcasting?(all_dimensions)
-                if ENV['DEBUG_CASCADE']
-                  puts "  valid_hierarchical_broadcasting?: #{is_valid_hierarchical}"
-                end
+                puts "  valid_hierarchical_broadcasting?: #{is_valid_hierarchical}" if ENV["DEBUG_CASCADE"]
                 unless is_valid_hierarchical
                   # Multiple definite dimensional sources - this is a real mismatch
-                  if ENV['DEBUG_CASCADE']
-                    puts "  -> REPORTING DIMENSIONAL MISMATCH"
-                  end
+                  puts "  -> REPORTING DIMENSIONAL MISMATCH" if ENV["DEBUG_CASCADE"]
                   report_cascade_dimension_mismatch(errors, expr, definite_sources, all_dimensions)
                   return { type: :scalar } # Treat as scalar to prevent further errors
                 end
@@ -524,8 +505,8 @@ module Kumi
 
               # Compute cascade processing strategy based on dimensional analysis
               processing_strategy = compute_cascade_processing_strategy(all_dimensions.first, nested_paths)
-              
-              { type: :vectorized, info: { 
+
+              { type: :vectorized, info: {
                 source: :cascade_with_vectorized_conditions_or_results,
                 dimensional_requirements: {
                   conditions: { sources: condition_sources.uniq, dimensions: condition_dimensions.uniq },
@@ -573,7 +554,7 @@ module Kumi
                 arg_info = analyze_argument_vectorization(arg, array_fields, {}, vectorized_values, definitions)
                 arg_info[:vectorized]
               end
-              
+
               if first_vectorized_arg
                 trace_dimensional_source(first_vectorized_arg, info, vectorized_values, array_fields, definitions)
               else
@@ -584,7 +565,7 @@ module Kumi
             end
           end
 
-          def extract_dimensional_info_with_context(info, array_fields, nested_paths, vectorized_values)
+          def extract_dimensional_info_with_context(info, _array_fields, _nested_paths, vectorized_values)
             case info[:source]
             when :array_field_access, :nested_array_access
               # Direct array field access - use the path
@@ -617,7 +598,7 @@ module Kumi
             end
           end
 
-          def extract_dimensional_source(info, array_fields)
+          def extract_dimensional_source(info, _array_fields)
             case info[:source]
             when :array_field_access
               info[:path]&.first
@@ -632,7 +613,7 @@ module Kumi
               end
             else
               # For operations and other cases, try to infer from vectorized args
-              if info.dig(:vectorized_args)
+              if info[:vectorized_args]
                 # This is likely an operation - we should look at its arguments
                 :operation_result
               else
@@ -641,14 +622,14 @@ module Kumi
             end
           end
 
-          def extract_dimensions(info, array_fields, nested_paths)
+          def extract_dimensions(info, _array_fields, _nested_paths)
             case info[:source]
             when :array_field_access
               info[:path]
             when :nested_array_access
               info[:path]
             when :vectorized_declaration, :vectorized_value
-              # Try to extract from the vectorized value info if available  
+              # Try to extract from the vectorized value info if available
               if info[:name] && info.dig(:info, :path)
                 info[:info][:path]
               else
@@ -656,7 +637,7 @@ module Kumi
               end
             else
               # For operations, try to infer from the operation context
-              if info.dig(:vectorized_args)
+              if info[:vectorized_args]
                 # This is likely an operation - we should trace its arguments
                 [:operation_result]
               else
@@ -667,121 +648,103 @@ module Kumi
 
           def extract_nested_paths_from_dimensions(dimension, nested_paths)
             return nil unless dimension.is_a?(Array)
+
             nested_paths[dimension]
           end
 
           # Check if dimensions represent valid hierarchical broadcasting (parent-to-child)
           # Example: [:regions, :offices, :teams] can broadcast to [:regions, :offices, :teams, :employees]
           def valid_hierarchical_broadcasting?(dimensions)
-            if ENV['DEBUG_CASCADE']
-              puts "    DEBUG valid_hierarchical_broadcasting?: dimensions=#{dimensions.inspect}"
-            end
-            
+            puts "    DEBUG valid_hierarchical_broadcasting?: dimensions=#{dimensions.inspect}" if ENV["DEBUG_CASCADE"]
+
             return true if dimensions.length <= 1
-            
+
             # Extract structural paths by removing the final field name from each dimension
-            # This allows us to identify that [:regions, :offices, :teams, :performance_score] 
+            # This allows us to identify that [:regions, :offices, :teams, :performance_score]
             # and [:regions, :offices, :teams, :employees, :rating] both have the structural
             # path [:regions, :offices, :teams] and [:regions, :offices, :teams, :employees] respectively
             structural_paths = dimensions.map do |dim|
               if dim.length > 1
-                dim[0..-2]  # Remove the final field name
+                dim[0..-2] # Remove the final field name
               else
                 dim
               end
             end.uniq
-            
-            if ENV['DEBUG_CASCADE']
-              puts "    structural_paths: #{structural_paths.inspect}"
-            end
-            
+
+            puts "    structural_paths: #{structural_paths.inspect}" if ENV["DEBUG_CASCADE"]
+
             # Group dimensions by their root (first element)
             root_groups = structural_paths.group_by(&:first)
-            
-            if ENV['DEBUG_CASCADE']
-              puts "    root_groups: #{root_groups.keys.inspect}"
-            end
-            
+
+            puts "    root_groups: #{root_groups.keys.inspect}" if ENV["DEBUG_CASCADE"]
+
             # All dimensions must come from the same root
             if root_groups.length > 1
-              if ENV['DEBUG_CASCADE']
-                puts "    -> REJECT: Multiple roots"
-              end
+              puts "    -> REJECT: Multiple roots" if ENV["DEBUG_CASCADE"]
               return false
             end
-            
+
             # If all structural paths are the same, this is valid (same level)
             if structural_paths.length == 1
-              if ENV['DEBUG_CASCADE']
-                puts "    -> ACCEPT: All dimensions at same structural level"
-              end
+              puts "    -> ACCEPT: All dimensions at same structural level" if ENV["DEBUG_CASCADE"]
               return true
             end
-            
+
             # Within the same root, check if we have valid parent-child relationships
             sorted_paths = structural_paths.sort_by(&:length)
-            
-            if ENV['DEBUG_CASCADE']
-              puts "    sorted structural paths: #{sorted_paths.inspect}"
-            end
-            
+
+            puts "    sorted structural paths: #{sorted_paths.inspect}" if ENV["DEBUG_CASCADE"]
+
             # Check if all structural paths form a valid hierarchical structure
             # For valid hierarchical broadcasting, structural paths should be related by parent-child relationships
-            
+
             # Check if there are any actual parent-child relationships
             has_real_hierarchy = false
-            
-            for i in 0...sorted_paths.length
-              for j in (i+1)...sorted_paths.length
-                path1, path2 = sorted_paths[i], sorted_paths[j]
+
+            (0...sorted_paths.length).each do |i|
+              ((i + 1)...sorted_paths.length).each do |j|
+                path1 = sorted_paths[i]
+                path2 = sorted_paths[j]
                 shorter, longer = [path1, path2].sort_by(&:length)
-                
-                if longer[0, shorter.length] == shorter
-                  if ENV['DEBUG_CASCADE']
-                    puts "    Found parent-child relationship: #{shorter.inspect} → #{longer.inspect}"
-                  end
-                  has_real_hierarchy = true
-                end
+
+                next unless longer[0, shorter.length] == shorter
+
+                puts "    Found parent-child relationship: #{shorter.inspect} → #{longer.inspect}" if ENV["DEBUG_CASCADE"]
+                has_real_hierarchy = true
               end
             end
-            
-            if ENV['DEBUG_CASCADE']
-              puts "    has_real_hierarchy: #{has_real_hierarchy}"
-            end
-            
+
+            puts "    has_real_hierarchy: #{has_real_hierarchy}" if ENV["DEBUG_CASCADE"]
+
             # Allow same-level dimensions or hierarchical relationships
             if !has_real_hierarchy && sorted_paths.length > 1
-              if ENV['DEBUG_CASCADE']
-                puts "    -> REJECT: No parent-child relationships found - these are sibling branches"
-              end
+              puts "    -> REJECT: No parent-child relationships found - these are sibling branches" if ENV["DEBUG_CASCADE"]
               return false
             end
-            
-            if ENV['DEBUG_CASCADE']
-              puts "    -> ACCEPT: All dimensions compatible"
-            end
+
+            puts "    -> ACCEPT: All dimensions compatible" if ENV["DEBUG_CASCADE"]
             true
           end
 
           def compute_cascade_processing_strategy(primary_dimension, nested_paths)
             return { mode: :scalar } unless primary_dimension
-            
+
             # Determine structure depth from the dimension path
             structure_depth = primary_dimension.length
-            
+
             # Determine processing mode based on structure complexity
             processing_mode = case structure_depth
-                             when 0, 1
-                               :simple_array     # Single-level array processing
-                             when 2, 3, 4
-                               :nested_array     # Multi-level nested array processing
-                             else
-                               :deep_nested_array # Very deep nesting (5+ levels)
-                             end
-            
+                              when 0, 1
+                                :simple_array     # Single-level array processing
+                              when 2, 3, 4
+                                :nested_array     # Multi-level nested array processing
+                              else
+                                :deep_nested_array # Very deep nesting (5+ levels)
+                              end
+
             # Get nested path information for this dimension
             nested_path_info = nested_paths[primary_dimension]
-            
+
             {
               mode: processing_mode,
               structure_depth: structure_depth,
@@ -792,13 +755,13 @@ module Kumi
           end
 
           def report_cascade_dimension_mismatch(errors, expr, sources, dimensions)
-            puts "DEBUG: Dimensional analysis details:" if ENV['DEBUG_CASCADE']
-            puts "  Sources: #{sources.inspect}" if ENV['DEBUG_CASCADE']
-            puts "  Dimensions: #{dimensions.inspect}" if ENV['DEBUG_CASCADE']
-            puts "  Valid hierarchical? #{valid_hierarchical_broadcasting?(dimensions)}" if ENV['DEBUG_CASCADE']
-            
+            puts "DEBUG: Dimensional analysis details:" if ENV["DEBUG_CASCADE"]
+            puts "  Sources: #{sources.inspect}" if ENV["DEBUG_CASCADE"]
+            puts "  Dimensions: #{dimensions.inspect}" if ENV["DEBUG_CASCADE"]
+            puts "  Valid hierarchical? #{valid_hierarchical_broadcasting?(dimensions)}" if ENV["DEBUG_CASCADE"]
+
             message = "Cascade dimensional mismatch: Cannot mix arrays from different sources (#{sources.join(', ')}) " \
-                     "with dimensions (#{dimensions.map(&:inspect).join(', ')}) in cascade conditions and results."
+                      "with dimensions (#{dimensions.map(&:inspect).join(', ')}) in cascade conditions and results."
             report_error(errors, message, location: expr.loc, type: :semantic)
           end
 

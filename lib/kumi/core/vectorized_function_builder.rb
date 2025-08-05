@@ -19,7 +19,7 @@ module Kumi
       def build
         # Get the function from registry
         fn = Kumi::Registry.fetch(@fn_name)
-        
+
         lambda do |arg_values, loc|
           # Check if any argument is vectorized (array)
           has_vectorized_args = arg_values.any?(Array)
@@ -83,7 +83,6 @@ module Kumi
           fn.call(*element_args)
         end
       end
-
     end
   end
 end

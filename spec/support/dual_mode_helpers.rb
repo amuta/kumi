@@ -37,7 +37,7 @@ module DualModeHelpers
 
   module ClassMethods
     def with_dual_mode_enabled(&block)
-      around(:each) do |example|
+      around do |example|
         if node_available?
           DualRunner.with_dual_mode { example.run }
         else

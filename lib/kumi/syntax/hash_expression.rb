@@ -2,10 +2,10 @@
 
 module Kumi
   module Syntax
-      HashExpression = Struct.new(:pairs) do
-        include Node
+    HashExpression = Struct.new(:pairs) do
+      include Node
 
-        def children = pairs.flatten
-      end
+      def children = pairs.flatten
+    end
   end
 end

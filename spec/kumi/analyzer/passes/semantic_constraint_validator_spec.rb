@@ -159,17 +159,17 @@ RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
       let(:schema) do
         # Valid: primitive element without children
         primitive_array = input_decl(:flags, :array, nil, children: [], access_mode: :element)
-        
-        # Valid: 2D array - array of arrays where inner arrays contain primitives  
+
+        # Valid: 2D array - array of arrays where inner arrays contain primitives
         nested_array = input_decl(:grid, :array, nil, children: [
-          input_decl(:row, :array, nil, children: [], access_mode: :element)
-        ], access_mode: :element)
-        
+                                    input_decl(:row, :array, nil, children: [], access_mode: :element)
+                                  ], access_mode: :element)
+
         # Valid: object element with children
         object_array = input_decl(:items, :array, nil, children: [
-          input_decl(:name, :string, nil),
-          input_decl(:value, :integer, nil)
-        ], access_mode: :object)
+                                    input_decl(:name, :string, nil),
+                                    input_decl(:value, :integer, nil)
+                                  ], access_mode: :object)
 
         syntax(:root, [primitive_array, nested_array, object_array], [], [], loc: loc)
       end
@@ -184,21 +184,21 @@ RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
       let(:schema) do
         # Valid: element access mode array
         element_array = input_decl(:flags, :array, nil, children: [
-          input_decl(:active, :boolean, nil)
-        ], access_mode: :element)
-        
-        # Valid: object access mode array  
+                                     input_decl(:active, :boolean, nil)
+                                   ], access_mode: :element)
+
+        # Valid: object access mode array
         object_array = input_decl(:items, :array, nil, children: [
-          input_decl(:name, :string, nil),
-          input_decl(:value, :integer, nil)
-        ], access_mode: :object)
-        
+                                    input_decl(:name, :string, nil),
+                                    input_decl(:value, :integer, nil)
+                                  ], access_mode: :object)
+
         # Valid: nested array structure
         nested_array = input_decl(:grid, :array, nil, children: [
-          input_decl(:row, :array, nil, children: [
-            input_decl(:cell, :boolean, nil)
-          ], access_mode: :element)
-        ], access_mode: :element)
+                                    input_decl(:row, :array, nil, children: [
+                                                 input_decl(:cell, :boolean, nil)
+                                               ], access_mode: :element)
+                                  ], access_mode: :element)
 
         syntax(:root, [element_array, object_array, nested_array], [], [], loc: loc)
       end
@@ -213,9 +213,9 @@ RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
       let(:schema) do
         # Invalid: element access mode array with multiple children
         invalid_array = input_decl(:mixed, :array, nil, children: [
-          input_decl(:active, :boolean, nil),
-          input_decl(:status, :string, nil)
-        ], access_mode: :element)
+                                     input_decl(:active, :boolean, nil),
+                                     input_decl(:status, :string, nil)
+                                   ], access_mode: :element)
 
         syntax(:root, [invalid_array], [], [], loc: loc)
       end

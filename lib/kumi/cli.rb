@@ -236,16 +236,16 @@ module Kumi
       def export_to_javascript(schema_module, output_file)
         # Load the JS module dynamically
         require_relative "js"
-        
+
         puts "Exporting schema to JavaScript..."
-        
+
         begin
           js_code = Kumi::Js.compile(schema_module, format: :standalone)
           File.write(output_file, js_code)
-          
+
           puts "✅ Successfully exported to #{output_file}"
           puts "📄 File size: #{File.size(output_file)} bytes"
-          
+
           # Show some useful information
           available_bindings = schema_module.__compiled_schema__.bindings.keys
           puts "🔧 Available bindings: #{available_bindings.join(', ')}"
@@ -253,8 +253,7 @@ module Kumi
           puts "Usage in browser/Node.js:"
           puts "  const runner = schema.from({your: 'input', data: 'here'});"
           puts "  console.log(runner.fetch('binding_name'));"
-          
-        rescue => e
+        rescue StandardError => e
           puts "❌ Export failed: #{e.message}"
           puts e.backtrace if $DEBUG
           exit 1

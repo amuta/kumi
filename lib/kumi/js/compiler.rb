@@ -34,17 +34,16 @@ module Kumi
 
           # Check if we have nested paths metadata for this path
           nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
-          if nested_paths && nested_paths[path]
-            # Determine operation mode based on context
-            operation_mode = determine_operation_mode_for_path(path)
-            generate_js_nested_path_traversal(path, operation_mode)
-          else
-            # ERROR: All nested paths should have metadata from the analyzer
-            # If we reach here, it means the BroadcastDetector didn't process this path
-            raise Errors::CompilationError.new(
-              "Missing nested path metadata for #{path.inspect}. This indicates an analyzer bug."
-            )
+          unless nested_paths && nested_paths[path]
+            raise Errors::CompilationError, "Missing nested path metadata for #{path.inspect}. This indicates an analyzer bug."
           end
+
+          # Determine operation mode based on context
+          operation_mode = determine_operation_mode_for_path(path)
+          generate_js_nested_path_traversal(path, operation_mode)
+
+          # ERROR: All nested paths should have metadata from the analyzer
+          # If we reach here, it means the BroadcastDetector didn't process this path
         end
 
         def compile_binding_node(expr)
@@ -112,7 +111,7 @@ module Kumi
             root_field = path.first
             flatten_depth = path.length - 1 # Flatten (path_depth - 1) levels
 
-            if flatten_depth > 0
+            if flatten_depth.positive?
               # Generate direct flat() call
               "(ctx) => ctx.#{root_field}.flat(#{flatten_depth})"
             else
@@ -180,10 +179,9 @@ module Kumi
 
         def compile_js_vectorized_cascade(expr)
           # Generate JavaScript vectorized cascade logic
-          current_decl_name = @current_declaration
 
           # Get pre-computed cascade strategy
-          compilation_meta, cascade_info = get_cascade_compilation_metadata
+          get_cascade_compilation_metadata
           strategy = get_cascade_strategy
 
           # Separate conditional cases from base case

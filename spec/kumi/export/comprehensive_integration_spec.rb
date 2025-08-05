@@ -104,17 +104,17 @@ RSpec.describe "Comprehensive AST Export Integration" do
                             fn(:subtract, 100,
                                fn(:multiply, input.years_customer, 5)))
 
-value :scores_analysis, fn(:cascade_and,
-                                   fn(:>, fn(:size, input.scores), 0),
-                                   fn(:<, fn(:sum, input.scores), 300.0),
-                                   fn(:>=, fn(:divide, fn(:sum, input.scores), 3.0), 80.0))
+      value :scores_analysis, fn(:cascade_and,
+                                 fn(:>, fn(:size, input.scores), 0),
+                                 fn(:<, fn(:sum, input.scores), 300.0),
+                                 fn(:>=, fn(:divide, fn(:sum, input.scores), 3.0), 80.0))
 
       # === COMPLEX LOGICAL COMBINATIONS ===
       # Multiple trait combinations using logical functions
-value :customer_quality, fn(:cascade_and,
-                                    ref(:frequent_buyer),
-                                    ref(:long_term_customer),
-                                    ref(:low_support_usage))
+      value :customer_quality, fn(:cascade_and,
+                                  ref(:frequent_buyer),
+                                  ref(:long_term_customer),
+                                  ref(:low_support_usage))
 
       value :premium_eligibility, fn(:any?, [
                                        ref(:high_balance),

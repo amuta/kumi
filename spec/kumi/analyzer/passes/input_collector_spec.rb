@@ -191,7 +191,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
 
         expect(errors).to be_empty
         expect(input_meta.keys).to contain_exactly(:user_name, :line_items)
-        expect(input_meta[:user_name]).to eq({ type: :string, domain: nil , access_mode: nil})
+        expect(input_meta[:user_name]).to eq({ type: :string, domain: nil, access_mode: nil })
 
         # Verify the nested structure for line_items
         line_items_meta = input_meta[:line_items]
@@ -201,14 +201,14 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         # Verify the children of the line_items elements
         item_children = line_items_meta[:children]
         expect(item_children.keys).to contain_exactly(:item_name, :quantity, :tags)
-        expect(item_children[:item_name]).to eq({ type: :string, domain: nil , access_mode: nil})
-        expect(item_children[:quantity]).to eq({ type: :integer, domain: nil , access_mode: nil})
+        expect(item_children[:item_name]).to eq({ type: :string, domain: nil, access_mode: nil })
+        expect(item_children[:quantity]).to eq({ type: :integer, domain: nil, access_mode: nil })
 
         # Verify the deeply nested structure for tags
         tags_meta = item_children[:tags]
         expect(tags_meta[:type]).to eq(:array)
         expect(tags_meta[:children]).to eq({
-                                             tag_name: { type: :string, domain: nil , access_mode: nil}
+                                             tag_name: { type: :string, domain: nil, access_mode: nil }
                                            })
       end
     end

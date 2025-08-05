@@ -707,7 +707,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          value :empty_all, fn(:cascade_and, )
+          value :empty_all, fn(:cascade_and)
         end
       end.not_to raise_error
     end

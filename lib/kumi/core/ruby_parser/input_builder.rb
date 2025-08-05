@@ -98,7 +98,7 @@ module Kumi
           domain = options[:domain]
 
           # Collect children by creating a nested context
-          children, elem_type, using_elements = collect_array_children(&block)
+          children, _, using_elements = collect_array_children(&block)
 
           # Create the InputDeclaration with children and access_mode
           access_mode = using_elements ? :element : :object
@@ -123,15 +123,15 @@ module Kumi
 
           # Determine element type based on what was declared
           elem_type = determine_element_type(nested_builder, nested_inputs)
-          
+
           # Check if element() was used
           using_elements = nested_builder.instance_variable_get(:@using_elements) || false
 
           [nested_inputs, elem_type, using_elements]
         end
 
-        def determine_element_type(builder, inputs)
-          # Since element() always creates named children now, 
+        def determine_element_type(_builder, inputs)
+          # Since element() always creates named children now,
           # we just use the standard logic
           if inputs.any?
             # If fields were declared, it's a hash/object structure
@@ -142,17 +142,16 @@ module Kumi
           end
         end
 
-
         def primitive_element_type?(elem_type)
           %i[string integer float boolean bool any symbol].include?(elem_type)
         end
 
         # New method: element() declaration - always requires a name
         def element(type_spec, name, &block)
+          @using_elements = true
           if block_given?
             # Named element with nested structure: element(:array, :rows) do ... end
             # These DO set @using_elements to enable element access mode for multi-dimensional arrays
-            @using_elements = true
             case type_spec
             when :array
               create_array_field_with_block(name, {}, &block)
@@ -160,19 +159,19 @@ module Kumi
               # Create nested object structure
               create_object_element(name, &block)
             else
-              raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :object types", location: @context.current_location)
+              raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :object types",
+                                 location: @context.current_location)
             end
           else
             # Named primitive element: element(:boolean, :active)
             # Only primitive elements mark the parent as using element access
-            @using_elements = true
             @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, type_spec, [], nil, loc: @context.current_location)
           end
         end
 
         def create_object_element(name, &block)
           # Similar to create_array_field_with_block but for objects
-          children, _ = collect_array_children(&block)
+          children, = collect_array_children(&block)
           @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :object, children, nil, loc: @context.current_location)
         end
       end

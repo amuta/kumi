@@ -53,9 +53,7 @@ module Kumi
             end
 
             # If no conditional case matched, use base case
-            if result.nil? && base_result
-              result = navigate_nested_indices(base_result, indices)
-            end
+            result = navigate_nested_indices(base_result, indices) if result.nil? && base_result
 
             result
           end
@@ -83,9 +81,7 @@ module Kumi
             end
 
             # If no conditional case matched, use base case
-            if result.nil? && base_result
-              result = navigate_nested_indices(base_result, indices)
-            end
+            result = navigate_nested_indices(base_result, indices) if result.nil? && base_result
 
             result
           end

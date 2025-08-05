@@ -11,12 +11,12 @@ module Kumi
         class TypeChecker < VisitorPass
           def run(errors)
             functions_required = Set.new
-            
+
             visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
               validate_function_call(node, errs)
               functions_required.add(node.fn_name)
             end
-            
+
             state.with(:functions_required, functions_required)
           end
 

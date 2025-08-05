@@ -2,10 +2,10 @@
 
 module Kumi
   module Syntax
-      CascadeExpression = Struct.new(:cases) do
-        include Node
+    CascadeExpression = Struct.new(:cases) do
+      include Node
 
-        def children = cases
-      end
+      def children = cases
+    end
   end
 end

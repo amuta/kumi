@@ -11,7 +11,9 @@ module ASTFactory
     input_ref: ->(name, loc:) { InputReference.new(name, loc: loc) },
     input_elem_ref: ->(path, loc:) { InputElementReference.new(path, loc: loc) },
     declaration_ref: ->(name, loc:) { DeclarationReference.new(name, loc: loc) },
-    input_decl: ->(name, domain = nil, type = nil, children = [], access_mode = nil, loc:) { InputDeclaration.new(name, domain, type, children, access_mode, loc: loc) },
+    input_decl: lambda { |name, domain = nil, type = nil, children = [], access_mode = nil, loc:|
+      InputDeclaration.new(name, domain, type, children, access_mode, loc: loc)
+    },
 
     call_expr: ->(fn_name, *args, loc:) { CallExpression.new(fn_name, args, loc: loc) },
 
@@ -64,7 +66,10 @@ module ASTFactory
 
   def input_elem_ref(path) = syntax(:input_elem_ref, path, loc: loc)
 
-  def input_decl(name, type = nil, domain = nil, children: [], access_mode: nil) = syntax(:input_decl, name, domain, type, children, access_mode, loc: loc)
+  def input_decl(name, type = nil, domain = nil, children: [],
+                 access_mode: nil)
+    syntax(:input_decl, name, domain, type, children, access_mode, loc: loc)
+  end
   alias field_decl input_decl
 
   def when_case_expression(trait, then_expr)
