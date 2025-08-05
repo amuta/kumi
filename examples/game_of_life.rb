@@ -1,19 +1,17 @@
-$LOAD_PATH.unshift(File.join(__dir__, "..", "lib"))
 require "kumi"
 
-NEIGHBOR_DELTAS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
 begin
   # in a block so we dont define this globally
   def neighbor_cells_sum_method(cells, row, col, height, width)
     # Calculate neighbor indices with wraparound
-    NEIGHBOR_DELTAS.map do |dr, dc|
+    [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]].map do |dr, dc|
       neighbor_row = (row + dr) % height
       neighbor_col = (col + dc) % width
       neighbor_index = (neighbor_row * width) + neighbor_col
       cells[neighbor_index]
     end.sum
   end
-  Kumi::Core::FunctionRegistry.register_with_metadata(:neighbor_cells_sum, method(:neighbor_cells_sum_method),
+  Kumi::Registry.register_with_metadata(:neighbor_cells_sum, method(:neighbor_cells_sum_method),
                                                 return_type: :integer, arity: 5,
                                                 param_types: %i[array integer integer integer integer],
                                                 description: "Get neighbor cells for Conway's Game of Life")
