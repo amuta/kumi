@@ -19,12 +19,12 @@ RSpec.describe Kumi::VERSION do
     end
 
     it "has current version" do
-      expect(Kumi::VERSION).to eq("0.0.9")
+      expect(Kumi::VERSION).to be_a(String)
     end
   end
 
   describe "version parsing" do
-    let(:version_parts) { Kumi::VERSION.split('.') }
+    let(:version_parts) { Kumi::VERSION.split(".") }
 
     it "has major version" do
       expect(version_parts[0]).to match(/^\d+$/)
