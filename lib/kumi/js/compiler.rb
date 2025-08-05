@@ -106,12 +106,12 @@ module Kumi
           nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
           path_metadata = nested_paths && nested_paths[path]
           access_mode = path_metadata&.dig(:access_mode) || :object
-          
+
           if access_mode == :element
             # For element access, generate direct flattening based on path depth
             root_field = path.first
-            flatten_depth = path.length - 1  # Flatten (path_depth - 1) levels
-            
+            flatten_depth = path.length - 1 # Flatten (path_depth - 1) levels
+
             if flatten_depth > 0
               # Generate direct flat() call
               "(ctx) => ctx.#{root_field}.flat(#{flatten_depth})"
@@ -119,24 +119,22 @@ module Kumi
               # No flattening needed
               "(ctx) => ctx.#{root_field}"
             end
-          else
+          elsif path.length == 1
             # For object access, generate proper nested mapping
-            if path.length == 1
-              # Simple field access
-              "(ctx) => ctx.#{path.first}"
-            elsif path.length == 2
-              # Common case: array.field -> array.map(item => item.field)
-              root_field, nested_field = path
-              "(ctx) => ctx.#{root_field}.map(item => item.#{nested_field})"
+            # Simple field access
+            "(ctx) => ctx.#{path.first}"
+          elsif path.length == 2
+            # Common case: array.field -> array.map(item => item.field)
+            root_field, nested_field = path
+            "(ctx) => ctx.#{root_field}.map(item => item.#{nested_field})"
+          else
+            # Complex nested object access - use the traversal
+            path_js = "[#{path.map { |p| "'#{p}'" }.join(', ')}]"
+            case operation_mode
+            when :flatten
+              "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'flatten', 'object')"
             else
-              # Complex nested object access - use the traversal
-              path_js = "[#{path.map { |p| "'#{p}'" }.join(', ')}]"
-              case operation_mode
-              when :flatten
-                "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'flatten', 'object')"
-              else
-                "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'broadcast', 'object')"
-              end
+              "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'broadcast', 'object')"
             end
           end
         end
@@ -150,7 +148,7 @@ module Kumi
           end.join("\n")
 
           # Convert compilation metadata to JSON string, handling nil case
-          meta_json = compilation_meta ? compilation_meta.to_json : 'null'
+          meta_json = compilation_meta ? compilation_meta.to_json : "null"
 
           "(ctx) => {\n#{arg_declarations}\n  return kumiRuntime.vectorizedFunctionCall('#{fn_name}', [#{args_js}], #{meta_json});\n}"
         end
@@ -158,7 +156,7 @@ module Kumi
         def compile_js_call_with_flattening(fn_name, arg_exprs, function_strategy)
           # Generate function call with selective argument flattening
           flatten_indices = function_strategy[:flatten_argument_indices] || []
-          
+
           args_js = arg_exprs.map.with_index do |_, i|
             if flatten_indices.include?(i)
               "kumiRuntime.flattenCompletely(arg#{i}(ctx))"
@@ -183,7 +181,7 @@ module Kumi
         def compile_js_vectorized_cascade(expr)
           # Generate JavaScript vectorized cascade logic
           current_decl_name = @current_declaration
-          
+
           # Get pre-computed cascade strategy
           compilation_meta, cascade_info = get_cascade_compilation_metadata
           strategy = get_cascade_strategy
@@ -213,7 +211,7 @@ module Kumi
           strategy_json = if strategy
                             strategy.to_json
                           else
-                            'null'
+                            "null"
                           end
 
           <<~JAVASCRIPT
@@ -221,11 +219,11 @@ module Kumi
             #{condition_compilations}
             #{result_compilations}
             #{base_compilation}
-              
+            #{'  '}
               const condResults = [#{conditional_cases.map.with_index { |_, i| "condition#{i}(ctx)" }.join(', ')}];
               const resResults = [#{conditional_cases.map.with_index { |_, i| "result#{i}(ctx)" }.join(', ')}];
               const baseRes = baseResult(ctx);
-              
+            #{'  '}
               return kumiRuntime.executeVectorizedCascade(condResults, resResults, baseRes, #{strategy_json});
             }
           JAVASCRIPT
@@ -269,7 +267,7 @@ module Kumi
             "  const trait#{i} = #{trait_fn};"
           end.join("\n")
 
-          trait_args = condition_expr.args.map.with_index { |_, i| "trait#{i}(ctx)" }.join(', ')
+          trait_args = condition_expr.args.map.with_index { |_, i| "trait#{i}(ctx)" }.join(", ")
 
           <<~JAVASCRIPT
             (ctx) => {
@@ -360,8 +358,6 @@ module Kumi
         case format
         when :standalone
           generate_standalone_js(bindings, **options)
-        when :es6
-          generate_es6_module(bindings, **options)
         else
           raise ArgumentError, "Unknown format: #{format}"
         end
@@ -424,64 +420,12 @@ module Kumi
           if (typeof module !== 'undefined' && module.exports) {
             module.exports = { schema };
           }
-          
+
           // Browser global
           if (typeof window !== 'undefined') {
             window.schema = schema;
             #{"window.#{options[:export_name]} = schema;" if options[:export_name]}
           }
-        JAVASCRIPT
-      end
-
-      def generate_es6_module(bindings, **_options)
-        # Generate ES6 module format
-        functions_js = bindings.map do |name, meta|
-          "  #{name}: #{meta[:function]}"
-        end.join(",\n")
-
-        <<~JAVASCRIPT
-          // Generated by Kumi JavaScript Transpiler
-          import { kumiRuntime, kumiRegistry } from './kumi-runtime.js';
-
-          // Compiled Schema Bindings
-          const bindings = {
-          #{functions_js}
-          };
-
-          // Schema Runner
-          export class KumiRunner {
-            constructor(input) {
-              this.input = input;
-              this.cache = new Map();
-            }
-          #{'  '}
-            fetch(key) {
-              if (this.cache.has(key)) {
-                return this.cache.get(key);
-              }
-          #{'    '}
-              if (!bindings[key]) {
-                throw new Error(`Unknown binding: ${key}`);
-              }
-          #{'    '}
-              const value = bindings[key](this.input);
-              this.cache.set(key, value);
-              return value;
-            }
-          #{'  '}
-            slice(...keys) {
-              const result = {};
-              keys.forEach(key => {
-                result[key] = this.fetch(key);
-              });
-              return result;
-            }
-          }
-
-          // Default export
-          export default {
-            from: (input) => new KumiRunner(input)
-          };
         JAVASCRIPT
       end
 
@@ -497,28 +441,28 @@ module Kumi
             // Nested path traversal matching Ruby implementation exactly
             traverseNestedPath: function(data, path, operationMode, accessMode = 'object') {
               let result;
-              
+          #{'    '}
               // Use specialized traversal for element access mode
               if (accessMode === 'element') {
                 result = this.traverseElementPath(data, path, operationMode);
               } else {
                 result = this.traversePathRecursive(data, path, operationMode, accessMode);
               }
-              
+          #{'    '}
               // Post-process result based on operation mode
               if (operationMode === 'flatten') {
                 return this.flattenCompletely(result);
               }
               return result;
             },
-            
+          #{'  '}
             // Specialized traversal for element access mode (matches Ruby exactly)
             traverseElementPath: function(data, path, operationMode) {
               // Handle context wrapper by extracting the specific field
               if (data && typeof data === 'object' && !Array.isArray(data)) {
                 const fieldName = path[0];
                 const arrayData = data[fieldName];
-                
+          #{'      '}
                 // Always apply progressive traversal based on path depth
                 // This gives us the structure at the correct nesting level for both
                 // broadcast operations and structure operations
@@ -532,19 +476,19 @@ module Kumi
                 return data;
               }
             },
-            
+          #{'  '}
             // Flatten array to specific depth (matches Ruby array.flatten(n))
             flattenToDepth: function(arr, depth) {
               if (depth <= 0 || !Array.isArray(arr)) {
                 return arr;
               }
-              
+          #{'    '}
               let result = arr.slice(); // Copy array
-              
+          #{'    '}
               for (let i = 0; i < depth; i++) {
                 let hasNestedArrays = false;
                 const newResult = [];
-                
+          #{'      '}
                 for (const item of result) {
                   if (Array.isArray(item)) {
                     newResult.push(...item);
@@ -553,28 +497,28 @@ module Kumi
                     newResult.push(item);
                   }
                 }
-                
+          #{'      '}
                 result = newResult;
-                
+          #{'      '}
                 // If no nested arrays found, no need to continue flattening
                 if (!hasNestedArrays) {
                   break;
                 }
               }
-              
+          #{'    '}
               return result;
             },
-            
+          #{'  '}
             traversePathRecursive: function(data, path, operationMode, accessMode = 'object', originalPathLength = null) {
               // Track original path length to determine traversal depth
               originalPathLength = originalPathLength || path.length;
               const currentDepth = originalPathLength - path.length;
-              
+          #{'    '}
               if (path.length === 0) return data;
-              
+          #{'    '}
               const field = path[0];
               const remainingPath = path.slice(1);
-              
+          #{'    '}
               if (remainingPath.length === 0) {
                 // Final field - extract based on operation mode
                 if (operationMode === 'broadcast' || operationMode === 'flatten') {
@@ -582,34 +526,34 @@ module Kumi
                   return this.extractFieldPreservingStructure(data, field, accessMode, currentDepth);
                 } else {
                   // Simple field access
-                  return Array.isArray(data) ? 
-                    data.map(item => this.accessField(item, field, accessMode, currentDepth)) : 
+                  return Array.isArray(data) ?#{' '}
+                    data.map(item => this.accessField(item, field, accessMode, currentDepth)) :#{' '}
                     this.accessField(data, field, accessMode, currentDepth);
                 }
               } else if (Array.isArray(data)) {
                 // Intermediate step - traverse deeper
                 // Array of items - traverse each item
-                return data.map(item => 
+                return data.map(item =>#{' '}
                   this.traversePathRecursive(
-                    this.accessField(item, field, accessMode, currentDepth), 
-                    remainingPath, 
-                    operationMode, 
-                    accessMode, 
+                    this.accessField(item, field, accessMode, currentDepth),#{' '}
+                    remainingPath,#{' '}
+                    operationMode,#{' '}
+                    accessMode,#{' '}
                     originalPathLength
                   )
                 );
               } else {
                 // Single item - traverse directly
                 return this.traversePathRecursive(
-                  this.accessField(data, field, accessMode, currentDepth), 
-                  remainingPath, 
-                  operationMode, 
-                  accessMode, 
+                  this.accessField(data, field, accessMode, currentDepth),#{' '}
+                  remainingPath,#{' '}
+                  operationMode,#{' '}
+                  accessMode,#{' '}
                   originalPathLength
                 );
               }
             },
-            
+          #{'  '}
             extractFieldPreservingStructure: function(data, field, accessMode = 'object', depth = 0) {
               if (Array.isArray(data)) {
                 return data.map(item => this.extractFieldPreservingStructure(item, field, accessMode, depth));
@@ -617,7 +561,7 @@ module Kumi
                 return this.accessField(data, field, accessMode, depth);
               }
             },
-            
+          #{'  '}
             accessField: function(data, field, accessMode, depth = 0) {
               if (accessMode === 'element') {
                 // Element access mode - for nested arrays, we need to traverse one level deeper
@@ -636,13 +580,13 @@ module Kumi
                 return data[field];
               }
             },
-            
+          #{'  '}
             flattenCompletely: function(data) {
               const result = [];
               this.flattenRecursive(data, result);
               return result;
             },
-            
+          #{'  '}
             flattenRecursive: function(data, result) {
               if (Array.isArray(data)) {
                 data.forEach(item => this.flattenRecursive(item, result));
@@ -650,15 +594,15 @@ module Kumi
                 result.push(data);
               }
             },
-            
+          #{'  '}
             // Sophisticated vectorized function call with metadata support
             vectorizedFunctionCall: function(fnName, args, compilationMeta) {
               const fn = kumiRegistry[fnName];
               if (!fn) throw new Error(`Unknown function: ${fnName}`);
-              
+          #{'    '}
               // Check if any argument is vectorized (array)
               const hasVectorizedArgs = args.some(Array.isArray);
-              
+          #{'    '}
               if (hasVectorizedArgs) {
                 return this.vectorizedBroadcastingCall(fn, args, compilationMeta);
               } else {
@@ -666,67 +610,67 @@ module Kumi
                 return fn(...args);
               }
             },
-            
+          #{'  '}
             vectorizedBroadcastingCall: function(fn, values, compilationMeta) {
               // Find array dimensions for broadcasting
               const arrayValues = values.filter(v => Array.isArray(v));
               if (arrayValues.length === 0) return fn(...values);
-              
+          #{'    '}
               // Check if we have deeply nested arrays (arrays containing arrays)
-              const hasNestedArrays = arrayValues.some(arr => 
+              const hasNestedArrays = arrayValues.some(arr =>#{' '}
                 arr.some(item => Array.isArray(item))
               );
-              
+          #{'    '}
               if (hasNestedArrays) {
                 return this.hierarchicalBroadcasting(fn, values);
               } else {
                 return this.simpleBroadcasting(fn, values);
               }
             },
-            
+          #{'  '}
             simpleBroadcasting: function(fn, values) {
               const arrayValues = values.filter(v => Array.isArray(v));
               const arrayLength = arrayValues[0].length;
               const result = [];
-              
+          #{'    '}
               for (let i = 0; i < arrayLength; i++) {
                 const elementArgs = values.map(arg =>
                   Array.isArray(arg) ? arg[i] : arg
                 );
                 result.push(fn(...elementArgs));
               }
-              
+          #{'    '}
               return result;
             },
-            
+          #{'  '}
             hierarchicalBroadcasting: function(fn, values) {
               // Handle hierarchical broadcasting for nested arrays
               const arrayValues = values.filter(v => Array.isArray(v));
-              const maxDepthArray = arrayValues.reduce((max, arr) => 
+              const maxDepthArray = arrayValues.reduce((max, arr) =>#{' '}
                 this.calculateArrayDepth(arr) > this.calculateArrayDepth(max) ? arr : max
               );
-              
+          #{'    '}
               return this.mapNestedStructure(maxDepthArray, (indices) => {
-                const elementArgs = values.map(arg => 
+                const elementArgs = values.map(arg =>#{' '}
                   this.navigateNestedIndices(arg, indices)
                 );
                 return fn(...elementArgs);
               });
             },
-            
+          #{'  '}
             calculateArrayDepth: function(arr) {
               if (!Array.isArray(arr)) return 0;
               return 1 + Math.max(0, ...arr.map(item => this.calculateArrayDepth(item)));
             },
-            
+          #{'  '}
             mapNestedStructure: function(structure, fn) {
               if (!Array.isArray(structure)) {
                 return fn([]);
               }
-              
+          #{'    '}
               return structure.map((item, index) => {
                 if (Array.isArray(item)) {
-                  return this.mapNestedStructure(item, (innerIndices) => 
+                  return this.mapNestedStructure(item, (innerIndices) =>#{' '}
                     fn([index, ...innerIndices])
                   );
                 } else {
@@ -734,7 +678,7 @@ module Kumi
                 }
               });
             },
-            
+          #{'  '}
             navigateNestedIndices: function(data, indices) {
               let current = data;
               for (const index of indices) {
@@ -746,7 +690,7 @@ module Kumi
               }
               return current;
             },
-            
+          #{'  '}
             // Vectorized cascade execution with strategy support
             executeVectorizedCascade: function(condResults, resResults, baseResult, strategy) {
               if (!strategy) {
@@ -756,7 +700,7 @@ module Kumi
                 }
                 return baseResult;
               }
-              
+          #{'    '}
               switch (strategy.mode) {
                 case 'hierarchical':
                   return this.executeHierarchicalCascade(condResults, resResults, baseResult);
@@ -769,19 +713,19 @@ module Kumi
                   return this.executeScalarCascade(condResults, resResults, baseResult);
               }
             },
-            
+          #{'  '}
             executeHierarchicalCascade: function(condResults, resResults, baseResult) {
               // Find the result structure to use as template (deepest structure)
               const allValues = [...resResults, ...condResults, baseResult].filter(v => Array.isArray(v));
-              const resultTemplate = allValues.reduce((max, v) => 
-                this.calculateArrayDepth(v) > this.calculateArrayDepth(max) ? v : max, 
+              const resultTemplate = allValues.reduce((max, v) =>#{' '}
+                this.calculateArrayDepth(v) > this.calculateArrayDepth(max) ? v : max,#{' '}
                 allValues[0] || []
               );
-              
+          #{'    '}
               if (!resultTemplate || !Array.isArray(resultTemplate)) {
                 return this.executeScalarCascade(condResults, resResults, baseResult);
               }
-              
+          #{'    '}
               // Apply hierarchical cascade logic using the result structure as template
               return this.mapNestedStructure(resultTemplate, (indices) => {
                 // Check conditional cases first with hierarchical broadcasting for conditions
@@ -792,17 +736,17 @@ module Kumi
                     return resVal;
                   }
                 }
-                
+          #{'      '}
                 // If no conditions matched, use base result
                 return this.navigateNestedIndices(baseResult, indices);
               });
             },
-            
+          #{'  '}
             navigateWithHierarchicalBroadcasting: function(value, indices, template) {
               // Navigate through value with hierarchical broadcasting to match template structure
               const valueDepth = this.calculateArrayDepth(value);
               const templateDepth = this.calculateArrayDepth(template);
-              
+          #{'    '}
               if (valueDepth < templateDepth) {
                 // Value is at parent level - broadcast to child level by using fewer indices
                 const parentIndices = indices.slice(0, valueDepth);
@@ -812,13 +756,13 @@ module Kumi
                 return this.navigateNestedIndices(value, indices);
               }
             },
-            
+          #{'  '}
             executeNestedArrayCascade: function(condResults, resResults, baseResult) {
               // Handle nested array cascades with structure preservation
-              const firstArrayResult = resResults.find(r => Array.isArray(r)) || 
-                                     condResults.find(c => Array.isArray(c)) || 
+              const firstArrayResult = resResults.find(r => Array.isArray(r)) ||#{' '}
+                                     condResults.find(c => Array.isArray(c)) ||#{' '}
                                      (Array.isArray(baseResult) ? baseResult : []);
-              
+          #{'    '}
               return this.mapNestedStructure(firstArrayResult, (indices) => {
                 for (let i = 0; i < condResults.length; i++) {
                   const condVal = this.navigateNestedIndices(condResults[i], indices);
@@ -829,7 +773,7 @@ module Kumi
                 return this.navigateNestedIndices(baseResult, indices);
               });
             },
-            
+          #{'  '}
             executeSimpleArrayCascade: function(condResults, resResults, baseResult) {
               // Handle simple array cascades (flat arrays)
               const arrayLength = Math.max(
@@ -837,7 +781,7 @@ module Kumi
                 ...resResults.filter(Array.isArray).map(arr => arr.length),
                 Array.isArray(baseResult) ? baseResult.length : 0
               );
-              
+          #{'    '}
               const result = [];
               for (let i = 0; i < arrayLength; i++) {
                 let matched = false;
@@ -856,7 +800,7 @@ module Kumi
               }
               return result;
             },
-            
+          #{'  '}
             executeScalarCascade: function(condResults, resResults, baseResult) {
               // Handle scalar cascades (no arrays involved)
               for (let i = 0; i < condResults.length; i++) {
@@ -864,16 +808,16 @@ module Kumi
               }
               return baseResult;
             },
-            
+          #{'  '}
             // Cascade AND with hierarchical broadcasting support
             cascadeAndHierarchicalBroadcasting: function(traitValues) {
               if (traitValues.length === 0) return true;
               if (traitValues.length === 1) return traitValues[0];
-              
+          #{'    '}
               // Use the cascade_and function directly on the array structures
               return kumiRegistry.cascade_and(...traitValues);
             },
-            
+          #{'  '}
             // Element-wise AND with hierarchical broadcasting (matches Ruby implementation)
             elementWiseAnd: function(a, b) {
               // Handle different type combinations
@@ -896,19 +840,19 @@ module Kumi
                 return a && b;
               }
             },
-            
+          #{'  '}
             hierarchicalBroadcastingNeeded: function(a, b) {
               // Check if arrays have different nesting depths
               const depthA = this.calculateArrayDepth(a);
               const depthB = this.calculateArrayDepth(b);
               return depthA !== depthB;
             },
-            
+          #{'  '}
             performHierarchicalAnd: function(a, b) {
               // Determine which is parent (lower depth) and which is child (higher depth)
               const depthA = this.calculateArrayDepth(a);
               const depthB = this.calculateArrayDepth(b);
-              
+          #{'    '}
               if (depthA < depthB) {
                 // a is parent, b is child
                 return this.broadcastParentToChild(a, b);
@@ -917,7 +861,7 @@ module Kumi
                 return this.broadcastParentToChild(b, a);
               }
             },
-            
+          #{'  '}
             broadcastParentToChild: function(parent, child) {
               // Map over child structure, broadcasting parent values appropriately
               return this.mapNestedStructure(child, (indices) => {
@@ -931,7 +875,6 @@ module Kumi
           };
         JAVASCRIPT
       end
-      
     end
   end
 end
