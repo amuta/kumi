@@ -5,23 +5,20 @@ require "kumi"
 require "pry"
 require "open3"
 
-# require "simplecov"
-# SimpleCov.start do
-#   add_filter "/spec/"
-#   add_filter "/vendor/"
+require "simplecov"
+SimpleCov.start do
+  add_filter "/spec/"
+  add_filter "/vendor/"
 
-#   add_group "Parser", "lib/kumi/ruby_parser"
-#   add_group "Core", ["lib/kumi/schema.rb", "lib/kumi/types.rb", "lib/kumi/function_registry.rb"]
-#   add_group "Analyzer", "lib/kumi/analyzer"
-#   add_group "Compiler", "lib/kumi/compiler"
-#   add_group "Syntax", "lib/kumi/syntax"
-#   add_group "Input", "lib/kumi/input"
-#   add_group "Domain", "lib/kumi/domain"
-#   add_group "Text Parser", "lib/kumi/text_parser"
+  add_group "RubyParser", ["lib/kumi/core/ruby_parser/**/*.rb", "lib/kumi/ruby_parser.rb"]
+  add_group "Analyzer", ["lib/kumi/core/analyzer/**/*.rb", "lib/kumi/analyzer.rb"]
+  add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler_base.rb"]
+  add_group "JS", ["lib/kumi/js/**/*.rb"]
+  add_group "Syntax", ["lib/kumi/syntax/*.rb"]
 
-#   minimum_coverage 0
-#   track_files "lib/**/*.rb"
-# end
+  minimum_coverage 0
+  track_files "lib/**/*.rb"
+end
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
 

@@ -59,9 +59,9 @@ result[:total_tax]   # => 21,491.00
 result[:after_tax]   # => 78,509.00
 ```
 
-Real tax calculation with brackets, deductions, and FICA caps. Validation happens during schema definition.
+Real tax calculation with brackets, deductions, and FICA caps. 
 
-Kumi handles complex, interdependent calculations with validation and consistency checking.
+Validation happens during schema definition.
 
 ## Installation
 

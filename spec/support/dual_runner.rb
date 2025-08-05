@@ -36,13 +36,13 @@ class DualRunner
     @@metrics[:comparisons_made] += 1
 
     # Debug output to confirm both platforms are executing
-    if debug_mode?
-      puts "🔍 DUAL MODE DEBUG - Key: #{key}"
-      puts "  🟥 Ruby result:  #{ruby_result.inspect}"
-      puts "  🟨 JS result:    #{js_result.inspect}"
-      puts "  ✅ Match:       #{values_equal?(ruby_result, js_result)}"
-      puts
-    end
+    # if debug_mode?
+    # puts "🔍 DUAL MODE DEBUG - Key: #{key}"
+    # puts "  🟥 Ruby result:  #{ruby_result.inspect}"
+    # puts "  🟨 JS result:    #{js_result.inspect}"
+    # puts "  ✅ Match:       #{values_equal?(ruby_result, js_result)}"
+    # puts
+    # end
 
     compare_results!(key, ruby_result, js_result)
     ruby_result
@@ -53,12 +53,12 @@ class DualRunner
     js_result = @js_runner.slice(*keys)
     @@metrics[:comparisons_made] += keys.length
 
-    if debug_mode?
-      puts "DUAL MODE DEBUG - Slice: #{keys.inspect}"
-      puts "  🟥 Ruby result:  #{ruby_result.inspect}"
-      puts "  🟨 JS result:    #{js_result.inspect}"
-      puts
-    end
+    # if debug_mode?
+    #   puts "DUAL MODE DEBUG - Slice: #{keys.inspect}"
+    #   puts "  🟥 Ruby result:  #{ruby_result.inspect}"
+    #   puts "  🟨 JS result:    #{js_result.inspect}"
+    #   puts
+    # end
 
     keys.each do |key|
       compare_results!(key, ruby_result[key], js_result[key.to_s])
