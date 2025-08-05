@@ -2,8 +2,8 @@
 
 module Kumi
   module Core
-    # Registry for functions that can be used in Kumi schemas
-    # This is the public interface for registering custom functions
+    # Internal function registry implementation
+    # Use Kumi::Registry for the public interface to register custom functions
     module FunctionRegistry
       # Re-export the Entry struct from FunctionBuilder for compatibility
       Entry = FunctionBuilder::Entry
@@ -38,7 +38,7 @@ module Kumi
       @frozen = false
 
       # class << self
-      # Public interface for registering custom functions
+      # Internal interface for registering custom functions
       def register(name, &block)
         raise ArgumentError, "Function #{name.inspect} already registered" if @functions.key?(name)
 

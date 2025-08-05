@@ -4,12 +4,14 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
 
 ## Logical Functions
 
+* **`all?`**: Check if all elements in collection are truthy
+  * **Usage**: `fn(:all?, array(any) arg1)` → `boolean`
 * **`and`**: Logical AND of multiple conditions
   * **Usage**: `fn(:and, boolean1, boolean2, ...)` → `boolean`
-* **`cascade_and`**: Element-wise AND for arrays with same nested structure
-  * **Usage**: `fn(:cascade_and, condition1, condition2, ...)` → `boolean` or `array(boolean)`
 * **`any?`**: Check if any element in collection is truthy
   * **Usage**: `fn(:any?, array(any) arg1)` → `boolean`
+* **`cascade_and`**: Element-wise AND for arrays with same nested structure
+  * **Usage**: `fn(:cascade_and, boolean1, boolean2, ...)` → `boolean`
 * **`none?`**: Check if no elements in collection are truthy
   * **Usage**: `fn(:none?, array(any) arg1)` → `boolean`
 * **`not`**: Logical NOT
@@ -75,8 +77,8 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:end_with?, string arg1, string arg2)` → `boolean`
 * **`includes?`**: Check if string contains substring
   * **Usage**: `fn(:includes?, string arg1, string arg2)` → `boolean`
-* **`length`**: Get collection length
-  * **Usage**: `fn(:length, array(any) arg1)` → `integer`
+* **`length`**: Get string length
+  * **Usage**: `fn(:length, string arg1)` → `integer`
 * **`start_with?`**: Check if string starts with prefix
   * **Usage**: `fn(:start_with?, string arg1, string arg2)` → `boolean`
 * **`string_include?`**: Check if string contains substring
@@ -90,8 +92,18 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
 
 ## Collection Functions
 
+* **`all_across`**: Check if all elements are truthy across all nested levels
+  * **Usage**: `fn(:all_across, array(any) arg1)` → `boolean`
+* **`any_across`**: Check if any element is truthy across all nested levels
+  * **Usage**: `fn(:any_across, array(any) arg1)` → `boolean`
+* **`avg_if`**: Average values where corresponding condition is true
+  * **Usage**: `fn(:avg_if, array(float) arg1, array(boolean) arg2)` → `float`
 * **`build_array`**: Build array of given size with index values
   * **Usage**: `fn(:build_array, integer arg1)` → `array(any)`
+* **`count_across`**: Count total elements across all nested levels
+  * **Usage**: `fn(:count_across, array(any) arg1)` → `integer`
+* **`count_if`**: Count number of true values in boolean array
+  * **Usage**: `fn(:count_if, array(boolean) arg1)` → `integer`
 * **`each_slice`**: Group array elements into subarrays of given size
   * **Usage**: `fn(:each_slice, array arg1, integer arg2)` → `array(array)`
 * **`empty?`**: Check if collection is empty
@@ -100,6 +112,10 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:first, array(any) arg1)` → `any`
 * **`flatten`**: Flatten nested arrays into a single array
   * **Usage**: `fn(:flatten, array(any) arg1)` → `array(any)`
+* **`flatten_deep`**: Recursively flatten all nested arrays (alias for flatten)
+  * **Usage**: `fn(:flatten_deep, array(any) arg1)` → `array(any)`
+* **`flatten_one`**: Flatten nested arrays by one level only
+  * **Usage**: `fn(:flatten_one, array(any) arg1)` → `array(any)`
 * **`include?`**: Check if collection includes element
   * **Usage**: `fn(:include?, array(any) arg1, any arg2)` → `boolean`
 * **`indices`**: Generate array of indices for the collection
@@ -108,8 +124,6 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:join, array arg1, string arg2)` → `string`
 * **`last`**: Get last element of collection
   * **Usage**: `fn(:last, array(any) arg1)` → `any`
-* **`length`**: Get collection length
-  * **Usage**: `fn(:length, array(any) arg1)` → `integer`
 * **`map_add`**: Add value to each element
   * **Usage**: `fn(:map_add, array(float) arg1, float arg2)` → `array(float)`
 * **`map_conditional`**: Transform elements based on condition: if element == condition_value then true_value else false_value
@@ -134,6 +148,8 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:sort, array(any) arg1)` → `array(any)`
 * **`sum`**: Sum all numeric elements in collection
   * **Usage**: `fn(:sum, array(float) arg1)` → `float`
+* **`sum_if`**: Sum values where corresponding condition is true
+  * **Usage**: `fn(:sum_if, array(float) arg1, array(boolean) arg2)` → `float`
 * **`unique`**: Remove duplicate elements from collection
   * **Usage**: `fn(:unique, array(any) arg1)` → `array(any)`
 
