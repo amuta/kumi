@@ -9,7 +9,8 @@ module Kumi
           {
             # Collection queries (these are reducers - they reduce arrays to scalars)
             empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
-            size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: false, structure_function: true),
+            size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: false,
+                                                                                        structure_function: true),
 
             # Element access
             first: FunctionBuilder::Entry.new(
@@ -239,6 +240,7 @@ module Kumi
                 pairs = value_array.zip(condition_array)
                 true_values = pairs.filter_map { |value, condition| value if condition }
                 return 0.0 if true_values.empty?
+
                 true_values.sum.to_f / true_values.size
               },
               arity: 2,
