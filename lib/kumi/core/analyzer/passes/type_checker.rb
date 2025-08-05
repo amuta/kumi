@@ -32,7 +32,7 @@ module Kumi
 
           def get_function_signature(node, errors)
             Kumi::Registry.signature(node.fn_name)
-          rescue Kumi::Errors::UnknownFunction
+          rescue Kumi::Core::Errors::UnknownFunction
             # Use old format for backward compatibility, but node.loc provides better location
             report_error(errors, "unsupported operator `#{node.fn_name}`", location: node.loc, type: :type)
             nil

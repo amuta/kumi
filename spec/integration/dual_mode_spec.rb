@@ -145,7 +145,7 @@ RSpec.describe "Dual Mode Execution" do
 
           input_meta = @__analyzer_result__.state[:inputs] || {}
           violations = Kumi::Core::Input::Validator.validate_context(context, input_meta)
-          raise Kumi::Errors::InputValidationError, violations unless violations.empty?
+          raise Kumi::Core::Errors::InputValidationError, violations unless violations.empty?
 
           Kumi::Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
         end

@@ -78,13 +78,13 @@ RSpec.describe Kumi::Registry do
     it "raises UnknownFunction for unsupported functions" do
       expect do
         described_class.fetch(:unknown_function)
-      end.to raise_error(Kumi::Errors::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Core::Errors::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "raises UnknownFunction for signature of unsupported functions" do
       expect do
         described_class.signature(:unknown_function)
-      end.to raise_error(Kumi::Errors::UnknownFunction, "Unknown function: unknown_function")
+      end.to raise_error(Kumi::Core::Errors::UnknownFunction, "Unknown function: unknown_function")
     end
 
     it "handles nil function names gracefully" do

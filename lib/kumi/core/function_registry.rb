@@ -88,11 +88,11 @@ module Kumi
       end
 
       def fetch(name)
-        @functions.fetch(name) { raise Kumi::Errors::UnknownFunction, "Unknown function: #{name}" }.fn
+        @functions.fetch(name) { raise Kumi::Core::Errors::UnknownFunction, "Unknown function: #{name}" }.fn
       end
 
       def signature(name)
-        entry = @functions.fetch(name) { raise Kumi::Errors::UnknownFunction, "Unknown function: #{name}" }
+        entry = @functions.fetch(name) { raise Kumi::Core::Errors::UnknownFunction, "Unknown function: #{name}" }
         {
           arity: entry.arity,
           param_types: entry.param_types,

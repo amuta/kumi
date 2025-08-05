@@ -249,7 +249,7 @@ RSpec.describe "Error Location Verification" do
 
     begin
       eval(schema_code, binding, "test.rb", 1)
-    rescue Kumi::Errors::SemanticError => e
+    rescue Kumi::Core::Errors::SemanticError => e
       expect(e.message).to include("test.rb:4")
       expect(e.message).to include("duplicated definition")
     end
@@ -285,7 +285,7 @@ it "detects edge case that should break" do
       # Edge case that might not be caught
       value :result, some_edge_case_construct
     end
-  end.to raise_error(Kumi::Errors::SemanticError)
+  end.to raise_error(Kumi::Core::Errors::SemanticError)
 end
 ```
 

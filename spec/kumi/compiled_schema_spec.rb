@@ -57,7 +57,7 @@ RSpec.describe Kumi::Core::CompiledSchema do
       it "raises error for unknown keys" do
         expect do
           compiled_schema.evaluate(valid_data, :unknown_key)
-        end.to raise_error(Kumi::Errors::RuntimeError, /No binding named unknown_key/)
+        end.to raise_error(Kumi::Core::Errors::RuntimeError, /No binding named unknown_key/)
       end
     end
   end

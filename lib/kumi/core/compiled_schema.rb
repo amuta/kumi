@@ -36,7 +36,7 @@ module Kumi
         unknown_keys = keys - @bindings.keys
         return keys if unknown_keys.empty?
 
-        raise Kumi::Errors::RuntimeError, "No binding named #{unknown_keys.first}"
+        raise Kumi::Core::Errors::RuntimeError, "No binding named #{unknown_keys.first}"
       end
     end
   end
