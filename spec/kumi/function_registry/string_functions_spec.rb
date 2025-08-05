@@ -49,9 +49,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::StringFunctions do
   end
 
   describe "string length" do
-    # NOTE: collection length overrides string length in the registry
     it_behaves_like "a function with correct metadata", :string_length, 1, [:string], :integer
-    it_behaves_like "a function with correct metadata", :length, 1, [Kumi::Core::Types.array(:any)], :integer
 
     it_behaves_like "a working function", :string_length, ["hello"], 5
     it_behaves_like "a working function", :string_length, [""], 0
@@ -138,37 +136,6 @@ RSpec.describe Kumi::Core::FunctionRegistry::StringFunctions do
         fn = Kumi::Registry.fetch(:concat)
         expect(fn.call("Number: ", 42, " End")).to eq("Number: 42 End")
       end
-    end
-  end
-
-  describe "string include? behavior with collection override" do
-    # Since collection include? overrides string include?, test the actual behavior
-    it "works with arrays (collection function)" do
-      fn = Kumi::Registry.fetch(:include?)
-      expect(fn.call(%w[hello world], "hello")).to be true
-      expect(fn.call(%w[hello world], "xyz")).to be false
-    end
-
-    it "also works with strings as arrays of characters" do
-      fn = Kumi::Registry.fetch(:include?)
-      # String acts like a collection in this context
-      expect(fn.call("hello world", "world")).to be true
-      expect(fn.call("hello world", "xyz")).to be false
-    end
-  end
-
-  describe "string length behavior with collection override" do
-    # Since collection length overrides string length, test the actual behavior
-    it "works with arrays (collection function)" do
-      fn = Kumi::Registry.fetch(:length)
-      expect(fn.call([1, 2, 3])).to eq(3)
-      expect(fn.call([])).to eq(0)
-    end
-
-    it "also works with strings" do
-      fn = Kumi::Registry.fetch(:length)
-      expect(fn.call("hello")).to eq(5)
-      expect(fn.call("")).to eq(0)
     end
   end
 end

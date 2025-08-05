@@ -341,7 +341,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
           input do
             array :scores, elem: { type: :integer }
           end
-          value :average, fn(:divide, fn(:sum, input.scores), fn(:length, input.scores))
+          value :average, fn(:divide, fn(:sum, input.scores), fn(:size, input.scores))
         end
 
         error = expect_runtime_error(schema, { scores: %w[not integers] })

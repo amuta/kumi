@@ -160,17 +160,6 @@ RSpec.describe "Dual Mode Execution" do
         simple_schema.define_singleton_method(:from, &original_from)
       end
     end
-
-    context "dual mode error handling" do
-      # This would test cases where Ruby and JS produce different results
-      # In a real scenario, this should never happen, but it's useful for debugging
-
-      it "raises clear errors when results don't match" do
-        # This test would require modifying the JS compiler to produce incorrect results
-        # Left as a placeholder for debugging scenarios
-        skip "Placeholder for debugging dual mode mismatches"
-      end
-    end
   end
 
   describe "environment variable control" do

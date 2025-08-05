@@ -102,16 +102,42 @@ module Kumi
         private
 
         def generate_js_nested_path_traversal(path, operation_mode)
-          # Convert Ruby array to JavaScript array syntax
-          path_js = "[#{path.map { |p| "'#{p}'" }.join(', ')}]"
+          # Get path metadata to determine access mode (element vs object)
+          nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
+          path_metadata = nested_paths && nested_paths[path]
+          access_mode = path_metadata&.dig(:access_mode) || :object
           
-          case operation_mode
-          when :flatten
-            # JavaScript implementation of complete flattening
-            "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'flatten')"
+          if access_mode == :element
+            # For element access, generate direct flattening based on path depth
+            root_field = path.first
+            flatten_depth = path.length - 1  # Flatten (path_depth - 1) levels
+            
+            if flatten_depth > 0
+              # Generate direct flat() call
+              "(ctx) => ctx.#{root_field}.flat(#{flatten_depth})"
+            else
+              # No flattening needed
+              "(ctx) => ctx.#{root_field}"
+            end
           else
-            # JavaScript implementation of structure-preserving broadcasting
-            "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'broadcast')"
+            # For object access, generate proper nested mapping
+            if path.length == 1
+              # Simple field access
+              "(ctx) => ctx.#{path.first}"
+            elsif path.length == 2
+              # Common case: array.field -> array.map(item => item.field)
+              root_field, nested_field = path
+              "(ctx) => ctx.#{root_field}.map(item => item.#{nested_field})"
+            else
+              # Complex nested object access - use the traversal
+              path_js = "[#{path.map { |p| "'#{p}'" }.join(', ')}]"
+              case operation_mode
+              when :flatten
+                "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'flatten', 'object')"
+              else
+                "(ctx) => kumiRuntime.traverseNestedPath(ctx, #{path_js}, 'broadcast', 'object')"
+              end
+            end
           end
         end
 
@@ -468,17 +494,82 @@ module Kumi
 
           // Enhanced Kumi Runtime for sophisticated vectorized operations
           const kumiRuntime = {
-            // Nested path traversal with metadata-driven operation modes
-            traverseNestedPath: function(data, path, operationMode) {
-              const result = this.traversePathRecursive(data, path, operationMode);
+            // Nested path traversal matching Ruby implementation exactly
+            traverseNestedPath: function(data, path, operationMode, accessMode = 'object') {
+              let result;
               
+              // Use specialized traversal for element access mode
+              if (accessMode === 'element') {
+                result = this.traverseElementPath(data, path, operationMode);
+              } else {
+                result = this.traversePathRecursive(data, path, operationMode, accessMode);
+              }
+              
+              // Post-process result based on operation mode
               if (operationMode === 'flatten') {
                 return this.flattenCompletely(result);
               }
               return result;
             },
             
-            traversePathRecursive: function(data, path, operationMode) {
+            // Specialized traversal for element access mode (matches Ruby exactly)
+            traverseElementPath: function(data, path, operationMode) {
+              // Handle context wrapper by extracting the specific field
+              if (data && typeof data === 'object' && !Array.isArray(data)) {
+                const fieldName = path[0];
+                const arrayData = data[fieldName];
+                
+                // Always apply progressive traversal based on path depth
+                // This gives us the structure at the correct nesting level for both
+                // broadcast operations and structure operations
+                if (Array.isArray(arrayData) && path.length > 1) {
+                  // Flatten exactly (path_depth - 1) levels to get the desired nesting level
+                  return this.flattenToDepth(arrayData, path.length - 1);
+                } else {
+                  return arrayData;
+                }
+              } else {
+                return data;
+              }
+            },
+            
+            // Flatten array to specific depth (matches Ruby array.flatten(n))
+            flattenToDepth: function(arr, depth) {
+              if (depth <= 0 || !Array.isArray(arr)) {
+                return arr;
+              }
+              
+              let result = arr.slice(); // Copy array
+              
+              for (let i = 0; i < depth; i++) {
+                let hasNestedArrays = false;
+                const newResult = [];
+                
+                for (const item of result) {
+                  if (Array.isArray(item)) {
+                    newResult.push(...item);
+                    hasNestedArrays = true;
+                  } else {
+                    newResult.push(item);
+                  }
+                }
+                
+                result = newResult;
+                
+                // If no nested arrays found, no need to continue flattening
+                if (!hasNestedArrays) {
+                  break;
+                }
+              }
+              
+              return result;
+            },
+            
+            traversePathRecursive: function(data, path, operationMode, accessMode = 'object', originalPathLength = null) {
+              // Track original path length to determine traversal depth
+              originalPathLength = originalPathLength || path.length;
+              const currentDepth = originalPathLength - path.length;
+              
               if (path.length === 0) return data;
               
               const field = path[0];
@@ -487,23 +578,61 @@ module Kumi
               if (remainingPath.length === 0) {
                 // Final field - extract based on operation mode
                 if (operationMode === 'broadcast' || operationMode === 'flatten') {
-                  return this.extractFieldPreservingStructure(data, field);
+                  // Extract field preserving array structure
+                  return this.extractFieldPreservingStructure(data, field, accessMode, currentDepth);
                 } else {
-                  return Array.isArray(data) ? data.map(item => item[field]) : data[field];
+                  // Simple field access
+                  return Array.isArray(data) ? 
+                    data.map(item => this.accessField(item, field, accessMode, currentDepth)) : 
+                    this.accessField(data, field, accessMode, currentDepth);
                 }
               } else if (Array.isArray(data)) {
                 // Intermediate step - traverse deeper
-                return data.map(item => this.traversePathRecursive(item[field], remainingPath, operationMode));
+                // Array of items - traverse each item
+                return data.map(item => 
+                  this.traversePathRecursive(
+                    this.accessField(item, field, accessMode, currentDepth), 
+                    remainingPath, 
+                    operationMode, 
+                    accessMode, 
+                    originalPathLength
+                  )
+                );
               } else {
                 // Single item - traverse directly
-                return this.traversePathRecursive(data[field], remainingPath, operationMode);
+                return this.traversePathRecursive(
+                  this.accessField(data, field, accessMode, currentDepth), 
+                  remainingPath, 
+                  operationMode, 
+                  accessMode, 
+                  originalPathLength
+                );
               }
             },
             
-            extractFieldPreservingStructure: function(data, field) {
+            extractFieldPreservingStructure: function(data, field, accessMode = 'object', depth = 0) {
               if (Array.isArray(data)) {
-                return data.map(item => this.extractFieldPreservingStructure(item, field));
+                return data.map(item => this.extractFieldPreservingStructure(item, field, accessMode, depth));
               } else {
+                return this.accessField(data, field, accessMode, depth);
+              }
+            },
+            
+            accessField: function(data, field, accessMode, depth = 0) {
+              if (accessMode === 'element') {
+                // Element access mode - for nested arrays, we need to traverse one level deeper
+                // This enables progressive path traversal like input.cube.layer.row.value
+                if (data && typeof data === 'object' && !Array.isArray(data)) {
+                  return data[field];
+                } else if (Array.isArray(data)) {
+                  // For element access, flatten one level to traverse deeper into nested structure
+                  return this.flattenToDepth(data, 1);
+                } else {
+                  // If not an array, return as-is (leaf level)
+                  return data;
+                }
+              } else {
+                // Object access mode - normal hash/object field access
                 return data[field];
               }
             },

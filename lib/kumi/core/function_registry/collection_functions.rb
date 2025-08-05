@@ -10,7 +10,6 @@ module Kumi
             # Collection queries (these are reducers - they reduce arrays to scalars)
             empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
             size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: false, structure_function: true),
-            length: FunctionBuilder.collection_unary(:length, "Get collection length", :length, return_type: :integer, reducer: true),
 
             # Element access
             first: FunctionBuilder::Entry.new(

@@ -27,7 +27,10 @@ module Kumi
           **conditional_functions,
 
           # Type functions
-          **type_functions
+          **type_functions,
+
+          # Statistical functions
+          **stat_functions
         }
       end
 
@@ -262,6 +265,69 @@ module Kumi
           keys: "(hash) => Object.keys(hash)",
           values: "(hash) => Object.values(hash)",
           at: "(collection, index) => collection[index]"
+        }
+      end
+
+      def self.stat_functions
+        {
+          # Statistical functions - mirror Ruby StatFunctions behavior
+          avg: "(array) => array.length === 0 ? 0 : array.reduce((sum, val) => sum + val, 0) / array.length",
+          mean: "(array) => array.length === 0 ? 0 : array.reduce((sum, val) => sum + val, 0) / array.length",
+          median: <<~JS.strip,
+            (array) => {
+              if (array.length === 0) return 0;
+              const sorted = [...array].sort((a, b) => a - b);
+              const mid = Math.floor(sorted.length / 2);
+              return sorted.length % 2 === 0 
+                ? (sorted[mid - 1] + sorted[mid]) / 2
+                : sorted[mid];
+            }
+          JS
+          variance: <<~JS.strip,
+            (array) => {
+              if (array.length === 0) return 0;
+              const mean = array.reduce((sum, val) => sum + val, 0) / array.length;
+              const squaredDiffs = array.map(val => Math.pow(val - mean, 2));
+              return squaredDiffs.reduce((sum, val) => sum + val, 0) / array.length;
+            }
+          JS
+          stdev: <<~JS.strip,
+            (array) => {
+              if (array.length === 0) return 0;
+              const mean = array.reduce((sum, val) => sum + val, 0) / array.length;
+              const squaredDiffs = array.map(val => Math.pow(val - mean, 2));
+              const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / array.length;
+              return Math.sqrt(variance);
+            }
+          JS
+          sample_variance: <<~JS.strip,
+            (array) => {
+              if (array.length <= 1) return 0;
+              const mean = array.reduce((sum, val) => sum + val, 0) / array.length;
+              const squaredDiffs = array.map(val => Math.pow(val - mean, 2));
+              return squaredDiffs.reduce((sum, val) => sum + val, 0) / (array.length - 1);
+            }
+          JS
+          sample_stdev: <<~JS.strip,
+            (array) => {
+              if (array.length <= 1) return 0;
+              const mean = array.reduce((sum, val) => sum + val, 0) / array.length;
+              const squaredDiffs = array.map(val => Math.pow(val - mean, 2));
+              const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / (array.length - 1);
+              return Math.sqrt(variance);
+            }
+          JS
+          # Flattened statistics functions
+          flat_size: "(nestedArray) => nestedArray.flat(Infinity).length",
+          flat_sum: "(nestedArray) => nestedArray.flat(Infinity).reduce((sum, val) => sum + val, 0)",
+          flat_avg: <<~JS.strip,
+            (nestedArray) => {
+              const flattened = nestedArray.flat(Infinity);
+              return flattened.length === 0 ? 0 : flattened.reduce((sum, val) => sum + val, 0) / flattened.length;
+            }
+          JS
+          flat_max: "(nestedArray) => Math.max(...nestedArray.flat(Infinity))",
+          flat_min: "(nestedArray) => Math.min(...nestedArray.flat(Infinity))"
         }
       end
     end

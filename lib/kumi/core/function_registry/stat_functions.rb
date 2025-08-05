@@ -98,25 +98,6 @@ module Kumi
             reducer: true
           ),
 
-          # Enhanced flattening functions for multi-dimensional arrays
-          flatten_deep: FunctionBuilder::Entry.new(
-            fn: lambda(&:flatten),
-            arity: 1,
-            param_types: [Kumi::Core::Types.array(:any)],
-            return_type: Kumi::Core::Types.array(:any),
-            description: "Recursively flatten all nested arrays (alias for flatten)",
-            reducer: false
-          ),
-
-          flatten_one: FunctionBuilder::Entry.new(
-            fn: ->(array) { array.flatten(1) },
-            arity: 1,
-            param_types: [Kumi::Core::Types.array(:any)],
-            return_type: Kumi::Core::Types.array(:any),
-            description: "Flatten array by exactly one level",
-            reducer: false,
-            structure_function: true
-          ),
 
           # Convenience functions for flattened statistics
           flat_size: FunctionBuilder::Entry.new(

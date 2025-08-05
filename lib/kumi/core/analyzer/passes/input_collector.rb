@@ -84,7 +84,8 @@ module Kumi
             # Merge metadata (later declarations override nil values)
             merged = {
               type: field_decl.type || existing[:type],
-              domain: field_decl.domain || existing[:domain]
+              domain: field_decl.domain || existing[:domain],
+              access_mode: field_decl.access_mode || existing[:access_mode]
             }
 
             # Merge children if present

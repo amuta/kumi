@@ -13,14 +13,25 @@ module Kumi
 
       # Build the complete function registry by combining all categories
       CORE_FUNCTIONS = {}.tap do |registry|
-        registry.merge!(ComparisonFunctions.definitions)
-        registry.merge!(MathFunctions.definitions)
-        registry.merge!(StringFunctions.definitions)
-        registry.merge!(LogicalFunctions.definitions)
-        registry.merge!(CollectionFunctions.definitions)
-        registry.merge!(ConditionalFunctions.definitions)
-        registry.merge!(TypeFunctions.definitions)
-        registry.merge!(StatFunctions.definitions)
+        function_modules = [
+          ComparisonFunctions.definitions,
+          MathFunctions.definitions,
+          StringFunctions.definitions,
+          LogicalFunctions.definitions,
+          CollectionFunctions.definitions,
+          ConditionalFunctions.definitions,
+          TypeFunctions.definitions,
+          StatFunctions.definitions
+        ]
+
+        function_modules.each do |module_definitions|
+          module_definitions.each do |name, definition|
+            if registry.key?(name)
+              raise ArgumentError, "Function #{name.inspect} is already registered. Found duplicate in function registry."
+            end
+            registry[name] = definition
+          end
+        end
       end.freeze
 
       @functions = CORE_FUNCTIONS.dup
@@ -135,6 +146,10 @@ module Kumi
 
       def type_operations
         TypeFunctions.definitions.keys
+      end
+
+      def stat_operations
+        StatFunctions.definitions.keys
       end
     end
   end

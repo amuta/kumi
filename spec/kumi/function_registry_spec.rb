@@ -206,7 +206,8 @@ RSpec.describe Kumi::Registry do
         described_class.logical_operations,
         described_class.collection_operations,
         described_class.conditional_operations,
-        described_class.type_operations
+        described_class.type_operations,
+        described_class.stat_operations
       ].flatten.uniq
 
       # Every function should be in at least one category

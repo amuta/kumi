@@ -7,12 +7,10 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
   describe "collection queries" do
     it_behaves_like "a function with correct metadata", :empty?, 1, [Kumi::Core::Types.array(:any)], :boolean
     it_behaves_like "a function with correct metadata", :size, 1, [Kumi::Core::Types.array(:any)], :integer
-    it_behaves_like "a function with correct metadata", :length, 1, [Kumi::Core::Types.array(:any)], :integer
 
     it_behaves_like "a working function", :empty?, [[]], true
     it_behaves_like "a working function", :empty?, [[1, 2, 3]], false
     it_behaves_like "a working function", :size, [[1, 2, 3]], 3
-    it_behaves_like "a working function", :length, [[1, 2, 3]], 3
 
     describe "edge cases" do
       it "handles nested arrays" do
@@ -21,25 +19,6 @@ RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
 
         fn = Kumi::Registry.fetch(:empty?)
         expect(fn.call([[], [], []])).to be false # array contains empty arrays, but isn't empty itself
-      end
-
-      it "works with strings (which respond to collection methods)" do
-        fn = Kumi::Registry.fetch(:size)
-        expect(fn.call("hello")).to eq(5)
-
-        fn = Kumi::Registry.fetch(:empty?)
-        expect(fn.call("")).to be true
-        expect(fn.call("hello")).to be false
-      end
-
-      it "size and length are equivalent" do
-        arrays = [[], [1], [1, 2, 3], %w[a b c]]
-        size_fn = Kumi::Registry.fetch(:size)
-        length_fn = Kumi::Registry.fetch(:length)
-
-        arrays.each do |arr|
-          expect(size_fn.call(arr)).to eq(length_fn.call(arr))
-        end
       end
     end
   end

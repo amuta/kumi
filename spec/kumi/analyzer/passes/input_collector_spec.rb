@@ -30,8 +30,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         expect(errors).to be_empty
         input_meta = result_state[:inputs]
         expect(input_meta.keys).to contain_exactly(:age, :name)
-        expect(input_meta[:age]).to eq(type: :integer, domain: nil)
-        expect(input_meta[:name]).to eq(type: :string, domain: nil)
+        expect(input_meta[:age]).to eq(type: :integer, domain: nil, access_mode: nil)
+        expect(input_meta[:name]).to eq(type: :string, domain: nil, access_mode: nil)
       end
     end
 
@@ -77,7 +77,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:inputs][:dup]).to eq(type: :integer, domain: nil)
+        expect(result_state[:inputs][:dup]).to eq(type: :integer, domain: nil, access_mode: nil)
       end
     end
 
@@ -119,7 +119,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:inputs][:partial]).to eq(type: :integer, domain: 0..100)
+        expect(result_state[:inputs][:partial]).to eq(type: :integer, domain: 0..100, access_mode: nil)
       end
     end
 
@@ -135,7 +135,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         expect(errors.size).to eq(1)
         expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Syntax::Literal/)
         # Should still process valid fields
-        expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil)
+        expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil, access_mode: nil)
       end
     end
 
@@ -153,7 +153,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         expect(errors[0].message).to match(/Field :bad1 has invalid domain constraint/)
         expect(errors[1].message).to match(/Field :bad2 has invalid domain constraint/)
         # Good field should still be processed
-        expect(result_state[:inputs][:good]).to eq(type: :integer, domain: 0..10)
+        expect(result_state[:inputs][:good]).to eq(type: :integer, domain: 0..10, access_mode: nil)
       end
     end
 
@@ -191,7 +191,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
 
         expect(errors).to be_empty
         expect(input_meta.keys).to contain_exactly(:user_name, :line_items)
-        expect(input_meta[:user_name]).to eq({ type: :string, domain: nil })
+        expect(input_meta[:user_name]).to eq({ type: :string, domain: nil , access_mode: nil})
 
         # Verify the nested structure for line_items
         line_items_meta = input_meta[:line_items]
@@ -201,14 +201,14 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         # Verify the children of the line_items elements
         item_children = line_items_meta[:children]
         expect(item_children.keys).to contain_exactly(:item_name, :quantity, :tags)
-        expect(item_children[:item_name]).to eq({ type: :string, domain: nil })
-        expect(item_children[:quantity]).to eq({ type: :integer, domain: nil })
+        expect(item_children[:item_name]).to eq({ type: :string, domain: nil , access_mode: nil})
+        expect(item_children[:quantity]).to eq({ type: :integer, domain: nil , access_mode: nil})
 
         # Verify the deeply nested structure for tags
         tags_meta = item_children[:tags]
         expect(tags_meta[:type]).to eq(:array)
         expect(tags_meta[:children]).to eq({
-                                             tag_name: { type: :string, domain: nil }
+                                             tag_name: { type: :string, domain: nil , access_mode: nil}
                                            })
       end
     end
