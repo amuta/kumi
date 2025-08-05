@@ -286,13 +286,13 @@ puts Kumi::Support::SExpressionPrinter.print(FederalTax2024.__syntax_tree__)
 </details>
 
 <details>
-<summary><strong>Array Broadcasting</strong> - Vectorization over array fields</summary>
+<summary><strong>Hierarchical Broadcasting</strong> - Vectorization over nested data structures</summary>
 
-### Array Broadcasting
+### Hierarchical Broadcasting
 
-Kumi broadcasts operations over array fields with conditional aggregation functions.
+Kumi broadcasts operations over hierarchical data structures with two complementary access modes for maximum flexibility.
 
-See [docs/features/array-broadcasting.md](docs/features/array-broadcasting.md) for detailed documentation.
+See [docs/features/hierarchical-broadcasting.md](docs/features/hierarchical-broadcasting.md) for detailed documentation.
 
 **Business Scenario**: E-commerce checkout with dynamic pricing rules
 
@@ -348,29 +348,57 @@ module OrderPricing
 end
 ```
 
-**Dimension Mismatch Detection**: Operations across different arrays generate error messages:
+**Mixed Access Modes**: Both object and element access can be used together in the same schema:
 
 ```ruby
-schema do
-  input do
-    array :items do
-      string :name
+module UserAnalytics
+  extend Kumi::Schema
+  
+  schema do
+    input do
+      # Object access mode - structured business data
+      array :users do
+        string :name
+        integer :age
+      end
+      
+      # Element access mode - multi-dimensional raw arrays
+      array :recent_purchases do
+        element :integer, :days_ago
+      end
     end
-    array :logs do  
-      string :user_name
-    end
-  end
 
-  # This generates an error
-  trait :same_name, input.items.name == input.logs.user_name
+    # Object access works normally
+    value :user_names, input.users.name
+    value :avg_age, fn(:avg, input.users.age)
+    
+    # Element access handles nested arrays with progressive path traversal
+    value :all_purchase_days, fn(:flatten, input.recent_purchases.days_ago)
+    value :recent_flags, input.recent_purchases.days_ago < 5
+    trait :has_recent_purchase, fn(:any?, fn(:flatten, recent_flags))
+    
+    # Progressive dimensional analysis - each path level goes deeper
+    value :purchase_dimensions, [
+      fn(:size, input.recent_purchases),           # Number of purchase groups
+      fn(:size, input.recent_purchases.days_ago)  # Total individual purchase days
+    ]
+    
+    # Mixed usage in conditions
+    trait :adult_users, input.users.age >= 18
+    value :adult_count, fn(:count_if, adult_users)
+  end
 end
 
-# Error:
-# Cannot broadcast operation across arrays from different sources: items, logs. 
-# Problem: Multiple operands are arrays from different sources:
-#   - Operand 1 resolves to array(string) from array 'items'
-#   - Operand 2 resolves to array(string) from array 'logs'
-# Direct operations on arrays from different sources is ambiguous and not supported.
+# Works with mixed data structures
+result = UserAnalytics.from({
+  users: [{ name: "Alice", age: 25 }, { name: "Bob", age: 17 }],
+  recent_purchases: [[1, 3, 7], [2, 4], [10, 15]]  # Nested arrays
+})
+
+result[:user_names]          # => ["Alice", "Bob"]
+result[:has_recent_purchase] # => true (some purchases < 5 days ago)
+result[:adult_count]         # => 1
+result[:purchase_dimensions] # => [3, 8] (3 groups, 8 total days)
 ```
 
 </details>

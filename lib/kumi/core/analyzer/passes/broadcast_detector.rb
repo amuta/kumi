@@ -161,16 +161,18 @@ module Kumi
             
             # Recursively build all possible nested paths from input metadata
             input_meta.each do |root_name, root_meta|
-              collect_nested_paths(nested_paths, [root_name], root_meta, 0)
+              collect_nested_paths(nested_paths, [root_name], root_meta, 0, nil)
             end
             
             nested_paths
           end
 
-          def collect_nested_paths(nested_paths, current_path, current_meta, array_depth)
-            # If current field is an array, increment array depth
+          def collect_nested_paths(nested_paths, current_path, current_meta, array_depth, parent_access_mode = nil)
+            # If current field is an array, increment array depth and track its access_mode
+            current_access_mode = parent_access_mode
             if current_meta[:type] == :array
               array_depth += 1
+              current_access_mode = current_meta[:access_mode] || :object  # Default to :object if not specified
             end
 
             # If this field has children, recurse into them
@@ -180,26 +182,27 @@ module Kumi
                 
                 # Create metadata for this path if it involves arrays
                 if array_depth > 0
-                  nested_paths[child_path] = build_path_metadata(child_path, child_meta, array_depth)
+                  nested_paths[child_path] = build_path_metadata(child_path, child_meta, array_depth, current_access_mode)
                 end
                 
                 # Recurse into child's children
-                collect_nested_paths(nested_paths, child_path, child_meta, array_depth)
+                collect_nested_paths(nested_paths, child_path, child_meta, array_depth, current_access_mode)
               end
             else
               # Leaf field - create metadata if it involves arrays
               if array_depth > 0
-                nested_paths[current_path] = build_path_metadata(current_path, current_meta, array_depth)
+                nested_paths[current_path] = build_path_metadata(current_path, current_meta, array_depth, current_access_mode)
               end
             end
           end
 
-          def build_path_metadata(path, field_meta, array_depth)
+          def build_path_metadata(path, field_meta, array_depth, parent_access_mode = nil)
             {
               array_depth: array_depth,
               element_type: field_meta[:type] || :any,
               operation_mode: :broadcast,  # Default mode - may be overridden for aggregations
-              result_structure: array_depth > 1 ? :nested_array : :array
+              result_structure: array_depth > 1 ? :nested_array : :array,
+              access_mode: parent_access_mode  # Access mode of the parent array field
             }
           end
 

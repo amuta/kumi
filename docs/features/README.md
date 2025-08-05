@@ -30,6 +30,13 @@ Defines expected inputs with types and constraints.
 - Domain validation at runtime
 - Separates input metadata from business logic
 
+### [Hierarchical Broadcasting](hierarchical-broadcasting.md)
+Automatic vectorization over hierarchical data structures with dual access modes.
+
+- Object access for structured business data
+- Element access for multi-dimensional arrays
+- Mixed access modes in same schema
+
 ### [Performance](performance.md)
 Processes large schemas.
 

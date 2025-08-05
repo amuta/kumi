@@ -151,7 +151,8 @@ module Kumi
         def element(type_spec, name, &block)
           if block_given?
             # Named element with nested structure: element(:array, :rows) do ... end
-            # These don't set @using_elements because they create complex structures
+            # These DO set @using_elements to enable element access mode for multi-dimensional arrays
+            @using_elements = true
             case type_spec
             when :array
               create_array_field_with_block(name, {}, &block)

@@ -35,7 +35,7 @@ RSpec.configure do |config|
   config.include DualModeHelpers
 end
 
-ENV["DUAL_MODE_ENABLED"] = "true"
+# ENV["DUAL_MODE_ENABLED"] = "true"  # Disabled for element access mode testing
 
 return unless ENV["DUAL_MODE_ENABLED"] == "true"
 

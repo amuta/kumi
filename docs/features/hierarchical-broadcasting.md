@@ -1,10 +1,10 @@
-# Array Broadcasting
+# Hierarchical Broadcasting
 
-Automatic vectorization of operations over array fields with element-wise computation and aggregation.
+Automatic vectorization of operations over hierarchical data structures with two complementary access modes for different use cases.
 
 ## Overview
 
-The array broadcasting system enables natural field access syntax on array inputs (`input.items.price`) that automatically applies operations element-wise across the array, with intelligent detection of map vs reduce operations.
+The hierarchical broadcasting system enables natural field access syntax that automatically applies operations element-wise across complex nested data structures, with intelligent detection of map vs reduce operations and support for both structured objects and raw multi-dimensional arrays.
 
 ## Core Mechanism
 
@@ -14,7 +14,105 @@ The system uses a three-stage pipeline:
 2. **BroadcastDetector** - Identifies which operations should be vectorized vs scalar
 3. **Compiler** - Generates appropriate map/reduce functions based on usage context
 
-## Basic Broadcasting
+## Access Modes
+
+The system supports two complementary access modes that can be mixed within the same schema:
+
+### Object Access Mode (Default)
+For structured business data with named fields:
+
+```ruby
+input do
+  array :users do
+    string :name
+    integer :age
+  end
+end
+
+value :user_names, input.users.name     # Broadcasts over structured objects
+trait :adults, input.users.age >= 18    # Boolean array from age comparison
+```
+
+### Element Access Mode  
+For multi-dimensional raw arrays using `element` syntax with **progressive path traversal**:
+
+```ruby
+input do
+  array :cube do
+    element :array, :layer do
+      element :array, :row do
+        element :integer, :cell
+      end
+    end
+  end
+end
+
+# Progressive path traversal - each level goes deeper
+value :dimensions, [
+  fn(:size, input.cube),            # Number of layers
+  fn(:size, input.cube.layer),     # Total matrices across all layers  
+  fn(:size, input.cube.layer.row), # Total rows across all matrices
+  fn(:size, input.cube.layer.row.cell) # Total cells (leaf elements)
+]
+
+# Operations at different dimensional levels
+value :layer_data, input.cube.layer              # 3D matrices
+value :row_data, input.cube.layer.row           # 2D rows
+value :cell_data, input.cube.layer.row.cell     # 1D values
+```
+
+**Key Benefits of Progressive Path Traversal:**
+- **Intuitive syntax**: `input.cube.layer.row` naturally represents "rows within layers within cube"
+- **Direct dimensional access**: No need for complex flattening operations for basic dimensional analysis
+- **Ranked polymorphism**: Same operations work across different dimensional arrays
+- **Clean code**: `fn(:size, input.cube.layer.row)` instead of `fn(:size, fn(:flatten_one, input.cube.layer))`
+
+## Business Use Cases
+
+Element access mode is essential for common business scenarios involving simple nested arrays:
+
+```ruby
+# E-commerce: Product availability analysis
+input do
+  array :products do
+    string :name
+    array :daily_sales do        # Simple array: [12, 8, 15, 3]
+      element :integer, :units
+    end
+  end
+end
+
+# Create flags for business rules
+trait :had_slow_days, fn(:any?, input.products.daily_sales.units < 5)
+trait :consistently_strong, fn(:all?, input.products.daily_sales.units >= 10)
+
+# Progressive analysis
+value :sales_summary, [
+  fn(:size, input.products),                    # Number of products
+  fn(:size, input.products.daily_sales.units), # Total sales data points
+  fn(:sum, fn(:flatten, input.products.daily_sales.units)) # Total units sold
+]
+```
+
+### Mixed Access Modes
+Both modes work together seamlessly:
+
+```ruby
+input do
+  array :users do          # Object access
+    string :name
+    integer :age  
+  end
+  array :activity_logs do  # Element access
+    element :integer, :day
+  end
+end
+
+value :user_count, fn(:size, input.users)
+value :total_activity_days, fn(:size, fn(:flatten, input.activity_logs.day))
+```
+
+## Basic Broadcasting (Object Access)
 
 ```ruby
 schema do

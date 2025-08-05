@@ -41,7 +41,8 @@ module Kumi
 
             metadata = {
               type: field_decl.type,
-              domain: field_decl.domain
+              domain: field_decl.domain,
+              access_mode: field_decl.access_mode
             }
 
             # Process children if present

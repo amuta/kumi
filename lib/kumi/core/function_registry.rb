@@ -20,6 +20,7 @@ module Kumi
         registry.merge!(CollectionFunctions.definitions)
         registry.merge!(ConditionalFunctions.definitions)
         registry.merge!(TypeFunctions.definitions)
+        registry.merge!(StatFunctions.definitions)
       end.freeze
 
       @functions = CORE_FUNCTIONS.dup

@@ -64,6 +64,7 @@ module Kumi
         fields = [":#{node.name}"]
         fields << ":#{node.type}" if node.respond_to?(:type) && node.type
         fields << "domain: #{node.domain.inspect}" if node.respond_to?(:domain) && node.domain
+        fields << "access_mode: #{node.access_mode.inspect}" if node.respond_to?(:access_mode) && node.access_mode
         
         if node.respond_to?(:children) && !node.children.empty?
           children_str = child_printer.visit(node.children)
