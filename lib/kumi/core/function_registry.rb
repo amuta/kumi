@@ -21,8 +21,7 @@ module Kumi
           CollectionFunctions.definitions,
           ConditionalFunctions.definitions,
           TypeFunctions.definitions,
-          StatFunctions.definitions,
-          BroadcastingFunctions.definitions
+          StatFunctions.definitions
         ]
 
         function_modules.each do |module_definitions|

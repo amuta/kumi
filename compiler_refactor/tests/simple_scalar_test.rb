@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
 
-require_relative "ir_test_helper"
+require_relative "../ir_test_helper"
 
 module SimpleScalar
   extend Kumi::Schema
-  
+
   schema skip_compiler: true do
     input do
       integer :x
       integer :y
     end
-    
+
     value :sum, input.x + input.y
     value :product, input.x * input.y
     value :is_positive, input.x > 0

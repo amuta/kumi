@@ -1,0 +1,194 @@
+{
+  "accessors": {
+    "items:structure": "#<Proc:0x00007ff30459b790 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items:element": "#<Proc:0x00007ff30459a5e8 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items:flattened": "#<Proc:0x00007ff3045974b0 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.value:structure": "#<Proc:0x00007ff3045952c8 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.value:element": "#<Proc:0x00007ff304592dc0 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.value:flattened": "#<Proc:0x00007ff3045929b0 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.weight:structure": "#<Proc:0x00007ff3045aefc0 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.weight:element": "#<Proc:0x00007ff3045a2a40 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "items.weight:flattened": "#<Proc:0x00007ff3045a26a8 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "multiplier:structure": "#<Proc:0x00007ff3045a2248 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "multiplier:element": "#<Proc:0x00007ff3045a1fa0 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>",
+    "multiplier:flattened": "#<Proc:0x00007ff3045a1d70 /home/muta/repos/kumi/lib/kumi/core/compiler/accessor_builder.rb:46 (lambda)>"
+  },
+  "instructions": [
+    {
+      "name": "doubled_values",
+      "type": "valuedeclaration",
+      "operation_type": "vectorized",
+      "data_type": {
+        "array": "float"
+      },
+      "compilation": {
+        "type": "vectorized_operation",
+        "strategy": "array_scalar_object",
+        "function": "multiply",
+        "registry_function": "array_scalar_object",
+        "operands": [
+          {
+            "type": "input_element_reference",
+            "path": [
+              "items",
+              "value"
+            ],
+            "accessor": "items.value:element"
+          },
+          {
+            "type": "literal",
+            "value": 2.0
+          }
+        ]
+      }
+    },
+    {
+      "name": "doubled_plus_multiplier",
+      "type": "valuedeclaration",
+      "operation_type": "vectorized",
+      "data_type": {
+        "array": "float"
+      },
+      "compilation": {
+        "type": "vectorized_operation",
+        "strategy": "array_scalar_object",
+        "function": "add",
+        "registry_function": "array_scalar_object",
+        "operands": [
+          {
+            "type": "declaration_reference",
+            "name": "doubled_values"
+          },
+          {
+            "type": "input_reference",
+            "name": "multiplier",
+            "accessor": "multiplier:structure"
+          }
+        ]
+      }
+    },
+    {
+      "name": "inline_chain",
+      "type": "valuedeclaration",
+      "operation_type": "vectorized",
+      "data_type": {
+        "array": "float"
+      },
+      "compilation": {
+        "type": "vectorized_operation",
+        "strategy": "array_scalar_object",
+        "function": "add",
+        "registry_function": "array_scalar_object",
+        "operands": [
+          {
+            "type": "computed_result",
+            "operation_metadata": {
+              "operation_type": "vectorized",
+              "strategy": "array_scalar_object",
+              "access_mode": "object",
+              "dimension_mode": "same_level",
+              "operands": [
+                {
+                  "type": "array",
+                  "source": {
+                    "kind": "input_element",
+                    "path": [
+                      "items",
+                      "weight"
+                    ],
+                    "depth": 1,
+                    "root": "items"
+                  }
+                },
+                {
+                  "type": "scalar",
+                  "source": {
+                    "kind": "literal",
+                    "value": 2.0
+                  }
+                }
+              ],
+              "array_source": {
+                "root": "items",
+                "path": [
+                  "items",
+                  "weight"
+                ],
+                "depth": 1,
+                "access_mode": "object"
+              },
+              "registry_call_info": {
+                "function_name": "array_scalar_object",
+                "operand_extraction": [
+                  {
+                    "type": "array_field",
+                    "path": [
+                      "items",
+                      "weight"
+                    ],
+                    "field": "weight",
+                    "access_mode": "object"
+                  },
+                  {
+                    "type": "literal_value",
+                    "value": 2.0
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "input_reference",
+            "name": "multiplier",
+            "accessor": "multiplier:structure"
+          }
+        ]
+      }
+    },
+    {
+      "name": "combined",
+      "type": "valuedeclaration",
+      "operation_type": "vectorized",
+      "data_type": {
+        "array": "float"
+      },
+      "compilation": {
+        "type": "vectorized_operation",
+        "strategy": "element_wise_object",
+        "function": "add",
+        "registry_function": "element_wise_object",
+        "operands": [
+          {
+            "type": "declaration_reference",
+            "name": "doubled_values"
+          },
+          {
+            "type": "input_element_reference",
+            "path": [
+              "items",
+              "weight"
+            ],
+            "accessor": "items.weight:element"
+          }
+        ]
+      }
+    }
+  ],
+  "dependencies": {
+    "doubled_values": [
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769e70>"
+    ],
+    "doubled_plus_multiplier": [
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769e20>",
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769dd0>"
+    ],
+    "inline_chain": [
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769d80>",
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769d30>"
+    ],
+    "combined": [
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769ce0>",
+      "#<Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge:0x00007ff320769c90>"
+    ]
+  }
+}

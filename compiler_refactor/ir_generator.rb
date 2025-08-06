@@ -5,8 +5,8 @@ module Kumi
     # Generates structured IR from analyzer result
     # This will become the final analyzer pass
     class IRGenerator
-      def initialize(schema, analysis_result)
-        @schema = schema
+      def initialize(syntax_tree, analysis_result)
+        @syntax_tree = syntax_tree
         @analysis = analysis_result
         @state = analysis_result.state
       end
@@ -53,8 +53,7 @@ module Kumi
 
       def find_declaration(name)
         # Get declarations from the AST
-        ast = @schema.__syntax_tree__
-        (ast.attributes + ast.traits).find { |decl| decl.name == name }
+        (@syntax_tree.attributes + @syntax_tree.traits).find { |decl| decl.name == name }
       end
 
       def generate_instruction(declaration)
@@ -80,8 +79,8 @@ module Kumi
         case operation_type
         when :scalar
           generate_scalar_compilation(expression)
-        when :vectorized
-          generate_vectorized_compilation(expression, metadata)
+        when :element_wise
+          generate_element_wise_compilation(expression, metadata)
         when :reduction
           generate_reduction_compilation(expression, metadata)
         when :array_reference
@@ -172,8 +171,8 @@ module Kumi
       # Coordinate type inferencer output with broadcast detector metadata
       def coordinate_type(base_type, operation_type, metadata)
         case operation_type
-        when :vectorized
-          # Upgrade scalar type to array type based on broadcast strategy
+        when :element_wise
+          # Upgrade scalar type to array type based on element-wise strategy
           { array: base_type }
         when :reduction
           # Reduction operations: array input -> scalar output (keep base_type)
@@ -184,26 +183,32 @@ module Kumi
         end
       end
 
-      def generate_vectorized_compilation(expression, metadata)
+      def generate_element_wise_compilation(expression, metadata)
         strategy = metadata[:strategy]
         registry_function = metadata.dig(:registry_call_info, :function_name)
         
         {
-          type: :vectorized_operation,
+          type: :element_wise_operation,
           strategy: strategy,
           function: expression.fn_name,  # Original operation (multiply, add, etc.)
           registry_function: registry_function,  # Broadcasting function (element_wise_object, etc.)
-          operands: generate_vectorized_operands(metadata[:operands] || [])
+          operands: generate_element_wise_operands(metadata[:operands] || [])
         }
       end
 
-      def generate_vectorized_operands(detector_operands)
+      def generate_element_wise_operands(detector_operands)
         # Convert broadcast detector operand metadata to IR operand format
         detector_operands.map do |operand_meta|
           case operand_meta[:type]
-          when :array
+          when :source
             source = operand_meta[:source]
             case source[:kind]
+            when :input_field
+              {
+                type: :input_reference,
+                name: source[:name],
+                accessor: "#{source[:name]}:structure"
+              }
             when :input_element
               {
                 type: :input_element_reference,
@@ -215,22 +220,36 @@ module Kumi
                 type: :declaration_reference,
                 name: source[:name]
               }
+            when :computed_result
+              # TODO: Complex inline expressions should use TAC system instead
+              raise "computed_result operands not supported - use TAC system for complex expressions"
             else
-              raise "Unsupported array source kind: #{source[:kind]}"
+              raise "Unsupported source kind: #{source[:kind]} - #{source.inspect}"
             end
           when :scalar
             source = operand_meta[:source]
             case source[:kind]
+            when :literal
+              {
+                type: :literal,
+                value: source[:value]
+              }
             when :declaration
               {
                 type: :declaration_reference,
                 name: source[:name]
               }
+            when :input_field
+              {
+                type: :input_reference,
+                name: source[:name],
+                accessor: "#{source[:name]}:structure"
+              }
             else
               raise "Unsupported scalar source kind: #{source[:kind]}"
             end
           else
-            raise "Unsupported vectorized operand type: #{operand_meta[:type]}"
+            raise "Unsupported element_wise operand type: #{operand_meta[:type]}"
           end
         end
       end

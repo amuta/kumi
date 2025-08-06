@@ -84,3 +84,57 @@ The compiler should be a pure **metadata interpreter**:
 - Process: Mechanical translation following metadata instructions
 
 This ensures the compiler remains simple, fast, and maintainable as the system grows in complexity.
+
+## Three-Address Code (TAC) IR Design
+
+### Principle: Flatten Complex Expressions to Linear Operations
+- **Complex nested expressions** decomposed into simple three-address operations
+- **Temporary variables** generated for intermediate results  
+- **Linear instruction sequence** replaces nested metadata structures
+- **Consistent operand format** across all operation types
+
+### TAC Generation Rules
+- **Simple expressions**: Single instruction, no decomposition
+- **Nested expressions**: Generate `__temp_N` variables for sub-expressions  
+- **Declaration references**: Preserve without decomposition
+- **Inline expressions**: Flatten to temp + reference chain
+
+### Examples
+
+#### ❌ BAD: Complex Nested Metadata
+```ruby
+{
+  type: :computed_result,
+  operation_metadata: {
+    operation_type: :vectorized,
+    operands: [...nested_operands...]
+  }
+}
+```
+
+#### ✅ GOOD: TAC Linear Instructions
+```ruby
+[
+  { name: :__temp_1, operands: [:input_element, :literal] },
+  { name: :result, operands: [:__temp_1_ref, :input_field] }
+]
+```
+
+### Benefits
+- **Eliminates nested_call complexity** in broadcast detector
+- **Simplifies compiler logic** - all operations uniform
+- **Improves debugging** - clear linear execution order  
+- **Enables optimizations** - standard compiler techniques apply
+- **Consistent operand handling** - no special cases
+
+### TAC Operand Types
+- `input_element_reference`: Array field access (`items.value:element`)
+- `input_reference`: Simple field access (`threshold:structure`)  
+- `declaration_reference`: Reference to computed value or temp
+- `literal`: Constant values
+
+### Architecture Decision: TAC IR Generator as Final Analyzer Pass
+- **Replaces scattered IR generation** with centralized TAC pass
+- **Analyzer produces TAC instructions** in dependency order
+- **Compiler mechanically executes** TAC operations
+- **No more complex operand metadata** - simple temp chain

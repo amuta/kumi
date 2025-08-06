@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative "ir_test_helper"
+require_relative "../ir_test_helper"
 
 module ArrayBroadcasting
   extend Kumi::Schema
@@ -19,11 +19,11 @@ module ArrayBroadcasting
 
     # Array broadcasting - should be vectorized operations
     value :item_subtotals, input.line_items.price * input.line_items.quantity
-    
-    # Calculate total coupon discounts per item (sum of coupons within each item) 
+
+    # Calculate total coupon discounts per item (sum of coupons within each item)
     # This should be vectorized: map sum over each item's coupon array
     value :total_coupon_discounts, fn(:sum, input.line_items.coupons)
-    
+
     # Apply coupon discounts to subtotals
     value :discounted_subtotals, item_subtotals - total_coupon_discounts
   end

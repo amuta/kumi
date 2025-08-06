@@ -51,35 +51,33 @@ module Kumi
             if all_scalar?(operands)
               { operation_type: :scalar }
             else
-              analyze_vectorized_operation(expr, operands)
+              analyze_element_wise_operation(expr, operands)
             end
           end
 
-          def analyze_vectorized_operation(expr, operands)
-            # Find the array operand(s) and determine access mode
-            array_operands = operands.select { |op| op[:type] == :array }
+          def analyze_element_wise_operation(expr, operands)
+            # Find the source operand(s) and determine access mode
+            source_operands = operands.select { |op| op[:type] == :source }
             scalar_operands = operands.select { |op| op[:type] == :scalar }
 
-            return { operation_type: :scalar } if array_operands.empty?
+            return { operation_type: :scalar } if source_operands.empty?
 
-            # Determine access mode from first array operand
-            puts "Array operands: #{array_operands}"
-            access_mode = determine_access_mode(array_operands.first)
+            # Determine access mode from first source operand
+            access_mode = determine_access_mode(source_operands.first)
 
             # Determine dimension relationship
-            dimension_mode = determine_dimension_mode(array_operands)
+            dimension_mode = determine_dimension_mode(source_operands)
 
-            # Select strategy based on our taxonomy
-            strategy = determine_strategy(array_operands, scalar_operands, dimension_mode, access_mode)
+            # Calculate depth for element-wise operations
+            primary_depth = source_operands.first&.dig(:source, :depth) || 1
 
             {
-              operation_type: :vectorized,
-              strategy: strategy,
+              operation_type: :element_wise,
               access_mode: access_mode,
               dimension_mode: dimension_mode,
+              depth: primary_depth,
               operands: operands,
-              array_source: extract_array_source(array_operands.first),
-              registry_call_info: build_registry_call_info(strategy, operands, access_mode)
+              source_info: extract_source_info(source_operands.first)
             }
           end
 
@@ -126,11 +124,11 @@ module Kumi
             root_metadata&.[](:access_mode) || :object
           end
 
-          def determine_dimension_mode(array_operands)
-            return :same_level if array_operands.size == 1
+          def determine_dimension_mode(source_operands)
+            return :same_level if source_operands.size == 1
 
-            # Compare dimensions of array operands
-            depths = array_operands.map { |op| op[:source][:depth] || 1 }
+            # Compare dimensions of source operands
+            depths = source_operands.map { |op| op[:source][:depth] || 1 }
 
             if depths.uniq.size == 1
               :same_level
@@ -166,8 +164,8 @@ module Kumi
               input_metadata = @state[:inputs] || {}
               field_meta = input_metadata[operand.name]
 
-              # A field reference could be array or scalar depending on its declared type
-              operand_type = field_meta&.[](:type) == :array ? :array : :scalar
+              # A field reference could be source or scalar depending on its declared type
+              operand_type = field_meta&.[](:type) == :array ? :source : :scalar
 
               {
                 type: operand_type,
@@ -188,8 +186,8 @@ module Kumi
               # Look up the declaration's metadata to determine if it's an array
               decl_metadata = @metadata[operand.name]
               operand_type = if decl_metadata &&
-                                %i[vectorized array_reference].include?(decl_metadata[:operation_type])
-                               :array
+                                %i[element_wise array_reference].include?(decl_metadata[:operation_type])
+                               :source
                              else
                                :scalar
                              end
@@ -202,17 +200,19 @@ module Kumi
                 }
               }
             when Kumi::Syntax::CallExpression
-              # Nested function call - analyze it recursively
+              # Recursive analysis of inline call expression
               nested_metadata = analyze_call_expression(operand)
 
-              # Determine the type based on the nested operation
+              # The recursive analysis tells us exactly what this produces
               operand_type = case nested_metadata[:operation_type]
-                             when :reduction, :array_reference
-                               # Reductions and array references produce arrays (or scalars for some reductions)
-                               # For now, assume they produce the type that would be consumed by the parent function
-                               :array # Most functions that take nested calls expect arrays
-                             when :vectorized
-                               :array
+                             when :element_wise, :array_reference
+                               :source
+                             when :scalar
+                               :scalar
+                             when :reduction
+                               # TODO: Some reductions produce scalars, others produce sources
+                               # We should use the function signature to determine this
+                               :source
                              else
                                :scalar
                              end
@@ -220,8 +220,8 @@ module Kumi
               {
                 type: operand_type,
                 source: {
-                  kind: :nested_call,
-                  metadata: nested_metadata
+                  kind: :computed_result,
+                  operation_metadata: nested_metadata
                 }
               }
             else
@@ -232,9 +232,9 @@ module Kumi
             end
           end
 
-          def extract_array_source(array_operand)
-            puts "DEBUG: Extracting array source from operand: #{array_operand.inspect}" if ENV["DEBUG_COMPILER"]
-            source = array_operand[:source]
+          def extract_source_info(source_operand)
+            puts "DEBUG: Extracting source info from operand: #{source_operand.inspect}" if ENV["DEBUG_COMPILER"]
+            source = source_operand[:source]
 
             # binding.pry
             case source[:kind]
@@ -242,14 +242,14 @@ module Kumi
               # For declaration references, we don't have path/root/depth
               {
                 declaration: source[:name],
-                access_mode: :object # Declaration references typically produce object-mode arrays
+                access_mode: :object # Declaration references typically produce object-mode sources
               }
             else
               {
                 root: source[:root],
                 path: source[:path],
                 depth: source[:depth],
-                access_mode: determine_access_mode(array_operand)
+                access_mode: determine_access_mode(source_operand)
               }
             end
           end
@@ -304,7 +304,7 @@ module Kumi
           def analyze_array_reference(expr)
             {
               operation_type: :array_reference,
-              array_source: {
+              source_info: {
                 root: expr.respond_to?(:path) ? expr.path.first : expr.name,
                 path: expr.respond_to?(:path) ? expr.path : [expr.name],
                 access_mode: :object # TODO: Determine actual access mode
@@ -335,15 +335,15 @@ module Kumi
 
             # If it's just a single field reference (path length 1), use its type directly
             if path.length == 1
-              return current_meta[:type] == :array ? :array : :scalar
+              return current_meta[:type] == :array ? :source : :scalar
             end
 
             # For nested paths like [:line_items, :price] or [:matrix, :cell]
-            # If the root is an array, then accessing fields within it is an array operation
+            # If the root is an array, then accessing fields within it is a source operation
             if current_meta[:type] == :array
-              # Any field access within an array is an array operation
-              # The access_mode determines HOW we traverse, not WHETHER it's an array operation
-              return :array
+              # Any field access within an array is a source operation
+              # The access_mode determines HOW we traverse, not WHETHER it's a source operation
+              return :source
             end
 
             # If root is not an array, continue traversing
@@ -353,7 +353,7 @@ module Kumi
               break unless current_meta[:children] && current_meta[:children][segment]
 
               current_meta = current_meta[:children][segment]
-              return :array if current_meta[:type] == :array
+              return :source if current_meta[:type] == :array
             end
 
             # Default fallback

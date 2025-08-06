@@ -66,13 +66,6 @@ module Kumi
               end
             end
 
-          when :flatten
-            # dont think this is the correct way
-            # Flatten should be explicit - for comparing and reducing ... i feel this is not the way
-            # lambda do |data|
-            #   result = next_op.call(data)
-            #   result.is_a?(Array) ? result.flatten : result
-            # end
           end
         end
 

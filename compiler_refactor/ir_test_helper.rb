@@ -44,7 +44,7 @@ module IRTestHelper
     end
     
     puts "\n=== IR Generation ===" if debug
-    ir_generator = Kumi::Core::IRGenerator.new(schema_module, analyzer_result)
+    ir_generator = Kumi::Core::IRGenerator.new(ast, analyzer_result)
     ir = ir_generator.generate
     
     if debug
