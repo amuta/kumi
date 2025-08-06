@@ -19,6 +19,9 @@ module Kumi
               add_error(errors, declaration.loc, "BroadcastDetector error: #{e.message}")
             end
 
+            # @state[:evaluation_order]
+
+            # @state
             @state.with(:detector_metadata, @metadata.freeze)
           end
 
@@ -40,19 +43,13 @@ module Kumi
           end
 
           def analyze_call_expression(expr)
-            # Check if this is a reduction function
-            return analyze_reduction(expr) if reduction_function?(expr.fn_name)
-
+            # binding.pry
             # Analyze operands
             operands = expr.args.map { |arg| analyze_operand(arg) }
 
             # Determine operation type and strategy
             if all_scalar?(operands)
               { operation_type: :scalar }
-            elsif operands.size == 1 && operands[0][:type] == :array
-              # Single array operand - this is likely an array reference being used in a function
-              # Let the reduction detection handle it, or treat as array_reference
-              { operation_type: :array_reference, array_source: extract_array_source(operands[0]) }
             else
               analyze_vectorized_operation(expr, operands)
             end
@@ -88,6 +85,10 @@ module Kumi
 
           def determine_strategy(array_operands, scalar_operands, dimension_mode, access_mode)
             case [array_operands.size, scalar_operands.size, dimension_mode, access_mode]
+            when [1, 0, :same_level, :object]
+              :array_function_object
+            when [1, 0, :same_level, :vector]
+              :array_function_vector
             when [1, 1, :same_level, :object]
               :array_scalar_object
             when [2, 0, :same_level, :object]
@@ -107,10 +108,10 @@ module Kumi
 
           def determine_access_mode(array_operand)
             source = array_operand[:source]
-            
+
             # Handle declaration references
             return :object if source[:kind] == :declaration
-            
+
             path = source[:path]
             return :object unless path # Fallback if no path
 
@@ -186,14 +187,13 @@ module Kumi
             when Kumi::Syntax::DeclarationReference
               # Look up the declaration's metadata to determine if it's an array
               decl_metadata = @metadata[operand.name]
-              operand_type = if decl_metadata && 
-                               (decl_metadata[:operation_type] == :vectorized || 
-                                decl_metadata[:operation_type] == :array_reference)
+              operand_type = if decl_metadata &&
+                                %i[vectorized array_reference].include?(decl_metadata[:operation_type])
                                :array
                              else
                                :scalar
                              end
-              
+
               {
                 type: operand_type,
                 source: {
@@ -233,8 +233,10 @@ module Kumi
           end
 
           def extract_array_source(array_operand)
+            puts "DEBUG: Extracting array source from operand: #{array_operand.inspect}" if ENV["DEBUG_COMPILER"]
             source = array_operand[:source]
-            
+
+            # binding.pry
             case source[:kind]
             when :declaration
               # For declaration references, we don't have path/root/depth
@@ -289,7 +291,7 @@ module Kumi
               operation_type: :reduction,
               function: expr.fn_name,
               input_source: input_operand,
-              requires_flattening: false # TODO: Determine when flattening is needed
+              requires_flattening: flattening_required?(expr.fn_name, input_operand)
             }
           end
 
@@ -312,8 +314,11 @@ module Kumi
 
           # Helper methods
           def reduction_function?(fn_name)
-            # Check for both reducer functions AND structure functions
-            # Both need special handling as they transform arrays
+            # Check if this is a reducer or structure function
+            if fn_name.nil? || fn_name.to_s.empty?
+              raise "BroadcastDetector: Empty function name encountered! Call analyze_call_expression with #{fn_name.inspect}"
+            end
+
             Kumi::Registry.reducer?(fn_name) || Kumi::Registry.structure_function?(fn_name)
           end
 
@@ -353,6 +358,24 @@ module Kumi
 
             # Default fallback
             :scalar
+          end
+
+          def flattening_required?(fn_name, input_operand)
+            # Case 1: Explicitly check for a flattener function, e.g., fn(:size, fn(:flatten, ...))
+            if input_operand.dig(:source, :kind) == :nested_call
+              nested_fn_name = input_operand.dig(:source, :metadata, :function)
+              nested_meta = Kumi::Registry.signature(nested_fn_name)
+              return true if nested_meta&.[](:capability) == :flattener
+            end
+
+            # Case 2: Implicitly flatten for aggregate reducers on element-mode arrays
+            outer_meta = Kumi::Registry.signature(fn_name)
+            return false unless outer_meta&.[](:type) == :aggregate_reducer
+
+            is_element_mode = determine_access_mode(input_operand) != :object
+            is_nested_path = input_operand.dig(:source, :kind) == :input_element
+
+            is_element_mode && is_nested_path
           end
         end
       end

@@ -3,49 +3,102 @@
 require_relative "../../../../lib/kumi/core/compiler/accessor_planner"
 
 RSpec.describe Kumi::Core::Compiler::AccessorPlanner do
-  it "creates structure and element plans for simple array field" do
-    input_metadata = {
-      items: {
-        type: :array,
-        children: {
-          price: { type: :float }
+  context "for object-mode paths" do
+    let(:input_metadata) do
+      {
+        departments: {
+          type: :array,
+          access_mode: :object,
+          children: {
+            name: { type: :string },
+            teams: {
+              type: :array,
+              access_mode: :object,
+              children: {
+                team_name: { type: :string }
+              }
+            }
+          }
         }
       }
-    }
+    end
 
-    plans = described_class.plan(input_metadata)
+    it "generates a sequence of enter_object and enter_array operations" do
+      plans = described_class.plan(input_metadata)
+      operations = plans.dig("departments.teams.team_name", :element, :operations)
 
-    expect(plans).to have_key("items.price")
-    expect(plans["items.price"][:structure][:type]).to eq(:structure)
-    expect(plans["items.price"][:element][:type]).to eq(:element)
+      expected_operations = [
+        { type: :enter_object, key: :departments },
+        { type: :enter_array },
+        { type: :enter_object, key: :teams },
+        { type: :enter_array },
+        { type: :enter_object, key: :team_name }
+      ]
+
+      expect(operations).to eq(expected_operations)
+    end
   end
 
-  it "creates plans for scalar fields" do
-    input_metadata = {
-      name: { type: :string }
-    }
-
-    plans = described_class.plan(input_metadata)
-
-    expect(plans).to have_key("name")
-    expect(plans["name"][:structure][:path]).to eq([:name])
-    expect(plans["name"][:element][:path]).to eq([:name])
-  end
-
-  it "creates flattened plans for vector access mode" do
-    input_metadata = {
-      matrix: {
-        type: :array,
-        access_mode: :vector,
-        children: {
-          cell: { type: :integer }
+  context "for element-mode (vector) paths" do
+    let(:input_metadata) do
+      {
+        table: {
+          type: :array,
+          access_mode: :vector,
+          children: {
+            rows: {
+              type: :array,
+              access_mode: :vector,
+              children: {
+                cell: { type: :integer }
+              }
+            }
+          }
         }
       }
-    }
+    end
 
-    plans = described_class.plan(input_metadata)
+    it "omits enter_object operations after entering a vector array" do
+      plans = described_class.plan(input_metadata)
+      operations = plans.dig("table.rows.cell", :element, :operations)
 
-    expect(plans["matrix.cell"]).to have_key(:flattened)
-    expect(plans["matrix.cell"][:flattened][:type]).to eq(:flattened)
+      # The key is that :rows and :cell do NOT have an :enter_object operation,
+      # as the traversal is implicit in element-mode.
+      expected_operations = [
+        { type: :enter_object, key: :table },
+        { type: :enter_array }, # Enters the table
+        { type: :enter_array }  # Enters each row
+      ]
+
+      expect(operations).to eq(expected_operations)
+    end
+  end
+
+  context "for flattened plans" do
+    let(:input_metadata) do
+      {
+        table: {
+          type: :array,
+          access_mode: :vector,
+          children: {
+            rows: { type: :array, access_mode: :vector, children: { cell: { type: :integer } } }
+          }
+        }
+      }
+    end
+
+    it "adds a :flatten operation at the end of the plan" do
+      plans = described_class.plan(input_metadata)
+      operations = plans.dig("table.rows.cell", :flattened, :operations)
+
+      expected_base_operations = [
+        { type: :enter_object, key: :table },
+        { type: :enter_array },
+        { type: :enter_array }
+      ]
+
+      expect(operations).to start_with(*expected_base_operations)
+      expect(operations.last).to eq({ type: :flatten })
+    end
   end
 end

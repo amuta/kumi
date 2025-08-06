@@ -3,112 +3,69 @@
 module Kumi
   module Core
     module Compiler
-      # Pre-compiles vectorized operations into pure lambda calls
-      # Uses function composition to eliminate all runtime logic
+      # RESPONSIBILITY: Compiles vectorized operations (e.g., array + scalar)
+      # by composing pure lambdas at compile-time. It uses the ExpressionBuilder
+      # as the single source of truth for compiling operand expressions.
       class VectorizedOperationCompiler
-        
-        def initialize(bindings, accessors)
-          @operand_resolver = OperandResolver.new(bindings, accessors)
+        def initialize(expression_builder)
+          @expression_builder = expression_builder
         end
-        
-        # Compile vectorized operation metadata into pure lambda
-        # No runtime case statements, lookups, or logic
+
         def compile(expr, metadata)
           strategy = metadata[:strategy]
-          operands = metadata[:operands] || []
-          
-          # Check strategy support first - fail fast during compilation
-          unless supported_strategy?(strategy)
-            raise "Unsupported strategy for pre-compilation: #{strategy}"
+          # The metadata from the BroadcastDetector must now contain the original AST nodes for the operands.
+          operand_asts = metadata[:operands] || []
+
+          # 1. Use the unified ExpressionBuilder to compile each operand's AST node into a data-extraction lambda.
+          resolved_extractors = operand_asts.map do |operand_ast|
+            @expression_builder.compile(operand_ast)
           end
-          
-          # Pre-resolve registry function - no runtime lookup
+
+          # 2. Pre-resolve the functions from the registry at compile-time.
+          operation_fn = Kumi::Registry.fetch(expr.fn_name)
           registry_fn = Kumi::Registry.fetch(strategy)
-          operation_proc = Kumi::Registry.fetch(expr.fn_name)
-          
-          # Pre-resolve all operand extractors - no runtime case statements
-          operand_extractors = operands.map { |operand| @operand_resolver.resolve_operand(operand) }
-          
-          # Compose the pure lambda based on strategy
-          compose_strategy_lambda(registry_fn, operation_proc, operand_extractors, strategy)
+
+          # 3. Compose the final, pure lambda based on the strategy.
+          build_strategy_lambda(strategy, operation_fn, registry_fn, resolved_extractors, metadata)
         end
-        
+
         private
-        
-        def supported_strategy?(strategy)
-          %i[array_scalar_object element_wise_object array_scalar_vector element_wise_vector].include?(strategy)
-        end
-        
-        # Function composition for different strategies
-        def compose_strategy_lambda(registry_fn, operation_proc, operand_extractors, strategy)
+
+        # This method contains the compositional logic that was previously in the main RubyCompiler.
+        # It takes the pre-resolved functions and operand extractors and composes them into a final lambda.
+        def build_strategy_lambda(strategy, operation_fn, registry_fn, extractors, metadata)
           case strategy
-          when :array_scalar_object
-            compose_array_scalar_object(registry_fn, operation_proc, operand_extractors)
-          when :element_wise_object
-            compose_element_wise_object(registry_fn, operation_proc, operand_extractors)
-          when :array_scalar_vector
-            compose_array_scalar_vector(registry_fn, operation_proc, operand_extractors)
-          when :element_wise_vector
-            compose_element_wise_vector(registry_fn, operation_proc, operand_extractors)
+          when :array_scalar_object, :array_scalar_vector
+            array_ex, scalar_ex = extractors
+            ->(ctx) { registry_fn.call(operation_fn, array_ex.call(ctx), scalar_ex.call(ctx)) }
+
+          when :element_wise_object, :element_wise_vector
+            array1_ex, array2_ex = extractors
+            ->(ctx) { registry_fn.call(operation_fn, array1_ex.call(ctx), array2_ex.call(ctx)) }
+
+          when :parent_child_vector
+            nested_ex, parent_ex = extractors
+            ->(ctx) { registry_fn.call(operation_fn, nested_ex.call(ctx), parent_ex.call(ctx)) }
+
+          when :parent_child_object
+            # For this complex strategy, we also need to extract path metadata.
+            # This assumes the BroadcastDetector provides this info.
+            parent_ex = extractors[0]
+            child_path = metadata.dig(:operands, 0, :source, :path)
+            parent_path = metadata.dig(:operands, 1, :source, :path)
+
+            # Extract field names from the AST paths.
+            child_field = child_path[-2].to_s
+            child_value_field = child_path[-1].to_s
+            parent_value_field = parent_path[-1].to_s
+
+            lambda do |ctx|
+              parent_array = parent_ex.call(ctx)
+              registry_fn.call(operation_fn, parent_array, child_field, child_value_field, parent_value_field)
+            end
+
           else
-            raise "Unsupported strategy for pre-compilation: #{strategy}"
-          end
-        end
-        
-        # Pure lambda composition - no runtime logic
-        def compose_array_scalar_object(registry_fn, operation_proc, operand_extractors)
-          array_extractor = operand_extractors[0]
-          scalar_extractor = operand_extractors[1]
-          
-          # Pure lambda: registry_fn.call(operation_proc, array_values, scalar_value)
-          lambda do |ctx|
-            registry_fn.call(
-              operation_proc,
-              array_extractor.call(ctx),
-              scalar_extractor.call(ctx)
-            )
-          end
-        end
-        
-        def compose_element_wise_object(registry_fn, operation_proc, operand_extractors)
-          array_extractor_1 = operand_extractors[0]
-          array_extractor_2 = operand_extractors[1]
-          
-          # Pure lambda: registry_fn.call(operation_proc, array1, array2)
-          lambda do |ctx|
-            registry_fn.call(
-              operation_proc,
-              array_extractor_1.call(ctx),
-              array_extractor_2.call(ctx)
-            )
-          end
-        end
-        
-        def compose_array_scalar_vector(registry_fn, operation_proc, operand_extractors)
-          array_extractor = operand_extractors[0]
-          scalar_extractor = operand_extractors[1]
-          
-          # Pure lambda: registry_fn.call(operation_proc, array, scalar)
-          lambda do |ctx|
-            registry_fn.call(
-              operation_proc,
-              array_extractor.call(ctx),
-              scalar_extractor.call(ctx)
-            )
-          end
-        end
-        
-        def compose_element_wise_vector(registry_fn, operation_proc, operand_extractors)
-          array_extractor_1 = operand_extractors[0]
-          array_extractor_2 = operand_extractors[1]
-          
-          # Pure lambda: registry_fn.call(operation_proc, array1, array2)
-          lambda do |ctx|
-            registry_fn.call(
-              operation_proc,
-              array_extractor_1.call(ctx),
-              array_extractor_2.call(ctx)
-            )
+            raise "VectorizedOperationCompiler: Unknown or unsupported strategy: #{strategy}"
           end
         end
       end

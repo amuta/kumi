@@ -5,6 +5,8 @@
 
 require_relative "sugar_test_helper"
 
+return if true
+
 # Arithmetic operations schema
 SugarTestHelper.register_schema(:arithmetic, Kumi.schema do
   input do

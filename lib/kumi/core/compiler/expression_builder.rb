@@ -6,7 +6,6 @@ module Kumi
       # Handles pure expression compilation with no runtime logic
       # Compiles syntax expressions into pure lambda functions
       class ExpressionBuilder
-        
         def initialize(bindings)
           @bindings = bindings
         end
@@ -40,7 +39,7 @@ module Kumi
         def compile_call(expr)
           fn = Kumi::Registry.fetch(expr.fn_name)
           arg_compilers = expr.args.map { |arg| compile(arg) }
-          
+
           lambda do |ctx|
             args = arg_compilers.map { |compiler| compiler.call(ctx) }
             fn.call(*args)
@@ -51,16 +50,14 @@ module Kumi
         def compile_cascade(expr)
           conditional_cases = expr.cases.reject { |c| base_case?(c) }
           base_case = expr.cases.find { |c| base_case?(c) }
-          
+
           condition_compilers = conditional_cases.map { |c| compile(c.condition) }
           result_compilers = conditional_cases.map { |c| compile(c.result) }
           base_compiler = base_case ? compile(base_case.result) : nil
-          
+
           lambda do |ctx|
             condition_compilers.each_with_index do |cond_compiler, i|
-              if cond_compiler.call(ctx)
-                return result_compilers[i].call(ctx)
-              end
+              return result_compilers[i].call(ctx) if cond_compiler.call(ctx)
             end
             base_compiler&.call(ctx)
           end
@@ -68,33 +65,12 @@ module Kumi
 
         # Compile nested input element reference into pure lambda
         def compile_input_element_reference(expr)
-          path = expr.path
-          lambda do |ctx|
-            result = ctx
-            path.each do |segment|
-              if result.respond_to?(:[])
-                key = segment.to_s
-                result = result[key] || result[segment.to_sym]
-              else
-                result = nil
-                break
-              end
-            end
-            result
-          end
+          raise "should use from AccessorBuilder"
         end
 
         # Compile simple input field reference into pure lambda
         def compile_input_field_reference(expr)
-          name = expr.name
-          lambda do |ctx|
-            if ctx.respond_to?(:[])
-              key = name.to_s
-              ctx[key] || ctx[name]
-            else
-              nil
-            end
-          end
+          raise "should use from AccessorBuilder"
         end
 
         # Compile declaration reference into pure lambda
@@ -103,6 +79,7 @@ module Kumi
           lambda do |ctx|
             fn = @bindings[name]
             return nil unless fn
+
             fn.call(ctx)
           end
         end
@@ -110,13 +87,13 @@ module Kumi
         # Compile literal value into pure lambda
         def compile_literal(expr)
           value = expr.value
-          lambda { |_ctx| value }
+          ->(_ctx) { value }
         end
 
         # Compile array expression into pure lambda
         def compile_array_expression(expr)
           element_compilers = expr.elements.map { |elem| compile(elem) }
-          
+
           lambda do |ctx|
             element_compilers.map { |compiler| compiler.call(ctx) }
           end

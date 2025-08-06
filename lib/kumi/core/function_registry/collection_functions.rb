@@ -89,7 +89,8 @@ module Kumi
               arity: 1,
               param_types: [Kumi::Core::Types.array(:any)],
               return_type: Kumi::Core::Types.array(:any),
-              description: "Remove duplicate elements from collection"
+              description: "Remove duplicate elements from collection",
+              structure_function: true
             ),
 
             # Array transformation functions

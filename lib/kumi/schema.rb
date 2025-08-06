@@ -40,8 +40,11 @@ module Kumi
       nil
     end
 
-    def schema(&block)
+    def schema(skip_compiler: false, &block)
       @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+
+      return if skip_compiler
+
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
       @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 

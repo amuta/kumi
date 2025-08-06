@@ -3,8 +3,7 @@
 module Kumi
   module Core
     module Compiler
-      # Takes access plans from AccessorPlanner and generates actual lambda functions
-      # Uses metaprogramming to build optimized accessors based on the plans
+      # Takes access plans from AccessorPlanner and generates pure lambda functions.
       class AccessorBuilder
         def self.build(access_plans)
           new(access_plans).build
@@ -22,101 +21,64 @@ module Kumi
               @accessors[accessor_key] = build_accessor_from_plan(plan)
             end
           end
-          
-          @accessors.freeze # Returns the frozen hash
+
+          @accessors.freeze
         end
 
         private
 
+        # All plan types are built using the same composition logic.
         def build_accessor_from_plan(plan)
-          case plan[:type]
-          when :structure
-            build_structure_accessor(plan)
-          when :element
-            build_element_accessor(plan)
-          when :flattened
-            build_flattened_accessor(plan)
-          else
-            raise "Unknown accessor plan type: #{plan[:type]}"
-          end
-        end
-
-        def build_structure_accessor(plan)
-          operations = plan[:operations]
-          build_smart_accessor(operations)
-        end
-
-        def build_element_accessor(plan)
-          operations = plan[:operations]
-          build_smart_accessor(operations)
-        end
-
-        def build_flattened_accessor(plan)
-          operations = plan[:operations]
-          build_smart_accessor(operations)
-        end
-        
-        def build_smart_accessor(operations)
-          compose_operations(operations)
+          compose_operations(plan[:operations])
         end
 
         def compose_operations(operations)
-          # Special handling for flatten - it should be applied at the end
-          has_flatten = operations.any? { |op| op[:type] == :flatten }
-          ops_without_flatten = operations.reject { |op| op[:type] == :flatten }
-          
-          # Build from right to left (inside out)
-          base_lambda = ops_without_flatten.reverse.reduce(identity_lambda) do |next_op, operation|
-            build_operation_lambda(operation, next_op)
-          end
-          
-          # Apply flatten at the end if needed
-          if has_flatten
-            lambda { |data| base_lambda.call(data).flatten }
-          else
-            base_lambda
+          # Build from right to left (inside out) to create a left-to-right execution chain.
+          operations.reverse.reduce(identity_lambda) do |composed_lambda, operation|
+            build_operation_lambda(operation, composed_lambda)
           end
         end
 
         def build_operation_lambda(operation, next_op)
           case operation[:type]
-          when :fetch
+          when :enter_object
             key = operation[:key]
-            # Support both string and symbol keys for compatibility
-            lambda { |data| 
+            lambda do |data|
+              # Only attempt to access a key if the data is a Hash.
               if data.is_a?(Hash)
-                # Try string first, then symbol as fallback
                 value = data[key.to_s] || data[key.to_sym]
                 next_op.call(value)
-              elsif data.is_a?(Array) && key.is_a?(Integer)
-                next_op.call(data[key])
               else
-                next_op.call(data)
+                # If data is not a hash, the path is broken. Propagate nil.
+                next_op.call(nil)
               end
-            }
-            
+            end
+
           when :enter_array
-            lambda { |data| 
+            lambda do |data|
+              # Only attempt to map if the data is an Array.
               if data.is_a?(Array)
                 data.map { |item| next_op.call(item) }
               else
-                next_op.call(data)
+                # If we expect an array but don't have one, the path is broken.
+                # The result of a map on a non-array should be nil.
+                nil
               end
-            }
-            
+            end
+
           when :flatten
-            # Flatten happens AFTER getting the data
-            lambda { |data| 
-              result = next_op.call(data)
-              result.is_a?(Array) ? result.flatten : result
-            }
+            # dont think this is the correct way
+            # Flatten should be explicit - for comparing and reducing ... i feel this is not the way
+            # lambda do |data|
+            #   result = next_op.call(data)
+            #   result.is_a?(Array) ? result.flatten : result
+            # end
           end
         end
 
         def identity_lambda
-          lambda { |data| data }
+          ->(data) { data }
         end
-
       end
     end
   end

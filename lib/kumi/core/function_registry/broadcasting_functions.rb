@@ -9,6 +9,19 @@ module Kumi
           {
             # ===== OBJECT ACCESS STRATEGIES =====
 
+            # Single array function: fn(:sum, items.coupons) -> apply function to each nested array
+            array_function_object: FunctionBuilder::Entry.new(
+              fn: lambda do |op_proc, nested_arrays|
+                nested_arrays.map do |inner_array|
+                  op_proc.call(inner_array)
+                end
+              end,
+              arity: 2,
+              param_types: [:any, Kumi::Core::Types.array(:any)],
+              return_type: Kumi::Core::Types.array(:any),
+              description: "Apply function to each nested array element"
+            ),
+
             # Array field vs scalar value: items.price > 100
             array_scalar_object: FunctionBuilder::Entry.new(
               fn: lambda do |op_proc, field_values, scalar_value|
@@ -59,6 +72,19 @@ module Kumi
             ),
 
             # ===== VECTOR ACCESS STRATEGIES =====
+
+            # Single array function on vectors: fn(:sum, matrix.rows) -> apply function to each row
+            array_function_vector: FunctionBuilder::Entry.new(
+              fn: lambda do |op_proc, nested_arrays|
+                nested_arrays.map do |inner_array|
+                  op_proc.call(inner_array)
+                end
+              end,
+              arity: 2,
+              param_types: [:any, Kumi::Core::Types.array(:any)],
+              return_type: Kumi::Core::Types.array(:any),
+              description: "Apply function to each nested vector element"
+            ),
 
             # Array elements vs scalar: matrix[i] > threshold
             array_scalar_vector: FunctionBuilder::Entry.new(

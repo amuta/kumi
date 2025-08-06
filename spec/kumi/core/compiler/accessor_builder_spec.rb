@@ -3,63 +3,114 @@
 require_relative "../../../../lib/kumi/core/compiler/accessor_builder"
 
 RSpec.describe Kumi::Core::Compiler::AccessorBuilder do
-  it "builds lambda functions from access plans" do
-    access_plans = {
-      "name" => {
-        structure: { type: :structure, path: [:name], operations: [{ type: :fetch, key: :name }] }
-      }
-    }
-
-    accessors = described_class.build(access_plans)
-
-    expect(accessors).to have_key("name:structure")
-    expect(accessors["name:structure"]).to be_a(Proc)
-    
-    # Test the accessor
-    result = accessors["name:structure"].call({ "name" => "John" })
-    expect(result).to eq("John")
-  end
-
-  it "builds element accessor that maps over arrays" do
-    access_plans = {
-      "items.price" => {
-        element: { 
-          type: :element, 
-          path: [:items, :price], 
-          operations: [
-            { type: :fetch, key: :items },
-            { type: :enter_array, access_mode: :object },
-            { type: :fetch, key: :price }
-          ]
+  context "for object-mode plans" do
+    let(:access_plans) do
+      {
+        "departments.teams.team_name" => {
+          element: {
+            type: :element,
+            path: %i[departments teams team_name],
+            operations: [
+              { type: :enter_object, key: :departments },
+              { type: :enter_array },
+              { type: :enter_object, key: :teams },
+              { type: :enter_array },
+              { type: :enter_object, key: :team_name }
+            ]
+          }
         }
       }
-    }
+    end
 
-    accessors = described_class.build(access_plans)
-    
-    test_data = { "items" => [{ "price" => 10.0 }, { "price" => 20.0 }] }
-    result = accessors["items.price:element"].call(test_data)
-    expect(result).to eq([10.0, 20.0])
+    let(:data) do
+      {
+        departments: [
+          { name: "Eng", teams: [{ team_name: "Backend" }, { team_name: "Frontend" }] },
+          { name: "Design", teams: [{ team_name: "UX" }] }
+        ]
+      }
+    end
+
+    it "builds an accessor that navigates nested objects and arrays" do
+      accessors = described_class.build(access_plans)
+      accessor = accessors["departments.teams.team_name:element"]
+      result = accessor.call(data)
+
+      expect(result).to eq([%w[Backend Frontend], ["UX"]])
+    end
   end
 
-  it "builds flattened accessor that flattens arrays" do
-    access_plans = {
-      "matrix" => {
-        flattened: { 
-          type: :flattened, 
-          path: [:matrix], 
-          operations: [
-            { type: :fetch, key: :matrix },
-            { type: :flatten }
-          ]
+  context "for element-mode (vector) plans" do
+    let(:access_plans) do
+      {
+        "table.rows.cell" => {
+          element: {
+            type: :element,
+            path: %i[table rows cell],
+            operations: [
+              { type: :enter_object, key: :table },
+              { type: :enter_array },
+              { type: :enter_array }
+            ]
+          }
         }
       }
-    }
+    end
 
-    accessors = described_class.build(access_plans)
-    
-    test_data = { "matrix" => [[1, 2], [3, 4]] }
-    result = accessors["matrix:flattened"].call(test_data)
-    expect(result).to eq([1, 2, 3, 4])
+    let(:data) do
+      {
+        table: [
+          [0],
+          [1, 2, 3],
+          [4, 5]
+        ]
+      }
+    end
+
+    it "builds an accessor that correctly enters nested arrays without fetching" do
+      accessors = described_class.build(access_plans)
+      accessor = accessors["table.rows.cell:element"]
+      result = accessor.call(data)
+
+      expect(result).to eq([[0], [1, 2, 3], [4, 5]])
+    end
+  end
+
+  context "when data is missing or nil" do
+    let(:access_plans) do
+      {
+        "departments.teams.team_name" => {
+          element: {
+            type: :element,
+            path: %i[departments teams team_name],
+            operations: [
+              { type: :enter_object, key: :departments },
+              { type: :enter_array },
+              { type: :enter_object, key: :teams },
+              { type: :enter_array },
+              { type: :enter_object, key: :team_name }
+            ]
+          }
+        }
+      }
+    end
+
+    let(:incomplete_data) do
+      {
+        departments: [
+          { name: "Eng", teams: [{ team_name: "Backend" }] },
+          { name: "Design" } # This department is missing the 'teams' key
+        ]
+      }
+    end
+
+    it "gracefully returns nil instead of raising an error" do
+      accessors = described_class.build(access_plans)
+      accessor = accessors["departments.teams.team_name:element"]
+      result = accessor.call(incomplete_data)
+
+      # The second department's result should be nil because 'teams' was missing.
+      expect(result).to eq([["Backend"], nil])
+    end
   end
 end

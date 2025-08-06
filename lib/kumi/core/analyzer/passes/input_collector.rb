@@ -18,6 +18,7 @@ module Kumi
                 next
               end
 
+              puts "Collecting metadata for input field :#{field_decl.name}" if ENV["DEBUG_COMPILER"]
               name = field_decl.name
               existing = input_meta[name]
 
@@ -31,6 +32,7 @@ module Kumi
               end
             end
 
+            puts "Collected input metadata: #{input_meta.inspect}" if ENV["DEBUG_COMPILER"]
             state.with(:inputs, freeze_nested_hash(input_meta))
           end
 
