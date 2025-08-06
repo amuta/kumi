@@ -53,7 +53,7 @@ module Kumi
             return if types.nil? || (signature[:arity].negative? && node.args.empty?)
 
             # Skip type checking for vectorized operations
-            broadcast_meta = get_state(:broadcasts, required: false)
+            broadcast_meta = get_state(:detector_metadata, required: false)
             return if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
 
             node.args.each_with_index do |arg, i|
@@ -61,6 +61,23 @@ module Kumi
             end
           end
 
+          def is_part_of_vectorized_operation?(node, broadcast_meta)
+            # Check if this operation involves array operands that would trigger broadcasting
+            node.args.any? do |arg|
+              case arg
+              when Kumi::Syntax::DeclarationReference
+                # Check if this declaration reference produces an array
+                decl_meta = broadcast_meta[arg.name]
+                decl_meta && (decl_meta[:operation_type] == :vectorized || decl_meta[:operation_type] == :array_reference)
+              when Kumi::Syntax::InputElementReference
+                # Input element references are always array operations if they access nested fields
+                arg.path && arg.path.length > 1
+              else
+                false
+              end
+            end
+          end
+          
           def is_part_of_vectorized_operation?(node, broadcast_meta)
             # Check if this node is part of a vectorized or reduction operation
             # This is a simplified check - in a real implementation we'd need to track context

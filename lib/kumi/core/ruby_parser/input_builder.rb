@@ -101,7 +101,7 @@ module Kumi
           children, _, using_elements = collect_array_children(&block)
 
           # Create the InputDeclaration with children and access_mode
-          access_mode = using_elements ? :element : :object
+          access_mode = using_elements ? :vector : :object
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,

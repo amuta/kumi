@@ -1,30 +1,12 @@
 # frozen_string_literal: true
 
 module Kumi
-  # Compiles an analyzed schema into executable lambdas
-  class Compiler < Core::CompilerBase
-    include Kumi::Core::Compiler::ReferenceCompiler
-    include Kumi::Core::Compiler::PathTraversalCompiler
-    include Kumi::Core::Compiler::ExpressionCompiler
-    include Kumi::Core::Compiler::FunctionInvoker
-
+  # Compiles an analyzed schema into executable lambdas using registry-based broadcasting
+  class Compiler
     def self.compile(schema, analyzer:)
-      new(schema, analyzer).compile
-    end
-
-    def initialize(schema, analyzer)
-      super
-      @bindings = {}
-    end
-
-    def compile
-      build_index
-      @analysis.topo_order.each do |name|
-        decl = @index[name] or raise("Unknown binding #{name}")
-        compile_declaration(decl)
-      end
-
-      Core::CompiledSchema.new(@bindings.freeze)
+      # Use the main Core::RubyCompiler directly
+      puts "DEBUG: Using main Core::RubyCompiler with broadcast metadata" if ENV["DEBUG_COMPILER"]
+      Core::RubyCompiler.new(schema, analyzer).compile
     end
   end
 end

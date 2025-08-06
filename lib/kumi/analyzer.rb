@@ -12,7 +12,7 @@ module Kumi
       Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
       Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::NewBroadcastDetector, # 8. Detects which operations should be broadcast over arrays (must run before type inference).
+      Core::Analyzer::Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays (must run before type inference).
       Core::Analyzer::Passes::TypeInferencer,                  # 9. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 10. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::TypeChecker                      # 11. Validates types using inferred information.

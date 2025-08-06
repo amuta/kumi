@@ -2,7 +2,7 @@
 
 module Kumi
   module Core
-    # Base compiler class with shared compilation logic between Ruby and JS compilers
+    # Base compiler interface with shared compilation logic between Ruby and JS compilers
     class CompilerBase
       # Map node classes to compiler methods
       DISPATCH = {

@@ -4,7 +4,7 @@ module Kumi
   module Js
     # JavaScript compiler that extends the base Kumi compiler
     # Outputs JavaScript code instead of Ruby lambdas
-    class Compiler < Kumi::Core::CompilerBase
+    class Compiler < Core::CompilerBase
       # JavaScript expression compilers - same logic, different output format
       module JSExprCompilers
         def compile_literal(expr)

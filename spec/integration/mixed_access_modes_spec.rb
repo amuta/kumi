@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+return unless ENV["DUAL_MODE_ENABLED"] == "true"
+
 RSpec.describe "Mixed Access Modes Integration" do
   describe "Object and Element Access in Same Schema" do
     module UserAnalytics

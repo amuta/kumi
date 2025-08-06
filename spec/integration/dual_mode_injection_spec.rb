@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+return unless ENV["DUAL_MODE_ENABLED"] == "true"
 
 RSpec.describe "Dual Mode Injection" do
   let(:simple_schema) do

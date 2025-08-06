@@ -2,6 +2,7 @@
 
 module Kumi
   module Core
+    # Compiled schema that works with direct {name: proc} bindings
     class CompiledSchema
       attr_reader :bindings
 
@@ -21,16 +22,12 @@ module Kumi
         memo = ctx.instance_variable_get(:@__schema_cache__)
         return memo[key] if memo&.key?(key)
 
-        value = @bindings[key][1].call(ctx)
+        value = @bindings[key].call(ctx)
         memo[key] = value if memo
         value
       end
 
       private
-
-      def hash_like?(obj)
-        obj.respond_to?(:key?) && obj.respond_to?(:[])
-      end
 
       def validate_keys(keys)
         unknown_keys = keys - @bindings.keys
