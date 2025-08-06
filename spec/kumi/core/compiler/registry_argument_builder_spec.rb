@@ -4,7 +4,7 @@ require_relative "../../../../lib/kumi/core/compiler/registry_argument_builder"
 
 RSpec.describe Kumi::Core::Compiler::RegistryArgumentBuilder do
   let(:mock_expr) { double("expr", fn_name: :multiply) }
-  let(:mock_ctx) { double("ctx", ctx: test_data) }
+  let(:mock_ctx) { test_data }
   let(:test_data) do
     {
       "items" => [

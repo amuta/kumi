@@ -16,13 +16,13 @@ RSpec.describe Kumi::Core::Compiler::ExpressionBuilder do
   let(:builder) { described_class.new(bindings) }
   
   let(:test_ctx) do
-    double("ctx", ctx: {
+    {
       "name" => "John",
       "age" => 30,
       "profile" => {
         "email" => "john@example.com"
       }
-    })
+    }
   end
 
   # Mock registry functions
@@ -55,7 +55,7 @@ RSpec.describe Kumi::Core::Compiler::ExpressionBuilder do
       
       it "supports symbol fallback for field access" do
         # Test that both string and symbol keys work
-        symbol_ctx = double("ctx", ctx: { name: "Jane" })
+        symbol_ctx = { name: "Jane" }
         compiled = builder.compile(field_expr)
         
         expect(compiled.call(symbol_ctx)).to eq("Jane")
@@ -254,17 +254,13 @@ RSpec.describe Kumi::Core::Compiler::ExpressionBuilder do
   end
   
   describe "context handling" do
-    it "handles both direct hash and wrapper contexts" do
+    it "handles direct hash contexts" do
       # Test with direct hash context
       direct_ctx = { "name" => "Direct" }
       field_expr = Kumi::Syntax::InputReference.new(:name)
       compiled = builder.compile(field_expr)
       
       expect(compiled.call(direct_ctx)).to eq("Direct")
-      
-      # Test with wrapped context (ctx.ctx pattern)
-      wrapped_ctx = double("wrapped", ctx: { "name" => "Wrapped" })
-      expect(compiled.call(wrapped_ctx)).to eq("Wrapped")
     end
   end
 end

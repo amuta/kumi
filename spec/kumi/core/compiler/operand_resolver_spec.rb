@@ -10,13 +10,13 @@ RSpec.describe Kumi::Core::Compiler::OperandResolver do
   let(:resolver) { described_class.new(bindings, accessors) }
   
   let(:test_ctx) do
-    double("ctx", ctx: {
+    {
       "items" => [
         { "price" => 100.0 },
         { "price" => 200.0 }
       ],
       "tax_rate" => 0.1
-    })
+    }
   end
   
   describe "#resolve_operand" do

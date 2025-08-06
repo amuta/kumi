@@ -26,6 +26,8 @@ module Kumi
             resolve_input_field_operand(source)
           when :literal
             resolve_literal_operand(source)
+          when :nested_call
+            resolve_nested_call_operand(source, operand)
           else
             raise "Unknown operand source kind: #{source[:kind]}"
           end
@@ -50,7 +52,7 @@ module Kumi
           raise "Missing accessor for: #{element_accessor_key}" unless resolved_accessor
           
           # Return pure lambda - just calls pre-resolved accessor
-          lambda { |ctx| resolved_accessor.call(ctx.respond_to?(:ctx) ? ctx.ctx : ctx) }
+          lambda { |ctx| resolved_accessor.call(ctx) }
         end
         
         # Pre-resolve input field access - pure field extraction
@@ -60,8 +62,7 @@ module Kumi
           
           # Return pure lambda - just extracts field (with symbol fallback)
           lambda do |ctx|
-            base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-            base_ctx[field_name_str] || base_ctx[field_name_sym]
+            ctx[field_name_str] || ctx[field_name_sym]
           end
         end
         
@@ -71,6 +72,13 @@ module Kumi
           
           # Return pure lambda - just returns pre-resolved value
           lambda { |_ctx| resolved_value }
+        end
+        
+        # Nested calls should use fallback path - accessor system handles them
+        def resolve_nested_call_operand(_source, _operand)
+          # OperandResolver doesn't handle nested calls - they should use fallback extraction
+          # which delegates to the accessor system that already handles complex patterns
+          raise "Nested calls should use fallback path, not OperandResolver"
         end
       end
     end

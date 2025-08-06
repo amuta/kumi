@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 module Kumi
   module Core
     # Clean compiler that uses broadcast detector metadata for pure translation
@@ -39,22 +37,7 @@ module Kumi
         access_plans = Core::Compiler::AccessorPlanner.plan(input_metadata)
         @accessors = Core::Compiler::AccessorBuilder.build(access_plans)
 
-        # Build argument extractors for registry functions
-        @arg_extractors = build_argument_extractors
-
         puts "DEBUG: Built accessors: #{@accessors.keys}" if ENV["DEBUG_COMPILER"]
-      end
-
-      def build_argument_extractors
-        {
-          array_scalar_object: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:array_scalar_object),
-          element_wise_object: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:element_wise_object),
-          parent_child_object: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:parent_child_object),
-          array_scalar_vector: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:array_scalar_vector),
-          element_wise_vector: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:element_wise_vector),
-          parent_child_vector: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:parent_child_vector),
-          simple_reduction: Core::Compiler::RegistryArgumentBuilder.build_argument_extractor(:simple_reduction)
-        }
       end
 
       def compile_declaration(name, declaration)
@@ -80,58 +63,73 @@ module Kumi
 
       def compile_vectorized_operation(expr, metadata)
         strategy = metadata[:strategy]
-        registry_call_info = metadata[:registry_call_info]
+        operands = metadata[:operands] || []
 
-        puts "DEBUG: Vectorized strategy: #{strategy}" if ENV["DEBUG_COMPILER"]
-        puts "DEBUG: Registry call info: #{registry_call_info.inspect}" if ENV["DEBUG_COMPILER"]
-
-        # Get the registry function for this strategy
+        # Pre-resolve all operands using OperandResolver for pure lambda generation
+        operand_resolver = Core::Compiler::OperandResolver.new(@bindings, @accessors)
+        
+        # Pre-resolve the operation function and registry function
+        operation_fn = Kumi::Registry.fetch(expr.fn_name)
         registry_fn = Kumi::Registry.fetch(strategy)
 
-        # Pure translation from metadata to registry call
-        lambda do |ctx|
-          args = build_registry_args(expr, metadata, ctx)
-          puts "DEBUG: Calling #{strategy} with args: #{args.map(&:class)}" if ENV["DEBUG_COMPILER"]
+        # Pre-resolve all operands into pure extractors
+        resolved_extractors = operands.map do |operand|
+          if operand[:source][:kind] == :unknown || operand[:source][:kind] == :nested_call
+            # Fallback for complex operands - let accessor system handle them
+            lambda { |ctx| extract_operand_fallback(ctx, operand) }
+          else
+            operand_resolver.resolve_operand(operand)
+          end
+        end
 
-          result = registry_fn.call(*args)
-          puts "DEBUG: #{strategy} result: #{result.inspect}" if ENV["DEBUG_COMPILER"]
-          result
+        # Pre-determine argument structure at compile time based on strategy
+        arg_builder = build_strategy_arg_builder(strategy, operation_fn, resolved_extractors)
+
+        # Generate pure lambda with pre-resolved argument builder
+        lambda do |ctx|
+          arg_builder.call(ctx)
         end
       end
 
-      def build_registry_args(expr, metadata, ctx)
-        strategy = metadata[:strategy]
-        operands = metadata[:operands] || []
-
-        # Use composed argument extractor
-        arg_extractor = @arg_extractors[strategy]
-        arg_extractor.call(expr, operands, ctx, @bindings, @accessors)
-      end
-
       def compile_reduction_operation(_expr, metadata)
-        puts "DEBUG: Reduction metadata: #{metadata.inspect}" if ENV["DEBUG_COMPILER"]
+        puts "DEBUG: Reduction metadata for #{metadata[:function]}: #{metadata.inspect}" if ENV["DEBUG_COMPILER"]
 
-        # Convert reduction metadata to format expected by RegistryArgumentBuilder
-        # Add flattening info to the operand so the extractor can handle it
+        # Pre-resolve the operand using OperandResolver for pure lambda generation
         operand_with_flattening = metadata[:input_source].dup
         operand_with_flattening[:requires_flattening] = metadata[:requires_flattening]
+        
+        # Try to pre-resolve the operand using OperandResolver
+        operand_resolver = Core::Compiler::OperandResolver.new(@bindings, @accessors)
+        
+        # Check if this is a resolvable operand or if we need to fall back to runtime
+        if operand_with_flattening[:source][:kind] == :unknown || operand_with_flattening[:source][:kind] == :nested_call
+          # Fallback: pre-resolve function, use runtime for complex operand extraction
+          reduce_fn = Kumi::Registry.fetch(metadata[:function])
+          
+          return lambda do |ctx|
+            # Extract input data using the existing runtime extraction method
+            input_data = extract_reduction_input(ctx, operand_with_flattening)
+            reduce_fn.call(input_data)
+          end
+        end
+        
+        resolved_extractor = operand_resolver.resolve_operand(operand_with_flattening)
+        
+        # Add flattening wrapper if needed
+        if metadata[:requires_flattening]
+          final_extractor = lambda { |ctx| resolved_extractor.call(ctx).flatten }
+        else
+          final_extractor = resolved_extractor
+        end
 
-        operands = [operand_with_flattening]
+        # Get the reduction function at compile time
+        reduce_fn = Kumi::Registry.fetch(metadata[:function])
 
-        # Use composed argument extractor for pure lambda generation
-        arg_extractor = @arg_extractors[:simple_reduction]
-
+        # Generate pure lambda with no runtime logic
         lambda do |ctx|
-          # Build a dummy expr object with fn_name for the extractor
-          # This is needed because the reduction_function extractor expects expr.fn_name
-          dummy_expr = OpenStruct.new(fn_name: metadata[:function])
-          args = arg_extractor.call(dummy_expr, operands, ctx, @bindings, @accessors)
-          puts "DEBUG: Reduction calling with args: #{args.map(&:class)}" if ENV["DEBUG_COMPILER"]
-
-          # Apply reduction: args[0] is the reduce function, args[1] is the input data
-          reduce_fn, input_data = args
+          input_data = final_extractor.call(ctx)
           result = reduce_fn.call(input_data)
-
+          
           puts "DEBUG: Reduction result: #{result.inspect}" if ENV["DEBUG_COMPILER"]
           result
         end
@@ -141,8 +139,6 @@ module Kumi
         array_source = metadata[:array_source]
 
         lambda do |ctx|
-          base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-
           # Array references should use element accessors for field extraction
           raise "Array reference without path: #{array_source}" unless array_source[:path]
 
@@ -153,18 +149,140 @@ module Kumi
             raise "Missing accessor for #{path_key}:element - accessor system should have created this"
           end
 
-          @accessors[element_accessor_key].call(base_ctx)
+          @accessors[element_accessor_key].call(ctx)
         end
       end
 
       def compile_scalar_expression(expr)
-        # Use ExpressionBuilder for pure expression compilation
         expression_builder.compile(expr)
       end
 
       def expression_builder
         @expression_builder ||= Core::Compiler::ExpressionBuilder.new(@bindings)
       end
+
+      # Fallback runtime extraction for complex operands that can't be pre-resolved
+      def extract_reduction_input(ctx, operand)
+        extract_operand_fallback(ctx, operand, flattening: operand[:requires_flattening])
+      end
+
+      def extract_operand_fallback(ctx, operand, flattening: false)
+        source = operand[:source]
+        
+        input_data = case source[:kind]
+                     when :declaration
+                       binding = @bindings[source[:name]]
+                       binding&.call(ctx)
+                     when :input_element
+                       path = source[:path]
+                       path_key = path.join(".")
+                       
+                       # Use flattened accessor if flattening is required
+                       accessor_type = flattening ? "flattened" : "element"
+                       accessor_key = "#{path_key}:#{accessor_type}"
+                       
+                       puts "DEBUG: extract_operand_fallback - path: #{path_key}, flattening: #{flattening}, accessor_key: #{accessor_key}" if ENV["DEBUG_COMPILER"]
+                       
+                       result = @accessors[accessor_key]&.call(ctx)
+                       puts "DEBUG: extract_operand_fallback - result: #{result.inspect}" if ENV["DEBUG_COMPILER"]
+                       result
+                     when :input_field
+                       field_name = source[:name]
+                       ctx[field_name.to_s] || ctx[field_name.to_sym]
+                     when :literal
+                       source[:value]
+                     when :nested_call
+                       # Simple nested call handling - compile the nested operation and execute it
+                       nested_metadata = source[:metadata]
+                       compile_nested_operation(nested_metadata, ctx)
+                     else
+                       raise "Unknown operand source: #{source[:kind]}"
+                     end
+        
+        # Apply flattening if needed
+        if flattening
+          input_data.flatten
+        else
+          input_data
+        end
+      end
+
+      # Pre-build argument structure at compile time based on strategy
+      # Returns a lambda that builds arguments when called with context
+      def build_strategy_arg_builder(strategy, operation_fn, resolved_extractors)
+        # Pre-resolve the registry function at compile time
+        registry_fn = Kumi::Registry.fetch(strategy)
+        
+        case strategy
+        when :array_scalar_object, :array_scalar_vector
+          # Pre-resolved structure: [operation_proc, array_values, scalar_value]
+          array_extractor = resolved_extractors[0]
+          scalar_extractor = resolved_extractors[1]
+          
+          lambda do |ctx|
+            array_values = array_extractor.call(ctx)
+            scalar_value = scalar_extractor.call(ctx)
+            registry_fn.call(operation_fn, array_values, scalar_value)
+          end
+          
+        when :element_wise_object, :element_wise_vector
+          # Pre-resolved structure: [operation_proc, array_values1, array_values2]
+          array1_extractor = resolved_extractors[0]
+          array2_extractor = resolved_extractors[1]
+          
+          lambda do |ctx|
+            array1_values = array1_extractor.call(ctx)
+            array2_values = array2_extractor.call(ctx)
+            registry_fn.call(operation_fn, array1_values, array2_values)
+          end
+          
+        when :parent_child_vector
+          # Pre-resolved structure: [operation_proc, nested_array, parent_array]
+          nested_extractor = resolved_extractors[0]
+          parent_extractor = resolved_extractors[1]
+          
+          lambda do |ctx|
+            nested_array = nested_extractor.call(ctx)
+            parent_array = parent_extractor.call(ctx)
+            registry_fn.call(operation_fn, nested_array, parent_array)
+          end
+          
+        when :parent_child_object
+          # More complex case - needs metadata for field extraction
+          # For now, delegate to fallback for this complex strategy
+          lambda do |ctx|
+            # Use the fallback runtime extraction for parent_child_object
+            # This strategy needs special field name handling
+            operand_values = resolved_extractors.map { |extractor| extractor.call(ctx) }
+            
+            # parent_child_object needs: [operation_proc, parent_array, child_field, child_value_field, parent_value_field]
+            # This requires metadata that we don't have in the current structure
+            raise "parent_child_object strategy needs metadata-driven implementation"
+          end
+          
+        else
+          raise "Unknown strategy: #{strategy}"
+        end
+      end
+
+      # Compile nested operation - just execute the inner operation and return its result
+      def compile_nested_operation(metadata, ctx)
+        case metadata[:operation_type]
+        when :reduction
+          # Function composition: compile inner operation and apply outer function
+          reduce_fn = Kumi::Registry.fetch(metadata[:function])
+          input_operand = metadata[:input_source]
+          
+          # Recursively extract the input (which may itself be nested)
+          input_data = extract_operand_fallback(ctx, input_operand, flattening: metadata[:requires_flattening])
+          
+          # Apply the function to the composed result
+          reduce_fn.call(input_data)
+        else
+          raise "Nested operation type #{metadata[:operation_type]} not supported yet"
+        end
+      end
+
     end
   end
 end

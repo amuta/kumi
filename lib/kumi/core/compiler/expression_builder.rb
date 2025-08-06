@@ -70,9 +70,7 @@ module Kumi
         def compile_input_element_reference(expr)
           path = expr.path
           lambda do |ctx|
-            base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-            
-            result = base_ctx
+            result = ctx
             path.each do |segment|
               if result.respond_to?(:[])
                 key = segment.to_s
@@ -90,11 +88,9 @@ module Kumi
         def compile_input_field_reference(expr)
           name = expr.name
           lambda do |ctx|
-            base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-            
-            if base_ctx.respond_to?(:[])
+            if ctx.respond_to?(:[])
               key = name.to_s
-              base_ctx[key] || base_ctx[name]
+              ctx[key] || ctx[name]
             else
               nil
             end

@@ -97,9 +97,19 @@ module Kumi
             end,
             
             reduction_input: lambda do |_expr, operands, ctx, bindings, accessors, _index|
-              # Use the first (and only) operand for simple reductions
+              # Use pre-resolved operand resolver for pure lambda generation
               operand = operands[0]
-              extract_reduction_input(ctx, operand, bindings, accessors)
+              
+              # Check if we already have a pre-resolved extractor for this operand
+              if operand[:_resolved_extractor]
+                # Use pre-resolved extractor - no runtime logic
+                result = operand[:_resolved_extractor].call(ctx)
+              else
+                # Fallback to runtime resolution (should be avoided)
+                result = extract_reduction_input(ctx, operand, bindings, accessors)
+              end
+              
+              result
             end
           }
         end
@@ -107,7 +117,6 @@ module Kumi
         # Context extraction methods
         def extract_array_from_context(ctx, operand, bindings, accessors)
           source = operand[:source]
-          base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
           
           case source[:kind]
           when :declaration
@@ -119,7 +128,7 @@ module Kumi
             element_accessor_key = "#{path_key}:element"
             
             if accessors.key?(element_accessor_key)
-              accessors[element_accessor_key].call(base_ctx)
+              accessors[element_accessor_key].call(ctx)
             else
               raise "Missing accessor for #{path_key}:element - accessor system should have created this"
             end
@@ -135,8 +144,7 @@ module Kumi
           when :literal
             source[:value]
           when :input_field
-            base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-            base_ctx[source[:name].to_s] || base_ctx[source[:name].to_sym]
+            ctx[source[:name].to_s] || ctx[source[:name].to_sym]
           when :declaration
             binding = bindings[source[:name]]
             binding&.call(ctx)
@@ -155,8 +163,7 @@ module Kumi
                          extract_array_from_context(ctx, operand, bindings, accessors)
                        when :input_field
                          field_name = operand[:source][:name]
-                         base_ctx = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
-                         base_ctx[field_name.to_s] || base_ctx[field_name.to_sym]
+                         ctx[field_name.to_s] || ctx[field_name.to_sym]
                        when :nested_call
                          # For nested calls, we need to compile and execute them
                          # This is a more complex case that may need special handling

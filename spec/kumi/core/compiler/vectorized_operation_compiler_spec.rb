@@ -11,13 +11,13 @@ RSpec.describe Kumi::Core::Compiler::VectorizedOperationCompiler do
   let(:compiler) { described_class.new(bindings, accessors) }
   
   let(:test_ctx) do
-    double("ctx", ctx: {
+    {
       "items" => [
         { "price" => 100.0 },
         { "price" => 200.0 }
       ],
       "tax_rate" => 0.1
-    })
+    }
   end
   
   let(:mock_expr) { double("expr", fn_name: :multiply) }
