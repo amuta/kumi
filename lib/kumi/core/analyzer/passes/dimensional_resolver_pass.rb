@@ -13,7 +13,7 @@ module Kumi
 
             dimensional_contexts = DimensionalResolver.analyze_all(dependency_graph, input_metadata)
 
-            state.set(:dimensional_contexts, dimensional_contexts)
+            state.with(:dimensional_contexts, dimensional_contexts.freeze)
           end
         end
       end
