@@ -2,10 +2,18 @@
 
 require "spec_helper"
 
+# Load all the sugar schema modules
+require_relative "../sugar_arithmetic_spec"
+require_relative "../sugar_comparison_spec"
+require_relative "../sugar_literal_lifting_spec"
+require_relative "../sugar_bare_identifiers_spec"
+require_relative "../sugar_string_ops_spec"
+require_relative "../sugar_mixed_chaining_spec"
+
 RSpec.describe "Kumi::Core::RubyParser::Sugar" do
   describe "arithmetic operators on expressions" do
     it "creates correct CallExpression nodes for arithmetic operators" do
-      runner = run_sugar_schema(:arithmetic, a: 10.0, b: 3.0, x: 7, y: 2)
+      runner = ArithmeticSugar.from(a: 10.0, b: 3.0, x: 7, y: 2)
 
       expect(runner[:sum]).to eq(13.0)
       expect(runner[:difference]).to eq(7.0)
@@ -19,7 +27,7 @@ RSpec.describe "Kumi::Core::RubyParser::Sugar" do
 
   describe "comparison operators on expressions" do
     it "creates correct CallExpression nodes for comparison operators" do
-      runner = run_sugar_schema(:comparison, age: 25, score: 95.5)
+      runner = ComparisonSugar.from(age: 25, score: 95.5)
 
       expect(runner[:adult]).to be true
       expect(runner[:minor]).to be false
@@ -33,7 +41,7 @@ RSpec.describe "Kumi::Core::RubyParser::Sugar" do
 
   describe "literal lifting - numeric operators" do
     it "automatically lifts numeric literals to Literal nodes" do
-      runner = run_sugar_schema(:literal_lifting, value: 7.5, count: 7)
+      runner = LiteralLiftingSugar.from(value: 7.5, count: 7)
 
       # Integer arithmetic
       expect(runner[:int_plus]).to eq(12)
@@ -52,7 +60,7 @@ RSpec.describe "Kumi::Core::RubyParser::Sugar" do
 
   describe "bare identifier syntax" do
     it "supports operators on bare identifiers without ref()" do
-      runner = run_sugar_schema(:bare_identifiers, income: 75_000.0, age: 30)
+      runner = BareIdentifiersSugar.from(income: 75_000.0, age: 30)
 
       expect(runner[:net_income]).to eq(60_000.0)
       expect(runner[:double_age]).to eq(60)
@@ -68,7 +76,7 @@ RSpec.describe "Kumi::Core::RubyParser::Sugar" do
 
   describe "string operations" do
     it "supports string equality operations" do
-      runner = run_sugar_schema(:string_ops, name: "John")
+      runner = StringOpsSugar.from(name: "John")
 
       expect(runner[:is_john]).to be true
       expect(runner[:not_jane]).to be true
@@ -78,7 +86,7 @@ RSpec.describe "Kumi::Core::RubyParser::Sugar" do
 
   describe "mixed expression chaining" do
     it "handles complex expression chaining correctly" do
-      runner = run_sugar_schema(:mixed_chaining, base_salary: 70_000.0, bonus_percent: 15.0, years_experience: 8)
+      runner = MixedChainingSugar.from(base_salary: 70_000.0, bonus_percent: 15.0, years_experience: 8)
 
       expect(runner[:bonus_amount]).to eq(10_500.0)
       expect(runner[:total_salary]).to eq(80_500.0)
