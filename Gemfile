@@ -25,5 +25,6 @@ gem "parslet", "~> 2.0"
 gem "simplecov", "~> 0.21"
 
 group :development do
+  gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"
 end
