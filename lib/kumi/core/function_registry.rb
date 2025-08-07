@@ -97,7 +97,8 @@ module Kumi
           arity: entry.arity,
           param_types: entry.param_types,
           return_type: entry.return_type,
-          description: entry.description
+          description: entry.description,
+          reducer: entry.reducer
         }
       end
 
