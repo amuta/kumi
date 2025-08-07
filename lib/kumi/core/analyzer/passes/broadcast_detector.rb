@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../cascade_analyzer'
+
 module Kumi
   module Core
     module Analyzer
@@ -10,6 +12,7 @@ module Kumi
             @schema = schema
             @state = state
             @metadata = {}
+            @cascade_analyzer = CascadeAnalysis.new(self)
           end
 
           def run(errors)
@@ -141,7 +144,7 @@ module Kumi
             case operand
             when Kumi::Syntax::InputElementReference
               # Use input metadata to determine actual type
-              return { type: :scalar, source: { kind: :unknown } } if operand.path.nil? || operand.path.empty?
+              raise "InputElementReference has empty path: #{operand.inspect}" if operand.path.nil? || operand.path.empty?
 
               root_field = operand.path.first
               input_metadata = @state[:inputs] || {}
@@ -200,35 +203,28 @@ module Kumi
                 }
               }
             when Kumi::Syntax::CallExpression
-              # Recursive analysis of inline call expression
+              # Recursively analyze to determine operand type, but don't create wrapper metadata
               nested_metadata = analyze_call_expression(operand)
-
-              # The recursive analysis tells us exactly what this produces
               operand_type = case nested_metadata[:operation_type]
                              when :element_wise, :array_reference
                                :source
                              when :scalar
-                               :scalar
+                               :scalar  
                              when :reduction
-                               # TODO: Some reductions produce scalars, others produce sources
-                               # We should use the function signature to determine this
                                :source
                              else
                                :scalar
                              end
-
+              
               {
                 type: operand_type,
                 source: {
-                  kind: :computed_result,
-                  operation_metadata: nested_metadata
+                  kind: :nested_call,
+                  expression: operand
                 }
               }
             else
-              {
-                type: :unknown,
-                source: { kind: :unknown }
-              }
+              raise "Unsupported operand type in broadcast detector: #{operand.class} - #{operand.inspect}"
             end
           end
 
@@ -296,9 +292,7 @@ module Kumi
           end
 
           def analyze_cascade_expression(expr)
-            # For now, mark as scalar - cascade analysis is complex
-            # TODO: Implement proper cascade analysis
-            { operation_type: :scalar }
+            @cascade_analyzer.analyze_cascade_expression(expr)
           end
 
           def analyze_array_reference(expr)
@@ -376,6 +370,11 @@ module Kumi
             is_nested_path = input_operand.dig(:source, :kind) == :input_element
 
             is_element_mode && is_nested_path
+          end
+
+          # Helper method for cascade analyzer to analyze call expressions
+          def analyze_call_expression_for_cascade(expr)
+            analyze_call_expression(expr)
           end
         end
       end

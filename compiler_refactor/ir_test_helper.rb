@@ -98,4 +98,9 @@ module IRTestHelper
     
     actual_results
   end
+
+  def self.get_analysis(schema_module)
+    ast = schema_module.__syntax_tree__
+    Kumi::Analyzer.analyze!(ast)
+  end
 end

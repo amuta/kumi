@@ -19,7 +19,7 @@ module BroadcastChainTest
     value :doubled_plus_one, doubled + 1.0
 
     # Inline nested expression
-    value :inline_nested, (input.items.value * 2.0) + 1.0
+    value :chained_functions, (input.items.value * 2.0) + 1.0
   end
 end
 
@@ -34,7 +34,7 @@ begin
   detector_metadata = analysis_result.state[:detector_metadata]
 
   puts "\nBroadcast detector metadata:"
-  %i[doubled doubled_plus_one inline_nested].each do |name|
+  %i[doubled doubled_plus_one chained_functions].each do |name|
     meta = detector_metadata[name]
     puts "\n#{name}:"
     puts "  operation_type: #{meta[:operation_type]}"
@@ -75,7 +75,7 @@ begin
   test_data = { items: [{ value: 10.0 }, { value: 20.0 }] }
   runner = result[:compiled_schema]
 
-  %i[doubled doubled_plus_one inline_nested].each do |name|
+  %i[doubled doubled_plus_one chained_functions].each do |name|
     value = runner.bindings[name].call(test_data)
     puts "#{name}: #{value.inspect}"
   rescue StandardError => e

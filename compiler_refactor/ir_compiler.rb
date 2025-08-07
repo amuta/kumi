@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'lambda_factory'
+require_relative 'cascade_lambda_factory'
+
 module Kumi
   module Core
     # Clean IR compiler using accessor-based approach
@@ -44,13 +47,16 @@ module Kumi
         when :call_expression
           compile_call_expression(compilation)
         when :cascade_expression
-          compile_cascade_expression(compilation)  
+          compile_cascade_with_factory(compilation, instruction)  
         when :array_expression
           compile_array_expression(compilation)
         when :literal
           compile_literal(compilation)
         when :declaration_reference
           compile_declaration_reference(compilation)
+        when :element_wise_operation
+          # TAC-generated temp instructions can have element_wise_operation type in scalar context
+          compile_element_wise_with_accessors(compilation)
         else
           raise "Unknown scalar compilation type: #{compilation[:type]}"
         end
@@ -63,6 +69,8 @@ module Kumi
         case compilation[:type]
         when :element_wise_operation
           compile_element_wise_with_accessors(compilation)
+        when :cascade_expression  # Element-wise cascades
+          compile_cascade_with_factory(compilation, instruction)
         when :call_expression  # TAC-generated simple calls
           compile_call_expression(compilation)
         else
@@ -72,16 +80,17 @@ module Kumi
 
       # Simple element-wise operations using pre-verified dimensions
       def compile_element_wise_with_accessors(compilation)
-        operation_fn = Kumi::Registry.fetch(compilation[:function])
-        operand_compilers = compilation[:operands].map { |operand| compile_operand(operand) }
-        
-        lambda do |ctx|
-          operand_values = operand_compilers.map { |compiler| compiler.call(ctx) }
-          # Broadcast detector already verified dimension compatibility
-          # Just zip and map - operation_fn always gets scalars
-          operand_values.first.zip(*operand_values[1..-1]).map { |vals| operation_fn.call(*vals) }
-        end
+        factory = Core::LambdaFactory.new(@ir, @bindings)
+        factory.build_element_wise_lambda(compilation)
       end
+
+      # All cascades: use factory for clean decomposed approach
+      def compile_cascade_with_factory(compilation, instruction = nil)
+        factory = Core::CascadeLambdaFactory.new(@ir, @bindings, self)
+        factory.build_cascade_lambda(compilation, instruction)
+      end
+
+      private
 
 
       # Simple array reference - just use the accessor

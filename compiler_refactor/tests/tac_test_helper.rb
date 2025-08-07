@@ -2,7 +2,7 @@
 
 require_relative "../../lib/kumi"
 require_relative "../tac_ir_generator"
-require_relative "../tac_ir_compiler"
+require_relative "../ir_compiler"
 
 module TACTestHelper
   def self.compile_schema(schema_module, debug: false)
@@ -26,17 +26,26 @@ module TACTestHelper
         if instruction[:temp]
           puts "     [TEMP]"
         end
-        instruction[:operands].each_with_index do |operand, j|
-          puts "     [#{j}] #{operand[:type]}"
+        if instruction[:compilation] && instruction[:compilation][:operands]
+          instruction[:compilation][:operands].each_with_index do |operand, j|
+            puts "     [#{j}] #{operand[:type]}"
+          end
         end
       end
+      
+      puts "\n=== Full TAC IR Structure ==="
+      require 'pp'
+      pp tac_ir
     end
     
     puts "=== TAC Compilation ===" if debug
-    tac_compiler = Kumi::Core::TACIRCompiler.new(tac_ir)
+    tac_compiler = Kumi::Core::IRCompiler.new(tac_ir)
     compiled_schema = tac_compiler.compile
     
-    puts "Compiled successfully!" if debug
+    if debug
+      puts "Compiled successfully!"
+      puts "Created bindings: #{compiled_schema.bindings.keys.inspect}"
+    end
     
     {
       compiled_schema: compiled_schema,
