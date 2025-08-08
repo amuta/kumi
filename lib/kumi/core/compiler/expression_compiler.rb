@@ -82,14 +82,6 @@ module Kumi
               res_results = pairs.map { |_cond, res| res.call(ctx) }
               base_result = base_fn&.call(ctx)
 
-              if ENV["DEBUG_CASCADE"]
-                puts "DEBUG: Vectorized cascade evaluation for #{current_decl_name}:"
-                cond_results.each_with_index { |cr, i| puts "  cond_results[#{i}]: #{cr.inspect}" }
-                res_results.each_with_index { |rr, i| puts "  res_results[#{i}]: #{rr.inspect}" }
-                puts "  base_result: #{base_result.inspect}"
-                puts "  Pre-computed cascade_info: #{cascade_info.inspect}"
-              end
-
               # Use pre-built executor at RUNTIME
               if executor
                 executor.call(cond_results, res_results, base_result, pairs)
