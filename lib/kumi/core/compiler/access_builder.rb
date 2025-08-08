@@ -38,8 +38,6 @@ module Kumi
 
         private
 
-        # ------------------------------ Helpers ------------------------------
-
         def fetch_key(hash, key, policy)
           case policy
           when :indifferent then hash[key] || hash[key.to_sym] || hash[key.to_s]
@@ -78,8 +76,6 @@ module Kumi
              policy == :skip ? :skip : :raise
            end)
         end
-
-        # --------------------------- :each_indexed ---------------------------
 
         def build_each_accessor(operations, path_key, policy, key_policy)
           walker = build_each_walker(operations, path_key, policy, key_policy)
@@ -134,8 +130,6 @@ module Kumi
           end
         end
 
-        # ------------------------------- :ravel ------------------------------
-
         def build_ravel_accessor(operations, path_key, policy, key_policy)
           mode = :ravel
           lambda do |data|
@@ -183,8 +177,6 @@ module Kumi
           end
         end
 
-        # ---------------------------- :materialize ---------------------------
-
         def build_materialize_accessor(operations, path_key, policy, key_policy)
           mode = :materialize
           lambda do |data|
@@ -219,7 +211,6 @@ module Kumi
                 end
                 assert_array!(node, path_key, mode)
                 node.map { |child| walk.call(child, pc + 1) }
-
               else
                 raise "Unknown operation: #{op.inspect}"
               end
@@ -227,8 +218,6 @@ module Kumi
             walk.call(data, 0)
           end
         end
-
-        # -------------------------------- :object ----------------------------
 
         def build_object_accessor(operations, path_key, policy, key_policy)
           mode = :object

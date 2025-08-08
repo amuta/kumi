@@ -7,7 +7,6 @@ module Kumi
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
       Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Core::Analyzer::Passes::AccessPlannerPass, # 3. Creates access plans for input fields.
       Core::Analyzer::Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
       Core::Analyzer::Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
       Core::Analyzer::Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.

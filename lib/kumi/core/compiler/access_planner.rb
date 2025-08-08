@@ -1,8 +1,15 @@
-# frozen_string_literal: true
-
 module Kumi
   module Core
     module Compiler
+      # AccessPlanner is responsible for generating access plans for the given input metadata.
+      # It traverses the metadata structure and builds a plan that describes how to access
+      # the data at various levels, including handling arrays, hashes, and different access modes.
+      #
+      # The generated plans are used by the Kumi compiler to optimize data access patterns.
+      #
+      # Example usage:
+      #   plan = AccessPlanner.plan(input_metadata)
+      #   plan_for_revenue = AccessPlanner.plan_for(input_metadata, "regions.offices.revenue")
       class AccessPlanner
         # AccessPlan structure:
         # {
@@ -41,163 +48,157 @@ module Kumi
         end
 
         def initialize(input_metadata, options = {})
-          @input_metadata = input_metadata
-          @default_options = {
+          @meta = input_metadata
+          @defaults = {
             on_missing: :error,
             key_policy: :indifferent,
-            mode: :nil # default when plan_for(path) is used without explicit mode
+            mode: nil
           }.merge(options)
           @plans = {}
         end
 
-        # Create plans for *all* leaf paths; emits multiple modes per path.
-        # @return [Hash<String, AccessPlan>] "path:mode" -> plan (frozen)
         def plan
-          @input_metadata.each do |field_name, field_meta|
-            plan_field_access(field_name, field_meta, [field_name.to_s])
-          end
+          @meta.each_key { |root| walk_and_emit([root.to_s]) }
           @plans.freeze
         end
 
-        # Create plans for a specific path. If :mode not provided, emit all sensible modes.
-        # @return [Hash<String, AccessPlan>] "path:mode" -> plan
         def plan_for(path)
-          path_segments = path.split(".")
-          field_meta = dig_meta(@input_metadata, path_segments)
-          raise ArgumentError, "Unknown path: #{path}" unless field_meta
-
-          emit_plans_for_segments(path_segments, field_meta, explicit_mode: @default_options[:mode])
+          segs = path.split(".")
+          ensure_path!(segs)
+          emit_for_segments(segs, explicit_mode: @defaults[:mode])
           @plans.select { |k, _| k.start_with?("#{path}:") }
         end
 
         private
 
-        # ---- Planning traversal ---------------------------------------------
+        def walk_and_emit(path_segs)
+          emit_for_segments(path_segs)
+          node = meta_node_for(path_segs)
+          return unless children = node&.[](:children)
 
-        def plan_field_access(_field_name, field_meta, current_path)
-          # If current node has children, descend until leaves, but also emit a plan
-          # at every node so callers can fetch structured containers if they want.
-          emit_plans_for_segments(current_path, field_meta)
-
-          return unless children = field_meta[:children]
-
-          children.each do |child_name, child_meta|
-            child_path = current_path + [child_name.to_s]
-            plan_field_access(child_name, child_meta, child_path)
-          end
+          children.each_key { |child| walk_and_emit(path_segs + [child.to_s]) }
         end
 
-        def emit_plans_for_segments(path_segments, field_meta, explicit_mode: nil)
-          plan = build_base_plan(path_segments, field_meta)
-
-          # Decide which modes to expose for this path
-          modes = if explicit_mode
-                    [explicit_mode]
-                  else
-                    infer_modes_for(plan)
-                  end
-
+        def emit_for_segments(path_segs, explicit_mode: nil)
+          plan = build_base_plan(path_segs)
+          modes = explicit_mode ? [explicit_mode] : infer_modes(plan)
           modes.each do |m|
-            @plans["#{plan[:path]}"] ||= []
-            @plans["#{plan[:path]}"] << plan.merge(mode: m).freeze
+            (@plans[plan[:path]] ||= []) << plan.merge(mode: m).freeze
           end
         end
 
-        # ---- Plan building ---------------------------------------------------
-
-        def build_base_plan(path_segments, field_meta)
-          containers = extract_container_lineage(path_segments)
+        def build_base_plan(path_segs)
+          lineage = container_lineage(path_segs)
           {
-            path: path_segments.join("."),
-            containers: containers,
-            leaf: path_segments.last.to_sym,
-            scope: containers.dup, # alias for symmetry with analyzer
-            depth: containers.length,
-            mode: determine_default_mode(containers.length),
-            on_missing: @default_options[:on_missing],
-            key_policy: @default_options[:key_policy],
-            operations: build_operations(path_segments)
+            path: path_segs.join("."),
+            containers: lineage,
+            leaf: path_segs.last.to_sym,
+            scope: lineage.dup,
+            depth: lineage.length,
+            mode: default_mode_for_depth(lineage.length),
+            on_missing: @defaults[:on_missing],
+            key_policy: @defaults[:key_policy],
+            operations: build_operations(path_segs)
           }.freeze
         end
 
-        # Containers only (array segments), based on metadata traversal.
-        def extract_container_lineage(path_segments)
-          lineage = []
-          current_meta = @input_metadata
-
-          path_segments.each do |segment|
-            meta = indifferent_get(current_meta, segment)
-            break unless meta
-
-            lineage << segment.to_sym if meta[:type] == :array
-            current_meta = meta[:children] || {}
-          end
-          lineage
+        def infer_modes(plan)
+          plan[:depth].zero? ? [:object] : %i[each_indexed ravel materialize]
         end
 
-        # Choose which modes to emit for a given base plan.
-        def infer_modes_for(plan)
-          d = plan[:depth]
-          if d == 0
-            [:object] # no arrays: direct hash access (builder should just fetch the leaf)
-          else
-            # Always provide:
-            %i[each_indexed ravel materialize]
-          end
+        def default_mode_for_depth(d)
+          return :object       if d == 0
+          return :each_indexed if d == 1
+
+          :materialize
         end
 
-        # Fallback default if caller queried a path without explicit mode.
-        def determine_default_mode(depth)
-          case depth
-          when 0 then :object
-          when 1 then :each_indexed
-          else :materialize
-          end
-        end
-
-        # Build low-level navigation ops; builder interprets these.
-        def build_operations(path_segments)
+        def build_operations(path_segs)
           ops = []
-          current_children_meta = @input_metadata
-          path_segments.each do |segment|
-            # Always enter hash by key
-            ops << {
-              type: :enter_hash,
-              key: segment.to_s, # keep string; builder applies key_policy
-              on_missing: @default_options[:on_missing],
-              key_policy: @default_options[:key_policy]
-            }
+          parent_meta    = nil
+          current_childs = @meta
 
-            meta = indifferent_get(current_children_meta, segment)
-            break unless meta
+          path_segs.each do |seg|
+            seg_meta = indifferent_get(current_childs, seg) or
+              raise ArgumentError, "Unknown segment '#{seg}' in '#{path_segs.join('.')}'"
 
-            # If array, enter array context
-            ops << { type: :enter_array, on_missing: @default_options[:on_missing] } if meta[:type] == :array
+            ops << enter_hash(seg) if should_enter_hash?(parent_meta, seg_meta)
+            ops << enter_array     if should_enter_array?(parent_meta, seg_meta)
 
-            current_children_meta = meta[:children] || {}
+            current_childs = seg_meta[:children] || {}
+            parent_meta    = seg_meta
           end
+
           ops
         end
 
-        # ---- Metadata helpers -----------------------------------------------
+        def should_enter_hash?(parent_meta, seg_meta)
+          return true  if parent_meta.nil?                 # root hop
+          return false if element_array?(parent_meta)      # child label after element-mode is synthetic
+          return false if element_array?(seg_meta)         # element-mode label itself isn’t a key
 
-        # Indifferent key lookup for metadata (handles symbol/string keys).
+          true
+        end
+
+        def should_enter_array?(parent_meta, seg_meta)
+          return false unless array?(seg_meta)
+          return false if element_array?(parent_meta)      # already at that child array
+
+          true
+        end
+
+        def array?(m)         = m && m[:type] == :array
+        def element_array?(m) = array?(m) && (m[:access_mode] || :object) == :element
+
+        def enter_hash(key)
+          { type: :enter_hash, key: key.to_s,
+            on_missing: @defaults[:on_missing],
+            key_policy: @defaults[:key_policy] }
+        end
+
+        def enter_array
+          { type: :enter_array, on_missing: @defaults[:on_missing] }
+        end
+
+        def container_lineage(path_segs)
+          lineage        = []
+          parent_meta    = nil
+          current_childs = @meta
+
+          path_segs.each do |seg|
+            seg_meta = indifferent_get(current_childs, seg)
+            # skip counting the synthetic seg after an element-array
+            lineage << seg.to_sym if array?(seg_meta)
+            current_childs = seg_meta&.[](:children) || {}
+            parent_meta    = seg_meta
+          end
+
+          # If the final hop was synthetic (parent element-array, leaf scalar),
+          # lineage is still correct: we never counted the synthetic seg anyway.
+          lineage
+        end
+
+        def meta_node_for(path_segs)
+          cur_children = @meta
+          last_meta    = nil
+          path_segs.each do |seg|
+            seg_meta = indifferent_get(cur_children, seg)
+            return nil unless seg_meta
+
+            last_meta    = seg_meta
+            cur_children = seg_meta[:children] || {}
+          end
+          last_meta
+        end
+
+        def ensure_path!(path_segs)
+          raise ArgumentError, "Unknown path: #{path_segs.join('.')}" unless meta_node_for(path_segs)
+        end
+
         def indifferent_get(hash, key)
           return nil unless hash
 
           hash[key] || hash[key.to_sym] || hash[key.to_s]
-        end
-
-        # Walk metadata to the final node, with indifferent keys.
-        def dig_meta(meta, path_segments)
-          cur = meta
-          path_segments.each do |seg|
-            cur = indifferent_get(cur, seg)
-            return nil unless cur
-
-            cur = cur # keep as-is; children handled in callers
-          end
-          cur
         end
       end
     end
