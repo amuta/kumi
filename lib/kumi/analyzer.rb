@@ -15,7 +15,8 @@ module Kumi
       Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
       Core::Analyzer::Passes::TypeInferencer,                  # 10. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
-      Core::Analyzer::Passes::TypeChecker                      # 12. Validates types using inferred information.
+      Core::Analyzer::Passes::TypeChecker,                     # 12. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass           # 13. Plans access strategies for input fields.
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
