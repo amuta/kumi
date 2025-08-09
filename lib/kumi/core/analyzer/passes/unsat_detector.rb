@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Detect unsatisfiable constraints and analyze cascade mutual exclusion
-        # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
+        # DEPENDENCIES: :declarations from NameIndexer, :input_metadata from InputCollector
         # PRODUCES: :cascades - Hash of cascade mutual exclusion analysis results
         # INTERFACE: new(schema, state).run(errors)
         class UnsatDetector < VisitorPass
@@ -16,7 +16,7 @@ module Kumi
 
           def run(errors)
             definitions = get_state(:declarations)
-            @input_meta = get_state(:inputs) || {}
+            @input_meta = get_state(:input_metadata) || {}
             @definitions = definitions
             @evaluator = ConstantEvaluator.new(definitions)
 

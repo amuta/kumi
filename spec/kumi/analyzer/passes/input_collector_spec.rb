@@ -6,14 +6,14 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
   let(:state) { Kumi::Core::Analyzer::AnalysisState.new }
 
   describe ".run" do
-    context "when the schema has no inputs" do
+    context "when the schema has no input_metadata" do
       let(:schema) { syntax(:root, [], [], [], loc: loc) }
 
       it "leaves the input_meta empty and records no errors" do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
-        expect(result_state[:inputs]).to eq({})
+        expect(result_state[:input_metadata]).to eq({})
         expect(errors).to be_empty
       end
     end
@@ -28,7 +28,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        input_meta = result_state[:inputs]
+        input_meta = result_state[:input_metadata]
         expect(input_meta.keys).to contain_exactly(:age, :name)
         expect(input_meta[:age]).to eq(type: :integer, domain: nil, access_mode: nil)
         expect(input_meta[:name]).to eq(type: :string, domain: nil, access_mode: nil)
@@ -46,7 +46,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        input_meta = result_state[:inputs]
+        input_meta = result_state[:input_metadata]
         expect(input_meta[:age][:domain]).to eq(18..65)
         expect(input_meta[:status][:domain]).to eq(%w[active inactive])
         expect(input_meta[:custom][:domain]).to be_a(Proc)
@@ -77,7 +77,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:inputs][:dup]).to eq(type: :integer, domain: nil, access_mode: nil)
+        expect(result_state[:input_metadata][:dup]).to eq(type: :integer, domain: nil, access_mode: nil)
       end
     end
 
@@ -119,11 +119,11 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         result_state = described_class.new(schema, state).run(errors)
 
         expect(errors).to be_empty
-        expect(result_state[:inputs][:partial]).to eq(type: :integer, domain: 0..100, access_mode: nil)
+        expect(result_state[:input_metadata][:partial]).to eq(type: :integer, domain: 0..100, access_mode: nil)
       end
     end
 
-    context "when inputs contain non-InputDeclaration nodes" do
+    context "when input_metadata contain non-InputDeclaration nodes" do
       let(:bad_node) { syntax(:literal, 42, loc: loc) }
       let(:good_field) { syntax(:input_decl, :good, nil, :string, loc: loc) }
       let(:schema) { syntax(:root, [bad_node, good_field], [], [], loc: loc) }
@@ -135,7 +135,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         expect(errors.size).to eq(1)
         expect(errors.first.message).to match(/Expected InputDeclaration node, got Kumi::Syntax::Literal/)
         # Should still process valid fields
-        expect(result_state[:inputs][:good]).to eq(type: :string, domain: nil, access_mode: nil)
+        expect(result_state[:input_metadata][:good]).to eq(type: :string, domain: nil, access_mode: nil)
       end
     end
 
@@ -153,7 +153,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         expect(errors[0].message).to match(/Field :bad1 has invalid domain constraint/)
         expect(errors[1].message).to match(/Field :bad2 has invalid domain constraint/)
         # Good field should still be processed
-        expect(result_state[:inputs][:good]).to eq(type: :integer, domain: 0..10, access_mode: nil)
+        expect(result_state[:input_metadata][:good]).to eq(type: :integer, domain: 0..10, access_mode: nil)
       end
     end
 
@@ -165,13 +165,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
 
-        expect(result_state[:inputs]).to be_frozen
+        expect(result_state[:input_metadata]).to be_frozen
       end
     end
 
     context "with nested input declarations for vectorized arrays" do
       let(:schema) do
-        inputs = [
+        input_metadata = [
           input_decl(:user_name, :string),
           input_decl(:line_items, :array, children: [
                        input_decl(:item_name, :string),
@@ -181,13 +181,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
                                   ])
                      ])
         ]
-        syntax(:root, inputs, [], [], loc: loc)
+        syntax(:root, input_metadata, [], [], loc: loc)
       end
 
       it "builds a nested metadata hash that mirrors the AST structure" do
         errors = []
         result_state = described_class.new(schema, state).run(errors)
-        input_meta = result_state[:inputs]
+        input_meta = result_state[:input_metadata]
 
         expect(errors).to be_empty
         expect(input_meta.keys).to contain_exactly(:user_name, :line_items)

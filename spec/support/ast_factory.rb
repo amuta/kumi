@@ -34,7 +34,7 @@ module ASTFactory
 
     root: ->(inputs = [], attributes = [], traits = [], loc:) { Root.new(inputs, attributes, traits, loc: loc) },
 
-    location: ->(file, line, column) { Location.new(file: file, line: line, column: column) }
+    location: ->(file, line, column) { Kumi::Syntax::Location.new(file: file, line: line, column: column) }
   }.freeze
 
   # Public constructor used in specs

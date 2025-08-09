@@ -26,7 +26,7 @@ module Kumi
 
           def run(errors)
             definitions = get_state(:declarations)
-            input_meta = get_state(:inputs)
+            input_meta = get_state(:input_metadata)
 
             dependency_graph = Hash.new { |h, k| h[k] = [] }
             reverse_dependencies = Hash.new { |h, k| h[k] = [] }

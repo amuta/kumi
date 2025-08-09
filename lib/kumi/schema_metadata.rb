@@ -341,9 +341,9 @@ module Kumi
     end
 
     def extract_inputs
-      return {} unless @state[:inputs]
+      return {} unless @state[:input_metadata]
 
-      @state[:inputs].transform_values do |field_info|
+      @state[:input_metadata].transform_values do |field_info|
         {
           type: normalize_type(field_info[:type]),
           domain: normalize_domain(field_info[:domain]),

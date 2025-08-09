@@ -16,7 +16,10 @@ module Kumi
       Core::Analyzer::Passes::TypeInferencer,                  # 10. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::TypeChecker,                     # 12. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass           # 13. Plans access strategies for input fields.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 13. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass              # 14. Plans execution scope and lifting needs for declarations.
+      # Core::Analyzer::Passes::JoinReducePlannerPass          # 15. Plans join/reduce operations (Generates IR Structs)
+      # Core::Analyzer::Passes::LowerToIRPass                  # 16. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
@@ -34,7 +37,11 @@ module Kumi
         begin
           state = pass_instance.run(errors)
         rescue StandardError => e
-          errors << Core::ErrorReporter.create_error(e.message, location: nil, type: :semantic)
+          # TODO: - GREATLY improve this, need to capture the context of the error
+          # and the pass that failed and line number if relevant
+          pass_name = pass_class.name.split("::").last
+          message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
+          errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic)
         end
       end
       state

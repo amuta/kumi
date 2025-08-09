@@ -5,11 +5,11 @@ module Kumi
     module Analyzer
       module Passes
         # Detects which operations should be broadcast over arrays
-        # DEPENDENCIES: :inputs, :declarations
+        # DEPENDENCIES: :input_metadata, :declarations
         # PRODUCES: :broadcasts
         class BroadcastDetector < PassBase
           def run(errors)
-            input_meta = get_state(:inputs) || {}
+            input_meta = get_state(:input_metadata) || {}
             definitions = get_state(:declarations) || {}
 
             # Find array fields with their element types
@@ -208,7 +208,6 @@ module Kumi
               # Check if this path exists in nested_paths metadata (supports nested arrays)
               if nested_paths.key?(expr.path)
                 { type: :vectorized, info: { source: :nested_array_access, path: expr.path, nested_metadata: nested_paths[expr.path] } }
-              # Fallback to old array_fields detection for backward compatibility
               elsif array_fields.key?(expr.path.first)
                 { type: :vectorized, info: { source: :array_field_access, path: expr.path } }
               else

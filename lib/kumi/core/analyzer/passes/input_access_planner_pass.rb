@@ -6,7 +6,7 @@ module Kumi
       module Passes
         class InputAccessPlannerPass < PassBase
           def run(errors)
-            input_metadata = get_state(:inputs)
+            input_metadata = get_state(:input_metadata)
 
             options = {
               on_missing: :error,

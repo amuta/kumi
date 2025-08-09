@@ -49,7 +49,7 @@ module Kumi
               Types.infer_from_value(expr.value)
             when InputReference
               # Look up type from field metadata
-              input_meta = get_state(:inputs, required: false) || {}
+              input_meta = get_state(:input_metadata, required: false) || {}
               meta = input_meta[expr.name]
               meta&.dig(:type) || :any
             when DeclarationReference
@@ -156,7 +156,7 @@ module Kumi
             case expr
             when InputElementReference
               # Get the field type from metadata
-              input_meta = get_state(:inputs, required: false) || {}
+              input_meta = get_state(:input_metadata, required: false) || {}
               array_name = expr.path.first
               field_name = expr.path[1]
 
@@ -198,7 +198,7 @@ module Kumi
 
           def infer_element_reference_type(expr)
             # Get array field metadata
-            input_meta = get_state(:inputs, required: false) || {}
+            input_meta = get_state(:input_metadata, required: false) || {}
 
             return :any unless expr.path.size >= 2
 

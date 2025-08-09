@@ -113,7 +113,7 @@ module Kumi
 
           def get_declared_field_type(field_name)
             # Get explicitly declared type from input metadata
-            input_meta = get_state(:inputs, required: false) || {}
+            input_meta = get_state(:input_metadata, required: false) || {}
             field_meta = input_meta[field_name]
             field_meta&.dig(:type) || Kumi::Core::Types::ANY
           end
@@ -130,7 +130,7 @@ module Kumi
               "`#{expr.value}` of type #{type} (literal value)"
 
             when Kumi::Syntax::InputReference
-              input_meta = get_state(:inputs, required: false) || {}
+              input_meta = get_state(:input_metadata, required: false) || {}
               field_meta = input_meta[expr.name]
 
               if field_meta&.dig(:type)

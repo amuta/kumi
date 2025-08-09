@@ -43,7 +43,7 @@ module Kumi
       raise("No schema defined") unless @__compiled_schema__
 
       # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:inputs] || {}
+      input_meta = @__analyzer_result__.state[:input_metadata] || {}
       violations = Core::Input::Validator.validate_context(context, input_meta)
 
       raise Errors::InputValidationError, violations unless violations.empty?

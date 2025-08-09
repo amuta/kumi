@@ -73,12 +73,12 @@ module Kumi
 
       def input_field_exists?(field)
         # Check if field is declared in input block
-        input_meta = @metadata[:inputs] || {}
+        input_meta = @metadata[:input_metadata] || {}
         input_meta.key?(field) || @context.key?(field)
       end
 
       def validate_domain_constraint(field, value)
-        input_meta = @metadata[:inputs] || {}
+        input_meta = @metadata[:input_metadata] || {}
         field_meta = input_meta[field]
         return unless field_meta&.dig(:domain)
 
