@@ -44,7 +44,7 @@ module Kumi
       end
 
       def visit_root(node)
-        fields = %i[inputs attributes traits].map do |field|
+        fields = %i[inputs values traits].map do |field|
           value = node.public_send(field)
           "#{field}: #{child_printer.visit(value)}"
         end.join("\n#{indent_str(2)}")

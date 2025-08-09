@@ -103,8 +103,8 @@ RSpec.describe "Kumi Compiler Integration" do
 
     let(:schema) do
       # This schema demonstrates complex interdependencies between different types of definitions.
-      # Notice how traits build on other traits, attributes reference multiple traits,
-      # and functions consume both raw fields and computed attributes.
+      # Notice how traits build on other traits, values reference multiple traits,
+      # and functions consume both raw fields and computed values.
 
       Kumi::Core::RubyParser::Dsl.build_syntax_tree do
         input do
@@ -149,8 +149,8 @@ RSpec.describe "Kumi Compiler Integration" do
         trait :valuable_customer, check_value, :==, true
         trait :low_maintenance, check_low_maintenance, :==, true
 
-        # === COMPLEX ATTRIBUTES WITH CASCADING LOGIC ===
-        # These attributes demonstrate cascade expressions that reference multiple traits
+        # === COMPLEX VALUES WITH CASCADING LOGIC ===
+        # These values demonstrate cascade expressions that reference multiple traits
         # The compiler must handle the binding lookups correctly when the cascade evaluates
 
         value :customer_tier do
@@ -171,8 +171,8 @@ RSpec.describe "Kumi Compiler Integration" do
 
         value :user_error, fn(:error!, input.should_error)
 
-        # === ATTRIBUTES THAT COMBINE MULTIPLE DATA SOURCES ===
-        # These show how attributes can reference both raw fields and computed traits
+        # === values THAT COMBINE MULTIPLE DATA SOURCES ===
+        # These show how values can reference both raw fields and computed traits
 
         value :welcome_message, fn(:concat, [
                                      "Hello ",
@@ -220,7 +220,7 @@ RSpec.describe "Kumi Compiler Integration" do
 
         result = executable_schema.evaluate(customer_data)
         result[:traits]
-        result[:attributes]
+        result[:values]
 
         expect(result[:adult]).to be true
         expect(result[:senior]).to be false # 45 < 65
@@ -245,7 +245,7 @@ RSpec.describe "Kumi Compiler Integration" do
         expect(result[:low_maintenance]).to be true # check_low_maintenance() == true
       end
 
-      it "correctly evaluates cascade attributes with trait references" do
+      it "correctly evaluates cascade values with trait references" do
         # Test that cascade expressions properly resolve trait bindings
         # This is a complex test of the CascadeExpression compilation logic
 
@@ -258,12 +258,12 @@ RSpec.describe "Kumi Compiler Integration" do
         expect(result[:marketing_segment]).to eq("Champion")
       end
 
-      it "correctly evaluates attributes that combine multiple reference types" do
-        # Test attributes that reference both fields and computed traits
+      it "correctly evaluates values that combine multiple reference types" do
+        # Test values that reference both fields and computed traits
         # This exercises the mixed binding resolution in complex expressions
 
         result = executable_schema.evaluate(customer_data)
-        result[:attributes]
+        result[:values]
 
         # Test string concatenation with field and trait references
         expected_message = "Hello Alice Johnson, you are a Gold customer!"
@@ -275,7 +275,7 @@ RSpec.describe "Kumi Compiler Integration" do
       end
 
       it "correctly evaluates functions that consume computed values" do
-        # Test that functions can reference attributes and traits computed earlier
+        # Test that functions can reference values and traits computed earlier
         # This demonstrates the full power of cross-referencing in the system
 
         result = executable_schema.evaluate(customer_data)
@@ -300,7 +300,7 @@ RSpec.describe "Kumi Compiler Integration" do
     end
 
     describe "partial evaluation capabilities" do
-      it "can evaluate only traits without computing attributes or functions" do
+      it "can evaluate only traits without computing values or functions" do
         # Test that we can efficiently compute just the traits when that's all we need
         # This is important for performance in scenarios where you only need partial results
 

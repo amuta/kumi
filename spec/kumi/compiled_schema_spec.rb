@@ -22,7 +22,7 @@ RSpec.describe Kumi::Core::CompiledSchema do
 
   describe "#evaluate" do
     context "when no keys are specified" do
-      it "evaluates all traits and attributes" do
+      it "evaluates all traits and values" do
         result = compiled_schema.evaluate(valid_data)
 
         expect(result).to eq({
@@ -31,7 +31,7 @@ RSpec.describe Kumi::Core::CompiledSchema do
                              })
       end
 
-      it "merges traits and attributes" do
+      it "merges traits and values" do
         result = compiled_schema.evaluate(valid_data)
 
         expect(result.keys).to contain_exactly(:is_adult, :display_name)

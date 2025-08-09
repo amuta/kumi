@@ -11,7 +11,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::DeclarationValidator do
   end
 
   describe ".run" do
-    context "with valid attributes" do
+    context "with valid values" do
       let(:schema) do
         valid_attr = attr(:price, lit(100))
         valid_attr_with_expr = attr(:total, call(:add, lit(10), lit(20)))
@@ -120,9 +120,9 @@ RSpec.describe Kumi::Core::Analyzer::Passes::DeclarationValidator do
       end
     end
 
-    context "with nested expressions in attributes" do
+    context "with nested expressions in values" do
       let(:schema) do
-        # Attributes can have any expression type, not just calls
+        # Values can have any expression type, not just calls
         literal_attr = attr(:literal, lit(42))
         field_attr = attr(:field, input_ref(:user_input))
         ref_attr = attr(:ref, ref(:other_value))
@@ -131,13 +131,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::DeclarationValidator do
         syntax(:root, [], [literal_attr, field_attr, ref_attr, call_attr], [], loc: loc)
       end
 
-      it "allows any expression type in attributes" do
+      it "allows any expression type in values" do
         run(schema)
         expect(errors).to be_empty
       end
     end
 
-    context "with cascade expressions in attributes" do
+    context "with cascade expressions in values" do
       let(:schema) do
         # Create a cascade expression manually since the block syntax doesn't work in tests
         case1 = when_case_expression(call(:>, input_ref(:amount), lit(1000)), lit(0.2))
@@ -149,7 +149,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::DeclarationValidator do
         syntax(:root, [], [cascade_attr], [], loc: loc)
       end
 
-      it "allows cascade expressions in attributes" do
+      it "allows cascade expressions in values" do
         run(schema)
         expect(errors).to be_empty
       end

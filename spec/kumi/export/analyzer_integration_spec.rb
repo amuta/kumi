@@ -12,7 +12,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
       input_decl(:age, :integer)
     ]
 
-    attributes = [
+    values = [
       attr(:greeting, call(:concat, lit("Hello, "), field_ref(:name))),
       attr(:age_category, call(:conditional,
                                call(:>=, field_ref(:age), lit(18)),
@@ -25,7 +25,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
       trait(:has_name, call(:"!=", field_ref(:name), lit("")))
     ]
 
-    original_ast = syntax(:root, inputs, attributes, traits)
+    original_ast = syntax(:root, inputs, values, traits)
 
     # Run original analysis
     original_analysis = Kumi::Analyzer.analyze!(original_ast)
@@ -58,7 +58,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
     # Build schema with dependencies
     inputs = [input_decl(:base_price, :float)]
 
-    attributes = [
+    values = [
       attr(:discount, call(:multiply, field_ref(:base_price), lit(0.1))),
       attr(:final_price, call(:subtract, field_ref(:base_price), binding_ref(:discount)))
     ]
@@ -67,7 +67,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
       trait(:expensive, call(:>, binding_ref(:final_price), lit(100.0)))
     ]
 
-    original_ast = syntax(:root, inputs, attributes, traits)
+    original_ast = syntax(:root, inputs, values, traits)
 
     # Export -> Import -> Compile -> Execute
     json = Kumi::Core::Export.to_json(original_ast)
@@ -92,7 +92,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
       input_decl(:threshold, :float)
     ]
 
-    attributes = [
+    values = [
       attr(:average, call(:divide,
                           call(:sum, field_ref(:scores)),
                           lit(3.0))),
@@ -105,7 +105,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
                              lit("C"))))
     ]
 
-    original_ast = syntax(:root, inputs, attributes, [])
+    original_ast = syntax(:root, inputs, values, [])
 
     # Round-trip and analyze
     json = Kumi::Core::Export.to_json(original_ast)

@@ -11,11 +11,11 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         value :name, input.first_name
       end
 
-      expect(schema.attributes.size).to eq(1)
-      expect(schema.attributes.first).to be_a(Kumi::Syntax::ValueDeclaration)
-      expect(schema.attributes.first.name).to eq(:name)
-      expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::InputReference)
-      expect(schema.attributes.first.expression.name).to eq(:first_name)
+      expect(schema.values.size).to eq(1)
+      expect(schema.values.first).to be_a(Kumi::Syntax::ValueDeclaration)
+      expect(schema.values.first.name).to eq(:name)
+      expect(schema.values.first.expression).to be_a(Kumi::Syntax::InputReference)
+      expect(schema.values.first.expression.name).to eq(:first_name)
     end
 
     it "can define traits" do
@@ -45,13 +45,13 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         value :greet, fn(:hello, input.name)
       end
 
-      expect(schema.attributes.size).to eq(3)
+      expect(schema.values.size).to eq(3)
       expect(schema.traits.size).to eq(2)
 
-      expect(schema.attributes.map(&:name)).to contain_exactly(:name, :age, :greet)
+      expect(schema.values.map(&:name)).to contain_exactly(:name, :age, :greet)
       expect(schema.traits.map(&:name)).to contain_exactly(:adult, :senior)
 
-      expect(schema.attributes.map { |attr| attr.expression.class }).to contain_exactly(
+      expect(schema.values.map { |attr| attr.expression.class }).to contain_exactly(
         Kumi::Syntax::InputReference,
         Kumi::Syntax::InputReference,
         Kumi::Syntax::CallExpression
@@ -160,9 +160,9 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
           value :name, input.first_name
         end
 
-        expect(schema.attributes.size).to eq(1)
-        expect(schema.attributes.first.name).to eq(:name)
-        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::InputReference)
+        expect(schema.values.size).to eq(1)
+        expect(schema.values.first.name).to eq(:name)
+        expect(schema.values.first.expression).to be_a(Kumi::Syntax::InputReference)
       end
 
       it "accepts <symbol> with a block" do
@@ -172,10 +172,10 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
           end
         end
 
-        expect(schema.attributes.size).to eq(1)
-        expect(schema.attributes.first.expression).to be_a(Kumi::Syntax::CascadeExpression)
-        expect(schema.attributes.first.expression.cases.size).to eq(1)
-        cases = schema.attributes.first.expression.cases
+        expect(schema.values.size).to eq(1)
+        expect(schema.values.first.expression).to be_a(Kumi::Syntax::CascadeExpression)
+        expect(schema.values.first.expression.cases.size).to eq(1)
+        cases = schema.values.first.expression.cases
         expect(cases.size).to eq(1)
         expect(cases.first).to be_a(Kumi::Syntax::CaseExpression)
         expect(cases.first.condition).to be_a(Kumi::Syntax::CallExpression)
@@ -198,7 +198,7 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
           end
         end
       end
-      let(:attribute_expr) { schema.attributes.first.expression }
+      let(:attribute_expr) { schema.values.first.expression }
       let(:first_case) { attribute_expr.cases[0] }
       let(:second_case) { attribute_expr.cases[1] }
       let(:base_case) { attribute_expr.cases[2] }

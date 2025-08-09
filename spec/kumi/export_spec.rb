@@ -9,10 +9,10 @@ RSpec.describe Kumi::Core::Export do
     it "exports a simple schema to JSON" do
       # Build a simple schema AST
       inputs = [input_decl(:name, :string)]
-      attributes = [attr(:greeting, field_ref(:name))]
+      values = [attr(:greeting, field_ref(:name))]
       traits = []
 
-      syntax_root = syntax(:root, inputs, attributes, traits)
+      syntax_root = syntax(:root, inputs, values, traits)
 
       json_string = described_class.to_json(syntax_root)
 
@@ -22,10 +22,10 @@ RSpec.describe Kumi::Core::Export do
 
     it "exports with pretty formatting when requested" do
       inputs = [input_decl(:age, :integer)]
-      attributes = []
+      values = []
       traits = [trait(:adult, call(:>=, field_ref(:age), lit(18)))]
 
-      syntax_root = syntax(:root, inputs, attributes, traits)
+      syntax_root = syntax(:root, inputs, values, traits)
 
       json_string = described_class.to_json(syntax_root, pretty: true)
 
@@ -38,10 +38,10 @@ RSpec.describe Kumi::Core::Export do
     it "imports a simple schema from JSON" do
       # Create original AST
       inputs = [input_decl(:name, :string)]
-      attributes = [attr(:greeting, field_ref(:name))]
+      values = [attr(:greeting, field_ref(:name))]
       traits = []
 
-      original_ast = syntax(:root, inputs, attributes, traits)
+      original_ast = syntax(:root, inputs, values, traits)
 
       # Export and import
       json_string = described_class.to_json(original_ast)
@@ -49,7 +49,7 @@ RSpec.describe Kumi::Core::Export do
 
       expect(imported_ast).to be_a(Kumi::Syntax::Root)
       expect(imported_ast.inputs.size).to eq(1)
-      expect(imported_ast.attributes.size).to eq(1)
+      expect(imported_ast.values.size).to eq(1)
       expect(imported_ast.traits.size).to eq(0)
     end
   end
@@ -62,7 +62,7 @@ RSpec.describe Kumi::Core::Export do
         input_decl(:age, :integer)
       ]
 
-      attributes = [
+      values = [
         attr(:greeting, call(:concat, lit("Hello, "), field_ref(:name)))
       ]
 
@@ -70,7 +70,7 @@ RSpec.describe Kumi::Core::Export do
         trait(:adult, call(:>=, field_ref(:age), lit(18)))
       ]
 
-      original_ast = syntax(:root, inputs, attributes, traits)
+      original_ast = syntax(:root, inputs, values, traits)
 
       # Round-trip
       json_string = described_class.to_json(original_ast)
@@ -78,12 +78,12 @@ RSpec.describe Kumi::Core::Export do
 
       # Verify structure preservation
       expect(imported_ast.inputs.size).to eq(original_ast.inputs.size)
-      expect(imported_ast.attributes.size).to eq(original_ast.attributes.size)
+      expect(imported_ast.values.size).to eq(original_ast.values.size)
       expect(imported_ast.traits.size).to eq(original_ast.traits.size)
 
       # Verify field names are preserved
       expect(imported_ast.inputs.first.name).to eq(:name)
-      expect(imported_ast.attributes.first.name).to eq(:greeting)
+      expect(imported_ast.values.first.name).to eq(:greeting)
       expect(imported_ast.traits.first.name).to eq(:adult)
     end
   end
@@ -122,8 +122,8 @@ RSpec.describe Kumi::Core::Export do
   describe ".from_file" do
     it "reads schema from file" do
       inputs = [input_decl(:name, :string)]
-      attributes = [attr(:greeting, field_ref(:name))]
-      original_ast = syntax(:root, inputs, attributes, [])
+      values = [attr(:greeting, field_ref(:name))]
+      original_ast = syntax(:root, inputs, values, [])
 
       Dir.mktmpdir do |dir|
         filepath = File.join(dir, "schema.json")
@@ -133,7 +133,7 @@ RSpec.describe Kumi::Core::Export do
 
         expect(imported_ast).to be_a(Kumi::Syntax::Root)
         expect(imported_ast.inputs.size).to eq(1)
-        expect(imported_ast.attributes.size).to eq(1)
+        expect(imported_ast.values.size).to eq(1)
         expect(imported_ast.inputs.first.name).to eq(:name)
       end
     end
@@ -192,7 +192,7 @@ RSpec.describe Kumi::Core::Export do
     it "validates root node type" do
       invalid_root_json = JSON.generate({
                                           kumi_version: Kumi::VERSION,
-                                          ast: { type: "not_root", inputs: [], attributes: [], traits: [] }
+                                          ast: { type: "not_root", inputs: [], values: [], traits: [] }
                                         })
 
       expect do

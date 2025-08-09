@@ -32,7 +32,7 @@ module ASTFactory
     # ASTFactory constructor to build the initial Root.
     # They are not used in the AST itself.
 
-    root: ->(inputs = [], attributes = [], traits = [], loc:) { Root.new(inputs, attributes, traits, loc: loc) },
+    root: ->(inputs = [], values = [], traits = [], loc:) { Root.new(inputs, values, traits, loc: loc) },
 
     location: ->(file, line, column) { Kumi::Syntax::Location.new(file: file, line: line, column: column) }
   }.freeze

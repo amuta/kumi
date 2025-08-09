@@ -101,7 +101,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::VisitorPass do
                                   decl_type: decl.class.name.split("::").last }
       end
 
-      # Verify we get both attributes and traits (using new class names)
+      # Verify we get both values and traits (using new class names)
       decl_types = visited_with_context.map { |v| v[:decl_type] }.uniq
       expect(decl_types).to contain_exactly("ValueDeclaration", "TraitDeclaration")
     end

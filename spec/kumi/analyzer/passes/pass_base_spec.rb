@@ -41,7 +41,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::PassBase do
   end
 
   describe "#each_decl" do
-    it "iterates over all attributes and traits" do
+    it "iterates over all values and traits" do
       declarations = []
       pass_instance.send(:each_decl) { |decl| declarations << decl }
 
