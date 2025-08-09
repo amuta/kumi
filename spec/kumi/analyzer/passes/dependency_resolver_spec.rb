@@ -3,7 +3,7 @@
 RSpec.describe Kumi::Core::Analyzer::Passes::DependencyResolver do
   include ASTFactory
 
-  let(:state) { Kumi::Core::Analyzer::AnalysisState.new(declarations: definitions, inputs: input_meta) }
+  let(:state) { Kumi::Core::Analyzer::AnalysisState.new(declarations: definitions, input_metadata: input_meta) }
   let(:input_meta) { {} }
   let(:errors) { [] }
   let(:definitions) do
