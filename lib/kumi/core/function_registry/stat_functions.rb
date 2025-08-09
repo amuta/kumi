@@ -8,7 +8,7 @@ module Kumi
           {
             # Statistical Functions
             avg: FunctionBuilder::Entry.new(
-              fn: ->(array) { array.sum.to_f / array.size },
+              fn: ->(array) { array.size == 0 ? nil : array.sum.to_f / array.size },
               arity: 1,
               param_types: [Kumi::Core::Types.array(:float)],
               return_type: :float,
@@ -17,7 +17,7 @@ module Kumi
             ),
 
             mean: FunctionBuilder::Entry.new(
-              fn: ->(array) { array.sum.to_f / array.size },
+              fn: ->(array) { array.size == 0 ? nil : array.sum.to_f / array.size },
               arity: 1,
               param_types: [Kumi::Core::Types.array(:float)],
               return_type: :float,

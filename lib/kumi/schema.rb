@@ -44,6 +44,9 @@ module Kumi
 
     def schema(&block)
       @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+
+      puts Support::SExpressionPrinter.print(@__syntax_tree__, indent: 2) if ENV["KUMI_DEBUG"] || ENV["KUMI_PRINT_SYNTAX_TREE"]
+
       @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
       @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
 

@@ -45,7 +45,8 @@ module Kumi
               # Only follow edges to other declarations, not to input fields
               # This prevents false cycles when a declaration has the same name as an input
               Array(graph[node]).each do |edge|
-                next if edge.type == :key  # Skip input field dependencies
+                next if edge.type == :key # Skip input field dependencies
+
                 visit_node.call(edge.to, current_path)
               end
               temp_marks.delete(node)
@@ -105,7 +106,7 @@ module Kumi
           def find_declaration_by_name(name)
             return nil unless schema
 
-            schema.attributes.find { |attr| attr.name == name } ||
+            schema.values.find { |attr| attr.name == name } ||
               schema.traits.find { |trait| trait.name == name }
           end
         end

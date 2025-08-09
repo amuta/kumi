@@ -42,7 +42,7 @@ The printer produces indented S-expressions that clearly show the hierarchical s
     (InputDeclaration :age :integer)
     (InputDeclaration :name :string)
   ]
-  attributes: [
+  values: [
     (ValueDeclaration :greeting
       (CallExpression :concat
         (Literal "Hello ")
@@ -65,7 +65,7 @@ The printer produces indented S-expressions that clearly show the hierarchical s
 
 The printer handles all Kumi AST node types:
 
-- **Root** - Schema container with inputs, attributes, and traits
+- **Root** - Schema container with inputs, values, and traits
 - **Declarations** - InputDeclaration, ValueDeclaration, TraitDeclaration
 - **Expressions** - CallExpression, ArrayExpression, CascadeExpression, CaseExpression
 - **References** - InputReference, InputElementReference, DeclarationReference

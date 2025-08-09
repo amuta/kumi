@@ -6,10 +6,10 @@ module Kumi
       module NodeBuilders
         def build_root(data, node_class)
           inputs = data[:inputs].map { |input_data| build_node(input_data) }
-          attributes = data[:attributes].map { |attr_data| build_node(attr_data) }
+          values = data[:values].map { |attr_data| build_node(attr_data) }
           traits = data[:traits].map { |trait_data| build_node(trait_data) }
 
-          node_class.new(inputs, attributes, traits)
+          node_class.new(inputs, values, traits)
         end
 
         def build_field_declaration(data, node_class)

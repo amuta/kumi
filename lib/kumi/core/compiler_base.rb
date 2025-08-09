@@ -24,8 +24,8 @@ module Kumi
 
       def build_index
         @index = {}
-        @schema.attributes.each { |a| @index[a.name] = a }
-        @schema.traits.each     { |t| @index[t.name] = t }
+        @schema.values.each { |a| @index[a.name] = a }
+        @schema.traits.each { |t| @index[t.name] = t }
       end
 
       def determine_operation_mode_for_path(_path)

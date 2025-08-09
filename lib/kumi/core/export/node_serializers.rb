@@ -9,7 +9,7 @@ module Kumi
           {
             type: "root",
             inputs: node.inputs.map { |input| serialize_node(input) },
-            attributes: node.attributes.map { |attr| serialize_node(attr) },
+            values: node.values.map { |attr| serialize_node(attr) },
             traits: node.traits.map { |trait| serialize_node(trait) }
           }
         end

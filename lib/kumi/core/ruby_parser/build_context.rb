@@ -4,12 +4,12 @@ module Kumi
   module Core
     module RubyParser
       class BuildContext
-        attr_reader :inputs, :attributes, :traits
+        attr_reader :inputs, :values, :traits
         attr_accessor :current_location
 
         def initialize
           @inputs = []
-          @attributes = []
+          @values = []
           @traits = []
           @input_block_defined = false
         end

@@ -19,7 +19,7 @@ module Kumi
           validate_value_args(name, expr, blk)
 
           expression = blk ? build_cascade(&blk) : ensure_syntax(expr)
-          @context.attributes << Kumi::Syntax::ValueDeclaration.new(name, expression, loc: @context.current_location)
+          @context.values << Kumi::Syntax::ValueDeclaration.new(name, expression, loc: @context.current_location)
         end
 
         def trait(*args, **kwargs)

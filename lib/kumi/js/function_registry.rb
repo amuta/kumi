@@ -269,8 +269,8 @@ module Kumi
       def self.stat_functions
         {
           # Statistical functions - mirror Ruby StatFunctions behavior
-          avg: "(array) => array.length === 0 ? 0 : array.reduce((sum, val) => sum + val, 0) / array.length",
-          mean: "(array) => array.length === 0 ? 0 : array.reduce((sum, val) => sum + val, 0) / array.length",
+          avg: "(array) => array.length === 0 ? NaN : array.reduce((sum, val) => sum + val, 0) / array.length",
+          mean: "(array) => array.length === 0 ? NaN : array.reduce((sum, val) => sum + val, 0) / array.length",
           median: <<~JS.strip,
             (array) => {
               if (array.length === 0) return 0;

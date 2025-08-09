@@ -27,10 +27,10 @@ module Kumi
 
           attr_reader :schema, :state
 
-          # Iterate over all declarations (attributes and traits) in the schema
+          # Iterate over all declarations (values and traits) in the schema
           # @yield [Syntax::Attribute|Syntax::Trait] Each declaration
           def each_decl(&block)
-            schema.attributes.each(&block)
+            schema.values.each(&block)
             schema.traits.each(&block)
           end
 
