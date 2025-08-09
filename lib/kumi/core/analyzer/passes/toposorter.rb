@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pry"
 module Kumi
   module Core
     module Analyzer
@@ -34,7 +35,6 @@ module Kumi
                 return if safe_conditional_cycle?(cycle_path, graph, cascades)
 
                 # Allow this cycle - it's safe due to cascade mutual exclusion
-
                 report_unexpected_cycle(temp_marks, node, errors)
 
                 return
@@ -42,7 +42,12 @@ module Kumi
 
               temp_marks << node
               current_path = path + [node]
-              Array(graph[node]).each { |edge| visit_node.call(edge.to, current_path) }
+              # Only follow edges to other declarations, not to input fields
+              # This prevents false cycles when a declaration has the same name as an input
+              Array(graph[node]).each do |edge|
+                next if edge.type == :key  # Skip input field dependencies
+                visit_node.call(edge.to, current_path)
+              end
               temp_marks.delete(node)
               perm_marks << node
 
