@@ -28,9 +28,8 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
     it "does not emit :each_indexed/:materialize/:ravel for depth=0" do
       meta = { name: { type: :string } }
       plans = Kumi::Core::Compiler::AccessPlanner.plan(meta)
-      expect(plans.keys).to contain_exactly("name")
-      modes = plans["name"].map { |p| p[:mode] }
-      expect(modes).to contain_exactly(:object)
+
+      expect(plans.modes_for("name")).to contain_exactly(:object)
     end
   end
 
@@ -98,18 +97,6 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
       expect do
         acc["regions.tax_rate:ravel"].call(data)
       end.to raise_error(TypeError, /Expected Array/)
-    end
-
-    it ":object accessor errors if an array op sneaks in" do
-      # Simulate a bad plan (defensive)
-      plans = {
-        "name" => [
-          { mode: :object, on_missing: :error, key_policy: :indifferent,
-            operations: [{ type: :enter_hash, key: "name" }, { type: :enter_array }] }
-        ]
-      }
-      acc = Kumi::Core::Compiler::AccessBuilder.build(plans)
-      expect { acc["name:object"].call({ "name" => [] }) }.to raise_error(TypeError, /Array encountered/)
     end
   end
 

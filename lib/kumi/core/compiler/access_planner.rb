@@ -38,6 +38,9 @@ module Kumi
         # - :object the value of the input hash key provided only, no array access
         # - Planner is *input-only*. Broadcasting/join/reduce live in analyzer/compiler.
 
+        include Kumi::Core::Analyzer::AccessPlans
+
+
         # Public API
         def self.plan(input_metadata, options = {})
           new(input_metadata, options).plan
@@ -59,14 +62,14 @@ module Kumi
 
         def plan
           @meta.each_key { |root| walk_and_emit([root.to_s]) }
-          @plans.freeze
+          Plans.new(by_path: @plans)
         end
 
         def plan_for(path)
           segs = path.split(".")
           ensure_path!(segs)
           emit_for_segments(segs, explicit_mode: @defaults[:mode])
-          @plans.select { |k, _| k.start_with?("#{path}:") }
+          Plans.new(by_path: @plans.slice(path))
         end
 
         private
@@ -80,10 +83,21 @@ module Kumi
         end
 
         def emit_for_segments(path_segs, explicit_mode: nil)
-          plan = build_base_plan(path_segs)
-          modes = explicit_mode ? [explicit_mode] : infer_modes(plan)
+          base = build_base_plan(path_segs)
+          modes = explicit_mode ? [explicit_mode] : infer_modes(base)
+          plans = ( @plans[base[:path]] ||= [] )
           modes.each do |m|
-            (@plans[plan[:path]] ||= []) << plan.merge(mode: m).freeze
+            plans << Plan.new(
+              path:        base[:path],
+              containers:  base[:containers],
+              leaf:        base[:leaf],
+              scope:       base[:scope],
+              depth:       base[:depth],
+              mode:        m,
+              on_missing:  base[:on_missing],
+              key_policy:  base[:key_policy],
+              operations:  base[:operations]
+            )
           end
         end
 

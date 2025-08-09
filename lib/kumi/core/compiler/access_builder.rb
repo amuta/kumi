@@ -4,41 +4,44 @@ module Kumi
   module Core
     module Compiler
       class AccessBuilder
-        def self.build(access_plans)
-          new(access_plans).build
-        end
+        def self.build(plans)
+          unless plans.is_a?(Kumi::Core::Analyzer::AccessPlans::Plans)
+            raise ArgumentError, "Expected Plans struct, got #{plans.class}"
+          end
 
-        def initialize(access_plans)
-          @access_plans = access_plans
-          @accessors    = {}
-        end
-
-        def build
-          @access_plans.each do |path_key, plan_list|
-            plan_list.each do |plan|
-              mode          = plan[:mode].to_sym
-              missing       = (plan[:on_missing] || :error).to_sym
-              key_policy    = (plan[:key_policy] || :indifferent).to_sym
-              accessor_key  = "#{path_key}:#{mode}"
-              ops           = plan[:operations]
-
-              @accessors[accessor_key] =
-                case mode
-                when :each_indexed then build_each_accessor(ops, path_key, missing, key_policy)
-                when :ravel        then build_ravel_accessor(ops, path_key, missing, key_policy)
-                when :materialize  then build_materialize_accessor(ops, path_key, missing, key_policy)
-                when :object       then build_object_accessor(ops, path_key, missing, key_policy)
-                else
-                  raise "Unsupported mode '#{mode}' for access plan at '#{path_key}'"
-                end
+          accessors = {}
+          plans.by_path.each_value do |variants|
+            variants.each do |plan|
+              key = plan.accessor_key
+              accessors[key] = build_proc_for(
+                plan, 
+                plan.mode.to_sym, 
+                plan.path, 
+                (plan.on_missing || :error).to_sym, 
+                (plan.key_policy || :indifferent).to_sym, 
+                plan.operations
+              )
             end
           end
-          @accessors.freeze
+          accessors.freeze
         end
 
         private
 
-        def fetch_key(hash, key, policy)
+        def self.build_proc_for(plan, mode, path_key, missing, key_policy, ops)
+          case mode
+          when :each_indexed then build_each_accessor(ops, path_key, missing, key_policy)
+          when :ravel        then build_ravel_accessor(ops, path_key, missing, key_policy)
+          when :materialize  then build_materialize_accessor(ops, path_key, missing, key_policy)
+          when :object       then build_object_accessor(ops, path_key, missing, key_policy)
+          else
+            raise "Unsupported mode '#{mode}' for access plan at '#{path_key}'"
+          end
+        end
+
+        private
+
+        def self.fetch_key(hash, key, policy)
           case policy
           when :indifferent then hash[key] || hash[key.to_sym] || hash[key.to_s]
           when :string      then hash[key.to_s]
@@ -47,21 +50,21 @@ module Kumi
           end
         end
 
-        def assert_hash!(node, path_key, mode)
+        def self.assert_hash!(node, path_key, mode)
           raise TypeError, "Expected Hash at '#{path_key}' (#{mode})" unless node.is_a?(Hash)
         end
 
-        def assert_array!(node, path_key, mode)
+        def self.assert_array!(node, path_key, mode)
           raise TypeError, "Expected Array at '#{path_key}' (#{mode}); got #{node.class}" unless node.is_a?(Array)
         end
 
-        def next_enters_array?(operations, pc)
+        def self.next_enters_array?(operations, pc)
           nxt = operations[pc + 1]
           nxt && nxt[:type] == :enter_array
         end
 
         # Returns one of :yield_nil, :skip, :raise
-        def missing_key_action(policy)
+        def self.missing_key_action(policy)
           (if policy == :nil
              :yield_nil
            else
@@ -69,7 +72,7 @@ module Kumi
            end)
         end
 
-        def missing_array_action(policy)
+        def self.missing_array_action(policy)
           (if policy == :nil
              :yield_nil
            else
@@ -77,7 +80,7 @@ module Kumi
            end)
         end
 
-        def build_each_accessor(operations, path_key, policy, key_policy)
+        def self.build_each_accessor(operations, path_key, policy, key_policy)
           walker = build_each_walker(operations, path_key, policy, key_policy)
           lambda do |data, &blk|
             enum = Enumerator.new { |y| walker.call(data, 0, [], y) }
@@ -86,7 +89,7 @@ module Kumi
         end
 
         # Depth-first traversal yielding (value, nd_index)
-        def build_each_walker(operations, path_key, policy, key_policy)
+        def self.build_each_walker(operations, path_key, policy, key_policy)
           mode = :each_indexed
           walker = nil
           walker = lambda do |node, pc, ndx, y|
@@ -130,7 +133,7 @@ module Kumi
           end
         end
 
-        def build_ravel_accessor(operations, path_key, policy, key_policy)
+        def self.build_ravel_accessor(operations, path_key, policy, key_policy)
           mode = :ravel
           lambda do |data|
             out = []
@@ -177,7 +180,7 @@ module Kumi
           end
         end
 
-        def build_materialize_accessor(operations, path_key, policy, key_policy)
+        def self.build_materialize_accessor(operations, path_key, policy, key_policy)
           mode = :materialize
           lambda do |data|
             walk = nil
@@ -219,7 +222,7 @@ module Kumi
           end
         end
 
-        def build_object_accessor(operations, path_key, policy, key_policy)
+        def self.build_object_accessor(operations, path_key, policy, key_policy)
           mode = :object
           lambda do |data|
             node = data
