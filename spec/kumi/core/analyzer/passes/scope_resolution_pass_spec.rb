@@ -56,12 +56,12 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
       it "assigns empty scope to scalar declarations" do
         result = run_pass(initial_state)
         
-        expect(result[:scope_plans][:total]).to eq({
-          scope: [],
-          lifts: [],
-          join: nil,
-          arg_shapes: {}
-        })
+        scope_plan = result[:scope_plans][:total]
+        expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        expect(scope_plan.scope).to eq([])
+        expect(scope_plan.lifts).to eq([])
+        expect(scope_plan.join_hint).to be_nil
+        expect(scope_plan.arg_shapes).to eq({})
         
         expect(result[:decl_shapes][:total]).to eq({
           scope: [],
@@ -104,7 +104,10 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
       it "determines scope from vectorization metadata" do
         result = run_pass(initial_state)
         
-        expect(result[:scope_plans][:subtotals][:scope]).to eq([:line_items])
+        scope_plan = result[:scope_plans][:subtotals]
+        expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        expect(scope_plan.scope).to eq([:line_items])
+        
         expect(result[:decl_shapes][:subtotals]).to eq({
           scope: [:line_items],
           result: { array: :dense }
@@ -148,7 +151,10 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
       it "marks reductions as scalar result" do
         result = run_pass(initial_state)
         
-        expect(result[:scope_plans][:total][:scope]).to eq([:items])
+        scope_plan = result[:scope_plans][:total]
+        expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        expect(scope_plan.scope).to eq([:items])
+        
         expect(result[:decl_shapes][:total]).to eq({
           scope: [:items],
           result: :scalar  # Reduction produces scalar
@@ -191,7 +197,10 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
       it "captures nested array dimensions in scope" do
         result = run_pass(initial_state)
         
-        expect(result[:scope_plans][:revenues][:scope]).to eq([:regions, :offices])
+        scope_plan = result[:scope_plans][:revenues]
+        expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        expect(scope_plan.scope).to eq([:regions, :offices])
+        
         expect(result[:decl_shapes][:revenues]).to eq({
           scope: [:regions, :offices],
           result: { array: :dense }
@@ -232,7 +241,10 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
       it "derives scope from first input path in cascade" do
         result = run_pass(initial_state)
         
-        expect(result[:scope_plans][:statuses][:scope]).to eq([:orders])
+        scope_plan = result[:scope_plans][:statuses]
+        expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        expect(scope_plan.scope).to eq([:orders])
+        
         expect(result[:decl_shapes][:statuses]).to eq({
           scope: [:orders],
           result: { array: :dense }

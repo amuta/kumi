@@ -11,6 +11,7 @@ module Kumi
         # DEPENDENCIES: :declarations, :input_metadata, :broadcasts
         # PRODUCES: :scope_plans, :decl_shapes
         class ScopeResolutionPass < PassBase
+          include Kumi::Core::Analyzer::Plans
           def run(_errors)
             declarations = get_state(:declarations, required: true)
             input_metadata = get_state(:input_metadata, required: true)
@@ -26,7 +27,7 @@ module Kumi
               result_kind = determine_result_kind(name, target_scope, broadcasts)
 
               plan = build_scope_plan(target_scope)
-              scope_plans[name] = plan.freeze
+              scope_plans[name] = plan
               decl_shapes[name] = { scope: target_scope, result: result_kind }.freeze
 
               debug_result(target_scope, result_kind) if ENV["DEBUG_SCOPE_RESOLUTION"]
@@ -50,12 +51,12 @@ module Kumi
           end
 
           def build_scope_plan(target_scope)
-            {
+            Scope.new(
               scope: target_scope,
               lifts: [],  # Will be computed during IR lowering per call-site
-              join: nil,  # Will be set to :zip when multiple vectorized args exist
+              join_hint: nil,  # Will be set to :zip when multiple vectorized args exist
               arg_shapes: {} # Optional: filled during lowering
-            }
+            )
           end
 
           def determine_result_kind(name, target_scope, broadcasts)
