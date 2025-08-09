@@ -41,7 +41,7 @@ module Kumi
           # and the pass that failed and line number if relevant
           pass_name = pass_class.name.split("::").last
           message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
-          errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic)
+          errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
         end
       end
       state
@@ -49,11 +49,14 @@ module Kumi
 
     def self.handle_analysis_errors(errors)
       type_errors = errors.select { |e| e.type == :type }
+      semantic_errors = errors.select { |e| e.type == :semantic }
       first_error_location = errors.first.location
 
       raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
 
-      raise Errors::SemanticError.new(format_errors(errors), first_error_location)
+      raise Errors::SemanticError.new(format_errors(errors), first_error_location) if first_error_location || semantic_errors
+
+      raise Errors::AnalysisError.new(format_errors(errors))
     end
 
     def self.create_analysis_result(state)
@@ -71,7 +74,16 @@ module Kumi
     def self.format_errors(errors)
       return "" if errors.empty?
 
-      errors.map(&:to_s).join("\n")
+      backtrace = errors.first.backtrace
+
+      message = errors.map(&:to_s).join("\n")
+
+      message.tap do |msg|
+        if backtrace && !backtrace.empty?
+          msg << "\n\nBacktrace:\n"
+          msg << backtrace[0..10].join("\n") # Limit to first 10 lines for readability
+        end
+      end
     end
   end
 end

@@ -29,7 +29,7 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
       meta = { name: { type: :string } }
       plans = Kumi::Core::Compiler::AccessPlanner.plan(meta)
 
-      expect(plans.modes_for("name")).to contain_exactly(:object)
+      expect(plans["name"].map(&:mode)).to contain_exactly(:object)
     end
   end
 

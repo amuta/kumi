@@ -5,20 +5,16 @@ module Kumi
     module Compiler
       class AccessBuilder
         def self.build(plans)
-          unless plans.is_a?(Kumi::Core::Analyzer::AccessPlans::Plans)
-            raise ArgumentError, "Expected Plans struct, got #{plans.class}"
-          end
-
           accessors = {}
-          plans.by_path.each_value do |variants|
+          plans.each do |plan_id, variants|
             variants.each do |plan|
               key = plan.accessor_key
               accessors[key] = build_proc_for(
-                plan, 
-                plan.mode.to_sym, 
-                plan.path, 
-                (plan.on_missing || :error).to_sym, 
-                (plan.key_policy || :indifferent).to_sym, 
+                plan,
+                plan.mode.to_sym,
+                plan.path,
+                (plan.on_missing || :error).to_sym,
+                (plan.key_policy || :indifferent).to_sym,
                 plan.operations
               )
             end

@@ -12,7 +12,7 @@ module Kumi
     # 4. Support both immediate raising and error accumulation patterns
     module ErrorReporter
       # Standard error structure for internal use
-      ErrorEntry = Struct.new(:location, :message, :type, :context, keyword_init: true) do
+      ErrorEntry = Struct.new(:location, :message, :type, :context, :backtrace, keyword_init: true) do
         def to_s
           location_str = format_location(location)
           "#{location_str}: #{message}"
@@ -47,12 +47,13 @@ module Kumi
       # @param type [Symbol] Optional error category (:syntax, :semantic, :type, etc.)
       # @param context [Hash] Optional additional context
       # @return [ErrorEntry] Structured error entry
-      def create_error(message, location: nil, type: :semantic, context: {})
+      def create_error(message, location: nil, type: :semantic, context: {}, backtrace: nil)
         ErrorEntry.new(
           location: location,
           message: message,
           type: type,
-          context: context
+          context: context,
+          backtrace: backtrace
         )
       end
 
@@ -76,8 +77,8 @@ module Kumi
       # @param error_class [Class] Exception class to raise
       # @param type [Symbol] Error category
       # @param context [Hash] Additional context
-      def raise_error(message, location: nil, error_class: Errors::SemanticError, type: :semantic, context: {})
-        entry = create_error(message, location: location, type: type, context: context)
+      def raise_error(message, location: nil, error_class: Errors::SemanticError, type: :semantic, backtrace: nil, context: {})
+        entry = create_error(message, location: location, type: type, context: context, backtrace: backtrace || caller)
         # Pass both the formatted message and the original location to the error constructor
         raise error_class.new(entry.to_s, location)
       end
