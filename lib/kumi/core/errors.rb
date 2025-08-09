@@ -34,6 +34,8 @@ module Kumi
 
       class SyntaxError < LocatedError; end
 
+      class CompilationError < Error; end
+
       class RuntimeError < Error; end
 
       class DomainViolationError < Error

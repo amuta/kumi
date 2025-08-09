@@ -90,7 +90,7 @@ module Kumi
                                location: @context.current_location)
           end
 
-          has_expr = !expr.nil?
+          has_expr = !expr.is_a?(NilClass)
           has_block = blk
 
           if has_expr && has_block

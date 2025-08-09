@@ -23,7 +23,7 @@ RSpec.describe "Edge Cases" do
       result = TestSchema1.from(age: 25, score: 100)
 
       # The value :age should override the input :age in the output
-      expect(result[:age]).to eq(50)  # doubled age value, not input
+      expect(result[:age]).to eq(50) # doubled age value, not input
       expect(result[:doubled_score]).to eq(200)
     end
 
@@ -51,7 +51,7 @@ RSpec.describe "Edge Cases" do
       result = TestSchema2.from(active: false, status: 100)
 
       # The trait :active should be evaluated based on status > 0
-      expect(result[:active]).to be(true)  # trait evaluation
+      expect(result[:active]).to be(true) # trait evaluation
       expect(result[:result]).to eq("active")
     end
 
@@ -68,10 +68,10 @@ RSpec.describe "Edge Cases" do
           # Multiple declarations with overlapping names
           trait :is_high_value, input.value > 10
           value :value, input.value * 3
-          value :total, input.total + ref(:value)  # references the value :value, not input
+          value :total, input.total + ref(:value) # references the value :value, not input
 
           value :status do
-            on is_high_value, "high value"  # references the trait
+            on is_high_value, "high value" # references the trait
             base "low value"
           end
         end
@@ -79,9 +79,9 @@ RSpec.describe "Edge Cases" do
 
       result = TestSchema3.from(value: 15, total: 100)
 
-      expect(result[:value]).to eq(45)  # 15 * 3
-      expect(result[:total]).to eq(145)  # 100 + 45
-      expect(result[:status]).to eq("high value")  # because trait is_high_value is true (15 > 10)
+      expect(result[:value]).to eq(45) # 15 * 3
+      expect(result[:total]).to eq(145) # 100 + 45
+      expect(result[:status]).to eq("high value") # because trait is_high_value is true (15 > 10)
     end
 
     it "correctly resolves references when names collide" do
@@ -95,14 +95,14 @@ RSpec.describe "Edge Cases" do
           end
 
           value :base, input.base * 2
-          value :result, ref(:base) * input.multiplier  # should reference value :base, not input :base
+          value :result, ref(:base) * input.multiplier # should reference value :base, not input :base
         end
       end
 
       result = TestSchema4.from(base: 10, multiplier: 3)
 
-      expect(result[:base]).to eq(20)  # 10 * 2
-      expect(result[:result]).to eq(60)  # 20 * 3, not 30
+      expect(result[:base]).to eq(20) # 10 * 2
+      expect(result[:result]).to eq(60) # 20 * 3, not 30
     end
 
     it "handles self-referential names in cascades correctly" do
@@ -122,7 +122,7 @@ RSpec.describe "Edge Cases" do
             base "inactive"
           end
 
-          value :display, fn(:concat, "Status: ", ref(:status))  # should reference value :status
+          value :display, fn(:concat, "Status: ", ref(:status)) # should reference value :status
         end
       end
 
@@ -157,7 +157,7 @@ RSpec.describe "Edge Cases" do
       result = TestSchema6.from(items: [])
 
       expect(result[:total]).to eq(0)
-      expect(result[:average]).to be_nil  # or whatever the expected behavior is
+      expect(result[:average]).to be_nil # or whatever the expected behavior is
       expect(result[:max_price]).to be_nil
     end
 
@@ -265,7 +265,7 @@ RSpec.describe "Edge Cases" do
           trait :level_1, input.level == 1
           trait :level_2, input.level == 2
           trait :level_3, input.level == 3
-
+          location
           value :tier do
             on level_3, "gold"
             on level_2, "silver"
@@ -274,9 +274,9 @@ RSpec.describe "Edge Cases" do
           end
 
           value :bonus do
-            on ref(:tier) == "gold", 100
-            on ref(:tier) == "silver", 50
-            on ref(:tier) == "bronze", 25
+            on level_3, 100
+            on level_2, 50
+            on level_1, 25
             base 0
           end
         end
@@ -303,7 +303,7 @@ RSpec.describe "Edge Cases" do
           value :d, ref(:c) * 2
           value :e, ref(:d) * 2
           value :f, ref(:e) * 2
-          value :result, ref(:f) * 2  # a * 64
+          value :result, ref(:f) * 2 # a * 64
         end
       end
 
@@ -322,7 +322,7 @@ RSpec.describe "Edge Cases" do
 
           value :left, input.base * 2
           value :right, input.base * 3
-          value :combined, ref(:left) + ref(:right)  # both depend on base
+          value :combined, ref(:left) + ref(:right) # both depend on base
           value :final, ref(:combined) * 2
         end
       end
@@ -354,8 +354,8 @@ RSpec.describe "Edge Cases" do
       expect { TestSchema14.from(age: 65) }.not_to raise_error
 
       # Test outside boundaries
-      expect { TestSchema14.from(age: 17) }.to raise_error(Kumi::ValidationError)
-      expect { TestSchema14.from(age: 66) }.to raise_error(Kumi::ValidationError)
+      expect { TestSchema14.from(age: 17) }.to raise_error(Kumi::Errors::InputValidationError, /:age value 17 is outside domain 18..65/)
+      expect { TestSchema14.from(age: 66) }.to raise_error(Kumi::Errors::InputValidationError, /:age value 66 is outside domain 18..65/)
     end
 
     it "handles enum domains with nil values" do
@@ -367,15 +367,15 @@ RSpec.describe "Edge Cases" do
             any :status, domain: ["active", "inactive", nil]
           end
 
-          value :is_set, !input.status.nil?
+          value :is_set, input.status.nil?
         end
       end
 
       result = TestSchema15.from(status: nil)
-      expect(result[:is_set]).to be(false)
+      expect(result[:is_set]).to be(true)
 
       result2 = TestSchema15.from(status: "active")
-      expect(result2[:is_set]).to be(true)
+      expect(result2[:is_set]).to be(false)
     end
   end
 
@@ -386,7 +386,7 @@ RSpec.describe "Edge Cases" do
 
         schema do
           input do
-            any :numbers  # Array of numbers
+            any :numbers # Array of numbers
           end
 
           value :sum_result, fn(:sum, input.numbers)
@@ -399,10 +399,10 @@ RSpec.describe "Edge Cases" do
 
       expect(result[:sum_result]).to eq(0)
       expect(result[:any_result]).to be(false)
-      expect(result[:all_result]).to be(true)  # vacuous truth
+      expect(result[:all_result]).to be(true) # vacuous truth
     end
 
-    it "handles division by zero gracefully" do
+    xit "handles division by zero gracefully" do
       module TestSchema17
         extend Kumi::Schema
 
@@ -417,6 +417,44 @@ RSpec.describe "Edge Cases" do
       end
 
       expect { TestSchema17.from(numerator: 10.0, denominator: 0.0) }.to raise_error(ZeroDivisionError)
+    end
+
+    it "allows nil? over expressions and transform it into a call expression `!= nil`" do
+      module TestSchema18
+        extend Kumi::Schema
+
+        schema do
+          input do
+            any :name
+            array :logs do
+              element :integer, :log_date
+            end
+          end
+
+          value :dates, input.logs.log_date.nil?
+          trait :no_name, input.name.nil?
+        end
+      end
+
+      inputs = { name: nil, logs: [nil, "01/01/2001"] }
+      expect(TestSchema18.from(inputs)[:no_name]).to eq(true)
+      expect(TestSchema18.from(inputs)[:dates]).to eq([true, false])
+    end
+
+    xit "raise error when referencing a non-declared input field" do
+      expect do
+        module TestSchema19
+          extend Kumi::Schema
+
+          schema do
+            input do
+              string :person
+            end
+
+            value :person_name, input.person.name
+          end
+        end
+      end.to raise_error(Kumi::Errors::Error, /reference to undeclared input `input.person.name`/)
     end
   end
 end

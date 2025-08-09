@@ -364,7 +364,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
     expect(parsed_json).to have_key("ast")
     expect(parsed_json["ast"]).to have_key("type")
     expect(parsed_json["ast"]).to have_key("inputs")
-    expect(parsed_json["ast"]).to have_key("attributes")
+    expect(parsed_json["ast"]).to have_key("values")
     expect(parsed_json["ast"]).to have_key("traits")
 
     # Verify metadata
@@ -388,16 +388,16 @@ RSpec.describe "Comprehensive AST Export Integration" do
     expect(config_field["field_type"]["key_type"]["value"]).to eq("string")
     expect(config_field["field_type"]["value_type"]["value"]).to eq("any")
 
-    # Verify attributes with cascade expressions are properly serialized
-    attributes = parsed_json["ast"]["attributes"]
-    tier_attr = attributes.find { |attr| attr["name"] == "customer_tier" }
+    # Verify values with cascade expressions are properly serialized
+    values = parsed_json["ast"]["values"]
+    tier_attr = values.find { |attr| attr["name"] == "customer_tier" }
     expect(tier_attr).not_to be_nil
     expect(tier_attr["expression"]["type"]).to eq("cascade_expression")
     expect(tier_attr["expression"]["cases"]).to be_an(Array)
     expect(tier_attr["expression"]["cases"].length).to be > 5 # Multiple cascade cases
 
     # Verify complex function calls are properly nested
-    final_attr = attributes.find { |attr| attr["name"] == "final_assessment" }
+    final_attr = values.find { |attr| attr["name"] == "final_assessment" }
     expect(final_attr).not_to be_nil
     expect(final_attr["expression"]["type"]).to eq("call_expression")
     expect(final_attr["expression"]["function_name"]).to eq("concat")
@@ -430,11 +430,11 @@ RSpec.describe "Comprehensive AST Export Integration" do
     # Verify some nodes have location information
     # (Note: location info might not be present in all nodes depending on how the DSL builds them)
     inputs = parsed["ast"]["inputs"]
-    attributes = parsed["ast"]["attributes"]
+    values = parsed["ast"]["values"]
 
     # At least verify the structure can accommodate location info
     expect(inputs).to be_an(Array)
-    expect(attributes).to be_an(Array)
+    expect(values).to be_an(Array)
 
     # Import should still work
     imported_schema = Kumi::Core::Export.from_json(json_with_locations)
