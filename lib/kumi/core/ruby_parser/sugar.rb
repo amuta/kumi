@@ -254,6 +254,13 @@ module Kumi
                 ast_node = to_ast_node
                 Sugar.create_call_expression(:subtract, [Sugar.ensure_literal(0), ast_node])
               end
+
+              # Override Ruby's built-in nil? method to transform into == nil
+              define_method(:nil?) do
+                ast_node = to_ast_node
+                nil_literal = Kumi::Syntax::Literal.new(nil)
+                Sugar.create_call_expression(:==, [ast_node, nil_literal])
+              end
             end
           end
         end
