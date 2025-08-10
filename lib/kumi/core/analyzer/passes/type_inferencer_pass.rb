@@ -8,7 +8,7 @@ module Kumi
         # DEPENDENCIES: Toposorter (needs evaluation_order), DeclarationValidator (needs declarations)
         # PRODUCES: inferred_types hash mapping declaration names to inferred types
         # INTERFACE: new(schema, state).run(errors)
-        class TypeInferencer < PassBase
+        class TypeInferencerPass < PassBase
           def run(errors)
             types = {}
             topo_order = get_state(:evaluation_order)

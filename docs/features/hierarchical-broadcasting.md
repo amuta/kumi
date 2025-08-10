@@ -193,7 +193,7 @@ The type system automatically infers appropriate types for broadcasted operation
 
 ### Analysis Layer  
 - **BroadcastDetector** - Identifies vectorized vs scalar operations
-- **TypeInferencer** - Infers types for array element access patterns
+- **TypeInferencerPass** - Infers types for array element access patterns
 
 ### Compilation Layer
 - **Automatic Dispatch** - Maps element-wise operations to array map functions

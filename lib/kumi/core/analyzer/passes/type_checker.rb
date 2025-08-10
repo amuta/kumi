@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Validate function call arity and argument types against FunctionRegistry
-        # DEPENDENCIES: :inferred_types from TypeInferencer
+        # DEPENDENCIES: :inferred_types from TypeInferencerPass
         # PRODUCES: :functions_required - Set of function names used in the schema
         # INTERFACE: new(schema, state).run(errors)
         class TypeChecker < VisitorPass

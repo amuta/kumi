@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Validate consistency between declared and inferred types
-        # DEPENDENCIES: :input_metadata from InputCollector, :inferred_types from TypeInferencer
+        # DEPENDENCIES: :input_metadata from InputCollector, :inferred_types from TypeInferencerPass
         # PRODUCES: None (validation only)
         # INTERFACE: new(schema, state).run(errors)
         class TypeConsistencyChecker < PassBase

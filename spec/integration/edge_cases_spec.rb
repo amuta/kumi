@@ -3,6 +3,34 @@
 require "spec_helper"
 
 RSpec.describe "Edge Cases" do
+  describe "traits expressions" do
+    xit "allows only expressions that returns a boolean value" do
+    end
+  end
+
+  describe "value expressions" do
+    xit "do not allow trait referenreces (outside cascade conditions)" do
+    end
+  end
+
+  describe "Input field references" do
+    xit "raise error when referencing a non-declared input field" do
+      expect do
+        module TestSchema19
+          extend Kumi::Schema
+
+          schema do
+            input do
+              string :person
+            end
+
+            value :person_name, input.person.name
+          end
+        end
+      end.to raise_error(Kumi::Errors::Error, /reference to undeclared input `input.person.name`/)
+    end
+  end
+
   describe "Input/Declaration name collision" do
     it "allows input field and value declaration to have the same name without causing cycles" do
       module TestSchema1
@@ -439,22 +467,6 @@ RSpec.describe "Edge Cases" do
       inputs = { name: nil, logs: [nil, "01/01/2001"] }
       expect(TestSchema18.from(inputs)[:no_name]).to eq(true)
       expect(TestSchema18.from(inputs)[:dates]).to eq([true, false])
-    end
-
-    xit "raise error when referencing a non-declared input field" do
-      expect do
-        module TestSchema19
-          extend Kumi::Schema
-
-          schema do
-            input do
-              string :person
-            end
-
-            value :person_name, input.person.name
-          end
-        end
-      end.to raise_error(Kumi::Errors::Error, /reference to undeclared input `input.person.name`/)
     end
   end
 end

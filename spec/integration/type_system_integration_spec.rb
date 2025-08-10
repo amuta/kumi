@@ -77,7 +77,7 @@ RSpec.describe "Type System Integration" do
   end
 
   # NOTE: Cascade expression type inference is implemented but has dependency resolution
-  # issues in integration tests that need further investigation. The TypeInferencer
+  # issues in integration tests that need further investigation. The TypeInferencerPass
   # unit tests cover cascade type inference functionality.
 
   describe "backward compatibility" do
