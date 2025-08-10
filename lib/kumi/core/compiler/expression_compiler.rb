@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Core
     module Compiler
@@ -69,7 +71,7 @@ module Kumi
 
             # Get pre-computed cascade strategy
             compilation_meta = @analysis.state[:broadcasts]&.dig(:compilation_metadata, current_decl_name)
-            cascade_info = compilation_meta&.dig(:cascade_info) || {}
+            compilation_meta&.dig(:cascade_info) || {}
 
             # Build executor at COMPILATION time (outside the lambda)
             strategy = @analysis.state[:broadcasts][:cascade_strategies][current_decl_name]

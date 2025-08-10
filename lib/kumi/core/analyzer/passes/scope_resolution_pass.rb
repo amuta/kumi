@@ -12,6 +12,7 @@ module Kumi
         # PRODUCES: :scope_plans, :decl_shapes
         class ScopeResolutionPass < PassBase
           include Kumi::Core::Analyzer::Plans
+
           def run(_errors)
             declarations = get_state(:declarations, required: true)
             input_metadata = get_state(:input_metadata, required: true)
@@ -53,8 +54,8 @@ module Kumi
           def build_scope_plan(target_scope)
             Scope.new(
               scope: target_scope,
-              lifts: [],  # Will be computed during IR lowering per call-site
-              join_hint: nil,  # Will be set to :zip when multiple vectorized args exist
+              lifts: [], # Will be computed during IR lowering per call-site
+              join_hint: nil, # Will be set to :zip when multiple vectorized args exist
               arg_shapes: {} # Optional: filled during lowering
             )
           end

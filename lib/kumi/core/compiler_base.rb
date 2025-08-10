@@ -24,7 +24,7 @@ module Kumi
 
       def build_index
         @index = {}
-        @schema.values.each { |a| @index[a.name] = a }
+        @schema.each_value { |a| @index[a.name] = a }
         @schema.traits.each { |t| @index[t.name] = t }
       end
 

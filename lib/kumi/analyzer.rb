@@ -13,7 +13,7 @@ module Kumi
       Core::Analyzer::Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
       Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass, # 10. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::TypeChecker,                     # 12. Validates types using inferred information.
       Core::Analyzer::Passes::InputAccessPlannerPass,          # 13. Plans access strategies for input fields.

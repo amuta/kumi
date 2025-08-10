@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Core
     module Compiler
@@ -74,7 +76,7 @@ module Kumi
         def walk_and_emit(path_segs)
           emit_for_segments(path_segs)
           node = meta_node_for(path_segs)
-          return unless children = node&.[](:children)
+          return unless (children = node&.[](:children))
 
           children.each_key { |child| walk_and_emit(path_segs + [child.to_s]) }
         end
@@ -118,7 +120,7 @@ module Kumi
         end
 
         def default_mode_for_depth(d)
-          return :object       if d == 0
+          return :object       if d.zero?
           return :each_indexed if d == 1
 
           :materialize

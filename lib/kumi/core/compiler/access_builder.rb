@@ -6,7 +6,7 @@ module Kumi
       class AccessBuilder
         def self.build(plans)
           accessors = {}
-          plans.each do |plan_id, variants|
+          plans.each_value do |variants|
             variants.each do |plan|
               key = plan.accessor_key
               accessors[key] = build_proc_for(
@@ -22,9 +22,7 @@ module Kumi
           accessors.freeze
         end
 
-        private
-
-        def self.build_proc_for(plan, mode, path_key, missing, key_policy, ops)
+        def self.build_proc_for(_plan, mode, path_key, missing, key_policy, ops)
           case mode
           when :each_indexed then build_each_accessor(ops, path_key, missing, key_policy)
           when :ravel        then build_ravel_accessor(ops, path_key, missing, key_policy)
@@ -34,8 +32,6 @@ module Kumi
             raise "Unsupported mode '#{mode}' for access plan at '#{path_key}'"
           end
         end
-
-        private
 
         def self.fetch_key(hash, key, policy)
           case policy

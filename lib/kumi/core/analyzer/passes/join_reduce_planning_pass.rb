@@ -11,6 +11,7 @@ module Kumi
         # PRODUCES: :join_reduce_plans
         class JoinReducePlanningPass < PassBase
           include Kumi::Core::Analyzer::Plans
+
           def run(_errors)
             broadcasts = get_state(:broadcasts, required: false) || {}
             scope_plans = get_state(:scope_plans, required: false) || {}
@@ -73,23 +74,23 @@ module Kumi
               next unless scope_plan
 
               # Only need join planning if multiple arguments at different scopes
-              if requires_join?(declarations[name], scope_plan)
-                plan = Join.new(
-                  policy: :zip,  # Default to zip for array operations
-                  target_scope: scope_plan.scope
-                )
+              next unless requires_join?(declarations[name], scope_plan)
 
-                plans[name] = plan
+              plan = Join.new(
+                policy: :zip, # Default to zip for array operations
+                target_scope: scope_plan.scope
+              )
 
-                debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
-              end
+              plans[name] = plan
+
+              debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
             end
           end
 
           def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata)
             # First try to get from scope_plans
             scope_plan = scope_plans[name]
-            return scope_plan.scope if scope_plan && scope_plan.scope
+            return scope_plan.scope if scope_plan&.scope
 
             # Fallback: infer from the reduction argument
             infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata)
@@ -114,11 +115,12 @@ module Kumi
 
           def compute_result_scope(source_scope, axis)
             # Remove specified axis dimensions from source scope
-            if axis == :all
+            case axis
+            when :all
               []
-            elsif axis.is_a?(Array)
+            when Array
               source_scope - axis
-            elsif axis.is_a?(Integer)
+            when Integer
               # Numeric axis: remove that many innermost dimensions
               source_scope[0...-axis]
             else
