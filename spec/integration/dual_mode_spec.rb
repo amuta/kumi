@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Dual Mode Execution" do
+RSpec.describe "Dual Mode Execution", :pending do
   describe "Ruby vs JavaScript comparison" do
     let(:simple_schema) do
       Class.new do

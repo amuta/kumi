@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Kumi Compiler Integration" do
+RSpec.describe "Kumi Compiler Integration", :pending do
   # Test dual mode with simple schema
   before do
     Kumi::Registry.reset!

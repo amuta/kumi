@@ -169,7 +169,7 @@ module Kumi
             current_access_mode = parent_access_mode
             if current_meta[:type] == :array
               array_depth += 1
-              current_access_mode = current_meta[:access_mode] || :object # Default to :object if not specified
+              current_access_mode = current_meta[:access_mode] || :field # Default to :field if not specified
             end
 
             # If this field has children, recurse into them
@@ -235,76 +235,103 @@ module Kumi
           end
 
           def analyze_call_vectorization(_name, expr, array_fields, nested_paths, vectorized_values, errors, definitions = nil)
-            # Check if this is a reduction function using function registry metadata
-            if Kumi::Registry.reducer?(expr.fn_name)
-              # Only treat as reduction if the argument is actually vectorized
-              arg_info = analyze_argument_vectorization(expr.args.first, array_fields, nested_paths, vectorized_values, definitions)
-              if arg_info[:vectorized]
-                # Pre-compute which argument indices need flattening
-                flatten_indices = []
-                expr.args.each_with_index do |arg, index|
-                  arg_vectorization = analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions)
-                  flatten_indices << index if arg_vectorization[:vectorized]
-                end
+            entry         = Kumi::Registry.entry(expr.fn_name)
+            is_reducer    = entry&.reducer
+            is_structure  = entry&.structure_function
 
-                { type: :reduction, info: {
+            # 1) Analyze all args once
+            arg_infos = expr.args.map do |arg|
+              analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions)
+            end
+            vec_idx   = arg_infos.each_index.select { |i| arg_infos[i][:vectorized] }
+            vec_any   = !vec_idx.empty?
+
+            # 2) Special form: cascade_and (vectorized if any trait arg is vectorized)
+            if expr.fn_name == :cascade_and
+              vectorized_trait = expr.args.find do |arg|
+                arg.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[arg.name]&.[](:vectorized)
+              end
+              if vectorized_trait
+                return { type: :vectorized,
+                         info: { source: :cascade_condition_with_vectorized_trait, trait: vectorized_trait&.name } }
+              end
+
+              return { type: :scalar }
+            end
+
+            # 3) Reducers: only reduce when the input is actually vectorized
+            if is_reducer
+              return { type: :scalar } unless vec_any
+
+              # Which args must be flattened prior to reducing? (all vectorized ones)
+              flatten_indices = vec_idx.dup
+              src_info = arg_infos[vec_idx.first]
+              return {
+                type: :reduction,
+                info: {
                   function: expr.fn_name,
-                  source: arg_info[:source],
+                  source: src_info[:source],
                   argument: expr.args.first,
                   flatten_argument_indices: flatten_indices
-                } }
-              else
-                # Not a vectorized reduction - just a regular function call
-                { type: :scalar }
-              end
+                }
+              }
 
-            else
-
-              # Special case: cascade_and takes individual trait arguments
-              if expr.fn_name == :cascade_and
-                # Check if any of the individual arguments are vectorized traits
-                vectorized_trait = expr.args.find do |arg|
-                  arg.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[arg.name]&.[](:vectorized)
-                end
-                if vectorized_trait
-                  return { type: :vectorized, info: { source: :cascade_condition_with_vectorized_trait, trait: vectorized_trait.name } }
-                end
-              end
-
-              # Analyze arguments to determine function behavior
-              arg_infos = expr.args.map do |arg|
-                analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions)
-              end
-
-              if arg_infos.any? { |info| info[:vectorized] }
-                # Check for dimension mismatches when multiple arguments are vectorized
-                vectorized_sources = arg_infos.select { |info| info[:vectorized] }.filter_map { |info| info[:array_source] }.uniq
-
-                if vectorized_sources.length > 1
-                  # Multiple different array sources - this is a dimension mismatch
-                  # Generate enhanced error message with type information
-                  enhanced_message = build_dimension_mismatch_error(expr, arg_infos, array_fields, vectorized_sources)
-
-                  report_error(errors, enhanced_message, location: expr.loc, type: :semantic)
-                  return { type: :scalar } # Treat as scalar to prevent further errors
-                end
-
-                # Check if this is a structure function that should work on the array as-is
-                if structure_function?(expr.fn_name)
-                  # Structure functions like size should work on structure as-is (scalar)
-                  { type: :scalar }
-                else
-                  # This is a vectorized operation - broadcast over elements
-                  { type: :vectorized, info: {
-                    operation: expr.fn_name,
-                    vectorized_args: arg_infos.map.with_index { |info, i| [i, info[:vectorized]] }.to_h
-                  } }
-                end
-              else
-                # No vectorized arguments - regular scalar function
-                { type: :scalar }
-              end
             end
+
+            # 4) Structure (non-reducer) functions like `size`
+            if is_structure
+              # If any arg is itself a PURE reducer call (e.g., size(sum(x))), the inner collapses first ⇒ outer is scalar
+              # But dual-nature functions (both reducer AND structure) should be treated as structure functions when nested
+              return { type: :scalar } if expr.args.any? do |a|
+                if a.is_a?(Kumi::Syntax::CallExpression)
+                  arg_entry = Kumi::Registry.entry(a.fn_name)
+                  arg_entry&.reducer && !arg_entry&.structure_function # Pure reducer only
+                else
+                  false
+                end
+              end
+
+              # Structure fn over a vectorized element path ⇒ per-parent vectorization
+              return { type: :scalar } unless vec_any
+
+              src_info     = arg_infos[vec_idx.first]
+              parent_scope = src_info[:parent_scope] || src_info[:source] # fallback if analyzer encodes parent separately
+              return {
+                type: :vectorized,
+                info: {
+                  operation: expr.fn_name,
+                  source: src_info[:source],
+                  parent_scope: parent_scope,
+                  vectorized_args: vec_idx.to_h { |i| [i, true] }
+                }
+              }
+
+              # Structure fn over a scalar/materialized container ⇒ scalar
+
+            end
+
+            # 5) Generic vectorized map (non-structure, non-reducer)
+            if vec_any
+              # Dimension / source compatibility check
+              sources = vec_idx.map { |i| arg_infos[i][:array_source] }.compact.uniq
+              if sources.size > 1
+                enhanced_message = build_dimension_mismatch_error(expr, arg_infos, array_fields, sources)
+                report_error(errors, enhanced_message, location: expr.loc, type: :semantic)
+                return { type: :scalar } # fail safe to prevent cascading errors
+              end
+
+              return {
+                type: :vectorized,
+                info: {
+                  operation: expr.fn_name,
+                  source: arg_infos[vec_idx.first][:source],
+                  vectorized_args: vec_idx.to_h { |i| [i, true] }
+                }
+              }
+            end
+
+            # 6) Pure scalar
+            { type: :scalar }
           end
 
           def structure_function?(fn_name)
@@ -336,9 +363,18 @@ module Kumi
               end
 
             when Kumi::Syntax::CallExpression
-              # Recursively check
+              # Recursively check nested call
               result = analyze_value_vectorization(nil, arg, array_fields, nested_paths, vectorized_values, [], definitions)
-              { vectorized: result[:type] == :vectorized, source: :expression }
+              # Reduction results produce scalars, so they should NOT be treated as vectorized for outer functions
+              # Only pure vectorized results should propagate as vectorized
+              case result[:type]
+              when :reduction
+                { vectorized: false, source: :scalar_from_reduction }
+              when :vectorized
+                { vectorized: true, source: :expression }
+              else
+                { vectorized: false, source: :scalar }
+              end
 
             else
               { vectorized: false }

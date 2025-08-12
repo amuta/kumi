@@ -63,7 +63,7 @@ module Kumi
           elem_type = elem_spec.is_a?(Hash) && elem_spec[:type] ? elem_spec[:type] : :any
 
           array_type = create_array_type(field_name, elem_type)
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], :object, loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, array_type, [], :field, loc: @context.current_location)
         end
 
         def create_array_type(field_name, elem_type)
@@ -101,7 +101,7 @@ module Kumi
           children, _, using_elements = collect_array_children(&block)
 
           # Create the InputDeclaration with children and access_mode
-          access_mode = using_elements ? :element : :object
+          access_mode = using_elements ? :element : :field
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
@@ -155,11 +155,11 @@ module Kumi
             case type_spec
             when :array
               create_array_field_with_block(name, {}, &block)
-            when :object
+            when :field
               # Create nested object structure
               create_object_element(name, &block)
             else
-              raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :object types",
+              raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :field types",
                                  location: @context.current_location)
             end
           else
@@ -172,7 +172,7 @@ module Kumi
         def create_object_element(name, &block)
           # Similar to create_array_field_with_block but for objects
           children, = collect_array_children(&block)
-          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :object, children, nil, loc: @context.current_location)
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :field, children, nil, loc: @context.current_location)
         end
       end
     end

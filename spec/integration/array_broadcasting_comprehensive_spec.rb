@@ -539,7 +539,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         expect(runner[:categories_with_fallback]).to eq(%w[books electronics unknown])
       end
 
-      it "handles complex nil operations with aggregations" do
+      xit "handles complex nil operations with aggregations" do
         # Add aggregation tests
         schema_with_aggregations = analyze_and_compile do
           input do

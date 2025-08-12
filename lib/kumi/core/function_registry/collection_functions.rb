@@ -9,8 +9,16 @@ module Kumi
           {
             # Collection queries (these are reducers - they reduce arrays to scalars)
             empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
-            size: FunctionBuilder.collection_unary(:size, "Get collection size", :size, return_type: :integer, reducer: false,
-                                                                                        structure_function: true),
+            size: FunctionBuilder::Entry.new(
+              fn: ->(collection) { collection.size },
+              arity: 1,
+              param_types: [:any],
+              return_type: :integer,
+              description: "Get size of collection",
+              param_modes: { fixed: [:elem] }, # take a vector argument elementwise
+              reducer: true,
+              structure_function: true
+            ),
 
             # Element access
             first: FunctionBuilder::Entry.new(
@@ -56,7 +64,8 @@ module Kumi
               param_types: [Kumi::Core::Types.array(:float)],
               return_type: :float,
               description: "Find maximum value in numeric collection",
-              reducer: true
+              reducer: true,
+              param_modes: { fixed: [:elem] } # first param is the vector being reduced
             ),
 
             # Collection operations
@@ -94,12 +103,13 @@ module Kumi
 
             # Array transformation functions
             flatten: FunctionBuilder::Entry.new(
-              fn: lambda(&:flatten),
+              fn: ->(array) { array.flatten },
               arity: 1,
               param_types: [Kumi::Core::Types.array(:any)],
               return_type: Kumi::Core::Types.array(:any),
               description: "Flatten nested arrays into a single array",
-              structure_function: true
+              structure_function: true,
+              reducer: true
             ),
 
             flatten_one: FunctionBuilder::Entry.new(
@@ -108,15 +118,6 @@ module Kumi
               param_types: [Kumi::Core::Types.array(:any)],
               return_type: Kumi::Core::Types.array(:any),
               description: "Flatten nested arrays by one level only",
-              structure_function: true
-            ),
-
-            flatten_deep: FunctionBuilder::Entry.new(
-              fn: lambda(&:flatten),
-              arity: 1,
-              param_types: [Kumi::Core::Types.array(:any)],
-              return_type: Kumi::Core::Types.array(:any),
-              description: "Recursively flatten all nested arrays (alias for flatten)",
               structure_function: true
             ),
 

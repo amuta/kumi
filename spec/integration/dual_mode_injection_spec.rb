@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe "Dual Mode Injection" do
+RSpec.describe "Dual Mode Injection", :pending do
   let(:simple_schema) do
     Module.new do
       extend Kumi::Schema

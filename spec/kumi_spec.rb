@@ -8,10 +8,6 @@ RSpec.describe Kumi do
       expect(Kumi::VERSION).to match(/^\d+\.\d+\.\d+/)
     end
 
-    it "extends Schema module" do
-      expect(Kumi.singleton_class.included_modules).to include(Kumi::Schema)
-    end
-
     it "loads with Zeitwerk" do
       expect(defined?(Zeitwerk)).to be_truthy
     end
@@ -28,7 +24,7 @@ RSpec.describe Kumi do
 
     it "resets all schema-related instance variables" do
       Kumi.reset!
-      
+
       expect(Kumi.instance_variable_get(:@__syntax_tree__)).to be_nil
       expect(Kumi.instance_variable_get(:@__analyzer_result__)).to be_nil
       expect(Kumi.instance_variable_get(:@__compiled_schema__)).to be_nil
@@ -40,15 +36,15 @@ RSpec.describe Kumi do
     context "when schema is defined" do
       before do
         Kumi.instance_variable_set(:@__syntax_tree__, "test_tree")
-        Kumi.instance_variable_set(:@__analyzer_result__, "test_result") 
+        Kumi.instance_variable_set(:@__analyzer_result__, "test_result")
         Kumi.instance_variable_set(:@__compiled_schema__, "test_schema")
       end
-      
+
       after { Kumi.reset! }
 
       it "creates an Inspector with current schema state" do
         inspector = Kumi.inspector_from_schema
-        
+
         expect(inspector).to be_a(Kumi::Schema::Inspector)
         expect(inspector.syntax_tree).to eq("test_tree")
         expect(inspector.analyzer_result).to eq("test_result")

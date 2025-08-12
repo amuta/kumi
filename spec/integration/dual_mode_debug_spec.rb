@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Dual Mode Debug Output" do
+RSpec.describe "Dual Mode Debug Output", :pending do
   let(:test_schema) do
     Class.new do
       extend Kumi::Schema

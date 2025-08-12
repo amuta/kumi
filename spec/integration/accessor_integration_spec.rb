@@ -1,26 +1,24 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/kumi/core/compiler/access_planner"
-require_relative "../../lib/kumi/core/compiler/access_builder"
+require_relative "../support/analyzer_state_helper"
 
 RSpec.describe "AccessPlanner + AccessBuilder Integration" do
-  it "works together to create working accessors for simple array" do
-    input_metadata = {
-      regions: {
-        type: :array,
-        children: {
-          tax_rate: { type: :float }
-        }
-      }
-    }
+  include AnalyzerStateHelper
 
-    # Step 1: Plan the accessors
+  it "works with simple array of objects" do
+    # Define schema properly and get metadata from InputCollector
+    # This creates an array of objects with tax_rate field
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :regions do
+          float :tax_rate
+        end
+      end
+    end
+
     plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
-
-    # Step 2: Build the actual lambdas
     accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
 
-    # Step 3: Test with real data
     test_data = {
       "regions" => [
         { "tax_rate" => 0.2 },
@@ -28,37 +26,48 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
       ]
     }
 
-    # Test structure accessor
-    regions_accessor = accessors["regions:ravel"]
-    expect(regions_accessor.call(test_data)).to eq([
-                                                     { "tax_rate" => 0.2 },
-                                                     { "tax_rate" => 0.15 }
-                                                   ])
+    # Verify expected accessor keys exist
+    expect(accessors).to have_key("regions:ravel")
+    expect(accessors).to have_key("regions.tax_rate:ravel")
+    expect(accessors).to have_key("regions.tax_rate:materialize")
+    expect(accessors).to have_key("regions.tax_rate:each_indexed")
 
-    # Test element-wise yielder accessor
-    tax_rate_accessor = accessors["regions.tax_rate:each_indexed"]
-    tax_rate_accessor.call(test_data).each do |v, idx|
-      expect(v).to eq(test_data["regions"][idx[0]]["tax_rate"]) # idx[0] because idx is a ND-array index
-    end
+    # Test regions:ravel - ravel yields the terminal node; for container paths that's [array]
+    result = accessors["regions:ravel"].call(test_data)
+    expect(result).to eq([[{ "tax_rate" => 0.2 }, { "tax_rate" => 0.15 }]])
+
+    # Test regions.tax_rate:ravel - should extract just the values
+    result = accessors["regions.tax_rate:ravel"].call(test_data)
+    expect(result).to eq([0.2, 0.15])
+
+    # Test regions.tax_rate:materialize - should preserve structure
+    result = accessors["regions.tax_rate:materialize"].call(test_data)
+    expect(result).to eq([0.2, 0.15])
+
+    # Test regions.tax_rate:each_indexed
+    seen = []
+    accessors["regions.tax_rate:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    expect(seen).to eq([[0.2, [0]], [0.15, [1]]])
   end
 
   it "works with nested arrays" do
-    input_metadata = {
-      regions: {
-        type: :array,
-        children: {
-          offices: {
-            type: :array,
-            children: {
-              revenue: { type: :float }
-            }
-          }
-        }
-      }
-    }
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :regions do
+          array :offices do
+            float :revenue
+          end
+        end
+      end
+    end
 
     plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
     accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    # Verify expected accessor keys exist
+    expect(accessors).to have_key("regions.offices.revenue:materialize")
+    expect(accessors).to have_key("regions.offices.revenue:ravel")
+    expect(accessors).to have_key("regions.offices.revenue:each_indexed")
 
     test_data = {
       "regions" => [
@@ -67,67 +76,255 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
       ]
     }
 
-    # Test nested array access
-    revenue_accessor = accessors["regions.offices.revenue:materialize"]
-    expect(revenue_accessor.call(test_data)).to eq([[100.0, 200.0], [150.0]])
+    # Test regions.offices.revenue:materialize - should preserve 2D structure
+    result = accessors["regions.offices.revenue:materialize"].call(test_data)
+    expect(result).to eq([[100.0, 200.0], [150.0]])
+
+    # Test regions.offices.revenue:ravel - should flatten completely
+    result = accessors["regions.offices.revenue:ravel"].call(test_data)
+    expect(result).to eq([100.0, 200.0, 150.0])
+
+    # Test regions.offices.revenue:each_indexed - should have 2D indices
+    seen = []
+    accessors["regions.offices.revenue:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    expect(seen).to eq([
+      [100.0, [0, 0]],
+      [200.0, [0, 1]],
+      [150.0, [1, 0]]
+    ])
   end
 
   it "handles mixed symbol/string keys" do
-    input_metadata = { regions: { type: :array, children: { tax_rate: { type: :float } } } }
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :regions do
+          float :tax_rate
+        end
+      end
+    end
+
     plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
     accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
 
-    test_data = { regions: [{ "tax_rate" => 0.2 }, { tax_rate: 0.15 }] }
-    expect(accessors["regions.tax_rate:materialize"].call(test_data)).to eq([0.2, 0.15])
-  end
-
-  it "returns nils on missing leafs when key is missing" do
-    input_metadata = { regions: { type: :array, children: { tax_rate: { type: :float } } } }
-    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, { on_missing: :nil })
-    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
-
-    test_data = { "regions" => [{}, { "tax_rate" => 0.15 }] }
-
-    expect(accessors["regions.tax_rate:ravel"].call(test_data)).to eq([nil, 0.15])
-  end
-
-  it "supports vector mode flattening - not yet implemented" do
-    input_metadata = {
-      regions: { type: :array, children: {
-        offices: { type: :array, children: { revenue: { type: :float } } }
-      } }
+    # Mixed symbols and strings in data
+    test_data = {
+      regions: [
+        { "tax_rate" => 0.2 },
+        { tax_rate: 0.15 }
+      ]
     }
-    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata) # should include :ravel plans
-    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
 
-    test_data = { "regions" => [
-      { "offices" => [{ "revenue" => 100.0 }, { "revenue" => 200.0 }] },
-      { "offices" => [{ "revenue" => 150.0 }] }
-    ] }
-
-    expect(accessors["regions.offices.revenue:ravel"].call(test_data)).to eq([100.0, 200.0, 150.0])
+    result = accessors["regions.tax_rate:materialize"].call(test_data)
+    expect(result).to eq([0.2, 0.15])
   end
 
-  it "exposes yield access with index paths - not yet implemented" do
-    input_metadata = {
-      regions: { type: :array, children: {
-        offices: { type: :array, children: { revenue: { type: :float } } }
-      } }
-    }
-    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+  it "returns nils on missing keys when configured" do
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :regions do
+          float :tax_rate
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, on_missing: :nil)
     accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
 
-    test_data = { "regions" => [{ "offices" => [{ "revenue" => 100.0 }, { "revenue" => 200.0 }] }] }
-    seen = []
-    accessors["regions.offices.revenue:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    test_data = {
+      "regions" => [
+        {},  # Missing tax_rate
+        { "tax_rate" => 0.15 }
+      ]
+    }
 
-    expect(seen).to eq([[100.0, [0, 0]], [200.0, [0, 1]]])
+    result = accessors["regions.tax_rate:ravel"].call(test_data)
+    expect(result).to eq([nil, 0.15])
   end
 
   it "handles empty arrays at any level" do
-    input_metadata = { regions: { type: :array, children: { offices: { type: :array, children: { revenue: { type: :float } } } } } }
-    accessors = Kumi::Core::Compiler::AccessBuilder.build(Kumi::Core::Compiler::AccessPlanner.plan(input_metadata))
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :regions do
+          array :offices do
+            float :revenue
+          end
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    # Empty at top level
     expect(accessors["regions.offices.revenue:materialize"].call({ "regions" => [] })).to eq([])
+
+    # Empty at nested level
     expect(accessors["regions.offices.revenue:materialize"].call({ "regions" => [{ "offices" => [] }] })).to eq([[]])
+  end
+
+  it "works with element access mode arrays" do
+    # Test the inline array case (what the original test was trying to create)
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :matrix do
+          element :array, :row do
+            element :float, :value
+          end
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    # Test data: nested arrays (matrix)
+    test_data = {
+      "matrix" => [
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0]
+      ]
+    }
+
+    # For element access, the values ARE the arrays/scalars themselves
+    result = accessors["matrix.row.value:ravel"].call(test_data)
+    expect(result).to eq([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+  end
+
+  it "works with pure element arrays (3D matrix)" do
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :cube do
+          element :array, :layer do
+            element :array, :row do
+              element :float, :cell
+            end
+          end
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    test_data = {
+      "cube" => [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
+      ]
+    }
+
+    result = accessors["cube:ravel"].call(test_data)
+    expect(result).to eq([test_data["cube"]])
+
+    result = accessors["cube.layer:ravel"].call(test_data)
+    expect(result).to eq(test_data["cube"])
+
+    result = accessors["cube.layer.row:ravel"].call(test_data)
+    expect(result).to eq([
+      [1.0, 2.0, 3.0], [4.0, 5.0, 6.0],
+      [7.0, 8.0, 9.0], [10.0, 11.0, 12.0]
+    ])
+
+    result = accessors["cube.layer.row.cell:ravel"].call(test_data)
+    expect(result).to eq([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0])
+
+    seen = []
+    accessors["cube.layer.row.cell:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    expect(seen.first(4)).to eq([
+      [1.0, [0, 0, 0]],
+      [2.0, [0, 0, 1]],
+      [3.0, [0, 0, 2]],
+      [4.0, [0, 1, 0]]
+    ])
+  end
+
+  it "works with objects containing pure element arrays" do
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :players do
+          string :name
+          integer :score
+        end
+      end
+    end
+
+    element_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :coordinates do
+          element :array, :point do
+            element :float, :axis
+          end
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    element_plans = Kumi::Core::Compiler::AccessPlanner.plan(element_metadata)
+    element_accessors = Kumi::Core::Compiler::AccessBuilder.build(element_plans)
+
+    test_data = {
+      "players" => [
+        { "name" => "Alice", "score" => 100 },
+        { "name" => "Bob", "score" => 85 }
+      ]
+    }
+
+    element_data = {
+      "coordinates" => [
+        [10.0, 20.0],
+        [15.0, 25.0],
+        [5.0, 15.0]
+      ]
+    }
+
+    result = accessors["players.name:ravel"].call(test_data)
+    expect(result).to eq(%w[Alice Bob])
+
+    result = accessors["players.score:ravel"].call(test_data)
+    expect(result).to eq([100, 85])
+
+    result = element_accessors["coordinates.point.axis:ravel"].call(element_data)
+    expect(result).to eq([10.0, 20.0, 15.0, 25.0, 5.0, 15.0])
+
+    seen = []
+    element_accessors["coordinates.point.axis:each_indexed"].call(element_data) { |v, idx| seen << [v, idx] }
+    expect(seen).to eq([
+      [10.0, [0, 0]],
+      [20.0, [0, 1]],
+      [15.0, [1, 0]],
+      [25.0, [1, 1]],
+      [5.0,  [2, 0]],
+      [15.0, [2, 1]]
+    ])
+  end
+
+  it "handles field-hop arrays inside element objects" do
+    input_metadata = get_analyzer_state(:input_metadata) do
+      input do
+        array :rows do
+          integer :id
+          array :tags do
+            string :tag
+          end
+        end
+      end
+    end
+
+    plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
+    accessors = Kumi::Core::Compiler::AccessBuilder.build(plans)
+
+    # Verify expected accessor keys exist
+    expect(accessors).to have_key("rows.tags.tag:materialize")
+
+    test_data = {
+      "rows" => [
+        { "id" => 1, "tags" => [{ "tag" => "a" }, { "tag" => "b" }] }
+      ]
+    }
+
+    result = accessors["rows.tags.tag:materialize"].call(test_data)
+    expect(result).to eq([%w[a b]])
   end
 end

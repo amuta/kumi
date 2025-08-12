@@ -1,61 +1,39 @@
 # frozen_string_literal: true
 
+require_relative "../analyzer/structs/input_meta"
+require_relative "../analyzer/structs/access_plan"
+
 module Kumi
   module Core
     module Compiler
-      # AccessPlanner is responsible for generating access plans for the given input metadata.
-      # It traverses the metadata structure and builds a plan that describes how to access
-      # the data at various levels, including handling arrays, hashes, and different access modes.
+      # Generates deterministic access plans from normalized input metadata.
       #
-      # The generated plans are used by the Kumi compiler to optimize data access patterns.
+      # Metadata expectations (produced by InputCollector):
+      # - Each node has:
+      #     :container   => :scalar | :read | :array
+      #     :children    => { name => meta }  (optional)
+      # - Each non-root node (i.e., any child) carries edge hints from its parent:
+      #     :enter_via     => :field | :array   # how the parent reaches THIS node
+      #     :consume_alias => true|false        # inline array edge; planner does not need this to emit ops
       #
-      # Example usage:
-      #   plan = AccessPlanner.plan(input_metadata)
-      #   plan_for_revenue = AccessPlanner.plan_for(input_metadata, "regions.offices.revenue")
+      # Planning rules (single source of truth):
+      # - Root is an implicit object.
+      # - If parent is :array, always emit :enter_array before stepping to the child.
+      #     - If child.enter_via == :field → also emit :enter_hash(child_name).
+      #     - If child.enter_via == :array → inline edge, do NOT emit :enter_hash for the alias.
+      # - If parent is :read (or root), emit :enter_hash(child_name).
+      #
+      # Modes (one plan per mode):
+      # - Scalar paths (no array in lineage)    → [:read]
+      # - Vector paths (≥1 array in lineage)    → [:each_indexed, :materialize, :ravel]
+      # - If @defaults[:mode] is set, emit only that mode (alias :read → :read).
       class AccessPlanner
-        # AccessPlan structure:
-        # {
-        #   path: "regions.offices.revenue",            # dot-separated path string (leaf-inclusive)
-        #   containers: [:regions, :offices],           # container lineage (no leaf)
-        #   leaf: :revenue,                             # final field
-        #   scope: [:regions, :offices],                # alias of containers (for analyzer symmetry)
-        #   depth: 2,                                   # number of array nesting levels (containers length)
-        #   mode: :each_indexed | :object               # access pattern
-        #         | :materialize | :ravel
-        #   on_missing: :nil | :skip | :error,          # missing data policy  (TODO: enforce in builder)
-        #   key_policy: :indifferent,                   # string/symbol key handling
-        #   operations: [
-        #     { type: :enter_hash,  key: "regions", on_missing:, key_policy: },
-        #     { type: :enter_array, on_missing: },
-        #     { type: :enter_hash,  key: "offices", ... },
-        #     { type: :enter_array, on_missing: },
-        #     { type: :enter_hash,  key: "revenue", ... }
-        #   ]
-        # }
-        #
-        # NOTES:
-        # - :each_indexed yields (value, index_path) at leaf level;
-        # - :ravel flattens only the leaf level, returning a single array for each container
-        # - :materialize returns a nested array structure, preserving all containers
-        # - :object the value of the input hash key provided only, no array access
-        # - Planner is *input-only*. Broadcasting/join/reduce live in analyzer/compiler.
+        def self.plan(meta, options = {}) = new(meta, options).plan
+        def self.plan_for(meta, path, options = {}) = new(meta, options).plan_for(path)
 
-        # Public API
-        def self.plan(input_metadata, options = {})
-          new(input_metadata, options).plan
-        end
-
-        def self.plan_for(input_metadata, path, options = {})
-          new(input_metadata, options).plan_for(path)
-        end
-
-        def initialize(input_metadata, options = {})
-          @meta = input_metadata
-          @defaults = {
-            on_missing: :error,
-            key_policy: :indifferent,
-            mode: nil
-          }.merge(options)
+        def initialize(meta, options = {})
+          @meta = meta
+          @defaults = { on_missing: :error, key_policy: :indifferent, mode: nil }.merge(options)
           @plans = {}
         end
 
@@ -73,145 +51,170 @@ module Kumi
 
         private
 
-        def walk_and_emit(path_segs)
-          emit_for_segments(path_segs)
-          node = meta_node_for(path_segs)
-          return unless (children = node&.[](:children))
+        def walk_and_emit(path)
+          emit_for_segments(path)
+          node = meta_node_for(path)
+          return if node[:children].nil?
 
-          children.each_key { |child| walk_and_emit(path_segs + [child.to_s]) }
+          node[:children].each_key do |c|
+            walk_and_emit(path + [c.to_s])
+          end
         end
 
-        def emit_for_segments(path_segs, explicit_mode: nil)
-          base = build_base_plan(path_segs)
-          modes = explicit_mode ? [explicit_mode] : infer_modes(base)
-          plans = (@plans[base[:path]] ||= [])
-          modes.each do |m|
-            plans << Analyzer::AccessPlan.new(
+        def emit_for_segments(path, explicit_mode: nil)
+          lineage = container_lineage(path)
+          base    = build_base_plan(path, lineage)
+          node    = meta_node_for(path)
+
+          modes = explicit_mode || infer_modes(lineage, node)
+          modes = [modes] unless modes.is_a?(Array)
+
+          list = (@plans[base[:path]] ||= [])
+          modes.each do |mode|
+            operations = build_operations(path, mode)
+
+            list << Kumi::Core::Analyzer::AccessPlan.new(
               path: base[:path],
               containers: base[:containers],
               leaf: base[:leaf],
               scope: base[:scope],
               depth: base[:depth],
-              mode: m,
+              mode: mode, # :read | :each_indexed | :materialize | :ravel
               on_missing: base[:on_missing],
               key_policy: base[:key_policy],
-              operations: base[:operations]
+              operations: operations
             )
           end
         end
 
-        def build_base_plan(path_segs)
-          lineage = container_lineage(path_segs)
+        def build_base_plan(path, lineage)
           {
-            path: path_segs.join("."),
-            containers: lineage,
-            leaf: path_segs.last.to_sym,
-            scope: lineage.dup,
-            depth: lineage.length,
-            mode: default_mode_for_depth(lineage.length),
+            path: path.join("."),
+            containers: lineage, # symbols of array segments in the path
+            leaf: path.last.to_sym,
+            scope: lineage.dup,            # alias kept for analyzer symmetry
+            depth: lineage.length,         # rank
             on_missing: @defaults[:on_missing],
-            key_policy: @defaults[:key_policy],
-            operations: build_operations(path_segs)
+            key_policy: @defaults[:key_policy]
+
           }.freeze
         end
 
-        def infer_modes(plan)
-          plan[:depth].zero? ? [:object] : %i[each_indexed ravel materialize]
+        def infer_modes(lineage, _node)
+          lineage.empty? ? [:read] : %i[each_indexed materialize ravel]
         end
 
-        def default_mode_for_depth(d)
-          return :object       if d.zero?
-          return :each_indexed if d == 1
-
-          :materialize
-        end
-
-        def build_operations(path_segs)
+        # Core op builder: apply the parent→child edge rule per segment.
+        def build_operations(path, mode)
           ops = []
-          parent_meta    = nil
-          current_childs = @meta
+          parent_meta = nil
+          cur = @meta
 
-          path_segs.each do |seg|
-            seg_meta = indifferent_get(current_childs, seg) or
-              raise ArgumentError, "Unknown segment '#{seg}' in '#{path_segs.join('.')}'"
+          puts "\n🔨 Building operations for path: #{path.join('.')}:#{mode}" if ENV["DEBUG_ACCESSOR_OPS"]
 
-            ops << enter_hash(seg) if should_enter_hash?(parent_meta, seg_meta)
-            ops << enter_array     if should_enter_array?(parent_meta, seg_meta)
+          path.each_with_index do |seg, idx|
+            node = ig(cur, seg) or raise ArgumentError, "Unknown segment '#{seg}' in '#{path.join('.')}'"
 
-            current_childs = seg_meta[:children] || {}
-            parent_meta    = seg_meta
+            puts "  Segment #{idx}: '#{seg}'" if ENV["DEBUG_ACCESSOR_OPS"]
+
+            # Validate required fields before using them
+            container = parent_meta&.[](:container)
+            enter_via = if is_root_segment?(idx)
+                          nil
+                        else
+                          node[:enter_via] do
+                            raise ArgumentError,
+                                  "Missing :enter_via for non-root segment '#{seg}' at '#{path.join('.')}'. Contract violation."
+                          end
+                        end
+
+            if container == :array
+              # Array parent: always step into elements first
+              ops << enter_array
+              puts "      Added: enter_array" if ENV["DEBUG_ACCESSOR_OPS"]
+
+              # Then either inline (no hash) or field hop to named member
+              if enter_via == :hash
+                ops << enter_hash(seg)
+                puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
+              elsif enter_via == :array
+                # Inline alias, no hash operation needed
+                puts "      Skipped enter_hash (inline alias)" if ENV["DEBUG_ACCESSOR_OPS"]
+              else
+                raise ArgumentError, "Invalid :enter_via '#{enter_via}' for array child '#{seg}'. Must be :hash or :array"
+              end
+            elsif container.nil? || container == :object
+              # Root or object parent - always emit enter_hash
+              ops << enter_hash(seg)
+              puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
+            else
+              raise ArgumentError, "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, or nil (root)"
+            end
+
+            parent_meta = node
+            cur = node[:children] || {}
           end
+
+          terminal = parent_meta
+
+          if terminal && terminal[:container] == :array
+            case mode
+            when :each_indexed, :ravel
+              ops << enter_array
+              # :materialize and :read do not step into elements
+            end
+          end
+
+          # # If we land on an array and this mode iterates elements, step into it.
+          puts "  Final operations: #{ops.inspect}" if ENV["DEBUG_ACCESSOR_OPS"]
 
           ops
         end
 
-        def should_enter_hash?(parent_meta, seg_meta)
-          return true  if parent_meta.nil?                 # root hop
-          return false if element_array?(parent_meta)      # child label after element-mode is synthetic
-          return false if element_array?(seg_meta)         # element-mode label itself isn’t a key
-
-          true
+        def container_lineage(path)
+          lineage = []
+          cur = @meta
+          path.each do |seg|
+            m = ig(cur, seg)
+            container = m[:container] do
+              raise ArgumentError, "Missing :container for '#{seg}' in path '#{path.join('.')}'. Contract violation."
+            end
+            lineage << seg.to_sym if container == :array
+            cur = m[:children] || {}
+          end
+          lineage
         end
 
-        def should_enter_array?(parent_meta, seg_meta)
-          return false unless array?(seg_meta)
-          return false if element_array?(parent_meta)      # already at that child array
-
-          true
+        def meta_node_for(path)
+          cur = @meta
+          last = nil
+          path.each do |seg|
+            m = ig(cur, seg)
+            last = m
+            cur = m[:children] || {}
+          end
+          last
         end
 
-        def array?(m)         = m && m[:type] == :array
-        def element_array?(m) = array?(m) && (m[:access_mode] || :object) == :element
+        def ensure_path!(path)
+          raise ArgumentError, "Unknown path: #{path.join('.')}" unless meta_node_for(path)
+        end
+
+        def ig(h, k)
+          h[k.to_sym] or raise ArgumentError, "Missing required field '#{k}' in metadata. Available keys: #{h.keys.inspect}"
+        end
 
         def enter_hash(key)
           { type: :enter_hash, key: key.to_s,
-            on_missing: @defaults[:on_missing],
-            key_policy: @defaults[:key_policy] }
+            on_missing: @defaults[:on_missing], key_policy: @defaults[:key_policy] }
         end
 
         def enter_array
           { type: :enter_array, on_missing: @defaults[:on_missing] }
         end
 
-        def container_lineage(path_segs)
-          lineage        = []
-          parent_meta    = nil
-          current_childs = @meta
-
-          path_segs.each do |seg|
-            seg_meta = indifferent_get(current_childs, seg)
-            # skip counting the synthetic seg after an element-array
-            lineage << seg.to_sym if array?(seg_meta)
-            current_childs = seg_meta&.[](:children) || {}
-            parent_meta    = seg_meta
-          end
-
-          # If the final hop was synthetic (parent element-array, leaf scalar),
-          # lineage is still correct: we never counted the synthetic seg anyway.
-          lineage
-        end
-
-        def meta_node_for(path_segs)
-          cur_children = @meta
-          last_meta    = nil
-          path_segs.each do |seg|
-            seg_meta = indifferent_get(cur_children, seg)
-            return nil unless seg_meta
-
-            last_meta    = seg_meta
-            cur_children = seg_meta[:children] || {}
-          end
-          last_meta
-        end
-
-        def ensure_path!(path_segs)
-          raise ArgumentError, "Unknown path: #{path_segs.join('.')}" unless meta_node_for(path_segs)
-        end
-
-        def indifferent_get(hash, key)
-          return nil unless hash
-
-          hash[key] || hash[key.to_sym] || hash[key.to_s]
+        def is_root_segment?(idx)
+          idx == 0
         end
       end
     end

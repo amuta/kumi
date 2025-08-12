@@ -98,7 +98,7 @@ RSpec.describe Kumi::Schema do
         instance = test_class.from(age: 25)
         
         expect(instance).not_to be_nil
-        expect(instance).to respond_to(:fetch)
+        expect(instance).to respond_to(:evaluate)
       end
 
       it "validates input and raises error for invalid data" do

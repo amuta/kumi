@@ -169,7 +169,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
         object_array = input_decl(:items, :array, nil, children: [
                                     input_decl(:name, :string, nil),
                                     input_decl(:value, :integer, nil)
-                                  ], access_mode: :object)
+                                  ], access_mode: :read)
 
         syntax(:root, [primitive_array, nested_array, object_array], [], [], loc: loc)
       end
@@ -191,7 +191,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::SemanticConstraintValidator do
         object_array = input_decl(:items, :array, nil, children: [
                                     input_decl(:name, :string, nil),
                                     input_decl(:value, :integer, nil)
-                                  ], access_mode: :object)
+                                  ], access_mode: :read)
 
         # Valid: nested array structure
         nested_array = input_decl(:grid, :array, nil, children: [

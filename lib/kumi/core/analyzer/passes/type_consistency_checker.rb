@@ -39,7 +39,7 @@ module Kumi
           def find_input_field_declaration(field_name)
             return nil unless schema
 
-            schema.input_metadata.find { |input_decl| input_decl.name == field_name }
+            schema.inputs.find { |input_decl| input_decl.name == field_name }
           end
         end
       end

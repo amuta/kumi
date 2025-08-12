@@ -5,11 +5,14 @@ require "zeitwerk"
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
+loader.inflector.inflect(
+  "lower_to_ir_pass" => "LowerToIRPass",
+  "vm" => "VM",
+  "ir" => "IR"
+)
 loader.setup
 
 module Kumi
-  extend Schema
-
   def self.inspector_from_schema
     Schema::Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
   end

@@ -104,7 +104,7 @@ module Kumi
           # Get path metadata to determine access mode (element vs object)
           nested_paths = @analysis.state[:broadcasts]&.dig(:nested_paths)
           path_metadata = nested_paths && nested_paths[path]
-          access_mode = path_metadata&.dig(:access_mode) || :object
+          access_mode = path_metadata&.dig(:access_mode) || :field
 
           if access_mode == :element
             # For element access, generate direct flattening based on path depth

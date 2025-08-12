@@ -28,7 +28,7 @@ module Kumi
 
         # Metadata-driven nested array traversal using the traversal algorithm from our design
         def traverse_nested_path(data, path, operation_mode, path_metadata = nil)
-          access_mode = path_metadata&.dig(:access_mode) || :object
+          access_mode = path_metadata&.dig(:access_mode) || :field
 
           # Use specialized traversal for element access mode
           result = if access_mode == :element
@@ -70,7 +70,7 @@ module Kumi
           end
         end
 
-        def traverse_path_recursive(data, path, operation_mode, access_mode = :object, original_path_length = nil)
+        def traverse_path_recursive(data, path, operation_mode, access_mode = :field, original_path_length = nil)
           # Track original path length to determine traversal depth
           original_path_length ||= path.length
           current_depth = original_path_length - path.length
@@ -110,7 +110,7 @@ module Kumi
           end
         end
 
-        def extract_field_preserving_structure(data, field, access_mode = :object, depth = 0)
+        def extract_field_preserving_structure(data, field, access_mode = :field, depth = 0)
           if data.is_a?(Array)
             data.map { |item| extract_field_preserving_structure(item, field, access_mode, depth) }
           else
@@ -132,7 +132,7 @@ module Kumi
               # If not an array, return as-is (leaf level)
               data
             end
-          when :object
+          when :field
             # Object access mode - normal hash/object field access
             data[field]
           else

@@ -4,135 +4,152 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Collect field metadata from input declarations and validate consistency
-        # DEPENDENCIES: :definitions
-        # PRODUCES: :input_metadata - Hash mapping field names to {type:, domain:} metadata
-        # INTERFACE: new(schema, state).run(errors)
+        # Emits per-node metadata:
+        #   :type, :domain
+        #   :container     => :scalar | :field | :array
+        #   :access_mode   => :field | :element          # how THIS node is read once reached
+        #   :enter_via     => :hash | :array           # how we HOP from parent to THIS node
+        #   :consume_alias => true|false               # inline array hop (alias is not a hash key)
+        #   :children      => { name => node_meta }    # optional
+        #
+        # Invariants:
+        # - Any nested array (child depth ≥ 1) must declare its element (i.e., have children).
+        # - Depth-0 inputs always: enter_via :hash, consume_alias false, access_mode :field.
         class InputCollector < PassBase
           def run(errors)
             input_meta = {}
 
-            schema.inputs.each do |field_decl|
-              unless field_decl.is_a?(Kumi::Syntax::InputDeclaration)
-                report_error(errors, "Expected InputDeclaration node, got #{field_decl.class}", location: field_decl.loc)
-                next
-              end
-
-              name = field_decl.name
-              existing = input_meta[name]
-
-              if existing
-                # Check for compatibility and merge
-                merged_meta = merge_field_metadata(existing, field_decl, errors)
-                input_meta[name] = merged_meta if merged_meta
-              else
-                # New field - collect its metadata
-                input_meta[name] = collect_field_metadata(field_decl, errors)
-              end
+            schema.inputs.each do |decl|
+              name = decl.name
+              input_meta[name] = collect_field_metadata(decl, errors, depth: 0, name: name)
             end
 
-            state.with(:input_metadata, freeze_nested_hash(input_meta))
+            input_meta.each_value(&:deep_freeze!)
+            state.with(:input_metadata, input_meta.freeze)
           end
 
           private
 
-          def collect_field_metadata(field_decl, errors)
-            validate_domain_type(field_decl, errors) if field_decl.domain
+          # ---------- builders ----------
 
-            metadata = {
-              type: field_decl.type,
-              domain: field_decl.domain,
-              access_mode: field_decl.access_mode
-            }
-
-            # Process children if present
-            if field_decl.children && !field_decl.children.empty?
-              children_meta = {}
-              field_decl.children.each do |child_decl|
-                unless child_decl.is_a?(Kumi::Syntax::InputDeclaration)
-                  report_error(errors, "Expected InputDeclaration node in children, got #{child_decl.class}", location: child_decl.loc)
-                  next
-                end
-                children_meta[child_decl.name] = collect_field_metadata(child_decl, errors)
+          def collect_field_metadata(decl, errors, depth:, name:)
+            children = nil
+            if decl.children&.any?
+              children = {}
+              decl.children.each do |child|
+                children[child.name] = collect_field_metadata(child, errors, depth: depth + 1, name: child.name)
               end
-              metadata[:children] = children_meta
             end
 
-            metadata
+            access_mode = decl.access_mode || :field
+
+            meta = Structs::InputMeta.new(
+              type: decl.type,
+              domain: decl.domain,
+              container: kind_from_type(decl.type),
+              access_mode: access_mode,
+              enter_via: :hash,
+              consume_alias: false,
+              children: children
+            )
+            stamp_edges_from!(meta, errors, parent_depth: depth)
+            validate_access_modes!(meta, errors, parent_depth: depth)
+            meta
           end
 
-          def merge_field_metadata(existing, field_decl, errors)
-            name = field_decl.name
+          # ---------- edge stamping + validation ----------
+          #
+          # Sets child[:enter_via], child[:consume_alias], child[:access_mode] defaults,
+          # and validates nested arrays declare their element.
+          #
+          # Rules:
+          # - Common: any ARRAY child at child-depth ≥ 1 must have children (no bare nested array).
+          # - Parent :object → any child:
+          #     child.enter_via = :hash; child.consume_alias = false; child.access_mode ||= :field
+          # - Parent :array:
+          #     * If exactly one child:
+          #         - child.container ∈ {:scalar, :array} → via :array, consume_alias true, access_mode :element
+          #         - child.container == :field         → via :hash,  consume_alias false, access_mode :field
+          #     * Else (element object): every child → via :hash, consume_alias false, access_mode :field
+          def stamp_edges_from!(parent_meta, errors, parent_depth:)
+            kids = parent_meta.children || {}
+            return if kids.empty?
 
-            # Check for type compatibility
-            if existing[:type] != field_decl.type && field_decl.type && existing[:type]
-              report_error(errors,
-                           "Field :#{name} declared with conflicting types: #{existing[:type]} vs #{field_decl.type}",
-                           location: field_decl.loc)
+            # Validate nested arrays anywhere below root
+            kids.each do |kname, child|
+              next unless child.container == :array
+
+              if !child.children || child.children.empty?
+                report_error(errors, "Nested array at :#{kname} must declare its element", location: nil)
+              end
             end
 
-            # Check for domain compatibility
-            if existing[:domain] != field_decl.domain && field_decl.domain && existing[:domain]
-              report_error(errors,
-                           "Field :#{name} declared with conflicting domains: #{existing[:domain].inspect} vs #{field_decl.domain.inspect}",
-                           location: field_decl.loc)
-            end
-
-            # Validate domain type if provided
-            validate_domain_type(field_decl, errors) if field_decl.domain
-
-            # Merge metadata (later declarations override nil values)
-            merged = {
-              type: field_decl.type || existing[:type],
-              domain: field_decl.domain || existing[:domain],
-              access_mode: field_decl.access_mode || existing[:access_mode]
-            }
-
-            # Merge children if present
-            if field_decl.children && !field_decl.children.empty?
-              existing_children = existing[:children] || {}
-              new_children = {}
-
-              field_decl.children.each do |child_decl|
-                unless child_decl.is_a?(Kumi::Syntax::InputDeclaration)
-                  report_error(errors, "Expected InputDeclaration node in children, got #{child_decl.class}", location: child_decl.loc)
-                  next
-                end
-
-                child_name = child_decl.name
-                new_children[child_name] = if existing_children[child_name]
-                                             merge_field_metadata(existing_children[child_name], child_decl, errors)
-                                           else
-                                             collect_field_metadata(child_decl, errors)
-                                           end
+            case parent_meta.container
+            when :object
+              kids.each_value do |child|
+                child.enter_via = :hash
+                child.consume_alias = false
+                child.access_mode = :field
               end
 
-              merged[:children] = new_children
-            elsif existing[:children]
-              merged[:children] = existing[:children]
+            when :array
+              # Array parents MUST explicitly declare their access mode
+              access_mode = parent_meta.access_mode
+              raise "Array must explicitly declare access_mode (:field or :element)" unless access_mode
+
+              case access_mode
+              when :field
+                # Array of objects: all children are fields accessed via hash
+                kids.each_value do |child|
+                  child.enter_via = :hash
+                  child.consume_alias = false
+                  child.access_mode = :field
+                end
+
+              when :element
+                _name, only = kids.first
+                only.enter_via = :array
+                only.consume_alias = true
+                only.access_mode = :element
+
+              else
+                raise "Invalid access_mode :#{access_mode} for array (must be :field or :element)"
+              end
             end
-
-            merged
           end
 
-          def freeze_nested_hash(hash)
-            hash.each_value do |value|
-              freeze_nested_hash(value) if value.is_a?(Hash)
+          # Enforce access_mode semantics are only used in valid contexts.
+          def validate_access_modes!(parent_meta, errors, parent_depth:)
+            kids = parent_meta.children || {}
+            return if kids.empty?
+
+            kids.each do |kname, child|
+              mode = child.access_mode
+              next unless mode
+
+              unless %i[field element].include?(mode)
+                report_error(errors, "Invalid access_mode for :#{kname}: #{mode.inspect}", location: nil)
+                next
+              end
+
+              if mode == :element
+                if parent_meta.container == :array
+                  single = (kids.size == 1)
+                  unless single && %i[scalar array].include?(child.container)
+                    report_error(errors, "access_mode :element only valid for single scalar/array element (at :#{kname})", location: nil)
+                  end
+                else
+                  report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
+                end
+              end
             end
-            hash.freeze
           end
 
-          def validate_domain_type(field_decl, errors)
-            domain = field_decl.domain
-            return if valid_domain_type?(domain)
+          def kind_from_type(t)
+            return :array if t == :array
+            return :field if t == :field
 
-            report_error(errors,
-                         "Field :#{field_decl.name} has invalid domain constraint: #{domain.inspect}. Domain must be a Range, Array, or Proc",
-                         location: field_decl.loc)
-          end
-
-          def valid_domain_type?(domain)
-            domain.is_a?(Range) || domain.is_a?(Array) || domain.is_a?(Proc)
+            :scalar
           end
         end
       end

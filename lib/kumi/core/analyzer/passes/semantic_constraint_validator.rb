@@ -103,13 +103,14 @@ module Kumi
 
             # Validate that access_mode is consistent with children structure
             if input_decl.access_mode == :element
+
               # Element mode arrays can only have exactly one direct child
               if input_decl.children.size > 1
                 error_msg = "array with access_mode :element can only have one direct child element, " \
                             "but found #{input_decl.children.size} children"
                 report_error(errors, error_msg, location: input_decl.loc, type: :semantic)
               end
-            elsif input_decl.access_mode == :object
+            elsif input_decl.access_mode == :field
               # Object mode allows multiple children
             end
 
