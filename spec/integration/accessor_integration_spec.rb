@@ -34,7 +34,7 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
 
     # Test regions:ravel - ravel yields the terminal node; for container paths that's [array]
     result = accessors["regions:ravel"].call(test_data)
-    expect(result).to eq([[{ "tax_rate" => 0.2 }, { "tax_rate" => 0.15 }]])
+    expect(result).to eq([{ "tax_rate" => 0.2 }, { "tax_rate" => 0.15 }])
 
     # Test regions.tax_rate:ravel - should extract just the values
     result = accessors["regions.tax_rate:ravel"].call(test_data)
@@ -88,10 +88,10 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
     seen = []
     accessors["regions.offices.revenue:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
     expect(seen).to eq([
-      [100.0, [0, 0]],
-      [200.0, [0, 1]],
-      [150.0, [1, 0]]
-    ])
+                         [100.0, [0, 0]],
+                         [200.0, [0, 1]],
+                         [150.0, [1, 0]]
+                       ])
   end
 
   it "handles mixed symbol/string keys" do
@@ -132,7 +132,7 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
 
     test_data = {
       "regions" => [
-        {},  # Missing tax_rate
+        {}, # Missing tax_rate
         { "tax_rate" => 0.15 }
       ]
     }
@@ -213,29 +213,61 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
       ]
     }
 
-    result = accessors["cube:ravel"].call(test_data)
-    expect(result).to eq([test_data["cube"]])
+    # For nested scalar arrays, the materialized accessors should return the original structure
+    expect(accessors["cube:materialize"].call(test_data)).to eq(test_data["cube"])
+    expect(accessors["cube.layer:materialize"].call(test_data)).to eq(test_data["cube"])
+    expect(accessors["cube.layer.row:materialize"].call(test_data)).to eq(test_data["cube"])
+    expect(accessors["cube.layer.row.cell:materialize"].call(test_data)).to eq(test_data["cube"])
 
-    result = accessors["cube.layer:ravel"].call(test_data)
-    expect(result).to eq(test_data["cube"])
+    # for ravel, it will return the flattened version of the 3D structure over N dimensions (path length)
+    expect(accessors["cube:ravel"].call(test_data)).to eq(test_data["cube"])
+    expect(accessors["cube.layer:ravel"].call(test_data)).to eq(test_data["cube"].flatten(1))
+    expect(accessors["cube.layer.row:ravel"].call(test_data)).to eq(test_data["cube"].flatten(2))
 
-    result = accessors["cube.layer.row:ravel"].call(test_data)
-    expect(result).to eq([
-      [1.0, 2.0, 3.0], [4.0, 5.0, 6.0],
-      [7.0, 8.0, 9.0], [10.0, 11.0, 12.0]
-    ])
+    # Because the cells are leafs and its vectorized version is an array over the cells, which is the same
+    # as the row:ravel
+    expect(accessors["cube.layer.row.cell:ravel"].call(test_data)).to eq(test_data["cube"].flatten(2))
 
-    result = accessors["cube.layer.row.cell:ravel"].call(test_data)
-    expect(result).to eq([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0])
-
+    # For each_indexed, it should yield each value with its 3D index
+    # 1 axis → layers
     seen = []
-    accessors["cube.layer.row.cell:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    accessors["cube:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    expect(seen).to eq([
+                         [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [0]],
+                         [[[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]], [1]]
+                       ])
+
+    # 2 axes → rows across layers
+    seen = []
+    accessors["cube.layer:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
+    expect(seen).to eq([
+                         [[1.0, 2.0, 3.0], [0, 0]],
+                         [[4.0, 5.0, 6.0], [0, 1]],
+                         [[7.0, 8.0, 9.0], [1, 0]],
+                         [[10.0, 11.0, 12.0], [1, 1]]
+                       ])
+
+    # 3 axes → scalar cells
+    seen = []
+    accessors["cube.layer.row:each_indexed"].call(test_data) { |v, idx| seen << [v, idx] }
     expect(seen.first(4)).to eq([
-      [1.0, [0, 0, 0]],
-      [2.0, [0, 0, 1]],
-      [3.0, [0, 0, 2]],
-      [4.0, [0, 1, 0]]
-    ])
+                                  [1.0, [0, 0, 0]],
+                                  [2.0, [0, 0, 1]],
+                                  [3.0, [0, 0, 2]],
+                                  [4.0, [0, 1, 0]]
+                                ])
+    expect(seen.last(2)).to eq([
+                                 [11.0, [1, 1, 1]],
+                                 [12.0, [1, 1, 2]]
+                               ])
+    expect(seen.size).to eq(12)
+
+    # explicit leaf name yields the same sequence/indices as its parent
+    seen2 = []
+    accessors["cube.layer.row.cell:each_indexed"].call(test_data) do |v, idx|
+      seen2 << [v, idx]
+    end
+    expect(seen2).to eq(seen)
   end
 
   it "works with objects containing pure element arrays" do
@@ -291,13 +323,13 @@ RSpec.describe "AccessPlanner + AccessBuilder Integration" do
     seen = []
     element_accessors["coordinates.point.axis:each_indexed"].call(element_data) { |v, idx| seen << [v, idx] }
     expect(seen).to eq([
-      [10.0, [0, 0]],
-      [20.0, [0, 1]],
-      [15.0, [1, 0]],
-      [25.0, [1, 1]],
-      [5.0,  [2, 0]],
-      [15.0, [2, 1]]
-    ])
+                         [10.0, [0, 0]],
+                         [20.0, [0, 1]],
+                         [15.0, [1, 0]],
+                         [25.0, [1, 1]],
+                         [5.0,  [2, 0]],
+                         [15.0, [2, 1]]
+                       ])
   end
 
   it "handles field-hop arrays inside element objects" do

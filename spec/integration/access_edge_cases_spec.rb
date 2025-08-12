@@ -11,7 +11,7 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
     Kumi::Core::Compiler::AccessBuilder.build(plans)
   end
 
-  context "depth=0 (:field)" do
+  context "depth=0 (:read)" do
     it "fetches scalar leaves with on_missing policies" do
       acc = build_accessors_from_schema(on_missing: :nil) do
         input do
@@ -19,8 +19,8 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
         end
       end
       data = { "name" => "Ada" }
-      expect(acc["name:field"].call(data)).to eq("Ada")
-      expect(acc["name:field"].call({})).to eq(nil)
+      expect(acc["name:read"].call(data)).to eq("Ada")
+      expect(acc["name:read"].call({})).to eq(nil)
     end
 
     it "returns hash leaves intact" do
@@ -30,7 +30,7 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
         end
       end
       data = { "first" => "Linus" }
-      expect(acc["first:field"].call(data)).to be("Linus")
+      expect(acc["first:read"].call(data)).to be("Linus")
     end
 
     it "does not emit :each_indexed/:materialize/:ravel for depth=0" do
@@ -41,7 +41,7 @@ RSpec.describe "AccessPlanner + AccessBuilder edge cases" do
       end
       plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata)
 
-      expect(plans["name"].map(&:mode)).to contain_exactly(:field)
+      expect(plans["name"].map(&:mode)).to contain_exactly(:read)
     end
   end
 

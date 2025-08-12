@@ -157,12 +157,9 @@ module Kumi
 
           terminal = parent_meta
 
-          if terminal && terminal[:container] == :array
-            case mode
-            when :each_indexed, :ravel
-              ops << enter_array
-              # :materialize and :read do not step into elements
-            end
+          if terminal && terminal[:container] == :array && %i[each_indexed ravel].include?(mode)
+            ops << enter_array
+            # :materialize and :read do not step into elements
           end
 
           # # If we land on an array and this mode iterates elements, step into it.

@@ -176,27 +176,27 @@ RSpec.describe "Mixed Access Modes Integration" do
     let(:cube_data) do
       {
         data_cube: [
-          [
-            [ # row 1
-              1.0, # value 1
-              2.0 # value 2
+          [ # layer 0
+            [ # row 0
+              1.0, # value 0
+              2.0 # value 1
             ],
-            [ # row 2
-              3.0, # value 3
-              4.0  # value 4
+            [ # row 1
+              3.0, # value 0
+              4.0  # value 1
             ]
           ],
-          [
-            [
-              5.0,
-              6.0
+          [ # layer 1
+            [ # row 0
+              5.0, # value 0
+              6.0 # value 1
             ]
           ],
-          [
-            [
-              7.0,
-              8.0,
-              9.0
+          [ # layer 2
+            [ # row 0
+              7.0, # value 0
+              8.0, # value 1
+              9.0 # value 2
             ]
           ]
         ],

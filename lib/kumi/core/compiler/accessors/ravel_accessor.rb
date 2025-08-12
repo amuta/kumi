@@ -4,15 +4,23 @@ module Kumi
   module Core
     module Compiler
       module Accessors
+        # Ravel: collect leaf elements reached by the op sequence.
+        # Invariants guaranteed by the planner for :ravel:
+        # - Every array edge along the path has an :enter_array op.
+        # - If the leaf container is an array, a terminal :enter_array is appended,
+        #   so the leaf we see here is the element, not the array.
         class RavelAccessor
           extend Base
 
           def self.build(operations, path_key, policy, key_policy)
             mode = :ravel
+
             lambda do |data|
               out = []
+
               walk = nil
               walk = lambda do |node, pc|
+                # Leaf: ops exhausted ⇒ emit this element (scalar/object/array element).
                 if pc >= operations.length
                   out << node
                   return
@@ -21,8 +29,11 @@ module Kumi
                 op = operations[pc]
                 case op[:type]
                 when :enter_hash
+                  # If the next step is an array, we don’t care about key symbol/string
+                  # (we’ll just iterate) → use indifferent lookup.
                   preview_array = next_enters_array?(operations, pc)
                   policy_for = preview_array ? :indifferent : key_policy
+
                   next_node = fetch_key(node, op[:key], policy_for)
                   if next_node == Base::MISSING
                     case missing_key_action(policy)
@@ -50,6 +61,7 @@ module Kumi
                   raise "Unknown operation: #{op.inspect}"
                 end
               end
+
               walk.call(data, 0)
               out
             end
