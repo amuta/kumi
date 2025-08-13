@@ -6,19 +6,18 @@ require "pry"
 require "open3"
 
 require "simplecov"
-# SimpleCov.start do
-#   add_filter "/spec/"
-#   add_filter "/vendor/"
+SimpleCov.start do
+  add_filter "/spec/"
+  add_filter "/vendor/"
 
-#   add_group "RubyParser", ["lib/kumi/core/ruby_parser/**/*.rb", "lib/kumi/ruby_parser.rb"]
-#   add_group "Analyzer", ["lib/kumi/core/analyzer/**/*.rb", "lib/kumi/analyzer.rb"]
-#   add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler_base.rb"]
-#   add_group "JS", ["lib/kumi/js/**/*.rb"]
-#   add_group "Syntax", ["lib/kumi/syntax/*.rb"]
+  add_group "Analyzer", ["lib/kumi/core/analyzer/**/*.rb", "lib/kumi/analyzer.rb"]
+  add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler/**/*.rb"]
+  add_group "IR", ["lib/kumi/core/ir/**/*.rb"]
+  add_group "Other", ["lib/**/*.rb"]
 
-#   minimum_coverage 0
-#   track_files "lib/**/*.rb"
-# end
+  minimum_coverage 0
+  track_files "lib/**/*.rb"
+end
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
 
@@ -32,7 +31,19 @@ RSpec.configure do |config|
   config.include DualModeHelpers
 end
 
-ENV["DUAL_MODE_ENABLED"] ||= "true" # Disabled for element access mode testing
+# Suppress warnings about potentially false-positive raise_error matchers
+
+module SchemaHelper
+  extend Kumi::Schema
+end
+
+module Kumi
+  def self.schema(&block)
+    SchemaHelper.schema(&block)
+  end
+end
+
+# ENV["DUAL_MODE_ENABLED"] ||= "true" # Disabled for element access mode testing
 
 return unless ENV["DUAL_MODE_ENABLED"] == "true"
 
@@ -53,15 +64,3 @@ return unless ENV["DUAL_MODE_ENABLED"] == "true"
 #     end
 #   end
 # end
-
-# Suppress warnings about potentially false-positive raise_error matchers
-
-module SchemaHelper
-  extend Kumi::Schema
-end
-
-module Kumi
-  def self.schema(&block)
-    SchemaHelper.schema(&block)
-  end
-end

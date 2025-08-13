@@ -270,7 +270,7 @@ module Kumi
               puts "DEBUG: Complex target scope #{target_scope.inspect}, not supported yet" if ENV["DEBUG_BROADCAST"]
               return scalar_slot
             end
-            
+
             if plans&.any?
               # Find an indexed plan that gives us the vector shape
               indexed_plan = plans.find { |p| p.mode == :each_indexed }
@@ -280,7 +280,7 @@ module Kumi
                 ops << Kumi::Core::IR::Ops.LoadInput(indexed_plan.accessor_key, scope: indexed_plan.scope, has_idx: true)
                 carrier_slot = ops.size - 1
                 puts "DEBUG: Created carrier at slot #{carrier_slot}" if ENV["DEBUG_BROADCAST"]
-                
+
                 # Now broadcast scalar against the carrier - use first arg from carrier, rest from scalar
                 ops << Kumi::Core::IR::Ops.Map(:if, 3, carrier_slot, scalar_slot, scalar_slot)
                 result_slot = ops.size - 1
@@ -402,7 +402,7 @@ module Kumi
                 # Check if this declaration has a vectorized twin at the required scope
                 twin = :"#{expr.name}__vec"
                 twin_meta = @vec_meta && @vec_meta[twin]
-                
+
                 if required_scope && !Array(required_scope).empty?
                   # Consumer needs a grouped view of this declaration.
                   if twin_meta && twin_meta[:scope] == Array(required_scope)
@@ -596,7 +596,7 @@ module Kumi
                   raw_shapes     = raw_cond_slots.map { |s| determine_slot_shape(s, ops, access_plans) }
                   vec_is         = raw_shapes.each_index.select { |i| raw_shapes[i].kind == :vec }
 
-                  # Choose cascade_scope: prefer scope_plan (from scope resolution), 
+                  # Choose cascade_scope: prefer scope_plan (from scope resolution),
                   # fallback to LUB of vector condition scopes.
                   if scope_plan && !scope_plan.scope.nil? && !scope_plan.scope.empty?
                     cascade_scope = Array(scope_plan.scope)
@@ -667,56 +667,6 @@ module Kumi
             slot
           end
 
-          def lower_map(expr, ops, access_plans)
-            entry  = Kumi::Registry.entry(expr.fn_name) or raise "unknown fn #{expr.fn_name}"
-            modes  = param_modes_for(entry, expr.args.size) # must expand varargs, e.g. [:elem, :elem, :elem*]
-
-            slots  = expr.args.map { |a| lower_expression(a, ops, access_plans, nil, false, nil, cacheable: false) }
-            shapes = slots.map { |s| determine_slot_shape(s, ops, access_plans) }
-
-            if ENV["DEBUG_LOWER"] && expr.fn_name == :subtract
-              puts "DEBUG_MAP[#{@current_decl}] fn=#{expr.fn_name} args=#{expr.args.size}"
-              puts "  slots: #{slots.inspect}"
-              puts "  shapes: #{shapes.map { |s| "#{s.kind}(#{s.scope})" }}"
-              puts "  modes: #{modes.inspect}"
-            end
-
-            # reject illegal vec-in-:scalar params
-            shapes.each_with_index do |sh, i|
-              raise "vec supplied to scalar param #{i} for #{expr.fn_name}" if modes[i] == :scalar && sh.kind == :vec
-            end
-
-            # choose carrier among :elem vecs
-            elem_vec_is = slots.each_index
-                               .select { |i| modes[i] == :elem && shapes[i].kind == :vec }
-            carrier_i = elem_vec_is.max_by { |i| shapes[i].scope.length }
-            if carrier_i
-              carrier_scope = shapes[carrier_i].scope
-              aligned = slots.dup
-
-              elem_vec_is.each do |i|
-                next if shapes[i].scope == carrier_scope
-                unless carrier_scope.first(shapes[i].scope.length) == shapes[i].scope
-                  raise "cross-scope map without join: #{shapes[i].scope} vs #{carrier_scope}"
-                end
-
-                ops << Kumi::Core::IR::Ops.AlignTo(slots[carrier_i], slots[i], to_scope: carrier_scope)
-                aligned[i] = ops.size - 1
-              end
-
-              ops << Kumi::Core::IR::Ops.Map(expr.fn_name, aligned.size, *aligned)
-              ops.size - 1
-            else
-              # all-scalar or only :scalar params
-              if ENV["DEBUG_LOWER"] && expr.fn_name == :subtract
-                puts "  taking scalar path: slots=#{slots}, size=#{slots.size}"
-                puts "  creating MAP(#{expr.fn_name}, #{slots.size}, *#{slots})"
-              end
-              ops << Kumi::Core::IR::Ops.Map(expr.fn_name, slots.size, *slots)
-              ops.size - 1
-            end
-          end
-
           def pick_plan_id_for_input(path, access_plans, scope_plan:, need_indices:)
             path_str = path.join(".")
             plans = access_plans.fetch(path_str) { raise "No access plan for #{path_str}" }
@@ -731,48 +681,37 @@ module Kumi
             end
           end
 
-          def param_modes_for(entry, argc)
-            pm = entry.param_modes
-            return pm.call(argc) if pm.respond_to?(:call)
-
-            fixed = pm.fetch(:fixed, [])
-            if argc <= fixed.size
-              fixed.first(argc)
-            else
-              fixed + Array.new(argc - fixed.size, pm.fetch(:variadic, :elem))
-            end
-          end
-
           def align_to_cascade_if_vec(slot, cascade_scope, ops, access_plans)
             sh = determine_slot_shape(slot, ops, access_plans)
-            return slot if sh.kind == :scalar && cascade_scope.empty?  # scalar cascade, keep scalar
+            return slot if sh.kind == :scalar && cascade_scope.empty? # scalar cascade, keep scalar
             return slot if sh.scope == cascade_scope
-            
+
             # Handle scalar-to-vector broadcasting for vectorized cascades
             if sh.kind == :scalar && !cascade_scope.empty?
               # Find a carrier vector at cascade scope to broadcast scalar against
               target_slot = nil
               ops.each_with_index do |op, i|
-                next unless op.tag == :load_input || op.tag == :map
+                next unless %i[load_input map].include?(op.tag)
+
                 shape = determine_slot_shape(i, ops, access_plans)
                 if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
                   target_slot = i
                   break
                 end
               end
-              
-              if target_slot
-                # Use MAP with a special broadcast function - but first I need to create one
-                # For now, let's try using the 'if' function to broadcast: if(true, scalar, carrier) -> broadcasts scalar
-                const_true = ops.size
-                ops << Kumi::Core::IR::Ops.Const(true)
-                
-                ops << Kumi::Core::IR::Ops.Map(:if, 3, const_true, slot, target_slot)
-                return ops.size - 1
-              else
-                # No carrier found, can't broadcast
-                raise "Cannot broadcast scalar to cascade scope #{cascade_scope.inspect} - no carrier vector found"
-              end
+
+              raise "Cannot broadcast scalar to cascade scope #{cascade_scope.inspect} - no carrier vector found" unless target_slot
+
+              # Use MAP with a special broadcast function - but first I need to create one
+              # For now, let's try using the 'if' function to broadcast: if(true, scalar, carrier) -> broadcasts scalar
+              const_true = ops.size
+              ops << Kumi::Core::IR::Ops.Const(true)
+
+              ops << Kumi::Core::IR::Ops.Map(:if, 3, const_true, slot, target_slot)
+              return ops.size - 1
+
+              # No carrier found, can't broadcast
+
             end
 
             short, long = [sh.scope, cascade_scope].sort_by(&:length)
@@ -780,11 +719,7 @@ module Kumi
               raise "cascade branch result scope #{sh.scope.inspect} not compatible with cascade scope #{cascade_scope.inspect}"
             end
 
-            # align result to cascade scope using any existing carrier at the slot
-            # use slot itself as the 'target' for AlignTo (API wants target_slot, source_slot)
-            op = Kumi::Core::IR::Ops.AlignTo(slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
-            ops << op
-            ops.size - 1
+            raise "unsupported cascade scope #{cascade_scope.inspect} for slot #{slot}" if cascade_scope.empty?
           end
 
           def prefix?(short, long)
@@ -822,25 +757,25 @@ module Kumi
               # Check if this declaration has a vectorized twin at the required scope
               twin = :"#{cond.name}__vec"
               twin_meta = @vec_meta && @vec_meta[twin]
-              
+
               if cascade_scope && !Array(cascade_scope).empty?
                 # Consumer needs a grouped view of this declaration.
                 if twin_meta && twin_meta[:scope] == Array(cascade_scope)
                   # We have a vectorized twin at exactly the required scope - use it!
                   ops << Kumi::Core::IR::Ops.Ref(twin)
-                  return ops.size - 1
+                  ops.size - 1
                 else
                   # Need to inline re-lower the referenced declaration's *expression*
                   decl = @declarations.fetch(cond.name) { raise "unknown decl #{cond.name}" }
                   slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
                                           true, Array(cascade_scope), cacheable: true)
-                  return project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+                  project_mask_to_scope(slot, cascade_scope, ops, access_plans)
                 end
               else
                 # Plain (scalar) use, or already-materialized vec twin
                 ref = twin_meta ? twin : cond.name
                 ops << Kumi::Core::IR::Ops.Ref(ref)
-                return ops.size - 1
+                ops.size - 1
               end
 
             when Syntax::CallExpression
@@ -987,23 +922,25 @@ module Kumi
               # Find a target vector that already has the cascade scope
               target_slot = nil
               ops.each_with_index do |op, i|
-                if op.tag == :load_input || op.tag == :map
-                  shape = determine_slot_shape(i, ops, access_plans)
-                  if shape.kind == :vec && shape.scope == Array(cascade_scope) && shape.has_idx
-                    target_slot = i
-                    break
-                  end
+                next unless %i[load_input map].include?(op.tag)
+
+                shape = determine_slot_shape(i, ops, access_plans)
+                if shape.kind == :vec && shape.scope == Array(cascade_scope) && shape.has_idx
+                  target_slot = i
+                  break
                 end
               end
-              
-              if target_slot
-                ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: Array(cascade_scope), on_missing: :error, require_unique: true)
-                return ops.size - 1
-              else
-                return slot  # Can't broadcast, use as-is
-              end
+
+              return slot unless target_slot
+
+              ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: Array(cascade_scope), on_missing: :error,
+                                                                    require_unique: true)
+              return ops.size - 1
+
+              # Can't broadcast, use as-is
+
             end
-            
+
             return slot if sh.kind == :scalar
 
             cascade_scope = Array(cascade_scope)
@@ -1020,15 +957,15 @@ module Kumi
               # Find a target vector that already has the cascade scope
               target_slot = nil
               ops.each_with_index do |op, i|
-                if op.tag == :load_input || op.tag == :map
-                  shape = determine_slot_shape(i, ops, access_plans)
-                  if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
-                    target_slot = i
-                    break
-                  end
+                next unless %i[load_input map].include?(op.tag)
+
+                shape = determine_slot_shape(i, ops, access_plans)
+                if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
+                  target_slot = i
+                  break
                 end
               end
-              
+
               if target_slot
                 ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
                 ops.size - 1
@@ -1041,7 +978,7 @@ module Kumi
               # Need to reduce DOWN: slot scope is longer, reduce extra dimensions
               extra_axes = slot_scope - cascade_scope
               if extra_axes.empty?
-                slot  # should not happen due to early return above
+                slot # should not happen due to early return above
               else
                 ops << Kumi::Core::IR::Ops.Reduce(:any?, extra_axes, cascade_scope, [], slot)
                 ops.size - 1
