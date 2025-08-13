@@ -8,7 +8,8 @@ module Kumi
         def self.definitions
           {
             # Collection queries (these are reducers - they reduce arrays to scalars)
-            empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true),
+            empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true,
+                                                                                                       structure_function: true),
             size: FunctionBuilder::Entry.new(
               fn: ->(collection) { collection.size },
               arity: 1,
@@ -119,6 +120,15 @@ module Kumi
               return_type: Kumi::Core::Types.array(:any),
               description: "Flatten nested arrays by one level only",
               structure_function: true
+            ),
+
+            to_array: FunctionBuilder::Entry.new(
+              fn: ->(vals) { vals },
+              arity: 1,
+              param_types: [Kumi::Core::Types.array(:any)],
+              return_type: Kumi::Core::Types.array(:any),
+              description: "Collect vector rows into a Ruby array",
+              reducer: true
             ),
 
             # Mathematical transformation functions

@@ -173,9 +173,9 @@ module Kumi
             ),
 
             # Collection logical operations
-            all?: FunctionBuilder.collection_unary(:all?, "Check if all elements in collection are truthy", :all?),
-            any?: FunctionBuilder.collection_unary(:any?, "Check if any element in collection is truthy", :any?),
-            none?: FunctionBuilder.collection_unary(:none?, "Check if no elements in collection are truthy", :none?),
+            all?: FunctionBuilder.collection_unary(:all?, "Check if all elements in collection are truthy", :all?, reducer: true),
+            any?: FunctionBuilder.collection_unary(:any?, "Check if any element in collection is truthy", :any?, reducer: true),
+            none?: FunctionBuilder.collection_unary(:none?, "Check if no elements in collection are truthy", :none?, reducer: true),
 
             # Element-wise AND for cascades - works on arrays with same structure
             cascade_and: FunctionBuilder::Entry.new(
@@ -188,9 +188,9 @@ module Kumi
                 end
 
                 return false if conditions.empty?
-                return conditions.first if conditions.length == 1
 
-                # Element-wise AND for arrays with same nested structure
+                # Always process uniformly, even for single conditions
+                # This ensures DeclarationReferences are evaluated properly
                 result = conditions.first
                 conditions[1..].each_with_index do |condition, i|
                   puts "  Combining result with condition[#{i + 1}]" if ENV["DEBUG_CASCADE"]

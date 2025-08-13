@@ -40,6 +40,10 @@ module Kumi
               result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors,
                                                    definitions)
 
+              if ENV["DEBUG_BROADCAST_CLEAN"]
+                puts "#{name}: #{result[:type]} #{format_broadcast_info(result)}"
+              end
+
               case result[:type]
               when :vectorized
                 compiler_metadata[:vectorized_operations][name] = result[:info]
@@ -69,6 +73,43 @@ module Kumi
           end
 
           private
+
+          def infer_argument_scope(arg, array_fields, nested_paths)
+            case arg
+            when Kumi::Syntax::InputElementReference
+              if nested_paths.key?(arg.path)
+                # Extract scope from path - each array dimension in the path
+                arg.path.select.with_index { |_seg, i| nested_paths[arg.path[0..i]] }
+              else
+                arg.path.select { |seg| array_fields.key?(seg) }
+              end
+            when Kumi::Syntax::CallExpression
+              # For nested calls, find the deepest input reference
+              deepest_scope = []
+              arg.args.each do |nested_arg|
+                scope = infer_argument_scope(nested_arg, array_fields, nested_paths)
+                deepest_scope = scope if scope.length > deepest_scope.length
+              end
+              deepest_scope
+            else
+              []
+            end
+          end
+
+          def format_broadcast_info(result)
+            case result[:type]
+            when :vectorized
+              info = result[:info]
+              "→ #{info[:source]} (path: #{info[:path]&.join('.')})"
+            when :reduction
+              info = result[:info]
+              "→ fn:#{info[:function]} (arg: #{info[:argument]&.class&.name&.split('::')&.last})"
+            when :scalar
+              "→ scalar"
+            else
+              "→ #{result[:info]}"
+            end
+          end
 
           def compute_compilation_metadata(name, _decl, compiler_metadata, _vectorized_values, _array_fields)
             metadata = {
@@ -263,19 +304,22 @@ module Kumi
             if is_reducer
               return { type: :scalar } unless vec_any
 
-              # Which args must be flattened prior to reducing? (all vectorized ones)
+              # which args were vectorized?
               flatten_indices = vec_idx.dup
-              src_info = arg_infos[vec_idx.first]
+              vectorized_arg_index = vec_idx.first
+              argument_ast = expr.args[vectorized_arg_index]
+
+              src_info = arg_infos[vectorized_arg_index]
+
               return {
                 type: :reduction,
                 info: {
                   function: expr.fn_name,
                   source: src_info[:source],
-                  argument: expr.args.first,
+                  argument: argument_ast, # << keep AST of the vectorized argument
                   flatten_argument_indices: flatten_indices
                 }
               }
-
             end
 
             # 4) Structure (non-reducer) functions like `size`
@@ -365,11 +409,25 @@ module Kumi
             when Kumi::Syntax::CallExpression
               # Recursively check nested call
               result = analyze_value_vectorization(nil, arg, array_fields, nested_paths, vectorized_values, [], definitions)
-              # Reduction results produce scalars, so they should NOT be treated as vectorized for outer functions
-              # Only pure vectorized results should propagate as vectorized
+              # Handle different result types appropriately
               case result[:type]
               when :reduction
-                { vectorized: false, source: :scalar_from_reduction }
+                # Reductions can produce vectors if they preserve some dimensions
+                # This aligns with lower_to_ir logic for grouped reductions
+                info = result[:info]
+                if info && info[:argument]
+                  # Check if the reduction argument has array scope that would be preserved
+                  arg_scope = infer_argument_scope(info[:argument], array_fields, nested_paths)
+                  if arg_scope.length > 1
+                    # Multi-dimensional reduction - likely preserves outer dimension (per-player)
+                    { vectorized: true, source: :grouped_reduction, array_source: arg_scope.first }
+                  else
+                    # Single dimension or scalar reduction
+                    { vectorized: false, source: :scalar_from_reduction }
+                  end
+                else
+                  { vectorized: false, source: :scalar_from_reduction }
+                end
               when :vectorized
                 { vectorized: true, source: :expression }
               else

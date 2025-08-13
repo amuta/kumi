@@ -8,22 +8,10 @@ loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
   "lower_to_ir_pass" => "LowerToIRPass",
   "vm" => "VM",
-  "ir" => "IR"
+  "ir" => "IR",
+  'ir_dump' => 'IRDump',
 )
 loader.setup
 
 module Kumi
-  def self.inspector_from_schema
-    Schema::Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
-  end
-
-  def self.reset!
-    @__syntax_tree__ = nil
-    @__analyzer_result__ = nil
-    @__compiled_schema__ = nil
-    @__schema_metadata__ = nil
-  end
-
-  # Reset on require to avoid state leakage in tests
-  reset!
 end

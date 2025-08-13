@@ -47,9 +47,10 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
         {
           declarations: {
             total: value_decl(:total, literal(100))
-          },
+          ,
           input_metadata: {},
-          broadcasts: {}
+          broadcasts: {},
+          dependencies: {}
         }
       end
 
@@ -97,7 +98,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
                 path: [:line_items, :price]
               }
             }
-          }
+          },
+          dependencies: {}
         }
       end
 
@@ -144,7 +146,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
                 argument: input_element_ref([:items, :price])
               }
             }
-          }
+          },
+          dependencies: {}
         }
       end
 
@@ -190,7 +193,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
                 path: [:regions, :offices, :revenue]
               }
             }
-          }
+          },
+          dependencies: {}
         }
       end
 
@@ -234,7 +238,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
                 path: nil
               }
             }
-          }
+          },
+          dependencies: {}
         }
       end
 
@@ -276,7 +281,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
           test: value_decl(:test, literal(42))
         },
         input_metadata: {},
-        broadcasts: {}
+        broadcasts: {},
+        dependencies: {}
       }
     end
 

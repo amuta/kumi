@@ -58,7 +58,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             }
           },
           scope_plans: {
-            total: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:items])
+            total: Kumi::Core::Analyzer::Plans::Scope.new(scope: [])
           }
         }
       end
@@ -105,7 +105,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             }
           },
           scope_plans: {
-            regional_totals: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:regions, :offices])
+            regional_totals: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:regions])
           }
         }
       end

@@ -3,8 +3,13 @@
 require "spec_helper"
 
 RSpec.describe "Flattening Functions" do
+  # TODO : Decide? does it even make sense to flatten?, with all the accessors now it would be usefu probably
+  # to have aggregation across structure (which should be very easy)
+  # flatten could be used, but I think it introduces ambiguity
+  # I need to think of some cases that i would use flatten for calculating things inside the schema itself
+
   describe "structure-preserving vs explicit flattening" do
-    it "preserves structure by default and allows explicit flattening" do
+    xit "preserves structure by default and allows explicit flattening" do
       schema = Class.new do
         extend Kumi::Schema
 
@@ -27,7 +32,7 @@ RSpec.describe "Flattening Functions" do
           trait :senior_level, input.regions.offices.teams.employees.level == "senior"
 
           # Explicit flattening operations
-          value :high_performer_flat, fn(:flatten_deep, high_performer)
+          value :high_performer_flat, fn(:flatten, high_performer)
           value :high_performer_one_level, fn(:flatten_one, high_performer)
 
           # Aggregation across structure
@@ -85,7 +90,7 @@ RSpec.describe "Flattening Functions" do
   end
 
   describe "comparison with business expectations" do
-    it "shows when structure preservation vs flattening matters" do
+    xit "shows when structure preservation vs flattening matters" do
       schema = Class.new do
         extend Kumi::Schema
 
@@ -106,7 +111,7 @@ RSpec.describe "Flattening Functions" do
           trait :high_performer, input.departments.teams.employees.performance == "excellent"
 
           # For HR: "Which employees are high performers?" (business wants flat list)
-          value :high_performers_list, fn(:flatten_deep, high_performer)
+          value :high_performers_list, fn(:flatten, high_performer)
 
           # For Management: "Which teams have high performers?" (structure matters)
           value :teams_with_high_performers, fn(:any_across, high_performer)

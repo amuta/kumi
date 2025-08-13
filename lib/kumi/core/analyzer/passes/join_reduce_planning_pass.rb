@@ -42,7 +42,7 @@ module Kumi
               source_scope = get_source_scope(name, info, scope_plans, declarations, input_metadata)
 
               # Determine reduction axis and result scope
-              axis, result_scope = determine_reduction_axis(source_scope, info)
+              axis, result_scope = determine_reduction_axis(source_scope, info, scope_plans, name)
 
               # Check for flattening requirements
               flatten_indices = determine_flatten_indices(info)
@@ -88,15 +88,11 @@ module Kumi
           end
 
           def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata)
-            # First try to get from scope_plans
-            scope_plan = scope_plans[name]
-            return scope_plan.scope if scope_plan&.scope
-
-            # Fallback: infer from the reduction argument
+            # Always infer from the reduction argument - this is the full dimensional scope
             infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata)
           end
 
-          def determine_reduction_axis(source_scope, reduction_info)
+          def determine_reduction_axis(source_scope, reduction_info, scope_plans, name)
             return [[], []] if source_scope.empty?
 
             # Check if explicit axis is specified
@@ -104,6 +100,15 @@ module Kumi
               axis = reduction_info[:axis]
               result_scope = compute_result_scope(source_scope, axis)
               return [axis, result_scope]
+            end
+
+            # Check if there's a scope plan that specifies what to preserve (result_scope)
+            scope_plan = scope_plans[name]
+            if scope_plan&.scope && !scope_plan.scope.empty?
+              desired_result_scope = scope_plan.scope
+              # Compute axis by removing the desired result dimensions
+              axis = source_scope - desired_result_scope
+              return [axis, desired_result_scope]
             end
 
             # Default: reduce innermost dimension (partial reduction)

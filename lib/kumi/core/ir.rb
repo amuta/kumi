@@ -31,9 +31,11 @@ module Kumi
       def self.Ref(name)                     = IR::Op.new(tag: :ref, attrs: { name: name }, args: [])
       def self.Map(fn, argc, *slots)         = IR::Op.new(tag: :map, attrs: { fn: fn, argc: argc }, args: slots)
       def self.Array(count, *slots)          = IR::Op.new(tag: :array, attrs: { count: count }, args: slots)
-      def self.Switch(cases:, default:, slot:)= IR::Op.new(tag: :switch, attrs: { cases: cases, default: default }, args: [slot])
+      def self.Switch(cases, default) = IR::Op.new(tag: :switch, attrs: { cases: cases, default: default }, args: [])
+      def self.GuardPush(cond_slot) = IR::Op.new(tag: :guard_push, attrs: { cond_slot: cond_slot }, args: [])
+      def self.GuardPop             = IR::Op.new(tag: :guard_pop,  attrs: {},                      args: [])
+      def self.Assign(dst:, src:)   = IR::Op.new(tag: :assign,     attrs: { dst: dst, src: src },  args: [])
       def self.Store(name, slot)             = IR::Op.new(tag: :store, attrs: { name: name }, args: [slot])
-
       def self.Lift(to_scope, slot)          = IR::Op.new(tag: :lift, attrs: { to_scope: to_scope }, args: [slot])
       def self.Join(*slots)                  = IR::Op.new(tag: :join, attrs: {}, args: slots)
       

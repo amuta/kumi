@@ -19,16 +19,7 @@ module Kumi
 
     def compile
       # Switch to LIR: Use the analysis state instead of old compilation
-      return Runtime::Program.from_analysis(@analysis.state) if @analysis.state[:ir_module]
-
-      # Fallback to old compilation if no IR module (shouldn't happen)
-      build_index
-      @analysis.topo_order.each do |name|
-        decl = @index[name] or raise("Unknown binding #{name}")
-        compile_declaration(decl)
-      end
-
-      Core::CompiledSchema.new(@bindings.freeze)
+      Runtime::Program.from_analysis(@analysis.state)
     end
   end
 end

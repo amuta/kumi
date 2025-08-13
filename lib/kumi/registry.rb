@@ -4,7 +4,8 @@ module Kumi
   # Public facade for the function registry.
   # Delegates to Kumi::Core::FunctionRegistry.
   module Registry
-    Entry = Core::FunctionRegistry::FunctionBuilder::Entry
+    Entry       = Core::FunctionRegistry::FunctionBuilder::Entry
+    FrozenError = Core::FunctionRegistry::FrozenError
 
     class << self
       def auto_register(*mods)
@@ -21,6 +22,10 @@ module Kumi
 
       def respond_to_missing?(name, include_private = false)
         Core::FunctionRegistry.respond_to?(name, include_private) || super
+      end
+
+      def freeze!
+        Core::FunctionRegistry.freeze!
       end
     end
   end

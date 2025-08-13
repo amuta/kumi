@@ -6,6 +6,9 @@ module Kumi
       module VM
         # Executor for IR modules - thin layer that delegates to combinators
         module Executor
+          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch].freeze
+          NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
+
           def self.run(ir_module, ctx, accessors:, registry:)
             # Validate registry is properly initialized
             raise ArgumentError, "Registry cannot be nil" if registry.nil?
@@ -13,20 +16,60 @@ module Kumi
 
             outputs = {}
             target = ctx[:target]
+            guard_stack = [true]
 
             ir_module.decls.each do |decl|
               slots = []
-              if ENV["DEBUG_VM_ARGS"]
-                puts "DEBUG Declaration #{decl.name}: #{decl.ops.size} operations"
-                decl.ops.each_with_index do |op, i|
-                  puts "  op#{i}: #{op.tag} #{op.attrs.inspect} args=#{op.args.inspect}"
-                end
-                puts ""
-              end
+              guard_stack = [true] # reset per decl
 
               decl.ops.each_with_index do |op, op_index|
-                puts "DEBUG Executing #{decl.name}@op#{op_index}: #{op.tag}" if ENV["DEBUG_VM_ARGS"]
+                if ENV["ASSERT_VM_SLOTS"] == "1"
+                  expected = op_index
+                  unless slots.length == expected
+                    raise "slot drift: have=#{slots.length} expect=#{expected} at #{decl.name}@op#{op_index} #{op.tag}"
+                  end
+                end
+
                 case op.tag
+                when :guard_push
+                  cond_slot = op.attrs[:cond_slot]
+                  raise "guard_push: cond slot OOB" if cond_slot >= slots.length
+
+                  c = slots[cond_slot]
+
+                  guard_stack << case c[:k]
+                                 when :scalar
+                                   guard_stack.last && !!c[:v] # same as today
+                                 when :vec
+                                   # vector mask: push the mask value itself; truthiness handled inside ops
+                                   c
+                                 else
+                                   false
+                                 end
+                  slots << nil # keep slot_id == op_index
+                  next
+
+                when :guard_pop
+                  guard_stack.pop
+                  slots << nil
+                  next
+                end
+
+                # Skip body when guarded off, but keep indices aligned
+                unless guard_stack.last
+                  slots << nil if PRODUCES_SLOT.include?(op.tag) || NON_PRODUCERS.include?(op.tag)
+                  next
+                end
+
+                case op.tag
+
+                when :assign
+                  dst = op.attrs[:dst]
+                  src = op.attrs[:src]
+                  raise "assign: dst/src OOB" if dst >= slots.length || src >= slots.length
+
+                  slots[dst] = slots[src]
+
                 when :const
                   result = Values.scalar(op.attrs[:value])
                   puts "DEBUG Const #{op.attrs[:value].inspect}: result=#{result}" if ENV["DEBUG_VM_ARGS"]
@@ -105,30 +148,37 @@ module Kumi
                   args = op.args.map { |slot_idx| slots[slot_idx] }
 
                   if args.all? { |a| a[:k] == :scalar }
+                    puts "DEBUG Scalar call #{fn_name}: args=#{args.map { |a| a[:v] }.inspect}" if ENV["DEBUG_VM_ARGS"]
                     scalar_args = args.map { |a| a[:v] }
                     result = fn.call(*scalar_args)
                     slots << Values.scalar(result)
                   else
                     base = args.find { |a| a[:k] == :vec } or raise "Map needs a vec carrier"
+                    puts "DEBUG Vec call #{fn_name}: base=#{base.inspect}" if ENV["DEBUG_VM_ARGS"]
                     # Preserve original order: broadcast scalars in-place
                     arg_vecs = args.map { |a| a[:k] == :scalar ? Combinators.broadcast_scalar(a, base) : a }
+                    puts "DEBUG Vec call #{fn_name}: arg_vecs=#{arg_vecs.inspect}" if ENV["DEBUG_VM_ARGS"]
                     scopes = arg_vecs.map { |v| v[:scope] }.uniq
+                    puts "DEBUG Vec call #{fn_name}: scopes=#{scopes.inspect}" if ENV["DEBUG_VM_ARGS"]
                     raise "Cross-scope Map without Join" unless scopes.size <= 1
 
                     zipped = Combinators.zip_same_scope(*arg_vecs)
 
-                    if ENV["DEBUG_VM_ARGS"] && fn_name == :if
-                      puts "DEBUG Vec call #{fn_name}: zipped rows:"
-                      zipped[:rows].each_with_index do |row, i|
-                        puts "  [#{i}] args=#{Array(row[:v]).inspect}"
-                      end
-                    end
+                    # if ENV["DEBUG_VM_ARGS"] && fn_name == :if
+                    #   puts "DEBUG Vec call #{fn_name}: zipped rows:"
+                    #   zipped[:rows].each_with_index do |row, i|
+                    #     puts "  [#{i}] args=#{Array(row[:v]).inspect}"
+                    #   end
+                    # end
 
+                    puts "DEBUG Vec call #{fn_name}: zipped rows=#{zipped[:rows].inspect}" if ENV["DEBUG_VM_ARGS"]
                     rows = zipped[:rows].map do |row|
                       row_args = Array(row[:v])
                       vr = fn.call(*row_args)
                       row.key?(:idx) ? { v: vr, idx: row[:idx] } : { v: vr }
                     end
+                    puts "DEBUG Vec call #{fn_name}: result rows=#{rows.inspect}" if ENV["DEBUG_VM_ARGS"]
+
                     slots << Values.vec(base[:scope], rows, base[:has_idx])
                   end
 
@@ -168,25 +218,52 @@ module Kumi
 
                   outputs[name] = slots[src]
 
+                  # keep slot_id == op_index invariant
+                  slots << nil
+
                   return outputs if target && name == target
 
                 when :reduce
-                  fn_name = op.attrs[:fn]
-                  fn_entry = registry[fn_name] or raise "Function #{fn_name} not found in registry"
+                  fn_entry = registry[op.attrs[:fn]] or raise "Function #{op.attrs[:fn]} not found in registry"
                   fn = fn_entry.fn
-                  src_slot = op.args[0]
-                  if src_slot >= slots.length
-                    raise "Reduce operation #{fn_name}: source slot #{src_slot} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[src_slot].nil?
-                    raise "Reduce operation #{fn_name}: source slot #{src_slot} is nil (available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
+
+                  src = slots[op.args[0]]
+                  raise "Reduce expects Vec" unless src[:k] == :vec
+
+                  result_scope = Array(op.attrs[:result_scope] || [])
+                  axis         = Array(op.attrs[:axis] || [])
+
+                  if result_scope.empty?
+                    # === GLOBAL REDUCE ===
+                    # Accept either ravel or indexed.
+                    vals = src[:rows].map { |r| r[:v] }
+                    slots << Values.scalar(fn.call(vals))
+                  else
+                    # === GROUPED REDUCE ===
+                    # Must have indices to group by prefix keys.
+                    unless src[:has_idx]
+                      raise "Grouped reduce requires indexed input (got ravel) for #{op.attrs[:fn]} at #{result_scope.inspect}"
+                    end
+
+                    group_len = result_scope.length
+
+                    # Preserve stable source order so zips with other @result_scope vecs line up.
+                    groups = {}         # { key(Array<Integer>) => Array<value> }
+                    order  = []         # Array<key> in first-seen order
+
+                    src[:rows].each do |row|
+                      key = Array(row[:idx]).first(group_len)
+                      unless groups.key?(key)
+                        groups[key] = []
+                        order << key
+                      end
+                      groups[key] << row[:v]
+                    end
+
+                    out_rows = order.map { |key| { v: fn.call(groups[key]), idx: key } }
+
+                    slots << Values.vec(result_scope, out_rows, true)
                   end
-
-                  v = slots[src_slot]
-                  raise "Reduce expects Vec" unless v[:k] == :vec
-
-                  vals = v[:rows].map { |r| r[:v] }
-                  res = fn.call(vals)
-                  slots << Values.scalar(res)
 
                 when :lift
                   src_slot = op.args[0]
