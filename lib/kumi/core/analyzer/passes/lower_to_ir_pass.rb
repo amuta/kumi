@@ -144,7 +144,8 @@ module Kumi
                 # scope_plans: scope_plans,
                 input_metadata: input_metadata,
                 vec_names: @vec_names,
-                vec_meta: @vec_meta
+                vec_meta: @vec_meta,
+                inferred_types: get_state(:inferred_types, required: false) || {}
               }
 
               pretty_ir = Kumi::Support::IRDump.pretty_print(ir_module, analysis_state: analysis_state)

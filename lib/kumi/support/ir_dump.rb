@@ -214,19 +214,19 @@ module Kumi
           end
           
           # Vector Twin Tracking (internal state)
-          if state[:vec_names] || state[:vec_meta]
-            vec_names = state[:vec_names] || []
+          if state[:vec_meta]
             vec_meta = state[:vec_meta] || {}
             
             output << "VECTOR TWINS (internal tracking):"
-            if vec_names.empty?
+            if vec_meta.empty?
               output << "  (no vector declarations)"
             else
-              output << "  Vector declarations: #{vec_names.to_a.join(', ')}"
+              twin_names = vec_meta.keys.sort
+              output << "  Twins created: #{twin_names.join(', ')}"
               vec_meta.each do |twin_name, meta|
-                scope_info = meta[:scope].empty? ? "no scope" : "@#{meta[:scope].join('.')}"
+                scope_info = meta[:scope].empty? ? "[]" : "[:#{meta[:scope].join(', :')}]"
                 idx_info = meta[:has_idx] ? "indexed" : "ravel"
-                output << "  #{twin_name}: #{scope_info}, #{idx_info}"
+                output << "  #{twin_name}: vec[#{idx_info}]#{scope_info}"
               end
             end
             output << ""
@@ -252,41 +252,48 @@ module Kumi
         end
         
         def format_declaration_header(decl, decl_idx)
-          # Enhanced shape annotation with indexed/ravel info
-          if decl.shape == :vec
-            # Look for vector twin metadata to determine if it's indexed or ravel
-            vec_twin_name = :"#{decl.name}__vec"
-            vec_meta = @analysis_state&.dig(:vec_meta)
-            if vec_meta && vec_meta[vec_twin_name]
-              has_idx = vec_meta[vec_twin_name][:has_idx]
-              shape_info = has_idx ? " [VEC(indexed)]" : " [VEC(ravel)]"
+          # Enhanced shape annotation with scope and type information
+          vec_twin_name = :"#{decl.name}__vec"
+          vec_meta = @analysis_state&.dig(:vec_meta)
+          
+          # Get type information from analysis state
+          inferred_types = @analysis_state&.dig(:inferred_types) || {}
+          inferred_type = inferred_types[decl.name]
+          type_annotation = format_type_annotation(inferred_type, decl)
+          
+          if decl.shape == :vec && vec_meta && vec_meta[vec_twin_name]
+            has_idx = vec_meta[vec_twin_name][:has_idx]
+            scope = vec_meta[vec_twin_name][:scope] || []
+            scope_str = scope.empty? ? "" : " by :#{scope.join(', :')}"
+            
+            if has_idx
+              public_surface = "nested_arrays#{type_annotation}#{scope_str}"
+              twin_annotation = "vec[indexed][:#{scope.join(', :')}]"
             else
-              shape_info = " [VEC]"
+              public_surface = "flat_array#{type_annotation}#{scope_str}"
+              twin_annotation = "vec[ravel][:#{scope.join(', :')}]"
             end
+            
+            shape_info = " [public: #{public_surface}] (twin: #{twin_annotation})"
+          elsif decl.shape == :vec
+            public_surface = "vector#{type_annotation}"
+            shape_info = " [public: #{public_surface}] (twin: vec[unknown])"
           else
-            shape_info = " [SCALAR]"
+            shape_info = " [public: scalar#{type_annotation}]"
           end
+          
           kind_info = decl.kind.to_s.upcase
           
-          # Count operation types
+          # Count operation types for summary
           op_counts = decl.ops.group_by(&:tag).transform_values(&:size)
-          stores = op_counts[:store] || 0
-          
-          # Show if it has twin storage
-          twin_info = ""
-          if stores > 1
-            twin_info = " (creates __vec twin)"
-          elsif decl.name.to_s.end_with?("__vec")
-            twin_info = " (vec twin)"
-          end
-          
           op_summary = " (#{decl.ops.size} ops: #{op_counts.map { |k, v| "#{k}=#{v}" }.join(', ')})"
           
-          "[#{decl_idx}] #{kind_info} #{decl.name}#{shape_info}#{twin_info}#{op_summary}"
+          "[#{decl_idx}] #{kind_info} #{decl.name}#{shape_info}#{op_summary}"
         end
         
         def format_declaration_body(decl)
           lines = []
+          @decl_ops_context = decl.ops  # Store for broadcast detection
           
           decl.ops.each_with_index do |op, op_idx|
             lines << format_operation(op, op_idx)
@@ -306,7 +313,7 @@ module Kumi
                        when TrueClass, FalseClass then " (bool)"
                        else ""
                        end
-            "#{op_idx}: CONST #{value.inspect}#{type_hint} → slot#{op_idx}"
+            "#{op_idx}: CONST #{value.inspect}#{type_hint} → s#{op_idx}"
             
           when :load_input
             plan_id = op.attrs[:plan_id]
@@ -319,22 +326,35 @@ module Kumi
             path = path_info[0]
             mode = path_info[1] || "read"
             
-            shape_info = if is_scalar
-                          "scalar"
-                        elsif has_idx
-                          "vec(indexed)"
-                        else
-                          "vec(ravel)"
-                        end
+            if is_scalar
+              shape_info = "scalar"
+            else
+              idx_info = has_idx ? "indexed" : "ravel"
+              scope_info = scope.empty? ? "[]" : "[:#{scope.join(', :')}]"
+              shape_info = "vec[#{idx_info}]#{scope_info}"
+            end
             
-            scope_str = scope.empty? ? "" : " @#{scope.join('.')}"
-            "#{op_idx}: LOAD_INPUT #{path}:#{mode}#{scope_str} → #{shape_info} → slot#{op_idx}"
+            "#{op_idx}: #{path} → #{shape_info} → s#{op_idx}"
             
           when :ref
             name = op.attrs[:name]
             is_twin = name.to_s.end_with?("__vec")
-            ref_type = is_twin ? " (vec twin)" : " (public)"
-            "#{op_idx}: REF #{name}#{ref_type} → slot#{op_idx}"
+            
+            if is_twin
+              # Look up scope information for twin
+              vec_meta = @analysis_state&.dig(:vec_meta)
+              if vec_meta && vec_meta[name]
+                scope = vec_meta[name][:scope] || []
+                has_idx = vec_meta[name][:has_idx]
+                shape_info = has_idx ? "vec[indexed]" : "vec[ravel]"
+                scope_info = scope.empty? ? "" : "[:#{scope.join(', :')}]"
+                "#{op_idx}: REF #{name} → #{shape_info}#{scope_info} → s#{op_idx}"
+              else
+                "#{op_idx}: REF #{name} → vec[unknown] → s#{op_idx}"
+              end
+            else
+              "#{op_idx}: REF #{name} → scalar → s#{op_idx}"
+            end
             
           when :map
             fn_name = op.attrs[:fn]
@@ -350,7 +370,23 @@ module Kumi
                      else ""
                      end
             
-            "#{op_idx}: MAP #{fn_name}#{fn_type}(#{args_str}) [#{argc} args] → slot#{op_idx}"
+            # Check if this represents scalar-to-vector broadcast
+            broadcast_note = ""
+            if argc == 2 && op.args.size == 2
+              # Look at the previous operations to see if we have scalar + vector
+              # This is a heuristic - we'd need more context for perfect detection
+              if @analysis_state
+                # Try to detect scalar broadcast pattern: const followed by map
+                prev_ops = @decl_ops_context
+                if prev_ops && prev_ops[op.args[0]]&.tag == :const && prev_ops[op.args[1]]&.tag == :load_input
+                  broadcast_note = " [scalar broadcast]"
+                elsif prev_ops && prev_ops[op.args[1]]&.tag == :const && prev_ops[op.args[0]]&.tag == :load_input
+                  broadcast_note = " [scalar broadcast]"
+                end
+              end
+            end
+            
+            "#{op_idx}: MAP #{fn_name}#{fn_type}(#{args_str})#{broadcast_note} → s#{op_idx}"
             
           when :reduce
             fn_name = op.attrs[:fn]
@@ -359,47 +395,34 @@ module Kumi
             flatten_args = op.attrs[:flatten_args] || []
             args_str = op.args.map { |slot| "s#{slot}" }.join(", ")
             
-            # Add reducer type information
-            reducer_type = case fn_name
-                          when :sum, :min, :max, :avg then " (aggregation)"
-                          when :to_array then " (collection)"
-                          when :count_if then " (counting)"
-                          else ""
-                          end
-            
-            # Show grouping information
+            # Show grouping information with cleaner format
             if result_scope.empty?
-              transform_info = "vec→scalar"
+              result_shape = "scalar"
             else
-              transform_info = "vec→grouped_vec @#{result_scope.join('.')}"
+              result_shape = "grouped_vec[:#{result_scope.join(', :')}]"
             end
             
-            # Show axis and flatten info if present
-            details = []
-            details << "axis=#{axis}" unless axis.empty?
-            details << "result_scope=#{result_scope}" unless result_scope.empty?
-            details << "flatten_args=#{flatten_args}" unless flatten_args.empty?
-            detail_str = details.empty? ? "" : " (#{details.join(', ')})"
-            
-            "#{op_idx}: REDUCE #{fn_name}#{reducer_type}(#{args_str}) #{transform_info}#{detail_str} → slot#{op_idx}"
+            axis_str = axis.empty? ? "" : " axis=[:#{axis.join(', :')}]"
+            "#{op_idx}: REDUCE #{fn_name}(#{args_str})#{axis_str} → #{result_shape} → s#{op_idx}"
             
           when :array
             size = op.attrs[:size] || op.args.size
             args_str = op.args.map { |slot| "s#{slot}" }.join(", ")
-            "#{op_idx}: ARRAY [#{args_str}] (#{size} elements) → slot#{op_idx}"
+            "#{op_idx}: ARRAY [#{args_str}] (#{size} elements) → s#{op_idx}"
             
           when :switch
             cases = op.attrs[:cases] || []
             default = op.attrs[:default]
             cases_str = cases.map { |(cond, val)| "s#{cond}→s#{val}" }.join(", ")
             default_str = default ? " else s#{default}" : ""
-            "#{op_idx}: SWITCH {#{cases_str}#{default_str}} → slot#{op_idx}"
+            "#{op_idx}: SWITCH {#{cases_str}#{default_str}} → s#{op_idx}"
             
           when :lift
             to_scope = op.attrs[:to_scope] || []
             args_str = op.args.map { |slot| "s#{slot}" }.join(", ")
             depth = to_scope.length
-            "#{op_idx}: LIFT (#{args_str}) vec→nested_arrays @#{to_scope.join('.')} (depth=#{depth}) → slot#{op_idx}"
+            scope_str = to_scope.empty? ? "" : " @:#{to_scope.join(', :')}"
+            "#{op_idx}: LIFT #{args_str}#{scope_str} depth=#{depth} (→ nested_arrays[|#{to_scope.join('|')}|]) → s#{op_idx}"
             
           when :align_to
             to_scope = op.attrs[:to_scope] || []
@@ -413,14 +436,15 @@ module Kumi
             flags << "on_missing=#{on_missing}" if on_missing && on_missing != :error
             flag_str = flags.empty? ? "" : " (#{flags.join(', ')})"
             
-            "#{op_idx}: ALIGN_TO target=s#{target_slot} source=s#{source_slot} to @#{to_scope.join('.')}#{flag_str} → slot#{op_idx}"
+            scope_str = to_scope.empty? ? "" : "[:#{to_scope.join(', :')}]"
+            "#{op_idx}: ALIGN_TO target=s#{target_slot} source=s#{source_slot} to #{scope_str}#{flag_str} → s#{op_idx}"
             
           when :store
             name = op.attrs[:name]
             source_slot = op.args[0]
             is_twin = name.to_s.end_with?("__vec")
             store_type = is_twin ? " (vec twin)" : " (public)"
-            "#{op_idx}: STORE #{name}#{store_type} ← s#{source_slot} (outputs[#{name}] = slot#{source_slot})"
+            "#{op_idx}: STORE #{name}#{store_type} ← s#{source_slot}"
             
           when :guard_push
             cond_slot = op.attrs[:cond_slot]
@@ -434,7 +458,31 @@ module Kumi
             attrs_items = op.attrs.map { |k, v| "#{k}=#{v.inspect}" }
             attrs_str = attrs_items.empty? ? "" : " {#{attrs_items.join(', ')}}"
             args_str = op.args.empty? ? "" : " args=[#{op.args.join(', ')}]"
-            "#{op_idx}: #{op.tag.to_s.upcase}#{attrs_str}#{args_str} → slot#{op_idx}"
+            "#{op_idx}: #{op.tag.to_s.upcase}#{attrs_str}#{args_str} → s#{op_idx}"
+          end
+        end
+        
+        def format_type_annotation(inferred_type, decl)
+          return "" unless inferred_type
+          
+          case inferred_type
+          when Symbol
+            "(#{inferred_type.to_s.capitalize})"
+          when Hash
+            if inferred_type.key?(:array)
+              element_type = inferred_type[:array]
+              element_name = element_type.is_a?(Symbol) ? element_type.to_s.capitalize : element_type.to_s
+              "(#{element_name})"
+            else
+              "(#{inferred_type.inspect})"
+            end
+          else
+            # Fallback based on declaration type
+            if decl.is_a?(Kumi::Syntax::TraitDeclaration)
+              "(Boolean)"
+            else
+              "(#{inferred_type.class.name.split('::').last})"
+            end
           end
         end
       end
