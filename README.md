@@ -66,7 +66,7 @@ Validation happens during schema definition.
 ## Installation
 
 ```bash
-# Requires Ruby 3.0+
+# Requires Ruby 3.1+
 # No external dependencies
 gem install kumi
 ```
