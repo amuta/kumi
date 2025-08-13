@@ -40,6 +40,7 @@ module Kumi
       def self.from_analysis(state, registry: nil)
         ir = state.fetch(:ir_module)
         access_plans = state.fetch(:access_plans)
+        input_metadata = state[:input_metadata] || {}
         accessors = Kumi::Core::Compiler::AccessBuilder.build(access_plans)
 
         access_meta = {}
@@ -51,28 +52,29 @@ module Kumi
 
         # Use the internal functions hash that VM expects
         registry ||= Kumi::Registry.functions
-        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry)
+        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry, input_metadata: input_metadata)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:)
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:)
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
         @reg = registry
+        @input_metadata = input_metadata.freeze
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
       end
 
       def decl?(name) = @decl.key?(name)
 
       def read(input, mode: :ruby)
-        Run.new(self, input, mode: mode)
+        Run.new(self, input, mode: mode, input_metadata: @input_metadata)
       end
 
-      # API compatibility with CompiledSchema
+      # API compatibility for backward compatibility
       def evaluate(ctx, *key_names)
         target_keys = key_names.empty? ? @decl.keys : validate_keys(key_names)
 
-        # Handle EvaluationWrapper from SchemaInstance
+        # Handle context wrapping for backward compatibility  
         input = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
 
         target_keys.each_with_object({}) do |key, result|
@@ -81,7 +83,7 @@ module Kumi
       end
 
       def eval_decl(name, input, mode: :ruby)
-        raise KeyError, "unknown decl #{name}" unless decl?(name)
+        raise Kumi::Core::Errors::RuntimeError, "unknown decl #{name}" unless decl?(name)
 
         out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name },
                                               accessors: @acc, registry: @reg).fetch(name)
@@ -106,15 +108,29 @@ module Kumi
     end
 
     class Run
-      def initialize(program, input, mode:)
+      def initialize(program, input, mode:, input_metadata:)
         @program = program
         @input = input
         @mode = mode
+        @input_metadata = input_metadata
         @cache = {}
       end
 
       def get(name)
         @cache[name] ||= @program.eval_decl(name, @input, mode: @mode)
+      end
+
+      def [](name)
+        get(name)
+      end
+
+      def slice(*keys)
+        return {} if keys.empty?
+        keys.each_with_object({}) { |key, result| result[key] = get(key) }
+      end
+
+      def compiled_schema
+        @program
       end
 
       def method_missing(sym, *args, **kwargs, &blk)
@@ -127,8 +143,19 @@ module Kumi
         @program.decl?(sym) || super
       end
 
-      def update(changes)
-        @input = deep_merge(@input, changes)
+      def update(**changes)
+        changes.each do |field, value|
+          # Validate field exists
+          raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)
+
+          # Validate domain constraints
+          validate_domain_constraint(field, value)
+
+          # Update the input data
+          @input = deep_merge(@input, { field => value })
+        end
+
+        # Clear cache after all updates
         @cache.clear
         self
       end
@@ -146,6 +173,35 @@ module Kumi
       end
 
       private
+
+      def input_field_exists?(field)
+        # Check if field is declared in input block
+        @input_metadata.key?(field) || @input.key?(field)
+      end
+
+      def validate_domain_constraint(field, value)
+        field_meta = @input_metadata[field]
+        return unless field_meta&.dig(:domain)
+
+        domain = field_meta[:domain]
+        return unless violates_domain?(value, domain)
+
+        raise ArgumentError, "value #{value} is not in domain #{domain}"
+      end
+
+      def violates_domain?(value, domain)
+        case domain
+        when Range
+          !domain.include?(value)
+        when Array
+          !domain.include?(value)
+        when Proc
+          # For Proc domains, we can't statically analyze
+          false
+        else
+          false
+        end
+      end
 
       def deep_merge(a, b)
         return b unless a.is_a?(Hash) && b.is_a?(Hash)

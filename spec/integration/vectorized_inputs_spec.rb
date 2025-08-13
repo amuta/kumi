@@ -53,7 +53,7 @@ RSpec.describe "Vectorized Inputs Integration" do
     }
   end
 
-  let(:runner) { Kumi::Core::SchemaInstance.new(order_schema, nil, input_data) }
+  let(:runner) { order_schema.read(input_data, mode: :ruby) }
 
   it "correctly calculates vectorized values" do
     expect(runner[:subtotals]).to eq([200.0, 50.0, 100.0])

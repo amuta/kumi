@@ -10,7 +10,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
 
   # Helper to create a runner with compiled schema and input data
   def create_runner(schema, input_data)
-    Kumi::Core::SchemaInstance.new(schema, nil, input_data)
+    schema.read(input_data, mode: :ruby)
   end
 
   describe "Basic Element-wise Operations" do

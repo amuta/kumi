@@ -23,7 +23,7 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
+      @__compiled_schema__.read(context, mode: :ruby)
     end
 
     def explain(context, *keys)

@@ -23,7 +23,7 @@ RSpec.describe "Domain Validation Integration" do
       it "creates runner successfully" do
         runner = schema.from({ age: 25, score: 85.0, status: "active" })
 
-        expect(runner).to be_a(Kumi::Core::SchemaInstance)
+        expect(runner).to be_a(Kumi::Runtime::Run)
         expect(runner[:adult]).to be true
         expect(runner[:grade]).to eq("B")
       end
