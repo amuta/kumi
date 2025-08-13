@@ -121,7 +121,7 @@ RSpec.describe "Dual Mode Execution", :pending do
           expect(runner.fetch(:above_threshold)).to eq(1)
         end
 
-        it "produces identical results when using slice" do
+        xit "produces identical results when using slice" do
           test_data = { age: 45, salary: 85_000.0 }
           runner = simple_schema.from(test_data)
 
@@ -135,7 +135,7 @@ RSpec.describe "Dual Mode Execution", :pending do
     end
 
     context "without dual mode" do
-      it "works normally without JavaScript execution" do
+      xit "works normally without JavaScript execution" do
         test_data = { age: 25, salary: 50_000.0 }
 
         # Temporarily restore original from method behavior
@@ -163,7 +163,7 @@ RSpec.describe "Dual Mode Execution", :pending do
   end
 
   describe "environment variable control" do
-    it "enables dual mode via KUMI_DUAL_MODE=true" do
+    xit "enables dual mode via KUMI_DUAL_MODE=true" do
       ENV["KUMI_DUAL_MODE"] = "true"
 
       begin

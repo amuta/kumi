@@ -64,6 +64,7 @@ module Kumi
           def process_joins(broadcasts, scope_plans, declarations, plans)
             vectorized_ops = broadcasts[:vectorized_operations] || {}
 
+            # Process vectorized operations
             vectorized_ops.each do |name, info|
               # Skip if already processed as reduction
               next if plans.key?(name)
@@ -84,6 +85,33 @@ module Kumi
               plans[name] = plan
 
               debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
+            end
+
+            # Process scalar declarations that need broadcasting to vectorized scopes
+            # (These are referenced by vectorized cascades but aren't vectorized themselves)
+            scope_plans.each do |name, scope_plan|
+              # Skip if already processed
+              next if plans.key?(name)
+              
+              # Skip if no vectorized target scope
+              next unless scope_plan.scope && !scope_plan.scope.empty?
+              
+              # Skip if already vectorized (handled above)
+              next if vectorized_ops.key?(name)
+              
+              # Check if this scalar declaration needs broadcasting
+              if needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
+                debug_scalar_broadcast(name, scope_plan) if ENV["DEBUG_JOIN_REDUCE"]
+                
+                plan = Join.new(
+                  policy: :broadcast, # Use broadcast policy for scalar-to-vector
+                  target_scope: scope_plan.scope
+                )
+
+                plans[name] = plan
+
+                debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
+              end
             end
           end
 
@@ -143,12 +171,19 @@ module Kumi
             return false unless declaration
             return false unless scope_plan.scope && !scope_plan.scope.empty?
 
-            # Check if expression has multiple arguments that could be at different scopes
             expr = declaration.expression
-            return false unless expr.is_a?(Kumi::Syntax::CallExpression)
 
-            # Multiple arguments suggest potential join requirement
-            expr.args.size > 1
+            case expr
+            when Kumi::Syntax::CallExpression
+              # Multiple arguments suggest potential join requirement
+              expr.args.size > 1
+            when Kumi::Syntax::CascadeExpression
+              # Cascades with vectorized target scope need join planning
+              # to handle cross-scope conditions and results
+              true
+            else
+              false
+            end
           end
 
           def infer_scope_from_argument(arg, declarations, input_metadata)
@@ -186,6 +221,42 @@ module Kumi
             dims
           end
 
+          def needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
+            # Check if this scalar declaration is referenced by any vectorized operation
+            # that requires it to be broadcast to a vectorized scope
+            
+            # Look for vectorized operations that reference this declaration
+            vectorized_ops.each do |vec_name, vec_info|
+              vec_decl = declarations[vec_name]
+              next unless vec_decl
+              
+              # Check if this vectorized operation references our scalar declaration
+              if declaration_references?(vec_decl.expression, name)
+                return true
+              end
+            end
+            
+            false
+          end
+
+          def declaration_references?(expr, target_name)
+            case expr
+            when Kumi::Syntax::DeclarationReference
+              expr.name == target_name
+            when Kumi::Syntax::CallExpression
+              expr.args.any? { |arg| declaration_references?(arg, target_name) }
+            when Kumi::Syntax::CascadeExpression
+              expr.cases.any? do |case_expr|
+                declaration_references?(case_expr.condition, target_name) ||
+                declaration_references?(case_expr.result, target_name)
+              end
+            when Kumi::Syntax::ArrayExpression
+              expr.elements.any? { |elem| declaration_references?(elem, target_name) }
+            else
+              false
+            end
+          end
+
           # Debug helpers
           def debug_reduction(name, info)
             puts "\n=== Processing reduction: #{name} ==="
@@ -209,6 +280,11 @@ module Kumi
             puts "Join plan for #{name}:"
             puts "  Target scope: #{plan.target_scope.inspect}"
             puts "  Policy: #{plan.policy}"
+          end
+
+          def debug_scalar_broadcast(name, scope_plan)
+            puts "\n=== Processing scalar broadcast: #{name} ==="
+            puts "Target scope: #{scope_plan.scope.inspect}"
           end
         end
       end

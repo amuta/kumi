@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../../support/ir_dump"
+
 module Kumi
   module Core
     module Analyzer
@@ -77,7 +79,7 @@ module Kumi
         class LowerToIRPass < PassBase
           def run(errors)
             @vec_names = Set.new
-            @vec_scopes = {}
+            @vec_meta = {}
 
             evaluation_order = get_state(:evaluation_order, required: true)
             declarations = get_state(:declarations, required: true)
@@ -88,12 +90,18 @@ module Kumi
 
             ir_decls = []
 
+            @join_reduce_plans = join_reduce_plans
+            @declarations = declarations
+
             evaluation_order.each do |name|
               decl = declarations[name]
               next unless decl
 
               begin
                 scope_plan = scope_plans[name]
+                @current_decl = name
+                @lower_cache  = {} # reset per declaration
+
                 ir_decl = lower_declaration(name, decl, access_plans, join_reduce_plans, scope_plan)
                 ir_decls << ir_decl
               rescue StandardError => e
@@ -103,6 +111,13 @@ module Kumi
                 add_error(errors, location, "Failed to lower declaration #{name}: #{message}")
               end
             end
+
+            if ENV["DEBUG_LOWER"]
+              puts "DEBUG eval order: #{evaluation_order.inspect}"
+              puts "DEBUG ir decl order: #{ir_decls.map(&:name).inspect}"
+            end
+            order_index = evaluation_order.each_with_index.to_h
+            ir_decls.sort_by! { |d| order_index.fetch(d.name, Float::INFINITY) }
 
             ir_module = Kumi::Core::IR::Module.new(
               inputs: input_metadata,
@@ -117,6 +132,24 @@ module Kumi
                   puts "    Op#{i}: #{op.tag} #{op.attrs.inspect} args=#{op.args.inspect}"
                 end
               end
+            end
+
+            if ENV["DUMP_IR"]
+              # Collect analysis state that this pass actually uses
+              analysis_state = {
+                evaluation_order: evaluation_order,
+                declarations: declarations,
+                # access_plans: access_plans,
+                join_reduce_plans: join_reduce_plans,
+                # scope_plans: scope_plans,
+                input_metadata: input_metadata,
+                vec_names: @vec_names,
+                vec_meta: @vec_meta
+              }
+
+              pretty_ir = Kumi::Support::IRDump.pretty_print(ir_module, analysis_state: analysis_state)
+              File.write(ENV["DUMP_IR"], pretty_ir)
+              puts "DEBUG IR dumped to #{ENV['DUMP_IR']}"
             end
 
             state.with(:ir_module, ir_module)
@@ -160,7 +193,9 @@ module Kumi
               SlotShape.vec(op.attrs[:to_scope], has_idx: true)
 
             when :reduce
-              SlotShape.scalar
+              rs = Array(op.attrs[:result_scope] || [])
+              rs.empty? ? SlotShape.scalar : SlotShape.vec(rs, has_idx: true)
+
             when :lift
               SlotShape.scalar # lift groups to nested Ruby arrays
             when :switch
@@ -174,12 +209,12 @@ module Kumi
               end
 
             when :ref
-              name = op.attrs[:name]
-              if @vec_scopes && (sc = @vec_scopes[name])
-                SlotShape.vec(sc, has_idx: true)
+              if (m = @vec_meta && @vec_meta[op.attrs[:name]])
+                SlotShape.vec(m[:scope], has_idx: m[:has_idx])
               else
                 SlotShape.scalar
               end
+
             else
               SlotShape.scalar
             end
@@ -216,27 +251,99 @@ module Kumi
             aligned
           end
 
+          def apply_scalar_to_vector_broadcast(scalar_slot, target_scope, ops, access_plans)
+            # Create a carrier vector at the target scope by loading the appropriate input
+            # For scope [:items], we need to load the items array to get the vector shape
+            if target_scope.empty?
+              puts "DEBUG: Empty target scope, returning scalar" if ENV["DEBUG_BROADCAST"]
+              return scalar_slot # Can't broadcast to empty scope
+            end
+
+            # Create a load operation for the target scope to get vector shape
+            # For [:items] scope, load the items array
+            # Access plans are keyed by strings, not arrays
+            if target_scope.length == 1
+              input_key = target_scope.first.to_s
+              plans = access_plans[input_key]
+              puts "DEBUG: Looking for plans for #{input_key.inspect}, found: #{plans&.length || 0} plans" if ENV["DEBUG_BROADCAST"]
+            else
+              puts "DEBUG: Complex target scope #{target_scope.inspect}, not supported yet" if ENV["DEBUG_BROADCAST"]
+              return scalar_slot
+            end
+            
+            if plans&.any?
+              # Find an indexed plan that gives us the vector shape
+              indexed_plan = plans.find { |p| p.mode == :each_indexed }
+              puts "DEBUG: Indexed plan found: #{indexed_plan.inspect}" if ENV["DEBUG_BROADCAST"] && indexed_plan
+              if indexed_plan
+                # Load the input to create a carrier vector
+                ops << Kumi::Core::IR::Ops.LoadInput(indexed_plan.accessor_key, scope: indexed_plan.scope, has_idx: true)
+                carrier_slot = ops.size - 1
+                puts "DEBUG: Created carrier at slot #{carrier_slot}" if ENV["DEBUG_BROADCAST"]
+                
+                # Now broadcast scalar against the carrier - use first arg from carrier, rest from scalar
+                ops << Kumi::Core::IR::Ops.Map(:if, 3, carrier_slot, scalar_slot, scalar_slot)
+                result_slot = ops.size - 1
+                puts "DEBUG: Created broadcast MAP at slot #{result_slot}" if ENV["DEBUG_BROADCAST"]
+                result_slot
+              else
+                puts "DEBUG: No indexed plan found, returning scalar" if ENV["DEBUG_BROADCAST"]
+                # No indexed plan available, return scalar as-is
+                scalar_slot
+              end
+            else
+              puts "DEBUG: No access plans found, returning scalar" if ENV["DEBUG_BROADCAST"]
+              # No access plans for target scope, return scalar as-is
+              scalar_slot
+            end
+          end
+
           def lower_declaration(name, decl, access_plans, join_reduce_plans, scope_plan)
             ops = []
 
-            last_slot = lower_expression(decl.expression, ops, access_plans, scope_plan, need_indices = true, false)
+            plan = @join_reduce_plans[name]
+            req_scope =
+              if plan && plan.respond_to?(:result_scope)
+                Array(plan.result_scope) # [] for full reduction, [:players] for per-player, etc.
+              elsif plan && plan.respond_to?(:policy) && plan.policy == :broadcast
+                Array(plan.target_scope) # Broadcast to target scope
+              elsif top_level_reducer?(decl)
+                [] # collapse all axes by default
+              else
+                scope_plan&.scope # fallback (vector values, arrays, etc.)
+              end
 
-            # shape of produced value
-            shape = determine_slot_shape(last_slot, ops, access_plans)
+            last_slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
+                                         need_indices = true, req_scope)
 
-            # after you compute `shape` and before storing
-            if shape.kind == :vec && shape.has_idx
-              @vec_names << name # ← add this
-              vec_name = :"#{name}__vec"
-              @vec_scopes[vec_name] = shape.scope # remember real scope
-
-              ops << Kumi::Core::IR::Ops.Store(vec_name, last_slot)
-              ops << Kumi::Core::IR::Ops.Lift(shape.scope, last_slot)
-              last_slot += 1
-              ops << Kumi::Core::IR::Ops.Store(name, last_slot)
-            else
-              ops << Kumi::Core::IR::Ops.Store(name, last_slot)
+            # Apply broadcasting for scalar-to-vector join plans
+            if plan && plan.respond_to?(:policy) && plan.policy == :broadcast
+              puts "DEBUG: Applying scalar broadcast for #{name} to scope #{plan.target_scope.inspect}" if ENV["DEBUG_BROADCAST"]
+              last_slot = apply_scalar_to_vector_broadcast(last_slot, plan.target_scope, ops, access_plans)
+              puts "DEBUG: Broadcast result slot: #{last_slot}" if ENV["DEBUG_BROADCAST"]
             end
+
+            shape = determine_slot_shape(last_slot, ops, access_plans)
+            puts "DEBUG: Shape after broadcast for #{name}: #{shape.inspect}" if ENV["DEBUG_BROADCAST"]
+
+            if shape.kind == :vec
+              vec_name = :"#{name}__vec"
+              @vec_meta[vec_name] = { scope: shape.scope, has_idx: shape.has_idx }
+
+              # internal twin for downstream refs
+              ops << Kumi::Core::IR::Ops.Store(vec_name, last_slot)
+
+              # public presentation
+              ops << if shape.has_idx
+                       Kumi::Core::IR::Ops.Lift(shape.scope, last_slot)
+                     else
+                       Kumi::Core::IR::Ops.Reduce(:to_array, [], [], [], last_slot)
+                     end
+              last_slot = ops.size - 1
+            end
+
+            # ➌ store public name (scalar or transformed vec)
+            ops << Kumi::Core::IR::Ops.Store(name, last_slot)
 
             Kumi::Core::IR::Decl.new(
               name: name,
@@ -246,127 +353,333 @@ module Kumi
             )
           end
 
-          def lower_expression(expr, ops, access_plans, scope_plan, need_indices, top_level_has_reduce_plan = false)
-            case expr
-            when Syntax::Literal
-              ops << Kumi::Core::IR::Ops.Const(expr.value)
-              ops.size - 1
+          # Lowers an analyzed AST node into IR ops and returns the slot index.
+          # - ops: mutable IR ops array (per-declaration)
+          # - need_indices: whether to prefer :each_indexed plan for inputs
+          # - required_scope: consumer-required scope (guides grouped reductions)
+          # - cacheable: whether this lowering may be cached (branch bodies under guards: false)
+          def lower_expression(expr, ops, access_plans, scope_plan, need_indices, required_scope = nil, cacheable: true)
+            @lower_cache ||= {}
+            key = [@current_decl, expr.object_id, Array(required_scope), !!need_indices]
+            if cacheable && (hit = @lower_cache[key])
+              return hit
+            end
 
-            when Syntax::InputReference
-              # Handle simple input references (e.g., input.customer_tier)
-              plan_id = pick_plan_id_for_input([expr.name], access_plans, scope_plan: scope_plan, need_indices: need_indices)
+            if ENV["DEBUG_LOWER"] && expr.is_a?(Syntax::CallExpression)
+              puts "  LOWER_EXPR[#{@current_decl}] #{expr.fn_name}(#{expr.args.size} args) req_scope=#{required_scope.inspect}"
+            end
 
-              # Get scope from the access plan
-              plans = access_plans.fetch(expr.name.to_s, [])
-              selected_plan = plans.find { |p| p.accessor_key == plan_id }
-              scope = selected_plan ? selected_plan.scope : []
-              is_scalar = selected_plan && %i[read ravel materialize].include?(selected_plan.mode)
-              has_idx = selected_plan && selected_plan.mode == :each_indexed
-              ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
-              ops.size - 1
-
-            when Syntax::InputElementReference
-              # Handle array element references (e.g., input.items.price)
-              # Scope is determined by the path itself, not the declaration's scope
-              plan_id = pick_plan_id_for_input(expr.path, access_plans, scope_plan: scope_plan, need_indices: need_indices)
-
-              # Get scope from the access plan - it already has the correct scope calculated!
-              path_str = expr.path.join(".")
-              plans = access_plans.fetch(path_str, [])
-              selected_plan = plans.find { |p| p.accessor_key == plan_id }
-
-              # Use the scope from the access plan
-              scope = selected_plan ? selected_plan.scope : []
-              is_scalar = selected_plan && %i[read ravel materialize].include?(selected_plan.mode)
-              has_idx = selected_plan && selected_plan.mode == :each_indexed
-
-              ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
-              ops.size - 1
-
-            when Syntax::DeclarationReference
-              ref = @vec_names&.include?(expr.name) ? :"#{expr.name}__vec" : expr.name
-              ops << Kumi::Core::IR::Ops.Ref(ref)
-              ops.size - 1
-
-            when Syntax::CallExpression
-              entry = Kumi::Registry.entry(expr.fn_name)
-
-              if entry&.structure_function
-                # Treat args as whole collections, not element-wise
-                arg_slots = expr.args.map { |a| lower_expression(a, ops, access_plans, scope_plan, false, false) }
-                ops << Kumi::Core::IR::Ops.Map(expr.fn_name, arg_slots.size, *arg_slots)
-
-                return ops.size - 1
-              end
-
-              if entry&.reducer
-                # existing reducer branch (element-wise), needs indices
-                arg_slots = expr.args.map { |a| lower_expression(a, ops, access_plans, scope_plan, true, false) }
-                vec_i = arg_slots.index { |s| determine_slot_shape(s, ops, access_plans).kind == :vec }
-                ops << if vec_i
-                         Kumi::Core::IR::Ops.Reduce(expr.fn_name, [], [], [], arg_slots[vec_i])
-                       else
-                         Kumi::Core::IR::Ops.Map(expr.fn_name, arg_slots.size, *arg_slots)
-                       end
+            slot =
+              case expr
+              when Syntax::Literal
+                ops << Kumi::Core::IR::Ops.Const(expr.value)
                 ops.size - 1
 
-                # non-reducer, non-structure → your existing element-wise Map with align_to
+              when Syntax::InputReference
+                plan_id = pick_plan_id_for_input([expr.name], access_plans,
+                                                 scope_plan: scope_plan, need_indices: need_indices)
+                plans    = access_plans.fetch(expr.name.to_s, [])
+                selected = plans.find { |p| p.accessor_key == plan_id }
+                scope    = selected ? selected.scope : []
+                is_scalar = selected && %i[read materialize].include?(selected.mode)
+                has_idx   = selected && selected.mode == :each_indexed
+                ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
+                ops.size - 1
 
-                # # Pick the first vector arg to reduce over
-                # vec_i = arg_slots.index { |s| determine_slot_shape(s, ops, access_plans).kind == :vec }
+              when Syntax::InputElementReference
+                plan_id = pick_plan_id_for_input(expr.path, access_plans,
+                                                 scope_plan: scope_plan, need_indices: need_indices)
+                path_str = expr.path.join(".")
+                plans    = access_plans.fetch(path_str, [])
+                selected = plans.find { |p| p.accessor_key == plan_id }
+                scope    = selected ? selected.scope : []
+                is_scalar = selected && %i[read materialize].include?(selected.mode)
+                has_idx   = selected && selected.mode == :each_indexed
+                ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
+                ops.size - 1
 
-                # if vec_i
-                #   # Reduce(fn, axis, result_scope, flatten_args, slot)
-                #   ops << Kumi::Core::IR::Ops.Reduce(expr.fn_name, [], [], [], arg_slots[vec_i])
-                #   ops.size - 1
-                # else
-                #   # All-scalar: just call it once (e.g., sum([..]) literal)
-                #   ops << Kumi::Core::IR::Ops.Map(expr.fn_name, arg_slots.size, *arg_slots)
-                #   ops.size - 1
-                # end
-                # Non-reducer: element-wise / structure path
-              else
-                arg_slots = expr.args.map { |a| lower_expression(a, ops, access_plans, scope_plan, need_indices, false) }
-                aligned   = insert_align_to_if_needed(arg_slots, ops, access_plans, on_missing: :error)
+              when Syntax::DeclarationReference
+                # Check if this declaration has a vectorized twin at the required scope
+                twin = :"#{expr.name}__vec"
+                twin_meta = @vec_meta && @vec_meta[twin]
+                
+                if required_scope && !Array(required_scope).empty?
+                  # Consumer needs a grouped view of this declaration.
+                  if twin_meta && twin_meta[:scope] == Array(required_scope)
+                    # We have a vectorized twin at exactly the required scope - use it!
+                    ops << Kumi::Core::IR::Ops.Ref(twin)
+                    return ops.size - 1
+                  else
+                    # Need to inline re-lower the referenced declaration's *expression*,
+                    # forcing indices, and grouping to the requested scope.
+                    decl = @declarations.fetch(expr.name) { raise "unknown decl #{expr.name}" }
+                    slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
+                                            true,                    # need_indices (grouping requires indexed source)
+                                            required_scope,          # group-to scope
+                                            cacheable: true)         # per-decl slot cache will dedupe
+                    return slot
+                  end
+                else
+                  # Plain (scalar) use, or already-materialized vec twin
+                  ref  = twin_meta ? twin : expr.name
+                  ops << Kumi::Core::IR::Ops.Ref(ref)
+                  return ops.size - 1
+                end
+
+              when Syntax::CallExpression
+                entry = Kumi::Registry.entry(expr.fn_name)
+
+                if ENV["DEBUG_LOWER"] && has_nested_reducer?(expr)
+                  puts "  NESTED_REDUCER_DETECTED in #{expr.fn_name} with req_scope=#{required_scope.inspect}"
+                end
+
+                # Special handling for comparison operations containing nested reductions
+                if !entry&.reducer && has_nested_reducer?(expr)
+                  puts "  SPECIAL_NESTED_REDUCTION_HANDLING for #{expr.fn_name}" if ENV["DEBUG_LOWER"]
+
+                  # For comparison ops with nested reducers, we need to ensure
+                  # the nested reducer gets the right required_scope (per-player)
+                  # instead of the full dimensional scope from infer_expr_scope
+
+                  # Get the desired result scope from our scope plan (per-player scope)
+                  # This should be [:players] for per-player operations
+                  plan = @join_reduce_plans[@current_decl]
+                  target_scope = if plan.is_a?(Kumi::Core::Analyzer::Plans::Reduce) && plan.result_scope && !plan.result_scope.empty?
+                                   plan.result_scope
+                                 elsif required_scope && !required_scope.empty?
+                                   required_scope
+                                 else
+                                   # Try to infer per-player scope from the nested reducer argument
+                                   nested_reducer_arg = find_nested_reducer_arg(expr)
+                                   if nested_reducer_arg
+                                     infer_per_player_scope(nested_reducer_arg)
+                                   else
+                                     []
+                                   end
+                                 end
+
+                  puts "  NESTED_REDUCTION target_scope=#{target_scope.inspect}" if ENV["DEBUG_LOWER"]
+
+                  # Lower arguments with the correct scope for nested reducers
+                  arg_slots = expr.args.map do |a|
+                    lower_expression(a, ops, access_plans, scope_plan,
+                                     need_indices, target_scope, cacheable: cacheable)
+                  end
+
+                  aligned = target_scope.empty? ? arg_slots : insert_align_to_if_needed(arg_slots, ops, access_plans, on_missing: :error)
+                  ops << Kumi::Core::IR::Ops.Map(expr.fn_name, expr.args.size, *aligned)
+                  return ops.size - 1
+
+                elsif entry&.reducer
+                  # Need indices iff grouping is requested
+                  child_need_idx = !Array(required_scope).empty?
+
+                  arg_slots = expr.args.map do |a|
+                    lower_expression(a, ops, access_plans, scope_plan,
+                                     child_need_idx,                  # <<< important
+                                     nil,                             # children of reducer don't inherit grouping
+                                     cacheable: true)
+                  end
+                  vec_i = arg_slots.index { |s| determine_slot_shape(s, ops, access_plans).kind == :vec }
+                  if vec_i
+                    src_slot  = arg_slots[vec_i]
+                    src_shape = determine_slot_shape(src_slot, ops, access_plans)
+
+                    # If grouping requested but source lacks indices (e.g. cached ravel), reload it with indices
+                    if !Array(required_scope).empty? && !src_shape.has_idx
+                      src_slot  = lower_expression(expr.args[vec_i], ops, access_plans, scope_plan,
+                                                   true, # force indices
+                                                   nil,
+                                                   cacheable: true)
+                      src_shape = determine_slot_shape(src_slot, ops, access_plans)
+                    end
+
+                    if ENV["DEBUG_LOWER"]
+                      puts "  emit_reduce(#{expr.fn_name}, #{src_slot}, #{src_shape.scope.inspect}, #{Array(required_scope).inspect})"
+                    end
+                    return emit_reduce(ops, expr.fn_name, src_slot, src_shape.scope, required_scope)
+                  else
+                    ops << Kumi::Core::IR::Ops.Map(expr.fn_name, arg_slots.size, *arg_slots)
+                    return ops.size - 1
+                  end
+                end
+
+                # non-reducer path unchanged…
+
+                # Non-reducer: pointwise. Choose carrier = deepest vec among args.
+                target = infer_expr_scope(expr, access_plans) # static, no ops emitted
+                arg_slots = expr.args.map do |a|
+                  lower_expression(a, ops, access_plans, scope_plan,
+                                   need_indices, target, cacheable: cacheable)
+                end
+                aligned = insert_align_to_if_needed(arg_slots, ops, access_plans, on_missing: :error)
                 ops << Kumi::Core::IR::Ops.Map(expr.fn_name, expr.args.size, *aligned)
                 ops.size - 1
+
+              when Syntax::ArrayExpression
+                target = infer_expr_scope(expr, access_plans) # LUB across children
+                puts "DEBUG array target scope=#{target.inspect}" if ENV["DEBUG_LOWER"]
+                elem_slots = expr.elements.map do |e|
+                  lower_expression(e, ops, access_plans, scope_plan,
+                                   need_indices,                   # pass-through
+                                   target,                         # <<< required_scope = target
+                                   cacheable: true)
+                end
+                elem_slots = insert_align_to_if_needed(elem_slots, ops, access_plans, on_missing: :error) unless target.empty?
+                ops << Kumi::Core::IR::Ops.Array(elem_slots.size, *elem_slots)
+                return ops.size - 1
+
+              when Syntax::CascadeExpression
+                # Find a base (true) case, if present
+                base_case    = expr.cases.find { |c| c.condition.is_a?(Syntax::Literal) && c.condition.value == true }
+                default_expr = base_case ? base_case.result : Kumi::Syntax::Literal.new(nil)
+                branches     = expr.cases.reject { |c| c.equal?(base_case) }
+
+                # Lower each condition once to probe shapes (cacheable)
+                precond_slots  = branches.map do |c|
+                  lower_expression(c.condition, ops, access_plans, scope_plan,
+                                   need_indices, nil, cacheable: cacheable)
+                end
+                precond_shapes = precond_slots.map { |s| determine_slot_shape(s, ops, access_plans) }
+                vec_cond_is    = precond_shapes.each_index.select { |i| precond_shapes[i].kind == :vec }
+
+                # Tiny helpers for boolean maps
+                map1 = lambda { |fn, a|
+                  ops << Kumi::Core::IR::Ops.Map(fn, 1, a)
+                  ops.size - 1
+                }
+                map2 = lambda { |fn, a, b|
+                  ops << Kumi::Core::IR::Ops.Map(fn, 2, a, b)
+                  ops.size - 1
+                }
+
+                if vec_cond_is.empty?
+                  # ------------------------------------------------------------------
+                  # SCALAR CASCADE (lazy): evaluate branch bodies under guards
+                  # ------------------------------------------------------------------
+                  any_prev_true = lower_expression(Kumi::Syntax::Literal.new(false), ops, access_plans,
+                                                   scope_plan, need_indices, nil, cacheable: false)
+
+                  cases_attr = [] # [[cond_slot, value_slot], ...]
+
+                  branches.each_with_index do |c, i|
+                    not_any = map1.call(:not, any_prev_true)
+                    guard_i = map2.call(:and, not_any, precond_slots[i])
+
+                    ops << Kumi::Core::IR::Ops.GuardPush(guard_i)
+                    val_slot = lower_expression(c.result, ops, access_plans, scope_plan,
+                                                need_indices, nil, cacheable: false)
+                    ops << Kumi::Core::IR::Ops.GuardPop
+
+                    cases_attr << [precond_slots[i], val_slot]
+                    any_prev_true = map2.call(:or, any_prev_true, precond_slots[i])
+                  end
+
+                  not_any = map1.call(:not, any_prev_true)
+                  ops << Kumi::Core::IR::Ops.GuardPush(not_any)
+                  default_slot = lower_expression(default_expr, ops, access_plans, scope_plan,
+                                                  need_indices, nil, cacheable: false)
+                  ops << Kumi::Core::IR::Ops.GuardPop
+
+                  ops << Kumi::Core::IR::Ops.Switch(cases_attr, default_slot)
+                  ops.size - 1
+                else
+                  # -------------------------
+                  # VECTOR CASCADE (per-row lazy)
+                  # -------------------------
+
+                  # First lower raw conditions to peek at shapes.
+                  raw_cond_slots = branches.map do |c|
+                    lower_expression(c.condition, ops, access_plans, scope_plan,
+                                     need_indices, nil, cacheable: true)
+                  end
+                  raw_shapes     = raw_cond_slots.map { |s| determine_slot_shape(s, ops, access_plans) }
+                  vec_is         = raw_shapes.each_index.select { |i| raw_shapes[i].kind == :vec }
+
+                  # Choose cascade_scope: prefer scope_plan (from scope resolution), 
+                  # fallback to LUB of vector condition scopes.
+                  if scope_plan && !scope_plan.scope.nil? && !scope_plan.scope.empty?
+                    cascade_scope = Array(scope_plan.scope)
+                  else
+                    candidate_scopes = vec_is.map { |i| raw_shapes[i].scope }
+                    cascade_scope    = lub_scopes(candidate_scopes)
+                    cascade_scope    = [] if cascade_scope.nil?
+                  end
+
+                  # Re-lower each condition *properly* at cascade_scope (reproject deeper ones).
+                  conds_at_scope = branches.map do |c|
+                    lower_cascade_pred(c.condition, cascade_scope, ops, access_plans, scope_plan)
+                  end
+
+                  # Booleans utilities
+                  map1 = lambda { |fn, a|
+                    ops << Kumi::Core::IR::Ops.Map(fn, 1, a)
+                    ops.size - 1
+                  }
+                  map2 = lambda { |fn, a, b|
+                    ops << Kumi::Core::IR::Ops.Map(fn, 2, a, b)
+                    ops.size - 1
+                  }
+
+                  # Build lazy guards per branch at cascade_scope
+                  any_prev = lower_expression(Kumi::Syntax::Literal.new(false), ops, access_plans,
+                                              scope_plan, need_indices, nil, cacheable: false)
+                  val_slots = []
+
+                  branches.each_with_index do |c, i|
+                    not_prev = map1.call(:not, any_prev)
+                    need_i = map2.call(:and, not_prev, conds_at_scope[i]) # @ cascade_scope
+
+                    ops << Kumi::Core::IR::Ops.GuardPush(need_i)
+                    vslot = lower_expression(c.result, ops, access_plans, scope_plan,
+                                             need_indices, cascade_scope, cacheable: false)
+                    # ensure vector results live at cascade_scope
+                    vslot = align_to_cascade_if_vec(vslot, cascade_scope, ops, access_plans)
+                    ops << Kumi::Core::IR::Ops.GuardPop
+
+                    val_slots << vslot
+                    any_prev = map2.call(:or, any_prev, conds_at_scope[i]) # still @ cascade_scope
+                  end
+
+                  # Default branch
+                  not_prev = map1.call(:not, any_prev)
+                  ops << Kumi::Core::IR::Ops.GuardPush(not_prev)
+                  default_slot = lower_expression(default_expr, ops, access_plans, scope_plan,
+                                                  need_indices, cascade_scope, cacheable: false)
+                  default_slot = align_to_cascade_if_vec(default_slot, cascade_scope, ops, access_plans)
+                  ops << Kumi::Core::IR::Ops.GuardPop
+
+                  # Assemble via nested element-wise selection
+                  nested = default_slot
+                  (branches.length - 1).downto(0) do |i|
+                    ops << Kumi::Core::IR::Ops.Map(:if, 3, conds_at_scope[i], val_slots[i], nested)
+                    nested = ops.size - 1
+                  end
+                  nested
+
+                end
+
+              else
+                raise "Unsupported expression type: #{expr.class.name}"
               end
 
-            when Syntax::ArrayExpression
-              # Lower each element and collect into an array
-              element_slots = expr.elements.map do |elem|
-                lower_expression(elem, ops, access_plans, scope_plan, need_indices, false)
-              end
-
-              # Create array from the lowered elements
-              ops << Kumi::Core::IR::Ops.Array(element_slots.size, *element_slots)
-              ops.size - 1
-
-            # LowerToIRPass#lower_expression
-            when Syntax::CascadeExpression
-              base_case = expr.cases.find { |c| c.condition.is_a?(Syntax::Literal) && c.condition.value == true }
-              default_expr = base_case ? base_case.result : Kumi::Syntax::Literal.new(nil)
-              branches = expr.cases.reject { |c| c.equal?(base_case) }
-
-              # on c1, v1; on c2, v2; base b
-              # => if(c1, v1, if(c2, v2, b))
-              nested = branches.reverse.reduce(default_expr) do |else_part, c|
-                Kumi::Syntax::CallExpression.new(:if, [c.condition, c.result, else_part])
-              end
-
-              lower_expression(nested, ops, access_plans, scope_plan, need_indices, false)
-
-            else
-              raise "Unsupported expression type: #{expr.class.name}"
-            end
+            @lower_cache[key] = slot if cacheable
+            slot
           end
 
           def lower_map(expr, ops, access_plans)
             entry  = Kumi::Registry.entry(expr.fn_name) or raise "unknown fn #{expr.fn_name}"
             modes  = param_modes_for(entry, expr.args.size) # must expand varargs, e.g. [:elem, :elem, :elem*]
 
-            slots  = expr.args.map { |a| lower_expression(a, ops, access_plans, nil, false, false) }
+            slots  = expr.args.map { |a| lower_expression(a, ops, access_plans, nil, false, nil, cacheable: false) }
             shapes = slots.map { |s| determine_slot_shape(s, ops, access_plans) }
+
+            if ENV["DEBUG_LOWER"] && expr.fn_name == :subtract
+              puts "DEBUG_MAP[#{@current_decl}] fn=#{expr.fn_name} args=#{expr.args.size}"
+              puts "  slots: #{slots.inspect}"
+              puts "  shapes: #{shapes.map { |s| "#{s.kind}(#{s.scope})" }}"
+              puts "  modes: #{modes.inspect}"
+            end
 
             # reject illegal vec-in-:scalar params
             shapes.each_with_index do |sh, i|
@@ -395,6 +708,10 @@ module Kumi
               ops.size - 1
             else
               # all-scalar or only :scalar params
+              if ENV["DEBUG_LOWER"] && expr.fn_name == :subtract
+                puts "  taking scalar path: slots=#{slots}, size=#{slots.size}"
+                puts "  creating MAP(#{expr.fn_name}, #{slots.size}, *#{slots})"
+              end
               ops << Kumi::Core::IR::Ops.Map(expr.fn_name, slots.size, *slots)
               ops.size - 1
             end
@@ -423,6 +740,312 @@ module Kumi
               fixed.first(argc)
             else
               fixed + Array.new(argc - fixed.size, pm.fetch(:variadic, :elem))
+            end
+          end
+
+          def align_to_cascade_if_vec(slot, cascade_scope, ops, access_plans)
+            sh = determine_slot_shape(slot, ops, access_plans)
+            return slot if sh.kind == :scalar && cascade_scope.empty?  # scalar cascade, keep scalar
+            return slot if sh.scope == cascade_scope
+            
+            # Handle scalar-to-vector broadcasting for vectorized cascades
+            if sh.kind == :scalar && !cascade_scope.empty?
+              # Find a carrier vector at cascade scope to broadcast scalar against
+              target_slot = nil
+              ops.each_with_index do |op, i|
+                next unless op.tag == :load_input || op.tag == :map
+                shape = determine_slot_shape(i, ops, access_plans)
+                if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
+                  target_slot = i
+                  break
+                end
+              end
+              
+              if target_slot
+                # Use MAP with a special broadcast function - but first I need to create one
+                # For now, let's try using the 'if' function to broadcast: if(true, scalar, carrier) -> broadcasts scalar
+                const_true = ops.size
+                ops << Kumi::Core::IR::Ops.Const(true)
+                
+                ops << Kumi::Core::IR::Ops.Map(:if, 3, const_true, slot, target_slot)
+                return ops.size - 1
+              else
+                # No carrier found, can't broadcast
+                raise "Cannot broadcast scalar to cascade scope #{cascade_scope.inspect} - no carrier vector found"
+              end
+            end
+
+            short, long = [sh.scope, cascade_scope].sort_by(&:length)
+            unless long.first(short.length) == short
+              raise "cascade branch result scope #{sh.scope.inspect} not compatible with cascade scope #{cascade_scope.inspect}"
+            end
+
+            # align result to cascade scope using any existing carrier at the slot
+            # use slot itself as the 'target' for AlignTo (API wants target_slot, source_slot)
+            op = Kumi::Core::IR::Ops.AlignTo(slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
+            ops << op
+            ops.size - 1
+          end
+
+          def prefix?(short, long)
+            long.first(short.length) == short
+          end
+
+          def infer_expr_scope(expr, access_plans)
+            case expr
+            when Syntax::DeclarationReference
+              meta = @vec_meta && @vec_meta[:"#{expr.name}__vec"]
+              meta ? Array(meta[:scope]) : []
+            when Syntax::InputElementReference
+              key  = expr.path.join(".")
+              plan = access_plans.fetch(key, []).find { |p| p.mode == :each_indexed }
+              plan ? Array(plan.scope) : []
+            when Syntax::InputReference
+              plans = access_plans.fetch(expr.name.to_s, [])
+              plan  = plans.find { |p| p.mode == :each_indexed }
+              plan ? Array(plan.scope) : []
+            when Syntax::CallExpression
+              # reducers: use source vec scope; non-reducers: deepest carrier among args
+              scopes = expr.args.map { |a| infer_expr_scope(a, access_plans) }
+              scopes.max_by(&:length) || []
+            when Syntax::ArrayExpression
+              scopes = expr.elements.map { |e| infer_expr_scope(e, access_plans) }
+              lub_scopes(scopes) # <-- important
+            else
+              []
+            end
+          end
+
+          def lower_cascade_pred(cond, cascade_scope, ops, access_plans, scope_plan)
+            case cond
+            when Syntax::DeclarationReference
+              # Check if this declaration has a vectorized twin at the required scope
+              twin = :"#{cond.name}__vec"
+              twin_meta = @vec_meta && @vec_meta[twin]
+              
+              if cascade_scope && !Array(cascade_scope).empty?
+                # Consumer needs a grouped view of this declaration.
+                if twin_meta && twin_meta[:scope] == Array(cascade_scope)
+                  # We have a vectorized twin at exactly the required scope - use it!
+                  ops << Kumi::Core::IR::Ops.Ref(twin)
+                  return ops.size - 1
+                else
+                  # Need to inline re-lower the referenced declaration's *expression*
+                  decl = @declarations.fetch(cond.name) { raise "unknown decl #{cond.name}" }
+                  slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
+                                          true, Array(cascade_scope), cacheable: true)
+                  return project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+                end
+              else
+                # Plain (scalar) use, or already-materialized vec twin
+                ref = twin_meta ? twin : cond.name
+                ops << Kumi::Core::IR::Ops.Ref(ref)
+                return ops.size - 1
+              end
+
+            when Syntax::CallExpression
+              if cond.fn_name == :cascade_and
+                parts = cond.args.map { |a| lower_cascade_pred(a, cascade_scope, ops, access_plans, scope_plan) }
+                # They’re all @ cascade_scope (or scalar) now; align scalars broadcast, vecs already match.
+                parts.reduce do |acc, s|
+                  ops << Kumi::Core::IR::Ops.Map(:and, 2, acc, s)
+                  ops.size - 1
+                end
+              else
+                slot = lower_expression(cond, ops, access_plans, scope_plan,
+                                        true, Array(cascade_scope), cacheable: false)
+                project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+              end
+
+            else
+              slot = lower_expression(cond, ops, access_plans, scope_plan,
+                                      true, Array(cascade_scope), cacheable: false)
+              project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+            end
+          end
+
+          def common_prefix(a, b)
+            a = Array(a)
+            b = Array(b)
+            i = 0
+            i += 1 while i < a.length && i < b.length && a[i] == b[i]
+            a.first(i)
+          end
+
+          def lub_scopes(scopes)
+            scopes = scopes.reject { |s| s.nil? || s.empty? }
+            return [] if scopes.empty?
+
+            scopes.reduce(scopes.first) { |acc, s| common_prefix(acc, s) }
+          end
+
+          def emit_reduce(ops, fn_name, src_slot, src_scope, required_scope)
+            rs = Array(required_scope || [])
+            ss = Array(src_scope)
+
+            # No-op: grouping to full source scope
+            return src_slot if !rs.empty? && rs == ss
+
+            axis = rs.empty? ? ss : (ss - rs)
+            puts "  emit_reduce #{fn_name} on #{src_slot} with axis #{axis.inspect} and result scope #{rs.inspect}" if ENV["DEBUG_LOWER"]
+            ops << Kumi::Core::IR::Ops.Reduce(fn_name, axis, rs, [], src_slot)
+            ops.size - 1
+          end
+
+          def vec_twin_name(base, scope)
+            scope_tag = Array(scope).map(&:to_s).join("_") # e.g. "players"
+            :"#{base}__vec__#{scope_tag}"
+          end
+
+          def find_vec_twin(name, scope)
+            t = vec_twin_name(name, scope)
+            @vec_meta[t] ? t : nil
+          end
+
+          def top_level_reducer?(decl)
+            ce = decl.expression
+            return false unless ce.is_a?(Kumi::Syntax::CallExpression)
+
+            entry = Kumi::Registry.entry(ce.fn_name)
+            entry&.reducer && !entry&.structure_function
+          end
+
+          def has_nested_reducer?(expr)
+            return false unless expr.is_a?(Kumi::Syntax::CallExpression)
+
+            expr.args.any? do |arg|
+              case arg
+              when Kumi::Syntax::CallExpression
+                entry = Kumi::Registry.entry(arg.fn_name)
+                return true if entry&.reducer
+
+                has_nested_reducer?(arg) # recursive check
+              else
+                false
+              end
+            end
+          end
+
+          def find_nested_reducer_arg(expr)
+            return nil unless expr.is_a?(Kumi::Syntax::CallExpression)
+
+            expr.args.each do |arg|
+              case arg
+              when Kumi::Syntax::CallExpression
+                entry = Kumi::Registry.entry(arg.fn_name)
+                return arg if entry&.reducer
+
+                nested = find_nested_reducer_arg(arg)
+                return nested if nested
+              end
+            end
+            nil
+          end
+
+          def infer_per_player_scope(reducer_expr)
+            return [] unless reducer_expr.is_a?(Kumi::Syntax::CallExpression)
+
+            # Look at the reducer's argument to determine the full scope
+            arg = reducer_expr.args.first
+            return [] unless arg
+
+            case arg
+            when Kumi::Syntax::InputElementReference
+              # For paths like [:players, :score_matrices, :session, :points]
+              # We want to keep [:players] and reduce over the rest
+              arg.path.empty? ? [] : [arg.path.first]
+            when Kumi::Syntax::CallExpression
+              # For nested expressions, get the deepest input path and take first element
+              deepest = find_deepest_input_path(arg)
+              deepest && !deepest.empty? ? [deepest.first] : []
+            else
+              []
+            end
+          end
+
+          def find_deepest_input_path(expr)
+            case expr
+            when Kumi::Syntax::InputElementReference
+              expr.path
+            when Kumi::Syntax::InputReference
+              [expr.name]
+            when Kumi::Syntax::CallExpression
+              paths = expr.args.map { |a| find_deepest_input_path(a) }.compact
+              paths.max_by(&:length)
+            else
+              nil
+            end
+          end
+
+          # Make sure a boolean mask lives at exactly cascade_scope.
+          def project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+            sh = determine_slot_shape(slot, ops, access_plans)
+            return slot if sh.scope == cascade_scope
+
+            # If we have a scalar condition but need it at cascade scope, broadcast it
+            if sh.kind == :scalar && cascade_scope && !Array(cascade_scope).empty?
+              # Find a target vector that already has the cascade scope
+              target_slot = nil
+              ops.each_with_index do |op, i|
+                if op.tag == :load_input || op.tag == :map
+                  shape = determine_slot_shape(i, ops, access_plans)
+                  if shape.kind == :vec && shape.scope == Array(cascade_scope) && shape.has_idx
+                    target_slot = i
+                    break
+                  end
+                end
+              end
+              
+              if target_slot
+                ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: Array(cascade_scope), on_missing: :error, require_unique: true)
+                return ops.size - 1
+              else
+                return slot  # Can't broadcast, use as-is
+              end
+            end
+            
+            return slot if sh.kind == :scalar
+
+            cascade_scope = Array(cascade_scope)
+            slot_scope = Array(sh.scope)
+
+            # Check prefix compatibility
+            short, long = [cascade_scope, slot_scope].sort_by(&:length)
+            unless long.first(short.length) == short
+              raise "cascade condition scope #{slot_scope.inspect} is not prefix-compatible with #{cascade_scope.inspect}"
+            end
+
+            if slot_scope.length < cascade_scope.length
+              # Need to broadcast UP: slot scope is shorter, needs to be aligned to cascade scope
+              # Find a target vector that already has the cascade scope
+              target_slot = nil
+              ops.each_with_index do |op, i|
+                if op.tag == :load_input || op.tag == :map
+                  shape = determine_slot_shape(i, ops, access_plans)
+                  if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
+                    target_slot = i
+                    break
+                  end
+                end
+              end
+              
+              if target_slot
+                ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
+                ops.size - 1
+              else
+                # Fallback: use the slot itself (might not work but worth trying)
+                ops << Kumi::Core::IR::Ops.AlignTo(slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
+                ops.size - 1
+              end
+            else
+              # Need to reduce DOWN: slot scope is longer, reduce extra dimensions
+              extra_axes = slot_scope - cascade_scope
+              if extra_axes.empty?
+                slot  # should not happen due to early return above
+              else
+                ops << Kumi::Core::IR::Ops.Reduce(:any?, extra_axes, cascade_scope, [], slot)
+                ops.size - 1
+              end
             end
           end
         end

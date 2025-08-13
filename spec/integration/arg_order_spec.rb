@@ -85,7 +85,7 @@ RSpec.describe "VM argument order and if semantics" do
     
     # Verify the slots contain the expected operations
     cond_slot, then_slot, else_slot = map.args
-    expect(decl.ops[cond_slot].tag).to eq(:ref)  # condition: gt100 reference
+    expect(decl.ops[cond_slot].tag).to eq(:ref)  # condition: gt100__vec reference (optimized)
     expect(decl.ops[cond_slot].attrs[:name]).to eq(:gt100__vec)
     
     expect(decl.ops[then_slot].tag).to eq(:map)  # then: p * 0.8 calculation

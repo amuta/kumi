@@ -56,6 +56,8 @@ module Kumi
               case decl.expression
               when Kumi::Syntax::ArrayExpression
                 propagate_from_array_expression(name, decl.expression, scopes, declarations, input_metadata)
+              when Kumi::Syntax::CascadeExpression
+                propagate_from_cascade_expression(name, decl.expression, scopes, declarations, input_metadata)
               end
             end
 
@@ -87,6 +89,27 @@ module Kumi
                   puts "Propagating scope #{anchor_scope} to #{ref_name} (was #{current_scope})" if ENV["DEBUG_SCOPE_RESOLUTION"]
                   scopes[ref_name] = anchor_scope
                   propagate_to_dependencies(ref_name, anchor_scope, scopes, declarations, input_metadata)
+                end
+              end
+            end
+          end
+
+          def propagate_from_cascade_expression(name, cascade_expr, scopes, declarations, input_metadata)
+            puts "Analyzing cascade expression in #{name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
+            
+            # Cascade should propagate its own scope to condition dependencies
+            cascade_scope = scopes[name] || []
+            return if cascade_scope.empty?
+            
+            puts "Propagating cascade scope #{cascade_scope} to condition dependencies" if ENV["DEBUG_SCOPE_RESOLUTION"]
+            
+            cascade_expr.cases.each do |case_expr|
+              find_declaration_references(case_expr.condition).each do |ref_name|
+                current_scope = scopes[ref_name] || []
+                if cascade_scope.length > current_scope.length
+                  puts "Propagating scope #{cascade_scope} to cascade condition #{ref_name} (was #{current_scope})" if ENV["DEBUG_SCOPE_RESOLUTION"]
+                  scopes[ref_name] = cascade_scope
+                  propagate_to_dependencies(ref_name, cascade_scope, scopes, declarations, input_metadata)
                 end
               end
             end
