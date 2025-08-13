@@ -6,7 +6,7 @@ require "support/function_test_helpers"
 RSpec.describe Kumi::Core::FunctionRegistry::CollectionFunctions do
   describe "collection queries" do
     it_behaves_like "a function with correct metadata", :empty?, 1, [Kumi::Core::Types.array(:any)], :boolean
-    it_behaves_like "a function with correct metadata", :size, 1, [Kumi::Core::Types.array(:any)], :integer
+    it_behaves_like "a function with correct metadata", :size, 1, [:any], :integer
 
     it_behaves_like "a working function", :empty?, [[]], true
     it_behaves_like "a working function", :empty?, [[1, 2, 3]], false

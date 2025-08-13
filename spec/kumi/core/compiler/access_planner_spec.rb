@@ -1,39 +1,36 @@
 # frozen_string_literal: true
 
+require "spec_helper"
+
 RSpec.describe Kumi::Core::Compiler::AccessPlanner do
-  let(:simple_metadata) do
-    {
-      name: { type: :string },
-      age: { type: :integer }
-    }
+  include ASTFactory
+
+  let(:simple_schema) do
+    syntax(:root, [
+             input_decl(:name, :string),
+             input_decl(:age, :integer)
+           ])
   end
 
-  let(:nested_metadata) do
-    {
-      departments: {
-        type: :array,
-        access_mode: :object,
-        children: {
-          name: { type: :string },
-          teams: {
-            type: :array,
-            access_mode: :object,
-            children: {
-              team_name: { type: :string },
-              members: {
-                type: :array,
-                access_mode: :element,
-                children: {
-                  first_name: { type: :string },
-                  last_name: { type: :string }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+  let(:simple_analyzer_result) { Kumi::Analyzer.analyze!(simple_schema) }
+  let(:simple_metadata) { simple_analyzer_result.state[:input_metadata] }
+
+  let(:nested_schema) do
+    syntax(:root, [
+             input_decl(:departments, :array, nil, children: [
+                          input_decl(:name, :string),
+                          input_decl(:teams, :array, nil, children: [
+                                       input_decl(:team_name, :string),
+                                       input_decl(:scores, :array, nil, children: [
+                                                    input_decl(:value, :integer)
+                                                  ], access_mode: :field)
+                                     ], access_mode: :field)
+                        ], access_mode: :field)
+           ])
   end
+
+  let(:nested_analyzer_result) { Kumi::Analyzer.analyze!(nested_schema) }
+  let(:nested_metadata) { nested_analyzer_result.state[:input_metadata] }
 
   describe ".plan" do
     context "with simple scalar fields" do
@@ -46,7 +43,7 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
         name_plan = plans["name"].first
         expect(name_plan).to be_a(Kumi::Core::Analyzer::AccessPlan)
         expect(name_plan.path).to eq("name")
-        expect(name_plan.mode).to eq(:object)
+        expect(name_plan.mode).to eq(:read)
         expect(name_plan.depth).to eq(0)
         expect(name_plan.scalar?).to be(true)
         expect(name_plan.containers).to eq([])
@@ -66,9 +63,8 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
                                               "departments.name",
                                               "departments.teams",
                                               "departments.teams.team_name",
-                                              "departments.teams.members",
-                                              "departments.teams.members.first_name",
-                                              "departments.teams.members.last_name")
+                                              "departments.teams.scores",
+                                              "departments.teams.scores.value")
 
         dept_plans = plans["departments"]
         expect(dept_plans.length).to eq(3)
@@ -113,23 +109,23 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
 
       it "handles element-mode arrays correctly" do
         plans = described_class.plan(nested_metadata)
-        member_plans = plans["departments.teams.members"]
+        scores_plans = plans["departments.teams.scores"]
 
-        expect(member_plans.length).to eq(3)
-        member_plan = member_plans.find { |p| p.mode == :materialize }
+        expect(scores_plans.length).to eq(3)
+        scores_plan = scores_plans.find { |p| p.mode == :materialize }
 
-        expect(member_plan.containers).to eq(%i[departments teams members])
-        expect(member_plan.depth).to eq(3)
+        expect(scores_plan.containers).to eq(%i[departments teams scores])
+        expect(scores_plan.depth).to eq(3)
 
         expected_operations = [
           { type: :enter_hash, key: "departments", on_missing: :error, key_policy: :indifferent },
           { type: :enter_array, on_missing: :error },
           { type: :enter_hash, key: "teams", on_missing: :error, key_policy: :indifferent },
           { type: :enter_array, on_missing: :error },
-          { type: :enter_array, on_missing: :error }
+          { type: :enter_hash, key: "scores", on_missing: :error, key_policy: :indifferent }
         ]
 
-        expect(member_plan.operations).to eq(expected_operations)
+        expect(scores_plan.operations).to eq(expected_operations)
       end
     end
 
@@ -171,7 +167,7 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
     it "raises error for unknown path" do
       expect do
         described_class.plan_for(simple_metadata, "unknown.path")
-      end.to raise_error(ArgumentError, /Unknown path: unknown.path/)
+      end.to raise_error(ArgumentError, /Missing required field 'unknown'/)
     end
   end
 
@@ -199,6 +195,91 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
 
     it "freezes struct instances" do
       expect(plan).to be_frozen
+    end
+  end
+
+  describe "Declarative Access Scenarios" do
+    # Test the internal should_enter_array? and should_enter_hash? logic
+    # with clear scenario names to ensure comprehensive coverage
+
+    let(:planner) { described_class.new({}, {}) }
+
+    # Metadata fixtures for different scenarios
+    let(:scalar_meta) { { type: :integer } }
+    let(:regular_array_meta) { { type: :array, access_mode: :field } }
+    let(:element_array_meta) { { type: :array, access_mode: :element } }
+    let(:hash_meta) { { type: :hash } }
+  end
+
+  describe "3D Element Array Integration" do
+    let(:cube_schema) do
+      syntax(:root, [
+               input_decl(:cube, :array, nil, children: [
+                            input_decl(:layer, :array, nil, children: [
+                                         input_decl(:matrix, :array, nil, children: [
+                                                      input_decl(:cell, :integer)
+                                                    ], access_mode: :field)
+                                       ], access_mode: :field)
+                          ], access_mode: :field)
+             ])
+    end
+
+    let(:cube_analyzer_result) { Kumi::Analyzer.analyze!(cube_schema) }
+    let(:cube_metadata) { cube_analyzer_result.state[:input_metadata] }
+
+    context "when AccessPlanner generates operations for nested element arrays" do
+      it "cube path should enter hash only (depth 1)" do
+        plans = described_class.plan(cube_metadata)
+        cube_plan = plans["cube"].find { |p| p.mode == :materialize }
+
+        expect(cube_plan.operations).to eq([
+                                             { type: :enter_hash, key: "cube", on_missing: :error, key_policy: :indifferent }
+                                           ])
+        expect(cube_plan.depth).to eq(1)
+      end
+
+      it "cube.layer path should generate operations for layer traversal" do
+        plans = described_class.plan(cube_metadata)
+        layer_plan = plans["cube.layer"].find { |p| p.mode == :each_indexed }
+
+        expect(layer_plan.operations).to eq([
+                                              { type: :enter_hash, key: "cube", on_missing: :error, key_policy: :indifferent },
+                                              { type: :enter_array, on_missing: :error },
+                                              { type: :enter_hash, key: "layer", on_missing: :error, key_policy: :indifferent },
+                                              { type: :enter_array, on_missing: :error }
+                                            ])
+        expect(layer_plan.depth).to eq(2)
+      end
+
+      it "cube.layer.matrix path should generate operations for matrix traversal within layers" do
+        plans = described_class.plan(cube_metadata)
+        matrix_plan = plans["cube.layer.matrix"].find { |p| p.mode == :materialize }
+
+        expect(matrix_plan.operations).to eq([
+                                               { type: :enter_hash, key: "cube", on_missing: :error, key_policy: :indifferent },
+                                               { type: :enter_array, on_missing: :error },
+                                               { type: :enter_hash, key: "layer", on_missing: :error, key_policy: :indifferent },
+                                               { type: :enter_array, on_missing: :error },
+                                               { type: :enter_hash, key: "matrix", on_missing: :error, key_policy: :indifferent }
+                                             ])
+        expect(matrix_plan.depth).to eq(3)
+      end
+
+      it "cube.layer.matrix.cell path should generate full traversal to leaf cells" do
+        plans = described_class.plan(cube_metadata)
+        cell_plan = plans["cube.layer.matrix.cell"].first
+
+        expect(cell_plan.operations).to eq([
+                                             { type: :enter_hash, key: "cube", on_missing: :error, key_policy: :indifferent },
+                                             { type: :enter_array, on_missing: :error },
+                                             { type: :enter_hash, key: "layer", on_missing: :error, key_policy: :indifferent },
+                                             { type: :enter_array, on_missing: :error },
+                                             { type: :enter_hash, key: "matrix", on_missing: :error, key_policy: :indifferent },
+                                             { type: :enter_array, on_missing: :error },
+                                             { type: :enter_hash, key: "cell", on_missing: :error, key_policy: :indifferent }
+                                           ])
+        expect(cell_plan.depth).to eq(3)
+      end
     end
   end
 end

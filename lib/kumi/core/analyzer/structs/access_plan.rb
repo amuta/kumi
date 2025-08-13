@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kumi
   module Core
     module Analyzer
@@ -11,7 +13,7 @@ module Kumi
 
         def accessor_key = "#{path}:#{mode}"
         def ndims        = depth
-        def scalar?      = depth == 0
+        def scalar?      = depth.zero?
       end
     end
   end

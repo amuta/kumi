@@ -217,7 +217,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::DependencyResolver do
     context "when referencing a nested input field" do
       let(:schema) do
         inputs = [
-          input_decl(:user, :object, children: [
+          input_decl(:user, :array, nil, access_mode: :field, children: [
                        input_decl(:name, :string),
                        input_decl(:age, :integer)
                      ])

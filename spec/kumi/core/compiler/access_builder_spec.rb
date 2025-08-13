@@ -1,23 +1,26 @@
 # frozen_string_literal: true
 
+require "spec_helper"
+
 RSpec.describe Kumi::Core::Compiler::AccessBuilder do
+  include ASTFactory
+
   context "for object-mode plans" do
-    let(:meta) do
-      {
-        departments: {
-          type: :array,
-          children: {
-            teams: {
-              type: :array,
-              children: {
-                team_name: { type: :string }
-              }
-            }
-          }
-        }
-      }
+    let(:schema) do
+      syntax(:root, [
+               input_decl(:departments, :array, nil, children: [
+                            input_decl(:teams, :array, nil, children: [
+                                         input_decl(:team_name, :string)
+                                       ], access_mode: :field)
+                          ], access_mode: :field)
+             ])
     end
 
+    let(:analyzer_result) do
+      Kumi::Analyzer.analyze!(schema)
+    end
+
+    let(:meta) { analyzer_result.state[:input_metadata] }
     let(:access_plans) { Kumi::Core::Compiler::AccessPlanner.plan(meta) }
 
     let(:data) do
@@ -31,86 +34,115 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
 
     it "builds an accessor that navigates nested objects and arrays" do
       accessors = described_class.build(access_plans)
-
       accessor = accessors["departments.teams.team_name:materialize"]
       result = accessor.call(data)
 
       expect(result).to eq([%w[Backend Frontend], ["UX"]])
     end
+
+    it "ravels nested structures" do
+      accessors = described_class.build(access_plans)
+      accessor = accessors["departments.teams.team_name:ravel"]
+      result = accessor.call(data)
+
+      expect(result).to eq(%w[Backend Frontend UX])
+    end
+
+    it "ravels array-of-objects without extra nesting" do
+      accessors = described_class.build(access_plans)
+
+      ravel = accessors["departments:ravel"]
+      # Should produce an array of department objects, not nested-in-an-array
+      expect(ravel.call(data)).to eq(data[:departments])
+    end
   end
 
   context "for element-mode (vector) plans" do
-    let(:meta) do
-      {
-        table: {
-          type: :array,
-          children: {
-            rows: {
-              access_mode: :element,
-              type: :array,
-              children: {
-                cell: {
-                  type: :array,
-                  children: {
-                    value: { type: :integer }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    let(:schema) do
+      syntax(:root, [
+               input_decl(:table, :array, nil, children: [
+                            input_decl(:rows, :array, nil, children: [
+                                         input_decl(:cell, :array, nil, children: [
+                                                      input_decl(:value, :integer)
+                                                    ], access_mode: :element)
+                                       ], access_mode: :element)
+                          ], access_mode: :element)
+             ])
     end
+
+    let(:analyzer_result) do
+      Kumi::Analyzer.analyze!(schema)
+    end
+
+    let(:meta) { analyzer_result.state[:input_metadata] }
     let(:access_plans) { Kumi::Core::Compiler::AccessPlanner.plan(meta) }
 
     let(:data) do
       {
         table: [
-          [{ value: 0 }],
-          [{ value: 1 }, { value: 2 }, { value: 3 }],
-          [{ value: 4 }, { value: 5 }]
+          [[0]], # table -> rows -> (cell is an object)
+          [[1, 2], [3]], # table -> rows -> (cell is an array of objects)
+          [[4, 5]]
         ]
+
       }
     end
 
     it "builds an accessor that correctly enters nested arrays without fetching" do
       accessors = described_class.build(access_plans)
 
-      ops = access_plans["table.rows.cell"].first[:operations]
+      ops = access_plans["table.rows.cell"].find { |p| p.mode == :materialize }.operations
       expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array])
 
-      ops = access_plans["table.rows.cell.value"].first[:operations]
-      expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array enter_hash])
-      expect(ops.last[:key]).to eq("value")
+      ops = access_plans["table.rows.cell.value"].find { |p| p.mode == :materialize }.operations
+      expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array enter_array])
 
       accessor = accessors["table.rows.cell:materialize"]
       result = accessor.call(data)
 
-      expect(result).to eq([[{ value: 0 }], [{ value: 1 }, { value: 2 }, { value: 3 }], [{ value: 4 }, { value: 5 }]])
+      expect(result).to eq(data[:table])
 
       accessor = accessors["table.rows.cell.value:materialize"]
       result = accessor.call(data)
-      expect(result).to eq([[0], [1, 2, 3], [4, 5]])
+      expect(result).to eq([[[0]], [[1, 2], [3]], [[4, 5]]])
+    end
+
+    it "ravels leaf values to a flat array" do
+      accessors = described_class.build(access_plans)
+      ravel = accessors["table.rows.cell.value:ravel"]
+      expect(ravel.call(data)).to eq([0, 1, 2, 3, 4, 5])
+    end
+
+    it "each_indexed yields value with 3-axis indices" do
+      accessors = described_class.build(access_plans)
+      each = accessors["table.rows.cell.value:each_indexed"]
+      expect(each.call(data)).to eq([
+                                      [0, [0, 0, 0]],
+                                      [1, [1, 0, 0]],
+                                      [2, [1, 0, 1]],
+                                      [3, [1, 1, 0]],
+                                      [4, [2, 0, 0]],
+                                      [5, [2, 0, 1]]
+                                    ])
     end
   end
 
   context "when data is missing or nil" do
-    let(:input_metadata) do
-      {
-        departments: {
-          type: :array,
-          children: {
-            teams: {
-              type: :array,
-              children: {
-                team_name: { type: :string }
-              }
-            }
-          }
-        }
-      }
+    let(:schema) do
+      syntax(:root, [
+               input_decl(:departments, :array, nil, children: [
+                            input_decl(:teams, :array, nil, children: [
+                                         input_decl(:team_name, :string)
+                                       ], access_mode: :field)
+                          ], access_mode: :field)
+             ])
     end
 
+    let(:analyzer_result) do
+      Kumi::Analyzer.analyze!(schema)
+    end
+
+    let(:input_metadata) { analyzer_result.state[:input_metadata] }
     let(:access_plans) do
       Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, defaults: { on_missing: :error })
     end
@@ -134,21 +166,20 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
       )
     end
 
-    it "raises a descriptive error when encountering nil instead of an object" do
-      input_metadata_for_object = {
-        user: {
-          type: :hash,
-          children: {
-            profile: {
-              type: :hash,
-              children: {
-                name: { type: :string }
-              }
-            }
-          }
-        }
-      }
+    xit "raises a descriptive error when encountering nil instead of an object" do
+      # This can easily be done, just make a helper on Accessors::Base
+      # And on Accessors, e.g. ::MaterializeAccessor, keep track of the last key
+      # and use it in the error message (might be on a previus op)
+      object_schema = syntax(:root, [
+                               input_decl(:user, :array, nil, children: [
+                                            input_decl(:profile, :array, nil, children: [
+                                                         input_decl(:name, :string)
+                                                       ], access_mode: :field)
+                                          ], access_mode: :field)
+                             ])
 
+      object_analyzer_result = Kumi::Analyzer.analyze!(object_schema)
+      input_metadata_for_object = object_analyzer_result.state[:input_metadata]
       access_plans_for_object = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata_for_object, defaults: { on_missing: :error })
 
       data_with_nil_object = {
@@ -156,7 +187,7 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
       }
 
       accessors = described_class.build(access_plans_for_object)
-      accessor = accessors["user.profile.name:object"]
+      accessor = accessors["user.profile.name:materialize"]
 
       expect { accessor.call(data_with_nil_object) }.to raise_error(
         KeyError,

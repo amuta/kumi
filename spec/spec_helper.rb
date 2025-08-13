@@ -10,11 +10,10 @@ SimpleCov.start do
   add_filter "/spec/"
   add_filter "/vendor/"
 
-  add_group "RubyParser", ["lib/kumi/core/ruby_parser/**/*.rb", "lib/kumi/ruby_parser.rb"]
   add_group "Analyzer", ["lib/kumi/core/analyzer/**/*.rb", "lib/kumi/analyzer.rb"]
-  add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler_base.rb"]
-  add_group "JS", ["lib/kumi/js/**/*.rb"]
-  add_group "Syntax", ["lib/kumi/syntax/*.rb"]
+  add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler/**/*.rb"]
+  add_group "IR", ["lib/kumi/core/ir/**/*.rb"]
+  add_group "Other", ["lib/**/*.rb"]
 
   minimum_coverage 0
   track_files "lib/**/*.rb"
@@ -32,26 +31,36 @@ RSpec.configure do |config|
   config.include DualModeHelpers
 end
 
-ENV["DUAL_MODE_ENABLED"] ||= "true" # Disabled for element access mode testing
+# Suppress warnings about potentially false-positive raise_error matchers
+
+module SchemaHelper
+  extend Kumi::Schema
+end
+
+module Kumi
+  def self.schema(&block)
+    SchemaHelper.schema(&block)
+  end
+end
+
+# ENV["DUAL_MODE_ENABLED"] ||= "true" # Disabled for element access mode testing
 
 return unless ENV["DUAL_MODE_ENABLED"] == "true"
 
 # Override Schema from to use dual mode for all specs
-module Kumi
-  module Schema
-    def from(context)
-      raise("No schema defined") unless @__compiled_schema__
+# module Kumi
+#   module Schema
+#     def from(context)
+#       raise("No schema defined") unless @__compiled_schema__
 
-      # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:input_metadata] || {}
-      violations = Core::Input::Validator.validate_context(context, input_meta)
+#       # Validate input types and domain constraints
+#       input_meta = @__analyzer_result__.state[:input_metadata] || {}
+#       violations = Core::Input::Validator.validate_context(context, input_meta)
 
-      raise Errors::InputValidationError, violations unless violations.empty?
+#       raise Errors::InputValidationError, violations unless violations.empty?
 
-      require_relative "support/dual_runner"
-      DualRunner.new(self, context)
-    end
-  end
-end
-
-# Suppress warnings about potentially false-positive raise_error matchers
+#       require_relative "support/dual_runner"
+#       DualRunner.new(self, context)
+#     end
+#   end
+# end

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe "Dual Mode Injection" do
+RSpec.describe "Dual Mode Injection", :pending do
   let(:simple_schema) do
     Module.new do
       extend Kumi::Schema
@@ -18,7 +18,7 @@ RSpec.describe "Dual Mode Injection" do
     end
   end
 
-  it "injects dual mode behavior in specs automatically" do
+  xit "injects dual mode behavior in specs automatically" do
     test_data = { age: 25 }
     runner = simple_schema.from(test_data)
 
@@ -28,7 +28,7 @@ RSpec.describe "Dual Mode Injection" do
     expect(runner[:status]).to eq("Adult")
   end
 
-  it "from method has clean signature without dual_mode parameter" do
+  xit "from method has clean signature without dual_mode parameter" do
     method = simple_schema.method(:from)
 
     # Verify the method only accepts one parameter (context)

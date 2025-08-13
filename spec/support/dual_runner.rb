@@ -19,11 +19,7 @@ class DualRunner
     @schema_class = schema_class
     @input_data = input_data
     # Create Ruby runner directly without dual mode to avoid recursion
-    @ruby_runner = Kumi::Core::SchemaInstance.new(
-      schema_class.__compiled_schema__,
-      schema_class.__analyzer_result__.state,
-      input_data
-    )
+    @ruby_runner = schema_class.__compiled_schema__.read(input_data, mode: :ruby)
     @js_runner = JavaScriptRunner.new(schema_class, input_data)
 
     # Track schema compilation

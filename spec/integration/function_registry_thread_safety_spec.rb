@@ -1,14 +1,8 @@
 # frozen_string_literal: true
 
-# Focus: prove that Kumi::Registry.behaves correctly under
-# concurrent writes, duplicate-name attempts, and post-boot freezing.
-#
-# Assumes these API helpers exist:
-#   - Kumi::Registry.reset!
-#   - Kumi::Registry.register(name, &block)
-#   - Kumi::Registry.fetch(name)
-#   - Kumi::Registry.freeze!
 RSpec.describe Kumi::Registry, "thread-safety & immutability" do
+  let(:core) { Kumi::Core::FunctionRegistry }
+
   before { described_class.reset! }
 
   context "single-threaded basics" do
@@ -55,7 +49,7 @@ RSpec.describe Kumi::Registry, "thread-safety & immutability" do
 
       expect do
         described_class.register(:later) { 1 }
-      end.to raise_error(RuntimeError, /frozen/i)
+      end.to raise_error(core::FrozenError, /frozen/i)
 
       expect(described_class.fetch(:initial).call).to eq 0
     end
@@ -68,40 +62,33 @@ RSpec.describe Kumi::Registry, "thread-safety & immutability" do
 
       expect do
         described_class.register(:bar) { 1 }
-      end.to raise_error(Kumi::Registry::FrozenError)
+      end.to raise_error(core::FrozenError)
     end
 
     it "freezes the functions hash and every entry inside it" do
       # boot-time registration
+      described_class.reset!
       described_class.register(:foo) { |x| x }
 
       # lock the registry
       described_class.freeze!
 
-      functions = described_class.instance_variable_get(:@functions)
+      # inspect the *core* registry internals (facade has no @functions)
+      functions = core.instance_variable_get(:@functions)
 
       # hash itself is frozen
       expect(functions).to be_frozen
 
-      # trying to add or remove keys fails
-      expect do
-        functions[:bar] = proc { 1 }
-      end.to raise_error(FrozenError)
+      # trying to add or remove keys fails (built-in FrozenError)
+      expect { functions[:bar] = proc { 1 } }.to raise_error(FrozenError)
+      expect { functions.delete(:foo) }.to raise_error(FrozenError)
 
-      expect do
-        functions.delete(:foo)
-      end.to raise_error(FrozenError)
-
-      # each Entry (or Proc, depending on impl) is frozen too
+      # each Entry is frozen too
       foo_entry = functions[:foo]
       expect(foo_entry).to be_frozen
 
-      # mutating nested metadata should also fail
-      if foo_entry.respond_to?(:meta)
-        expect do
-          foo_entry.meta[:arity] = 99
-        end.to raise_error(FrozenError)
-      end
+      # if your Entry exposes nested metadata, ensure that’s frozen as well
+      expect { foo_entry.meta[:arity] = 99 }.to raise_error(FrozenError) if foo_entry.respond_to?(:meta)
     end
   end
 end

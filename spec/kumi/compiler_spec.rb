@@ -14,8 +14,8 @@ RSpec.describe Kumi::Compiler do
   let(:exec)     { described_class.compile(schema, analyzer: analysis) }
 
   # Expectations
-  it "returns an Kumi::Core::CompiledSchema" do
-    expect(exec).to be_a(Kumi::Core::CompiledSchema)
+  it "returns an Kumi::Runtime::Executable" do
+    expect(exec).to be_a(Kumi::Runtime::Executable)
   end
 
   it "computes values in a single evaluation pass" do
@@ -24,18 +24,23 @@ RSpec.describe Kumi::Compiler do
   end
 
   it "lazyly evaluates values" do
-    schema = begin
-      a = attr(:a, field_ref(:x))
-      b = attr(:b, call(:add, binding_ref(:a), field_ref(:y)))
-      syntax(:root, [], [a, b], [])
-    end
+    schema = syntax(:root,
+                    [
+                      input_decl(:x, :integer),
+                      input_decl(:y, :any)
+                    ],
+                    [
+                      attr(:a, input_ref(:x)),
+                      attr(:b, call(:add, ref(:a), input_ref(:y)))
+                    ],
+                    [])
 
-    # We will test this by putting a bad value that will only cause an error
-    # when we try to evaluate `:b`
+    analysis = Kumi::Analyzer.analyze!(schema)
     exec = described_class.compile(schema, analyzer: analysis)
+
     context = { x: 10, y: "bad_input" }
     expect { exec.evaluate(context, :a) }.not_to raise_error
-    expect { exec.evaluate(context, :b) }.to raise_error(Kumi::Core::Errors::RuntimeError, /Error calling fn\(:add/)
+    expect { exec.evaluate(context, :b) }.to raise_error(RuntimeError, /:add/)
   end
 
   it "evaluates traits independently" do

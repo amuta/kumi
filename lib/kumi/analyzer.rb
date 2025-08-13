@@ -13,13 +13,13 @@ module Kumi
       Core::Analyzer::Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
       Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass, # 10. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::TypeChecker,                     # 12. Validates types using inferred information.
       Core::Analyzer::Passes::InputAccessPlannerPass,          # 13. Plans access strategies for input fields.
       Core::Analyzer::Passes::ScopeResolutionPass,             # 14. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass           # 15. Plans join/reduce operations (Generates IR Structs)
-      # Core::Analyzer::Passes::LowerToIRPass                  # 16. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 15. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass # 16. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
@@ -42,6 +42,8 @@ module Kumi
           pass_name = pass_class.name.split("::").last
           message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
           errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
+
+          raise
         end
       end
       state

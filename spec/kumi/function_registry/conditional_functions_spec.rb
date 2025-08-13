@@ -41,7 +41,7 @@ RSpec.describe Kumi::Core::FunctionRegistry::ConditionalFunctions do
   end
 
   describe "if function" do
-    it_behaves_like "a function with correct metadata", :if, -1, %i[boolean any any], :any
+    it_behaves_like "a function with correct metadata", :if, 3, %i[boolean any any], :any
 
     it_behaves_like "a working function", :if, [true, "yes", "no"], "yes"
     it_behaves_like "a working function", :if, [false, "yes", "no"], "no"

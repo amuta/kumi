@@ -23,7 +23,7 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      Core::SchemaInstance.new(@__compiled_schema__, @__analyzer_result__.state, context)
+      @__compiled_schema__.read(context, mode: :ruby)
     end
 
     def explain(context, *keys)
@@ -42,7 +42,13 @@ module Kumi
       nil
     end
 
+    def build_syntax_tree(&block)
+      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+    end
+
     def schema(&block)
+      # from_location = caller_locations(1, 1).first
+      # raise "Called from #{from_location.path}:#{from_location.lineno}"
       @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
 
       puts Support::SExpressionPrinter.print(@__syntax_tree__, indent: 2) if ENV["KUMI_DEBUG"] || ENV["KUMI_PRINT_SYNTAX_TREE"]

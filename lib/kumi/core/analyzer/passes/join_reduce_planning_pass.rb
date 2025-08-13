@@ -11,6 +11,7 @@ module Kumi
         # PRODUCES: :join_reduce_plans
         class JoinReducePlanningPass < PassBase
           include Kumi::Core::Analyzer::Plans
+
           def run(_errors)
             broadcasts = get_state(:broadcasts, required: false) || {}
             scope_plans = get_state(:scope_plans, required: false) || {}
@@ -41,7 +42,7 @@ module Kumi
               source_scope = get_source_scope(name, info, scope_plans, declarations, input_metadata)
 
               # Determine reduction axis and result scope
-              axis, result_scope = determine_reduction_axis(source_scope, info)
+              axis, result_scope = determine_reduction_axis(source_scope, info, scope_plans, name)
 
               # Check for flattening requirements
               flatten_indices = determine_flatten_indices(info)
@@ -63,6 +64,7 @@ module Kumi
           def process_joins(broadcasts, scope_plans, declarations, plans)
             vectorized_ops = broadcasts[:vectorized_operations] || {}
 
+            # Process vectorized operations
             vectorized_ops.each do |name, info|
               # Skip if already processed as reduction
               next if plans.key?(name)
@@ -73,9 +75,36 @@ module Kumi
               next unless scope_plan
 
               # Only need join planning if multiple arguments at different scopes
-              if requires_join?(declarations[name], scope_plan)
+              next unless requires_join?(declarations[name], scope_plan)
+
+              plan = Join.new(
+                policy: :zip, # Default to zip for array operations
+                target_scope: scope_plan.scope
+              )
+
+              plans[name] = plan
+
+              debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
+            end
+
+            # Process scalar declarations that need broadcasting to vectorized scopes
+            # (These are referenced by vectorized cascades but aren't vectorized themselves)
+            scope_plans.each do |name, scope_plan|
+              # Skip if already processed
+              next if plans.key?(name)
+              
+              # Skip if no vectorized target scope
+              next unless scope_plan.scope && !scope_plan.scope.empty?
+              
+              # Skip if already vectorized (handled above)
+              next if vectorized_ops.key?(name)
+              
+              # Check if this scalar declaration needs broadcasting
+              if needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
+                debug_scalar_broadcast(name, scope_plan) if ENV["DEBUG_JOIN_REDUCE"]
+                
                 plan = Join.new(
-                  policy: :zip,  # Default to zip for array operations
+                  policy: :broadcast, # Use broadcast policy for scalar-to-vector
                   target_scope: scope_plan.scope
                 )
 
@@ -87,15 +116,11 @@ module Kumi
           end
 
           def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata)
-            # First try to get from scope_plans
-            scope_plan = scope_plans[name]
-            return scope_plan.scope if scope_plan && scope_plan.scope
-
-            # Fallback: infer from the reduction argument
+            # Always infer from the reduction argument - this is the full dimensional scope
             infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata)
           end
 
-          def determine_reduction_axis(source_scope, reduction_info)
+          def determine_reduction_axis(source_scope, reduction_info, scope_plans, name)
             return [[], []] if source_scope.empty?
 
             # Check if explicit axis is specified
@@ -103,6 +128,15 @@ module Kumi
               axis = reduction_info[:axis]
               result_scope = compute_result_scope(source_scope, axis)
               return [axis, result_scope]
+            end
+
+            # Check if there's a scope plan that specifies what to preserve (result_scope)
+            scope_plan = scope_plans[name]
+            if scope_plan&.scope && !scope_plan.scope.empty?
+              desired_result_scope = scope_plan.scope
+              # Compute axis by removing the desired result dimensions
+              axis = source_scope - desired_result_scope
+              return [axis, desired_result_scope]
             end
 
             # Default: reduce innermost dimension (partial reduction)
@@ -114,11 +148,12 @@ module Kumi
 
           def compute_result_scope(source_scope, axis)
             # Remove specified axis dimensions from source scope
-            if axis == :all
+            case axis
+            when :all
               []
-            elsif axis.is_a?(Array)
+            when Array
               source_scope - axis
-            elsif axis.is_a?(Integer)
+            when Integer
               # Numeric axis: remove that many innermost dimensions
               source_scope[0...-axis]
             else
@@ -136,12 +171,19 @@ module Kumi
             return false unless declaration
             return false unless scope_plan.scope && !scope_plan.scope.empty?
 
-            # Check if expression has multiple arguments that could be at different scopes
             expr = declaration.expression
-            return false unless expr.is_a?(Kumi::Syntax::CallExpression)
 
-            # Multiple arguments suggest potential join requirement
-            expr.args.size > 1
+            case expr
+            when Kumi::Syntax::CallExpression
+              # Multiple arguments suggest potential join requirement
+              expr.args.size > 1
+            when Kumi::Syntax::CascadeExpression
+              # Cascades with vectorized target scope need join planning
+              # to handle cross-scope conditions and results
+              true
+            else
+              false
+            end
           end
 
           def infer_scope_from_argument(arg, declarations, input_metadata)
@@ -179,6 +221,42 @@ module Kumi
             dims
           end
 
+          def needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
+            # Check if this scalar declaration is referenced by any vectorized operation
+            # that requires it to be broadcast to a vectorized scope
+            
+            # Look for vectorized operations that reference this declaration
+            vectorized_ops.each do |vec_name, vec_info|
+              vec_decl = declarations[vec_name]
+              next unless vec_decl
+              
+              # Check if this vectorized operation references our scalar declaration
+              if declaration_references?(vec_decl.expression, name)
+                return true
+              end
+            end
+            
+            false
+          end
+
+          def declaration_references?(expr, target_name)
+            case expr
+            when Kumi::Syntax::DeclarationReference
+              expr.name == target_name
+            when Kumi::Syntax::CallExpression
+              expr.args.any? { |arg| declaration_references?(arg, target_name) }
+            when Kumi::Syntax::CascadeExpression
+              expr.cases.any? do |case_expr|
+                declaration_references?(case_expr.condition, target_name) ||
+                declaration_references?(case_expr.result, target_name)
+              end
+            when Kumi::Syntax::ArrayExpression
+              expr.elements.any? { |elem| declaration_references?(elem, target_name) }
+            else
+              false
+            end
+          end
+
           # Debug helpers
           def debug_reduction(name, info)
             puts "\n=== Processing reduction: #{name} ==="
@@ -202,6 +280,11 @@ module Kumi
             puts "Join plan for #{name}:"
             puts "  Target scope: #{plan.target_scope.inspect}"
             puts "  Policy: #{plan.policy}"
+          end
+
+          def debug_scalar_broadcast(name, scope_plan)
+            puts "\n=== Processing scalar broadcast: #{name} ==="
+            puts "Target scope: #{scope_plan.scope.inspect}"
           end
         end
       end

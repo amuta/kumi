@@ -25,7 +25,7 @@ module SugarTestHelper
     # When capture an schema declaration, it should provide us an instance of Kumi::Schema::Inspector
     raise "Expected schema to be an instance of Kumi::Schema::Inspector, got #{schema.class}" unless schema.is_a?(Kumi::Schema::Inspector)
 
-    Kumi::Core::SchemaInstance.new(schema.compiled_schema, schema.analyzer_result.definitions, input_data)
+    schema.compiled_schema.read(input_data, mode: :ruby)
   end
 
   # For use in specs - include this module to get access to helper methods

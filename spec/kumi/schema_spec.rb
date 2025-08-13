@@ -73,6 +73,13 @@ RSpec.describe Kumi::Schema do
         expect(test_class.instance_variable_get(:@__analyzer_result__)).to be_frozen
         expect(test_class.instance_variable_get(:@__compiled_schema__)).to be_frozen
       end
+
+      it "creates Runtime::Executable as compiled schema" do
+        valid_schema
+        
+        compiled_schema = test_class.instance_variable_get(:@__compiled_schema__)
+        expect(compiled_schema).to be_a(Kumi::Runtime::Executable)
+      end
     end
   end
 
@@ -94,11 +101,20 @@ RSpec.describe Kumi::Schema do
         end
       end
 
-      it "creates schema instance with valid input" do
+      it "creates runtime run instance with valid input" do
         instance = test_class.from(age: 25)
         
         expect(instance).not_to be_nil
-        expect(instance).to respond_to(:fetch)
+        expect(instance).to be_a(Kumi::Runtime::Run)
+        expect(instance).to respond_to(:[])
+        expect(instance).to respond_to(:get)
+      end
+
+      it "allows accessing computed values through the instance" do
+        instance = test_class.from(age: 25)
+        
+        expect(instance[:adult]).to be true
+        expect(instance.adult).to be true
       end
 
       it "validates input and raises error for invalid data" do

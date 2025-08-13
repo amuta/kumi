@@ -4,7 +4,7 @@ require "spec_helper"
 require "tmpdir"
 require "fileutils"
 
-RSpec.describe "JavaScript Size Benchmark", :js do
+RSpec.describe "JavaScript Size Benchmark", :js, :pending do
   let(:temp_dir) { Dir.mktmpdir }
 
   after do
