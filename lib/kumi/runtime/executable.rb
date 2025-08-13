@@ -2,10 +2,10 @@
 
 module Kumi
   module Runtime
-    # Program / Reader: evaluation interface for compiled schemas
+    # Executable / Reader: evaluation interface for compiled schemas
     #
     # BUILD:
-    # - Program.from_analysis(state) consumes:
+    # - Executable.from_analysis(state) consumes:
     #   * :ir_module (lowered IR)
     #   * :access_plans (for AccessBuilder)
     #   * function registry
@@ -36,7 +36,7 @@ module Kumi
     # - DEBUG_LOWER=1 to print IR at build time
     # - DEBUG_VM_ARGS=1 to trace VM execution
     # - Accessors can be debugged independently with DEBUG_ACCESSOR_OPS=1
-    class Program
+    class Executable
       def self.from_analysis(state, registry: nil)
         ir = state.fetch(:ir_module)
         access_plans = state.fetch(:access_plans)
@@ -65,7 +65,7 @@ module Kumi
       def decl?(name) = @decl.key?(name)
 
       def read(input, mode: :ruby)
-        Session.new(self, input, mode: mode)
+        Run.new(self, input, mode: mode)
       end
 
       # API compatibility with CompiledSchema
@@ -83,8 +83,8 @@ module Kumi
       def eval_decl(name, input, mode: :ruby)
         raise KeyError, "unknown decl #{name}" unless decl?(name)
 
-        out = Kumi::Core::IR::VM.run(@ir, { input: input, target: name },
-                                     accessors: @acc, registry: @reg).fetch(name)
+        out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name },
+                                              accessors: @acc, registry: @reg).fetch(name)
 
         mode == :ruby ? unwrap(@decl[name], out) : out
       end
@@ -105,7 +105,7 @@ module Kumi
       end
     end
 
-    class Session
+    class Run
       def initialize(program, input, mode:)
         @program = program
         @input = input

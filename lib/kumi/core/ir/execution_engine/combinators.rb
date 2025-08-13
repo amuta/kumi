@@ -3,7 +3,7 @@
 module Kumi
   module Core
     module IR
-      module VM
+      module ExecutionEngine
         # Pure combinators for data transformation
         module Combinators
           # Broadcast scalar over vec (scalar→vec only)

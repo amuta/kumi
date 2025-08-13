@@ -3,7 +3,7 @@
 module Kumi
   module Core
     module IR
-      # VM interpreter for IR execution
+      # ExecutionEngine interpreter for IR execution
       #
       # ARCHITECTURE:
       # - Values:
@@ -40,9 +40,9 @@ module Kumi
       # DEBUGGING:
       # - DEBUG_VM_ARGS=1 prints per-op execution and arguments.
       # - DEBUG_GROUP_ROWS=1 prints grouping decisions during Lift.
-      module VM
+      module ExecutionEngine
         def self.run(ir_module, ctx, accessors:, registry:)
-          Executor.run(ir_module, ctx, accessors: accessors, registry: registry)
+          Interpreter.run(ir_module, ctx, accessors: accessors, registry: registry)
         end
       end
     end

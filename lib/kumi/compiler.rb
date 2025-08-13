@@ -14,7 +14,7 @@ module Kumi
 
     def compile
       # Switch to LIR: Use the analysis state instead of old compilation
-      Runtime::Program.from_analysis(@analysis.state)
+      Runtime::Executable.from_analysis(@analysis.state)
     end
   end
 end

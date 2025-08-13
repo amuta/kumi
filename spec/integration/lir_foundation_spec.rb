@@ -49,7 +49,7 @@ RSpec.describe "Wrapped mode exposes internal VM structures" do
 
   let(:syntax_tree)    { WrappedBaseSchema.__syntax_tree__ }
   let(:analysis_state) { Kumi::Analyzer.analyze!(syntax_tree).state }
-  let(:program)        { Kumi::Runtime::Program.from_analysis(analysis_state) }
+  let(:program)        { Kumi::Runtime::Executable.from_analysis(analysis_state) }
 
   let(:input_premium) do
     {

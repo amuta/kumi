@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Core::IR::VM::Executor do
+RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
   # Helper to create IR structures
   def ir_module(decls)
     Kumi::Core::IR::Module.new(inputs: {}, decls: decls)

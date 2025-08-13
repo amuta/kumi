@@ -11,7 +11,7 @@ module Kumi
           @definitions = analysis_state[:declarations] || {}
           @registry    = registry
 
-          @program = Kumi::Runtime::Program.from_analysis(@state, registry: nil)
+          @program = Kumi::Runtime::Executable.from_analysis(@state, registry: nil)
           @session = @program.read(@inputs, mode: :ruby)
         end
 

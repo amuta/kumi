@@ -14,8 +14,8 @@ RSpec.describe Kumi::Compiler do
   let(:exec)     { described_class.compile(schema, analyzer: analysis) }
 
   # Expectations
-  it "returns an Kumi::Runtime::Program" do
-    expect(exec).to be_a(Kumi::Runtime::Program)
+  it "returns an Kumi::Runtime::Executable" do
+    expect(exec).to be_a(Kumi::Runtime::Executable)
   end
 
   it "computes values in a single evaluation pass" do

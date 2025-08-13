@@ -3,9 +3,9 @@
 module Kumi
   module Core
     module IR
-      module VM
-        # Executor for IR modules - thin layer that delegates to combinators
-        module Executor
+      module ExecutionEngine
+        # Interpreter for IR modules - thin layer that delegates to combinators
+        module Interpreter
           PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch].freeze
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
 

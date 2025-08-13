@@ -3,7 +3,7 @@
 module Kumi
   module Core
     module IR
-      module VM
+      module ExecutionEngine
         # Value constructors and helpers for VM data representation
         module Values
           # Create a scalar value

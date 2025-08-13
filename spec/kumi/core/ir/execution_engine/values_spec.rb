@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Kumi::Core::IR::VM::Values do
+RSpec.describe Kumi::Core::IR::ExecutionEngine::Values do
   describe ".scalar" do
     it "wraps any value (including nil)" do
       expect(described_class.scalar(42)).to eq(k: :scalar, v: 42)

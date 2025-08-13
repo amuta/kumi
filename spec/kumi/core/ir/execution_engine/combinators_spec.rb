@@ -3,7 +3,7 @@
 require "spec_helper"
 require "benchmark/ips"
 
-RSpec.describe Kumi::Core::IR::VM::Combinators do
+RSpec.describe Kumi::Core::IR::ExecutionEngine::Combinators do
   let(:scalar) { ->(v) { { k: :scalar, v: v } } }
   let(:vec) { ->(scope, rows, has_idx) { { k: :vec, scope: scope, rows: rows, has_idx: has_idx } } }
   let(:row) { ->(v, idx = nil) { idx ? { v: v, idx: Array(idx) } : { v: v } } }
@@ -288,7 +288,7 @@ RSpec.describe Kumi::Core::IR::VM::Combinators do
         row.call(2, [1, 0])
       ]
 
-      vec = Kumi::Core::IR::VM::Values.vec(%i[i j], rows, true)
+      vec = Kumi::Core::IR::ExecutionEngine::Values.vec(%i[i j], rows, true)
 
       result = described_class.group_rows(vec[:rows], 1)
 
