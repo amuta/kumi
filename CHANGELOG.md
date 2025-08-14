@@ -2,8 +2,6 @@
 ### Added
 - Hash objects input declarations with `hash :field do ... end` syntax
 - Complete hash object integration with arrays, nesting, and broadcasting
-- `element :any` syntax for dynamic/flexible hash structures in arrays
-- Comprehensive documentation and spec coverage for hash object features
 
 ## [0.0.11] – 2025-08-13
 ### Added
