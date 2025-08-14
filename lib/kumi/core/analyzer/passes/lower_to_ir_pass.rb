@@ -431,6 +431,9 @@ module Kumi
               when Syntax::CallExpression
                 entry = Kumi::Registry.entry(expr.fn_name)
 
+                # Validate signature metadata from FunctionSignaturePass (read-only assertions)
+                validate_signature_metadata(expr, entry)
+
                 # Constant folding optimization: evaluate expressions with all literal arguments
                 if can_constant_fold?(expr, entry)
                   folded_value = constant_fold(expr, entry)
@@ -1003,6 +1006,41 @@ module Kumi
             
             # Check if all arguments are literals
             expr.args.all? { |arg| arg.is_a?(Syntax::Literal) }
+          end
+
+          def validate_signature_metadata(expr, entry)
+            # Get the node index to access signature metadata  
+            node_index = get_state(:node_index, required: false)
+            return unless node_index
+            
+            node_entry = node_index[expr.object_id]
+            return unless node_entry
+            
+            metadata = node_entry[:metadata]
+            return unless metadata
+            
+            # Validate that dropped axes make sense for reduction functions
+            if entry&.reducer && metadata[:dropped_axes]
+              dropped_axes = metadata[:dropped_axes] 
+              unless dropped_axes.is_a?(Array)
+                raise "Invalid dropped_axes metadata for reducer #{expr.fn_name}: expected Array, got #{dropped_axes.class}"
+              end
+              
+              # For reductions, we should have at least one dropped axis (or empty for scalar reductions)
+              if ENV["DEBUG_LOWER"]
+                puts "  SIGNATURE[#{expr.fn_name}] dropped_axes: #{dropped_axes.inspect}"
+              end
+            end
+            
+            # Validate join_policy is recognized
+            if metadata[:join_policy] && ![:zip, :product].include?(metadata[:join_policy])
+              raise "Invalid join_policy for #{expr.fn_name}: #{metadata[:join_policy].inspect}"
+            end
+            
+            # Warn about join_policy when no join op exists yet (future integration point)  
+            if metadata[:join_policy] && ENV["DEBUG_LOWER"]
+              puts "  SIGNATURE[#{expr.fn_name}] join_policy: #{metadata[:join_policy]} (join op not yet implemented)"
+            end
           end
 
           def constant_fold(expr, entry)

@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
-require_relative "errors"
-require_relative "shape"
-require_relative "dimension"
-
 module Kumi
   module Core
     module Functions
@@ -31,9 +26,9 @@ module Kumi
 
         # Dimensions that appear in any input but not in output (i.e., reduced/dropped).
         def dropped_axes
-          input_dims = @in_shapes.flatten.uniq
-          output_names = @out_shape.map(&:name).to_set
-          input_dims.reject { |dim| output_names.include?(dim.name) }.freeze
+          input_names = @in_shapes.flatten.map(&:name)
+          output_names = @out_shape.map(&:name)
+          (input_names - output_names).uniq.freeze
         end
 
         # True if any axis from inputs is dropped (common in aggregates).
@@ -89,9 +84,7 @@ module Kumi
           # Check for duplicate dimension names within a single argument
           names = dims.map(&:name)
           duplicates = names.group_by { |n| n }.select { |_, v| v.size > 1 }.keys
-          unless duplicates.empty?
-            raise SignatureError, "#{where}: duplicate dimension names #{duplicates.inspect}"
-          end
+          raise SignatureError, "#{where}: duplicate dimension names #{duplicates.inspect}" unless duplicates.empty?
 
           true
         end
@@ -99,9 +92,7 @@ module Kumi
         def validate_nep20_constraints!
           # Broadcastable dimensions should only appear in inputs, not outputs
           @out_shape.each do |dim|
-            if dim.broadcastable?
-              raise SignatureError, "output dimension #{dim} cannot be broadcastable"
-            end
+            raise SignatureError, "output dimension #{dim} cannot be broadcastable" if dim.broadcastable?
           end
 
           # Fixed-size dimensions in outputs must match corresponding input dimensions

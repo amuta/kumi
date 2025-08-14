@@ -6,7 +6,7 @@ module Kumi
   module Core
     module Functions
       # Represents a single dimension in a signature with NEP 20 support.
-      # 
+      #
       # A dimension can be:
       # - Named dimension (symbol): :i, :j, :n
       # - Fixed-size dimension (integer): 2, 3, 10
@@ -26,7 +26,7 @@ module Kumi
           @name = name
           @flexible = flexible
           @broadcastable = broadcastable
-          
+
           validate!
           freeze
         end
@@ -84,17 +84,13 @@ module Kumi
             raise SignatureError, "dimension name must be a symbol or integer, got: #{name.inspect}"
           end
 
-          if name.is_a?(Integer) && name <= 0
-            raise SignatureError, "fixed-size dimension must be positive, got: #{name}"
-          end
+          raise SignatureError, "fixed-size dimension must be positive, got: #{name}" if name.is_a?(Integer) && name <= 0
 
-          if flexible? && broadcastable?
-            raise SignatureError, "dimension cannot be both flexible and broadcastable"
-          end
+          raise SignatureError, "dimension cannot be both flexible and broadcastable" if flexible? && broadcastable?
 
-          if fixed_size? && flexible?
-            raise SignatureError, "fixed-size dimension cannot be flexible"
-          end
+          return unless fixed_size? && flexible?
+
+          raise SignatureError, "fixed-size dimension cannot be flexible"
         end
       end
     end

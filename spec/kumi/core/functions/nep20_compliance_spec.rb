@@ -29,7 +29,7 @@ RSpec.describe "NEP 20 Compliance" do
       sigs = ["(i?),(i?)->(i?)"].map { |s| parser.parse(s) }
       plan = resolver.choose(signatures: sigs, arg_shapes: [[:i], [:i]])
       expect(plan[:result_axes]).to eq([:i])
-      expect(plan[:score]).to eq(20) # High cost for flexible matching
+      expect(plan[:score]).to eq(0) # Exact match - no flexible resolution needed
     end
 
     it "parses matmul signature correctly" do
@@ -80,7 +80,7 @@ RSpec.describe "NEP 20 Compliance" do
       expect(plan[:result_axes]).to eq([])
     end
 
-    it "handles matrix multiplication: (m,n),(n,p)->(m,p)", pending: "Complex multi-dimensional join logic not yet implemented" do
+    it "handles matrix multiplication: (m,n),(n,p)->(m,p)" do
       sigs = ["(m,n),(n,p)->(m,p)"].map { |s| parser.parse(s) }
       plan = resolver.choose(signatures: sigs, arg_shapes: [%i[m n], %i[n p]])
       expect(plan[:result_axes]).to eq(%i[m p])
