@@ -94,7 +94,10 @@ module Kumi
 
       def clear_field_accessor_cache(field_name)
         # Clear cache entries for all accessor plans related to this field
-        @accessor_cache.delete_if { |plan_id, _| plan_id.to_s.start_with?("#{field_name}:") }
+        # Cache keys are now [plan_id, input_key] arrays
+        @accessor_cache.delete_if { |cache_key, _| 
+          cache_key.is_a?(Array) && cache_key[0].to_s.start_with?("#{field_name}:")
+        }
       end
 
       private

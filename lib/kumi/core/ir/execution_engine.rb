@@ -44,7 +44,9 @@ module Kumi
         def self.run(ir_module, ctx, accessors:, registry:)
           # Use persistent accessor cache if available, otherwise create temporary one
           if ctx[:accessor_cache]
-            memoized_accessors = add_persistent_memoization(accessors, ctx[:accessor_cache])
+            # Include input data in cache key to avoid cross-context pollution
+            input_key = ctx[:input]&.hash || ctx["input"]&.hash || 0
+            memoized_accessors = add_persistent_memoization(accessors, ctx[:accessor_cache], input_key)
           else
             memoized_accessors = add_temporary_memoization(accessors)
           end
@@ -54,10 +56,11 @@ module Kumi
 
         private
 
-        def self.add_persistent_memoization(accessors, cache)
+        def self.add_persistent_memoization(accessors, cache, input_key)
           accessors.map do |plan_id, accessor_fn|
             [plan_id, lambda do |input_data|
-              cache[plan_id] ||= accessor_fn.call(input_data)
+              cache_key = [plan_id, input_key]
+              cache[cache_key] ||= accessor_fn.call(input_data)
             end]
           end.to_h
         end
