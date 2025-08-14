@@ -143,12 +143,12 @@ module Kumi
               else
                 raise ArgumentError, "Invalid :enter_via '#{enter_via}' for array child '#{seg}'. Must be :hash or :array"
               end
-            elsif container.nil? || container == :object
-              # Root or object parent - always emit enter_hash
+            elsif container.nil? || container == :object || container == :hash
+              # Root, object, or hash parent - always emit enter_hash
               ops << enter_hash(seg)
               puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
             else
-              raise ArgumentError, "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, or nil (root)"
+              raise ArgumentError, "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, :hash, or nil (root)"
             end
 
             parent_meta = node

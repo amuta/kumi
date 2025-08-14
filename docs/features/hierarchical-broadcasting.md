@@ -67,6 +67,72 @@ value :cell_data, input.cube.layer.row.cell     # 1D values
 - **Ranked polymorphism**: Same operations work across different dimensional arrays
 - **Clean code**: `fn(:size, input.cube.layer.row)` instead of `fn(:size, fn(:flatten_one, input.cube.layer))`
 
+### Dynamic Hash Elements with `element :any`
+
+For arrays containing hash data with flexible or unknown structure, use `element :any` to access dynamic hash content:
+
+```ruby
+input do
+  array :api_responses do
+    element :any, :response_data    # Flexible hash structure
+  end
+  
+  array :user_events do
+    element :any, :event_data       # Dynamic event properties (includes event_type)
+  end
+end
+
+# Access hash fields using fn(:fetch)
+value :response_codes, fn(:fetch, input.api_responses.response_data, "status")
+value :error_messages, fn(:fetch, input.api_responses.response_data, "error")
+value :event_types, fn(:fetch, input.user_events.event_data, "event_type")
+value :user_ids, fn(:fetch, input.user_events.event_data, "user_id")
+value :timestamps, fn(:fetch, input.user_events.event_data, "timestamp")
+
+# Mathematical operations on extracted values
+value :avg_response_time, fn(:mean, fn(:fetch, input.api_responses.response_data, "response_time"))
+value :total_events, fn(:size, input.user_events.event_data)
+
+# Traits and cascades with dynamic data
+trait :has_errors, fn(:any?, fn(:fetch, input.api_responses.response_data, "status") >= 400)
+trait :recent_events, fn(:any?, fn(:fetch, input.user_events.event_data, "timestamp") > 1640995200)
+
+value :system_status do
+  on has_errors, "Error State"
+  on recent_events, "Active"
+  base "Idle"
+end
+```
+
+**When to use `element :any`:**
+- API responses with varying JSON schemas
+- Configuration files with flexible key-value structures
+- Event data where properties vary by event type
+- Legacy systems where data structure may change
+- Prototyping when exact hash structure is unknown
+
+**Comparison with Hash Objects:**
+
+| Approach | Use Case | Flexibility | Type Safety |
+|----------|----------|-------------|-------------|
+| `hash :field do ... end` | Known structure, strong typing | Limited | High |
+| `element :any, :field` | Unknown/flexible structure | High | Low |
+
+```ruby
+# Known structure - use hash objects
+array :orders do
+  hash :customer do
+    string :name
+    string :email
+  end
+end
+
+# Unknown/flexible structure - use element :any
+array :api_calls do
+  element :any, :response    # Could be any JSON structure
+end
+```
+
 ## Business Use Cases
 
 Element access mode is essential for common business scenarios involving simple nested arrays:

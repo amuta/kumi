@@ -139,9 +139,9 @@ module Kumi
               analysis_state = {
                 evaluation_order: evaluation_order,
                 declarations: declarations,
-                # access_plans: access_plans,
+                access_plans: access_plans,
                 join_reduce_plans: join_reduce_plans,
-                # scope_plans: scope_plans,
+                scope_plans: scope_plans,
                 input_metadata: input_metadata,
                 vec_names: @vec_names,
                 vec_meta: @vec_meta,

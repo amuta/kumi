@@ -85,11 +85,11 @@ module Kumi
             end
 
             case parent_meta.container
-            when :object
+            when :object, :hash
               kids.each_value do |child|
                 child.enter_via = :hash
                 child.consume_alias = false
-                child.access_mode = :field
+                child.access_mode ||= :field  # Only set if not explicitly specified
               end
 
             when :array
@@ -139,7 +139,11 @@ module Kumi
                     report_error(errors, "access_mode :element only valid for single scalar/array element (at :#{kname})", location: nil)
                   end
                 else
-                  report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
+                  # Only scalar children under non-array parents are invalid with :element mode
+                  # Arrays under hash/object parents can have :element mode (for arrays of scalars)
+                  if child.container == :scalar
+                    report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
+                  end
                 end
               end
             end
@@ -147,7 +151,8 @@ module Kumi
 
           def kind_from_type(t)
             return :array if t == :array
-            return :field if t == :field
+            return :hash if t == :hash
+            return :object if t == :field
 
             :scalar
           end

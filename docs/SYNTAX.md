@@ -214,12 +214,14 @@ Array broadcasting enables element-wise operations on array fields with automati
 
 ```ruby
 input do
+  # Structured array with defined fields
   array :line_items do
     float   :price
     integer :quantity
     string  :category
   end
   
+  # Nested arrays with hash objects
   array :orders do
     array :items do
       hash :product do
@@ -228,6 +230,15 @@ input do
       end
       integer :quantity
     end
+  end
+  
+  # Dynamic arrays with flexible element types
+  array :api_responses do
+    element :any, :response_data    # For dynamic/unknown hash structures
+  end
+  
+  array :measurements do
+    element :float, :value          # For simple scalar arrays
   end
 end
 ```
@@ -288,6 +299,61 @@ value :line_totals, fn(:multiply, input.items.price, input.items.quantity)
 value :order_total, fn(:sum, line_totals)
 value :avg_line_total, fn(:avg, line_totals)
 trait :has_expensive, fn(:any?, expensive_items)
+```
+
+### Dynamic Hash Elements with `element :any`
+
+For arrays containing hash data with unknown or flexible structure, use `element :any` instead of defining explicit hash objects:
+
+```ruby
+input do
+  array :api_responses do
+    element :any, :response_data
+  end
+  
+  array :user_profiles do
+    element :any, :profile_info
+  end
+end
+
+# Access hash data using fn(:fetch)
+value :response_codes, fn(:fetch, input.api_responses.response_data, "status")
+value :user_names, fn(:fetch, input.user_profiles.profile_info, "name")
+value :user_ages, fn(:fetch, input.user_profiles.profile_info, "age")
+
+# Mathematical operations on extracted values
+value :avg_response_time, fn(:mean, fn(:fetch, input.api_responses.response_data, "response_time"))
+value :total_users, fn(:size, input.user_profiles.profile_info)
+
+# Traits using dynamic data
+trait :success_responses, fn(:any?, fn(:fetch, input.api_responses.response_data, "status") == 200)
+trait :adult_users, fn(:any?, fn(:fetch, input.user_profiles.profile_info, "age") >= 18)
+```
+
+**Use Cases for `element :any`:**
+- API responses with varying schemas
+- Configuration data with flexible structure  
+- Dynamic hash structures (unknown keys at schema definition time)
+- Legacy data where hash structure may vary
+- When you need maximum flexibility without type constraints
+
+**Comparison: `element :any` vs Hash Objects**
+
+```ruby
+# element :any approach (flexible, dynamic)
+array :users do
+  element :any, :data
+end
+value :names, fn(:fetch, input.users.data, "name")
+
+# hash object approach (typed, structured)  
+array :users do
+  hash :data do
+    string :name
+    integer :age
+  end
+end
+value :names, input.users.data.name
 ```
 
 ### Broadcasting Type Inference

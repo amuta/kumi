@@ -1,3 +1,8 @@
+## [Unreleased]
+### Added
+- Hash objects input declarations with `hash :field do ... end` syntax
+- Complete hash object integration with arrays, nesting, and broadcasting
+
 ## [0.0.11] – 2025-08-13
 ### Added
 - Intermediate Representation (IR) and slot-based VM interpreter.
