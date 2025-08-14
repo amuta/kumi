@@ -121,11 +121,51 @@ The resolver handles NEP 20 semantics including:
 - Fixed-size validation
 - Join policy enforcement
 
-## Limitations
+## Constraint Solver
 
-Current implementation pending:
-- Complex multi-dimensional join logic for operations like `(m,n),(n,p)->(m,p)` with nil policy
-- Full flexible dimension resolution algorithm
-- Advanced broadcasting patterns
+Kumi implements a **dimension constraint solver** that validates cross-argument dimension consistency for operations like matrix multiplication:
+
+```ruby
+signature = "(m,n),(n,p)->(m,p)"
+arg_shapes = [[:m, :n], [:n, :p]]
+
+# The solver validates that 'n' dimensions are consistent across arguments
+plan = resolver.choose(signatures: [sig], arg_shapes: arg_shapes)
+# Returns: { env: { m: :m, n: :n, p: :p }, result_axes: [:m, :p] }
+```
+
+The constraint solver:
+- Links repeated dimension names across arguments
+- Validates dimension consistency (same `n` in both positions)
+- Returns dimension environment bindings
+- Enables complex operations without explicit join policies
+
+## Integration with Analyzer
+
+Function signatures integrate with Kumi's analyzer pipeline through:
+
+### FunctionSignaturePass
+Resolves NEP-20 signatures for all function calls and attaches metadata:
+- `:result_axes` - Output dimension names
+- `:join_policy` - Cross-dimensional operation policy  
+- `:dropped_axes` - Dimensions eliminated by reductions
+- `:effective_signature` - Normalized signature for lowering
+- `:dim_env` - Dimension variable bindings
+- `:shape_contract` - Simplified contract for lowering
+
+### Node Index Architecture
+The analyzer creates a node index mapping `object_id → metadata` that passes can use to:
+- Attach signature resolution results
+- Share metadata across analysis passes
+- Validate consistency in lowering
+
+## Feature Flags
+
+Control NEP-20 extensions with environment variables:
+
+```bash
+KUMI_ENABLE_FLEX=1    # Enable flexible dimension matching (?)
+KUMI_ENABLE_BCAST1=1  # Enable broadcastable dimension matching (|1)
+```
 
 For more details see [NEP 20 specification](https://numpy.org/neps/nep-0020-expansion-of-generalized-ufunc-signatures.html).
