@@ -1,3 +1,9 @@
+## [Unreleased]
+### Added
+- Documentation for `element :any` syntax as alternative to hash objects for dynamic data
+- Comprehensive spec coverage for `element :any` hash access patterns
+- Working examples in SYNTAX.md, hierarchical-broadcasting.md, and input-declaration-system.md
+
 ## [0.0.11] – 2025-08-13
 ### Added
 - Intermediate Representation (IR) and slot-based VM interpreter.

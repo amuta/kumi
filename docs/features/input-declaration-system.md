@@ -14,10 +14,26 @@ schema do
     array   :tags, elem: { type: :string }
     hash    :metadata, key: { type: :string }, val: { type: :any }
     any     :flexible
+    
+    # Structured arrays with defined fields
+    array :orders do
+      hash :customer do
+        string :name
+        string :email
+      end
+      float :total
+    end
+    
+    # Dynamic arrays with flexible elements
+    array :api_responses do
+      element :any, :response_data    # For unknown/flexible hash structures
+    end
   end
   
   trait :adult, (input.age >= 18)
   value :status, input.verified ? "verified" : "pending"
+  value :customer_emails, input.orders.customer.email                           # Structured access
+  value :response_codes, fn(:fetch, input.api_responses.response_data, "status") # Dynamic access
 end
 ```
 
