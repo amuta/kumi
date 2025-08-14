@@ -436,8 +436,8 @@ runner[:after_tax]     # => 196,844.80 (cached)
 - Sequential procedural workflows  
 - High-frequency processing
 
-## JavaScript Transpiler
-
+## JavaScript Transpiler (V 0.0.10)
+Note: On the current 0.0.11 this is disabled but will be back in later versions. reason: IR/Interpreter update.
 Transpiles compiled schemas to standalone JavaScript code. See [docs/features/javascript-transpiler.md](docs/features/javascript-transpiler.md) for details.
 
 ```ruby
@@ -465,7 +465,7 @@ See [docs/features/performance.md](docs/features/performance.md) for detailed be
 
 ## What Kumi does not guarantee 
 
-Lambdas (e.g. -> inside the schema), external IO, floating-point vs bignum, JS transpiler edge cases, time-zone math differences, etc.
+Lambdas (e.g. -> inside the schema), external IO, floating-point vs bignum, time-zone math differences, etc.
 
 ## Learn More
 
