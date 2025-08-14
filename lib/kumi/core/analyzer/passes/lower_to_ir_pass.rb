@@ -80,6 +80,7 @@ module Kumi
           def run(errors)
             @vec_names = Set.new
             @vec_meta = {}
+            @global_input_cache = {} # Global cache: plan_id -> declaration_name_that_loads_it
 
             evaluation_order = get_state(:evaluation_order, required: true)
             declarations = get_state(:declarations, required: true)
@@ -379,13 +380,27 @@ module Kumi
               when Syntax::InputReference
                 plan_id = pick_plan_id_for_input([expr.name], access_plans,
                                                  scope_plan: scope_plan, need_indices: need_indices)
-                plans    = access_plans.fetch(expr.name.to_s, [])
-                selected = plans.find { |p| p.accessor_key == plan_id }
-                scope    = selected ? selected.scope : []
-                is_scalar = selected && %i[read materialize].include?(selected.mode)
-                has_idx   = selected && selected.mode == :each_indexed
-                ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
-                ops.size - 1
+                
+                # Check if we've already loaded this input globally
+                if @global_input_cache.key?(plan_id)
+                  # Reference the existing load
+                  ops << Kumi::Core::IR::Ops.Ref(@global_input_cache[plan_id])
+                  ops.size - 1
+                else
+                  # First time loading this input - create the load and cache it
+                  load_decl_name = :"__input_#{plan_id.gsub(/[^a-zA-Z0-9_]/, '_')}"
+                  @global_input_cache[plan_id] = load_decl_name
+                  
+                  plans    = access_plans.fetch(expr.name.to_s, [])
+                  selected = plans.find { |p| p.accessor_key == plan_id }
+                  scope    = selected ? selected.scope : []
+                  is_scalar = selected && %i[read materialize].include?(selected.mode)
+                  has_idx   = selected && selected.mode == :each_indexed
+                  ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
+                  load_slot = ops.size - 1
+                  ops << Kumi::Core::IR::Ops.Store(load_decl_name, load_slot)
+                  load_slot
+                end
 
               when Syntax::InputElementReference
                 plan_id = pick_plan_id_for_input(expr.path, access_plans,
