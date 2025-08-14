@@ -1,8 +1,9 @@
 ## [Unreleased]
 ### Added
-- Documentation for `element :any` syntax as alternative to hash objects for dynamic data
-- Comprehensive spec coverage for `element :any` hash access patterns
-- Working examples in SYNTAX.md, hierarchical-broadcasting.md, and input-declaration-system.md
+- Hash objects input declarations with `hash :field do ... end` syntax
+- Complete hash object integration with arrays, nesting, and broadcasting
+- `element :any` syntax for dynamic/flexible hash structures in arrays
+- Comprehensive documentation and spec coverage for hash object features
 
 ## [0.0.11] – 2025-08-13
 ### Added
