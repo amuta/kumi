@@ -1,0 +1,352 @@
+# ==================== CORE - SCALAR (elementwise) ====================
+
+- name: core.add
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Numeric addition with broadcasting
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  algebra: {associative: true, commutative: true, identity: 0}
+  vectorization: {mask_aware: true}
+  kernels: 
+    - backend: ruby
+      impl: kumi_add
+      priority: 10
+
+- name: core.sub
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_sub
+      priority: 10
+
+- name: core.mul
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  algebra: {associative: true, commutative: true, identity: 1, annihilator: 0}
+  kernels:
+    - backend: ruby
+      impl: kumi_mul
+      priority: 10
+
+- name: core.div
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote_float(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_div
+      priority: 10
+
+- name: core.eq
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Any, U: Any}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  algebra: {idempotent: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_eq
+      priority: 10
+
+- name: core.gt
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_gt
+      priority: 10
+
+- name: core.gte
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_gte
+      priority: 10
+
+- name: core.and
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {B1: Bool, B2: Bool}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  algebra: {associative: true, commutative: true, identity: true, annihilator: false}
+  vectorization: {short_circuit: left_to_right, mask_aware: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_and
+      priority: 10
+
+- name: core.or
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {B1: Bool, B2: Bool}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  algebra: {associative: true, commutative: true, identity: false, annihilator: true}
+  vectorization: {short_circuit: left_to_right, mask_aware: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_or
+      priority: 10
+
+- name: core.not
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["()->()", "(i)->(i)"]
+  type_vars: {B: Bool}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_not
+      priority: 10
+
+# ==================== AGGREGATES (reduce last axis in signature) ==============
+
+- name: agg.sum
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Numeric}
+  dtypes: {result: "promote(T)"}
+  null_policy: skip
+  options: {min_count: 0}
+  algebra: {associative: true, commutative: true, identity: 0}
+  kernels:
+    - backend: ruby
+      impl: kumi_sum
+      priority: 10
+
+- name: agg.min
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Orderable}
+  dtypes: {result: "T"}
+  null_policy: skip
+  kernels:
+    - backend: ruby
+      impl: kumi_min
+      priority: 10
+
+- name: agg.max
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Orderable}
+  dtypes: {result: "T"}
+  null_policy: skip
+  kernels:
+    - backend: ruby
+      impl: kumi_max
+      priority: 10
+
+- name: agg.mean
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Numeric}
+  dtypes: {result: "float"}
+  null_policy: skip
+  options: {min_count: 0}
+  kernels:
+    - backend: ruby
+      impl: kumi_mean
+      priority: 10
+
+# ==================== STRUCTURE / SHAPE / JOIN ================================
+
+- name: struct.join
+  domain: struct
+  opset: 1
+  class: structure
+  summary: Align inputs by axes using zip or product
+  signature: ["(i),(i)->(i)@zip", "(i),(j)->(i,j)@product"]
+  null_policy: error_on_missing
+  kernels:
+    - backend: ruby
+      impl: join_zip
+      when: {policy: zip}
+      priority: 10
+    - backend: ruby
+      impl: join_product
+      when: {policy: product}
+      priority: 10
+
+- name: struct.align_to
+  domain: struct
+  opset: 1
+  class: structure
+  signature: ["(i)->(i)", "(i,j)->(i,j)"]
+  traits: {reorders: false}
+  null_policy: error_on_missing
+  kernels:
+    - backend: ruby
+      impl: align_to
+      priority: 10
+
+- name: struct.lift
+  domain: struct
+  opset: 1
+  class: structure
+  signature: ["(i)->(i)", "(i,j)->(i,j)"]
+  summary: Group flat rows back to nested collections based on indices
+  kernels:
+    - backend: ruby
+      impl: lift
+      priority: 10
+
+- name: struct.flatten
+  domain: struct
+  opset: 1
+  class: structure
+  signature: ["(i,j)->(k)"]
+  shape_fn: "flatten_axes(i,j)->k"
+  kernels:
+    - backend: ruby
+      impl: flatten
+      priority: 10
+
+- name: struct.take
+  domain: struct
+  opset: 1
+  class: structure
+  signature: ["(i),(i)->(i)"]  # take(values, indices) elemwise
+  type_vars: {T: Any}
+  dtypes: {result: "T"}
+  null_policy: error
+  kernels:
+    - backend: ruby
+      impl: take
+      priority: 10
+
+- name: struct.size
+  domain: struct
+  opset: 1
+  class: vector
+  signature: ["(i)->()", "(i,j)->()"]
+  dtypes: {result: "int"}
+  null_policy: error
+  kernels:
+    - backend: ruby
+      impl: size
+      priority: 10
+
+# ==================== MASK / CONDITIONAL ======================================
+
+- name: mask.where
+  domain: mask
+  opset: 1
+  class: scalar
+  summary: Ternary select with broadcasting of then/else
+  signature:
+    - "(i),(i),(i)->(i)"
+    - "(i),(),()->(i)"
+    - "(),(i),()->(i)"
+    - "(),(),()->()"
+  type_vars: {B: Bool, T: Any, U: Any}
+  dtypes: {result: "unify(T,U)"}
+  null_policy: propagate
+  vectorization: {mask_aware: true, short_circuit: left_to_right}
+  kernels:
+    - backend: ruby
+      impl: where
+      priority: 10
+
+# ==================== STRING (minimal) ========================================
+
+- name: string.concat
+  domain: string
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {S1: String, S2: String}
+  dtypes: {result: "string"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: str_concat
+      priority: 10
+
+- name: string.length
+  domain: string
+  opset: 1
+  class: vector
+  signature: ["(i)->(i)", "()->()"]
+  type_vars: {S: String}
+  dtypes: {result: "int"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: str_length
+      priority: 10
+
+# ==================== DATETIME (minimal) ======================================
+
+- name: datetime.add_days
+  domain: datetime
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {D: DateLike, N: IntLike}
+  dtypes: {result: "datetime"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: dt_add_days
+      priority: 10
+
+- name: datetime.diff_days
+  domain: datetime
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {D1: DateLike, D2: DateLike}
+  dtypes: {result: "int"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: dt_diff_days
+      priority: 10
