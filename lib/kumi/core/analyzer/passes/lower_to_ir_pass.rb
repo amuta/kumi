@@ -80,7 +80,6 @@ module Kumi
           def run(errors)
             @vec_names = Set.new
             @vec_meta = {}
-            @global_input_cache = {} # Global cache: plan_id -> declaration_name_that_loads_it
 
             evaluation_order = get_state(:evaluation_order, required: true)
             declarations = get_state(:declarations, required: true)
@@ -381,26 +380,13 @@ module Kumi
                 plan_id = pick_plan_id_for_input([expr.name], access_plans,
                                                  scope_plan: scope_plan, need_indices: need_indices)
                 
-                # Check if we've already loaded this input globally
-                if @global_input_cache.key?(plan_id)
-                  # Reference the existing load
-                  ops << Kumi::Core::IR::Ops.Ref(@global_input_cache[plan_id])
-                  ops.size - 1
-                else
-                  # First time loading this input - create the load and cache it
-                  load_decl_name = :"__input_#{plan_id.gsub(/[^a-zA-Z0-9_]/, '_')}"
-                  @global_input_cache[plan_id] = load_decl_name
-                  
-                  plans    = access_plans.fetch(expr.name.to_s, [])
-                  selected = plans.find { |p| p.accessor_key == plan_id }
-                  scope    = selected ? selected.scope : []
-                  is_scalar = selected && %i[read materialize].include?(selected.mode)
-                  has_idx   = selected && selected.mode == :each_indexed
-                  ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
-                  load_slot = ops.size - 1
-                  ops << Kumi::Core::IR::Ops.Store(load_decl_name, load_slot)
-                  load_slot
-                end
+                plans    = access_plans.fetch(expr.name.to_s, [])
+                selected = plans.find { |p| p.accessor_key == plan_id }
+                scope    = selected ? selected.scope : []
+                is_scalar = selected && %i[read materialize].include?(selected.mode)
+                has_idx   = selected && selected.mode == :each_indexed
+                ops << Kumi::Core::IR::Ops.LoadInput(plan_id, scope: scope, is_scalar: is_scalar, has_idx: has_idx)
+                ops.size - 1
 
               when Syntax::InputElementReference
                 plan_id = pick_plan_id_for_input(expr.path, access_plans,
@@ -444,6 +430,13 @@ module Kumi
 
               when Syntax::CallExpression
                 entry = Kumi::Registry.entry(expr.fn_name)
+
+                # Constant folding optimization: evaluate expressions with all literal arguments
+                if can_constant_fold?(expr, entry)
+                  folded_value = constant_fold(expr, entry)
+                  ops << Kumi::Core::IR::Ops.Const(folded_value)
+                  return ops.size - 1
+                end
 
                 if ENV["DEBUG_LOWER"] && has_nested_reducer?(expr)
                   puts "  NESTED_REDUCER_DETECTED in #{expr.fn_name} with req_scope=#{required_scope.inspect}"
@@ -1001,6 +994,31 @@ module Kumi
               end
             end
           end
+
+          # Constant folding optimization helpers
+          def can_constant_fold?(expr, entry)
+            return false unless entry&.fn # Skip if function not found
+            return false if entry.reducer # Skip reducer functions for now
+            return false if expr.args.empty? # Need at least one argument
+            
+            # Check if all arguments are literals
+            expr.args.all? { |arg| arg.is_a?(Syntax::Literal) }
+          end
+
+          def constant_fold(expr, entry)
+            literal_values = expr.args.map(&:value)
+            
+            begin
+              # Call the function with literal values at compile time
+              entry.fn.call(*literal_values)
+            rescue StandardError => e
+              # If constant folding fails, fall back to runtime evaluation
+              # This shouldn't happen with pure functions, but be defensive
+              puts "Constant folding failed for #{expr.fn_name}: #{e.message}" if ENV["DEBUG_LOWER"]
+              raise "Cannot constant fold #{expr.fn_name}: #{e.message}"
+            end
+          end
+
         end
       end
     end

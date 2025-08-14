@@ -62,6 +62,7 @@ module Kumi
         @reg = registry
         @input_metadata = input_metadata.freeze
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
+        @accessor_cache = {} # Persistent accessor cache across evaluations
       end
 
       def decl?(name) = @decl.key?(name)
@@ -85,10 +86,15 @@ module Kumi
       def eval_decl(name, input, mode: :ruby)
         raise Kumi::Core::Errors::RuntimeError, "unknown decl #{name}" unless decl?(name)
 
-        out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name },
+        out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name, accessor_cache: @accessor_cache },
                                               accessors: @acc, registry: @reg).fetch(name)
 
         mode == :ruby ? unwrap(@decl[name], out) : out
+      end
+
+      def clear_field_accessor_cache(field_name)
+        # Clear cache entries for all accessor plans related to this field
+        @accessor_cache.delete_if { |plan_id, _| plan_id.to_s.start_with?("#{field_name}:") }
       end
 
       private
@@ -153,9 +159,12 @@ module Kumi
 
           # Update the input data
           @input = deep_merge(@input, { field => value })
+          
+          # Clear accessor cache for this specific field
+          @program.clear_field_accessor_cache(field)
         end
 
-        # Clear cache after all updates
+        # Clear declaration evaluation cache after all updates
         @cache.clear
         self
       end

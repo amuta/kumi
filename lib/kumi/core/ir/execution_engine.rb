@@ -42,7 +42,33 @@ module Kumi
       # - DEBUG_GROUP_ROWS=1 prints grouping decisions during Lift.
       module ExecutionEngine
         def self.run(ir_module, ctx, accessors:, registry:)
-          Interpreter.run(ir_module, ctx, accessors: accessors, registry: registry)
+          # Use persistent accessor cache if available, otherwise create temporary one
+          if ctx[:accessor_cache]
+            memoized_accessors = add_persistent_memoization(accessors, ctx[:accessor_cache])
+          else
+            memoized_accessors = add_temporary_memoization(accessors)
+          end
+          
+          Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: registry)
+        end
+
+        private
+
+        def self.add_persistent_memoization(accessors, cache)
+          accessors.map do |plan_id, accessor_fn|
+            [plan_id, lambda do |input_data|
+              cache[plan_id] ||= accessor_fn.call(input_data)
+            end]
+          end.to_h
+        end
+
+        def self.add_temporary_memoization(accessors)
+          cache = {}
+          accessors.map do |plan_id, accessor_fn|
+            [plan_id, lambda do |input_data|
+              cache[plan_id] ||= accessor_fn.call(input_data)
+            end]
+          end.to_h
         end
       end
     end
