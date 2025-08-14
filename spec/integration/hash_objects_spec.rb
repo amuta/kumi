@@ -273,6 +273,199 @@ RSpec.describe "Hash Objects Integration" do
       expect(runner[:average_order_value]).to eq(45.5)  # (43.5 + 47.5) / 2
     end
 
+    it "supports hash objects containing arrays" do
+      schema = Module.new do
+        extend Kumi::Schema
+        
+        schema do
+          input do
+            hash :config do
+              string :app_name
+              array :feature_flags do
+                element :string, :flag_name
+              end
+              array :servers do
+                string :hostname
+                integer :port
+              end
+            end
+          end
+          
+          value :app_name, input.config.app_name
+          value :all_flags, input.config.feature_flags
+          value :server_hostnames, input.config.servers.hostname
+          value :server_count, fn(:size, input.config.servers)
+          value :total_ports, fn(:sum, input.config.servers.port)
+        end
+      end
+      
+      test_data = {
+        config: {
+          app_name: "MyApp",
+          feature_flags: ["dark_mode", "beta_features", "analytics"],
+          servers: [
+            { hostname: "web-01", port: 8080 },
+            { hostname: "web-02", port: 8081 },
+            { hostname: "api-01", port: 3000 }
+          ]
+        }
+      }
+      
+      runner = schema.from(test_data)
+      
+      expect(runner[:app_name]).to eq("MyApp")
+      expect(runner[:all_flags]).to eq(["dark_mode", "beta_features", "analytics"])
+      expect(runner[:server_hostnames]).to eq(["web-01", "web-02", "api-01"])
+      expect(runner[:server_count]).to eq(3)
+      expect(runner[:total_ports]).to eq(19161)
+    end
+
+    it "supports arrays containing hash objects" do
+      schema = Module.new do
+        extend Kumi::Schema
+        
+        schema do
+          input do
+            array :users do
+              hash :profile do
+                string :name
+                integer :age
+              end
+              hash :settings do
+                boolean :notifications_enabled
+                string :theme
+              end
+              string :email
+            end
+          end
+          
+          value :user_names, input.users.profile.name
+          value :user_ages, input.users.profile.age
+          value :user_themes, input.users.settings.theme
+          value :notification_enabled_users, input.users.settings.notifications_enabled
+          value :all_emails, input.users.email
+          value :average_age, fn(:mean, input.users.profile.age)
+        end
+      end
+      
+      test_data = {
+        users: [
+          {
+            profile: { name: "Alice", age: 28 },
+            settings: { notifications_enabled: true, theme: "dark" },
+            email: "alice@example.com"
+          },
+          {
+            profile: { name: "Bob", age: 35 },
+            settings: { notifications_enabled: false, theme: "light" },
+            email: "bob@example.com"
+          },
+          {
+            profile: { name: "Charlie", age: 22 },
+            settings: { notifications_enabled: true, theme: "dark" },
+            email: "charlie@example.com"
+          }
+        ]
+      }
+      
+      runner = schema.from(test_data)
+      
+      expect(runner[:user_names]).to eq(["Alice", "Bob", "Charlie"])
+      expect(runner[:user_ages]).to eq([28, 35, 22])
+      expect(runner[:user_themes]).to eq(["dark", "light", "dark"])
+      expect(runner[:notification_enabled_users]).to eq([true, false, true])
+      expect(runner[:all_emails]).to eq(["alice@example.com", "bob@example.com", "charlie@example.com"])
+      expect(runner[:average_age]).to eq(28.333333333333332)
+    end
+
+    it "supports deeply nested mixed hash-array combinations" do
+      schema = Module.new do
+        extend Kumi::Schema
+        
+        schema do
+          input do
+            hash :company do
+              string :name
+              array :departments do
+                string :dept_name
+                hash :manager do
+                  string :name
+                  integer :employee_id
+                end
+                array :employees do
+                  string :name
+                  hash :contact do
+                    string :email
+                    string :phone
+                  end
+                  array :skills do
+                    element :string, :skill_name
+                  end
+                end
+              end
+            end
+          end
+          
+          value :company_name, input.company.name
+          value :dept_names, input.company.departments.dept_name
+          value :manager_names, input.company.departments.manager.name
+          value :all_employee_names, input.company.departments.employees.name
+          value :all_employee_emails, input.company.departments.employees.contact.email
+          value :all_skills, input.company.departments.employees.skills
+          value :employee_counts, fn(:size, input.company.departments.employees)
+          value :total_employees, fn(:sum, ref(:employee_counts))
+          value :manager_count, fn(:size, input.company.departments.manager.name)
+        end
+      end
+      
+      test_data = {
+        company: {
+          name: "TechCorp",
+          departments: [
+            {
+              dept_name: "Engineering",
+              manager: { name: "Sarah Johnson", employee_id: 1001 },
+              employees: [
+                {
+                  name: "Alice Smith",
+                  contact: { email: "alice@techcorp.com", phone: "555-0101" },
+                  skills: ["Ruby", "JavaScript", "SQL"]
+                },
+                {
+                  name: "Bob Wilson",
+                  contact: { email: "bob@techcorp.com", phone: "555-0102" },
+                  skills: ["Python", "Docker", "AWS"]
+                }
+              ]
+            },
+            {
+              dept_name: "Marketing",
+              manager: { name: "Mike Chen", employee_id: 1002 },
+              employees: [
+                {
+                  name: "Carol Davis",
+                  contact: { email: "carol@techcorp.com", phone: "555-0201" },
+                  skills: ["SEO", "Analytics", "Content"]
+                }
+              ]
+            }
+          ]
+        }
+      }
+      
+      runner = schema.from(test_data)
+      
+      expect(runner[:company_name]).to eq("TechCorp")
+      expect(runner[:dept_names]).to eq(["Engineering", "Marketing"])
+      expect(runner[:manager_names]).to eq(["Sarah Johnson", "Mike Chen"])
+      expect(runner[:all_employee_names]).to eq([["Alice Smith", "Bob Wilson"], ["Carol Davis"]])
+      expect(runner[:all_employee_emails]).to eq([["alice@techcorp.com", "bob@techcorp.com"], ["carol@techcorp.com"]])
+      expect(runner[:all_skills]).to eq([[["Ruby", "JavaScript", "SQL"], ["Python", "Docker", "AWS"]], [["SEO", "Analytics", "Content"]]])
+      expect(runner[:employee_counts]).to eq([2, 1])
+      expect(runner[:total_employees]).to eq(3)
+      expect(runner[:manager_count]).to eq(2)
+    end
+
     it "works with mixed array and hash objects" do
       schema = Module.new do
         extend Kumi::Schema

@@ -4,6 +4,7 @@ require "spec_helper"
 
 RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
   include ASTFactory
+
   State = Struct.new(:data) do
     def with(k, v)
       self.data ||= {}
@@ -169,7 +170,6 @@ RSpec.describe Kumi::Core::Analyzer::Passes::InputCollector do
                           ])
     state = State.new
     described_class.new(schema, state).run(errors)
-
     expect(errors).not_to be_empty
   end
 end
