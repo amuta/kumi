@@ -44,10 +44,50 @@ module Kumi::Core::Functions
     def self.parse_signature(s)
       lhs, rhs = s.split("->").map(&:strip)
       out_axes, policy = rhs.split("@").map(&:strip)
-      in_shapes = lhs.split(",").map { |t| parse_axes(t) }
+      
+      # Parse input shapes by splitting on commas between parentheses
+      in_shapes = parse_input_shapes(lhs)
+      
       Signature.new(in_shapes: in_shapes,
                     out_shape: parse_axes(out_axes),
                     join_policy: policy&.to_sym)
+    end
+
+    # Parse "(i),(j)" or "(i,j),(k,l)" properly
+    def self.parse_input_shapes(lhs)
+      # Find all parenthesized groups
+      shapes = []
+      current_pos = 0
+      
+      while current_pos < lhs.length
+        # Find the next opening parenthesis
+        start_paren = lhs.index('(', current_pos)
+        break unless start_paren
+        
+        # Find the matching closing parenthesis
+        paren_count = 0
+        end_paren = start_paren
+        
+        (start_paren..lhs.length-1).each do |i|
+          case lhs[i]
+          when '('
+            paren_count += 1
+          when ')'
+            paren_count -= 1
+            if paren_count == 0
+              end_paren = i
+              break
+            end
+          end
+        end
+        
+        # Extract the shape
+        shape_str = lhs[start_paren..end_paren]
+        shapes << parse_axes(shape_str)
+        current_pos = end_paren + 1
+      end
+      
+      shapes
     end
 
     def self.parse_axes(txt)
@@ -55,7 +95,14 @@ module Kumi::Core::Functions
       return [] if txt == "()" || txt.empty?
 
       inner = txt.sub("(", "").sub(")", "")
-      inner.empty? ? [] : inner.split(",").map { |a| a.strip.to_sym }
+      if inner.empty?
+        []
+      else
+        inner.split(",").map do |a|
+          dim_name = a.strip.to_sym
+          Dimension.new(dim_name)  # Convert to Dimension objects
+        end
+      end
     end
 
     def self.validate!(fns)

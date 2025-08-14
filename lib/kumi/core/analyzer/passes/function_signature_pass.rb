@@ -57,6 +57,22 @@ module Kumi
           end
 
           def get_function_signatures(node)
+            # Use RegistryV2 if enabled, otherwise fall back to legacy registry
+            if registry_v2_enabled?
+              registry_v2_signatures(node)
+            else
+              legacy_registry_signatures(node)
+            end
+          end
+
+          def registry_v2_signatures(node)
+            registry_v2.get_function_signatures(node.fn_name)
+          rescue => e
+            # If RegistryV2 fails, fall back to legacy
+            legacy_registry_signatures(node)
+          end
+
+          def legacy_registry_signatures(node)
             # Try to get signatures from the current registry
             # For now, we'll create basic signatures from the current registry format
 
@@ -159,6 +175,14 @@ module Kumi
               out:  plan[:effective_signature][:out_shape],
               join: plan[:effective_signature][:join_policy]
             }
+          end
+
+          def registry_v2_enabled?
+            ENV["KUMI_FN_REGISTRY_V2"] == "1"
+          end
+
+          def registry_v2
+            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
           end
 
           def nep20_flex_enabled?

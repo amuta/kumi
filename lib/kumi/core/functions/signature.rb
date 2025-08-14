@@ -55,6 +55,12 @@ module Kumi
           "#{lhs}->#{rhs}"
         end
 
+        # Convert back to string representation for NEP-20 parser compatibility
+        def to_signature_string
+          sig_str = format_signature
+          join_policy ? "#{sig_str}@#{join_policy}" : sig_str
+        end
+
         private
 
         def validate!
