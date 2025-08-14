@@ -5,7 +5,7 @@ module Kumi
     module Types
       # Validates type definitions and structures
       class Validator
-        VALID_TYPES = %i[string integer float boolean any symbol regexp time date datetime array].freeze
+        VALID_TYPES = %i[string integer float boolean any symbol regexp time date datetime array hash].freeze
 
         def self.valid_type?(type)
           return true if VALID_TYPES.include?(type)

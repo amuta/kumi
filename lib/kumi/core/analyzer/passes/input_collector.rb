@@ -85,7 +85,7 @@ module Kumi
             end
 
             case parent_meta.container
-            when :object
+            when :object, :hash
               kids.each_value do |child|
                 child.enter_via = :hash
                 child.consume_alias = false
@@ -147,7 +147,8 @@ module Kumi
 
           def kind_from_type(t)
             return :array if t == :array
-            return :field if t == :field
+            return :hash if t == :hash
+            return :object if t == :field
 
             :scalar
           end

@@ -39,7 +39,7 @@ module Kumi
         end
 
         private_class_method def self.should_validate_type?(meta)
-          meta[:type] && meta[:type] != :any
+          meta[:type] && meta[:type] != :any && !(meta[:children] && !meta[:children].empty?)
         end
 
         private_class_method def self.should_validate_domain?(meta)

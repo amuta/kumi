@@ -33,10 +33,14 @@ module Kumi
           end
         end
 
-        def hash(name_or_key_type, val_type = nil, **kwargs)
-          return Kumi::Core::Types.hash(name_or_key_type, val_type) unless val_type.nil?
-
-          create_hash_field(name_or_key_type, kwargs)
+        def hash(name_or_key_type, val_type = nil, **kwargs, &block)
+          if block_given?
+            create_hash_field_with_block(name_or_key_type, kwargs, &block)
+          elsif val_type.nil?
+            create_hash_field(name_or_key_type, kwargs)
+          else
+            Kumi::Core::Types.hash(name_or_key_type, val_type)
+          end
         end
 
         def method_missing(method_name, *_args)
@@ -173,6 +177,23 @@ module Kumi
           # Similar to create_array_field_with_block but for objects
           children, = collect_array_children(&block)
           @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :field, children, nil, loc: @context.current_location)
+        end
+
+        def create_hash_field_with_block(field_name, options, &block)
+          domain = options[:domain]
+
+          # Collect children by creating a nested context (reuse array logic)
+          children, = collect_array_children(&block)
+
+          # Create the InputDeclaration with children and :field access_mode for hash objects
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(
+            field_name,
+            domain,
+            :hash,
+            children,
+            :field,
+            loc: @context.current_location
+          )
         end
       end
     end
