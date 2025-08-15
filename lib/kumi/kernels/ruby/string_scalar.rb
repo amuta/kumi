@@ -6,13 +6,15 @@ module Kumi
       module StringScalar
         module_function
 
-        def str_concat(a, b)
-          "#{a}#{b}"
+        # Supports 2 or 3 args (and future N), with null_policy: propagate
+        def str_concat(*xs)
+          return nil if xs.any?(&:nil?)
+          xs.join
         end
 
-        # policy: zip is enforced by planner/VM; body identical is fine
-        def str_concat_zip(a, b)
-          str_concat(a, b)
+        # zip policy is enforced by analyzer/VM; body identical is fine
+        def str_concat_zip(*xs)
+          str_concat(*xs)
         end
 
         def str_length(s)

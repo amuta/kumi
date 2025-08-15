@@ -94,7 +94,7 @@ RSpec.describe Kumi::SchemaMetadata do
       expect(metadata.traits[:large_amount]).to include(
         type: :boolean,
         dependencies: [:amount],
-        condition: ">(input.amount, 100.0)"
+        condition: "gt(input.amount, 100.0)"
       )
     end
 
@@ -102,7 +102,7 @@ RSpec.describe Kumi::SchemaMetadata do
       expect(metadata.traits[:credit_type]).to include(
         type: :boolean,
         dependencies: [:type],
-        condition: "==(input.type, \"credit\")"
+        condition: "eq(input.type, \"credit\")"
       )
     end
   end

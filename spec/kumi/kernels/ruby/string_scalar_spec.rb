@@ -28,10 +28,20 @@ RSpec.describe Kumi::Kernels::Ruby::StringScalar do
       expect(described_class.str_concat("pi: ", 3.14)).to eq("pi: 3.14")
     end
 
-    it "handles nil values" do
-      expect(described_class.str_concat("hello", nil)).to eq("hello")
-      expect(described_class.str_concat(nil, "world")).to eq("world")
-      expect(described_class.str_concat(nil, nil)).to eq("")
+    it "propagates nil values (null_policy: propagate)" do
+      expect(described_class.str_concat("hello", nil)).to be_nil
+      expect(described_class.str_concat(nil, "world")).to be_nil
+      expect(described_class.str_concat(nil, nil)).to be_nil
+    end
+
+    it "supports 3-argument concatenation" do
+      expect(described_class.str_concat("a", "b", "c")).to eq("abc")
+      expect(described_class.str_concat("hello", " ", "world")).to eq("hello world")
+    end
+
+    it "propagates nil in 3-argument form" do
+      expect(described_class.str_concat("a", nil, "c")).to be_nil
+      expect(described_class.str_concat("a", "b", nil)).to be_nil
     end
 
     it "concatenates unicode strings" do
@@ -93,6 +103,15 @@ RSpec.describe Kumi::Kernels::Ruby::StringScalar do
     it "concatenates strings with zip policy (same as regular concat)" do
       expect(described_class.str_concat_zip("hello", "world")).to eq("helloworld")
       expect(described_class.str_concat_zip("a", "b")).to eq("ab")
+    end
+
+    it "supports 3-argument concatenation with zip policy" do
+      expect(described_class.str_concat_zip("a", "b", "c")).to eq("abc")
+    end
+
+    it "propagates nil with zip policy" do
+      expect(described_class.str_concat_zip("a", nil)).to be_nil
+      expect(described_class.str_concat_zip("a", "b", nil)).to be_nil
     end
   end
 
