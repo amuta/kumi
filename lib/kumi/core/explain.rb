@@ -11,7 +11,11 @@ module Kumi
           @definitions = analysis_state[:declarations] || {}
           @registry    = registry
 
-          @program = Kumi::Runtime::Executable.from_analysis(@state, registry: nil)
+          # Use the same eager function resolution approach as the compiler
+          ir_module = analysis_state.fetch(:ir_module)
+          function_registry = Core::IR::FunctionExtractor.build_function_hash(ir_module)
+          
+          @program = Kumi::Runtime::Executable.from_analysis(@state, registry: function_registry)
           @session = @program.read(@inputs, mode: :ruby)
         end
 

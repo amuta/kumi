@@ -1,5 +1,9 @@
 module Kumi::Core::Functions
   class RegistryV2
+    # Global caching to avoid repeated YAML loading
+    @global_cache = {}
+    @cache_mutex = Mutex.new
+    
     def initialize(functions:)
       @by_qualified = {}
       @by_basename = {}
@@ -18,11 +22,24 @@ module Kumi::Core::Functions
       @by_basename.freeze
     end
 
-    # Factory method to load from YAML configuration
+    # Factory method to load from YAML configuration with global caching
     def self.load_from_file(path = nil)
-      path ||= File.join(__dir__, "../../../..", "config", "functions.yaml")
-      functions = Loader.load_file(path)
-      new(functions: functions)
+      default_path = File.join(__dir__, "../../../..", "config", "functions.yaml")
+      path ||= default_path
+      
+      # Use global caching to avoid repeated YAML parsing
+      @cache_mutex.synchronize do
+        cache_key = File.absolute_path(path)
+        @global_cache[cache_key] ||= begin
+          functions = Loader.load_file(path)
+          new(functions: functions)
+        end
+      end
+    end
+    
+    # Clear global cache for testing/development
+    def self.clear_cache!
+      @cache_mutex.synchronize { @global_cache.clear }
     end
 
     def resolve(name, arg_types: nil, arity: nil)

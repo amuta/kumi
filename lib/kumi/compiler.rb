@@ -13,8 +13,12 @@ module Kumi
     end
 
     def compile
-      # Switch to LIR: Use the analysis state instead of old compilation
-      Runtime::Executable.from_analysis(@analysis.state)
+      # Pre-build function registry to avoid repeated RegistryV2 loading at execution time
+      ir_module = @analysis.state.fetch(:ir_module)
+      function_registry = Core::IR::FunctionExtractor.build_function_hash(ir_module)
+      
+      # Switch to LIR: Use the analysis state with pre-built registry
+      Runtime::Executable.from_analysis(@analysis.state, registry: function_registry)
     end
   end
 end
