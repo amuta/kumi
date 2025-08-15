@@ -58,11 +58,11 @@ module Kumi
       semantic_errors = errors.select { |e| e.type == :semantic }
       first_error_location = errors.first.location
 
-      raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
+      raise Errors::TypeError.new(Core::ErrorReporter.format_messages_only(errors), first_error_location) if type_errors.any?
 
-      raise Errors::SemanticError.new(format_errors(errors), first_error_location) if first_error_location || semantic_errors
+      raise Errors::SemanticError.new(Core::ErrorReporter.format_messages_only(errors), first_error_location) if first_error_location || semantic_errors
 
-      raise Errors::AnalysisError.new(format_errors(errors))
+      raise Errors::AnalysisError.new(Core::ErrorReporter.format_errors(errors))
     end
 
     def self.create_analysis_result(state)

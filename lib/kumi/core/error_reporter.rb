@@ -79,8 +79,8 @@ module Kumi
       # @param context [Hash] Additional context
       def raise_error(message, location: nil, error_class: Errors::SemanticError, type: :semantic, backtrace: nil, context: {})
         entry = create_error(message, location: location, type: type, context: context, backtrace: backtrace || caller)
-        # Pass both the formatted message and the original location to the error constructor
-        raise error_class.new(entry.to_s, location)
+        # Pass only the message to the error constructor - LocatedError will format location
+        raise error_class.new(message, location)
       end
 
       # Format multiple errors into a single message
@@ -89,6 +89,14 @@ module Kumi
       # @return [String] Formatted error message
       def format_errors(errors)
         errors.map(&:to_s).join("\n")
+      end
+
+      # Format multiple error messages without location (for LocatedError constructors)
+      #
+      # @param errors [Array<ErrorEntry>] Array of error entries
+      # @return [String] Formatted error messages without location prefixes
+      def format_messages_only(errors)
+        errors.map(&:message).join("\n")
       end
 
       # Group errors by type for better organization
