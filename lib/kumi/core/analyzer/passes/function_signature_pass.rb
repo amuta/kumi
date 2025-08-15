@@ -112,9 +112,10 @@ module Kumi
               end
               # Use qualified name for error message if available
               effective_name = entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || node.fn_name
-              report_error(errors, 
-                          "Signature mismatch for `#{effective_name}` with args #{format_shapes(arg_shapes)}. Candidates: #{format_sigs(sig_strings)}. #{e.message}",
-                          location: node.loc, type: :type)
+              
+              # Generate helpful error message
+              error_msg = build_signature_error_message(effective_name, arg_shapes, sig_strings, e, node)
+              report_error(errors, error_msg, location: node.loc, type: :type)
               return
             end
 
@@ -211,9 +212,17 @@ module Kumi
 
           def build_argument_shapes(node, object_id)
             # Build argument shapes from current analysis context
-            node.args.map do |arg|
+            node.args.map.with_index do |arg, i|
               axes = get_broadcast_metadata(arg.object_id)
-              normalize_shape(axes)
+              shape = normalize_shape(axes)
+              
+              # Debug missing broadcast metadata
+              if shape.empty? && ENV["DEBUG_LOWER"]
+                puts "        Warning: Argument #{i+1} (#{arg.class}) has empty shape - missing broadcast metadata"
+                puts "          arg.object_id=#{arg.object_id}, metadata=#{axes.inspect}"
+              end
+              
+              shape
             end
           end
 
@@ -235,6 +244,37 @@ module Kumi
 
             # Look up by node object_id
             broadcast_meta[arg_object_id]&.dig(:axes)
+          end
+
+          def build_signature_error_message(fn_name, arg_shapes, sig_strings, original_error, node)
+            msg = "Function `#{fn_name}` signature mismatch:\n"
+            msg << "  Called with: #{format_shapes(arg_shapes)}\n"
+            msg << "  Available signatures: #{format_sigs(sig_strings)}\n"
+            
+            # Check for common issues
+            if arg_shapes.all?(&:empty?)
+              msg << "\n  Hint: All arguments appear as scalars (). This often means:\n"
+              msg << "    - Vector operations not detected by broadcast analyzer\n"
+              msg << "    - Missing array element access patterns (e.g., input.items.field)\n"
+              msg << "    - Function called with literal arrays instead of vectorized inputs\n"
+            end
+            
+            # Add specific hints for known functions
+            case fn_name.to_s
+            when "struct.searchsorted"
+              if arg_shapes == [[], []]
+                msg << "\n  Expected: array and value for search (e.g., searchsorted(edges, income))\n"
+                msg << "  Try: fn(:searchsorted, input.edges, input.income) for vectorized inputs\n"
+              end
+            when "array.get"
+              if arg_shapes == [[], []]
+                msg << "\n  Expected: array and index (e.g., get(rates, index))\n"
+                msg << "  Try: fn(:get, rates, index) with proper array shapes\n"
+              end
+            end
+            
+            msg << "\n  Original error: #{original_error.message}"
+            msg
           end
 
           def parse_signatures(sig_strings)
