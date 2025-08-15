@@ -93,6 +93,13 @@ module Kumi::Core::Functions
       ks.max_by(&:priority) or raise "no kernel for #{fn.name} backend=#{backend}"
     end
 
+    # Direct kernel execution - eliminates need for runtime registry!
+    def get_executable_kernel(fn_name, backend: :ruby, conditions: {})
+      function = resolve(fn_name)
+      kernel_entry = resolve_kernel(function, backend: backend, conditions: conditions)
+      KernelAdapter.build_for(function, kernel_entry).callable
+    end
+
     # Introspection methods
     def all_function_names
       @by_qualified.keys

@@ -131,8 +131,7 @@ module Kumi
 
                 when :map
                   fn_name = op.attrs[:fn]
-                  fn_entry = registry[fn_name] or raise "Function #{fn_name} not found in registry"
-                  fn = fn_entry.fn
+                  fn = registry[fn_name] or raise "Function #{fn_name} not found in registry"
                   puts "DEBUG Map #{fn_name}: args=#{op.args.inspect}" if ENV["DEBUG_VM_ARGS"]
 
                   # Validate slot indices before accessing
@@ -224,8 +223,7 @@ module Kumi
                   return outputs if target && name == target
 
                 when :reduce
-                  fn_entry = registry[op.attrs[:fn]] or raise "Function #{op.attrs[:fn]} not found in registry"
-                  fn = fn_entry.fn
+                  fn = registry[op.attrs[:fn]] or raise "Function #{op.attrs[:fn]} not found in registry"
 
                   src = slots[op.args[0]]
                   raise "Reduce expects Vec" unless src[:k] == :vec

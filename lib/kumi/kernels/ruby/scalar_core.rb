@@ -57,6 +57,10 @@ module Kumi
         def kumi_not(a)
           !a
         end
+
+        def kumi_if(condition, then_val, else_val)
+          condition ? then_val : else_val
+        end
       end
     end
   end

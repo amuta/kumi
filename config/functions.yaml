@@ -166,7 +166,7 @@
   null_policy: propagate
   kernels:
     - backend: ruby
-      impl: kumi_ge
+      impl: kumi_gte
       priority: 10
 
 - name: core.and
