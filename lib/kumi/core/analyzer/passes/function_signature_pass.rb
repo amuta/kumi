@@ -49,11 +49,17 @@ module Kumi
           def resolve_function_signature(entry, object_id, errors)
             node = entry[:node]
             metadata = entry[:metadata] || {}
+            
+            # Ensure metadata has effective_fn_name and resolved_name
+            metadata[:effective_fn_name] ||= node.fn_name
+            if metadata[:qualified_name]
+              metadata[:resolved_name] = metadata[:qualified_name]
+            end
 
-            # Skip signature resolution for cascade_and nodes that will be desugared
-            if metadata[:desugar_to_identity] || metadata[:desugared_to] || metadata[:invalid_cascade_and]
+            # Skip signature resolution for cascade_and nodes that will be desugared or have skip_signature flag
+            if metadata[:desugar_to_identity] || metadata[:desugared_to] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
               if ENV["DEBUG_LOWER"]
-                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared"
+                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared or skip_signature flag set"
                 puts "      metadata: #{metadata.keys.inspect}"
               end
               return
@@ -287,10 +293,6 @@ module Kumi
 
           def registry_v2_enabled?
             ENV["KUMI_FN_REGISTRY_V2"] == "1"
-          end
-
-          def registry_v2
-            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
           end
 
           def nep20_flex_enabled?

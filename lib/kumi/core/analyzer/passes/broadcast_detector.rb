@@ -276,9 +276,14 @@ module Kumi
           end
 
           def analyze_call_vectorization(_name, expr, array_fields, nested_paths, vectorized_values, errors, definitions = nil)
-            entry         = Kumi::Registry.entry(expr.fn_name)
-            is_reducer    = entry&.reducer
-            is_structure  = entry&.structure_function
+            # Get node metadata from node_index instead of legacy registry
+            node_index = get_state(:node_index, required: false)
+            entry_metadata = node_index&.dig(expr.object_id, :metadata) || {}
+            
+            # Use metadata fn_class if available, otherwise resolve from RegistryV2
+            fn_class = entry_metadata[:fn_class] || get_function_class(expr, entry_metadata)
+            is_reducer = (fn_class == :aggregate)
+            is_structure = (fn_class == :structure)
 
             # 1) Analyze all args once
             arg_infos = expr.args.map do |arg|
@@ -328,8 +333,9 @@ module Kumi
               # But dual-nature functions (both reducer AND structure) should be treated as structure functions when nested
               return { type: :scalar } if expr.args.any? do |a|
                 if a.is_a?(Kumi::Syntax::CallExpression)
-                  arg_entry = Kumi::Registry.entry(a.fn_name)
-                  arg_entry&.reducer && !arg_entry&.structure_function # Pure reducer only
+                  arg_metadata = node_index&.dig(a.object_id, :metadata) || {}
+                  arg_fn_class = arg_metadata[:fn_class] || get_function_class(a, arg_metadata)
+                  arg_fn_class == :aggregate && arg_fn_class != :structure # Pure reducer only
                 else
                   false
                 end
@@ -387,9 +393,21 @@ module Kumi
             { type: :scalar }
           end
 
-          def structure_function?(fn_name)
-            # Check if function is marked as working on structure (not broadcast over elements)
-            Kumi::Registry.structure_function?(fn_name)
+          def get_function_class(expr, metadata)
+            # Resolve function class from RegistryV2 and store in metadata for future passes
+            fn_name = resolved_fn_name(metadata, expr)
+            begin
+              function = registry_v2.resolve(fn_name.to_s, arity: expr.args.size)
+              fn_class = function.class
+              # Store in metadata for future reference
+              metadata[:fn_class] = fn_class if metadata
+              fn_class
+            rescue => e
+              if ENV["DEBUG_BROADCAST"]
+                puts("  BroadcastDetector call_id=#{expr.object_id rescue 'unknown'} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
+              end
+              :scalar # Default to scalar for unknown functions
+            end
           end
 
           def analyze_argument_vectorization(arg, array_fields, nested_paths, vectorized_values, definitions = nil)

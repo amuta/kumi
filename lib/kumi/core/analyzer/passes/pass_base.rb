@@ -45,6 +45,18 @@ module Kumi
           def add_error(errors, location, message)
             errors << ErrorReporter.create_error(message, location: location, type: :semantic)
           end
+
+          # Memoized access to RegistryV2
+          def registry_v2
+            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
+          end
+
+          # Resolve function name from metadata, falling back through the chain:
+          # qualified_name -> effective_fn_name -> node.fn_name
+          # Always pass arity when resolving from RegistryV2
+          def resolved_fn_name(metadata, node)
+            metadata[:qualified_name] || metadata[:effective_fn_name] || node.fn_name
+          end
         end
       end
     end

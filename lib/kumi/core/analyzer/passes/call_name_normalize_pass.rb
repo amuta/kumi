@@ -35,16 +35,17 @@ module Kumi
               node.fn_name
             end
             
-            # Skip if already processed by CascadeDesugarPass and has qualified_name
-            if entry[:metadata] && entry[:metadata][:qualified_name]
-              ENV["DEBUG_NORMALIZE"] && puts("  Skipping #{before} - already has qualified_name: #{entry[:metadata][:qualified_name]}")
+            # Skip if already processed by CascadeDesugarPass and has qualified_name or skip_signature
+            if entry[:metadata] && (entry[:metadata][:qualified_name] || entry[:metadata][:skip_signature])
+              reason = entry[:metadata][:qualified_name] ? "already has qualified_name: #{entry[:metadata][:qualified_name]}" : "skip_signature flag set"
+              ENV["DEBUG_NORMALIZE"] && puts("  Skipping call_id=#{node.object_id} raw=#{node.fn_name} - #{reason}")
               return
             end
             
             canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
 
             # Resolve canonical name to qualified registry name
-            qualified_name = resolve_to_qualified_name(canonical_name)
+            qualified_name = resolve_to_qualified_name(canonical_name, node.args.size)
             
             # Annotate with both canonical and qualified names for downstream passes
             entry[:metadata][:canonical_name] = canonical_name
@@ -54,33 +55,13 @@ module Kumi
               warn_deprecated(before, canonical_name) if ENV["WARN_DEPRECATED_FUNCS"]
             end
             
-            ENV["DEBUG_NORMALIZE"] && puts("  Normalized #{node.fn_name} → #{before} → #{qualified_name}")
+            ENV["DEBUG_NORMALIZE"] && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name}")
           end
 
-          def resolve_to_qualified_name(canonical_name)
-            # Map canonical basenames to qualified registry names
-            case canonical_name.to_sym
-            # Core arithmetic and comparison functions
-            when :add, :sub, :mul, :div, :mod, :pow
-              "core.#{canonical_name}"
-            when :eq, :ne, :lt, :le, :gt, :ge
-              "core.#{canonical_name}"
-            # Logical functions
-            when :and, :or, :not
-              "core.#{canonical_name}"
-            # Collection/array functions
-            when :get, :contains, :size, :length, :first, :last
-              "array.#{canonical_name}"
-            # Aggregate functions
-            when :sum, :min, :max, :mean
-              "agg.#{canonical_name}"
-            # String functions
-            when :concat
-              "string.#{canonical_name}"
-            else
-              # Default to core domain for unknown functions
-              "core.#{canonical_name}"
-            end
+          def resolve_to_qualified_name(canonical_name, arity = nil)
+            # Use RegistryV2 to resolve the qualified name based on basename and arity
+            function = registry_v2.resolve(canonical_name.to_s, arity: arity)
+            function.name
           end
 
           def warn_deprecated(before, after)

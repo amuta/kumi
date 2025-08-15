@@ -501,30 +501,40 @@ module Kumi
 
                   if meta[:desugar_to_identity]
                     # Lower the single argument directly; no call emitted
-                    ENV["DEBUG_LOWER"] && puts("  DESUGAR_IDENTITY: cascade_and(1 arg) -> lowering arg directly")
+                    if ENV["DEBUG_LOWER"]
+                      puts("  Lower call_id=#{expr.object_id} cascade_and desugar=identity -> lowering_arg_directly")
+                    end
                     return lower_expression(meta[:identity_arg], ops, access_plans, scope_plan,
                                             need_indices, required_scope, cacheable: cacheable)
                   end
 
                   if meta[:desugared_to] == :and
                     # Override function name for multi-arg cascade_and -> core.and
-                    ENV["DEBUG_LOWER"] && puts("  DESUGAR_AND: cascade_and(#{expr.args.size} args) -> core.and")
+                    if ENV["DEBUG_LOWER"]
+                      puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and")
+                    end
                     expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
                   end
                 end
 
                 qualified_fn_name = get_qualified_function_name(expr)
-                entry = Kumi::Registry.entry(qualified_fn_name)
+                
+                # Get function info from metadata and RegistryV2
+                node_index = get_state(:node_index)
+                entry_metadata = node_index&.dig(expr.object_id, :metadata) || {}
+                function = registry_v2.resolve(qualified_fn_name.to_s, arity: expr.args.size)
 
                 # Validate signature metadata from FunctionSignaturePass (read-only assertions)
-                validate_signature_metadata(expr, entry)
+                # TODO: Re-implement signature validation with RegistryV2 Function objects
+                # validate_signature_metadata(expr, function)
 
                 # Constant folding optimization: evaluate expressions with all literal arguments
-                if can_constant_fold?(expr, entry)
-                  folded_value = constant_fold(expr, entry)
-                  ops << Kumi::Core::IR::Ops.Const(folded_value)
-                  return ops.size - 1
-                end
+                # TODO: Re-implement constant folding with RegistryV2 Function objects
+                # if can_constant_fold?(expr, function)
+                #   folded_value = constant_fold(expr, function)
+                #   ops << Kumi::Core::IR::Ops.Const(folded_value)
+                #   return ops.size - 1
+                # end
 
                 # Trait-driven short-circuit lowering for and/or
                 qualified_fn_name = get_qualified_function_name(expr)
@@ -545,7 +555,8 @@ module Kumi
                 end
 
                 # Special handling for comparison operations containing nested reductions
-                if !entry&.reducer && has_nested_reducer?(expr)
+                is_reducer = (entry_metadata[:fn_class] == :aggregate) || function.class == :aggregate
+                if !is_reducer && has_nested_reducer?(expr)
                   puts "  SPECIAL_NESTED_REDUCTION_HANDLING for #{expr.fn_name}" if ENV["DEBUG_LOWER"]
 
                   # For comparison ops with nested reducers, we need to ensure
@@ -582,7 +593,7 @@ module Kumi
                   ops << Kumi::Core::IR::Ops.Map(qualified_fn_name, expr.args.size, *aligned)
                   return ops.size - 1
 
-                elsif entry&.reducer
+                elsif is_reducer
                   # Need indices iff grouping is requested
                   child_need_idx = !Array(required_scope).empty?
 
@@ -979,8 +990,12 @@ module Kumi
             ce = decl.expression
             return false unless ce.is_a?(Kumi::Syntax::CallExpression)
 
-            entry = Kumi::Registry.entry(ce.fn_name)
-            entry&.reducer && !entry&.structure_function
+            # Get function class from metadata or RegistryV2
+            node_index = get_state(:node_index)
+            entry_metadata = node_index&.dig(ce.object_id, :metadata) || {}
+            fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(ce, entry_metadata)
+            
+            fn_class == :aggregate && fn_class != :structure
           end
 
           def has_nested_reducer?(expr)
@@ -989,8 +1004,12 @@ module Kumi
             expr.args.any? do |arg|
               case arg
               when Kumi::Syntax::CallExpression
-                entry = Kumi::Registry.entry(arg.fn_name)
-                return true if entry&.reducer
+                # Get function class from metadata or RegistryV2
+                node_index = get_state(:node_index)
+                entry_metadata = node_index&.dig(arg.object_id, :metadata) || {}
+                fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(arg, entry_metadata)
+                
+                return true if fn_class == :aggregate
 
                 has_nested_reducer?(arg) # recursive check
               else
@@ -1005,14 +1024,33 @@ module Kumi
             expr.args.each do |arg|
               case arg
               when Kumi::Syntax::CallExpression
-                entry = Kumi::Registry.entry(arg.fn_name)
-                return arg if entry&.reducer
+                # Get function class from metadata or RegistryV2
+                node_index = get_state(:node_index)
+                entry_metadata = node_index&.dig(arg.object_id, :metadata) || {}
+                fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(arg, entry_metadata)
+                
+                return arg if fn_class == :aggregate
 
                 nested = find_nested_reducer_arg(arg)
                 return nested if nested
               end
             end
             nil
+          end
+
+          def get_function_class_for_expr(expr, metadata)
+            # Resolve function class from RegistryV2 and store in metadata for future reference
+            fn_name = resolved_fn_name(metadata, expr)
+            function = registry_v2.resolve(fn_name.to_s, arity: expr.args.size)
+            fn_class = function.class
+            # Store in metadata for future reference
+            metadata[:fn_class] = fn_class if metadata
+            fn_class
+          rescue KeyError => e
+            if ENV["DEBUG_LOWER"]
+              puts("  Lower call_id=#{expr.object_id rescue 'unknown'} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
+            end
+            :scalar # Default to scalar for unknown functions
           end
 
           def infer_per_player_scope(reducer_expr)

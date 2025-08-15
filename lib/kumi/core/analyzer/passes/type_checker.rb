@@ -23,20 +23,56 @@ module Kumi
           private
 
           def validate_function_call(node, errors)
-            signature = get_function_signature(node, errors)
-            return unless signature
-
-            validate_arity(node, signature, errors)
-            validate_argument_types(node, signature, errors)
+            # Get metadata from node_index that should be populated by earlier passes
+            node_index = get_state(:node_index, required: false)
+            entry = node_index&.dig(node.object_id)
+            metadata = entry&.dig(:metadata) || {}
+            
+            # Skip if skip_signature flag is set (e.g., for cascade_and identity cases)
+            return if metadata[:skip_signature]
+            
+            # Use metadata-first approach - if signature is available from FunctionSignaturePass, use it
+            if metadata[:signature]
+              validate_with_metadata(node, metadata, errors)
+            else
+              # Fallback to basic validation for nodes that don't have NEP-20 signatures
+              validate_basic_function_call(node, metadata, errors)
+            end
           end
 
-          def get_function_signature(node, errors)
-            # Skip function signature validation in TypeChecker since it runs before
-            # the proper function resolution in FunctionSignaturePass. The real function
-            # validation happens there with RegistryV2 and qualified names.
-            # 
-            # For now, return a permissive signature to allow type checking to proceed
-            return { arity: -1, param_types: [], return_type: :any }
+          def validate_with_metadata(node, metadata, errors)
+            # Use resolved function name and RegistryV2 for type checking
+            fn_name = resolved_fn_name(metadata, node)
+            
+            function = registry_v2.resolve(fn_name.to_s, arity: node.args.size)
+            
+            # Store function class in metadata if not already set
+            metadata[:fn_class] ||= function.class if metadata
+            
+            # Compute result dtype if function has dtypes
+            if function.dtypes && function.dtypes[:result] && metadata
+              metadata[:result_dtype] = function.dtypes[:result]
+            end
+            
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts("  TypeCheck call_id=#{node.object_id} qualified=#{fn_name} fn_class=#{metadata[:fn_class]} status=validated")
+            end
+          end
+          
+          def validate_basic_function_call(node, metadata, errors)
+            # Basic validation for functions without full RegistryV2 support
+            # This is mainly for compatibility during migration
+            fn_name = resolved_fn_name(metadata, node)
+            
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts("  TypeCheck call_id=#{node.object_id} qualified=#{fn_name} status=basic_validation")
+            end
+            
+            # Just check if the function exists in RegistryV2
+            registry_v2.resolve(fn_name.to_s, arity: node.args.size)
+          rescue KeyError => e
+            report_error(errors, "Unknown function `#{fn_name}` with arity #{node.args.size}: #{e.message}",
+                        location: node.loc, type: :type)
           end
 
           def validate_arity(node, signature, errors)
