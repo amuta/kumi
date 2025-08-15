@@ -1,8 +1,8 @@
 require "yaml"
 module Kumi::Core::Functions
   Function = Data.define(:name, :domain, :opset, :class_sym, :signatures,
-                         :type_vars, :dtypes, :null_policy, :algebra, :vectorization,
-                         :options, :traits, :shape_fn, :kernels)
+                         :type_vars, :dtypes, :null_policy, :algebra, :semantics, :vectorization,
+                         :options, :traits, :shape_fn, :kernels, :monotonicity)
 
   KernelEntry = Data.define(:backend, :impl, :priority, :when_)
 
@@ -32,11 +32,13 @@ module Kumi::Core::Functions
         dtypes: h["dtypes"] || {},
         null_policy: (h["null_policy"] || "propagate").to_sym,
         algebra: (h["algebra"] || {}).transform_keys!(&:to_sym),
+        semantics: (h["semantics"] || {}).transform_keys(&:to_sym),
         vectorization: (h["vectorization"] || {}).transform_keys!(&:to_sym),
         options: h["options"] || {},
         traits: (h["traits"] || {}).transform_keys!(&:to_sym),
         shape_fn: h["shape_fn"],
-        kernels: kernels
+        kernels: kernels,
+        monotonicity: (h["monotonicity"] || {}).transform_keys(&:to_sym)
       )
     end
 

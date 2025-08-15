@@ -15,6 +15,7 @@
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
   algebra: {associative: true, commutative: true, identity: 0}
+  monotonicity: {args: [increasing, increasing]}
   vectorization: {mask_aware: true}
   kernels: 
     - backend: ruby
@@ -29,6 +30,7 @@
   type_vars: {T: Numeric, U: Numeric}
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
+  monotonicity: {args: [increasing, decreasing]}
   kernels:
     - backend: ruby
       impl: kumi_sub
@@ -43,6 +45,7 @@
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
   algebra: {associative: true, commutative: true, identity: 1, annihilator: 0}
+  monotonicity: {args: [increasing, increasing], condition: positive_args}
   kernels:
     - backend: ruby
       impl: kumi_mul
@@ -98,7 +101,7 @@
   type_vars: {T: Any, U: Any}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {idempotent: true}
+  semantics: {family: comparison, relation: equality, reflexive: true, symmetric: true, transitive: true, negation: core.ne}
   kernels:
     - backend: ruby
       impl: kumi_eq
@@ -112,6 +115,7 @@
   type_vars: {T: Any, U: Any}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: disequality, negates: core.eq}
   kernels:
     - backend: ruby
       impl: kumi_ne
@@ -125,6 +129,7 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, transitive: true, trichotomy: true, dual_of: core.ge, implies: [core.le, core.ne]}
   kernels:
     - backend: ruby
       impl: kumi_lt
@@ -138,6 +143,7 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, reflexive: true, antisymmetric: true, transitive: true, dual_of: core.ge, implies: [core.lt, core.eq]}
   kernels:
     - backend: ruby
       impl: kumi_le
@@ -151,6 +157,7 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, transitive: true, trichotomy: true, dual_of: core.le, implies: [core.ge, core.ne]}
   kernels:
     - backend: ruby
       impl: kumi_gt
@@ -164,6 +171,7 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, reflexive: true, antisymmetric: true, transitive: true, dual_of: core.lt, implies: [core.gt, core.eq]}
   kernels:
     - backend: ruby
       impl: kumi_ge
@@ -177,7 +185,7 @@
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {associative: true, commutative: true, identity: true, annihilator: false}
+  algebra: {family: boolean_op, op: and, associative: true, commutative: true, idempotent: true, identity: true, annihilator: false}
   vectorization: {short_circuit: left_to_right, mask_aware: true}
   kernels:
     - backend: ruby
@@ -192,7 +200,7 @@
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {associative: true, commutative: true, identity: false, annihilator: true}
+  algebra: {family: boolean_op, op: or, associative: true, commutative: true, idempotent: true, identity: false, annihilator: true}
   vectorization: {short_circuit: left_to_right, mask_aware: true}
   kernels:
     - backend: ruby
@@ -207,6 +215,7 @@
   type_vars: {B: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
+  algebra: {family: boolean_op, op: not, involutive: true, de_morgan_dual: or}
   kernels:
     - backend: ruby
       impl: kumi_not
@@ -297,9 +306,38 @@
   type_vars: {T: Any}
   dtypes: {result: "bool"}
   null_policy: skip
+  algebra: {boolean_aggregate: true}
   kernels:
     - backend: ruby
       impl: kumi_any
+      priority: 10
+
+- name: core.none?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  algebra: {boolean_aggregate: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_none
+      priority: 10
+
+- name: core.all?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  algebra: {boolean_aggregate: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_all
       priority: 10
 
 # ==================== STRUCTURE / SHAPE / JOIN ================================
@@ -311,6 +349,7 @@
   summary: Align inputs by axes using zip or product
   signature: ["(i),(i)->(i)@zip", "(i),(j)->(i,j)@product"]
   null_policy: error_on_missing
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: join_zip
@@ -328,6 +367,7 @@
   signature: ["(i)->(i)", "(i,j)->(i,j)"]
   traits: {reorders: false}
   null_policy: error_on_missing
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: align_to
@@ -339,6 +379,7 @@
   class: structure
   signature: ["(i)->(i)", "(i,j)->(i,j)"]
   summary: Group flat rows back to nested collections based on indices
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: lift
@@ -350,6 +391,7 @@
   class: structure
   signature: ["(i,j)->(k)"]
   shape_fn: "flatten_axes(i,j)->k"
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: flatten
@@ -363,6 +405,7 @@
   type_vars: {T: Any}
   dtypes: {result: "T"}
   null_policy: error
+  semantics: {family: structural, role: data_access}
   kernels:
     - backend: ruby
       impl: take
@@ -375,6 +418,7 @@
   signature: ["(i)->()", "(i,j)->()"]
   dtypes: {result: "int"}
   null_policy: error
+  semantics: {family: structural, role: introspection}
   kernels:
     - backend: ruby
       impl: size
@@ -474,6 +518,7 @@
   type_vars: {A: Any}
   dtypes: {result: "A"}
   null_policy: error
+  semantics: {family: structural, role: data_access}
   kernels:
     - backend: ruby
       impl: array_get
@@ -490,6 +535,7 @@
   type_vars: {K: StringLike}
   dtypes: {result: "any"}
   null_policy: error
+  semantics: {family: structural, role: data_access}
   kernels:
     - backend: ruby
       impl: struct_get
@@ -503,6 +549,7 @@
   type_vars: {A: Any}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: structural, role: membership_test}
   kernels:
     - backend: ruby
       impl: array_contains

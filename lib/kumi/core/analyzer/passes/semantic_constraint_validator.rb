@@ -57,14 +57,14 @@ module Kumi
 
           def validate_cascade_condition(when_case, errors)
             condition = when_case.condition
-
+            
             case condition
             when Kumi::Syntax::DeclarationReference
               # Valid: trait reference
               nil
             when Kumi::Syntax::CallExpression
-              # Valid if it's a boolean composition of traits (all?, any?, none?)
-              return if boolean_trait_composition?(condition)
+              # Valid if it's a boolean composition of traits (all?, any?, none?, cascade_and)
+              return if boolean_trait_composition?(condition) || condition.fn_name == :cascade_and
 
               # For now, allow other CallExpressions - they'll be validated by other passes
               nil

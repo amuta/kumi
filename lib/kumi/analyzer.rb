@@ -12,17 +12,18 @@ module Kumi
       Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
       Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::CascadeDesugarPass,              # 8. Desugar cascade_and to regular and operations.
-      Core::Analyzer::Passes::CallNameNormalizePass,           # 9. Normalize function names to canonical basenames.
-      Core::Analyzer::Passes::BroadcastDetector,               # 10. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 11. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeConsistencyChecker,          # 12. Validates declared vs inferred type consistency.
-      Core::Analyzer::Passes::FunctionSignaturePass,           # 13. Resolves NEP-20 signatures for function calls.
-      Core::Analyzer::Passes::TypeChecker,                     # 14. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 15. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 16. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 17. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass                    # 18. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::CascadeConstraintValidator,      # 8. Validates cascade_and usage constraints.
+      Core::Analyzer::Passes::CascadeDesugarPass,              # 9. Desugar cascade_and to regular and operations.
+      Core::Analyzer::Passes::CallNameNormalizePass,           # 10. Normalize function names to canonical basenames.
+      Core::Analyzer::Passes::BroadcastDetector,               # 11. Detects which operations should be broadcast over arrays.
+      Core::Analyzer::Passes::TypeInferencerPass,              # 12. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
+      Core::Analyzer::Passes::FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
+      Core::Analyzer::Passes::TypeChecker,                     # 15. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 16. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 17. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 18. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass                    # 19. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

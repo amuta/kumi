@@ -18,6 +18,12 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 - `bundle exec rspec spec/path/to/specific_spec.rb` - Run specific test file
 - `bundle exec rspec spec/path/to/specific_spec.rb:123` - Run specific test at line
 
+### Test Helpers
+**AnalyzerStateHelper** (`spec/support/analyzer_state_helper.rb`):
+- `analyze_up_to(state_name) { schema }` - Run analyzer up to specific pass
+- Available states: `:name_index`, `:input_metadata`, `:dependencies`, `:evaluation_order`, `:cascade_validated`, `:cascade_desugared`, `:broadcasts`, `:types_inferred`, `:ir_module`
+- Example: `state = analyze_up_to(:broadcasts) { input { array :items { float :price } }; value :total, fn(:sum, input.items.price) }`
+
 ## Architecture Overview
 
 ### Core Components
