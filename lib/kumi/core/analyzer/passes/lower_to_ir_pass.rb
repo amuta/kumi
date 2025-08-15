@@ -2,6 +2,7 @@
 
 require_relative "../../../support/ir_dump"
 require_relative "../../ir/lowering/short_circuit_lowerer"
+require_relative "../../ir/lowering/cascade_lowerer"
 
 module Kumi
   module Core
@@ -163,6 +164,12 @@ module Kumi
             @short_circuit_lowerer ||= Kumi::Core::IR::Lowering::ShortCircuitLowerer.new(
               shape_of: ->(slot) { determine_slot_shape(slot, [], {}) },
               registry: registry_v2
+            )
+          end
+
+          def cascade_lowerer
+            @cascade_lowerer ||= Kumi::Core::IR::Lowering::CascadeLowerer.new(
+              shape_of: ->(slot) { determine_slot_shape(slot, [], {}) }
             )
           end
 
@@ -483,6 +490,29 @@ module Kumi
                 end
 
               when Syntax::CallExpression
+                # Handle cascade_and desugar metadata first
+                node_index = get_state(:node_index, required: false)
+                if node_index && (ni = node_index[expr.object_id])
+                  meta = ni[:metadata] || {}
+
+                  if meta[:invalid_cascade_and]
+                    raise Kumi::Core::Errors::SemanticError, "Invalid cascade condition (empty cascade_and)"
+                  end
+
+                  if meta[:desugar_to_identity]
+                    # Lower the single argument directly; no call emitted
+                    ENV["DEBUG_LOWER"] && puts("  DESUGAR_IDENTITY: cascade_and(1 arg) -> lowering arg directly")
+                    return lower_expression(meta[:identity_arg], ops, access_plans, scope_plan,
+                                            need_indices, required_scope, cacheable: cacheable)
+                  end
+
+                  if meta[:desugared_to] == :and
+                    # Override function name for multi-arg cascade_and -> core.and
+                    ENV["DEBUG_LOWER"] && puts("  DESUGAR_AND: cascade_and(#{expr.args.size} args) -> core.and")
+                    expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
+                  end
+                end
+
                 qualified_fn_name = get_qualified_function_name(expr)
                 entry = Kumi::Registry.entry(qualified_fn_name)
 
@@ -498,7 +528,15 @@ module Kumi
 
                 # Trait-driven short-circuit lowering for and/or
                 qualified_fn_name = get_qualified_function_name(expr)
+                if ENV["DEBUG_LOWER"]
+                  puts "  CHECKING SHORT_CIRCUIT for #{expr.fn_name} -> #{qualified_fn_name}"
+                  puts "    args.size: #{expr.args.size}"
+                  puts "    has_short_circuit?: #{short_circuit_lowerer.short_circuit?(qualified_fn_name)}"
+                end
                 if short_circuit_lowerer.short_circuit?(qualified_fn_name)
+                  if ENV["DEBUG_LOWER"]
+                    puts "    -> ROUTING TO short_circuit_lowerer"
+                  end
                   return lower_short_circuit_bool(expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
                 end
 

@@ -77,9 +77,12 @@ CaseExpression = Struct.new(:condition, :result)
 ```
 
 **Case type mappings**:
-- `on :a, :b, result` → `condition: fn(:cascade_and, ref(:a), ref(:b))`  
+- `on :a, result` → `condition: fn(:cascade_and, ref(:a))` → **desugared to** `ref(:a)` (identity)
+- `on :a, :b, result` → `condition: fn(:cascade_and, ref(:a), ref(:b))` → **desugared to** `fn(:and, ref(:a), ref(:b))` (short-circuit AND)
 - `on_any :a, :b, result` → `condition: fn(:any?, ref(:a), ref(:b))`
 - `base result` → `condition: literal(true)`
+
+**Note**: `cascade_and` is syntax sugar only - it gets completely removed during compilation and replaced with either identity references or `core.and` calls with short-circuit evaluation.
 
 ## Key Nuances
 

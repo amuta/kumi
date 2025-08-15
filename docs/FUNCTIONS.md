@@ -10,8 +10,10 @@ Kumi provides a rich library of built-in functions for use within `value` and `t
   * **Usage**: `fn(:and, boolean1, boolean2, ...)` → `boolean`
 * **`any?`**: Check if any element in collection is truthy
   * **Usage**: `fn(:any?, array(any) arg1)` → `boolean`
-* **`cascade_and`**: Element-wise AND for arrays with same nested structure
-  * **Usage**: `fn(:cascade_and, boolean1, boolean2, ...)` → `boolean`
+* **`cascade_and`**: **SYNTAX SUGAR ONLY** - Multi-condition cascade branches (NOT a real function)
+  * **Usage**: `on trait1, trait2, result` (automatically becomes `cascade_and(trait1, trait2)`)
+  * **Semantics**: Single condition → identity, multiple conditions → short-circuit AND
+  * **Note**: This is pure syntax sugar; no `core.cascade_and` function exists in the registry
 * **`none?`**: Check if no elements in collection are truthy
   * **Usage**: `fn(:none?, array(any) arg1)` → `boolean`
 * **`not`**: Logical NOT

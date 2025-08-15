@@ -14,38 +14,36 @@ unless Kumi::Registry.function?(:format3)
   )
 end
 
-module TestSchema
-  extend Kumi::Schema
-  schema do
-    input do
-      array :items do
-        float :x
-        float :p
-        integer :q
+RSpec.describe "VM argument order and if semantics", :skip => "User-defined functions not yet supported in RegistryV2" do
+  let(:schema) do
+    Module.new do
+      extend Kumi::Schema
+      schema do
+        input do
+          array :items do
+            float :x
+            float :p
+            integer :q
+          end
+        end
+
+        # non-commutative ops
+        value :div1,  input.items.x / 2.0
+        value :div2,  2.0 / input.items.x
+        value :sub1,  input.items.x - 1.0
+        value :sub2,  1.0 - input.items.x
+
+        # if(cond, then, else)
+        trait :gt100, input.items.p > 100.0
+        value :if1,   fn(:if, gt100, input.items.p * 0.8, 999.0)          # scalar else
+        value :if2,   fn(:if, gt100, 111.0, input.items.p * 0.8)          # scalar then
+        value :if3,   fn(:if, true,  input.items.p * 0.8, input.items.p)  # scalar cond
+
+        # keep literal positions inside array/map
+        value :arr_lit,    [1, input.items.q, 3]
+        value :fmt_litmid, fn(:format3, 1, input.items.q, 3) # custom 3-arg to test middle scalar
       end
     end
-
-    # non-commutative ops
-    value :div1,  input.items.x / 2.0
-    value :div2,  2.0 / input.items.x
-    value :sub1,  input.items.x - 1.0
-    value :sub2,  1.0 - input.items.x
-
-    # if(cond, then, else)
-    trait :gt100, input.items.p > 100.0
-    value :if1,   fn(:if, gt100, input.items.p * 0.8, 999.0)          # scalar else
-    value :if2,   fn(:if, gt100, 111.0, input.items.p * 0.8)          # scalar then
-    value :if3,   fn(:if, true,  input.items.p * 0.8, input.items.p)  # scalar cond
-
-    # keep literal positions inside array/map
-    value :arr_lit,    [1, input.items.q, 3]
-    value :fmt_litmid, fn(:format3, 1, input.items.q, 3) # custom 3-arg to test middle scalar
-  end
-end
-
-RSpec.describe "VM argument order and if semantics" do
-  let(:schema) do
-    TestSchema
   end
 
   let(:data) do

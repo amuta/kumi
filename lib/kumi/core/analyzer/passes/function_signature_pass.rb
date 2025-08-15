@@ -48,6 +48,16 @@ module Kumi
 
           def resolve_function_signature(entry, object_id, errors)
             node = entry[:node]
+            metadata = entry[:metadata] || {}
+
+            # Skip signature resolution for cascade_and nodes that will be desugared
+            if metadata[:desugar_to_identity] || metadata[:desugared_to] || metadata[:invalid_cascade_and]
+              if ENV["DEBUG_LOWER"]
+                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared"
+                puts "      metadata: #{metadata.keys.inspect}"
+              end
+              return
+            end
 
             if ENV["DEBUG_LOWER"]
               puts "    resolve_function_signature for #{node.fn_name}"

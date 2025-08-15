@@ -1,3 +1,8 @@
+# Function Registry Configuration
+# 
+# IMPORTANT: After editing this file, run the compliance test to ensure correctness:
+#   bundle exec rspec spec/kumi/config/functions_config_spec.rb
+#
 # ==================== CORE - SCALAR (elementwise) ====================
 
 - name: core.add
@@ -207,6 +212,26 @@
       impl: kumi_not
       priority: 10
 
+- name: core.if
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Ternary conditional with broadcasting of then/else
+  signature:
+    - "(),(),((),()->()"
+    - "(i),(i),(i)->(i)"
+    - "(i),(),()->(i)"
+    - "(),(i),()->(i)"
+    - "(),(),()->()"
+  type_vars: {B: Bool, T: Any, U: Any}
+  dtypes: {result: "unify(T,U)"}
+  null_policy: propagate
+  vectorization: {mask_aware: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_if
+      priority: 10
+
 # ==================== AGGREGATES (reduce last axis in signature) ==============
 
 - name: agg.sum
@@ -262,6 +287,19 @@
   kernels:
     - backend: ruby
       impl: kumi_mean
+      priority: 10
+
+- name: core.any?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  kernels:
+    - backend: ruby
+      impl: kumi_any
       priority: 10
 
 # ==================== STRUCTURE / SHAPE / JOIN ================================
@@ -369,13 +407,17 @@
   domain: string
   opset: 1
   class: scalar
-  signature: ["(),()->()", "(i),(i)->(i)", "(i),(j)->(i,j)@zip"]
-  type_vars: {S1: String, S2: String}
+  signature: ["(),()->()", "(i),(i)->(i)", "(i),(j)->(i,j)@zip", "(),(),()->()", "(i),(i),(i)->(i)"]
+  type_vars: {S1: String, S2: String, S3: String}
   dtypes: {result: "string"}
   null_policy: propagate
   kernels:
     - backend: ruby
       impl: str_concat
+      priority: 10
+    - backend: ruby
+      impl: str_concat_zip
+      when: {policy: zip}
       priority: 10
 
 - name: string.length

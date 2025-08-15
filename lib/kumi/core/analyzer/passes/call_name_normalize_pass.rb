@@ -69,8 +69,11 @@ module Kumi
             when :and, :or, :not
               "core.#{canonical_name}"
             # Collection/array functions
-            when :get, :contains, :sum, :size, :length, :first, :last
+            when :get, :contains, :size, :length, :first, :last
               "array.#{canonical_name}"
+            # Aggregate functions
+            when :sum, :min, :max, :mean
+              "agg.#{canonical_name}"
             # String functions
             when :concat
               "string.#{canonical_name}"
