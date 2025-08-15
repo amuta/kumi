@@ -58,7 +58,7 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
       )
 
       expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Syntax::CallExpression))
-      expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:>=, :>=)
+      expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:ge, :ge)
       expect(schema.traits.map(&:expression).flat_map(&:args).to_set).to contain_exactly(
         be_a(Kumi::Syntax::InputReference),
         be_a(Kumi::Syntax::Literal),
