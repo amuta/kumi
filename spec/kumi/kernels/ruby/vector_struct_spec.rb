@@ -34,6 +34,57 @@ RSpec.describe Kumi::Kernels::Ruby::VectorStruct do
     end
   end
 
+  describe "#array_get" do
+    it 'returns element at index' do
+      expect(described_class.array_get([:a, :b, :c], 1)).to eq(:b)
+      expect(described_class.array_get([:a, :b, :c], 0)).to eq(:a)
+    end
+
+    it 'raises IndexError for out of bounds' do
+      expect { described_class.array_get([:a, :b], 5) }.to raise_error(IndexError)
+      expect { described_class.array_get([:a, :b], -3) }.to raise_error(IndexError)
+    end
+
+    it 'raises IndexError for nil array' do
+      expect { described_class.array_get(nil, 0) }.to raise_error(IndexError, "array is nil")
+    end
+  end
+
+  describe "#struct_get" do
+    it 'returns value for hash key' do
+      expect(described_class.struct_get({a: 1, b: 2}, :a)).to eq(1)
+      expect(described_class.struct_get({a: 1, b: 2}, 'a')).to eq(1)
+    end
+
+    it 'handles string keys in hash' do
+      expect(described_class.struct_get({'name' => 'Alice'}, :name)).to eq('Alice')
+      expect(described_class.struct_get({'name' => 'Alice'}, 'name')).to eq('Alice')
+    end
+
+    it 'raises KeyError for missing key' do
+      expect { described_class.struct_get({a: 1}, :missing) }.to raise_error(KeyError, 'missing key :missing')
+    end
+
+    it 'raises KeyError for nil struct' do
+      expect { described_class.struct_get(nil, :key) }.to raise_error(KeyError, "struct is nil")
+    end
+  end
+
+  describe "#array_contains" do
+    it 'returns true when value is present' do
+      expect(described_class.array_contains([1, 2, 3], 2)).to eq(true)
+      expect(described_class.array_contains([1, nil, 3], nil)).to eq(true)
+    end
+
+    it 'returns false when value is not present' do
+      expect(described_class.array_contains([1, 2, 3], 5)).to eq(false)
+    end
+
+    it 'returns nil when array is nil' do
+      expect(described_class.array_contains(nil, 2)).to be_nil
+    end
+  end
+
   describe "IR/VM operations (stubs)" do
     describe ".join_zip" do
       it "raises NotImplementedError indicating should be in IR/VM" do
@@ -68,24 +119,39 @@ RSpec.describe Kumi::Kernels::Ruby::VectorStruct do
     end
 
     describe ".flatten" do
-      it "raises NotImplementedError indicating should be in IR/VM" do
-        expect {
-          described_class.flatten([[1, 2], [3, 4]])
-        }.to raise_error(NotImplementedError, "flatten should be implemented in IR/VM")
+      it 'flattens exactly one level' do
+        expect(described_class.flatten([[1, 2], [3]])).to eq([1, 2, 3])
+        expect(described_class.flatten([[:a, :b], [:c, :d]])).to eq([:a, :b, :c, :d])
       end
 
-      it "handles variable arguments due to Ruby flatten conflict" do
-        expect {
-          described_class.flatten("any", "args", "work")
-        }.to raise_error(NotImplementedError, "flatten should be implemented in IR/VM")
+      it 'handles nested arrays correctly' do
+        expect(described_class.flatten([[[1, 2]], [[3, 4]]])).to eq([[1, 2], [3, 4]])
+      end
+
+      it 'returns nil for nil input' do
+        expect(described_class.flatten(nil)).to be_nil
       end
     end
 
     describe ".take" do
-      it "raises NotImplementedError indicating should be in IR/VM" do
-        expect {
-          described_class.take([1, 2, 3], [0, 2])
-        }.to raise_error(NotImplementedError, "take should be implemented in IR/VM")
+      it 'takes elements at specified indices (array + array)' do
+        values = [[10, 20], [30, 40]]
+        indices = [1, 0]
+        expect(described_class.take(values, indices)).to eq([20, 30])
+      end
+
+      it 'takes element at single index (array + integer)' do
+        values = [10, 20, 30]
+        expect(described_class.take(values, 1)).to eq(20)
+      end
+
+      it 'raises error for mismatched array lengths' do
+        expect { described_class.take([1, 2], [0, 1, 2]) }.to raise_error(IndexError, "mismatched lengths")
+      end
+
+      it 'raises error for nil inputs' do
+        expect { described_class.take(nil, 0) }.to raise_error(ArgumentError, "nil values")
+        expect { described_class.take([1, 2], nil) }.to raise_error(ArgumentError, "nil indices")
       end
     end
   end

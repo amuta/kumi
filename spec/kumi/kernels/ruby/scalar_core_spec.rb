@@ -95,6 +95,48 @@ RSpec.describe Kumi::Kernels::Ruby::ScalarCore do
     end
   end
 
+  describe ".kumi_mod" do
+    it "computes modulo of two integers" do
+      expect(described_class.kumi_mod(8, 3)).to eq(2)
+      expect(described_class.kumi_mod(10, 5)).to eq(0)
+    end
+
+    it "handles negative numbers" do
+      expect(described_class.kumi_mod(-7, 3)).to eq(2)
+      expect(described_class.kumi_mod(7, -3)).to eq(-2)
+      expect(described_class.kumi_mod(-7, -3)).to eq(-1)
+    end
+
+    it "handles modulo by one" do
+      expect(described_class.kumi_mod(5, 1)).to eq(0)
+      expect(described_class.kumi_mod(0, 1)).to eq(0)
+    end
+  end
+
+  describe ".kumi_pow" do
+    it "computes power of two integers" do
+      expect(described_class.kumi_pow(2, 3)).to eq(8)
+      expect(described_class.kumi_pow(5, 2)).to eq(25)
+    end
+
+    it "handles power of zero and one" do
+      expect(described_class.kumi_pow(5, 0)).to eq(1)
+      expect(described_class.kumi_pow(5, 1)).to eq(5)
+      expect(described_class.kumi_pow(0, 5)).to eq(0)
+      expect(described_class.kumi_pow(1, 5)).to eq(1)
+    end
+
+    it "handles negative exponents" do
+      expect(described_class.kumi_pow(2, -3)).to eq(0.125)
+      expect(described_class.kumi_pow(4, -2)).to eq(0.0625)
+    end
+
+    it "handles float exponents" do
+      expect(described_class.kumi_pow(4, 0.5)).to eq(2.0)
+      expect(described_class.kumi_pow(27, (1.0/3))).to be_within(0.001).of(3.0)
+    end
+  end
+
   describe ".kumi_eq" do
     it "compares equal integers" do
       expect(described_class.kumi_eq(5, 5)).to be true

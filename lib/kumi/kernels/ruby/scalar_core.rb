@@ -22,6 +22,14 @@ module Kumi
           a / b.to_f
         end
 
+        def kumi_mod(a, b)
+          a % b
+        end
+
+        def kumi_pow(a, b)
+          a ** b
+        end
+
         def kumi_eq(a, b)
           a == b
         end

@@ -56,7 +56,8 @@ module Kumi
                 end
 
                 # Skip body when guarded off, but keep indices aligned
-                unless guard_stack.last
+                # EXCEPTION: REF operations must always execute to populate slots for SELECT operations
+                unless guard_stack.last || op.tag == :ref
                   slots << nil if PRODUCES_SLOT.include?(op.tag) || NON_PRODUCERS.include?(op.tag)
                   next
                 end
