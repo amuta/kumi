@@ -147,17 +147,17 @@ RSpec.describe Kumi::Kernels::Ruby::ScalarCore do
     end
   end
 
-  describe ".kumi_gte" do
+  describe ".kumi_ge" do
     it "compares integers" do
-      expect(described_class.kumi_gte(5, 3)).to be true
-      expect(described_class.kumi_gte(3, 5)).to be false
-      expect(described_class.kumi_gte(5, 5)).to be true
+      expect(described_class.kumi_ge(5, 3)).to be true
+      expect(described_class.kumi_ge(3, 5)).to be false
+      expect(described_class.kumi_ge(5, 5)).to be true
     end
 
     it "compares floats" do
-      expect(described_class.kumi_gte(3.5, 2.1)).to be true
-      expect(described_class.kumi_gte(2.1, 3.5)).to be false
-      expect(described_class.kumi_gte(2.5, 2.5)).to be true
+      expect(described_class.kumi_ge(3.5, 2.1)).to be true
+      expect(described_class.kumi_ge(2.1, 3.5)).to be false
+      expect(described_class.kumi_ge(2.5, 2.5)).to be true
     end
   end
 
@@ -169,11 +169,11 @@ RSpec.describe Kumi::Kernels::Ruby::ScalarCore do
     end
   end
 
-  describe ".kumi_lte" do
+  describe ".kumi_le" do
     it "compares integers" do
-      expect(described_class.kumi_lte(3, 5)).to be true
-      expect(described_class.kumi_lte(5, 3)).to be false
-      expect(described_class.kumi_lte(5, 5)).to be true
+      expect(described_class.kumi_le(3, 5)).to be true
+      expect(described_class.kumi_le(5, 3)).to be false
+      expect(described_class.kumi_le(5, 5)).to be true
     end
   end
 

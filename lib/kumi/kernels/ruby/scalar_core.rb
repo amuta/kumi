@@ -30,7 +30,7 @@ module Kumi
           a > b
         end
 
-        def kumi_gte(a, b)
+        def kumi_ge(a, b)
           a >= b
         end
 
@@ -38,7 +38,7 @@ module Kumi
           a < b
         end
 
-        def kumi_lte(a, b)
+        def kumi_le(a, b)
           a <= b
         end
 
