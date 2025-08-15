@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../naming/basename_normalizer"
-
 module Kumi
   module Core
     module Analyzer
@@ -15,9 +13,15 @@ module Kumi
 
             # Process all nodes in the index (which includes all CallExpression nodes after CascadeDesugarPass)
             node_index.each do |object_id, entry|
-              next unless entry[:type] == 'CallExpression'
-              
-              process_call_expression(entry)
+              next unless entry[:type] == "CallExpression"
+
+              begin
+                process_call_expression(entry)
+              rescue StandardError => e
+                # This is early in the pipeline, but we can still provide some context
+                dump_on_fail_early(e, entry)
+                raise # Re-raise to maintain error propagation
+              end
             end
 
             state
@@ -27,35 +31,34 @@ module Kumi
 
           def process_call_expression(entry)
             node = entry[:node]
-            
+
             # Use effective_fn_name from CascadeDesugarPass if available, otherwise use node.fn_name
             before = if entry[:metadata] && entry[:metadata][:effective_fn_name]
-              entry[:metadata][:effective_fn_name]
-            else
-              node.fn_name
-            end
-            
+                       entry[:metadata][:effective_fn_name]
+                     else
+                       node.fn_name
+                     end
+
             # Skip if already processed by CascadeDesugarPass and has qualified_name or skip_signature
             if entry[:metadata] && (entry[:metadata][:qualified_name] || entry[:metadata][:skip_signature])
               reason = entry[:metadata][:qualified_name] ? "already has qualified_name: #{entry[:metadata][:qualified_name]}" : "skip_signature flag set"
-              ENV["DEBUG_NORMALIZE"] && puts("  Skipping call_id=#{node.object_id} raw=#{node.fn_name} - #{reason}")
+              ENV.fetch("DEBUG_NORMALIZE", nil) && puts("  Skipping call_id=#{node.object_id} raw=#{node.fn_name} - #{reason}")
               return
             end
-            
+
             canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
 
             # Resolve canonical name to qualified registry name
             qualified_name = resolve_to_qualified_name(canonical_name, node.args.size)
-            
+
             # Annotate with both canonical and qualified names for downstream passes
             entry[:metadata][:canonical_name] = canonical_name
             entry[:metadata][:qualified_name] = qualified_name
-            
-            if before != canonical_name
-              warn_deprecated(before, canonical_name) if ENV["WARN_DEPRECATED_FUNCS"]
-            end
-            
-            ENV["DEBUG_NORMALIZE"] && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name}")
+
+            warn_deprecated(before, canonical_name) if (before != canonical_name) && ENV.fetch("WARN_DEPRECATED_FUNCS", nil)
+
+            ENV.fetch("DEBUG_NORMALIZE",
+                      nil) && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name}")
           end
 
           def resolve_to_qualified_name(canonical_name, arity = nil)
@@ -65,7 +68,24 @@ module Kumi
           end
 
           def warn_deprecated(before, after)
-            $stderr.puts "[kumi] deprecated function name #{before.inspect} → #{after.inspect}"
+            warn "[kumi] deprecated function name #{before.inspect} → #{after.inspect}"
+          end
+
+          def dump_on_fail_early(e, entry)
+            path = ENV.fetch("DUMP_IR_ON_FAIL", nil)
+            return unless path
+
+            File.open(path, "w") do |io|
+              io.puts("EXCEPTION: #{e.class}: #{e.message}")
+              io.puts("Context: Failed during function name normalization")
+              io.puts("Function: #{entry[:node]&.fn_name}")
+              io.puts("Args: #{entry[:node]&.args&.size}")
+              io.puts("")
+              io.puts("Full error:\n#{e.message}\n#{e.backtrace.join("\n")}")
+              io.puts("")
+              io.puts("-- EARLY FAILURE: No IR available yet --")
+            end
+            warn "IR dump (early failure) written to #{path}"
           end
         end
       end

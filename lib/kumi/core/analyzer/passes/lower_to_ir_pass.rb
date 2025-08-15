@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../../support/ir_dump"
-require_relative "../../ir/lowering/short_circuit_lowerer"
-require_relative "../../ir/lowering/cascade_lowerer"
-
 module Kumi
   module Core
     module Analyzer
@@ -110,6 +106,21 @@ module Kumi
                 location = decl.respond_to?(:loc) ? decl.loc : nil
                 backtrace = e.backtrace.first(5).join("\n")
                 message = "Failed to lower declaration #{name}: #{e.message}\n#{backtrace}"
+
+                # Create partial IR module for failure dump
+                ir_module = Kumi::Core::IR::Module.new(
+                  inputs: input_metadata,
+                  decls: ir_decls
+                )
+                analysis_state = {
+                  evaluation_order: evaluation_order,
+                  access_plans: access_plans,
+                  join_reduce_plans: join_reduce_plans,
+                  vec_meta: @vec_meta,
+                  inferred_types: get_state(:inferred_types, required: false) || {}
+                }
+                dump_on_fail(ir_module, analysis_state, e)
+
                 add_error(errors, location, "Failed to lower declaration #{name}: #{message}")
               end
             end
@@ -136,24 +147,19 @@ module Kumi
               end
             end
 
-            if ENV["DUMP_IR"]
-              # Collect analysis state that this pass actually uses
-              analysis_state = {
-                evaluation_order: evaluation_order,
-                declarations: declarations,
-                access_plans: access_plans,
-                join_reduce_plans: join_reduce_plans,
-                scope_plans: scope_plans,
-                input_metadata: input_metadata,
-                vec_names: @vec_names,
-                vec_meta: @vec_meta,
-                inferred_types: get_state(:inferred_types, required: false) || {}
-              }
+            analysis_state = {
+              evaluation_order: evaluation_order,
+              declarations: declarations,
+              access_plans: access_plans,
+              join_reduce_plans: join_reduce_plans,
+              scope_plans: scope_plans,
+              input_metadata: input_metadata,
+              vec_names: @vec_names,
+              vec_meta: @vec_meta,
+              inferred_types: get_state(:inferred_types, required: false) || {}
+            }
 
-              pretty_ir = Kumi::Support::IRDump.pretty_print(ir_module, analysis_state: analysis_state)
-              File.write(ENV["DUMP_IR"], pretty_ir)
-              puts "DEBUG IR dumped to #{ENV['DUMP_IR']}"
-            end
+            maybe_dump_ir(ir_module, analysis_state)
 
             state.with(:ir_module, ir_module)
           end
@@ -251,11 +257,11 @@ module Kumi
             carrier_slot  = arg_slots[carrier_i]
 
             aligned = arg_slots.dup
-            
+
             # Separate vectors into prefix-compatible and cross-scope groups
             prefix_compatible = []
             cross_scope_slots = []
-            
+
             vec_is.each do |i|
               next if shapes[i].scope == carrier_scope
 
@@ -268,7 +274,7 @@ module Kumi
                 cross_scope_slots << aligned[i]
               end
             end
-            
+
             # Handle prefix-compatible vectors with AlignTo
             prefix_compatible.each do |i|
               src_slot = aligned[i] # <- chain on the current slot, not the original
@@ -279,7 +285,7 @@ module Kumi
               ops << op
               aligned[i] = ops.size - 1
             end
-            
+
             # Handle cross-scope vectors with Join
             if cross_scope_slots.any?
               # Collect all cross-scope vector slots that need joining
@@ -287,18 +293,19 @@ module Kumi
               vec_is.each do |i|
                 next if shapes[i].scope == carrier_scope
                 next if prefix_compatible.include?(i)
+
                 cross_scope_indices << i
               end
-              
+
               # Add carrier to the list of slots to join
               carrier_i = vec_is.find { |i| shapes[i].scope == carrier_scope }
               join_slots = [aligned[carrier_i]] + cross_scope_indices.map { |i| aligned[i] }
-              
+
               # Emit Join operation with zip policy
               join_op = Kumi::Core::IR::Ops.Join(*join_slots, policy: :zip, on_missing: on_missing)
               ops << join_op
               joined_slot = ops.size - 1
-              
+
               # Create extract operations to decompose the joined result
               # Each original argument gets its own extract operation
               participating_indices = [carrier_i] + cross_scope_indices
@@ -440,7 +447,7 @@ module Kumi
               when Syntax::InputReference
                 plan_id = pick_plan_id_for_input([expr.name], access_plans,
                                                  scope_plan: scope_plan, need_indices: need_indices)
-                
+
                 plans    = access_plans.fetch(expr.name.to_s, [])
                 selected = plans.find { |p| p.accessor_key == plan_id }
                 scope    = selected ? selected.scope : []
@@ -495,30 +502,24 @@ module Kumi
                 if node_index && (ni = node_index[expr.object_id])
                   meta = ni[:metadata] || {}
 
-                  if meta[:invalid_cascade_and]
-                    raise Kumi::Core::Errors::SemanticError, "Invalid cascade condition (empty cascade_and)"
-                  end
+                  raise Kumi::Core::Errors::SemanticError, "Invalid cascade condition (empty cascade_and)" if meta[:invalid_cascade_and]
 
                   if meta[:desugar_to_identity]
                     # Lower the single argument directly; no call emitted
-                    if ENV["DEBUG_LOWER"]
-                      puts("  Lower call_id=#{expr.object_id} cascade_and desugar=identity -> lowering_arg_directly")
-                    end
+                    puts("  Lower call_id=#{expr.object_id} cascade_and desugar=identity -> lowering_arg_directly") if ENV["DEBUG_LOWER"]
                     return lower_expression(meta[:identity_arg], ops, access_plans, scope_plan,
                                             need_indices, required_scope, cacheable: cacheable)
                   end
 
                   if meta[:desugared_to] == :and
                     # Override function name for multi-arg cascade_and -> core.and
-                    if ENV["DEBUG_LOWER"]
-                      puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and")
-                    end
+                    puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and") if ENV["DEBUG_LOWER"]
                     expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
                   end
                 end
 
                 qualified_fn_name = get_qualified_function_name(expr)
-                
+
                 # Get function info from metadata and RegistryV2
                 node_index = get_state(:node_index)
                 entry_metadata = node_index&.dig(expr.object_id, :metadata) || {}
@@ -544,9 +545,7 @@ module Kumi
                   puts "    has_short_circuit?: #{short_circuit_lowerer.short_circuit?(qualified_fn_name)}"
                 end
                 if short_circuit_lowerer.short_circuit?(qualified_fn_name)
-                  if ENV["DEBUG_LOWER"]
-                    puts "    -> ROUTING TO short_circuit_lowerer"
-                  end
+                  puts "    -> ROUTING TO short_circuit_lowerer" if ENV["DEBUG_LOWER"]
                   return lower_short_circuit_bool(expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
                 end
 
@@ -632,12 +631,12 @@ module Kumi
 
                 # Non-reducer: pointwise. Choose carrier = deepest vec among args.
                 target = infer_expr_scope(expr, access_plans) # static, no ops emitted
-                
+
                 # 0) collect signature metadata (if present)
                 node_index = get_state(:node_index, required: false)
                 node_meta  = node_index && node_index[expr.object_id] && node_index[expr.object_id][:metadata]
                 join_policy = node_meta && node_meta[:join_policy] # nil | :zip | :product
-                
+
                 if ENV["DEBUG_LOWER"]
                   puts "    node_index available: #{!!node_index}"
                   puts "    node_meta: #{node_meta.inspect}" if node_meta
@@ -994,7 +993,7 @@ module Kumi
             node_index = get_state(:node_index)
             entry_metadata = node_index&.dig(ce.object_id, :metadata) || {}
             fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(ce, entry_metadata)
-            
+
             fn_class == :aggregate && fn_class != :structure
           end
 
@@ -1008,7 +1007,7 @@ module Kumi
                 node_index = get_state(:node_index)
                 entry_metadata = node_index&.dig(arg.object_id, :metadata) || {}
                 fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(arg, entry_metadata)
-                
+
                 return true if fn_class == :aggregate
 
                 has_nested_reducer?(arg) # recursive check
@@ -1028,7 +1027,7 @@ module Kumi
                 node_index = get_state(:node_index)
                 entry_metadata = node_index&.dig(arg.object_id, :metadata) || {}
                 fn_class = entry_metadata[:fn_class] || get_function_class_for_expr(arg, entry_metadata)
-                
+
                 return arg if fn_class == :aggregate
 
                 nested = find_nested_reducer_arg(arg)
@@ -1048,7 +1047,11 @@ module Kumi
             fn_class
           rescue KeyError => e
             if ENV["DEBUG_LOWER"]
-              puts("  Lower call_id=#{expr.object_id rescue 'unknown'} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
+              puts("  Lower call_id=#{begin
+                expr.object_id
+              rescue StandardError
+                'unknown'
+              end} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
             end
             :scalar # Default to scalar for unknown functions
           end
@@ -1167,49 +1170,47 @@ module Kumi
             return false unless entry&.fn # Skip if function not found
             return false if entry.reducer # Skip reducer functions for now
             return false if expr.args.empty? # Need at least one argument
-            
+
             # Check if all arguments are literals
             expr.args.all? { |arg| arg.is_a?(Syntax::Literal) }
           end
 
           def validate_signature_metadata(expr, entry)
-            # Get the node index to access signature metadata  
+            # Get the node index to access signature metadata
             node_index = get_state(:node_index, required: false)
             return unless node_index
-            
+
             node_entry = node_index[expr.object_id]
             return unless node_entry
-            
+
             metadata = node_entry[:metadata]
             return unless metadata
-            
+
             # Validate that dropped axes make sense for reduction functions
             if entry&.reducer && metadata[:dropped_axes]
-              dropped_axes = metadata[:dropped_axes] 
+              dropped_axes = metadata[:dropped_axes]
               unless dropped_axes.is_a?(Array)
                 raise "Invalid dropped_axes metadata for reducer #{expr.fn_name}: expected Array, got #{dropped_axes.class}"
               end
-              
+
               # For reductions, we should have at least one dropped axis (or empty for scalar reductions)
-              if ENV["DEBUG_LOWER"]
-                puts "  SIGNATURE[#{expr.fn_name}] dropped_axes: #{dropped_axes.inspect}"
-              end
+              puts "  SIGNATURE[#{expr.fn_name}] dropped_axes: #{dropped_axes.inspect}" if ENV["DEBUG_LOWER"]
             end
-            
+
             # Validate join_policy is recognized
-            if metadata[:join_policy] && ![:zip, :product].include?(metadata[:join_policy])
+            if metadata[:join_policy] && !%i[zip product].include?(metadata[:join_policy])
               raise "Invalid join_policy for #{expr.fn_name}: #{metadata[:join_policy].inspect}"
             end
-            
-            # Warn about join_policy when no join op exists yet (future integration point)  
-            if metadata[:join_policy] && ENV["DEBUG_LOWER"]
-              puts "  SIGNATURE[#{expr.fn_name}] join_policy: #{metadata[:join_policy]} (join op not yet implemented)"
-            end
+
+            # Warn about join_policy when no join op exists yet (future integration point)
+            return unless metadata[:join_policy] && ENV["DEBUG_LOWER"]
+
+            puts "  SIGNATURE[#{expr.fn_name}] join_policy: #{metadata[:join_policy]} (join op not yet implemented)"
           end
 
           def constant_fold(expr, entry)
             literal_values = expr.args.map(&:value)
-            
+
             begin
               # Call the function with literal values at compile time
               entry.fn.call(*literal_values)
@@ -1225,26 +1226,25 @@ module Kumi
           def get_qualified_function_name(expr)
             node_index = get_state(:node_index)
             return expr.fn_name unless node_index
-            
+
             entry = node_index[expr.object_id]
             return expr.fn_name unless entry && entry[:metadata]
-            
+
             # Use qualified name from CallNameNormalizePass or effective name from CascadeDesugarPass
             entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || expr.fn_name
           end
 
-
           # Trait-driven short-circuit lowering using the dedicated ShortCircuitLowerer
           def lower_short_circuit_bool(expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
             qualified_fn_name = get_qualified_function_name(expr)
-            
+
             # Create lowerer lambda that captures the current context
             lowerer = lambda do |sub_expr, sub_ops, **opts|
               # Filter out unknown keywords for lower_expression
               valid_opts = opts.slice(:cacheable)
               lower_expression(sub_expr, sub_ops, access_plans, scope_plan, need_indices, required_scope, **valid_opts)
             end
-            
+
             # Delegate to the dedicated lowering module
             short_circuit_lowerer.lower_expression!(
               expr: expr,
@@ -1255,6 +1255,33 @@ module Kumi
             )
           end
 
+          def maybe_dump_ir(ir_module, analysis_state)
+            path = ENV.fetch("DUMP_IR", nil)
+            return unless path
+
+            Kumi::Support::IRDump.dump(
+              ir_module,
+              analysis_state: analysis_state,
+              to: File.open(path, "w"),
+              format: ENV["DUMP_IR_FMT"]&.to_sym || :text,
+              opts: {
+                show_inputs: ENV["DUMP_IR_SHOW_INPUTS"] != "0",
+                annotators: (ENV["DUMP_IR_ANN"] ? ENV["DUMP_IR_ANN"].split(",").map(&:to_sym) : %i[plans types op_counts vec_twins])
+              }
+            )
+            puts "DEBUG IR dumped to #{path}"
+          end
+
+          def dump_on_fail(ir_module, analysis_state, e)
+            path = ENV.fetch("DUMP_IR_ON_FAIL", nil)
+            return unless path
+
+            File.open(path, "w") do |io|
+              io.puts("EXCEPTION: #{e.class}: #{e.message}\n\n")
+              Kumi::Support::IRDump.dump(ir_module, analysis_state: analysis_state, to: io)
+            end
+            warn "IR dump (failure) written to #{path}"
+          end
         end
       end
     end
