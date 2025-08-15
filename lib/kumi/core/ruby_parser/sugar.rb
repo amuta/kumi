@@ -42,7 +42,8 @@ module Kumi
 
         # Create a call expression with consistent error handling
         def self.create_call_expression(fn_name, args)
-          Kumi::Syntax::CallExpression.new(fn_name, args)
+          normalized_name = Kumi::Core::Naming::BasenameNormalizer.normalize(fn_name)
+          Kumi::Syntax::CallExpression.new(normalized_name, args)
         end
 
         module ExpressionRefinement

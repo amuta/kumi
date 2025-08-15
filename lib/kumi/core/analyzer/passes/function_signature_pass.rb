@@ -54,7 +54,7 @@ module Kumi
             end
 
             # 1) Gather candidate signatures from current registry
-            sig_strings = get_function_signatures(node)
+            sig_strings = get_function_signatures(entry)
             if ENV["DEBUG_LOWER"]
               puts "      Found signatures: #{sig_strings.inspect}"
             end
@@ -111,22 +111,24 @@ module Kumi
             end
           end
 
-          def get_function_signatures(node)
+          def get_function_signatures(entry)
+            # Use qualified name from CallNameNormalizePass if available, otherwise node fn_name
+            qualified_name = entry[:metadata][:qualified_name] || entry[:node].fn_name
             # Use RegistryV2 only - no fallback to legacy registry
-            registry_v2_signatures(node)
+            registry_v2_signatures(qualified_name)
           end
 
-          def registry_v2_signatures(node)
+          def registry_v2_signatures(fn_name)
             if ENV["DEBUG_LOWER"]
-              puts "        registry_v2_signatures for #{node.fn_name}"
+              puts "        registry_v2_signatures for #{fn_name}"
               puts "          Available functions: #{registry_v2.all_function_names.first(10).inspect}..."
-              puts "          Function exists?: #{registry_v2.function_exists?(node.fn_name.to_s)}"
+              puts "          Function exists?: #{registry_v2.function_exists?(fn_name.to_s)}"
             end
             
             # Debug the fetch process step by step
             if ENV["DEBUG_LOWER"]
               begin
-                fn = registry_v2.fetch(node.fn_name)
+                fn = registry_v2.fetch(fn_name)
                 puts "          Fetched function: #{fn.class}"
                 puts "          Function name: #{fn.name}" if fn.respond_to?(:name)
                 puts "          Signatures count: #{fn.signatures.length}" if fn.respond_to?(:signatures)
@@ -141,14 +143,14 @@ module Kumi
               end
             end
             
-            result = registry_v2.get_function_signatures(node.fn_name)
+            result = registry_v2.get_function_signatures(fn_name)
             
             if ENV["DEBUG_LOWER"]
               puts "          Direct lookup result: #{result.inspect}"
             end
             
             if result.empty?
-              raise "No signatures found for #{node.fn_name} in RegistryV2 - function must be properly defined"
+              raise "No signatures found for #{fn_name} in RegistryV2 - function must be properly defined"
             end
             
             result
