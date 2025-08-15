@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bigdecimal"
+
 module Kumi
   module Core
     module RubyParser
@@ -7,14 +9,17 @@ module Kumi
         include Syntax
 
         ARITHMETIC_OPS = {
-          :+ => :add, :- => :subtract, :* => :multiply,
-          :/ => :divide, :% => :modulo, :** => :power
+          :+ => :add, :- => :sub, :* => :mul,
+          :/ => :div, :% => :mod, :** => :pow
         }.freeze
 
-        COMPARISON_OPS = %i[< <= > >= == !=].freeze
+        COMPARISON_MAP = {
+          :== => :eq, :!= => :ne, :< => :lt,
+          :<= => :le, :> => :gt, :>= => :ge
+        }.freeze
 
         LITERAL_TYPES = [
-          Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp, NilClass
+          Integer, String, Symbol, TrueClass, FalseClass, Float, Regexp, NilClass, BigDecimal
         ].freeze
 
         # Collection methods that can be applied to arrays/syntax nodes
@@ -51,21 +56,21 @@ module Kumi
             end
 
             # Comparison operations
-            COMPARISON_OPS.each do |op|
+            COMPARISON_MAP.each do |op, op_name|
               define_method(op) do |other|
                 other_node = Sugar.ensure_literal(other)
-                Sugar.create_call_expression(op, [self, other_node])
+                Sugar.create_call_expression(op_name, [self, other_node])
               end
             end
 
             # Array access
             def [](index)
-              Sugar.create_call_expression(:at, [self, Sugar.ensure_literal(index)])
+              Sugar.create_call_expression(:get, [self, Sugar.ensure_literal(index)])
             end
 
             # Unary minus
             def -@
-              Sugar.create_call_expression(:subtract, [Sugar.ensure_literal(0), self])
+              Sugar.create_call_expression(:sub, [Sugar.ensure_literal(0), self])
             end
 
             # Logical operations
@@ -88,7 +93,7 @@ module Kumi
 
             # Special case: include? takes an element argument
             def include?(element)
-              Sugar.create_call_expression(:include?, [self, Sugar.ensure_literal(element)])
+              Sugar.create_call_expression(:contains, [self, Sugar.ensure_literal(element)])
             end
           end
         end
@@ -109,11 +114,11 @@ module Kumi
               end
 
               # Comparison operations with syntax expressions
-              COMPARISON_OPS.each do |op|
+              COMPARISON_MAP.each do |op, op_name|
                 define_method(op) do |other|
                   if Sugar.syntax_expression?(other)
                     other_node = Sugar.ensure_literal(other)
-                    Sugar.create_call_expression(op, [Kumi::Syntax::Literal.new(self), other_node])
+                    Sugar.create_call_expression(op_name, [Kumi::Syntax::Literal.new(self), other_node])
                   else
                     super(other)
                   end
@@ -134,11 +139,11 @@ module Kumi
               end
             end
 
-            %i[== !=].each do |op|
+            [[:==, :eq], [:!=, :ne]].each do |op, op_name|
               define_method(op) do |other|
                 if Sugar.syntax_expression?(other)
                   other_node = Sugar.ensure_literal(other)
-                  Sugar.create_call_expression(op, [Kumi::Syntax::Literal.new(self), other_node])
+                  Sugar.create_call_expression(op_name, [Kumi::Syntax::Literal.new(self), other_node])
                 else
                   super(other)
                 end
@@ -179,8 +184,17 @@ module Kumi
               define_array_syntax_method(method_name)
             end
 
-            # Define methods with arguments
-            define_array_syntax_method(:include?, has_argument: true)
+            # Define methods with arguments - use :contains internally
+            define_method(:include?) do |*args|
+              if any_syntax_expressions?
+                array_literal = to_syntax_list
+                call_args = [array_literal]
+                call_args.concat(args.map { |arg| Sugar.ensure_literal(arg) })
+                Sugar.create_call_expression(:contains, call_args)
+              else
+                super(*args)
+              end
+            end
           end
         end
 
@@ -222,11 +236,11 @@ module Kumi
               end
 
               # Comparison operations (including == and != that don't work with refinements)
-              COMPARISON_OPS.each do |op|
+              COMPARISON_MAP.each do |op, op_name|
                 define_method(op) do |other|
                   ast_node = to_ast_node
                   other_node = Sugar.ensure_literal(other)
-                  Sugar.create_call_expression(op, [ast_node, other_node])
+                  Sugar.create_call_expression(op_name, [ast_node, other_node])
                 end
               end
 
@@ -246,20 +260,20 @@ module Kumi
               # Array access
               define_method(:[]) do |index|
                 ast_node = to_ast_node
-                Sugar.create_call_expression(:at, [ast_node, Sugar.ensure_literal(index)])
+                Sugar.create_call_expression(:get, [ast_node, Sugar.ensure_literal(index)])
               end
 
               # Unary minus
               define_method(:-@) do
                 ast_node = to_ast_node
-                Sugar.create_call_expression(:subtract, [Sugar.ensure_literal(0), ast_node])
+                Sugar.create_call_expression(:sub, [Sugar.ensure_literal(0), ast_node])
               end
 
-              # Override Ruby's built-in nil? method to transform into == nil
+              # Override Ruby's built-in nil? method to transform into eq(nil)
               define_method(:nil?) do
                 ast_node = to_ast_node
                 nil_literal = Kumi::Syntax::Literal.new(nil)
-                Sugar.create_call_expression(:==, [ast_node, nil_literal])
+                Sugar.create_call_expression(:eq, [ast_node, nil_literal])
               end
             end
           end
