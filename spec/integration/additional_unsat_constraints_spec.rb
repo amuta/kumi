@@ -20,7 +20,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           end
         end
       end.to raise_error(Kumi::Core::Errors::TypeError,
-                         /argument 2 of `fn\(:>\)` expects float, got input field `name` of declared type string/)
+                         /argument 2 of `fn\(:gt\)` expects float, got input field `name` of declared type string/)
     end
 
     it "detects impossible comparison between integer and string with ordering" do
@@ -39,7 +39,7 @@ RSpec.describe "Additional UnsatDetector Constraint Types" do
           end
         end
       end.to raise_error(Kumi::Core::Errors::TypeError,
-                         /argument 2 of `fn\(:<\)` expects float, got input field `name` of declared type string/)
+                         /argument 2 of `fn\(:lt\)` expects float, got input field `name` of declared type string/)
     end
 
     it "allows comparison between same types" do

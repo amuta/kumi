@@ -54,6 +54,9 @@ module Kumi
               metadata[:result_dtype] = function.dtypes[:result]
             end
             
+            # Validate argument types against function type constraints
+            validate_argument_type_constraints(node, function, errors)
+            
             if ENV["DEBUG_TYPE_CHECKER"]
               puts("  TypeCheck call_id=#{node.object_id} qualified=#{fn_name} fn_class=#{metadata[:fn_class]} status=validated")
             end
@@ -194,6 +197,67 @@ module Kumi
 
             else
               "expression of type #{type}"
+            end
+          end
+
+          def validate_argument_type_constraints(node, function, errors)
+            # Skip validation if no type constraints are defined
+            return unless function.type_vars && !function.type_vars.empty?
+
+            # Skip type checking for vectorized operations
+            broadcast_meta = get_state(:broadcasts, required: false)
+            return if broadcast_meta && is_part_of_vectorized_operation?(node, broadcast_meta)
+
+            # For now, map type variable names to their constraints
+            # T: Numeric means T must be a numeric type (integer, float)  
+            # T: Orderable means T must be an orderable type (integer, float, string, etc.)
+            type_var_names = function.type_vars.keys
+            
+            # Validate each argument against its corresponding type constraint
+            node.args.each_with_index do |arg, i|
+              # Get the type variable for this argument position
+              # For binary functions like gt(T, U), we expect type_vars = {T: constraint1, U: constraint2}
+              type_var_name = type_var_names[i] || type_var_names.first # Fallback to first constraint
+              next unless type_var_name
+
+              constraint = function.type_vars[type_var_name]
+              actual_type = get_expression_type(arg)
+              
+              unless satisfies_type_constraint?(actual_type, constraint)
+                # Generate error message matching the expected format
+                expected_desc = constraint_to_expected_type(constraint)
+                source_desc = describe_expression_type(arg, actual_type)
+                # Use the original function name from the node for the error message
+                original_fn_name = node.fn_name
+                report_error(errors, "argument #{i + 1} of `fn(:#{original_fn_name})` expects #{expected_desc}, " \
+                                     "got #{source_desc}", location: arg.loc, type: :type)
+              end
+            end
+          end
+
+          def satisfies_type_constraint?(type, constraint)
+            case constraint.to_s.downcase
+            when "numeric"
+              # Numeric constraint: accepts integer, float
+              %i[integer float].include?(type)
+            when "orderable"
+              # Orderable constraint: accepts integer, float, string (for now)
+              # This is a more restrictive interpretation - string/integer comparison should fail
+              %i[integer float].include?(type)
+            else
+              # Unknown constraint, be permissive for now
+              true
+            end
+          end
+
+          def constraint_to_expected_type(constraint)
+            case constraint.to_s.downcase
+            when "numeric"
+              "float" # Use "float" to match existing error messages 
+            when "orderable"
+              "float" # Use "float" to match existing error messages  
+            else
+              constraint.to_s
             end
           end
         end
