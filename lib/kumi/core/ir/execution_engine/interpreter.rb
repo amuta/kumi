@@ -6,7 +6,7 @@ module Kumi
       module ExecutionEngine
         # Interpreter for IR modules - thin layer that delegates to combinators
         module Interpreter
-          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch join].freeze
+          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch join select].freeze
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
 
           def self.run(ir_module, ctx, accessors:, registry:)
@@ -352,6 +352,76 @@ module Kumi
                   
                   src = slots[src_slot]
                   result = Combinators.project(src, index)
+                  slots << result
+
+                when :select
+                  cond_slot, then_slot, else_slot = op.args
+                  
+                  # Validate slot indices
+                  [cond_slot, then_slot, else_slot].each_with_index do |slot_idx, i|
+                    arg_names = %w[condition then else]
+                    if slot_idx >= slots.length
+                      raise "Select operation: #{arg_names[i]} slot #{slot_idx} out of bounds (slots.length=#{slots.length})"
+                    elsif slots[slot_idx].nil?
+                      raise "Select operation: #{arg_names[i]} slot #{slot_idx} is nil"
+                    end
+                  end
+                  
+                  cond = slots[cond_slot]
+                  then_val = slots[then_slot]
+                  else_val = slots[else_slot]
+                  
+                  # Apply current guard mask
+                  current_guard = guard_stack.last
+                  
+                  result = case cond[:k]
+                          when :scalar
+                            # Scalar condition: choose entire then or else branch
+                            chosen = (current_guard == true || (current_guard.is_a?(Hash) && current_guard[:k] == :scalar && current_guard[:v])) && 
+                                    cond[:v] ? then_val : else_val
+                            chosen
+                          when :vec
+                            # Vector condition: zip on scope; pick then[row] or else[row] per row
+                            unless then_val[:k] == :vec && else_val[:k] == :vec
+                              raise "Select with vector condition requires vector then/else branches"
+                            end
+                            
+                            # Ensure all vectors have same scope and length
+                            if cond[:scope] != then_val[:scope] || cond[:scope] != else_val[:scope]
+                              raise "Select vectors must have same scope: cond=#{cond[:scope]}, then=#{then_val[:scope]}, else=#{else_val[:scope]}"
+                            end
+                            
+                            if cond[:rows].length != then_val[:rows].length || cond[:rows].length != else_val[:rows].length
+                              raise "Select vectors must have same length: cond=#{cond[:rows].length}, then=#{then_val[:rows].length}, else=#{else_val[:rows].length}"
+                            end
+                            
+                            selected_rows = cond[:rows].zip(then_val[:rows], else_val[:rows]).map do |c_row, t_row, e_row|
+                              # Apply guard mask
+                              if current_guard == true || (current_guard.is_a?(Hash) && current_guard[:k] == :scalar && current_guard[:v])
+                                # No guard restriction, use condition
+                                chosen_row = c_row[:v] ? t_row : e_row
+                              elsif current_guard.is_a?(Hash) && current_guard[:k] == :vec
+                                # Vector guard: check if this row is guarded
+                                guard_row = current_guard[:rows].find { |gr| gr[:idx] == c_row[:idx] }
+                                if guard_row && guard_row[:v]
+                                  # Guard allows, use condition
+                                  chosen_row = c_row[:v] ? t_row : e_row
+                                else
+                                  # Guard blocks, skip (use else as default)
+                                  chosen_row = e_row
+                                end
+                              else
+                                # Guard is false, skip (use else as default)
+                                chosen_row = e_row
+                              end
+                              chosen_row
+                            end
+                            
+                            Values.vec(cond[:scope], selected_rows, cond[:has_idx])
+                          else
+                            raise "Select condition must be scalar or vector, got #{cond[:k]}"
+                          end
+                  
                   slots << result
 
                 else

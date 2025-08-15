@@ -31,11 +31,12 @@ module Kumi
           end
 
           def get_function_signature(node, errors)
-            Kumi::Registry.signature(node.fn_name)
-          rescue Kumi::Errors::UnknownFunction
-            # Use old format for backward compatibility, but node.loc provides better location
-            report_error(errors, "unsupported operator `#{node.fn_name}`", location: node.loc, type: :type)
-            nil
+            # Skip function signature validation in TypeChecker since it runs before
+            # the proper function resolution in FunctionSignaturePass. The real function
+            # validation happens there with RegistryV2 and qualified names.
+            # 
+            # For now, return a permissive signature to allow type checking to proceed
+            return { arity: -1, param_types: [], return_type: :any }
           end
 
           def validate_arity(node, signature, errors)

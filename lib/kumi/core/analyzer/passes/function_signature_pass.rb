@@ -94,8 +94,10 @@ module Kumi
               if ENV["DEBUG_LOWER"]
                 puts "      Signature resolution failed: #{e.message}"
               end
+              # Use qualified name for error message if available
+              effective_name = entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || node.fn_name
               report_error(errors, 
-                          "Signature mismatch for `#{node.fn_name}` with args #{format_shapes(arg_shapes)}. Candidates: #{format_sigs(sig_strings)}. #{e.message}",
+                          "Signature mismatch for `#{effective_name}` with args #{format_shapes(arg_shapes)}. Candidates: #{format_sigs(sig_strings)}. #{e.message}",
                           location: node.loc, type: :type)
               return
             end
@@ -112,8 +114,9 @@ module Kumi
           end
 
           def get_function_signatures(entry)
-            # Use qualified name from CallNameNormalizePass if available, otherwise node fn_name
-            qualified_name = entry[:metadata][:qualified_name] || entry[:node].fn_name
+            # Use effective function name (from CascadeDesugarPass) or qualified name or node fn_name
+            effective_name = entry[:metadata][:effective_fn_name] || entry[:node].fn_name
+            qualified_name = entry[:metadata][:qualified_name] || effective_name
             # Use RegistryV2 only - no fallback to legacy registry
             registry_v2_signatures(qualified_name)
           end

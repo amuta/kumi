@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../../../support/ir_dump"
+require_relative "../../ir/lowering/short_circuit_lowerer"
 
 module Kumi
   module Core
@@ -157,6 +158,17 @@ module Kumi
           end
 
           private
+
+          def short_circuit_lowerer
+            @short_circuit_lowerer ||= Kumi::Core::IR::Lowering::ShortCircuitLowerer.new(
+              shape_of: ->(slot) { determine_slot_shape(slot, [], {}) },
+              registry: registry_v2
+            )
+          end
+
+          def registry_v2
+            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
+          end
 
           def determine_slot_shape(slot, ops, access_plans)
             return SlotShape.scalar if slot.nil?
@@ -471,7 +483,8 @@ module Kumi
                 end
 
               when Syntax::CallExpression
-                entry = Kumi::Registry.entry(expr.fn_name)
+                qualified_fn_name = get_qualified_function_name(expr)
+                entry = Kumi::Registry.entry(qualified_fn_name)
 
                 # Validate signature metadata from FunctionSignaturePass (read-only assertions)
                 validate_signature_metadata(expr, entry)
@@ -481,6 +494,12 @@ module Kumi
                   folded_value = constant_fold(expr, entry)
                   ops << Kumi::Core::IR::Ops.Const(folded_value)
                   return ops.size - 1
+                end
+
+                # Trait-driven short-circuit lowering for and/or
+                qualified_fn_name = get_qualified_function_name(expr)
+                if short_circuit_lowerer.short_circuit?(qualified_fn_name)
+                  return lower_short_circuit_bool(expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
                 end
 
                 if ENV["DEBUG_LOWER"] && has_nested_reducer?(expr)
@@ -521,7 +540,8 @@ module Kumi
                   end
 
                   aligned = target_scope.empty? ? arg_slots : insert_align_to_if_needed(arg_slots, ops, access_plans, on_missing: :error)
-                  ops << Kumi::Core::IR::Ops.Map(expr.fn_name, expr.args.size, *aligned)
+                  qualified_fn_name = get_qualified_function_name(expr)
+                  ops << Kumi::Core::IR::Ops.Map(qualified_fn_name, expr.args.size, *aligned)
                   return ops.size - 1
 
                 elsif entry&.reducer
@@ -553,7 +573,8 @@ module Kumi
                     end
                     return emit_reduce(ops, expr.fn_name, src_slot, src_shape.scope, required_scope)
                   else
-                    ops << Kumi::Core::IR::Ops.Map(expr.fn_name, arg_slots.size, *arg_slots)
+                    qualified_fn_name = get_qualified_function_name(expr)
+                    ops << Kumi::Core::IR::Ops.Map(qualified_fn_name, arg_slots.size, *arg_slots)
                     return ops.size - 1
                   end
                 end
@@ -591,7 +612,8 @@ module Kumi
                 end
 
                 # 3) map
-                ops << Kumi::Core::IR::Ops.Map(expr.fn_name, expr.args.size, *aligned)
+                qualified_fn_name = get_qualified_function_name(expr)
+                ops << Kumi::Core::IR::Ops.Map(qualified_fn_name, expr.args.size, *aligned)
                 ops.size - 1
 
               when Syntax::ArrayExpression
@@ -1121,6 +1143,40 @@ module Kumi
               puts "Constant folding failed for #{expr.fn_name}: #{e.message}" if ENV["DEBUG_LOWER"]
               raise "Cannot constant fold #{expr.fn_name}: #{e.message}"
             end
+          end
+
+          # Get the qualified function name from metadata, fallback to node fn_name
+          def get_qualified_function_name(expr)
+            node_index = get_state(:node_index)
+            return expr.fn_name unless node_index
+            
+            entry = node_index[expr.object_id]
+            return expr.fn_name unless entry && entry[:metadata]
+            
+            # Use qualified name from CallNameNormalizePass or effective name from CascadeDesugarPass
+            entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || expr.fn_name
+          end
+
+
+          # Trait-driven short-circuit lowering using the dedicated ShortCircuitLowerer
+          def lower_short_circuit_bool(expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
+            qualified_fn_name = get_qualified_function_name(expr)
+            
+            # Create lowerer lambda that captures the current context
+            lowerer = lambda do |sub_expr, sub_ops, **opts|
+              # Filter out unknown keywords for lower_expression
+              valid_opts = opts.slice(:cacheable)
+              lower_expression(sub_expr, sub_ops, access_plans, scope_plan, need_indices, required_scope, **valid_opts)
+            end
+            
+            # Delegate to the dedicated lowering module
+            short_circuit_lowerer.lower_expression!(
+              expr: expr,
+              ops: ops,
+              lowerer: lowerer,
+              qualified_fn_name: qualified_fn_name,
+              cacheable: cacheable
+            )
           end
 
         end

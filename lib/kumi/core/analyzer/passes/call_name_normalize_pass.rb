@@ -13,28 +13,49 @@ module Kumi
           def run(errors)
             node_index = get_state(:node_index, required: true)
 
+            # Process all nodes in the index (which includes all CallExpression nodes after CascadeDesugarPass)
             node_index.each do |object_id, entry|
               next unless entry[:type] == 'CallExpression'
-              node = entry[:node]
-              before = node.fn_name
-              canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
-
-              # Resolve canonical name to qualified registry name
-              qualified_name = resolve_to_qualified_name(canonical_name)
               
-              # Annotate with both canonical and qualified names for downstream passes
-              entry[:metadata][:canonical_name] = canonical_name
-              entry[:metadata][:qualified_name] = qualified_name
-              
-              if before != canonical_name
-                warn_deprecated(before, canonical_name) if ENV["WARN_DEPRECATED_FUNCS"]
-              end
+              process_call_expression(entry)
             end
 
             state
           end
 
           private
+
+          def process_call_expression(entry)
+            node = entry[:node]
+            
+            # Use effective_fn_name from CascadeDesugarPass if available, otherwise use node.fn_name
+            before = if entry[:metadata] && entry[:metadata][:effective_fn_name]
+              entry[:metadata][:effective_fn_name]
+            else
+              node.fn_name
+            end
+            
+            # Skip if already processed by CascadeDesugarPass and has qualified_name
+            if entry[:metadata] && entry[:metadata][:qualified_name]
+              ENV["DEBUG_NORMALIZE"] && puts("  Skipping #{before} - already has qualified_name: #{entry[:metadata][:qualified_name]}")
+              return
+            end
+            
+            canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
+
+            # Resolve canonical name to qualified registry name
+            qualified_name = resolve_to_qualified_name(canonical_name)
+            
+            # Annotate with both canonical and qualified names for downstream passes
+            entry[:metadata][:canonical_name] = canonical_name
+            entry[:metadata][:qualified_name] = qualified_name
+            
+            if before != canonical_name
+              warn_deprecated(before, canonical_name) if ENV["WARN_DEPRECATED_FUNCS"]
+            end
+            
+            ENV["DEBUG_NORMALIZE"] && puts("  Normalized #{node.fn_name} → #{before} → #{qualified_name}")
+          end
 
           def resolve_to_qualified_name(canonical_name)
             # Map canonical basenames to qualified registry names

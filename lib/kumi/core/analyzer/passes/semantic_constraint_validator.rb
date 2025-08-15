@@ -83,19 +83,12 @@ module Kumi
           end
 
           def validate_function_call(call_expr, errors)
-            fn_name = call_expr.fn_name
-
-            # Skip validation if Kumi::Registry.is being mocked for testing
-            return if function_registry_mocked?
-
-            return if Kumi::Registry.supported?(fn_name)
-
-            report_error(
-              errors,
-              "unknown function `#{fn_name}`",
-              location: call_expr.loc,
-              type: :semantic
-            )
+            # Skip function validation at this early stage since function names
+            # haven't been normalized yet. Real function validation happens later
+            # in FunctionSignaturePass which has access to qualified names.
+            # 
+            # This early pass focuses on basic semantic constraints only.
+            return
           end
 
           def validate_input_declaration(input_decl, errors)
