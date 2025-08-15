@@ -86,6 +86,7 @@ module Kumi
       def eval_decl(name, input, mode: :ruby)
         raise Kumi::Core::Errors::RuntimeError, "unknown decl #{name}" unless decl?(name)
 
+        # Use pre-built registry to avoid repeated RegistryV2 loading
         out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name, accessor_cache: @accessor_cache },
                                               accessors: @acc, registry: @reg).fetch(name)
 

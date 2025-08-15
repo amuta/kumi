@@ -122,18 +122,13 @@ RSpec.describe "Comprehensive AST Export Integration" do
                                        fn(:>, input.years_customer, 10)
                                      ])
 
-      # === CONDITIONAL LOGIC ===
-      # Complex conditional expressions with multiple levels
-      value :account_status, fn(:conditional,
-                                ref(:premium_eligibility),
-                                fn(:conditional,
-                                   ref(:customer_quality),
-                                   "Premium Elite",
-                                   "Premium Standard"),
-                                fn(:conditional,
-                                   ref(:adult),
-                                   "Standard",
-                                   "Youth"))
+      # USING CASCADE
+      value :account_status do
+        on premium_eligibility, customer_quality, "Premium Elite"
+        on premium_eligibility, "Premium Standard"
+        on adult, "Standard"
+        base "Youth"
+      end
 
       # === TRAITS BASED ON COMPUTED VALUES ===
       trait :elite_customer, ref(:customer_quality), :==, true
@@ -180,8 +175,8 @@ RSpec.describe "Comprehensive AST Export Integration" do
                                " tags"
                              ])
 
-      value :config_username, fn(:fetch, input.config, :username)
-      value :is_premium_user, fn(:fetch, input.config, :premium, false)
+      value :config_username, fn(:get, input.config, :username)
+      value :is_premium_user, fn(:get, input.config, :premium, false)
 
       # === CUSTOM FUNCTION INTEGRATION ===
       # Functions that consume computed values and fields

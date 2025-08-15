@@ -2,6 +2,7 @@
 
 require "spec_helper"
 require "date"
+require "kumi/kernels/ruby/datetime_scalar"
 
 RSpec.describe Kumi::Kernels::Ruby::DatetimeScalar do
   describe ".dt_add_days" do
@@ -60,6 +61,19 @@ RSpec.describe Kumi::Kernels::Ruby::DatetimeScalar do
       date = Date.new(2023, 1, 1)
       result = described_class.dt_add_days(date, 365)
       expect(result).to eq(Date.new(2024, 1, 1))
+    end
+
+    it "propagates nil values (null_policy: propagate)" do
+      expect(described_class.dt_add_days(nil, 5)).to be_nil
+      expect(described_class.dt_add_days(Date.new(2023, 1, 15), nil)).to be_nil
+      expect(described_class.dt_add_days(nil, nil)).to be_nil
+    end
+
+    it "adds days to a Time" do
+      time = Time.new(2023, 1, 15, 12, 30, 45)
+      result = described_class.dt_add_days(time, 3)
+      expected = time + (3 * 86_400)
+      expect(result).to eq(expected)
     end
   end
 
@@ -143,6 +157,26 @@ RSpec.describe Kumi::Kernels::Ruby::DatetimeScalar do
       date2 = Date.new(2023, 1, 15)
       result = described_class.dt_diff_days(date1, date2)
       expect(result).to be_a(Integer)
+    end
+
+    it "propagates nil values (null_policy: propagate)" do
+      expect(described_class.dt_diff_days(nil, Date.new(2023, 1, 15))).to be_nil
+      expect(described_class.dt_diff_days(Date.new(2023, 1, 20), nil)).to be_nil
+      expect(described_class.dt_diff_days(nil, nil)).to be_nil
+    end
+
+    it "handles Time objects" do
+      time1 = Time.new(2023, 1, 20, 12, 0, 0)
+      time2 = Time.new(2023, 1, 15, 6, 0, 0)
+      result = described_class.dt_diff_days(time1, time2)
+      expect(result).to eq(5)
+    end
+
+    it "handles mixed Time and Date" do
+      time = Time.new(2023, 1, 20, 12, 30, 45)
+      date = Date.new(2023, 1, 15)
+      result = described_class.dt_diff_days(time, date)
+      expect(result).to eq(6) # Time conversion rounds up partial days
     end
   end
 end

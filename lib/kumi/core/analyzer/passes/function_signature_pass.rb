@@ -12,11 +12,33 @@ module Kumi
           def run(errors)
             node_index = get_state(:node_index, required: true)
 
+            if ENV["DEBUG_LOWER"]
+              puts "FunctionSignaturePass: Processing #{node_index.size} nodes"
+              call_expr_count = node_index.count { |_, entry| entry[:type] == "CallExpression" }
+              puts "  CallExpression nodes: #{call_expr_count}"
+            end
+
             # Process all CallExpression nodes in the index
             node_index.each do |object_id, entry|
               next unless entry[:type] == "CallExpression"
 
+              if ENV["DEBUG_LOWER"]
+                node = entry[:node]
+                puts "  Processing CallExpression: #{node.fn_name} (object_id: #{object_id}, node.object_id: #{node.object_id})"
+                puts "    Match: #{object_id == node.object_id}"
+              end
+
               resolve_function_signature(entry, object_id, errors)
+            end
+
+            if ENV["DEBUG_LOWER"]
+              puts "FunctionSignaturePass: Completed. Checking final metadata..."
+              node_index.each do |object_id, entry|
+                next unless entry[:type] == "CallExpression"
+                node = entry[:node]
+                metadata = entry[:metadata] || {}
+                puts "  Node #{node.fn_name} (#{object_id}): metadata keys = #{metadata.keys.inspect}"
+              end
             end
 
             state # Node index is modified in-place
@@ -26,13 +48,43 @@ module Kumi
 
           def resolve_function_signature(entry, object_id, errors)
             node = entry[:node]
+            metadata = entry[:metadata] || {}
+            
+            # Ensure metadata has effective_fn_name and resolved_name
+            metadata[:effective_fn_name] ||= node.fn_name
+            if metadata[:qualified_name]
+              metadata[:resolved_name] = metadata[:qualified_name]
+            end
+
+            # Skip signature resolution for cascade_and nodes that will be desugared or have skip_signature flag
+            if metadata[:desugar_to_identity] || metadata[:desugared_to] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
+              if ENV["DEBUG_LOWER"]
+                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared or skip_signature flag set"
+                puts "      metadata: #{metadata.keys.inspect}"
+              end
+              return
+            end
+
+            if ENV["DEBUG_LOWER"]
+              puts "    resolve_function_signature for #{node.fn_name}"
+            end
 
             # 1) Gather candidate signatures from current registry
-            sig_strings = get_function_signatures(node)
+            sig_strings = get_function_signatures(entry)
+            if ENV["DEBUG_LOWER"]
+              puts "      Found signatures: #{sig_strings.inspect}"
+            end
             return if sig_strings.empty?
 
             begin
               sigs = parse_signatures(sig_strings)
+              if ENV["DEBUG_LOWER"]
+                puts "      Parsed signatures: #{sigs.length} valid"
+                sigs.each_with_index do |sig, i|
+                  puts "        [#{i}] #{sig.inspect}"
+                  puts "           join_policy: #{sig.join_policy.inspect}" if sig.respond_to?(:join_policy)
+                end
+              end
             rescue Kumi::Core::Functions::SignatureError => e
               report_error(errors, "Invalid signature for function `#{node.fn_name}`: #{e.message}",
                            location: node.loc, type: :type)
@@ -41,35 +93,86 @@ module Kumi
 
             # 2) Build arg_shapes from current node context
             arg_shapes = build_argument_shapes(node, object_id)
+            if ENV["DEBUG_LOWER"]
+              puts "      Argument shapes: #{arg_shapes.inspect}"
+            end
 
             # 3) Resolve signature
             begin
               plan = Kumi::Core::Functions::SignatureResolver.choose(signatures: sigs, arg_shapes: arg_shapes)
+              if ENV["DEBUG_LOWER"]
+                puts "      Signature resolution succeeded!"
+                puts "        Selected signature: #{plan[:signature].inspect}"
+                puts "        Join policy: #{plan[:join_policy].inspect}"
+                puts "        Result axes: #{plan[:result_axes].inspect}"
+              end
             rescue Kumi::Core::Functions::SignatureMatchError => e
+              if ENV["DEBUG_LOWER"]
+                puts "      Signature resolution failed: #{e.message}"
+              end
+              # Use qualified name for error message if available
+              effective_name = entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || node.fn_name
               report_error(errors, 
-                          "Signature mismatch for `#{node.fn_name}` with args #{format_shapes(arg_shapes)}. Candidates: #{format_sigs(sig_strings)}. #{e.message}",
+                          "Signature mismatch for `#{effective_name}` with args #{format_shapes(arg_shapes)}. Candidates: #{format_sigs(sig_strings)}. #{e.message}",
                           location: node.loc, type: :type)
               return
             end
 
             # 4) Attach metadata to node index entry
+            if ENV["DEBUG_LOWER"]
+              puts "      Attaching metadata to entry..."
+              puts "        Before: entry[:metadata] = #{entry[:metadata].inspect}"
+            end
             attach_signature_metadata(entry, plan)
-          end
-
-          def get_function_signatures(node)
-            # Use RegistryV2 if enabled, otherwise fall back to legacy registry
-            if registry_v2_enabled?
-              registry_v2_signatures(node)
-            else
-              legacy_registry_signatures(node)
+            if ENV["DEBUG_LOWER"]
+              puts "        After: entry[:metadata] = #{entry[:metadata].inspect}"
             end
           end
 
-          def registry_v2_signatures(node)
-            registry_v2.get_function_signatures(node.fn_name)
-          rescue => e
-            # If RegistryV2 fails, fall back to legacy
-            legacy_registry_signatures(node)
+          def get_function_signatures(entry)
+            # Use effective function name (from CascadeDesugarPass) or qualified name or node fn_name
+            effective_name = entry[:metadata][:effective_fn_name] || entry[:node].fn_name
+            qualified_name = entry[:metadata][:qualified_name] || effective_name
+            # Use RegistryV2 only - no fallback to legacy registry
+            registry_v2_signatures(qualified_name)
+          end
+
+          def registry_v2_signatures(fn_name)
+            if ENV["DEBUG_LOWER"]
+              puts "        registry_v2_signatures for #{fn_name}"
+              puts "          Available functions: #{registry_v2.all_function_names.first(10).inspect}..."
+              puts "          Function exists?: #{registry_v2.function_exists?(fn_name.to_s)}"
+            end
+            
+            # Debug the fetch process step by step
+            if ENV["DEBUG_LOWER"]
+              begin
+                fn = registry_v2.fetch(fn_name)
+                puts "          Fetched function: #{fn.class}"
+                puts "          Function name: #{fn.name}" if fn.respond_to?(:name)
+                puts "          Signatures count: #{fn.signatures.length}" if fn.respond_to?(:signatures)
+                if fn.respond_to?(:signatures) && fn.signatures.any?
+                  puts "          First signature: #{fn.signatures.first.inspect}"
+                  puts "          to_signature_string: #{fn.signatures.first.to_signature_string}" if fn.signatures.first.respond_to?(:to_signature_string)
+                end
+              rescue => fetch_error
+                puts "          Fetch error: #{fetch_error.message}"
+                puts "          This means the function is not properly loaded in RegistryV2"
+                raise fetch_error  # Don't fallback - force the issue to be fixed
+              end
+            end
+            
+            result = registry_v2.get_function_signatures(fn_name)
+            
+            if ENV["DEBUG_LOWER"]
+              puts "          Direct lookup result: #{result.inspect}"
+            end
+            
+            if result.empty?
+              raise "No signatures found for #{fn_name} in RegistryV2 - function must be properly defined"
+            end
+            
+            result
           end
 
           def legacy_registry_signatures(node)
@@ -154,8 +257,19 @@ module Kumi
             # This way other passes can access the metadata via the node index
             metadata = entry[:metadata]
 
+            if ENV["DEBUG_LOWER"]
+              puts "        attach_signature_metadata called"
+              puts "          entry[:metadata] exists: #{!!metadata}"
+              puts "          plan keys: #{plan.keys.inspect}"
+            end
+
             attach_core_signature_data(metadata, plan)
             attach_shape_contract(metadata, plan)
+
+            if ENV["DEBUG_LOWER"]
+              puts "          Final metadata keys: #{metadata.keys.inspect}"
+              puts "          join_policy value: #{metadata[:join_policy].inspect}"
+            end
           end
 
           def attach_core_signature_data(metadata, plan)
@@ -179,10 +293,6 @@ module Kumi
 
           def registry_v2_enabled?
             ENV["KUMI_FN_REGISTRY_V2"] == "1"
-          end
-
-          def registry_v2
-            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
           end
 
           def nep20_flex_enabled?

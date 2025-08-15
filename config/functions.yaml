@@ -1,3 +1,8 @@
+# Function Registry Configuration
+# 
+# IMPORTANT: After editing this file, run the compliance test to ensure correctness:
+#   bundle exec rspec spec/kumi/config/functions_config_spec.rb
+#
 # ==================== CORE - SCALAR (elementwise) ====================
 
 - name: core.add
@@ -10,6 +15,7 @@
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
   algebra: {associative: true, commutative: true, identity: 0}
+  monotonicity: {args: [increasing, increasing]}
   vectorization: {mask_aware: true}
   kernels: 
     - backend: ruby
@@ -24,6 +30,7 @@
   type_vars: {T: Numeric, U: Numeric}
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
+  monotonicity: {args: [increasing, decreasing]}
   kernels:
     - backend: ruby
       impl: kumi_sub
@@ -38,6 +45,7 @@
   dtypes: {result: "promote(T,U)", casting: "same_kind"}
   null_policy: propagate
   algebra: {associative: true, commutative: true, identity: 1, annihilator: 0}
+  monotonicity: {args: [increasing, increasing], condition: positive_args}
   kernels:
     - backend: ruby
       impl: kumi_mul
@@ -51,10 +59,39 @@
   type_vars: {T: Numeric, U: Numeric}
   dtypes: {result: "promote_float(T,U)", casting: "same_kind"}
   null_policy: propagate
+
   kernels:
     - backend: ruby
       impl: kumi_div
       priority: 10
+
+- name: core.mod
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: IntLike, U: IntLike}
+  dtypes: {result: "promote(T,U)"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_mod
+      priority: 10
+
+- name: core.pow
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote_float(T,U)"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_pow
+      priority: 1
+
+# ==================== CORE - COMPARISONS / LOGICAL ====================
 
 - name: core.eq
   domain: core
@@ -64,10 +101,52 @@
   type_vars: {T: Any, U: Any}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {idempotent: true}
+  semantics: {family: comparison, relation: equality, reflexive: true, symmetric: true, transitive: true, negation: core.ne}
   kernels:
     - backend: ruby
       impl: kumi_eq
+      priority: 10
+
+- name: core.ne
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Any, U: Any}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  semantics: {family: comparison, relation: disequality, negates: core.eq}
+  kernels:
+    - backend: ruby
+      impl: kumi_ne
+      priority: 10
+
+- name: core.lt
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  semantics: {family: comparison, relation: total_order, transitive: true, trichotomy: true, dual_of: core.ge, implies: [core.le, core.ne]}
+  kernels:
+    - backend: ruby
+      impl: kumi_lt
+      priority: 10
+
+- name: core.le
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  semantics: {family: comparison, relation: total_order, reflexive: true, antisymmetric: true, transitive: true, dual_of: core.ge, implies: [core.lt, core.eq]}
+  kernels:
+    - backend: ruby
+      impl: kumi_le
       priority: 10
 
 - name: core.gt
@@ -78,12 +157,13 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, transitive: true, trichotomy: true, dual_of: core.le, implies: [core.ge, core.ne]}
   kernels:
     - backend: ruby
       impl: kumi_gt
       priority: 10
 
-- name: core.gte
+- name: core.ge
   domain: core
   opset: 1
   class: scalar
@@ -91,9 +171,10 @@
   type_vars: {T: Orderable, U: Orderable}
   dtypes: {result: "bool"}
   null_policy: propagate
+  semantics: {family: comparison, relation: total_order, reflexive: true, antisymmetric: true, transitive: true, dual_of: core.lt, implies: [core.gt, core.eq]}
   kernels:
     - backend: ruby
-      impl: kumi_gte
+      impl: kumi_ge
       priority: 10
 
 - name: core.and
@@ -104,7 +185,7 @@
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {associative: true, commutative: true, identity: true, annihilator: false}
+  algebra: {family: boolean_op, op: and, associative: true, commutative: true, idempotent: true, identity: true, annihilator: false}
   vectorization: {short_circuit: left_to_right, mask_aware: true}
   kernels:
     - backend: ruby
@@ -119,7 +200,7 @@
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
-  algebra: {associative: true, commutative: true, identity: false, annihilator: true}
+  algebra: {family: boolean_op, op: or, associative: true, commutative: true, idempotent: true, identity: false, annihilator: true}
   vectorization: {short_circuit: left_to_right, mask_aware: true}
   kernels:
     - backend: ruby
@@ -134,9 +215,30 @@
   type_vars: {B: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
+  algebra: {family: boolean_op, op: not, involutive: true, de_morgan_dual: or}
   kernels:
     - backend: ruby
       impl: kumi_not
+      priority: 10
+
+- name: core.if
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Ternary conditional with broadcasting of then/else
+  signature:
+    - "(),(),((),()->()"
+    - "(i),(i),(i)->(i)"
+    - "(i),(),()->(i)"
+    - "(),(i),()->(i)"
+    - "(),(),()->()"
+  type_vars: {B: Bool, T: Any, U: Any}
+  dtypes: {result: "unify(T,U)"}
+  null_policy: propagate
+  vectorization: {mask_aware: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_if
       priority: 10
 
 # ==================== AGGREGATES (reduce last axis in signature) ==============
@@ -196,6 +298,48 @@
       impl: kumi_mean
       priority: 10
 
+- name: core.any?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  algebra: {boolean_aggregate: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_any
+      priority: 10
+
+- name: core.none?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  algebra: {boolean_aggregate: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_none
+      priority: 10
+
+- name: core.all?
+  domain: core
+  opset: 1
+  class: aggregate
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Any}
+  dtypes: {result: "bool"}
+  null_policy: skip
+  algebra: {boolean_aggregate: true}
+  kernels:
+    - backend: ruby
+      impl: kumi_all
+      priority: 10
+
 # ==================== STRUCTURE / SHAPE / JOIN ================================
 
 - name: struct.join
@@ -205,6 +349,7 @@
   summary: Align inputs by axes using zip or product
   signature: ["(i),(i)->(i)@zip", "(i),(j)->(i,j)@product"]
   null_policy: error_on_missing
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: join_zip
@@ -222,6 +367,7 @@
   signature: ["(i)->(i)", "(i,j)->(i,j)"]
   traits: {reorders: false}
   null_policy: error_on_missing
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: align_to
@@ -233,6 +379,7 @@
   class: structure
   signature: ["(i)->(i)", "(i,j)->(i,j)"]
   summary: Group flat rows back to nested collections based on indices
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: lift
@@ -244,6 +391,7 @@
   class: structure
   signature: ["(i,j)->(k)"]
   shape_fn: "flatten_axes(i,j)->k"
+  semantics: {family: structural, role: data_manipulation}
   kernels:
     - backend: ruby
       impl: flatten
@@ -257,6 +405,7 @@
   type_vars: {T: Any}
   dtypes: {result: "T"}
   null_policy: error
+  semantics: {family: structural, role: data_access}
   kernels:
     - backend: ruby
       impl: take
@@ -269,6 +418,7 @@
   signature: ["(i)->()", "(i,j)->()"]
   dtypes: {result: "int"}
   null_policy: error
+  semantics: {family: structural, role: introspection}
   kernels:
     - backend: ruby
       impl: size
@@ -301,13 +451,17 @@
   domain: string
   opset: 1
   class: scalar
-  signature: ["(),()->()", "(i),(i)->(i)"]
-  type_vars: {S1: String, S2: String}
+  signature: ["(),()->()", "(i),(i)->(i)", "(i),(j)->(i,j)@zip", "(),(),()->()", "(i),(i),(i)->(i)"]
+  type_vars: {S1: String, S2: String, S3: String}
   dtypes: {result: "string"}
   null_policy: propagate
   kernels:
     - backend: ruby
       impl: str_concat
+      priority: 10
+    - backend: ruby
+      impl: str_concat_zip
+      when: {policy: zip}
       priority: 10
 
 - name: string.length
@@ -349,4 +503,67 @@
   kernels:
     - backend: ruby
       impl: dt_diff_days
+      priority: 10
+
+# ==================== ARRAY / STRUCTURE ACCESSORS =============================
+
+- name: array.get
+  domain: struct
+  opset: 1
+  class: scalar
+  signature:
+    - "(),()->()"      # scalar array, scalar index
+    - "(i),()->(i)"    # vector array, scalar index
+    - "(),(i)->(i)"    # scalar array, vector index (same-scope broadcast)
+  type_vars: {A: Any}
+  dtypes: {result: "A"}
+  null_policy: error
+  semantics: {family: structural, role: data_access}
+  kernels:
+    - backend: ruby
+      impl: array_get
+      priority: 10
+
+- name: struct.get
+  domain: struct
+  opset: 1
+  class: scalar
+  signature:
+    - "(),()->()"      # struct, key
+    - "(i),()->(i)"    # vector of structs, scalar key
+    - "(),(i)->(i)"    # struct, vector of keys
+  type_vars: {K: StringLike}
+  dtypes: {result: "any"}
+  null_policy: error
+  semantics: {family: structural, role: data_access}
+  kernels:
+    - backend: ruby
+      impl: struct_get
+      priority: 10
+
+- name: array.contains
+  domain: struct
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),()->(i)"]
+  type_vars: {A: Any}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  semantics: {family: structural, role: membership_test}
+  kernels:
+    - backend: ruby
+      impl: array_contains
+      priority: 10
+
+- name: string.contains
+  domain: string
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),()->(i)"]
+  type_vars: {S: String}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: str_contains
       priority: 10

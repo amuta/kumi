@@ -6,7 +6,7 @@ module Kumi
       module ExecutionEngine
         # Interpreter for IR modules - thin layer that delegates to combinators
         module Interpreter
-          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch].freeze
+          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch join select].freeze
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
 
           def self.run(ir_module, ctx, accessors:, registry:)
@@ -56,7 +56,8 @@ module Kumi
                 end
 
                 # Skip body when guarded off, but keep indices aligned
-                unless guard_stack.last
+                # EXCEPTION: REF operations must always execute to populate slots for SELECT operations
+                unless guard_stack.last || op.tag == :ref
                   slots << nil if PRODUCES_SLOT.include?(op.tag) || NON_PRODUCERS.include?(op.tag)
                   next
                 end
@@ -131,8 +132,7 @@ module Kumi
 
                 when :map
                   fn_name = op.attrs[:fn]
-                  fn_entry = registry[fn_name] or raise "Function #{fn_name} not found in registry"
-                  fn = fn_entry.fn
+                  fn = registry[fn_name] or raise "Function #{fn_name} not found in registry"
                   puts "DEBUG Map #{fn_name}: args=#{op.args.inspect}" if ENV["DEBUG_VM_ARGS"]
 
                   # Validate slot indices before accessing
@@ -224,8 +224,7 @@ module Kumi
                   return outputs if target && name == target
 
                 when :reduce
-                  fn_entry = registry[op.attrs[:fn]] or raise "Function #{op.attrs[:fn]} not found in registry"
-                  fn = fn_entry.fn
+                  fn = registry[op.attrs[:fn]] or raise "Function #{op.attrs[:fn]} not found in registry"
 
                   src = slots[op.args[0]]
                   raise "Reduce expects Vec" unless src[:k] == :vec
@@ -309,7 +308,120 @@ module Kumi
                   slots << aligned
 
                 when :join
-                  raise NotImplementedError, "Join not implemented yet"
+                  policy = op.attrs[:policy] || :zip
+                  on_missing = op.attrs[:on_missing] || :error
+                  
+                  # Validate slot indices before accessing
+                  op.args.each do |slot_idx|
+                    if slot_idx >= slots.length
+                      raise "Join operation: slot index #{slot_idx} out of bounds (slots.length=#{slots.length})"
+                    elsif slots[slot_idx].nil?
+                      raise "Join operation: slot #{slot_idx} is nil " \
+                            "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
+                    end
+                  end
+
+                  vecs = op.args.map { |slot_idx| slots[slot_idx] }
+                  
+                  # Ensure all arguments are vectors
+                  vecs.each_with_index do |vec, i|
+                    unless vec[:k] == :vec
+                      raise "Join operation: argument #{i} is not a vector (got #{vec[:k]})"
+                    end
+                  end
+
+                  case policy
+                  when :zip
+                    slots << Combinators.join_zip(vecs, on_missing: on_missing)
+                  when :product
+                    raise NotImplementedError, "Product join not implemented yet (use :zip policy)"
+                  else
+                    raise "Unknown join policy: #{policy}"
+                  end
+
+                when :project
+                  src_slot = op.args[0]
+                  index = op.attrs[:index]
+                  
+                  if src_slot >= slots.length
+                    raise "Project operation: source slot #{src_slot} out of bounds (slots.length=#{slots.length})"
+                  elsif slots[src_slot].nil?
+                    raise "Project operation: source slot #{src_slot} is nil"
+                  end
+                  
+                  src = slots[src_slot]
+                  result = Combinators.project(src, index)
+                  slots << result
+
+                when :select
+                  cond_slot, then_slot, else_slot = op.args
+                  
+                  # Validate slot indices
+                  [cond_slot, then_slot, else_slot].each_with_index do |slot_idx, i|
+                    arg_names = %w[condition then else]
+                    if slot_idx >= slots.length
+                      raise "Select operation: #{arg_names[i]} slot #{slot_idx} out of bounds (slots.length=#{slots.length})"
+                    elsif slots[slot_idx].nil?
+                      raise "Select operation: #{arg_names[i]} slot #{slot_idx} is nil"
+                    end
+                  end
+                  
+                  cond = slots[cond_slot]
+                  then_val = slots[then_slot]
+                  else_val = slots[else_slot]
+                  
+                  # Apply current guard mask
+                  current_guard = guard_stack.last
+                  
+                  result = case cond[:k]
+                          when :scalar
+                            # Scalar condition: choose entire then or else branch
+                            chosen = (current_guard == true || (current_guard.is_a?(Hash) && current_guard[:k] == :scalar && current_guard[:v])) && 
+                                    cond[:v] ? then_val : else_val
+                            chosen
+                          when :vec
+                            # Vector condition: zip on scope; pick then[row] or else[row] per row
+                            unless then_val[:k] == :vec && else_val[:k] == :vec
+                              raise "Select with vector condition requires vector then/else branches"
+                            end
+                            
+                            # Ensure all vectors have same scope and length
+                            if cond[:scope] != then_val[:scope] || cond[:scope] != else_val[:scope]
+                              raise "Select vectors must have same scope: cond=#{cond[:scope]}, then=#{then_val[:scope]}, else=#{else_val[:scope]}"
+                            end
+                            
+                            if cond[:rows].length != then_val[:rows].length || cond[:rows].length != else_val[:rows].length
+                              raise "Select vectors must have same length: cond=#{cond[:rows].length}, then=#{then_val[:rows].length}, else=#{else_val[:rows].length}"
+                            end
+                            
+                            selected_rows = cond[:rows].zip(then_val[:rows], else_val[:rows]).map do |c_row, t_row, e_row|
+                              # Apply guard mask
+                              if current_guard == true || (current_guard.is_a?(Hash) && current_guard[:k] == :scalar && current_guard[:v])
+                                # No guard restriction, use condition
+                                chosen_row = c_row[:v] ? t_row : e_row
+                              elsif current_guard.is_a?(Hash) && current_guard[:k] == :vec
+                                # Vector guard: check if this row is guarded
+                                guard_row = current_guard[:rows].find { |gr| gr[:idx] == c_row[:idx] }
+                                if guard_row && guard_row[:v]
+                                  # Guard allows, use condition
+                                  chosen_row = c_row[:v] ? t_row : e_row
+                                else
+                                  # Guard blocks, skip (use else as default)
+                                  chosen_row = e_row
+                                end
+                              else
+                                # Guard is false, skip (use else as default)
+                                chosen_row = e_row
+                              end
+                              chosen_row
+                            end
+                            
+                            Values.vec(cond[:scope], selected_rows, cond[:has_idx])
+                          else
+                            raise "Select condition must be scalar or vector, got #{cond[:k]}"
+                          end
+                  
+                  slots << result
 
                 else
                   raise "Unknown operation: #{op.tag}"

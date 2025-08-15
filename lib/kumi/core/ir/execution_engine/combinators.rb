@@ -81,6 +81,61 @@ module Kumi
             Values.vec(to_scope, rows, true)
           end
 
+          # Positional join of N vectors (zip policy)
+          # @param vecs [Array<Hash>] vectors to join together
+          # @param policy [Symbol] join policy (:zip or :product)
+          # @param on_missing [Symbol] handling policy (:error or :nil)
+          # @return [Hash] joined vector with combined rows
+          def self.join_zip(vecs, on_missing: :error)
+            raise "All arguments must be vecs" unless vecs.all? { |v| v[:k] == :vec }
+            
+            # Validate on_missing policy early
+            unless [:error, :nil].include?(on_missing)
+              raise "unknown on_missing policy: #{on_missing}"
+            end
+            
+            return vecs.first if vecs.length == 1
+
+            lengths = vecs.map { |v| v[:rows].size }
+            if lengths.uniq.size > 1
+              case on_missing
+              when :error
+                raise "Length mismatch in join_zip: #{lengths.inspect}"
+              when :nil
+                max_length = lengths.max
+                vecs = vecs.map.with_index do |v, i|
+                  if v[:rows].size < max_length
+                    padded_rows = v[:rows] + Array.new(max_length - v[:rows].size) { { v: nil } }
+                    Values.vec(v[:scope], padded_rows, v[:has_idx])
+                  else
+                    v
+                  end
+                end
+              end
+            end
+
+            first_vec = vecs.first
+            zipped_rows = first_vec[:rows].zip(*vecs[1..].map { |v| v[:rows] }).map do |row_group|
+              combined_values = row_group.map { |r| r[:v] }
+              result_row = { v: combined_values }
+              
+              # Handle indices: use the first available index, or create a synthetic one if has_idx is true
+              has_idx = vecs.any? { |v| v[:has_idx] }
+              if has_idx
+                first_indexed_row = row_group.find { |r| r&.key?(:idx) }
+                result_row[:idx] = first_indexed_row ? first_indexed_row[:idx] : []
+              end
+              
+              result_row
+            end
+
+            # Determine output scope: concatenation of all input scopes
+            output_scope = vecs.flat_map { |v| v[:scope] }
+            has_idx = vecs.any? { |v| v[:has_idx] }
+
+            Values.vec(output_scope, zipped_rows, has_idx)
+          end
+
           # Build hierarchical groups for lift operation
           # @param rows [Array<Hash>] rows with indices
           # @param depth [Integer] nesting depth
@@ -109,6 +164,33 @@ module Kumi
               i = j
             end
             out
+          end
+
+          # Extract a specific column from a joined vector
+          # vec: a joined vector where each row[:v] is an array of values
+          # index: which column to extract (0-based)
+          def self.project(vec, index)
+            raise "Project operation: input must be a vector" unless vec[:k] == :vec
+            
+            projected_rows = vec[:rows].map do |row|
+              row_values = row[:v]
+              unless row_values.is_a?(Array)
+                raise "Project operation: expected array values in joined vector, got #{row_values.class}"
+              end
+              
+              if index >= row_values.length
+                raise "Project operation: index #{index} out of bounds for row with #{row_values.length} values"
+              end
+              
+              projected_value = row_values[index]
+              row.key?(:idx) ? { v: projected_value, idx: row[:idx] } : { v: projected_value }
+            end
+            
+            # The projected result should maintain the original scope structure but extract one component
+            # For simplicity, we'll use the first scope component (this may need refinement)
+            original_scope = vec[:scope]
+            
+            Values.vec(original_scope, projected_rows, vec[:has_idx])
           end
         end
       end

@@ -22,6 +22,14 @@ module Kumi
           a / b.to_f
         end
 
+        def kumi_mod(a, b)
+          a % b
+        end
+
+        def kumi_pow(a, b)
+          a ** b
+        end
+
         def kumi_eq(a, b)
           a == b
         end
@@ -30,7 +38,7 @@ module Kumi
           a > b
         end
 
-        def kumi_gte(a, b)
+        def kumi_ge(a, b)
           a >= b
         end
 
@@ -38,7 +46,7 @@ module Kumi
           a < b
         end
 
-        def kumi_lte(a, b)
+        def kumi_le(a, b)
           a <= b
         end
 
@@ -56,6 +64,10 @@ module Kumi
 
         def kumi_not(a)
           !a
+        end
+
+        def kumi_if(condition, then_val, else_val)
+          condition ? then_val : else_val
         end
       end
     end

@@ -11,7 +11,6 @@ module Kumi
         class UnsatDetector < VisitorPass
           include Syntax
 
-          COMPARATORS = %i[> < >= <= == !=].freeze
           Atom        = Kumi::Core::AtomUnsatSolver::Atom
 
           def run(errors)
@@ -19,6 +18,9 @@ module Kumi
             @input_meta = get_state(:input_metadata) || {}
             @definitions = definitions
             @evaluator = ConstantEvaluator.new(definitions)
+            @registry = Kumi::Core::Functions::RegistryV2.load_from_file
+            @facts = Kumi::Core::Functions::Facts.new(@registry)
+            @node_index = get_state(:node_index, required: false) || {}
 
             # First pass: analyze cascade conditions for mutual exclusion
             cascades = {}
@@ -31,7 +33,7 @@ module Kumi
               if decl.expression.is_a?(CascadeExpression)
                 # Special handling for cascade expressions
                 check_cascade_expression(decl, definitions, errors)
-              elsif decl.expression.is_a?(CallExpression) && decl.expression.fn_name == :or
+              elsif decl.expression.is_a?(CallExpression) && @facts.logical_kind(decl.expression, @node_index) == :or
                 # Check for OR expressions which need special disjunctive handling
                 impossible = check_or_expression(decl.expression, definitions, errors)
                 report_error(errors, "conjunction `#{decl.name}` is impossible", location: decl.loc) if impossible
@@ -82,7 +84,8 @@ module Kumi
             decl.expression.cases[0...-1].each do |when_case|
               next unless when_case.condition
 
-              next unless when_case.condition.fn_name == :cascade_and
+              # cascade_and is syntax sugar, check fn_name directly before desugar pass
+              next unless when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :cascade_and
 
               when_case.condition.args.each do |arg|
                 if arg.is_a?(ArrayExpression)
@@ -132,9 +135,7 @@ module Kumi
           end
 
           def conditions_mutually_exclusive?(cond1, cond2)
-            if cond1.is_a?(CallExpression) && cond1.fn_name == :== &&
-               cond2.is_a?(CallExpression) && cond2.fn_name == :==
-
+            if eq_call?(cond1) && eq_call?(cond2)
               c1_field, c1_value = cond1.args
               c2_field, c2_value = cond2.args
 
@@ -196,23 +197,24 @@ module Kumi
               current = stack.pop
               next unless current
 
-              if current.is_a?(CallExpression) && COMPARATORS.include?(current.fn_name)
+              if current.is_a?(CallExpression) && comparator_call?(current)
                 lhs, rhs = current.args
+                op = @facts.comparator_op(current, @node_index) || current.fn_name
 
                 # Check for domain constraint violations before creating atom
-                list << if impossible_constraint?(lhs, rhs, current.fn_name)
+                list << if impossible_constraint?(lhs, rhs, op)
                           # Create a special impossible atom that will always trigger unsat
                           Atom.new(:==, :__impossible__, true)
                         else
-                          Atom.new(current.fn_name, term(lhs, defs), term(rhs, defs))
+                          Atom.new(op, term(lhs, defs), term(rhs, defs))
                         end
-              elsif current.is_a?(CallExpression) && current.fn_name == :or
+              elsif current.is_a?(CallExpression) && @facts.logical_kind(current, @node_index) == :or
                 # Special handling for OR expressions - they are disjunctive, not conjunctive
                 # We should NOT add OR children to the stack as they would be treated as AND
                 # OR expressions need separate analysis in the main run() method
                 next
               elsif current.is_a?(CallExpression) && current.fn_name == :cascade_and
-                # cascade_and takes individual arguments (not wrapped in array)
+                # cascade_and is syntax sugar, takes individual arguments (not wrapped in array)
                 current.args.each { |arg| stack << arg }
               elsif current.is_a?(ArrayExpression)
                 # For ArrayExpression, add all elements to the stack
@@ -256,10 +258,12 @@ module Kumi
               next if when_case.condition.is_a?(Literal) && when_case.condition.value == true
 
               # Skip non-conjunctive conditions (any?, none?) as they are disjunctive
-              next if when_case.condition.is_a?(CallExpression) && %i[any? none?].include?(when_case.condition.fn_name)
+              next if when_case.condition.is_a?(CallExpression) && @facts.boolean_aggregate?(when_case.condition, @node_index)
 
               # Skip single-trait 'on' branches: trait-level unsat detection covers these
-              if when_case.condition.is_a?(CallExpression) && when_case.condition.fn_name == :cascade_and && (when_case.condition.args.size == 1)
+              if when_case.condition.is_a?(CallExpression) &&
+                 when_case.condition.fn_name == :cascade_and &&
+                 (when_case.condition.args.size == 1)
                 # cascade_and uses individual arguments - skip if only one trait
                 next
               end
@@ -364,9 +368,7 @@ module Kumi
 
           def violates_domain?(value, domain)
             case domain
-            when Range
-              !domain.include?(value)
-            when Array
+            when Range, Array
               !domain.include?(value)
             when Proc
               # For Proc domains, we can't statically analyze
@@ -402,15 +404,12 @@ module Kumi
             domain = field_meta[:domain]
             literal_value = literal.value
 
-            case operator
-            when :==
+            case operator.to_sym
+            when :==, :eq
               # field == value where value is not in domain
               violates_domain?(literal_value, domain)
-            when :!=
-              # field != value where value is not in domain is always true (not impossible)
-              false
             else
-              # For other operators, we'd need more sophisticated analysis
+              # For != and other operators, not impossible or needs sophisticated analysis
               false
             end
           end
@@ -422,8 +421,8 @@ module Kumi
 
             literal_value = literal.value
 
-            case operator
-            when :==
+            case operator.to_sym
+            when :==, :eq
               # binding == value where binding evaluates to different value
               evaluated_value != literal_value
             else
@@ -433,15 +432,29 @@ module Kumi
           end
 
           def flip_operator(operator)
-            case operator
-            when :> then :<
-            when :>= then :<=
-            when :< then :>
-            when :<= then :>=
-            when :== then :==
-            when :!= then :!=
+            # Use Facts system to normalize operator flipping
+            case operator.to_sym
+            when :>, :gt then :<
+            when :>=, :ge then :<=
+            when :<, :lt then :>
+            when :<=, :le then :>=
+            when :==, :eq then :==
+            when :!=, :ne then :!=
             else operator
             end
+          end
+
+          # Helper methods for Facts-based checking
+
+          def comparator_call?(call)
+            @facts.comparator?(call, @node_index)
+          end
+
+          def eq_call?(node)
+            return false unless node.is_a?(CallExpression)
+
+            op = @facts.comparator_op(node, @node_index)
+            %i[== eq].include?(op&.to_sym)
           end
         end
       end

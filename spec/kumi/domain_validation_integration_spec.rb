@@ -15,7 +15,11 @@ RSpec.describe "Domain Validation Integration" do
         end
 
         trait :adult, input.age, :>=, 18
-        value :grade, fn(:conditional, fn(:>=, input.score, 90), "A", "B")
+        trait :high_score, input.score, :>=, 90.0
+        value :grade do
+          on high_score, "A"
+          base "B"
+        end
       end
     end
 

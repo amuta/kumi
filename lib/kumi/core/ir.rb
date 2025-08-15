@@ -34,10 +34,17 @@ module Kumi
       def self.Switch(cases, default) = IR::Op.new(tag: :switch, attrs: { cases: cases, default: default }, args: [])
       def self.GuardPush(cond_slot) = IR::Op.new(tag: :guard_push, attrs: { cond_slot: cond_slot }, args: [])
       def self.GuardPop             = IR::Op.new(tag: :guard_pop,  attrs: {},                      args: [])
+      def self.Select(cond, then_slot, else_slot) = IR::Op.new(tag: :select, attrs: {}, args: [cond, then_slot, else_slot])
       def self.Assign(dst:, src:)   = IR::Op.new(tag: :assign,     attrs: { dst: dst, src: src },  args: [])
       def self.Store(name, slot)             = IR::Op.new(tag: :store, attrs: { name: name }, args: [slot])
       def self.Lift(to_scope, slot)          = IR::Op.new(tag: :lift, attrs: { to_scope: to_scope }, args: [slot])
-      def self.Join(*slots)                  = IR::Op.new(tag: :join, attrs: {}, args: slots)
+      def self.Join(*slots, policy: :zip, on_missing: :error, target_scope: nil)
+        IR::Op.new(tag: :join, attrs: { policy: policy, on_missing: on_missing, target_scope: target_scope }, args: slots)
+      end
+      
+      def self.Project(join_slot, index)
+        IR::Op.new(tag: :project, attrs: { index: Integer(index) }, args: [join_slot])
+      end
       
       # Up-sample `source` to the scope (and order) of `target` by index-prefix.
       # Policies: :error | :nil for missing; require_unique: true enforces 1:1 on prefix.

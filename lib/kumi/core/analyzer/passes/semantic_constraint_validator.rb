@@ -57,14 +57,14 @@ module Kumi
 
           def validate_cascade_condition(when_case, errors)
             condition = when_case.condition
-
+            
             case condition
             when Kumi::Syntax::DeclarationReference
               # Valid: trait reference
               nil
             when Kumi::Syntax::CallExpression
-              # Valid if it's a boolean composition of traits (all?, any?, none?)
-              return if boolean_trait_composition?(condition)
+              # Valid if it's a boolean composition of traits (all?, any?, none?, cascade_and)
+              return if boolean_trait_composition?(condition) || condition.fn_name == :cascade_and
 
               # For now, allow other CallExpressions - they'll be validated by other passes
               nil
@@ -83,19 +83,12 @@ module Kumi
           end
 
           def validate_function_call(call_expr, errors)
-            fn_name = call_expr.fn_name
-
-            # Skip validation if Kumi::Registry.is being mocked for testing
-            return if function_registry_mocked?
-
-            return if Kumi::Registry.supported?(fn_name)
-
-            report_error(
-              errors,
-              "unknown function `#{fn_name}`",
-              location: call_expr.loc,
-              type: :semantic
-            )
+            # Skip function validation at this early stage since function names
+            # haven't been normalized yet. Real function validation happens later
+            # in FunctionSignaturePass which has access to qualified names.
+            # 
+            # This early pass focuses on basic semantic constraints only.
+            return
           end
 
           def validate_input_declaration(input_decl, errors)

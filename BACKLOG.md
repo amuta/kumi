@@ -2,11 +2,29 @@
 
 ## High Priority
 
+### Lazy Evaluation Completion
+- [ ] Replace cascade `Map(mask.where)` operations with `Select` operations for consistency
+- [ ] Add comprehensive specs for `Select` operation and lazy evaluation system
+- [ ] Performance testing: verify right operands are not evaluated in short-circuit cases
+
+### Hash Objects Implementation  
+- [ ] Complete hash object access plan lowering (in progress)
+- [ ] Add hash object broadcasting support for mixed array/hash operations
+- [ ] Hash object integration with trait system
+
+### User-Defined Function Support
+- [ ] Design RegistryV2 API for runtime function registration
+- [ ] Implement dynamic function definition system (YAML templates or programmatic API)
+- [ ] Bridge RegistryV2 with legacy Registry for backward compatibility during transition
+- [ ] Re-enable `spec/integration/arg_order_spec.rb` once user functions are supported
+- [ ] Documentation and examples for custom function registration
+
 ### RegistryV2 Migration Cleanup
 - [ ] Remove legacy `lib/kumi/core/function_registry.rb` and related modules after RegistryV2 is fully integrated
-- [ ] Clean up bridge code in `FunctionSignaturePass` once all functions are migrated
+- [ ] Clean up bridge code in `FunctionSignaturePass` once all functions are migrated  
 - [ ] Remove `create_basic_signature` fallback logic
 - [ ] Update all tests to use RegistryV2 functions
+- [ ] Add WARN_DEPRECATED_FUNCS as default?
 
 ## Medium Priority
 

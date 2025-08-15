@@ -41,7 +41,10 @@ module Kumi
       # - DEBUG_VM_ARGS=1 prints per-op execution and arguments.
       # - DEBUG_GROUP_ROWS=1 prints grouping decisions during Lift.
       module ExecutionEngine
-        def self.run(ir_module, ctx, accessors:, registry:)
+        def self.run(ir_module, ctx, accessors:, registry: nil)
+          # Build minimal function hash from RegistryV2 if no registry provided
+          function_registry = registry || FunctionExtractor.build_function_hash(ir_module)
+          
           # Use persistent accessor cache if available, otherwise create temporary one
           if ctx[:accessor_cache]
             # Include input data in cache key to avoid cross-context pollution
@@ -51,7 +54,7 @@ module Kumi
             memoized_accessors = add_temporary_memoization(accessors)
           end
           
-          Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: registry)
+          Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: function_registry)
         end
 
         private

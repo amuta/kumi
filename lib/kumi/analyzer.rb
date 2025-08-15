@@ -7,20 +7,23 @@ module Kumi
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
       Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Core::Analyzer::Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
-      Core::Analyzer::Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
-      Core::Analyzer::Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
-      Core::Analyzer::Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
-      Core::Analyzer::Passes::FunctionSignaturePass,           # 12. Resolves NEP-20 signatures for function calls.
-      Core::Analyzer::Passes::TypeChecker,                     # 13. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 14. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 15. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 16. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass                    # 17. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
+      Core::Analyzer::Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+      Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+      Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      Core::Analyzer::Passes::CascadeConstraintValidator,      # 8. Validates cascade_and usage constraints.
+      Core::Analyzer::Passes::CascadeDesugarPass,              # 9. Desugar cascade_and to regular and operations.
+      Core::Analyzer::Passes::CallNameNormalizePass,           # 10. Normalize function names to canonical basenames.
+      Core::Analyzer::Passes::BroadcastDetector,               # 11. Detects which operations should be broadcast over arrays.
+      Core::Analyzer::Passes::TypeInferencerPass,              # 12. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
+      Core::Analyzer::Passes::FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
+      Core::Analyzer::Passes::TypeChecker,                     # 15. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 16. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 17. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 18. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass                    # 19. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

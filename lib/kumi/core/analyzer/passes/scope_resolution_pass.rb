@@ -249,8 +249,11 @@ module Kumi
           end
 
           def reducer_function?(fn_name)
-            entry = Kumi::Registry.entry(fn_name)
-            entry&.reducer == true
+            # Use RegistryV2 to check if function is an aggregate (reducer)
+            function = registry_v2.resolve(fn_name.to_s, arity: nil)
+            function.class == :aggregate
+          rescue KeyError
+            false
           end
 
           def infer_scope_from_argument(arg, input_metadata)

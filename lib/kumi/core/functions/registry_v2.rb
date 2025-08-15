@@ -1,19 +1,77 @@
 module Kumi::Core::Functions
   class RegistryV2
+    # Global caching to avoid repeated YAML loading
+    @global_cache = {}
+    @cache_mutex = Mutex.new
+    
     def initialize(functions:)
-      @by_name = functions.group_by(&:name).transform_values { |v| v.sort_by(&:opset).freeze }.freeze
+      @by_qualified = {}
+      @by_basename = {}
+      
+      functions.each do |func|
+        # Store by fully qualified name
+        @by_qualified[func.name] = func
+        
+        # Store by basename for overload resolution
+        basename = func.name.split('.').last
+        @by_basename[basename] ||= []
+        @by_basename[basename] << func
+      end
+      
+      @by_qualified.freeze
+      @by_basename.freeze
     end
 
-    # Factory method to load from YAML configuration
+    # Factory method to load from YAML configuration with global caching
     def self.load_from_file(path = nil)
-      path ||= File.join(__dir__, "../../../..", "config", "functions.yaml")
-      functions = Loader.load_file(path)
-      new(functions: functions)
+      default_path = File.join(__dir__, "../../../..", "config", "functions.yaml")
+      path ||= default_path
+      
+      # Use global caching to avoid repeated YAML parsing
+      @cache_mutex.synchronize do
+        cache_key = File.absolute_path(path)
+        @global_cache[cache_key] ||= begin
+          functions = Loader.load_file(path)
+          new(functions: functions)
+        end
+      end
+    end
+    
+    # Clear global cache for testing/development
+    def self.clear_cache!
+      @cache_mutex.synchronize { @global_cache.clear }
     end
 
-    def fetch(name, opset: nil)
-      list = @by_name[name] or raise KeyError, "unknown function #{name}"
-      opset ? list.find { |f| f.opset == opset } : list.last
+    def resolve(name, arg_types: nil, arity: nil)
+      q = name.to_s
+      if q.include?(".")
+        fn = @by_qualified[q] or raise KeyError, "unknown function #{q}"
+        check_arity!(fn, arity) if arity
+        return fn
+      end
+
+      cands = Array(@by_basename[q])
+      raise KeyError, "unknown function #{q}" if cands.empty?
+      
+      # Filter by arity if provided
+      if arity
+        cands = cands.select { |f| arity_compatible?(f, arity) }
+        raise KeyError, "no overload of #{q} matches arity #{arity}" if cands.empty?
+      end
+      
+      # For now, if multiple candidates, pick the first one
+      # TODO: Implement proper type-directed scoring when we have robust type info
+      if cands.length > 1 && arg_types
+        # Future: score_overload logic here
+        raise KeyError, "ambiguous function #{q} (candidates: #{cands.map(&:name).join(", ")}); use a qualified name"
+      end
+      
+      cands.first
+    end
+
+    def fetch(name, opset: nil, **kw)
+      # Legacy compatibility - ignore opset for now, use resolve
+      resolve(name, **kw)
     end
 
     # Get function signatures for NEP-20 signature resolution
@@ -52,17 +110,42 @@ module Kumi::Core::Functions
       ks.max_by(&:priority) or raise "no kernel for #{fn.name} backend=#{backend}"
     end
 
-    # Introspection methods
-    def all_function_names
-      @by_name.keys
+    # Direct kernel execution - eliminates need for runtime registry!
+    def get_executable_kernel(fn_name, backend: :ruby, conditions: {})
+      function = resolve(fn_name)
+      kernel_entry = resolve_kernel(function, backend: backend, conditions: conditions)
+      KernelAdapter.build_for(function, kernel_entry).callable
     end
 
-    def function_exists?(name)
-      @by_name.key?(name)
+    # Introspection methods
+    def all_function_names
+      @by_qualified.keys
+    end
+
+    def function_exists?(name, **kw)
+      resolve(name, **kw)
+      true
+    rescue KeyError
+      false
     end
 
     def all_functions
-      @by_name.values.flatten
+      @by_qualified.values
+    end
+
+    private
+
+    def arity_compatible?(func, arity)
+      # Check if function arity is compatible with given arity
+      func_arity = func.respond_to?(:arity) ? func.arity : -1
+      return true if func_arity == -1  # Variable arity
+      return func_arity == arity
+    end
+
+    def check_arity!(func, arity)
+      return if arity_compatible?(func, arity)
+      func_arity = func.respond_to?(:arity) ? func.arity : "unknown"
+      raise KeyError, "arity mismatch for #{func.name}: expected #{func_arity}, got #{arity}"
     end
   end
 end

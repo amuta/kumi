@@ -28,7 +28,7 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
       expect(trait).to be_a(Kumi::Syntax::TraitDeclaration)
       expect(trait.name).to eq(:vip)
       expect(trait.expression).to be_a(Kumi::Syntax::CallExpression)
-      expect(trait.expression.fn_name).to eq(:==)
+      expect(trait.expression.fn_name).to eq(:eq)
       expect(trait.expression.args.size).to eq(2)
       expect(trait.expression.args.first).to be_a(Kumi::Syntax::InputReference)
       expect(trait.expression.args.last).to be_a(Kumi::Syntax::Literal)
@@ -58,7 +58,7 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
       )
 
       expect(schema.traits.map(&:expression)).to all(be_a(Kumi::Syntax::CallExpression))
-      expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:>=, :>=)
+      expect(schema.traits.map { |x| x.expression.fn_name }).to contain_exactly(:ge, :ge)
       expect(schema.traits.map(&:expression).flat_map(&:args).to_set).to contain_exactly(
         be_a(Kumi::Syntax::InputReference),
         be_a(Kumi::Syntax::Literal),

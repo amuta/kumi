@@ -138,8 +138,10 @@ module Kumi
           validate_trait_name(name)
           validate_operator(operator)
 
+          # Normalize operator to canonical basename
+          normalized_operator = Kumi::Core::Naming::BasenameNormalizer.normalize(operator)
           rhs_exprs = rhs.map { |r| ensure_syntax(r) }
-          expr = Kumi::Syntax::CallExpression.new(operator, [ensure_syntax(lhs)] + rhs_exprs, loc: @context.current_location)
+          expr = Kumi::Syntax::CallExpression.new(normalized_operator, [ensure_syntax(lhs)] + rhs_exprs, loc: @context.current_location)
           @context.traits << Kumi::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
         end
 
