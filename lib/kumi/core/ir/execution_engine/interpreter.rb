@@ -6,7 +6,7 @@ module Kumi
       module ExecutionEngine
         # Interpreter for IR modules - thin layer that delegates to combinators
         module Interpreter
-          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch].freeze
+          PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch join].freeze
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
 
           def self.run(ir_module, ctx, accessors:, registry:)
@@ -309,7 +309,50 @@ module Kumi
                   slots << aligned
 
                 when :join
-                  raise NotImplementedError, "Join not implemented yet"
+                  policy = op.attrs[:policy] || :zip
+                  on_missing = op.attrs[:on_missing] || :error
+                  
+                  # Validate slot indices before accessing
+                  op.args.each do |slot_idx|
+                    if slot_idx >= slots.length
+                      raise "Join operation: slot index #{slot_idx} out of bounds (slots.length=#{slots.length})"
+                    elsif slots[slot_idx].nil?
+                      raise "Join operation: slot #{slot_idx} is nil " \
+                            "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
+                    end
+                  end
+
+                  vecs = op.args.map { |slot_idx| slots[slot_idx] }
+                  
+                  # Ensure all arguments are vectors
+                  vecs.each_with_index do |vec, i|
+                    unless vec[:k] == :vec
+                      raise "Join operation: argument #{i} is not a vector (got #{vec[:k]})"
+                    end
+                  end
+
+                  case policy
+                  when :zip
+                    slots << Combinators.join_zip(vecs, on_missing: on_missing)
+                  when :product
+                    raise NotImplementedError, "Product join not implemented yet (use :zip policy)"
+                  else
+                    raise "Unknown join policy: #{policy}"
+                  end
+
+                when :project
+                  src_slot = op.args[0]
+                  index = op.attrs[:index]
+                  
+                  if src_slot >= slots.length
+                    raise "Project operation: source slot #{src_slot} out of bounds (slots.length=#{slots.length})"
+                  elsif slots[src_slot].nil?
+                    raise "Project operation: source slot #{src_slot} is nil"
+                  end
+                  
+                  src = slots[src_slot]
+                  result = Combinators.project(src, index)
+                  slots << result
 
                 else
                   raise "Unknown operation: #{op.tag}"

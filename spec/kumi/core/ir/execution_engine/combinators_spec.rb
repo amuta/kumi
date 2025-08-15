@@ -221,6 +221,114 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Combinators do
     end
   end
 
+  describe ".join_zip" do
+    it "joins two equal-length vectors from different scopes" do
+      v1 = vec.call([:i], [row.call(1, [0]), row.call(2, [1])], true)
+      v2 = vec.call([:j], [row.call(10, [0]), row.call(20, [1])], true)
+
+      result = described_class.join_zip([v1, v2])
+
+      expect(result[:k]).to eq(:vec)
+      expect(result[:scope]).to eq([:i, :j])
+      expect(result[:has_idx]).to be true
+      expect(result[:rows]).to eq([
+                                    { v: [1, 10], idx: [0] },
+                                    { v: [2, 20], idx: [1] }
+                                  ])
+    end
+
+    it "joins multiple vectors" do
+      v1 = vec.call([:i], [row.call(1, [0])], true)
+      v2 = vec.call([:j], [row.call(2, [0])], true)
+      v3 = vec.call([:k], [row.call(3, [0])], true)
+
+      result = described_class.join_zip([v1, v2, v3])
+
+      expect(result[:scope]).to eq([:i, :j, :k])
+      expect(result[:rows]).to eq([
+                                    { v: [1, 2, 3], idx: [0] }
+                                  ])
+    end
+
+    it "returns single vector when given one argument" do
+      v = vec.call([:i], [row.call(42, [0])], true)
+
+      result = described_class.join_zip([v])
+
+      expect(result).to eq(v)
+    end
+
+    it "handles vectors without indices" do
+      v1 = vec.call([:i], [row.call(1), row.call(2)], false)
+      v2 = vec.call([:j], [row.call(10), row.call(20)], false)
+
+      result = described_class.join_zip([v1, v2])
+
+      expect(result[:has_idx]).to be false
+      expect(result[:rows]).to eq([
+                                    { v: [1, 10] },
+                                    { v: [2, 20] }
+                                  ])
+    end
+
+    it "raises on length mismatch with error policy" do
+      v1 = vec.call([:i], [row.call(1), row.call(2)], false)
+      v2 = vec.call([:j], [row.call(10)], false)
+
+      expect do
+        described_class.join_zip([v1, v2], on_missing: :error)
+      end.to raise_error(/Length mismatch in join_zip: \[2, 1\]/)
+    end
+
+    it "pads with nil on length mismatch with nil policy" do
+      v1 = vec.call([:i], [row.call(1), row.call(2)], false)
+      v2 = vec.call([:j], [row.call(10)], false)
+
+      result = described_class.join_zip([v1, v2], on_missing: :nil)
+
+      expect(result[:rows]).to eq([
+                                    { v: [1, 10] },
+                                    { v: [2, nil] }
+                                  ])
+    end
+
+    it "raises on unknown on_missing policy" do
+      v1 = vec.call([:i], [row.call(1)], false)
+      v2 = vec.call([:j], [row.call(10)], false)
+
+      expect do
+        described_class.join_zip([v1, v2], on_missing: :unknown)
+      end.to raise_error(/unknown on_missing policy: unknown/)
+    end
+
+    it "rejects non-vector arguments" do
+      v = vec.call([:i], [row.call(1)], false)
+      s = scalar.call(5)
+
+      expect do
+        described_class.join_zip([v, s])
+      end.to raise_error(/All arguments must be vecs/)
+    end
+
+    it "concatenates output scope from all input scopes" do
+      v1 = vec.call([:x, :y], [row.call(1, [0, 0])], true)
+      v2 = vec.call([:z], [row.call(2, [0])], true)
+
+      result = described_class.join_zip([v1, v2])
+
+      expect(result[:scope]).to eq([:x, :y, :z])
+    end
+
+    it "preserves has_idx if any input has indices" do
+      v1 = vec.call([:i], [row.call(1)], false)
+      v2 = vec.call([:j], [row.call(2, [0])], true)
+
+      result = described_class.join_zip([v1, v2])
+
+      expect(result[:has_idx]).to be true
+    end
+  end
+
   describe ".group_rows" do
     it "returns values at depth 0" do
       rows = [

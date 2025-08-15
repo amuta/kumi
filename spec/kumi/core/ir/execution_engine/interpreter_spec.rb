@@ -314,6 +314,93 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
       end
     end
 
+    context "with join operations" do
+      it "executes join operation with zip policy" do
+        accessors = {
+          "vec1:each_indexed" => ->(ctx) { [[1, [0]], [2, [1]]] },
+          "vec2:each_indexed" => ->(ctx) { [[10, [0]], [20, [1]]] }
+        }
+
+        ir = ir_module([
+                         ir_decl(:joined, [
+                                   ir_op(:load_input, { plan_id: "vec1:each_indexed", scope: [:i], is_scalar: false, has_idx: true }),
+                                   ir_op(:load_input, { plan_id: "vec2:each_indexed", scope: [:j], is_scalar: false, has_idx: true }),
+                                   ir_op(:join, { policy: :zip, on_missing: :error }, [0, 1]),
+                                   ir_op(:store, { name: :joined }, [2])
+                                 ])
+                       ])
+
+        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+
+        expect(result[:joined][:k]).to eq(:vec)
+        expect(result[:joined][:scope]).to eq([:i, :j])
+        expect(result[:joined][:has_idx]).to be true
+        expect(result[:joined][:rows]).to eq([
+                                               { v: [1, 10], idx: [0] },
+                                               { v: [2, 20], idx: [1] }
+                                             ])
+      end
+
+      it "handles length mismatch with nil policy" do
+        accessors = {
+          "vec1:each" => ->(ctx) { [1, 2] },
+          "vec2:each" => ->(ctx) { [10] }
+        }
+
+        ir = ir_module([
+                         ir_decl(:joined, [
+                                   ir_op(:load_input, { plan_id: "vec1:each", scope: [:i], is_scalar: false, has_idx: false }),
+                                   ir_op(:load_input, { plan_id: "vec2:each", scope: [:j], is_scalar: false, has_idx: false }),
+                                   ir_op(:join, { policy: :zip, on_missing: :nil }, [0, 1]),
+                                   ir_op(:store, { name: :joined }, [2])
+                                 ])
+                       ])
+
+        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+
+        expect(result[:joined][:rows]).to eq([
+                                               { v: [1, 10] },
+                                               { v: [2, nil] }
+                                             ])
+      end
+
+      it "raises error for unknown join policy" do
+        accessors = {
+          "vec1:each" => ->(ctx) { [[1]] }
+        }
+
+        ir = ir_module([
+                         ir_decl(:bad_join, [
+                                   ir_op(:load_input, { plan_id: "vec1:each", scope: [:i], is_scalar: false, has_idx: false }),
+                                   ir_op(:join, { policy: :unknown }, [0]),
+                                   ir_op(:store, { name: :bad_join }, [1])
+                                 ])
+                       ])
+
+        expect do
+          described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        end.to raise_error(/Unknown join policy: unknown/)
+      end
+
+      it "raises error for product policy (not implemented)" do
+        accessors = {
+          "vec1:each" => ->(ctx) { [[1]] }
+        }
+
+        ir = ir_module([
+                         ir_decl(:product_join, [
+                                   ir_op(:load_input, { plan_id: "vec1:each", scope: [:i], is_scalar: false, has_idx: false }),
+                                   ir_op(:join, { policy: :product }, [0]),
+                                   ir_op(:store, { name: :product_join }, [1])
+                                 ])
+                       ])
+
+        expect do
+          described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        end.to raise_error(/Product join not implemented yet/)
+      end
+    end
+
     context "with error handling" do
       xit "includes operation context in error messages" do
         # This is analzyer responsability!

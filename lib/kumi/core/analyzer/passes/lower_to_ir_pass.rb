@@ -232,14 +232,26 @@ module Kumi
             carrier_slot  = arg_slots[carrier_i]
 
             aligned = arg_slots.dup
+            
+            # Separate vectors into prefix-compatible and cross-scope groups
+            prefix_compatible = []
+            cross_scope_slots = []
+            
             vec_is.each do |i|
               next if shapes[i].scope == carrier_scope
 
               short, long = [shapes[i].scope, carrier_scope].sort_by(&:length)
-              unless long.first(short.length) == short
-                raise "cross-scope map without join: #{shapes[i].scope.inspect} vs #{carrier_scope.inspect}"
+              if long.first(short.length) == short
+                # Prefix-compatible: can use AlignTo
+                prefix_compatible << i
+              else
+                # Cross-scope: needs Join
+                cross_scope_slots << aligned[i]
               end
-
+            end
+            
+            # Handle prefix-compatible vectors with AlignTo
+            prefix_compatible.each do |i|
               src_slot = aligned[i] # <- chain on the current slot, not the original
               op = Kumi::Core::IR::Ops.AlignTo(
                 carrier_slot, src_slot,
@@ -247,6 +259,36 @@ module Kumi
               )
               ops << op
               aligned[i] = ops.size - 1
+            end
+            
+            # Handle cross-scope vectors with Join
+            if cross_scope_slots.any?
+              # Collect all cross-scope vector slots that need joining
+              cross_scope_indices = []
+              vec_is.each do |i|
+                next if shapes[i].scope == carrier_scope
+                next if prefix_compatible.include?(i)
+                cross_scope_indices << i
+              end
+              
+              # Add carrier to the list of slots to join
+              carrier_i = vec_is.find { |i| shapes[i].scope == carrier_scope }
+              join_slots = [aligned[carrier_i]] + cross_scope_indices.map { |i| aligned[i] }
+              
+              # Emit Join operation with zip policy
+              join_op = Kumi::Core::IR::Ops.Join(*join_slots, policy: :zip, on_missing: on_missing)
+              ops << join_op
+              joined_slot = ops.size - 1
+              
+              # Create extract operations to decompose the joined result
+              # Each original argument gets its own extract operation
+              participating_indices = [carrier_i] + cross_scope_indices
+              participating_indices.compact.each_with_index do |orig_i, extract_i|
+                # Create an extract operation to pull the i-th component from the joined tuple
+                extract_op = Kumi::Core::IR::Ops.Map(:__extract, 2, joined_slot, Kumi::Core::IR::Ops.Const(extract_i))
+                ops << extract_op
+                aligned[orig_i] = ops.size - 1
+              end
             end
 
             aligned
@@ -520,11 +562,35 @@ module Kumi
 
                 # Non-reducer: pointwise. Choose carrier = deepest vec among args.
                 target = infer_expr_scope(expr, access_plans) # static, no ops emitted
+                
+                # 0) collect signature metadata (if present)
+                node_index = get_state(:node_index, required: false)
+                node_meta  = node_index && node_index[expr.object_id] && node_index[expr.object_id][:metadata]
+                join_policy = node_meta && node_meta[:join_policy] # nil | :zip | :product
+                
+                if ENV["DEBUG_LOWER"]
+                  puts "    node_index available: #{!!node_index}"
+                  puts "    node_meta: #{node_meta.inspect}" if node_meta
+                  puts "    join_policy: #{join_policy.inspect}"
+                end
+
+                # 1) lower args as before
                 arg_slots = expr.args.map do |a|
                   lower_expression(a, ops, access_plans, scope_plan,
                                    need_indices, target, cacheable: cacheable)
                 end
-                aligned = insert_align_to_if_needed(arg_slots, ops, access_plans, on_missing: :error)
+
+                # 2) align using extracted component
+                shape_of = ->(slot) { determine_slot_shape(slot, ops, access_plans) }
+                aligner  = Kumi::Core::IR::Lowering::ArgAligner.new(shape_of: shape_of)
+                aligned  = aligner.align!(ops: ops, arg_slots: arg_slots, join_policy: join_policy, on_missing: :error).slots
+
+                if ENV["DEBUG_LOWER"]
+                  puts "  MAP #{expr.fn_name} with #{aligned.size} args: #{aligned.inspect}"
+                  puts "    join_policy: #{join_policy.inspect}"
+                end
+
+                # 3) map
                 ops << Kumi::Core::IR::Ops.Map(expr.fn_name, expr.args.size, *aligned)
                 ops.size - 1
 

@@ -359,9 +359,18 @@ module Kumi
               # Dimension / source compatibility check
               sources = vec_idx.map { |i| arg_infos[i][:array_source] }.compact.uniq
               if sources.size > 1
-                enhanced_message = build_dimension_mismatch_error(expr, arg_infos, array_fields, sources)
-                report_error(errors, enhanced_message, location: expr.loc, type: :semantic)
-                return { type: :scalar } # fail safe to prevent cascading errors
+                # Cross-scope operation detected - mark it for join handling in LowerToIR
+                return {
+                  type: :vectorized,
+                  info: {
+                    cross_scope: true,
+                    sources: sources,
+                    requires_join: true,
+                    dimensions: vec_idx.map { |i| arg_infos[i][:dimension] || [arg_infos[i][:array_source]] },
+                    vec_idx: vec_idx,
+                    array_source: sources.first # Use first source as primary for compatibility
+                  }
+                }
               end
 
               return {

@@ -51,10 +51,39 @@
   type_vars: {T: Numeric, U: Numeric}
   dtypes: {result: "promote_float(T,U)", casting: "same_kind"}
   null_policy: propagate
+
   kernels:
     - backend: ruby
       impl: kumi_div
       priority: 10
+
+- name: core.mod
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: IntLike, U: IntLike}
+  dtypes: {result: "promote(T,U)"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_mod
+      priority: 10
+
+- name: core.pow
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Numeric}
+  dtypes: {result: "promote_float(T,U)"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_pow
+      priority: 1
+
+# ==================== CORE - COMPARISONS / LOGICAL ====================
 
 - name: core.eq
   domain: core
@@ -70,6 +99,45 @@
       impl: kumi_eq
       priority: 10
 
+- name: core.ne
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Any, U: Any}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_ne
+      priority: 10
+
+- name: core.lt
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_lt
+      priority: 10
+
+- name: core.le
+  domain: core
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),(i)->(i)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_le
+      priority: 10
+
 - name: core.gt
   domain: core
   opset: 1
@@ -83,7 +151,7 @@
       impl: kumi_gt
       priority: 10
 
-- name: core.gte
+- name: core.ge
   domain: core
   opset: 1
   class: scalar
@@ -93,7 +161,7 @@
   null_policy: propagate
   kernels:
     - backend: ruby
-      impl: kumi_gte
+      impl: kumi_ge
       priority: 10
 
 - name: core.and
@@ -301,7 +369,7 @@
   domain: string
   opset: 1
   class: scalar
-  signature: ["(),()->()", "(i),(i)->(i)"]
+  signature: ["(),()->()", "(i),(i)->(i)", "(i),(j)->(i,j)@zip"]
   type_vars: {S1: String, S2: String}
   dtypes: {result: "string"}
   null_policy: propagate
@@ -349,4 +417,64 @@
   kernels:
     - backend: ruby
       impl: dt_diff_days
+      priority: 10
+
+# ==================== ARRAY / STRUCTURE ACCESSORS =============================
+
+- name: array.get
+  domain: struct
+  opset: 1
+  class: scalar
+  signature:
+    - "(),()->()"      # scalar array, scalar index
+    - "(i),()->(i)"    # vector array, scalar index
+    - "(),(i)->(i)"    # scalar array, vector index (same-scope broadcast)
+  type_vars: {A: Any}
+  dtypes: {result: "A"}
+  null_policy: error
+  kernels:
+    - backend: ruby
+      impl: array_get
+      priority: 10
+
+- name: struct.get
+  domain: struct
+  opset: 1
+  class: scalar
+  signature:
+    - "(),()->()"      # struct, key
+    - "(i),()->(i)"    # vector of structs, scalar key
+    - "(),(i)->(i)"    # struct, vector of keys
+  type_vars: {K: StringLike}
+  dtypes: {result: "any"}
+  null_policy: error
+  kernels:
+    - backend: ruby
+      impl: struct_get
+      priority: 10
+
+- name: array.contains
+  domain: struct
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),()->(i)"]
+  type_vars: {A: Any}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: array_contains
+      priority: 10
+
+- name: string.contains
+  domain: string
+  opset: 1
+  class: scalar
+  signature: ["(),()->()", "(i),()->(i)"]
+  type_vars: {S: String}
+  dtypes: {result: "bool"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: str_contains
       priority: 10
