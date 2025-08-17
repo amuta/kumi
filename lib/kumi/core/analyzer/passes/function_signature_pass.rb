@@ -5,12 +5,30 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Apply NEP-20 signature resolution to function calls
-        # DEPENDENCIES: :node_index from Toposorter, :broadcast_metadata (optional)
-        # PRODUCES: Signature metadata in node_index for CallExpression nodes
-        # INTERFACE: new(schema, state).run(errors)
+        # 
+        # Resolves function signatures using RegistryV2 and attaches signature metadata
+        # to CallExpression nodes. May compute result dtypes if function has dtype metadata,
+        # but TypeCheckerV2 will compute them if missing.
+        #
+        # DEPENDENCIES: 
+        #   - :node_index from NameIndexer (CallExpression entries with metadata)
+        #   - :qualified_name from CallNameNormalizePass (normalized function names)
+        #   - :broadcast_metadata (optional, for signature argument shape building)
+        #
+        # PRODUCES: 
+        #   - Signature metadata in node_index for CallExpression nodes
+        #   - :result_dtype (optional, if function declares dtype computation rules)
+        #
+        # RELATIONSHIP WITH TypeCheckerV2:
+        #   - This pass may pre-compute result_dtype, TypeCheckerV2 computes if missing
+        #   - TypeCheckerV2 uses the signature metadata for constraint validation
+        #   - Both passes use the same RegistryV2 function resolution
         class FunctionSignaturePass < PassBase
           def run(errors)
             node_index = get_state(:node_index, required: true)
+            @input_metadata = get_state(:input_metadata, required: false) || {}
+            @inferred_types = get_state(:inferred_types, required: false) || {}
+            @broadcast_metadata = get_state(:broadcast_metadata, required: false)
 
             if ENV["DEBUG_LOWER"]
               puts "FunctionSignaturePass: Processing #{node_index.size} nodes"
@@ -119,7 +137,26 @@ module Kumi
               return
             end
 
-            # 4) Attach metadata to node index entry
+            # 4) Compute result dtype if function has dtype metadata
+            begin
+              qualified_name = entry[:metadata][:qualified_name] || effective_name
+              fn = registry_v2.resolve(qualified_name)
+              if fn.respond_to?(:dtypes) && fn.dtypes && (fn.dtypes[:result] || fn.dtypes["result"])
+                arg_types = build_argument_types(node)
+                result_dtype = Kumi::Core::Functions::DTypeAdapter.evaluate(fn, arg_types)
+                entry[:metadata][:result_dtype] = result_dtype if result_dtype
+                if ENV["DEBUG_LOWER"]
+                  puts "      Computed result dtype: #{result_dtype} for #{fn.name} with args #{arg_types.inspect}"
+                end
+              end
+            rescue => e
+              if ENV["DEBUG_LOWER"]
+                puts "      Failed to compute result dtype: #{e.message}"
+              end
+              # Continue - result dtype computation is optional
+            end
+
+            # 5) Attach metadata to node index entry
             if ENV["DEBUG_LOWER"]
               puts "      Attaching metadata to entry..."
               puts "        Before: entry[:metadata] = #{entry[:metadata].inspect}"
@@ -134,7 +171,7 @@ module Kumi
             # Use effective function name (from CascadeDesugarPass) or qualified name or node fn_name
             effective_name = entry[:metadata][:effective_fn_name] || entry[:node].fn_name
             qualified_name = entry[:metadata][:qualified_name] || effective_name
-            # Use RegistryV2 only - no fallback to legacy registry
+            # Use RegistryV2 for all function resolution
             registry_v2_signatures(qualified_name)
           end
 
@@ -226,6 +263,47 @@ module Kumi
             end
           end
 
+          def build_argument_types(node)
+            # Build argument types for dtype computation
+            # Use the same type inference logic as TypeCheckerV2
+            node.args.map { |arg| infer_expr_type(arg) }
+          end
+
+          def infer_expr_type(expr)
+            case expr
+            when Kumi::Syntax::Literal
+              Kumi::Core::Types.infer_from_value(expr.value)
+
+            when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+              if expr.respond_to?(:name) && @input_metadata[expr.name]
+                @input_metadata[expr.name][:type] || :any
+              elsif expr.respond_to?(:path)
+                # fall back for element paths: last segment's declared type if present
+                leaf = Array(expr.path).last
+                im   = @input_metadata[leaf]
+                im && im[:type] || :any
+              else
+                :any
+              end
+
+            when Kumi::Syntax::DeclarationReference
+              @inferred_types[expr.name] || :any
+
+            when Kumi::Syntax::CallExpression
+              # For nested call expressions, we might not have computed the result dtype yet
+              # Fall back to :any for now - this handles the simple case
+              :any
+
+            when Kumi::Syntax::ArrayExpression
+              # Coarse: unify all element types
+              elems = expr.elements rescue [] # defensive
+              elems.map { |e| infer_expr_type(e) }.reduce(:any) { |acc, t| Kumi::Core::Types.unify(acc, t) }
+
+            else
+              :any
+            end
+          end
+
           def normalize_shape(axes)
             case axes
             when nil
@@ -238,12 +316,11 @@ module Kumi
           end
 
           def get_broadcast_metadata(arg_object_id)
-            # Try to get broadcast metadata from existing analysis state
-            broadcast_meta = get_state(:broadcast_metadata, required: false)
-            return nil unless broadcast_meta
+            # Use cached broadcast metadata from run() method
+            return nil unless @broadcast_metadata
 
             # Look up by node object_id
-            broadcast_meta[arg_object_id]&.dig(:axes)
+            @broadcast_metadata[arg_object_id]&.dig(:axes)
           end
 
           def build_signature_error_message(fn_name, arg_shapes, sig_strings, original_error, node)

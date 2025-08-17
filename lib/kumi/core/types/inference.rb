@@ -36,6 +36,38 @@ module Kumi
             :any
           end
         end
+        
+        # RegistryV2 dtype expression to type mapping
+        DTYPE_TO_TYPE = {
+          # Boolean types
+          "bool" => :boolean,
+          
+          # Numeric promotion types
+          "promote(T,U)" => :float,
+          "promote_float(T,U)" => :float,
+          "promote(T)" => :float,
+          
+          # Generic type parameters
+          "T" => :float, # Most aggregates work on numeric data
+          "A" => :any,   # Generic element type (e.g., for array indexing)
+          
+          # Explicit types
+          "int" => :integer,
+          "float" => :float,
+          "string" => :string,
+          "str" => :string
+        }.freeze
+        
+        # Infer types from RegistryV2 dtype expressions
+        def self.infer_from_dtype(dtype_expr)
+          dtype_str = dtype_expr.to_s
+          
+          # Check exact match first
+          return DTYPE_TO_TYPE[dtype_str] if DTYPE_TO_TYPE.key?(dtype_str)
+          
+          # If not found, raise an error to help us identify missing mappings
+          raise "Unknown RegistryV2 dtype expression: '#{dtype_str}'. Please add mapping to DTYPE_TO_TYPE."
+        end
       end
     end
   end

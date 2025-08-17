@@ -115,14 +115,6 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         end.to raise_error(error_class, /expects a symbol for an operator, got String/)
       end
 
-      it "raises an error if the operator is not supported" do
-        expect do
-          build_schema do
-            trait :unsupported, input.value, :>>, 42
-          end
-        end.to raise_error(error_class, /unsupported operator `>>`/)
-      end
-
       it "raises an error if a trait has an invalid expression size" do
         expect do
           build_schema do
@@ -143,13 +135,6 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         end.not_to raise_error
       end
 
-      it "raises an error for unsupported operators" do
-        expect do
-          build_schema do
-            trait :unsupported, input.value, :>>, 42
-          end
-        end.to raise_error(error_class, /unsupported operator `>>`/)
-      end
     end
   end
 

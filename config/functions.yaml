@@ -247,7 +247,9 @@
   domain: core
   opset: 1
   class: aggregate
-  signature: ["(i)->()", "(i,j)->(i)"]
+  signature: 
+    - "(i)->()" 
+    - "(i,j)->(i)"
   type_vars: {T: Numeric}
   dtypes: {result: "promote(T)"}
   null_policy: skip
@@ -566,4 +568,199 @@
   kernels:
     - backend: ruby
       impl: str_contains
+      priority: 10
+
+
+# ==================== CORE - ELEMENTWISE (keeps fn(:max/:min) working) =======
+
+- name: core.max
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Elementwise maximum with broadcasting
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "promote(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_maximum    # distinct from agg.max's kumi_max
+      priority: 10
+
+- name: core.min
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Elementwise minimum with broadcasting
+  signature: ["(),()->()", "(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Orderable, U: Orderable}
+  dtypes: {result: "promote(T,U)", casting: "same_kind"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_minimum    # distinct from agg.min's kumi_min
+      priority: 10
+
+- name: core.clip
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Clamp x into [lo, hi] elementwise
+  signature:
+    - "(),(),()->()"
+    - "(i),(),()->(i)"
+    - "(),(i),()->(i)"
+    - "(i),(i),()->(i)"
+    - "(i),(i),(i)->(i)"
+    - "(i,j),(i,j),(i,j)->(i,j)"
+  type_vars: {T: Orderable, U: Orderable, V: Orderable}
+  dtypes: {result: "promote(promote(T,U),V)", casting: "same_kind"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_clip
+      priority: 10
+
+# ==================== CORE - VECTOR TRANSFORMS ================================
+
+- name: core.diff
+  domain: core
+  opset: 1
+  class: vector
+  summary: First discrete difference along the last axis
+  signature:
+    - "(i)->(k)"            # 1-D
+    - "(s,i)->(s,k)"        # batched: per-status diff
+  shape_fn: "diff_last->k"   # k = len(last_axis) - 1
+  type_vars: {T: Numeric}
+  dtypes: {result: "T"}
+  null_policy: propagate
+  options: {axis: -1}
+  kernels:
+    - backend: ruby
+      impl: kumi_diff
+      priority: 10
+
+- name: core.cumsum
+  domain: core
+  opset: 1
+  class: vector
+  summary: Cumulative sum along the last axis
+  signature: ["(i)->(i)", "(i,j)->(i,j)"]
+  type_vars: {T: Numeric}
+  dtypes: {result: "promote(T)"}
+  null_policy: propagate
+  options: {axis: -1}
+  kernels:
+    - backend: ruby
+      impl: kumi_cumsum
+      priority: 10
+
+# ==================== STRUCTURE / SHAPE =======================================
+
+- name: struct.concatenate
+  domain: struct
+  opset: 1
+  class: structure
+  summary: Concatenate arrays along the last axis
+  signature: ["(i),(i)->(k)", "(i,j),(i,j)->(i,k)"]
+  shape_fn: "concat_last->k"   # k = len_last(a) + len_last(b)
+  type_vars: {T: Any}
+  dtypes: {result: "T"}
+  null_policy: propagate
+  options: {axis: -1}
+  constraints:
+    - "Inputs must match in all non-concatenated axes"
+  kernels:
+    - backend: ruby
+      impl: kumi_concatenate
+      priority: 10
+
+- name: struct.prepend
+  domain: struct
+  opset: 1
+  class: structure
+  summary: Prepend a scalar to a 1-D array (sugar over concatenate)
+  signature: 
+      - "(),(i)->(k)"         # existing 1-D
+      - "(),(s,i)->(s,k)"     # batched statuses S x I -> S x (I+1)
+  shape_fn: "concat_last->k"
+  type_vars: {T: Any}
+  dtypes: {result: "T"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_prepend
+      priority: 5
+
+- name: struct.searchsorted
+  domain: struct
+  opset: 1
+  class: vector
+  summary: Indices where values should be inserted to maintain order
+  signature:
+    - "(i),()->()"       # edges 1-D, scalar v
+    - "(i),(j)->(j)"     # edges 1-D, vector v
+    - "(s,i),(s)->(s)"   # batched: S rows of edges, S scalars v
+  type_vars: {E: Orderable, V: Orderable, S: Any}
+  dtypes: {result: "int"}
+  null_policy: error
+  options: {side: right}     # :left | :right
+  constraints:
+    - "edges must be 1-D nondecreasing"
+    - "edges must match in length with values"
+    - "values must be 1-D"
+  kernels:
+    - backend: ruby
+      impl: kumi_searchsorted
+      priority: 10
+
+- name: struct.take_along_axis
+  domain: struct
+  opset: 1
+  class: structure
+  summary: Take values by indices along the last axis
+  signature: ["(i),(i)->(i)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Any}
+  dtypes: {result: "T"}
+  null_policy: error
+  options: {axis: -1}
+  constraints:
+    - "indices within bounds of last axis"
+    - "values/indices match on non-indexed axes"
+  kernels:
+    - backend: ruby
+      impl: kumi_take_along_axis
+      priority: 10
+
+# ==================== AGGREGATES (indices) ====================================
+
+- name: agg.argmax
+  domain: core
+  opset: 1
+  class: aggregate
+  summary: Index of the maximum along the last axis
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Orderable}
+  dtypes: {result: "int"}
+  null_policy: skip
+  options: {axis: -1, tie_break: first}  # or :last
+  kernels:
+    - backend: ruby
+      impl: kumi_argmax
+      priority: 10
+
+- name: agg.argmin
+  domain: core
+  opset: 1
+  class: aggregate
+  summary: Index of the minimum along the last axis
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Orderable}
+  dtypes: {result: "int"}
+  null_policy: skip
+  options: {axis: -1, tie_break: first}
+  kernels:
+    - backend: ruby
+      impl: kumi_argmin
       priority: 10

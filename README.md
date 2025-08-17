@@ -247,26 +247,6 @@ Kumi::Explain.call(FederalTax2024, :fed_tax, inputs: {income: 100_000, filing_st
 #    = 15_099.50
 ```
 
-#### **Schema Metadata API: Build Tooling**
-
-Programmatically access the analyzed structure of your schema to build tools like form generators, documentation sites, or custom validators.
-
-```ruby
-metadata = FederalTax2024.schema_metadata
-
-# Processed, tool-friendly metadata
-metadata.inputs           # => { name: { type: :string, domain: ... } }
-metadata.values           # => { name: { dependencies: [...], expression: "..." } }
-metadata.traits           # => { name: { condition: "...", dependencies: [...] } }
-
-# Raw analyzer state for deep analysis
-metadata.dependencies     # Dependency graph between all declarations
-metadata.evaluation_order # Topologically sorted computation order
-
-# Export to standard formats
-metadata.to_h             # => Serializable hash for JSON/APIs
-metadata.to_json_schema   # => JSON Schema for input validation
-```
 
 #### **AST Visualization: See the Structure**
 

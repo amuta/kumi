@@ -19,7 +19,7 @@ module Kumi
       Core::Analyzer::Passes::TypeInferencerPass,              # 12. Infers types for all declarations (uses vectorization metadata).
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
-      Core::Analyzer::Passes::TypeChecker,                     # 15. Validates types using inferred information.
+      Core::Analyzer::Passes::TypeCheckerV2,                   # 15. Computes CallExpression result dtypes and validates constraints via RegistryV2.
       Core::Analyzer::Passes::InputAccessPlannerPass,          # 16. Plans access strategies for input fields.
       Core::Analyzer::Passes::ScopeResolutionPass,             # 17. Plans execution scope and lifting needs for declarations.
       Core::Analyzer::Passes::JoinReducePlanningPass,          # 18. Plans join/reduce operations (Generates IR Structs)
@@ -29,6 +29,8 @@ module Kumi
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
+      registry = Kumi::Core::Functions::RegistryV2.load_from_file
+      state = state.with(:registry, registry)
 
       state = run_analysis_passes(schema, passes, state, errors)
       handle_analysis_errors(errors) unless errors.empty?
@@ -60,7 +62,10 @@ module Kumi
 
       raise Errors::TypeError.new(Core::ErrorReporter.format_messages_only(errors), first_error_location) if type_errors.any?
 
-      raise Errors::SemanticError.new(Core::ErrorReporter.format_messages_only(errors), first_error_location) if first_error_location || semantic_errors
+      if first_error_location || semantic_errors
+        raise Errors::SemanticError.new(Core::ErrorReporter.format_messages_only(errors),
+                                        first_error_location)
+      end
 
       raise Errors::AnalysisError.new(Core::ErrorReporter.format_errors(errors))
     end

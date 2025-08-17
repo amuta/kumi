@@ -12,7 +12,6 @@ RSpec.describe Kumi::Schema do
       expect(test_class).to respond_to(:schema)
       expect(test_class).to respond_to(:from)
       expect(test_class).to respond_to(:explain)
-      expect(test_class).to respond_to(:schema_metadata)
     end
 
     it "adds instance variable readers" do
@@ -161,35 +160,4 @@ RSpec.describe Kumi::Schema do
     end
   end
 
-  describe "#schema_metadata" do
-    context "when no schema is defined" do
-      it "raises error" do
-        expect { test_class.schema_metadata }.to raise_error("No schema defined")
-      end
-    end
-
-    context "with defined schema" do
-      before do
-        test_class.schema do
-          input do
-            integer :age
-          end
-          
-          trait :adult, (input.age >= 18)
-        end
-      end
-
-      it "returns schema metadata object" do
-        metadata = test_class.schema_metadata
-        expect(metadata).to be_a(Kumi::SchemaMetadata)
-      end
-
-      it "memoizes metadata object" do
-        metadata1 = test_class.schema_metadata
-        metadata2 = test_class.schema_metadata
-        
-        expect(metadata1).to be(metadata2)
-      end
-    end
-  end
 end

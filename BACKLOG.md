@@ -26,6 +26,13 @@
 - [ ] Update all tests to use RegistryV2 functions
 - [ ] Add WARN_DEPRECATED_FUNCS as default?
 
+### SchemaMetadata Removal Cleanup
+- [x] ~~Remove `SchemaMetadata` class and related files~~ (Completed)
+- [x] ~~Remove `JsonSchema` module and related files~~ (Completed - was tightly coupled to SchemaMetadata)
+- [ ] Consider alternative tooling API for schema introspection (if needed)
+- [ ] Update any external docs/examples that referenced `schema_metadata` method
+- [ ] Reimplement JSON Schema generation working directly with analyzer state (if needed)
+
 ## Medium Priority
 
 ### Function Registry Enhancements

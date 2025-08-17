@@ -5,14 +5,30 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Infer types for all declarations based on expression analysis
-        # DEPENDENCIES: Toposorter (needs evaluation_order), DeclarationValidator (needs declarations)
-        # PRODUCES: inferred_types hash mapping declaration names to inferred types
-        # INTERFACE: new(schema, state).run(errors)
+        # 
+        # Provides initial type inference for all declarations using expression structure,
+        # input metadata, and RegistryV2. TypeCheckerV2 will later update inferred_types
+        # for value declarations with CallExpression result dtypes computed from RegistryV2.
+        #
+        # DEPENDENCIES: 
+        #   - Toposorter (needs evaluation_order for dependency resolution)
+        #   - DeclarationValidator (needs declarations mapping)
+        #   - BroadcastDetector (needs broadcasts for vectorized type handling)
+        #
+        # PRODUCES: 
+        #   - inferred_types hash mapping declaration names to inferred types
+        #
+        # RELATIONSHIP WITH TypeCheckerV2:
+        #   - This pass provides initial inferred_types using expression-based inference
+        #   - TypeCheckerV2 updates inferred_types for CallExpression-based value declarations
+        #   - Final inferred_types combine both passes' contributions
         class TypeInferencerPass < PassBase
           def run(errors)
             types = {}
+            registry = get_state(:registry, required: true)
             topo_order = get_state(:evaluation_order)
             definitions = get_state(:declarations)
+            input_metadata = get_state(:input_metadata, required: false) || {}
 
             # Get broadcast metadata from broadcast detector
             broadcast_meta = get_state(:broadcasts, required: false) || {}
@@ -84,37 +100,28 @@ module Kumi
               return infer_function_return_type(fn_name, args, type_context, broadcast_metadata)
             end
 
+            # Get RegistryV2 from state and use dtypes directly
+            registry = get_state(:registry, required: true)
+            
             # Check if function exists in registry
-            unless Kumi::Registry.supported?(fn_name)
+            unless registry.function_exists?(fn_name)
               # Don't push error here - let existing TypeChecker handle it
               return :any
             end
 
-            signature = Kumi::Registry.signature(fn_name)
-
-            # Validate arity if not variable
-            if signature[:arity] >= 0 && args.size != signature[:arity]
-              # Don't push error here - let existing TypeChecker handle it
-              return :any
+            begin
+              function = registry.resolve(fn_name)
+              
+              # Extract return type from dtypes.result field directly
+              result_dtype = function.dtypes["result"] || function.dtypes[:result]
+              return Types.infer_from_dtype(result_dtype) if result_dtype
+              
+              # No dtypes.result specified - return :any
+              :any
+            rescue KeyError
+              # Function doesn't exist - let TypeChecker handle validation
+              :any
             end
-
-            # Infer argument types
-            arg_types = args.map { |arg| infer_expression_type(arg, type_context, broadcast_metadata, current_decl_name) }
-
-            # Validate parameter types (warn but don't fail)
-            param_types = signature[:param_types] || []
-            if signature[:arity] >= 0 && param_types.size.positive?
-              arg_types.each_with_index do |arg_type, i|
-                expected_type = param_types[i] || param_types.last
-                next if expected_type.nil?
-
-                unless Types.compatible?(arg_type, expected_type)
-                  # Could add warning here in future, but for now just infer best type
-                end
-              end
-            end
-
-            signature[:return_type] || :any
           end
 
           def infer_vectorized_element_type(call_expr, _type_context, _broadcast_metadata)
@@ -129,11 +136,23 @@ module Kumi
           end
 
           def infer_function_return_type(fn_name, _args, _type_context, _broadcast_metadata)
-            # Get the function signature
-            return :any unless Kumi::Registry.supported?(fn_name)
+            # Get RegistryV2 from state and use dtypes directly
+            registry = get_state(:registry, required: true)
+            
+            return :any unless registry.function_exists?(fn_name)
 
-            signature = Kumi::Registry.signature(fn_name)
-            signature[:return_type] || :any
+            begin
+              function = registry.resolve(fn_name)
+              
+              # Extract return type from dtypes.result field directly
+              result_dtype = function.dtypes["result"] || function.dtypes[:result]
+              return Types.infer_from_dtype(result_dtype) if result_dtype
+              
+              # No dtypes.result specified - return :any
+              :any
+            rescue KeyError
+              :any
+            end
           end
 
           def infer_list_type(list_expr, type_context, broadcast_metadata = {}, current_decl_name = nil)
@@ -229,6 +248,7 @@ module Kumi
             # TODO: understand if this right to fallback or we should raise
             :any
           end
+          
         end
       end
     end

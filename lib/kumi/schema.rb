@@ -59,10 +59,5 @@ module Kumi
       Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
     end
 
-    def schema_metadata
-      raise("No schema defined") unless @__analyzer_result__
-
-      @schema_metadata ||= SchemaMetadata.new(@__analyzer_result__.state, @__syntax_tree__)
-    end
   end
 end

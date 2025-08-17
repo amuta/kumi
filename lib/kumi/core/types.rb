@@ -42,6 +42,10 @@ module Kumi
       def self.infer_from_value(value)
         Inference.infer_from_value(value)
       end
+      
+      def self.infer_from_dtype(dtype_expr)
+        Inference.infer_from_dtype(dtype_expr)
+      end
 
       # Formatting
       def self.type_to_s(type)

@@ -27,7 +27,7 @@ module Kumi
         end
 
         def kumi_pow(a, b)
-          a ** b
+          a**b
         end
 
         def kumi_eq(a, b)
@@ -68,6 +68,19 @@ module Kumi
 
         def kumi_if(condition, then_val, else_val)
           condition ? then_val : else_val
+        end
+
+        def kumi_maximum(a, b)
+          a > b ? a : b
+        end
+
+        def kumi_minimum(a, b)
+          a < b ? a : b
+        end
+
+        def kumi_clip(x, lo, hi)
+          v = x < lo ? lo : x
+          v > hi ? hi : v
         end
       end
     end

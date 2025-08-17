@@ -3,21 +3,21 @@ module Kumi::Core::Functions
     # Global caching to avoid repeated YAML loading
     @global_cache = {}
     @cache_mutex = Mutex.new
-    
+
     def initialize(functions:)
       @by_qualified = {}
       @by_basename = {}
-      
+
       functions.each do |func|
         # Store by fully qualified name
         @by_qualified[func.name] = func
-        
+
         # Store by basename for overload resolution
-        basename = func.name.split('.').last
+        basename = func.name.split(".").last
         @by_basename[basename] ||= []
         @by_basename[basename] << func
       end
-      
+
       @by_qualified.freeze
       @by_basename.freeze
     end
@@ -26,7 +26,7 @@ module Kumi::Core::Functions
     def self.load_from_file(path = nil)
       default_path = File.join(__dir__, "../../../..", "config", "functions.yaml")
       path ||= default_path
-      
+
       # Use global caching to avoid repeated YAML parsing
       @cache_mutex.synchronize do
         cache_key = File.absolute_path(path)
@@ -36,7 +36,7 @@ module Kumi::Core::Functions
         end
       end
     end
-    
+
     # Clear global cache for testing/development
     def self.clear_cache!
       @cache_mutex.synchronize { @global_cache.clear }
@@ -52,20 +52,20 @@ module Kumi::Core::Functions
 
       cands = Array(@by_basename[q])
       raise KeyError, "unknown function #{q}" if cands.empty?
-      
+
       # Filter by arity if provided
       if arity
         cands = cands.select { |f| arity_compatible?(f, arity) }
         raise KeyError, "no overload of #{q} matches arity #{arity}" if cands.empty?
       end
-      
+
       # For now, if multiple candidates, pick the first one
       # TODO: Implement proper type-directed scoring when we have robust type info
       if cands.length > 1 && arg_types
         # Future: score_overload logic here
-        raise KeyError, "ambiguous function #{q} (candidates: #{cands.map(&:name).join(", ")}); use a qualified name"
+        raise KeyError, "ambiguous function #{q} (candidates: #{cands.map(&:name).join(', ')}); use a qualified name"
       end
-      
+
       cands.first
     end
 
@@ -77,13 +77,11 @@ module Kumi::Core::Functions
     # Get function signatures for NEP-20 signature resolution
     # This bridges RegistryV2 with our existing SignatureResolver
     def get_function_signatures(name, opset: nil)
-      begin
-        fn = fetch(name, opset: opset)
-        # Convert Signature objects to string representations for NEP-20 parser
-        fn.signatures.map(&:to_signature_string)
-      rescue KeyError
-        []  # Function not found in RegistryV2 - fall back to legacy registry
-      end
+      fn = fetch(name, opset: opset)
+      # Convert Signature objects to string representations for NEP-20 parser
+      fn.signatures.map(&:to_signature_string)
+    rescue KeyError
+      [] # Function not found in RegistryV2
     end
 
     # Enhanced signature resolution using NEP-20 resolver
@@ -91,9 +89,9 @@ module Kumi::Core::Functions
       # Use our NEP-20 SignatureResolver for proper dimension handling
       sig_strings = fn.signatures.map(&:to_signature_string)
       parsed_sigs = sig_strings.map { |s| SignatureParser.parse(s) }
-      
+
       plan = SignatureResolver.choose(signatures: parsed_sigs, arg_shapes: arg_shapes)
-      
+
       # Return both the original function signature and the resolution plan
       {
         function: fn,
@@ -138,12 +136,14 @@ module Kumi::Core::Functions
     def arity_compatible?(func, arity)
       # Check if function arity is compatible with given arity
       func_arity = func.respond_to?(:arity) ? func.arity : -1
-      return true if func_arity == -1  # Variable arity
-      return func_arity == arity
+      return true if func_arity == -1 # Variable arity
+
+      func_arity == arity
     end
 
     def check_arity!(func, arity)
       return if arity_compatible?(func, arity)
+
       func_arity = func.respond_to?(:arity) ? func.arity : "unknown"
       raise KeyError, "arity mismatch for #{func.name}: expected #{func_arity}, got #{arity}"
     end

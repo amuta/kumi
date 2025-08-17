@@ -68,6 +68,7 @@ module Kumi
             next if skip_nulls && x.nil?
 
             return true if x
+
             count += 1
           end
           return nil if count < min_count
@@ -81,6 +82,7 @@ module Kumi
             next if skip_nulls && x.nil?
 
             return false unless x
+
             count += 1
           end
           return nil if count < min_count
@@ -98,6 +100,38 @@ module Kumi
           return nil if count < min_count
 
           count
+        end
+
+        def kumi_argmax(xs, tie_break: :first, **_)
+          best_idx = nil
+          best_val = nil
+          i = 0
+          n = xs.length
+          while i < n
+            v = xs[i]
+            if best_val.nil? || v > best_val || (v == best_val && tie_break == :last)
+              best_val = v
+              best_idx = i
+            end
+            i += 1
+          end
+          best_idx
+        end
+
+        def kumi_argmin(xs, tie_break: :first, **_)
+          best_idx = nil
+          best_val = nil
+          i = 0
+          n = xs.length
+          while i < n
+            v = xs[i]
+            if best_val.nil? || v < best_val || (v == best_val && tie_break == :last)
+              best_val = v
+              best_idx = i
+            end
+            i += 1
+          end
+          best_idx
         end
       end
     end
