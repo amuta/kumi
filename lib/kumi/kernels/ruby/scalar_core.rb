@@ -82,6 +82,18 @@ module Kumi
           v = x < lo ? lo : x
           v > hi ? hi : v
         end
+
+        def kumi_abs(a)
+          a.abs
+        end
+
+        def kumi_fetch(hash, key)
+          hash.fetch(key)
+        end
+
+        def kumi_upcase(str)
+          str.upcase
+        end
       end
     end
   end

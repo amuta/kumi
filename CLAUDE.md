@@ -17,6 +17,7 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 - `bundle exec rspec` - Run all tests
 - `bundle exec rspec spec/path/to/specific_spec.rb` - Run specific test file
 - `bundle exec rspec spec/path/to/specific_spec.rb:123` - Run specific test at line
+- `./scripts/analyze_test_failures.rb` - Comprehensive test failure analysis with intelligent grouping
 
 ### Test Helpers
 **AnalyzerStateHelper** (`spec/support/analyzer_state_helper.rb`):

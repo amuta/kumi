@@ -775,3 +775,60 @@
     - backend: ruby
       impl: kumi_argmin
       priority: 10
+
+# ==================== MISSING FUNCTIONS (IDENTIFIED BY TEST ANALYSIS) ========
+- name: core.abs
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Absolute value
+  signature: ["(),()->()", "(i)->(i)", "(i,j)->(i,j)"]
+  type_vars: {T: Numeric}
+  dtypes: {result: "T"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_abs
+      priority: 10
+
+- name: struct.fetch
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Fetch value from hash/object by key
+  signature: ["(),()->()", "(i),()->(i)"]
+  type_vars: {T: Any, K: Any}
+  dtypes: {result: "A"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_fetch
+      priority: 10
+
+- name: string.upcase
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Convert string to uppercase
+  signature: ["(),()->()", "(i)->(i)"]
+  type_vars: {T: String}
+  dtypes: {result: "string"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_upcase
+      priority: 10
+
+- name: agg.first
+  domain: core
+  opset: 1
+  class: aggregate
+  summary: First element of array
+  signature: ["(i)->()", "(i,j)->(i)"]
+  type_vars: {T: Numeric}
+  dtypes: {result: "T"}
+  null_policy: skip
+  kernels:
+    - backend: ruby
+      impl: kumi_first
+      priority: 10

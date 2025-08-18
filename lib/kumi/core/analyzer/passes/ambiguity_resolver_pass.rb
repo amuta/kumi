@@ -77,7 +77,12 @@ module Kumi
           end
 
           def resolve_using_rich_metadata(node, candidates, metadata, inferred_types)
-            # Use inferred argument types from TypeInferencerPass
+            # Try signature-based resolution first (most robust)
+            if result = try_signature_based_resolution(node, candidates, metadata)
+              return result
+            end
+
+            # Fallback to type-based resolution for simpler cases
             if metadata[:inferred_arg_types]
               if ENV["DEBUG_TYPE_CHECKER"]
                 puts "  Using inferred_arg_types from TypeInferencerPass: #{metadata[:inferred_arg_types].inspect}"
@@ -86,7 +91,7 @@ module Kumi
               return find_candidate_by_argument_types(candidates, metadata[:inferred_arg_types])
             end
 
-            # Fallback: Build argument types directly if not available in metadata
+            # Final fallback: Build argument types directly if not available in metadata
             arg_types = build_rich_argument_types(node, inferred_types)
             if ENV["DEBUG_TYPE_CHECKER"]
               puts "  Fallback: Building argument types directly: #{arg_types.inspect}"
@@ -95,6 +100,81 @@ module Kumi
             return find_candidate_by_argument_types(candidates, arg_types)
           end
 
+
+          def try_signature_based_resolution(node, candidates, metadata)
+            # Use SignatureResolver.choose() to pick the best candidate based on signatures
+            # This leverages the same logic as FunctionSignaturePass but for ambiguous functions
+            
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "  Trying signature-based resolution with #{candidates.length} candidates"
+            end
+
+            # Build argument shapes from node structure and broadcast metadata
+            arg_shapes = build_argument_shapes_for_node(node)
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "  Built argument shapes: #{arg_shapes.inspect}"
+            end
+
+            # Try each candidate and see which ones have valid signature matches
+            valid_candidates = []
+            
+            candidates.each do |candidate|
+              begin
+                # Get signatures for this candidate
+                signatures_raw = registry_v2.get_function_signatures(candidate.name)
+                signatures = parse_signatures(signatures_raw)
+                
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "  Candidate #{candidate.name}: #{signatures.length} signatures"
+                end
+
+                # Try signature resolution for this candidate
+                plan = Kumi::Core::Functions::SignatureResolver.choose(
+                  signatures: signatures, 
+                  arg_shapes: arg_shapes
+                )
+                
+                valid_candidates << { candidate: candidate, plan: plan }
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    ✓ Valid match with score #{plan[:score]}"
+                end
+                
+              rescue Kumi::Core::Functions::SignatureMatchError => e
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    ✗ No valid signature match: #{e.message}"
+                end
+                # This candidate doesn't match, continue
+              rescue => e
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    ✗ Error checking candidate: #{e.message}"
+                end
+              end
+            end
+
+            # If exactly one candidate has valid signatures, choose it
+            if valid_candidates.length == 1
+              winner = valid_candidates.first
+              if ENV["DEBUG_TYPE_CHECKER"]
+                puts "  Resolved to: #{winner[:candidate].name} (only valid candidate)"
+              end
+              return winner[:candidate]
+            end
+
+            # If multiple candidates are valid, choose the one with the best score
+            if valid_candidates.length > 1
+              best = valid_candidates.max_by { |vc| vc[:plan][:score] }
+              if ENV["DEBUG_TYPE_CHECKER"]
+                puts "  Resolved to: #{best[:candidate].name} (best score: #{best[:plan][:score]})"
+              end
+              return best[:candidate]
+            end
+
+            # No valid candidates found
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "  No candidates had valid signatures"
+            end
+            nil
+          end
 
           def find_candidate_by_argument_types(candidates, arg_types)
             return nil if arg_types.empty?
@@ -122,6 +202,39 @@ module Kumi
             # If no clear match, return nil to trigger error
             nil
           end
+
+          def build_argument_shapes_for_node(node)
+            # Build argument shapes similar to FunctionSignaturePass
+            # For now, use simple shape building - can be enhanced later
+            node.args.map do |arg|
+              case arg
+              when Kumi::Syntax::ArrayExpression
+                # Array literal has shape [:i] where i is the array size
+                [:i]
+              when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+                # Scalar input references have empty shape []
+                []
+              when Kumi::Syntax::DeclarationReference
+                # Declaration references are scalar
+                []
+              when Kumi::Syntax::Literal
+                # Literals are scalar
+                []
+              else
+                # Default to scalar for unknown types
+                []
+              end
+            end
+          end
+
+          def parse_signatures(sig_strings)
+            # Reuse signature parsing logic from FunctionSignaturePass
+            @sig_cache ||= {}
+            sig_strings.map do |s|
+              @sig_cache[s] ||= Kumi::Core::Functions::SignatureParser.parse(s)
+            end
+          end
+
 
           def build_rich_argument_types(node, inferred_types)
             node.args.map do |arg|

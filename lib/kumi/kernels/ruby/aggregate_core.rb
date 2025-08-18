@@ -147,6 +147,20 @@ module Kumi
           end
           best_idx
         end
+
+        def kumi_first(enum, skip_nulls: true, min_count: 0)
+          count = 0
+          enum.each do |x|
+            if skip_nulls && x.nil?
+              next
+            else
+              count += 1
+              return x
+            end
+          end
+          return nil if count < min_count
+          nil
+        end
       end
     end
   end
