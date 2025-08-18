@@ -179,9 +179,6 @@ module Kumi
             )
           end
 
-          def registry_v2
-            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
-          end
 
           def determine_slot_shape(slot, ops, access_plans)
             return SlotShape.scalar if slot.nil?
@@ -512,10 +509,19 @@ module Kumi
                   end
 
                   if meta[:desugared_to] == :and
-                    # Override function name for multi-arg cascade_and -> core.and
-                    puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and") if ENV["DEBUG_LOWER"]
-                    expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
+                    # Handle multi-arg cascade_and by creating binary tree at IR level
+                    puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and -> binary_tree") if ENV["DEBUG_LOWER"]
+                    
+                    if expr.args.size == 2
+                      # Simple binary case - just change function name
+                      expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
+                    else
+                      # Multi-arg case: create left-associative binary tree at IR level
+                      # cascade_and(a, b, c, d) -> and(and(and(a, b), c), d)
+                      return lower_cascade_and_binary_tree(expr.args, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
+                    end
                   end
+
                 end
 
                 qualified_fn_name = get_qualified_function_name(expr)
@@ -1241,6 +1247,39 @@ module Kumi
 
             # Use qualified name from CallNameNormalizePass or effective name from CascadeDesugarPass
             entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || expr.fn_name
+          end
+
+
+          # Lower multi-argument cascade_and into a left-associative binary tree at IR level
+          # cascade_and(a, b, c, d) -> and(and(and(a, b), c), d)
+          def lower_cascade_and_binary_tree(args, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
+            puts("  LOWERING_CASCADE_AND_BINARY_TREE with #{args.size} args") if ENV["DEBUG_LOWER"]
+            
+            # Create the initial binary AND with first two arguments
+            binary_expr = Kumi::Syntax::CallExpression.new(:and, [args[0], args[1]])
+            result_slot = lower_short_circuit_bool(binary_expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
+            
+            # For each remaining argument, create a new binary AND
+            args[2..-1].each_with_index do |arg, i|
+              puts("  CASCADE_AND step #{i + 1}: combining previous result with arg #{i + 2}") if ENV["DEBUG_LOWER"]
+              
+              # Since we can't create a synthetic expression that references the result_slot,
+              # we need to use the short-circuit lowerer's direct API with pre-computed slots
+              arg_slot = lower_expression(arg, ops, access_plans, scope_plan, need_indices, required_scope, cacheable: cacheable)
+              
+              # Use the short-circuit lowerer's lower! method for pre-computed slots
+              # This bypasses the expression-based interface and works with slots directly
+              short_circuit_result = short_circuit_lowerer.lower!(
+                ops: ops,
+                fn_name: "core.and", 
+                arg_slots: [result_slot, arg_slot],
+                result_slot: nil  # Let it allocate
+              )
+              
+              result_slot = short_circuit_result.result_slot
+            end
+            
+            result_slot
           end
 
           # Trait-driven short-circuit lowering using the dedicated ShortCircuitLowerer

@@ -9,6 +9,7 @@ module Kumi
           subtract: :sub, multiply: :mul, divide: :div, modulo: :mod, power: :pow,
           # comparisons
           "==": :eq, "!=": :ne, "<": :lt, "<=": :le, ">": :gt, ">=": :ge,
+          greater_than: :gt, less_than: :lt, equals: :eq, not_equals: :ne,
           # logical
           "&": :and, "|": :or, "!": :not,
           # indexing / membership

@@ -14,7 +14,7 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
 
     values = [
       attr(:greeting, call(:concat, lit("Hello, "), field_ref(:name))),
-      attr(:age_category, call(:conditional,
+      attr(:age_category, call(:if,
                                call(:>=, field_ref(:age), lit(18)),
                                lit("adult"),
                                lit("minor")))
@@ -96,10 +96,10 @@ RSpec.describe "Export -> Import -> Analysis Pipeline" do
       attr(:average, call(:divide,
                           call(:sum, field_ref(:scores)),
                           lit(3.0))),
-      attr(:grade, call(:conditional,
+      attr(:grade, call(:if,
                         call(:>=, binding_ref(:average), lit(90)),
                         lit("A"),
-                        call(:conditional,
+                        call(:if,
                              call(:>=, binding_ref(:average), lit(80)),
                              lit("B"),
                              lit("C"))))

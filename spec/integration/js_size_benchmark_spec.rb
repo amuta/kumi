@@ -60,11 +60,11 @@ RSpec.describe "JavaScript Size Benchmark", :js, :pending do
               value :"computed_#{i}",
                     fn(:add, input.send("field_#{[i, inputs_count].min}"), input.send("amount_#{[i, inputs_count].min}"))
             when 1
-              value :"multiplied_#{i}", fn(:multiply, input.send("amount_#{[i, inputs_count].min}"), 1.5)
+              value :"multiplied_#{i}", fn(:mul, input.send("amount_#{[i, inputs_count].min}"), 1.5)
             when 2
               value :"comparison_#{i}", fn(:>, input.send("amount_#{[i, inputs_count].min}"), 50.0)
             when 3
-              value :"conditional_#{i}", fn(:clamp, input.send("field_#{[i, inputs_count].min}"), 10, 90)
+              value :"conditional_#{i}", fn(:clip, input.send("field_#{[i, inputs_count].min}"), 10, 90)
             end
           end
         end

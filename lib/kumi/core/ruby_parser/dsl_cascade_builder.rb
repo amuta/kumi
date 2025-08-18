@@ -55,7 +55,7 @@ module Kumi
           add_case(create_literal(true), result)
         end
 
-        def method_missing(method_name, *args, &block)
+        def method_missing(method_name, *args, &)
           return super if !args.empty? || block_given?
 
           # Allow direct trait references in cascade conditions

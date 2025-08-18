@@ -15,53 +15,53 @@ class PlainRubySegmenter
 
   def evaluate(data)
     tier =
-      if data.slice(:age).to_i >= 65
+      if data[:age].to_i >= 65
         "Senior VIP"
-      elsif data.slice(:account_type).to_s.casecmp?("premium")
+      elsif data[:account_type].to_s.casecmp?("premium")
         "Premium"
-      elsif data.slice(:account_balance).to_i >= 10_000 &&
-            data.slice(:years_customer).to_i >= 5 &&
-            data.slice(:last_purchase_days_ago).to_i <= 30 &&
-            data.slice(:total_purchases).to_i >= 50
+      elsif data[:account_balance].to_i >= 10_000 &&
+            data[:years_customer].to_i >= 5 &&
+            data[:last_purchase_days_ago].to_i <= 30 &&
+            data[:total_purchases].to_i >= 50
         "Gold"
-      elsif data.slice(:age).to_i >= 18
+      elsif data[:age].to_i >= 18
         "Standard"
       else
         "Basic"
       end
 
     segment =
-      if data.slice(:account_balance).to_i >= 10_000 &&
-         data.slice(:years_customer).to_i >= 5 &&
-         data.slice(:support_tickets).to_i <= 3 &&
-         data.slice(:referral_count).to_i > 0
+      if data[:account_balance].to_i >= 10_000 &&
+         data[:years_customer].to_i >= 5 &&
+         data[:support_tickets].to_i <= 3 &&
+         data[:referral_count].to_i > 0
         "Champion"
-      elsif data.slice(:last_purchase_days_ago).to_i <= 30 &&
-            data.slice(:total_purchases).to_i >= 50
+      elsif data[:last_purchase_days_ago].to_i <= 30 &&
+            data[:total_purchases].to_i >= 50
         "Loyal Customer"
-      elsif data.slice(:account_balance).to_i >= 10_000 &&
-            data.slice(:last_purchase_days_ago).to_i <= 30
+      elsif data[:account_balance].to_i >= 10_000 &&
+            data[:last_purchase_days_ago].to_i <= 30
         "Big Spender"
-      elsif data.slice(:total_purchases).to_i >= 50
+      elsif data[:total_purchases].to_i >= 50
         "Frequent Buyer"
       else
         "Potential"
       end
 
     engagement_score =
-      data.slice(:total_purchases).to_i *
-      (if data.slice(:last_purchase_days_ago).to_i <= 30 &&
-        data.slice(:total_purchases).to_i >= 50
+      data[:total_purchases].to_i *
+      (if data[:last_purchase_days_ago].to_i <= 30 &&
+        data[:total_purchases].to_i >= 50
          1.5
        else
          1.0
        end)
 
     heavy_score =
-      data.slice(:purchases)
+      data[:purchases]
           .each_with_object(Hash.new(0.0)) do |purchase, sums|
-            cat = purchase.slice(:category).to_s
-            amt = purchase.slice(:amount).to_f
+            cat = purchase[:category].to_s
+            amt = purchase[:amount].to_f
             sums[cat] += amt
           end
           .values
@@ -79,23 +79,58 @@ class PlainRubySegmenter
 end
 
 RSpec.describe "Kumi Performance" do
-  # Reuse the setup from the integration spec
   before(:all) do
-    Kumi::Registry.reset!
-    Kumi::Registry.register(:create_offers) { |*| ["Offer"] }
-    Kumi::Registry.register(:bonus_formula) { |*| 100.0 }
-    Kumi::Registry.register(:error!) { |_| "No Error" }
-    Kumi::Registry.register(:group_and_sum) do |purchases|
-      purchases
-        .group_by   { |p| p[:category] }
-        .map        { |_, items| items.sum { |i| i[:amount] } }
-        .sort.last(5).reverse
-        .sum
+    # Register custom functions for performance testing
+    Kumi::Registry.define_aggregate("group_and_sum") do |f|
+        f.summary "Groups purchases by category, sums amounts, and returns sum of top 5"
+        f.dtypes({ result: "float" })
+        f.identity 0.0
+        f.kernel do |purchases|
+          purchases
+            .group_by   { |p| p[:category] }
+            .map        { |_, items| items.sum { |i| i[:amount] } }
+            .sort.last(5).reverse
+            .sum
+        end
+      end
+    
+    # Register additional functions for performance testing
+    Kumi::Registry.define_eachwise("create_offers") do |f|
+      f.summary "Creates offers"
+      f.dtypes({ result: "any" })
+      f.kernel { |*| ["Offer"] }
+    end
+    
+    Kumi::Registry.define_eachwise("bonus_formula") do |f|
+      f.summary "Calculates bonus"
+      f.dtypes({ result: "float" })
+      f.kernel { |*| 100.0 }
+    end
+  end
+  
+  after(:all) do
+    ["group_and_sum", "create_offers", "bonus_formula"].each do |func_name|
+      Kumi::Registry.custom_functions.delete(func_name)
     end
   end
 
   let(:schema_definition) do
     Kumi::Core::RubyParser::Dsl.build_syntax_tree do
+      input do
+        integer :age
+        integer :account_balance  
+        string :account_type
+        integer :last_purchase_days_ago
+        integer :total_purchases
+        integer :years_customer
+        integer :referral_count
+        integer :support_tickets
+        array :purchases do
+          string :category
+          float :amount
+        end
+      end
+
       trait :adult, input.age, :>=, 18
       trait :senior, input.age, :>=, 65
       trait :high_balance, input.account_balance, :>=, 10_000
@@ -106,9 +141,20 @@ RSpec.describe "Kumi Performance" do
       trait :has_referrals, input.referral_count, :>, 0
       trait :low_support_usage, input.support_tickets, :<=, 3
 
-      value :check_engagement, fn(:cascade_and, ref(:recent_activity), ref(:frequent_buyer))
-      value :check_value, fn(:cascade_and, ref(:high_balance), ref(:long_term_customer))
-      value :check_low_maintenance, fn(:cascade_and, ref(:low_support_usage), ref(:has_referrals))
+      value :check_engagement do
+        on recent_activity, frequent_buyer, true
+        base false
+      end
+      
+      value :check_value do
+        on high_balance, long_term_customer, true
+        base false
+      end
+      
+      value :check_low_maintenance do
+        on low_support_usage, has_referrals, true
+        base false
+      end
 
       trait :engaged_customer, ref(:check_engagement), :==, true
       trait :valuable_customer, ref(:check_value), :==, true
@@ -116,23 +162,28 @@ RSpec.describe "Kumi Performance" do
 
       value :customer_tier do
         on senior, "Senior VIP"
-        on valuable_customer,engaged_customer, "Gold"
+        on valuable_customer, engaged_customer, "Gold"
         on premium_account, "Premium"
         on adult, "Standard"
         base "Basic"
       end
 
       value :marketing_segment do
-        on valuable_customer,low_maintenance, "Champion"
+        on valuable_customer, low_maintenance, "Champion"
         on engaged_customer, "Loyal Customer"
-        on high_balance,recent_activity, "Big Spender"
+        on high_balance, recent_activity, "Big Spender"
         on frequent_buyer, "Frequent Buyer"
         base "Potential"
       end
 
-      value :engagement_score, fn(:multiply,
+      value :engagement_multiplier do
+        on engaged_customer, 1.5
+        base 1.0
+      end
+
+      value :engagement_score, fn(:mul,
                                   input.total_purchases,
-                                  fn(:conditional, ref(:engaged_customer), 1.5, 1.0))
+                                  ref(:engagement_multiplier))
 
       value :heavy_score, fn(:group_and_sum, input.purchases)
     end

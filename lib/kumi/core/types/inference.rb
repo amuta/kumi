@@ -46,16 +46,22 @@ module Kumi
           "promote(T,U)" => :float,
           "promote_float(T,U)" => :float,
           "promote(T)" => :float,
+          "unify(T,U)" => :float,  # Type unification
+          "promote(promote(T,U),V)" => :float,  # Nested promotion
           
           # Generic type parameters
           "T" => :float, # Most aggregates work on numeric data
           "A" => :any,   # Generic element type (e.g., for array indexing)
           
+          # Collection types
+          "array" => Kumi::Core::Types.array(:any),
+          
           # Explicit types
           "int" => :integer,
           "float" => :float,
           "string" => :string,
-          "str" => :string
+          "str" => :string,
+          "any" => :any
         }.freeze
         
         # Infer types from RegistryV2 dtype expressions

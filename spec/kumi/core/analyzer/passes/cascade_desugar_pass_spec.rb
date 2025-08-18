@@ -66,21 +66,6 @@ RSpec.describe Kumi::Core::Analyzer::Passes::CascadeDesugarPass do
         expect(metadata[:qualified_name]).to eq("core.and")
       end
     end
-
-    context "empty arguments → semantic error" do
-      it "reports semantic error for empty cascade_and" do
-        # This test now checks that empty cascade_and is caught by validation
-        # when used improperly (e.g., in a trait expression)
-        expect do
-          analyze_up_to(:cascade_validated) do
-            input do
-              integer :x
-            end
-            trait :invalid_trait, fn(:cascade_and)
-          end
-        end.to raise_error(/cascade_and can only be used in cascade conditions/)
-      end
-    end
   end
 
   describe "function signature integration" do

@@ -46,9 +46,9 @@ module Kumi
             errors << ErrorReporter.create_error(message, location: location, type: :semantic)
           end
 
-          # Memoized access to RegistryV2
+          # Access to registry from state
           def registry_v2
-            @registry_v2 ||= Kumi::Core::Functions::RegistryV2.load_from_file
+            state[:registry] or raise StandardError, "Registry not found in analysis state"
           end
 
           # Resolve function name from metadata, falling back through the chain:

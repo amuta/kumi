@@ -298,7 +298,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
             value :result, fn(:unknown_function, input.x)
           end
         end
-        expect(error).to include_error_pattern("unsupported operator")
+        expect(error).to include_error_pattern("unknown function")
       end
 
       it "catches incorrect function arity" do
@@ -311,7 +311,7 @@ RSpec.describe "DSL Breakage Integration Tests" do
             value :result, fn(:add, input.x)
           end
         end
-        expect(error).to include_error_pattern("expects")
+        expect(error).to include_error_pattern("signature mismatch")
       end
     end
   end

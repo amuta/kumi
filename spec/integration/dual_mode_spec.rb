@@ -59,8 +59,8 @@ RSpec.describe "Dual Mode Execution", :pending do
           value :sum_all, fn(:sum, input.numbers)
           value :average, sum_all / fn(:size, input.numbers)
           # Count numbers greater than threshold
-          trait :above_thresh, fn(:any?, fn(:map_conditional, input.numbers, input.threshold, true, false))
-          value :above_threshold, fn(:sum, fn(:map_conditional, input.numbers, input.threshold, 1, 0))
+          trait :above_thresh, fn(:any?, fn(:if, input.numbers >= input.threshold, true, false))
+          value :above_threshold, fn(:sum, fn(:if, input.numbers >= input.threshold, 1, 0))
         end
       end
     end

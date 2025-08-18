@@ -28,3 +28,5 @@ group :development do
   gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"
 end
+
+gem "bigdecimal", "~> 3.2"

@@ -1,20 +1,18 @@
 # frozen_string_literal: true
 
-function = ->(a, b, c) { "#{a}|#{b}|#{c}" }
-unless Kumi::Registry.function?(:format3)
-  Kumi::Registry.register_with_metadata(
-    :format3,
-    function, # e.g. ->(fmt, a, b) { Kernel.format(fmt, a, b) }
-    arity: 3,
-    structure_function: true,
-    param_modes: { fixed: %i[elem elem elem] },
-    param_types: %i[string any any],
-    return_type: :string,
-    description: "sprintf-style 2-arg formatter"
-  )
-end
-
-RSpec.describe "VM argument order and if semantics", :skip => "User-defined functions not yet supported in RegistryV2" do
+RSpec.describe "VM argument order and if semantics" do
+  before(:all) do
+    Kumi::Registry.define_eachwise("format3") do |f|
+      f.summary "sprintf-style 3-arg formatter"
+      f.signature "(),(),()->()", "(i),(i),(i)->(i)"
+      f.dtypes({ "result" => "string" })
+      f.kernel { |a, b, c| "#{a}|#{b}|#{c}" }
+    end
+  end
+  
+  after(:all) do
+    Kumi::Registry.custom_functions.delete("format3")
+  end
   let(:schema) do
     Module.new do
       extend Kumi::Schema
@@ -28,16 +26,16 @@ RSpec.describe "VM argument order and if semantics", :skip => "User-defined func
         end
 
         # non-commutative ops
-        value :div1,  input.items.x / 2.0
-        value :div2,  2.0 / input.items.x
-        value :sub1,  input.items.x - 1.0
-        value :sub2,  1.0 - input.items.x
+        value :div1,  fn(:div, input.items.x, 2.0)
+        value :div2,  fn(:div, 2.0, input.items.x)
+        value :sub1,  fn(:sub, input.items.x, 1.0)
+        value :sub2,  fn(:sub, 1.0, input.items.x)
 
         # if(cond, then, else)
-        trait :gt100, input.items.p > 100.0
-        value :if1,   fn(:if, gt100, input.items.p * 0.8, 999.0)          # scalar else
-        value :if2,   fn(:if, gt100, 111.0, input.items.p * 0.8)          # scalar then
-        value :if3,   fn(:if, true,  input.items.p * 0.8, input.items.p)  # scalar cond
+        trait :gt100, fn(:gt, input.items.p, 100.0)
+        value :if1,   fn(:if, gt100, fn(:mul, input.items.p, 0.8), 999.0)          # scalar else
+        value :if2,   fn(:if, gt100, 111.0, fn(:mul, input.items.p, 0.8))          # scalar then
+        value :if3,   fn(:if, true,  fn(:mul, input.items.p, 0.8), input.items.p)  # scalar cond
 
         # keep literal positions inside array/map
         value :arr_lit,    [1, input.items.q, 3]
@@ -76,7 +74,7 @@ RSpec.describe "VM argument order and if semantics", :skip => "User-defined func
   it "IR keeps call-site order for if map args" do
     ir = Kumi::Analyzer.analyze!(schema.__syntax_tree__).state[:ir_module]
     decl = ir.decls.find { |d| d.name == :if1 }
-    map  = decl.ops.find { |o| o.tag == :map && o.attrs[:fn] == :if }
+    map  = decl.ops.find { |o| o.tag == :map && o.attrs[:fn] == "core.if" }
     
     # assert the three inputs are in cond, then, else slot order
     expect(map.args.size).to eq(3)
@@ -87,7 +85,7 @@ RSpec.describe "VM argument order and if semantics", :skip => "User-defined func
     expect(decl.ops[cond_slot].attrs[:name]).to eq(:gt100__vec)
     
     expect(decl.ops[then_slot].tag).to eq(:map)  # then: p * 0.8 calculation
-    expect(decl.ops[then_slot].attrs[:fn]).to eq(:multiply)
+    expect(decl.ops[then_slot].attrs[:fn]).to eq("core.mul")
     
     expect(decl.ops[else_slot].tag).to eq(:const)  # else: constant 999.0
     expect(decl.ops[else_slot].attrs[:value]).to eq(999.0)

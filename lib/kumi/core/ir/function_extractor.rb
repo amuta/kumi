@@ -36,7 +36,7 @@ module Kumi
         # Build function hash from RegistryV2 for only the needed functions
         def self.build_function_hash(ir_module)
           needed_functions = extract_function_names(ir_module)
-          registry_v2 = Kumi::Core::Functions::RegistryV2.load_from_file
+          registry_v2 = Kumi::Registry.registry_v2  # Use facade that includes custom functions
           
           if ENV["DEBUG_FUNCTION_EXTRACTOR"]
             puts "FunctionExtractor: Needed functions: #{needed_functions.inspect}"

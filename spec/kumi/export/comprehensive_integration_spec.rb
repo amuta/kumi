@@ -2,35 +2,59 @@
 
 require "spec_helper"
 
+# Helper method for complete registry reset
+def reset_registry_completely
+  Kumi::Registry.custom_functions.clear
+  Kumi::Registry.clear_protection
+  Kumi::Registry.instance_variable_set(:@registry_v2, nil)
+  Kumi::Registry.instance_variable_set(:@functions_cache, nil)
+end
+
 RSpec.describe "Comprehensive AST Export Integration" do
-  # Register custom functions for testing
-  before do
-    Kumi::Registry.reset!
-
-    Kumi::Registry.register(:error!) do |should_error|
-      raise "ErrorInsideCustomFunction" if should_error
-
-      "No Error"
+  before(:all) do
+    Kumi::Registry.define_eachwise("error!") do |f|
+      f.summary "Test error function"
+      f.dtypes({ result: "string" })
+      f.kernel do |should_error|
+        raise "ErrorInsideCustomFunction" if should_error
+        "No Error"
+      end
     end
 
-    Kumi::Registry.register(:create_offers) do |segment, tier, _balance|
-      base_offers = case segment
-                    when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
-                    when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
-                    when "Big Spender" then ["Cashback Offers", "Premium Services"]
-                    when "Frequent Buyer" then ["Volume Discounts", "Free Shipping"]
-                    else ["Welcome Bonus"]
-                    end
+    Kumi::Registry.define_eachwise("create_offers") do |f|
+      f.summary "Creates customer offers based on segment and tier"
+      f.signature "(),(),()->()"
+      f.dtypes({ result: "any" })  # Returns array of strings
+      f.kernel do |segment, tier, _balance|
+        base_offers = case segment
+                      when "Champion" then ["Exclusive Preview", "VIP Events", "Personal Advisor"]
+                      when "Loyal Customer" then ["Loyalty Rewards", "Member Discounts"]
+                      when "Big Spender" then ["Cashback Offers", "Premium Services"]
+                      when "Frequent Buyer" then ["Volume Discounts", "Free Shipping"]
+                      else ["Welcome Bonus"]
+                      end
 
-      # Add tier-specific bonuses
-      base_offers << "Concierge Service" if tier.include?("VIP") || tier == "Gold"
-      base_offers
+        # Add tier-specific bonuses
+        base_offers << "Concierge Service" if tier.include?("VIP") || tier == "Gold"
+        base_offers
+      end
     end
 
-    Kumi::Registry.register(:bonus_formula) do |years, is_valuable, engagement|
-      base_bonus = years * 10
-      base_bonus *= 2 if is_valuable
-      (base_bonus * (engagement / 100.0)).round(2)
+    Kumi::Registry.define_eachwise("bonus_formula") do |f|
+      f.summary "Calculates bonus based on years, value status and engagement"
+      f.signature "(),(),()->()"
+      f.dtypes({ result: "float" })
+      f.kernel do |years, is_valuable, engagement|
+        base_bonus = years * 10
+        base_bonus *= 2 if is_valuable
+        (base_bonus * (engagement / 100.0)).round(2)
+      end
+    end
+  end
+  
+  after(:all) do
+    ["error!", "create_offers", "bonus_formula"].each do |func_name|
+      Kumi::Registry.custom_functions.delete(func_name)
     end
   end
 
@@ -82,7 +106,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
       trait :not_teenager, input.age, :!=, 13
       trait :middle_aged, input.age, :<, 65
       trait :old_enough, input.age, :<=, 100
-      trait :age_in_range, input.age, :between?, 25, 65
+      trait :age_in_range, fn(:and, input.age >= 25, input.age <= 65)
       trait :high_balance, input.account_balance, :>=, 10_000.0
       trait :premium_account, input.account_type, :==, "premium"
       trait :recent_activity, input.last_purchase_days_ago, :<=, 30
@@ -104,22 +128,32 @@ RSpec.describe "Comprehensive AST Export Integration" do
                             fn(:subtract, 100,
                                fn(:multiply, input.years_customer, 5)))
 
-      value :scores_analysis, fn(:cascade_and,
-                                 fn(:>, fn(:size, input.scores), 0),
-                                 fn(:<, fn(:sum, input.scores), 300.0),
-                                 fn(:>=, fn(:divide, fn(:sum, input.scores), 3.0), 80.0))
+      trait :has_scores, fn(:>, fn(:size, input.scores), 0)
+      trait :total_under_300, fn(:<, fn(:sum, input.scores), 300.0)
+      trait :average_above_80, fn(:>=, fn(:divide, fn(:sum, input.scores), 3.0), 80.0)
+      
+      value :scores_analysis do
+        on has_scores, total_under_300, average_above_80, true
+        base false
+      end
 
       # === COMPLEX LOGICAL COMBINATIONS ===
       # Multiple trait combinations using logical functions
-      value :customer_quality, fn(:cascade_and,
-                                  ref(:frequent_buyer),
-                                  ref(:long_term_customer),
-                                  ref(:low_support_usage))
+      value :customer_quality do
+        on frequent_buyer, long_term_customer, low_support_usage, true
+        base false
+      end
 
+      value :premium_and_referrals do
+        on premium_account, has_referrals, true
+        base false
+      end
+      trait :long_term_customer_10_plus, fn(:>, input.years_customer, 10)
+      
       value :premium_eligibility, fn(:any?, [
                                        ref(:high_balance),
-                                       fn(:cascade_and, ref(:premium_account), ref(:has_referrals)),
-                                       fn(:>, input.years_customer, 10)
+                                       ref(:premium_and_referrals),
+                                       ref(:long_term_customer_10_plus)
                                      ])
 
       # USING CASCADE
@@ -168,7 +202,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
       # === COLLECTION OPERATIONS ===
       # Working with array and hash types
       value :tag_count, fn(:size, input.tags)
-      value :has_vip_tag, fn(:include?, input.tags, "vip")
+      value :has_vip_tag, fn(:contains, input.tags, "vip")
       value :tag_summary, fn(:concat, [
                                "Customer has ",
                                fn(:size, input.tags),
@@ -176,7 +210,7 @@ RSpec.describe "Comprehensive AST Export Integration" do
                              ])
 
       value :config_username, fn(:get, input.config, :username)
-      value :is_premium_user, fn(:get, input.config, :premium, false)
+      value :is_premium_user, fn(:get, input.config, :premium)
 
       # === CUSTOM FUNCTION INTEGRATION ===
       # Functions that consume computed values and fields
@@ -194,17 +228,17 @@ RSpec.describe "Comprehensive AST Export Integration" do
       value :error_test, fn(:error!, input.should_error)
 
       # === MATHEMATICAL OPERATIONS ===
-      value :balance_percentile, fn(:clamp,
-                                    fn(:divide, input.account_balance, 1000.0),
+      value :balance_percentile, fn(:clip,
+                                    fn(:div, input.account_balance, 1000.0),
                                     0.0,
                                     100.0)
 
       value :customer_score, fn(:round,
                                 fn(:add,
-                                   fn(:multiply, input.years_customer, 10.0),
-                                   fn(:multiply,
-                                      fn(:conditional, ref(:premium_account), 50.0, 0.0),
-                                      fn(:conditional, ref(:frequent_buyer), 1.5, 1.0))),
+                                   fn(:mul, input.years_customer, 10.0),
+                                   fn(:mul,
+                                      fn(:if, ref(:premium_account), 50.0, 0.0),
+                                      fn(:if, ref(:frequent_buyer), 1.5, 1.0))),
                                 2)
 
       # === STRING OPERATIONS ===

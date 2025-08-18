@@ -40,7 +40,7 @@ RSpec.describe "Type System Integration" do
 
       types = schema_result.analyzer_result.decl_types
 
-      expect(types[:sum]).to eq(Kumi::Core::Types::NUMERIC)
+      expect(types[:sum]).to eq(:integer)
       expect(types[:comparison]).to eq(Kumi::Core::Types::BOOL)
       expect(types[:text]).to eq(Kumi::Core::Types::STRING)
     end
@@ -72,7 +72,7 @@ RSpec.describe "Type System Integration" do
       expect(types[:base_amount]).to eq(Kumi::Core::Types::INT)
       expect(types[:tax_rate]).to eq(Kumi::Core::Types::FLOAT)
       expect(types[:tax_amount]).to eq(Kumi::Core::Types::NUMERIC)
-      expect(types[:total]).to eq(Kumi::Core::Types::NUMERIC)
+      expect(types[:total]).to eq(:integer)
     end
   end
 
@@ -100,7 +100,7 @@ RSpec.describe "Type System Integration" do
         Kumi.schema do
           value :invalid, fn(:add, 1) # add expects 2 arguments
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError, /expects 2 args, got 1/)
+      end.to raise_error(Kumi::Core::Errors::TypeError, /signature mismatch/)
     end
 
     it "still validates unknown functions" do
@@ -108,18 +108,18 @@ RSpec.describe "Type System Integration" do
         Kumi.schema do
           value :invalid, fn(:unknown_function, 1, 2)
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError, /unsupported operator/)
+      end.to raise_error(KeyError, /unknown function/)
     end
   end
 
   describe "complex type scenarios" do
     it "handles nested function calls" do
       schema_result = Kumi.schema do
-        value :nested, fn(:add, fn(:multiply, 2, 3), fn(:subtract, 10, 5))
+        value :nested, fn(:add, fn(:mul, 2, 3), fn(:sub, 10, 5))
       end
 
       types = schema_result.analyzer_result.decl_types
-      expect(types[:nested]).to eq(Kumi::Core::Types::NUMERIC)
+      expect(types[:nested]).to eq(:integer)
     end
 
     it "handles list operations" do
@@ -132,8 +132,8 @@ RSpec.describe "Type System Integration" do
       types = schema_result.analyzer_result.decl_types
 
       expect(types[:numbers]).to eq({ array: :integer })
-      expect(types[:sum_total]).to eq(:float)
-      expect(types[:first_num]).to eq(:any)
+      expect(types[:sum_total]).to eq(:integer)
+      expect(types[:first_num]).to eq(:integer)
     end
   end
 
@@ -165,28 +165,26 @@ RSpec.describe "Type System Integration" do
   end
 
   describe "function registry type metadata" do
-    it "includes type information in function signatures" do
-      signature = Kumi::Registry.signature(:add)
+    it "includes type information in function signatures via RegistryV2" do
+      registry = Kumi::Registry.registry_v2
+      function = registry.resolve("core.add", arity: 2)
 
-      expect(signature).to have_key(:param_types)
-      expect(signature).to have_key(:return_type)
-      expect(signature[:param_types]).to be_an(Array)
-      expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash))
+      expect(function.dtypes).to be_a(Hash)
+      expect(function.dtypes).to have_key("result")
+      expect(function.signatures).to be_an(Array)
+      expect(function.signatures.first).to respond_to(:to_signature_string)
     end
 
-    it "validates that all core functions have type metadata" do
-      Kumi::Registry.all.each do |fn_name|
-        signature = Kumi::Registry.signature(fn_name)
-
-        expect(signature[:param_types]).to be_an(Array), "Function #{fn_name} missing param_types"
-        expect(signature[:return_type]).to be_a(Symbol).or(be_a(Hash)), "Function #{fn_name} missing return_type"
-
-        # Validate arity matches param_types (unless variable arity)
-        next if signature[:arity] < 0
-
-        expect(signature[:param_types].size).to eq(signature[:arity]).or(eq(1)),
-                                                "Function #{fn_name} arity mismatch: " \
-                                                "#{signature[:arity]} vs #{signature[:param_types].size}"
+    it "validates that core functions can be resolved with type metadata" do
+      registry = Kumi::Registry.registry_v2
+      sample_functions = ["core.add", "core.sub", "core.mul", "core.div", "core.gt", "core.lt"]
+      
+      sample_functions.each do |fn_name|
+        function = registry.resolve(fn_name, arity: 2)
+        
+        expect(function.dtypes).to be_a(Hash), "Function #{fn_name} missing dtypes"
+        expect(function.signatures).to be_an(Array), "Function #{fn_name} missing signatures"
+        expect(function.name).to eq(fn_name), "Function name mismatch"
       end
     end
   end

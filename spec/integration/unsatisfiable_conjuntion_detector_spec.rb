@@ -15,7 +15,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gt_z, input.y, :>, input.z
           trait :z_gt_x, input.z, :>, input.x
 
-          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z), ref(:z_gt_x))
+          value :impossible do
+            on x_gt_y, y_gt_z, z_gt_x, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -31,7 +34,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_x, input.y, :>, input.x
 
-          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_x))
+          value :impossible do
+            on x_gt_y, y_gt_x, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -51,7 +57,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :c_gt_d, input.c, :>, input.d
           trait :d_gt_a, input.d, :>, input.a
 
-          value :impossible, fn(:cascade_and, ref(:a_gt_b), ref(:b_gt_c), ref(:c_gt_d), ref(:d_gt_a))
+          value :impossible do
+            on a_gt_b, b_gt_c, c_gt_d, d_gt_a, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -71,7 +80,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :z_lt_y, input.z, :<, input.y # equivalent to y > z
           trait :z_gt_x, input.z, :>, input.x
 
-          value :impossible, fn(:cascade_and, ref(:x_gt_y), ref(:z_lt_y), ref(:z_gt_x))
+          value :impossible do
+            on x_gt_y, z_lt_y, z_gt_x, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -87,7 +99,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_x, input.y, :>, input.x
 
-          value :contradiction, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_x))
+          value :contradiction do
+            on x_gt_y, y_gt_x, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -108,9 +123,15 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :z_gt_x, input.z, :>, input.x
 
           # Trait that combines others
-          value :chain_xy_yz, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z))
+          value :chain_xy_yz do
+            on x_gt_y, y_gt_z, true
+            base false
+          end
 
-          value :impossible, fn(:cascade_and, ref(:chain_xy_yz), ref(:z_gt_x))
+          value :impossible do
+            on chain_xy_yz, z_gt_x, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -127,7 +148,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_10, input.x, :>, 10
           trait :x_lt_5, input.x, :<, 5
 
-          value :impossible, fn(:cascade_and, ref(:x_gt_10), ref(:x_lt_5))
+          value :impossible do
+            on x_gt_10, x_lt_5, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -142,7 +166,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :five_gt_x, 5, :>, input.x
           trait :x_gt_10, input.x, :>, 10
 
-          value :impossible, fn(:cascade_and, ref(:five_gt_x), ref(:x_gt_10))
+          value :impossible do
+            on five_gt_x, x_gt_10, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -161,7 +188,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_y, input.x, :>, input.y
           trait :y_gt_z, input.y, :>, input.z
 
-          value :valid_chain, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z))
+          value :valid_chain do
+            on x_gt_y, y_gt_z, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -176,7 +206,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_10, input.x, :>, 10
           trait :x_lt_20, input.x, :<, 20
 
-          value :valid_range, fn(:cascade_and, ref(:x_gt_10), ref(:x_lt_20))
+          value :valid_range do
+            on x_gt_10, x_lt_20, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -194,7 +227,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :a_gt_b, input.a, :>, input.b
           trait :x_gt_y, input.x, :>, input.y
 
-          value :independent, fn(:cascade_and, ref(:a_gt_b), ref(:x_gt_y))
+          value :independent do
+            on a_gt_b, x_gt_y, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -213,7 +249,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gt_z, input.y, :>, input.z
           trait :w_gt_z, input.w, :>, input.z
 
-          value :partial_chain, fn(:cascade_and, ref(:x_gt_y), ref(:y_gt_z), ref(:w_gt_z))
+          value :partial_chain do
+            on x_gt_y, y_gt_z, w_gt_z, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -231,10 +270,16 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
 
           trait :a_gt_b, input.a, :>, input.b
           trait :b_gt_c, input.b, :>, input.c
-          value :chain_ab_bc, fn(:cascade_and, ref(:a_gt_b), ref(:b_gt_c))
+          value :chain_ab_bc do
+            on a_gt_b, b_gt_c, true
+            base false
+          end
 
           trait :c_gt_a, input.c, :>, input.a
-          value :impossible_nested, fn(:cascade_and, ref(:chain_ab_bc), ref(:c_gt_a))
+          value :impossible_nested do
+            on chain_ab_bc, c_gt_a, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -255,7 +300,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_gt_z, input.x, :>, input.z
           trait :y_gt_z, input.y, :>, input.z
 
-          value :tree_structure, fn(:cascade_and, ref(:w_gt_x), ref(:w_gt_y), ref(:x_gt_z), ref(:y_gt_z))
+          value :tree_structure do
+            on w_gt_x, w_gt_y, x_gt_z, y_gt_z, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -273,7 +321,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :b_eq_c, input.b, :==, input.c
           # Don't explicitly state a_eq_c, let it be derived
 
-          value :all_equal, fn(:cascade_and, ref(:a_eq_b), ref(:b_eq_c))
+          value :all_equal do
+            on a_eq_b, b_eq_c, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -291,7 +342,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_eq_z, input.y, :==, input.z
           trait :x_gt_z, input.x, :>, input.z # Contradicts transitivity of equality
 
-          value :mixed_contradiction, fn(:cascade_and, ref(:x_eq_y), ref(:y_eq_z), ref(:x_gt_z))
+          value :mixed_contradiction do
+            on x_eq_y, y_eq_z, x_gt_z, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -695,7 +749,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :y_gte_z, input.y, :>=, input.z
           trait :z_gte_x, input.z, :>=, input.x
 
-          value :non_strict_cycle, fn(:cascade_and, ref(:x_gte_y), ref(:y_gte_z), ref(:z_gte_x))
+          value :non_strict_cycle do
+            on x_gte_y, y_gte_z, z_gte_x, true
+            base false
+          end
         end
       end.not_to raise_error # >= allows equality, so this is satisfiable
     end
@@ -707,7 +764,7 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
             key :x, type: :integer
           end
 
-          value :empty_all, fn(:cascade_and)
+          value :empty_all, true  # Empty cascade_and should just be true
         end
       end.not_to raise_error
     end
@@ -737,7 +794,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :x_eq_y, input.x, :==, input.y
           trait :x_gt_y, input.x, :>, input.y
 
-          value :contradiction_with_equality, fn(:cascade_and, ref(:x_eq_y), ref(:x_gt_y))
+          value :contradiction_with_equality do
+            on x_eq_y, x_gt_y, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -758,7 +818,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :price_gt_100, input.product.price, :>, 100.0
           trait :price_lt_50, input.product.price, :<, 50.0
 
-          value :impossible_price, fn(:cascade_and, ref(:price_gt_100), ref(:price_lt_50))
+          value :impossible_price do
+            on price_gt_100, price_lt_50, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -777,7 +840,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :minor, input.user.age, :<, 18
           trait :active_user, input.user.status, :==, "active"
 
-          value :impossible_user, fn(:cascade_and, ref(:adult), ref(:minor))
+          value :impossible_user do
+            on adult, minor, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -800,7 +866,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :north_hemisphere, input.company.location.latitude, :>, 0.0
           trait :south_hemisphere, input.company.location.latitude, :<, 0.0
 
-          value :impossible_location, fn(:cascade_and, ref(:north_hemisphere), ref(:south_hemisphere))
+          value :impossible_location do
+            on north_hemisphere, south_hemisphere, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -831,7 +900,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :all_expensive, fn(:all?, input.items.price > 100.0)
           trait :all_cheap, fn(:all?, input.items.price < 50.0)
 
-          value :impossible_pricing, fn(:cascade_and, ref(:all_expensive), ref(:all_cheap))
+          value :impossible_pricing do
+            on all_expensive, all_cheap, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -848,7 +920,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :all_high, fn(:all?, input.scores.value > 90.0)
           trait :all_low, fn(:all?, input.scores.value < 50.0)
 
-          value :impossible_scores, fn(:cascade_and, ref(:all_high), ref(:all_low))
+          value :impossible_scores do
+            on all_high, all_low, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -867,7 +942,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :all_positive, fn(:all?, input.matrix.row.cell > 0.0)
           trait :all_negative, fn(:all?, input.matrix.row.cell < 0.0)
 
-          value :impossible_matrix, fn(:cascade_and, ref(:all_positive), ref(:all_negative))
+          value :impossible_matrix do
+            on all_positive, all_negative, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -887,7 +965,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :avg_temp_hot, avg_temp, :>, 35.0
           trait :avg_temp_cold, avg_temp, :<, 10.0
 
-          value :impossible_climate, fn(:cascade_and, ref(:avg_temp_hot), ref(:avg_temp_cold))
+          value :impossible_climate do
+            on avg_temp_hot, avg_temp_cold, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -907,7 +988,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :has_available_stock, fn(:any?, input.products.stock > 0)
           trait :has_electronics, fn(:any?, input.products.name == "laptop")
 
-          value :good_inventory, fn(:cascade_and, ref(:has_expensive_items), ref(:has_available_stock))
+          value :good_inventory do
+            on has_expensive_items, has_available_stock, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -960,7 +1044,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :all_dense, fn(:all?, density > 1000.0)
           trait :all_sparse, fn(:all?, density < 100.0)
 
-          value :impossible_density, fn(:cascade_and, ref(:all_dense), ref(:all_sparse))
+          value :impossible_density do
+            on all_dense, all_sparse, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end
@@ -980,7 +1067,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :has_negative, fn(:any?, input.empty_list.value < 0.0)
 
           # Empty arrays make both any? conditions false, so this is satisfiable
-          value :empty_constraints, fn(:cascade_and, ref(:has_positive), ref(:has_negative))
+          value :empty_constraints do
+            on has_positive, has_negative, true
+            base false
+          end
         end
       end.not_to raise_error
     end
@@ -998,7 +1088,10 @@ RSpec.describe "Unsatisfiable‑conjunction detector" do
           trait :required_positive, input.optional_data.required_field, :>, 0
           trait :required_negative, input.optional_data.required_field, :<, 0
 
-          value :impossible_required, fn(:cascade_and, ref(:required_positive), ref(:required_negative))
+          value :impossible_required do
+            on required_positive, required_negative, true
+            base false
+          end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError, /logically impossible|unsatisfiable/i)
     end

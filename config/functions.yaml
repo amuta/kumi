@@ -791,6 +791,20 @@
       impl: kumi_abs
       priority: 10
 
+- name: core.round
+  domain: core
+  opset: 1
+  class: scalar
+  summary: Round number to specified decimal places
+  signature: ["(),()->()", "(f)->(f)", "(f),(i)->(f)", "(i,j),(i,j)->(i,j)"]
+  type_vars: {T: Numeric, U: Integer}
+  dtypes: {result: "float"}
+  null_policy: propagate
+  kernels:
+    - backend: ruby
+      impl: kumi_round
+      priority: 10
+
 - name: struct.fetch
   domain: core
   opset: 1

@@ -30,7 +30,7 @@ module Kumi
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
-      registry = Kumi::Core::Functions::RegistryV2.load_from_file
+      registry = Kumi::Registry.registry_v2  # Use the facade that includes custom functions
       state = state.with(:registry, registry)
 
       state = run_analysis_passes(schema, passes, state, errors)
@@ -61,6 +61,9 @@ module Kumi
         errors[errors_before..].each do |error|
           error.message = "[#{pass_name}] #{error.message}" if error.respond_to?(:message) && !error.message.include?("Analysis Pass")
         end
+
+        # Stop analysis if this pass added errors
+        break if errors.length > errors_before
       end
       state
     end

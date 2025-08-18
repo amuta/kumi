@@ -87,6 +87,10 @@ module Kumi
           a.abs
         end
 
+        def kumi_round(number, precision = 0)
+          number.round(precision)
+        end
+
         def kumi_fetch(hash, key)
           hash.fetch(key)
         end

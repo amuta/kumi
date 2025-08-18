@@ -13,17 +13,17 @@
 - [ ] Hash object integration with trait system
 
 ### User-Defined Function Support
-- [ ] Design RegistryV2 API for runtime function registration
-- [ ] Implement dynamic function definition system (YAML templates or programmatic API)
-- [ ] Bridge RegistryV2 with legacy Registry for backward compatibility during transition
-- [ ] Re-enable `spec/integration/arg_order_spec.rb` once user functions are supported
+- [x] ~~Design RegistryV2 API for runtime function registration~~ (Completed: Function builder API with `define_eachwise`/`define_aggregate`)
+- [x] ~~Implement dynamic function definition system~~ (Completed: `Kumi::Registry.define_*` methods with signatures and dtypes)
+- [x] ~~Bridge RegistryV2 with legacy Registry for backward compatibility during transition~~ (Completed: CompositeRegistry facade)
+- [x] ~~Re-enable `spec/integration/arg_order_spec.rb` once user functions are supported~~ (Completed: Fixed and re-enabled)
 - [ ] Documentation and examples for custom function registration
 
 ### RegistryV2 Migration Cleanup
 - [ ] Remove legacy `lib/kumi/core/function_registry.rb` and related modules after RegistryV2 is fully integrated
 - [ ] Clean up bridge code in `FunctionSignaturePass` once all functions are migrated  
 - [ ] Remove `create_basic_signature` fallback logic
-- [ ] Update all tests to use RegistryV2 functions
+- [x] ~~Update all tests to use RegistryV2 functions~~ (Completed: Major Registry-related specs updated to modern function builder API)
 - [ ] Add WARN_DEPRECATED_FUNCS as default?
 
 ### SchemaMetadata Removal Cleanup
@@ -33,6 +33,18 @@
 - [ ] Update any external docs/examples that referenced `schema_metadata` method
 - [ ] Reimplement JSON Schema generation working directly with analyzer state (if needed)
 
+### RegistryV2 Type System Issues (NEW)
+- [ ] **Type inference behavior changes**: Some functions now return `:integer` instead of `:float` - verify this is intentional
+- [ ] **Missing common functions**: Add `include?`, `between?` and other Ruby-style predicates to RegistryV2 if needed
+- [ ] **Complex dtype expressions**: Some nested promotion expressions like `promote(promote(T,U),V)` need better mapping coverage
+- [ ] **Error message consistency**: RegistryV2 error formats differ from legacy Registry - standardize user-facing messages
+
+### Complex Schema Edge Cases (NEW)
+- [ ] **Short-circuit operation validation**: `comprehensive_integration_spec.rb` reveals issues with complex boolean expressions 
+- [ ] **Ambiguous function resolution**: Improve disambiguation between `array.get` vs `struct.get` with better type hints
+- [ ] **Custom function signature validation**: Auto-detect signature mismatches instead of requiring manual specification
+- [ ] **Operator desugaring limitations**: Some operator combinations (like `&` on CallExpression) need explicit function call syntax
+
 ## Medium Priority
 
 ### Function Registry Enhancements
@@ -40,6 +52,9 @@
 - [ ] Implement golden-IR test fixtures for signature resolution
 - [ ] Add Arrow/JS kernel mapping support
 - [ ] Implement type promotion rules from YAML dtypes
+- [x] ~~Add `core.round` function to RegistryV2~~ (Completed: Added with proper signatures and dtypes)
+- [ ] **Function gap analysis**: Systematically identify functions used in specs but missing from RegistryV2
+- [ ] **Automatic signature inference**: Generate function signatures from kernel implementations where possible
 
 ### Type System Enhancements
 - [ ] Investigate if input validation is enriched with inferred types from reference usage analysis
@@ -52,6 +67,21 @@
 - [ ] Optimize signature resolution for large function sets
 - [ ] Implement lazy loading of function kernels
 
+### Successful RegistryV2 Migration Reference (NEW)
+**Completed migrations for reference:**
+- [x] ~~Manual IR construction~~ (Fixed: Replaced manual IR with `analyze_up_to(:ir_module)` helper)
+- [x] ~~cascade_and function usage~~ (Fixed: Converted `fn(:cascade_and, ...)` to proper cascade syntax)
+- [x] ~~Function name normalization~~ (Enhanced: Added missing mappings in BasenameNormalizer)
+- [x] ~~Arithmetic operator desugaring~~ (Fixed: Replaced `/`, `-`, `*` operators with `fn(:div, ...)`, etc.)
+- [x] ~~Custom function registration~~ (Migration pattern: `Registry.register` → `Registry.define_eachwise/define_aggregate`)
+- [x] ~~Type inference dtype mappings~~ (Fixed: Added mappings for `unify(T,U)`, `array`, nested promotions)
+
+**Successful workaround patterns:**
+- Use qualified function names (`core.clip` not `clamp`, `core.if` not `conditional`)
+- Explicit function calls for complex operations (`fn(:and, ...)` not `&` operator chaining)  
+- Modern function builder API with explicit signatures and dtypes for custom functions
+- Enhanced dtype mapping coverage for type inference edge cases
+
 ## Low Priority
 
 ### Documentation
@@ -59,6 +89,7 @@
 - [ ] Add examples for each function in registry
 - [ ] Document kernel implementation guidelines
 - [ ] Document null propagation policies and behavior patterns
+- [ ] **RegistryV2 migration guide**: Document successful migration patterns and common pitfalls for future reference
 
 ### Testing
 - [ ] Add comprehensive NEP-20 compliance test suite

@@ -16,7 +16,7 @@ module Kumi
               next unless entry[:type] == "CallExpression"
 
               begin
-                process_call_expression(entry)
+                process_call_expression(entry, errors)
               rescue StandardError => e
                 # This is early in the pipeline, but we can still provide some context
                 dump_on_fail_early(e, entry)
@@ -29,7 +29,7 @@ module Kumi
 
           private
 
-          def process_call_expression(entry)
+          def process_call_expression(entry, errors)
             node = entry[:node]
 
             # Use effective_fn_name from CascadeDesugarPass if available, otherwise use node.fn_name
@@ -49,7 +49,13 @@ module Kumi
             canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
 
             # Resolve canonical name to qualified registry name
-            result = resolve_to_qualified_name_with_function(canonical_name, node.args.size)
+            begin
+              result = resolve_to_qualified_name_with_function(canonical_name, node.args.size)
+            rescue KeyError => e
+              # Handle unknown function gracefully
+              report_error(errors, "unknown function `#{canonical_name}` (normalized from `#{before}`)", location: node.loc)
+              return
+            end
 
             # Annotate with both canonical and qualified names for downstream passes
             entry[:metadata][:canonical_name] = canonical_name
@@ -66,6 +72,7 @@ module Kumi
             ENV.fetch("DEBUG_NORMALIZE",
                       nil) && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name_for_debug}")
           end
+
 
           def resolve_to_qualified_name_with_function(canonical_name, arity = nil)
             # Use RegistryV2 to resolve the qualified name based on basename and arity
