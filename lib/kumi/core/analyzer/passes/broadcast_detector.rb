@@ -25,8 +25,7 @@ module Kumi
               reduction_operations: {},
               nested_paths: nested_paths,
               flattening_declarations: {},  # Track which declarations need flattening
-              cascade_strategies: {},       # Pre-computed cascade processing strategies
-              compilation_metadata: {}      # Pre-computed compilation decisions
+              cascade_strategies: {}       # Pre-computed cascade processing strategies
             }
 
             # Track which values are vectorized for type inference
@@ -40,9 +39,7 @@ module Kumi
               result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors,
                                                    definitions)
 
-              if ENV["DEBUG_BROADCAST_CLEAN"]
-                puts "#{name}: #{result[:type]} #{format_broadcast_info(result)}"
-              end
+              puts "#{name}: #{result[:type]} #{format_broadcast_info(result)}" if ENV["DEBUG_BROADCAST_CLEAN"]
 
               case result[:type]
               when :vectorized
@@ -62,11 +59,7 @@ module Kumi
                 vectorized_values[name] = { vectorized: false }
               end
 
-              # Pre-compute compilation metadata for each declaration
-              compilation_meta = compute_compilation_metadata(
-                name, decl, compiler_metadata, vectorized_values, array_fields
-              )
-              compiler_metadata[:compilation_metadata][name] = compilation_meta
+              # Removed: compilation metadata is unused; reintroduce when lowering consumes it.
             end
 
             state.with(:broadcasts, compiler_metadata.freeze)
@@ -111,75 +104,6 @@ module Kumi
             end
           end
 
-          def compute_compilation_metadata(name, _decl, compiler_metadata, _vectorized_values, _array_fields)
-            metadata = {
-              operation_mode: :broadcast, # Default mode
-              is_vectorized: false,
-              vectorization_context: {},
-              cascade_info: {},
-              function_call_strategy: {}
-            }
-
-            # Check if this declaration is vectorized
-            if compiler_metadata[:vectorized_operations][name]
-              metadata[:is_vectorized] = true
-              vectorized_info = compiler_metadata[:vectorized_operations][name]
-
-              # Pre-compute vectorization context
-              metadata[:vectorization_context] = {
-                has_vectorized_args: true,
-                needs_broadcasting: true,
-                array_structure_depth: estimate_array_depth(vectorized_info, compiler_metadata[:nested_paths])
-              }
-
-              # If this is a cascade, pre-compute cascade processing strategy
-              if vectorized_info[:source] == :cascade_with_vectorized_conditions_or_results
-                strategy = compiler_metadata[:cascade_strategies][name]
-                metadata[:cascade_info] = {
-                  is_vectorized: true,
-                  processing_mode: strategy&.dig(:mode) || :hierarchical,
-                  needs_hierarchical_processing: needs_hierarchical_processing?(strategy)
-                }
-              end
-            end
-
-            # Check if this declaration needs flattening
-            if compiler_metadata[:flattening_declarations][name]
-              metadata[:operation_mode] = :flatten
-              flattening_info = compiler_metadata[:flattening_declarations][name]
-
-              metadata[:function_call_strategy] = {
-                flattening_required: true,
-                flatten_argument_indices: flattening_info[:flatten_argument_indices] || [0],
-                result_structure: :scalar
-              }
-            end
-
-            metadata
-          end
-
-          def estimate_array_depth(vectorized_info, nested_paths)
-            case vectorized_info[:source]
-            when :nested_array_access
-              path = vectorized_info[:path]
-              nested_paths[path]&.dig(:array_depth) || 1
-            when :array_field_access
-              1
-            else
-              1
-            end
-          end
-
-          def needs_hierarchical_processing?(strategy)
-            return false unless strategy
-
-            case strategy[:mode]
-            when :nested_array, :deep_nested_array
-              true
-            else
-              false
-            end
-          end
 
           def find_array_fields(input_meta)
             result = {}
@@ -279,7 +203,7 @@ module Kumi
             # Get node metadata from node_index instead of legacy registry
             node_index = get_state(:node_index, required: false)
             entry_metadata = node_index&.dig(expr.object_id, :metadata) || {}
-            
+
             # Use metadata fn_class if available, otherwise resolve from RegistryV2
             fn_class = entry_metadata[:fn_class] || get_function_class(expr, entry_metadata)
             is_reducer = (fn_class == :aggregate)
@@ -292,18 +216,18 @@ module Kumi
             vec_idx   = arg_infos.each_index.select { |i| arg_infos[i][:vectorized] }
             vec_any   = !vec_idx.empty?
 
-            # 2) Special form: cascade_and (vectorized if any trait arg is vectorized)
-            if expr.fn_name == :cascade_and
-              vectorized_trait = expr.args.find do |arg|
-                arg.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[arg.name]&.[](:vectorized)
-              end
-              if vectorized_trait
-                return { type: :vectorized,
-                         info: { source: :cascade_condition_with_vectorized_trait, trait: vectorized_trait&.name } }
-              end
+            # # 2) Special form: cascade_and (vectorized if any trait arg is vectorized)
+            # if expr.fn_name == :cascade_and
+            #   vectorized_trait = expr.args.find do |arg|
+            #     arg.is_a?(Kumi::Syntax::DeclarationReference) && vectorized_values[arg.name]&.[](:vectorized)
+            #   end
+            #   if vectorized_trait
+            #     return { type: :vectorized,
+            #              info: { source: :cascade_condition_with_vectorized_trait, trait: vectorized_trait&.name } }
+            #   end
 
-              return { type: :scalar }
-            end
+            #   return { type: :scalar }
+            # end
 
             # 3) Reducers: only reduce when the input is actually vectorized
             if is_reducer
@@ -402,9 +326,13 @@ module Kumi
               # Store in metadata for future reference
               metadata[:fn_class] = fn_class if metadata
               fn_class
-            rescue => e
+            rescue StandardError => e
               if ENV["DEBUG_BROADCAST"]
-                puts("  BroadcastDetector call_id=#{expr.object_id rescue 'unknown'} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
+                puts("  BroadcastDetector call_id=#{begin
+                  expr.object_id
+                rescue StandardError
+                  'unknown'
+                end} fn_name=#{fn_name} status=resolve_failed error=#{e.message}")
               end
               :scalar # Default to scalar for unknown functions
             end
@@ -572,7 +500,7 @@ module Kumi
                     puts "    Source conflict: #{has_source_conflict}"
                     puts "    Dimension conflict: #{has_dimension_conflict}"
                   end
-                  report_cascade_dimension_mismatch(errors, expr, unique_sources, unique_dimensions)
+                  # Mark for scalar handling but don't error - let ScopeResolutionPass handle it
                   return { type: :scalar }
                 end
 
@@ -616,9 +544,8 @@ module Kumi
                 is_valid_hierarchical = valid_hierarchical_broadcasting?(all_dimensions)
                 puts "  valid_hierarchical_broadcasting?: #{is_valid_hierarchical}" if ENV["DEBUG_CASCADE"]
                 unless is_valid_hierarchical
-                  # Multiple definite dimensional sources - this is a real mismatch
-                  puts "  -> REPORTING DIMENSIONAL MISMATCH" if ENV["DEBUG_CASCADE"]
-                  report_cascade_dimension_mismatch(errors, expr, definite_sources, all_dimensions)
+                  # Multiple definite dimensional sources - mark for scalar handling
+                  puts "  -> MARKING FOR SCALAR HANDLING" if ENV["DEBUG_CASCADE"]
                   return { type: :scalar } # Treat as scalar to prevent further errors
                 end
               end

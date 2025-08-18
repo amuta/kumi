@@ -5,15 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Apply NEP-20 signature resolution to function calls
-        # 
-        # Resolves function signatures using RegistryV2 and attaches signature metadata
-        # to CallExpression nodes. May compute result dtypes if function has dtype metadata,
-        # but TypeCheckerV2 will compute them if missing.
-        #
-        # DEPENDENCIES: 
-        #   - :node_index from NameIndexer (CallExpression entries with metadata)
-        #   - :qualified_name from CallNameNormalizePass (normalized function names)
-        #   - :broadcast_metadata (optional, for signature argument shape building)
+        # DEPENDENCIES: :node_index from Toposorter, :decl_shapes (preferred), :broadcasts (optional)
         #
         # PRODUCES: 
         #   - Signature metadata in node_index for CallExpression nodes
@@ -28,7 +20,8 @@ module Kumi
             node_index = get_state(:node_index, required: true)
             @input_metadata = get_state(:input_metadata, required: false) || {}
             @inferred_types = get_state(:inferred_types, required: false) || {}
-            @broadcast_metadata = get_state(:broadcast_metadata, required: false)
+            @decl_shapes = get_state(:decl_shapes, required: false) || {}
+            @broadcasts = get_state(:broadcasts, required: false) || {}
 
             if ENV["DEBUG_LOWER"]
               puts "FunctionSignaturePass: Processing #{node_index.size} nodes"
@@ -262,13 +255,11 @@ module Kumi
           def build_argument_shapes(node, object_id)
             # Build argument shapes from current analysis context
             node.args.map.with_index do |arg, i|
-              axes = get_broadcast_metadata(arg.object_id)
-              shape = normalize_shape(axes)
+              shape = infer_arg_shape(arg, @decl_shapes, @broadcasts)
               
-              # Debug missing broadcast metadata
-              if shape.empty? && ENV["DEBUG_LOWER"]
-                puts "        Warning: Argument #{i+1} (#{arg.class}) has empty shape - missing broadcast metadata"
-                puts "          arg.object_id=#{arg.object_id}, metadata=#{axes.inspect}"
+              # Debug shape inference
+              if ENV["DEBUG_LOWER"]
+                puts "        Argument #{i+1} (#{arg.class}) shape: #{shape.inspect}"
               end
               
               shape
@@ -327,12 +318,29 @@ module Kumi
             end
           end
 
-          def get_broadcast_metadata(arg_object_id)
-            # Use cached broadcast metadata from run() method
-            return nil unless @broadcast_metadata
+          # New: prefer declaration-derived scope; otherwise fall back to input-path hints; else scalar.
+          def infer_arg_shape(arg_node, decl_shapes, broadcasts)
+            case arg_node
+            when Kumi::Syntax::DeclarationReference
+              (decl_shapes.dig(arg_node.name, :scope) || [])
+            when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+              # Minimal, conservative hinting from broadcasts (keep this simple)
+              # If path is known vector (in nested_paths/array_fields), return a 1-deep scope.
+              path = arg_node.path_string rescue nil
+              if path && vector_like_input_path?(path, broadcasts)
+                [:i]  # symbolic placeholder scope; analyzer downstream will normalize
+              else
+                []
+              end
+            else
+              []
+            end
+          end
 
-            # Look up by node object_id
-            @broadcast_metadata[arg_object_id]&.dig(:axes)
+          def vector_like_input_path?(path, broadcasts)
+            np = broadcasts[:nested_paths] || []
+            af = broadcasts[:array_fields] || []
+            np.any? { |p| path.start_with?(p) } || af.any? { |p| path.start_with?(p) }
           end
 
           def build_signature_error_message(fn_name, arg_shapes, sig_strings, original_error, node)

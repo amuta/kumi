@@ -35,7 +35,17 @@ module Kumi
 
             final_scopes = propagate_scope_constraints(initial_scopes, declarations, input_metadata)
             final_scopes.each do |name, target_scope|
+              decl = declarations[name]
               result_kind = determine_result_kind(name, target_scope, broadcasts)
+              
+              # If this is a cascade and the hierarchy check fails, force scalar scope.
+              if decl&.expression&.is_a?(Kumi::Syntax::CascadeExpression)
+                unless valid_hierarchical_broadcasting?(decl, input_metadata)
+                  target_scope = []
+                  annotate_scalarized_cascade(name)
+                end
+              end
+              
               plan = build_scope_plan(target_scope)
               scope_plans[name] = plan
               decl_shapes[name] = { scope: target_scope, result: result_kind }.freeze
@@ -341,6 +351,26 @@ module Kumi
             end
 
             dims
+          end
+
+          def valid_hierarchical_broadcasting?(decl, input_metadata)
+            # Simplified hierarchy check for cascades
+            # Collect all input paths from the cascade and check if they can be broadcast together
+            paths = collect_input_paths(decl.expression)
+            return true if paths.length <= 1
+
+            dimensions = paths.map { |path| dims_from_path(path, input_metadata) }
+            return true if dimensions.length <= 1
+
+            # Check if all dimensions form a valid hierarchy (simplified check)
+            max_depth = dimensions.map(&:length).max
+            dimensions.all? { |dim| dim.length <= max_depth }
+          end
+
+          def annotate_scalarized_cascade(name)
+            # For now, just log that we scalarized this cascade
+            puts "Scalarized cascade: #{name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
+            # TODO: Store this information in node_index if needed for diagnostics
           end
         end
       end

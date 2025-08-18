@@ -179,7 +179,6 @@ module Kumi
             )
           end
 
-
           def determine_slot_shape(slot, ops, access_plans)
             return SlotShape.scalar if slot.nil?
 
@@ -367,6 +366,7 @@ module Kumi
           def lower_declaration(name, decl, access_plans, join_reduce_plans, scope_plan)
             ops = []
 
+            # binding.pry
             plan = @join_reduce_plans[name]
             req_scope =
               if plan && plan.respond_to?(:result_scope)
@@ -393,12 +393,14 @@ module Kumi
             puts "DEBUG: Shape after broadcast for #{name}: #{shape.inspect}" if ENV["DEBUG_BROADCAST"]
 
             if shape.kind == :vec
+
               vec_name = :"#{name}__vec"
               @vec_meta[vec_name] = { scope: shape.scope, has_idx: shape.has_idx }
 
               # internal twin for downstream refs
               ops << Kumi::Core::IR::Ops.Store(vec_name, last_slot)
 
+              # binding.pry
               # public presentation
               ops << if shape.has_idx
                        Kumi::Core::IR::Ops.Lift(shape.scope, last_slot)
@@ -408,6 +410,7 @@ module Kumi
               last_slot = ops.size - 1
             end
 
+            # binding.pry
             # ➌ store public name (scalar or transformed vec)
             ops << Kumi::Core::IR::Ops.Store(name, last_slot)
 
@@ -510,15 +513,18 @@ module Kumi
 
                   if meta[:desugared_to] == :and
                     # Handle multi-arg cascade_and by creating binary tree at IR level
-                    puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and -> binary_tree") if ENV["DEBUG_LOWER"]
-                    
+                    if ENV["DEBUG_LOWER"]
+                      puts("  Lower call_id=#{expr.object_id} cascade_and args=#{expr.args.size} desugar=core.and -> binary_tree")
+                    end
+
                     if expr.args.size == 2
                       # Simple binary case - just change function name
                       expr = Kumi::Syntax::CallExpression.new(:and, expr.args)
                     else
                       # Multi-arg case: create left-associative binary tree at IR level
                       # cascade_and(a, b, c, d) -> and(and(and(a, b), c), d)
-                      return lower_cascade_and_binary_tree(expr.args, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
+                      return lower_cascade_and_binary_tree(expr.args, ops, access_plans, scope_plan, need_indices, required_scope,
+                                                           cacheable)
                     end
                   end
 
@@ -624,7 +630,7 @@ module Kumi
 
                     # For multi-argument aggregates, pass all arguments including scalars
                     non_vec_slots = arg_slots.select.with_index { |slot, i| i != vec_i }
-                    
+
                     if ENV["DEBUG_LOWER"]
                       puts "  emit_reduce(#{expr.fn_name}, #{src_slot}, #{src_shape.scope.inspect}, #{Array(required_scope).inspect})"
                       puts "  non_vec_slots: #{non_vec_slots.inspect}" if non_vec_slots.any?
@@ -983,7 +989,7 @@ module Kumi
             axis = rs.empty? ? ss : (ss - rs)
             puts "  emit_reduce #{fn_name} on #{src_slot} with axis #{axis.inspect} and result scope #{rs.inspect}" if ENV["DEBUG_LOWER"]
             puts "  scalar_slots: #{scalar_slots.inspect}" if ENV["DEBUG_LOWER"] && scalar_slots.any?
-            
+
             # For multi-argument aggregates, pass vector slot first, then scalar slots
             all_args = [src_slot] + scalar_slots
             ops << Kumi::Core::IR::Ops.Reduce(fn_name, axis, rs, [], *all_args)
@@ -1249,36 +1255,35 @@ module Kumi
             entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || expr.fn_name
           end
 
-
           # Lower multi-argument cascade_and into a left-associative binary tree at IR level
           # cascade_and(a, b, c, d) -> and(and(and(a, b), c), d)
           def lower_cascade_and_binary_tree(args, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
             puts("  LOWERING_CASCADE_AND_BINARY_TREE with #{args.size} args") if ENV["DEBUG_LOWER"]
-            
+
             # Create the initial binary AND with first two arguments
             binary_expr = Kumi::Syntax::CallExpression.new(:and, [args[0], args[1]])
             result_slot = lower_short_circuit_bool(binary_expr, ops, access_plans, scope_plan, need_indices, required_scope, cacheable)
-            
+
             # For each remaining argument, create a new binary AND
             args[2..-1].each_with_index do |arg, i|
               puts("  CASCADE_AND step #{i + 1}: combining previous result with arg #{i + 2}") if ENV["DEBUG_LOWER"]
-              
+
               # Since we can't create a synthetic expression that references the result_slot,
               # we need to use the short-circuit lowerer's direct API with pre-computed slots
               arg_slot = lower_expression(arg, ops, access_plans, scope_plan, need_indices, required_scope, cacheable: cacheable)
-              
+
               # Use the short-circuit lowerer's lower! method for pre-computed slots
               # This bypasses the expression-based interface and works with slots directly
               short_circuit_result = short_circuit_lowerer.lower!(
                 ops: ops,
-                fn_name: "core.and", 
+                fn_name: "core.and",
                 arg_slots: [result_slot, arg_slot],
-                result_slot: nil  # Let it allocate
+                result_slot: nil # Let it allocate
               )
-              
+
               result_slot = short_circuit_result.result_slot
             end
-            
+
             result_slot
           end
 
