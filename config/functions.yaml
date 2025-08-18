@@ -410,7 +410,7 @@
   semantics: {family: structural, role: data_access}
   kernels:
     - backend: ruby
-      impl: take
+      impl: kumi_take
       priority: 10
 
 - name: struct.size

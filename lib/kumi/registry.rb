@@ -18,8 +18,7 @@ module Kumi
 
     def self.fetch(name, opset: nil)
       # Return a callable that matches old interface
-      kernel = registry_v2.get_executable_kernel(name)
-      kernel
+      registry_v2.get_executable_kernel(name)
     rescue KeyError => e
       raise "Function '#{name}' not found: #{e.message}"
     end
@@ -27,7 +26,7 @@ module Kumi
     def self.signature(name)
       # Return old-style signature hash for backward compatibility
       function = registry_v2.resolve(name)
-      
+
       # Convert RegistryV2 function to old signature format
       {
         arity: function.signatures.first&.arity || -1,
@@ -49,13 +48,25 @@ module Kumi
       registry_v2.all_function_names.map(&:to_sym)
     end
 
+    def self.functions
+      # Return a hash that VM can use with registry[function_name]
+      @functions_cache ||= begin
+        functions_hash = {}
+        registry_v2.all_function_names.each do |name|
+          kernel = registry_v2.get_executable_kernel(name)
+          functions_hash[name] = kernel
+        end
+        functions_hash
+      end
+    end
+
     # Legacy methods for specs that register custom functions
     def self.register_with_metadata(name, function, **metadata)
       # Skip registration - RegistryV2 doesn't support runtime registration yet
       # This is used in specs that are already marked as skipped
     end
 
-    def self.register(name, &block)
+    def self.register(name, &)
       # Skip registration - RegistryV2 doesn't support runtime registration yet
     end
 
@@ -69,7 +80,7 @@ module Kumi
       # Extract return type from dtypes.result field
       result_dtype = function.dtypes["result"] || function.dtypes[:result]
       return Core::Types.infer_from_dtype(result_dtype) if result_dtype
-      
+
       # No fallback - if dtypes.result is not specified, return :any
       :any
     end
@@ -80,6 +91,5 @@ module Kumi
       # The real type checking happens via NEP-20 signatures in FunctionSignaturePass
       []
     end
-
   end
 end

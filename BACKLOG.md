@@ -41,6 +41,12 @@
 - [ ] Add Arrow/JS kernel mapping support
 - [ ] Implement type promotion rules from YAML dtypes
 
+### Type System Enhancements
+- [ ] Investigate if input validation is enriched with inferred types from reference usage analysis
+  - Analyze how input fields without explicit types could be inferred from their usage in expressions
+  - Example: `age >= 18` could infer `age` should be numeric, improving validation and error messages
+  - Could enhance runtime input validation and reduce need for explicit type annotations
+
 ### Performance Optimizations
 - [ ] Cache RegistryV2 loading for repeated schema compilations
 - [ ] Optimize signature resolution for large function sets

@@ -41,6 +41,17 @@ module Kumi
           array.include?(value)
         end
 
+        def kumi_take(values, indices)
+          raise ArgumentError, "values is nil" if values.nil?
+          raise ArgumentError, "indices is nil" if indices.nil?
+
+          if indices.is_a?(Array)
+            indices.map { |idx| values[idx] }
+          else
+            values[indices]
+          end
+        end
+
         # === Structure helpers (simple Ruby fallbacks) ===
         # If/when VM handles these, you can keep these as thin helpers.
 
@@ -67,28 +78,11 @@ module Kumi
           vec_2d.flatten(1)
         end
 
-        def concatenate(a, b, **_) = a + b
-        def prepend(head, xs) = [head] + xs
+        def kumi_concatenate(a, b, **_) = a + b
+        def kumi_prepend(head, xs) = [head] + xs
 
-        def diff(xs, **_)
-          n = xs.length
-          return [] if n < 2
 
-          out = Array.new(n - 1)
-          i = 0
-          while i < n - 1
-            out[i] = xs[i + 1] - xs[i]
-            i += 1
-          end
-          out
-        end
-
-        def cumsum(xs, **_)
-          acc = 0
-          xs.map { |v| acc += v }
-        end
-
-        def searchsorted(edges, v, side: :right)
+        def kumi_searchsorted(edges, v, side: :right)
           lo = 0
           hi = edges.length
           if side == :left
@@ -103,6 +97,15 @@ module Kumi
             end
           end
           lo
+        end
+
+        def kumi_take_along_axis(values, indices, axis: -1)
+          # Simple implementation for last axis
+          if indices.is_a?(Array)
+            indices.map { |idx| values[idx] }
+          else
+            values[indices]
+          end
         end
       end
     end

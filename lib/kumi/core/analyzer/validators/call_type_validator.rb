@@ -301,6 +301,9 @@ module Kumi
           # --- Constraints ----------------------------------------------------
 
           def satisfies_constraint?(type, constraint)
+            # :any type satisfies all constraints
+            return true if type == :any
+            
             c = constraint.to_s.downcase
 
             case c

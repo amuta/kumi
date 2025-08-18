@@ -49,6 +49,8 @@ module AnalyzerStateHelper
 
     # Run analysis with selected passes
     state = Kumi::Core::Analyzer::AnalysisState.new({})
+    registry = Kumi::Core::Functions::RegistryV2.load_from_file
+    state = state.with(:registry, registry)
     errors = []
 
     passes.each do |pass_class|

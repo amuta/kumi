@@ -41,16 +41,25 @@ module Kumi
     def self.run_analysis_passes(schema, passes, state, errors)
       passes.each do |pass_class|
         pass_instance = pass_class.new(schema, state)
+        pass_name = pass_class.name.split("::").last
+
+        # Count errors before this pass
+        errors_before = errors.length
+
         begin
           state = pass_instance.run(errors)
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
           # and the pass that failed and line number if relevant
-          pass_name = pass_class.name.split("::").last
           message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
           errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
 
-          raise
+          raise e
+        end
+
+        # Annotate any new errors with the pass name
+        errors[errors_before..].each do |error|
+          error.message = "[#{pass_name}] #{error.message}" if error.respond_to?(:message) && !error.message.include?("Analysis Pass")
         end
       end
       state
@@ -68,7 +77,7 @@ module Kumi
                                         first_error_location)
       end
 
-      raise Errors::AnalysisError.new(Core::ErrorReporter.format_errors(errors))
+      raise Errors::AnalysisError, Core::ErrorReporter.format_errors(errors)
     end
 
     def self.create_analysis_result(state)

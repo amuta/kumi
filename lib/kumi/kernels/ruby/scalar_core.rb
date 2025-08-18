@@ -94,6 +94,24 @@ module Kumi
         def kumi_upcase(str)
           str.upcase
         end
+
+        def kumi_diff(xs, **_)
+          n = xs.length
+          return [] if n < 2
+
+          out = Array.new(n - 1)
+          i = 0
+          while i < n - 1
+            out[i] = xs[i + 1] - xs[i]
+            i += 1
+          end
+          out
+        end
+
+        def kumi_cumsum(xs, **_)
+          acc = 0
+          xs.map { |v| acc += v }
+        end
       end
     end
   end
