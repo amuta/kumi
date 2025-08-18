@@ -57,8 +57,8 @@ module Kumi
         )
       end
 
-      def self.Reduce(fn, axis, result_scope, flatten, slot)
-        IR::Op.new(tag: :reduce, attrs: { fn: fn, axis: axis, result_scope: result_scope, flatten: flatten }, args: [slot])
+      def self.Reduce(fn, axis, result_scope, flatten, *slots)
+        IR::Op.new(tag: :reduce, attrs: { fn: fn, axis: axis, result_scope: result_scope, flatten: flatten }, args: slots)
       end
     end
   end

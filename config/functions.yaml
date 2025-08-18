@@ -416,7 +416,7 @@
 - name: struct.size
   domain: struct
   opset: 1
-  class: vector
+  class: aggregate
   signature: ["(i)->()", "(i,j)->()"]
   dtypes: {result: "int"}
   null_policy: error
@@ -453,17 +453,28 @@
   domain: string
   opset: 1
   class: scalar
-  signature: ["(),()->()", "(i),(i)->(i)", "(i),(j)->(i,j)@zip", "(),(),()->()", "(i),(i),(i)->(i)"]
-  type_vars: {S1: String, S2: String, S3: String}
+  variadic: true
+  zip_policy: zip
+  signature: ["->()", "(i)->(i)"]
+  type_vars: {S: String}
   dtypes: {result: "string"}
   null_policy: propagate
   kernels:
     - backend: ruby
       impl: str_concat
       priority: 10
+
+- name: string.join
+  domain: string
+  opset: 1
+  class: aggregate
+  signature: ["(i),()->()", "(i,j),()->(i)"]
+  type_vars: {S: String, T: String}
+  dtypes: {result: "string"}
+  null_policy: propagate
+  kernels:
     - backend: ruby
-      impl: str_concat_zip
-      when: {policy: zip}
+      impl: str_join
       priority: 10
 
 - name: string.length

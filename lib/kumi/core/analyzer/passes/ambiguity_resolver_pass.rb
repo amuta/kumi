@@ -1,0 +1,214 @@
+# frozen_string_literal: true
+
+module Kumi
+  module Core
+    module Analyzer
+      module Passes
+        # RESPONSIBILITY:
+        #   - Resolve ambiguous functions using complete type information
+        #   - Run after TypeChecker when all types are inferred
+        #
+        # DEPENDS ON:
+        #   - CallNameNormalizePass (sets :ambiguous_function metadata)
+        #   - TypeCheckerV2 (provides complete :inferred_types)
+        #
+        # PRODUCES:
+        #   - Updated :node_index with resolved qualified_name and fn_class for ambiguous functions
+        #
+        class AmbiguityResolverPass < PassBase
+          def run(errors)
+            node_index = get_state(:node_index, required: true)
+            inferred_types = get_state(:inferred_types, required: true)
+
+            # Create updated node_index with resolved ambiguous functions
+            updated_node_index = node_index.dup
+
+            node_index.each do |object_id, entry|
+              next unless entry[:type] == "CallExpression"
+              next unless entry[:metadata][:ambiguous_candidates]
+
+              resolution = resolve_ambiguous_function(entry, inferred_types, errors)
+              if resolution
+                # Update the metadata with resolved information
+                updated_entry = entry.dup
+                updated_metadata = entry[:metadata].dup
+                updated_metadata[:qualified_name] = resolution[:qualified_name]
+                updated_metadata[:fn_class] = resolution[:fn_class]
+                updated_metadata.delete(:ambiguous_candidates)
+                
+                updated_entry[:metadata] = updated_metadata
+                updated_node_index[object_id] = updated_entry
+              end
+            end
+
+            # Return new state with updated node_index
+            state.with(:node_index, updated_node_index)
+          end
+
+          private
+
+          def resolve_ambiguous_function(entry, inferred_types, errors)
+            node = entry[:node]
+            candidates = entry[:metadata][:ambiguous_candidates]
+
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "AmbiguityResolver: Resolving #{node.fn_name} with candidates: #{candidates.map(&:name)}"
+              puts "  Available metadata keys: #{entry[:metadata].keys.inspect}"
+            end
+
+            # Use proper metadata instead of guessing types
+            resolved_function = resolve_using_rich_metadata(node, candidates, entry[:metadata], inferred_types)
+            
+            if resolved_function
+              if ENV["DEBUG_TYPE_CHECKER"]
+                puts "  Resolved to: #{resolved_function.name} using rich metadata"
+              end
+
+              return {
+                qualified_name: resolved_function.name,
+                fn_class: resolved_function.class_sym
+              }
+            else
+              # Still ambiguous after metadata-based resolution
+              error_msg = "ambiguous function #{node.fn_name} (candidates: #{candidates.map(&:name).join(', ')}); use a qualified name or provide type hints"
+              report_error(errors, error_msg, location: node.loc, type: :type)
+              return nil
+            end
+          end
+
+          def resolve_using_rich_metadata(node, candidates, metadata, inferred_types)
+            # Use inferred argument types from TypeInferencerPass
+            if metadata[:inferred_arg_types]
+              if ENV["DEBUG_TYPE_CHECKER"]
+                puts "  Using inferred_arg_types from TypeInferencerPass: #{metadata[:inferred_arg_types].inspect}"
+              end
+              
+              return find_candidate_by_argument_types(candidates, metadata[:inferred_arg_types])
+            end
+
+            # Fallback: Build argument types directly if not available in metadata
+            arg_types = build_rich_argument_types(node, inferred_types)
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "  Fallback: Building argument types directly: #{arg_types.inspect}"
+            end
+            
+            return find_candidate_by_argument_types(candidates, arg_types)
+          end
+
+
+          def find_candidate_by_argument_types(candidates, arg_types)
+            return nil if arg_types.empty?
+            
+            first_arg_type = arg_types.first
+            
+            # Handle array types (can be symbol or hash format)
+            if first_arg_type == :array || (first_arg_type.is_a?(Hash) && first_arg_type.key?(:array))
+              array_candidate = candidates.find { |c| c.name.start_with?("array.") }
+              return array_candidate if array_candidate
+            end
+            
+            # Handle string types
+            if first_arg_type == :string
+              string_candidate = candidates.find { |c| c.name.start_with?("string.") }
+              return string_candidate if string_candidate
+            end
+            
+            # Handle struct/object types (fallback for non-array, non-string)
+            if first_arg_type == :hash || first_arg_type == :object || first_arg_type == :any
+              struct_candidate = candidates.find { |c| c.name.start_with?("struct.") }
+              return struct_candidate if struct_candidate
+            end
+            
+            # If no clear match, return nil to trigger error
+            nil
+          end
+
+          def build_rich_argument_types(node, inferred_types)
+            node.args.map do |arg|
+              case arg
+              when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+                get_type_for_input_reference(arg)
+              when Kumi::Syntax::DeclarationReference
+                inferred_types[arg.name] || :any
+              when Kumi::Syntax::Literal
+                infer_literal_type(arg.value)
+              else
+                :any
+              end
+            end
+          end
+
+          def build_argument_types_for_node(node, inferred_types)
+            if ENV["DEBUG_TYPE_CHECKER"]
+              puts "  Building arg types for #{node.fn_name}:"
+              puts "    inferred_types keys: #{inferred_types.keys.inspect}"
+              puts "    args: #{node.args.map { |a| "#{a.class.name.split('::').last}(#{a.respond_to?(:name) ? a.name : a.inspect[0,20]})" }}"
+            end
+            
+            node.args.map do |arg|
+              case arg
+              when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+                # Get type from input metadata or element types
+                get_type_for_input_reference(arg)
+              when Kumi::Syntax::DeclarationReference
+                # Get type from inferred types
+                inferred_type = inferred_types[arg.name] || :any
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    DeclarationReference #{arg.name}: #{inferred_type}"
+                end
+                inferred_type
+              when Kumi::Syntax::Literal
+                # Infer type from literal value
+                literal_type = infer_literal_type(arg.value)
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    Literal #{arg.value.inspect}: #{literal_type}"
+                end
+                literal_type
+              else
+                if ENV["DEBUG_TYPE_CHECKER"]
+                  puts "    Unknown arg type #{arg.class}: :any"
+                end
+                :any
+              end
+            end
+          end
+
+          def get_type_for_input_reference(ref)
+            input_metadata = get_state(:input_metadata, required: true)
+            if ref.is_a?(Kumi::Syntax::InputElementReference)
+              # For array element access like input.items.name, path is [:items, :name]
+              path = ref.path
+              return :any unless path.length >= 2
+              
+              input_name = path[0]
+              field_name = path[1]
+              
+              base_field = input_metadata[input_name]
+              return :any unless base_field && base_field.type == :array
+              
+              children = base_field.children
+              return :any unless children && children[field_name]
+              
+              children[field_name].type || :any
+            else
+              # For direct input reference like input.name
+              field_name = ref.respond_to?(:field_name) ? ref.field_name : ref.path&.first
+              field = input_metadata[field_name]
+              field ? (field.type || :any) : :any
+            end
+          end
+
+          def infer_literal_type(value)
+            case value
+            when String then :string
+            when Integer then :integer
+            when Float then :float
+            when TrueClass, FalseClass then :boolean
+            else :any
+            end
+          end
+        end
+      end
+    end
+  end
+end

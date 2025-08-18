@@ -90,6 +90,20 @@ module Kumi
           true
         end
 
+        def kumi_none(enum, skip_nulls: true, min_count: 0)
+          count = 0
+          enum.each do |x|
+            next if skip_nulls && x.nil?
+
+            return false if x
+
+            count += 1
+          end
+          return nil if count < min_count
+
+          true
+        end
+
         def kumi_count(enum, skip_nulls: true, min_count: 0)
           count = 0
           enum.each do |x|

@@ -5,6 +5,33 @@ module Kumi
     # Pretty printer for IR modules - makes IR debugging much more readable
     module IRDump
       class << self
+        def dump(ir_module, analysis_state: nil, to: nil, format: :text, opts: {})
+          # Handle both old and new interfaces
+          if ir_module.is_a?(String) && analysis_state.respond_to?(:decls)
+            # Old interface: dump(file_path, ir_module, ...)
+            file_path = ir_module
+            ir_module = analysis_state
+            analysis_state = opts[:analysis_state]
+            content = pretty_print(ir_module, show_inputs: true, analysis_state: analysis_state)
+            File.write(file_path, content)
+            puts "IR dumped to #{file_path}"
+          else
+            # New interface: dump(ir_module, analysis_state:, to:, ...)
+            show_inputs = opts.fetch(:show_inputs, true)
+            content = pretty_print(ir_module, show_inputs: show_inputs, analysis_state: analysis_state)
+            if to
+              to.write(content)
+              if to.respond_to?(:path)
+                puts "IR dumped to #{to.path}"
+              else
+                puts "IR dumped to output stream"
+              end
+            else
+              puts content
+            end
+          end
+        end
+
         def pretty_print(ir_module, show_inputs: true, analysis_state: nil)
           @analysis_state = analysis_state  # Store for use in other methods
           output = []

@@ -52,6 +52,7 @@
 - [ ] Auto-generate function reference docs from YAML
 - [ ] Add examples for each function in registry
 - [ ] Document kernel implementation guidelines
+- [ ] Document null propagation policies and behavior patterns
 
 ### Testing
 - [ ] Add comprehensive NEP-20 compliance test suite

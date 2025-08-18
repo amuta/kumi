@@ -1,4 +1,40 @@
 module Kumi::Core::Functions
+  # Represents an ambiguous function that needs type-based resolution
+  class AmbiguousFunction
+    attr_reader :name, :candidates
+    
+    def initialize(name, candidates)
+      @name = name
+      @candidates = candidates
+    end
+    
+    def ambiguous?
+      true
+    end
+    
+    # Resolve ambiguity based on argument types
+    def resolve_with_types(arg_types)
+      # Try to find the best candidate based on argument types
+      # For now, simple heuristic: if first arg is string-like, prefer string functions
+      if arg_types && arg_types.first == :string
+        string_candidate = @candidates.find { |f| f.name.start_with?("string.") }
+        return string_candidate if string_candidate
+      end
+      
+      # If no clear winner, raise the ambiguity error
+      raise KeyError, "ambiguous function #{@name} (candidates: #{@candidates.map(&:name).join(', ')}); use a qualified name or provide type hints"
+    end
+    
+    # Delegate other methods to first candidate for compatibility
+    def method_missing(method, *args, &block)
+      @candidates.first.send(method, *args, &block)
+    end
+    
+    def respond_to_missing?(method, include_private = false)
+      @candidates.first.respond_to?(method, include_private)
+    end
+  end
+
   class RegistryV2
     # Global caching to avoid repeated YAML loading
     @global_cache = {}
@@ -59,14 +95,13 @@ module Kumi::Core::Functions
         raise KeyError, "no overload of #{q} matches arity #{arity}" if cands.empty?
       end
 
-      # For now, if multiple candidates, pick the first one
-      # TODO: Implement proper type-directed scoring when we have robust type info
-      if cands.length > 1 && arg_types
-        # Future: score_overload logic here
-        raise KeyError, "ambiguous function #{q} (candidates: #{cands.map(&:name).join(', ')}); use a qualified name"
+      # Return single candidate or ambiguous result for deferred resolution
+      if cands.length == 1
+        cands.first
+      else
+        # Return an AmbiguousFunction object that stores all candidates
+        AmbiguousFunction.new(q, cands)
       end
-
-      cands.first
     end
 
     def fetch(name, opset: nil, **kw)

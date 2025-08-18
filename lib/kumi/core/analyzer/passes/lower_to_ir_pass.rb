@@ -554,7 +554,7 @@ module Kumi
                 end
 
                 # Special handling for comparison operations containing nested reductions
-                is_reducer = (entry_metadata[:fn_class] == :aggregate) || function.class == :aggregate
+                is_reducer = (entry_metadata[:fn_class] == :aggregate)
                 if !is_reducer && has_nested_reducer?(expr)
                   puts "  SPECIAL_NESTED_REDUCTION_HANDLING for #{expr.fn_name}" if ENV["DEBUG_LOWER"]
 
@@ -616,10 +616,15 @@ module Kumi
                       src_shape = determine_slot_shape(src_slot, ops, access_plans)
                     end
 
+                    # For multi-argument aggregates, pass all arguments including scalars
+                    non_vec_slots = arg_slots.select.with_index { |slot, i| i != vec_i }
+                    
                     if ENV["DEBUG_LOWER"]
                       puts "  emit_reduce(#{expr.fn_name}, #{src_slot}, #{src_shape.scope.inspect}, #{Array(required_scope).inspect})"
+                      puts "  non_vec_slots: #{non_vec_slots.inspect}" if non_vec_slots.any?
                     end
-                    return emit_reduce(ops, expr.fn_name, src_slot, src_shape.scope, required_scope)
+                    qualified_fn_name = get_qualified_function_name(expr)
+                    return emit_reduce(ops, qualified_fn_name, src_slot, src_shape.scope, required_scope, non_vec_slots)
                   else
                     qualified_fn_name = get_qualified_function_name(expr)
                     ops << Kumi::Core::IR::Ops.Map(qualified_fn_name, arg_slots.size, *arg_slots)
@@ -962,7 +967,7 @@ module Kumi
             scopes.reduce(scopes.first) { |acc, s| common_prefix(acc, s) }
           end
 
-          def emit_reduce(ops, fn_name, src_slot, src_scope, required_scope)
+          def emit_reduce(ops, fn_name, src_slot, src_scope, required_scope, scalar_slots = [])
             rs = Array(required_scope || [])
             ss = Array(src_scope)
 
@@ -971,7 +976,11 @@ module Kumi
 
             axis = rs.empty? ? ss : (ss - rs)
             puts "  emit_reduce #{fn_name} on #{src_slot} with axis #{axis.inspect} and result scope #{rs.inspect}" if ENV["DEBUG_LOWER"]
-            ops << Kumi::Core::IR::Ops.Reduce(fn_name, axis, rs, [], src_slot)
+            puts "  scalar_slots: #{scalar_slots.inspect}" if ENV["DEBUG_LOWER"] && scalar_slots.any?
+            
+            # For multi-argument aggregates, pass vector slot first, then scalar slots
+            all_args = [src_slot] + scalar_slots
+            ops << Kumi::Core::IR::Ops.Reduce(fn_name, axis, rs, [], *all_args)
             ops.size - 1
           end
 

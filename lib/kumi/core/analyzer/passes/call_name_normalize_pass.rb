@@ -49,22 +49,39 @@ module Kumi
             canonical_name = Kumi::Core::Naming::BasenameNormalizer.normalize(before)
 
             # Resolve canonical name to qualified registry name
-            qualified_name = resolve_to_qualified_name(canonical_name, node.args.size)
+            result = resolve_to_qualified_name_with_function(canonical_name, node.args.size)
 
             # Annotate with both canonical and qualified names for downstream passes
             entry[:metadata][:canonical_name] = canonical_name
-            entry[:metadata][:qualified_name] = qualified_name
+            if result[:function].respond_to?(:ambiguous?) && result[:function].ambiguous?
+              # Don't set qualified_name for ambiguous functions - leave for AmbiguityResolverPass
+              entry[:metadata][:ambiguous_candidates] = result[:function].candidates
+            else
+              entry[:metadata][:qualified_name] = result[:qualified_name]
+            end
 
             warn_deprecated(before, canonical_name) if (before != canonical_name) && ENV.fetch("WARN_DEPRECATED_FUNCS", nil)
 
+            qualified_name_for_debug = entry[:metadata][:qualified_name]
             ENV.fetch("DEBUG_NORMALIZE",
-                      nil) && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name}")
+                      nil) && puts("  Normalized call_id=#{node.object_id} raw=#{node.fn_name} effective=#{before} qualified=#{qualified_name_for_debug}")
+          end
+
+          def resolve_to_qualified_name_with_function(canonical_name, arity = nil)
+            # Use RegistryV2 to resolve the qualified name based on basename and arity
+            function = registry_v2.resolve(canonical_name.to_s, arity: arity)
+            
+            # Handle ambiguous functions - return special marker for later resolution
+            if function.respond_to?(:ambiguous?) && function.ambiguous?
+              return { qualified_name: :ambiguous, function: function }
+            end
+            
+            { qualified_name: function.name, function: function }
           end
 
           def resolve_to_qualified_name(canonical_name, arity = nil)
-            # Use RegistryV2 to resolve the qualified name based on basename and arity
-            function = registry_v2.resolve(canonical_name.to_s, arity: arity)
-            function.name
+            result = resolve_to_qualified_name_with_function(canonical_name, arity)
+            result[:qualified_name]
           end
 
           def warn_deprecated(before, after)

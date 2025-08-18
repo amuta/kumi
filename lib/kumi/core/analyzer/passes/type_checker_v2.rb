@@ -105,6 +105,7 @@ module Kumi
               end
             end
           end
+
         end
       end
     end

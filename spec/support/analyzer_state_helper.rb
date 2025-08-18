@@ -34,10 +34,11 @@ module AnalyzerStateHelper
       types_consistent: 12,    # TypeConsistencyChecker
       function_signatures: 13, # FunctionSignaturePass
       types_checked: 14,       # TypeChecker
-      access_plans: 15,        # InputAccessPlannerPass
-      scope_plans: 16,         # ScopeResolutionPass
-      join_reduce_plans: 17,   # JoinReducePlanningPass
-      ir_module: 18            # LowerToIRPass
+      ambiguity_resolved: 15,  # AmbiguityResolverPass
+      access_plans: 16,        # InputAccessPlannerPass
+      scope_plans: 17,         # ScopeResolutionPass
+      join_reduce_plans: 18,   # JoinReducePlanningPass
+      ir_module: 19            # LowerToIRPass
     }
 
     target_pass_index = state_to_pass[target_state]
@@ -90,8 +91,8 @@ module AnalyzerStateHelper
     state_order = %i[name_index input_metadata declarations validated semantic_valid
                      dependencies unsat_detected evaluation_order cascade_validated
                      cascade_desugared call_normalized broadcasts types_inferred
-                     types_consistent function_signatures types_checked access_plans
-                     scope_plans join_reduce_plans ir_module]
+                     types_consistent function_signatures types_checked ambiguity_resolved
+                     access_plans scope_plans join_reduce_plans ir_module]
 
     latest_index = state_names.map { |s| state_order.index(s) }.compact.max
     latest_state = state_order[latest_index]

@@ -83,6 +83,15 @@ module Kumi
               return
             end
 
+            # Skip signature resolution for ambiguous functions - they will be resolved later in AmbiguityResolverPass
+            if metadata[:ambiguous_candidates]
+              if ENV["DEBUG_LOWER"]
+                puts "    SKIPPING signature resolution for #{node.fn_name} - ambiguous function, will be resolved in AmbiguityResolverPass"
+                puts "      candidates: #{metadata[:ambiguous_candidates]&.map(&:name)}"
+              end
+              return
+            end
+
             if ENV["DEBUG_LOWER"]
               puts "    resolve_function_signature for #{node.fn_name}"
             end
@@ -114,6 +123,9 @@ module Kumi
             if ENV["DEBUG_LOWER"]
               puts "      Argument shapes: #{arg_shapes.inspect}"
             end
+
+            # 2.5) Add variadic signature synthesis if needed
+            sigs = synthesize_variadic_signatures(entry, sigs, arg_shapes)
 
             # 3) Resolve signature
             begin
@@ -418,6 +430,107 @@ module Kumi
 
           def nep20_bcast1_enabled?
             ENV["KUMI_ENABLE_BCAST1"] == "1"
+          end
+
+          def synthesize_variadic_signatures(entry, existing_signatures, arg_shapes)
+            # Check if function is variadic
+            fn = get_function_for_entry(entry)
+            unless fn&.variadic
+              if ENV["DEBUG_LOWER"]
+                puts "      Function #{fn&.name || 'unknown'} is not variadic, skipping synthesis"
+              end
+              return existing_signatures
+            end
+
+            provided_arity = arg_shapes.length
+            if ENV["DEBUG_LOWER"]
+              puts "      Function #{fn.name} is variadic, provided_arity=#{provided_arity}"
+            end
+
+            # Check if we already have a signature with the exact arity
+            if ENV["DEBUG_LOWER"]
+              puts "        Checking for exact match with provided_arity=#{provided_arity}"
+              existing_signatures.each_with_index do |sig, i|
+                puts "        [#{i}] sig.in_shapes.length=#{sig.in_shapes.length}, in_shapes=#{sig.in_shapes.inspect}, sig=#{sig.inspect}"
+              end
+            end
+            exact_match = existing_signatures.find { |sig| sig.in_shapes.length == provided_arity }
+            if exact_match
+              if ENV["DEBUG_LOWER"]
+                puts "        Found exact match for arity #{provided_arity}: #{exact_match.inspect}"
+              end
+              return existing_signatures
+            else
+              if ENV["DEBUG_LOWER"]
+                puts "        No exact match found for arity #{provided_arity}"
+              end
+            end
+
+            # Find template signatures for synthesis
+            template_sigs = existing_signatures.select do |sig|
+              template_arity = sig.in_shapes.length
+              template_arity <= provided_arity
+            end
+
+            if template_sigs.empty?
+              if ENV["DEBUG_LOWER"]
+                puts "        No suitable template signatures found for variadic synthesis"
+              end
+              return existing_signatures
+            end
+
+            # Use the signature with the highest arity as template
+            template = template_sigs.max_by { |sig| sig.in_shapes.length }
+            if ENV["DEBUG_LOWER"]
+              puts "        Using template: #{template.inspect}"
+            end
+
+            # Synthesize new signature by extending the template
+            synthesized = synthesize_signature_for_arity(template, provided_arity, fn)
+            if synthesized
+              if ENV["DEBUG_LOWER"]
+                puts "        Synthesized signature: #{synthesized.inspect}"
+              end
+              return existing_signatures + [synthesized]
+            end
+
+            existing_signatures
+          end
+
+          def synthesize_signature_for_arity(template, target_arity, fn)
+            return nil if target_arity <= template.in_shapes.length
+
+            # For variadic functions, extend the last template dimension pattern
+            template_in_shapes = template.in_shapes
+            last_shape = template_in_shapes.last || []
+
+            # Create new signature with repeated last pattern
+            new_in_shapes = template_in_shapes.dup
+            (target_arity - template_in_shapes.length).times do
+              new_in_shapes << last_shape
+            end
+
+            # Preserve output shape and join policy from template
+            Kumi::Core::Functions::Signature.new(
+              in_shapes: new_in_shapes,
+              out_shape: template.out_shape,
+              join_policy: fn.zip_policy || template.join_policy,
+              raw: "synthesized_variadic_#{target_arity}_args"
+            )
+          rescue => e
+            if ENV["DEBUG_LOWER"]
+              puts "        Failed to synthesize signature: #{e.message}"
+            end
+            nil
+          end
+
+          def get_function_for_entry(entry)
+            qualified_name = entry[:metadata][:qualified_name]
+            return nil unless qualified_name
+
+            registry_v2.resolve(qualified_name)
+          rescue
+            nil
           end
         end
       end

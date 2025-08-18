@@ -229,26 +229,29 @@ module Kumi
                   src = slots[op.args[0]]
                   raise "Reduce expects Vec" unless src[:k] == :vec
 
+                  # Get additional scalar arguments for multi-argument aggregates (e.g., string.join separator)
+                  scalar_args = op.args[1..-1]&.map { |slot_idx| slots[slot_idx][:v] } || []
+
                   result_scope = Array(op.attrs[:result_scope] || [])
                   axis         = Array(op.attrs[:axis] || [])
 
+                  if ENV["DEBUG_VM_ARGS"]
+                    puts "DEBUG reduce #{fn}: scalar_args=#{scalar_args.inspect}"
+                  end
+
                   if result_scope.empty?
                     # === GLOBAL REDUCE ===
-                    # Accept either ravel or indexed.
                     vals = src[:rows].map { |r| r[:v] }
-                    slots << Values.scalar(fn.call(vals))
+                    slots << Values.scalar(fn.call(vals, *scalar_args))
                   else
                     # === GROUPED REDUCE ===
-                    # Must have indices to group by prefix keys.
                     unless src[:has_idx]
                       raise "Grouped reduce requires indexed input (got ravel) for #{op.attrs[:fn]} at #{result_scope.inspect}"
                     end
 
                     group_len = result_scope.length
-
-                    # Preserve stable source order so zips with other @result_scope vecs line up.
-                    groups = {}         # { key(Array<Integer>) => Array<value> }
-                    order  = []         # Array<key> in first-seen order
+                    groups = {}
+                    order  = []
 
                     src[:rows].each do |row|
                       key = Array(row[:idx]).first(group_len)
@@ -259,8 +262,7 @@ module Kumi
                       groups[key] << row[:v]
                     end
 
-                    out_rows = order.map { |key| { v: fn.call(groups[key]), idx: key } }
-
+                    out_rows = order.map { |key| { v: fn.call(groups[key], *scalar_args), idx: key } }
                     slots << Values.vec(result_scope, out_rows, true)
                   end
 

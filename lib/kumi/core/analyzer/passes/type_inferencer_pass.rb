@@ -30,6 +30,10 @@ module Kumi
             definitions = get_state(:declarations)
             input_metadata = get_state(:input_metadata, required: false) || {}
 
+            # Get node_index to annotate expression-level types for AmbiguityResolver
+            node_index = get_state(:node_index, required: false) || {}
+            updated_node_index = node_index.dup
+
             # Get broadcast metadata from broadcast detector
             broadcast_meta = get_state(:broadcasts, required: false) || {}
 
@@ -45,8 +49,8 @@ module Kumi
                   element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
                   types[name] = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }
                 else
-                  # Normal type inference
-                  inferred_type = infer_expression_type(decl.expression, types, broadcast_meta, name)
+                  # Normal type inference - also annotate expression nodes
+                  inferred_type = infer_expression_type(decl.expression, types, broadcast_meta, name, updated_node_index)
                   types[name] = inferred_type
                 end
               rescue StandardError => e
@@ -54,12 +58,12 @@ module Kumi
               end
             end
 
-            state.with(:inferred_types, types)
+            state.with(:inferred_types, types).with(:node_index, updated_node_index)
           end
 
           private
 
-          def infer_expression_type(expr, type_context = {}, broadcast_metadata = {}, current_decl_name = nil)
+          def infer_expression_type(expr, type_context = {}, broadcast_metadata = {}, current_decl_name = nil, node_index = nil)
             case expr
             when Literal
               Types.infer_from_value(expr.value)
@@ -71,11 +75,22 @@ module Kumi
             when DeclarationReference
               type_context[expr.name] || :any
             when CallExpression
+              # Infer argument types and annotate node for AmbiguityResolver
+              if node_index && expr.respond_to?(:object_id)
+                arg_types = expr.args.map { |arg| infer_expression_type(arg, type_context, broadcast_metadata, current_decl_name, node_index) }
+                
+                # Annotate this CallExpression node with argument type information
+                if node_index[expr.object_id]
+                  node_index[expr.object_id][:metadata] ||= {}
+                  node_index[expr.object_id][:metadata][:inferred_arg_types] = arg_types
+                end
+              end
+              
               infer_call_type(expr, type_context, broadcast_metadata, current_decl_name)
             when ArrayExpression
-              infer_list_type(expr, type_context, broadcast_metadata, current_decl_name)
+              infer_list_type(expr, type_context, broadcast_metadata, current_decl_name, node_index)
             when CascadeExpression
-              infer_cascade_type(expr, type_context, broadcast_metadata, current_decl_name)
+              infer_cascade_type(expr, type_context, broadcast_metadata, current_decl_name, node_index)
             when InputElementReference
               # Element reference returns the field type
               infer_element_reference_type(expr)
@@ -155,11 +170,11 @@ module Kumi
             end
           end
 
-          def infer_list_type(list_expr, type_context, broadcast_metadata = {}, current_decl_name = nil)
+          def infer_list_type(list_expr, type_context, broadcast_metadata = {}, current_decl_name = nil, node_index = nil)
             return Types.array(:any) if list_expr.elements.empty?
 
             element_types = list_expr.elements.map do |elem|
-              infer_expression_type(elem, type_context, broadcast_metadata, current_decl_name)
+              infer_expression_type(elem, type_context, broadcast_metadata, current_decl_name, node_index)
             end
 
             # Try to unify all element types
@@ -234,11 +249,11 @@ module Kumi
             { array: field_type }
           end
 
-          def infer_cascade_type(cascade_expr, type_context, broadcast_metadata = {}, current_decl_name = nil)
+          def infer_cascade_type(cascade_expr, type_context, broadcast_metadata = {}, current_decl_name = nil, node_index = nil)
             return :any if cascade_expr.cases.empty?
 
             result_types = cascade_expr.cases.map do |case_stmt|
-              infer_expression_type(case_stmt.result, type_context, broadcast_metadata, current_decl_name)
+              infer_expression_type(case_stmt.result, type_context, broadcast_metadata, current_decl_name, node_index)
             end
 
             # Reduce all possible types into a single unified type

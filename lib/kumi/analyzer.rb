@@ -20,10 +20,11 @@ module Kumi
       Core::Analyzer::Passes::TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
       Core::Analyzer::Passes::FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
       Core::Analyzer::Passes::TypeCheckerV2,                   # 15. Computes CallExpression result dtypes and validates constraints via RegistryV2.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 16. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 17. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 18. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass                    # 19. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::AmbiguityResolverPass,           # 16. Resolves ambiguous functions using complete type information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 17. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 18. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 19. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass                    # 20. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

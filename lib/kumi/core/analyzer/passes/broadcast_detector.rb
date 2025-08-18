@@ -398,7 +398,7 @@ module Kumi
             fn_name = resolved_fn_name(metadata, expr)
             begin
               function = registry_v2.resolve(fn_name.to_s, arity: expr.args.size)
-              fn_class = function.class
+              fn_class = function.class_sym
               # Store in metadata for future reference
               metadata[:fn_class] = fn_class if metadata
               fn_class

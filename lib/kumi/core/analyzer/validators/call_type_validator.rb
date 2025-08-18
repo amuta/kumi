@@ -190,11 +190,33 @@ module Kumi
               if expr.respond_to?(:name) && input_meta[expr.name]
                 input_meta[expr.name][:type] || :any
               elsif expr.respond_to?(:path)
-                # fall back for element paths: last segment's declared type if present
-                leaf = Array(expr.path).last
-                im = input_meta[leaf]
-                raise "Missing input metadata for field #{leaf}" unless im
-                im[:type] || :any
+                # Check if we have access_plans with flattened path metadata first
+                access_plans = get_state(:access_plans, required: false)
+                if access_plans
+                  path_str = expr.path.join(".")
+                  plans = access_plans[path_str]
+                  if plans && !plans.empty?
+                    # Extract type from access plan metadata if available
+                    plan = plans.first
+                    return plan.dig(:metadata, :type) || :any if plan.respond_to?(:dig)
+                  end
+                end
+                
+                # Fallback: navigate through nested input_metadata structure
+                path = expr.path
+                root_name = path.first
+                
+                root_meta = input_meta[root_name]
+                return :any unless root_meta
+                
+                # Navigate through nested children metadata for arbitrary depth
+                current_meta = root_meta
+                path[1..-1].each do |segment|
+                  current_meta = current_meta.dig(:children, segment)
+                  return :any unless current_meta
+                end
+                
+                current_meta[:type] || :any
               else
                 :any
               end
