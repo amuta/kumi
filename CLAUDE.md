@@ -9,7 +9,38 @@
 
 ## Project Overview
 
-Kumi is a Declarative logic and rules engine framework with static analysis for Ruby.
+**Kumi** is a declarative rules-and-calculation DSL for Ruby. It compiles business logic into a **typed, analyzable dependency graph** with **vector semantics** over nested data, performs **static checks** at definition time, **lowers to a compact IR**, and executes **deterministically**
+
+### Key Patterns
+**DSL Structure**:
+```ruby
+schema do
+  input do
+    # Recommended type-specific DSL methods
+    string  :field_name
+    integer :number_field, domain: 0..100
+    array   :scores, elem: { type: :float }
+    hash    :metadata, key: { type: :string }, val: { type: :any }
+
+    array :line_items do
+      float   :price
+      integer :quantity
+      string  :category
+    end
+
+    # Fields with no declared type
+    any     :misc_field
+  end
+
+  trait :name, (expression)  # Boolean conditions
+  value :name, expression    # Computed values
+  value :name do             # Conditional logic
+    on trait_x, result     # on <trait> ?,<trait> , <expr>
+    on trait_y, trait_z, (expression) # expression can be just a reference to a value
+    base default_result      # base <expr>
+  end
+end
+```
 
 ## Development Commands
 
@@ -53,67 +84,39 @@ Kumi is a Declarative logic and rules engine framework with static analysis for 
 - `declaration_reference.rb` - Declaration reference value or trait nodes
 
 **Analyzer** (`lib/kumi/analyzer.rb`):
-- Multi-pass analysis system using **metadata-first architecture** with RegistryV2
-- **Pass 1**: `name_indexer.rb` - Find all names, check for duplicates, build node_index
-- **Pass 2**: `input_collector.rb` - Collect field metadata, validate conflicts
-- **Pass 3**: `definition_validator.rb` - Validate basic structure
-- **Pass 4**: `dependency_resolver.rb` - Build dependency graph
-- **Pass 5**: `cycle_detector.rb` - Find circular dependencies
-- **Pass 6**: `toposorter.rb` - Create evaluation order
-- **Pass 7**: `type_inferencer.rb` - Infer types for all declarations
-- **Pass 8**: `type_checker.rb` - Validate function types using RegistryV2 and metadata
-- **Migration Passes** (RegistryV2): 
-  - `cascade_desugar_pass.rb` - Desugar cascade_and syntax sugar
-  - `call_name_normalize_pass.rb` - Normalize operators to qualified names (e.g., `>` → `core.gt`)
-  - `function_signature_pass.rb` - Resolve NEP-20 signatures from RegistryV2
-  - `broadcast_detector.rb` - Detect vectorized/reduction operations using function classes
-  - `scope_resolution_pass.rb` - Plan execution scopes and dimensional analysis
-  - `join_reduce_planning_pass.rb` - Plan join/reduce operations
-  - `lower_to_ir_pass.rb` - Lower to intermediate representation with qualified function names
+(passes in `lib/kumi/core/analyzer/passes/`)
+- NameIndexer,                     # 1. Finds all names and checks for duplicates.
+- InputCollector,                  # 2. Collects field metadata from input declarations.
+- DeclarationValidator,            # 3. Checks the basic structure of each rule.
+- SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+- DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+- UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+- Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+- CascadeConstraintValidator,      # 8. Validates cascade_and usage constraints.
+- CascadeDesugarPass,              # 9. Desugar cascade_and to regular and operations.
+- CallNameNormalizePass,           # 10. Normalize function names to canonical basenames.
+- BroadcastDetector,               # 11. Detects which operations should be broadcast over arrays.
+- TypeInferencerPass,              # 12. Infers types for all declarations (uses vectorization metadata).
+- TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
+- FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
+- TypeCheckerV2,                   # 15. Computes CallExpression result dtypes and validates constraints via RegistryV2.
+- AmbiguityResolverPass,           # 16. Resolves ambiguous functions using complete type information.
+- InputAccessPlannerPass,          # 17. Plans access strategies for input fields.
+- ScopeResolutionPass,             # 18. Plans execution scope and lifting needs for declarations.
+- ContractCheckPass,               # 19. Validates analyzer state contracts.
+- JoinReducePlanningPass,          # 20. Plans join/reduce operations and stores in node_index (Generates IR Structs)
+- LowerToIRPass                    # 21. Lowers the schema to IR (Generates IR Structs)
+
 
 **Compiler** (`lib/kumi/compiler.rb`):
-- Compiles analyzed syntax tree into executable lambda functions
-- Maps each expression type to a compilation method
-- Handles function calls via `Kumi::Registry`
-- Produces `CompiledSchema` with executable bindings
+Basicaly ->  Runtime::Executable.from_analysis(@analysis.state, registry: function_registry)
 
 **Function Registry** (`lib/kumi/core/functions/registry_v2.rb`):
 - **RegistryV2**: Modern YAML-based function registry with NEP-20 signature support
 - Qualified function names: `core.gt`, `core.add`, `agg.sum`, `agg.max`, etc.
 - Function classes: `:scalar`, `:aggregate`, `:structure`, `:vector`
 - Supports arity-based resolution and signature metadata
-- **Legacy Registry** (`lib/kumi/function_registry.rb`): Deprecated, use RegistryV2
-- Function documents are generated by the script ./scripts/generate_function_docs.rb
 
-### Key Patterns
-**DSL Structure**:
-```ruby
-schema do
-  input do
-    # Recommended type-specific DSL methods
-    string  :field_name
-    integer :number_field, domain: 0..100
-    array   :scores, elem: { type: :float }
-    hash    :metadata, key: { type: :string }, val: { type: :any }
-
-    array :line_items do
-      float   :price
-      integer :quantity
-      string  :category
-    end
-
-    # Fields with no declared type
-    any     :misc_field
-  end
-
-  trait :name, (expression)  # Boolean conditions
-  value :name, expression    # Computed values
-  value :name do             # Conditional logic
-    on condition, result     # on <trait> ?,<trait> , <expr>
-    base default_result      # base <expr>
-  end
-end
-```
 
 **IMPORTANT CASCADE CONDITION SYNTAX:**
 In cascade expressions (`value :name do ... end`), trait references use bare identifiers:
