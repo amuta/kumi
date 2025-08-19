@@ -32,14 +32,30 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
     Kumi::Syntax::DeclarationReference.new(name)
   end
 
+  # Helper to build node_index for CallExpression nodes
+  def build_node_index(*call_nodes)
+    index = {}
+    call_nodes.each do |call|
+      index[call.object_id] = {
+        type: "CallExpression",
+        node: call,
+        metadata: {
+          qualified_name: "agg.#{call.fn_name}",
+          fn_class: :aggregate,
+          selected_signature: "test_signature"
+        }
+      }
+    end
+    index
+  end
+
   describe "reduction planning" do
     context "with simple reduction" do
+      let(:sum_call) { call_expr(:sum, input_element_ref([:items, :price])) }
       let(:initial_state) do
         {
           declarations: {
-            total: value_decl(:total,
-              call_expr(:sum, input_element_ref([:items, :price]))
-            )
+            total: value_decl(:total, sum_call)
           },
           input_metadata: {
             items: {
@@ -59,7 +75,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
           },
           scope_plans: {
             total: Kumi::Core::Analyzer::Plans::Scope.new(scope: [])
-          }
+          },
+          node_index: build_node_index(sum_call)
         }
       end
 
@@ -76,12 +93,11 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
     end
 
     context "with nested array reduction" do
+      let(:nested_sum_call) { call_expr(:sum, input_element_ref([:regions, :offices, :revenue])) }
       let(:initial_state) do
         {
           declarations: {
-            regional_totals: value_decl(:regional_totals,
-              call_expr(:sum, input_element_ref([:regions, :offices, :revenue]))
-            )
+            regional_totals: value_decl(:regional_totals, nested_sum_call)
           },
           input_metadata: {
             regions: {
@@ -106,7 +122,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
           },
           scope_plans: {
             regional_totals: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:regions])
-          }
+          },
+          node_index: build_node_index(nested_sum_call)
         }
       end
 
@@ -122,12 +139,11 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
     end
 
     context "with explicit reduction axis" do
+      let(:matrix_sum_call) { call_expr(:sum, input_element_ref([:matrix, :rows, :values])) }
       let(:initial_state) do
         {
           declarations: {
-            total: value_decl(:total,
-              call_expr(:sum, input_element_ref([:matrix, :rows, :values]))
-            )
+            total: value_decl(:total, matrix_sum_call)
           },
           input_metadata: {
             matrix: {
@@ -153,7 +169,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
           },
           scope_plans: {
             total: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:matrix, :rows])
-          }
+          },
+          node_index: build_node_index(matrix_sum_call)
         }
       end
 
@@ -403,7 +420,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
     it "handles missing broadcasts gracefully" do
       result = run_pass({
         declarations: {},
-        input_metadata: {}
+        input_metadata: {},
+        node_index: {}
       })
 
       expect(result[:join_reduce_plans]).to eq({})
@@ -411,13 +429,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
 
     it "requires declarations" do
       expect {
-        run_pass({ input_metadata: {} })
+        run_pass({ input_metadata: {}, node_index: {} })
       }.to raise_error(StandardError, /Required state key 'declarations' not found/)
     end
 
     it "requires input_metadata" do
       expect {
-        run_pass({ declarations: {} })
+        run_pass({ declarations: {}, node_index: {} })
       }.to raise_error(StandardError, /Required state key 'input_metadata' not found/)
     end
   end

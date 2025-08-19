@@ -16,6 +16,7 @@ module Kumi
           def run(_errors)
             declarations = get_state(:declarations, required: true)
             input_metadata = get_state(:input_metadata, required: true)
+            node_index = get_state(:node_index, required: true)
             broadcasts = get_state(:broadcasts) || {}
             dependencies = get_state(:dependencies) || {}
             
@@ -50,6 +51,9 @@ module Kumi
               scope_plans[name] = plan
               decl_shapes[name] = { scope: target_scope, result: result_kind }.freeze
             end
+
+            # Populate node_index with inferred scopes for all expression nodes
+            populate_node_index_scopes(node_index, final_scopes, declarations, input_metadata)
 
             # Return new state with scope information
             state.with(:scope_plans, scope_plans.freeze)
@@ -204,6 +208,14 @@ module Kumi
                 return dims_from_path(path, input_metadata)
               when :cascade_with_vectorized_conditions_or_results,
                    :cascade_condition_with_vectorized_trait
+                # Extract scope from dimensional requirements for vectorized cascades
+                if vec[:dimensional_requirements]
+                  # Check both conditions and results for sources
+                  condition_sources = vec[:dimensional_requirements][:conditions]&.[](:sources) || []
+                  result_sources = vec[:dimensional_requirements][:results]&.[](:sources) || []
+                  all_sources = (condition_sources + result_sources).uniq
+                  return all_sources.first || []  # Use first source as target scope
+                end
                 # Fallback: derive from first input path seen in expression
                 path = find_first_input_path(decl.expression) || []
                 return dims_from_path(path, input_metadata)
@@ -267,19 +279,9 @@ module Kumi
           end
 
           def infer_scope_from_argument(arg, input_metadata)
-            case arg
-            when Kumi::Syntax::InputElementReference
-              dims_from_path(arg.path, input_metadata)
-            when Kumi::Syntax::InputReference
-              dims_from_path([arg.name], input_metadata)
-            when Kumi::Syntax::CallExpression
-              # For expressions like (input.players.score_matrices.session.points > 1000),
-              # we need to find the deepest input path
-              deepest_path = find_deepest_input_path(arg)
-              deepest_path ? dims_from_path(deepest_path, input_metadata) : []
-            else
-              []
-            end
+            # Use unified DimTracer for dimensional analysis
+            trace_result = DimTracer.trace(arg, state)
+            trace_result[:dims]
           end
 
           def find_deepest_input_path(expr)
@@ -288,18 +290,30 @@ module Kumi
           end
 
           def collect_input_paths(expr)
+            # Use DimTracer to collect paths instead of custom logic
             paths = []
-            case expr
-            when Kumi::Syntax::InputElementReference
-              paths << expr.path
-            when Kumi::Syntax::InputReference
-              paths << [expr.name]
-            when Kumi::Syntax::CallExpression
-              expr.args.each { |arg| paths.concat(collect_input_paths(arg)) }
-            when Kumi::Syntax::ArrayExpression
-              expr.elements.each { |elem| paths.concat(collect_input_paths(elem)) }
+            walk_expr(expr) do |node|
+              trace = DimTracer.trace(node, state)
+              if trace[:root] == :input && trace[:path]
+                paths << trace[:path].split('.').map(&:to_sym) if trace[:path].is_a?(String)
+              end
             end
             paths
+          end
+          
+          def walk_expr(expr, &block)
+            block.call(expr)
+            case expr
+            when Kumi::Syntax::CallExpression
+              expr.args.each { |arg| walk_expr(arg, &block) }
+            when Kumi::Syntax::ArrayExpression
+              expr.elements.each { |elem| walk_expr(elem, &block) }
+            when Kumi::Syntax::CascadeExpression
+              expr.cases.each do |case_expr|
+                walk_expr(case_expr.condition, &block)
+                walk_expr(case_expr.result, &block)
+              end
+            end
           end
 
           def find_first_input_path(expr)
@@ -371,6 +385,80 @@ module Kumi
             # For now, just log that we scalarized this cascade
             puts "Scalarized cascade: #{name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
             # TODO: Store this information in node_index if needed for diagnostics
+          end
+
+          def populate_node_index_scopes(node_index, final_scopes, declarations, input_metadata)
+            puts "Populating node_index with inferred scopes..." if ENV["DEBUG_SCOPE_RESOLUTION"]
+
+            # For each node in the index, infer its execution scope
+            node_index.each do |object_id, entry|
+              next if entry[:inferred_scope] # Skip if already set (e.g., by FunctionSignaturePass)
+
+              inferred_scope = case entry[:type]
+                               when "CallExpression"
+                                 infer_call_expression_scope(entry[:node], final_scopes, declarations, input_metadata)
+                               when "InputReference", "InputElementReference"
+                                 infer_input_reference_scope(entry[:node], input_metadata)
+                               when "DeclarationReference"
+                                 infer_declaration_reference_scope(entry[:node], final_scopes)
+                               when "ArrayExpression"
+                                 infer_array_expression_scope(entry[:node], final_scopes, declarations, input_metadata)
+                               else
+                                 [] # Default to scalar scope
+                               end
+
+              entry[:inferred_scope] = Array(inferred_scope)
+              
+              if ENV["DEBUG_SCOPE_RESOLUTION"]
+                puts "  #{entry[:type]} (#{object_id}): inferred_scope = #{entry[:inferred_scope].inspect}"
+              end
+            end
+          end
+
+          def infer_call_expression_scope(call_node, final_scopes, declarations, input_metadata)
+            # Use DimTracer to determine the dimensional scope of this call
+            trace_result = DimTracer.trace(call_node, state)
+            trace_result[:dims] || []
+          end
+
+          def infer_input_reference_scope(input_node, input_metadata)
+            if input_node.respond_to?(:path)
+              # InputElementReference with nested path
+              dims_from_path(input_node.path, input_metadata)
+            elsif input_node.respond_to?(:name)
+              # InputReference - check if it's an array type
+              field_meta = input_metadata[input_node.name]
+              field_meta && field_meta[:type] == :array ? [input_node.name.to_sym] : []
+            else
+              []
+            end
+          end
+
+          def infer_declaration_reference_scope(decl_ref_node, final_scopes)
+            # Declaration references inherit the scope of the referenced declaration
+            final_scopes[decl_ref_node.name] || []
+          end
+
+          def infer_array_expression_scope(array_node, final_scopes, declarations, input_metadata)
+            # Array literals typically create a new outermost dimension
+            # unless all elements share a common vectorized scope
+            element_scopes = array_node.elements.map do |elem|
+              case elem
+              when Kumi::Syntax::DeclarationReference
+                final_scopes[elem.name] || []
+              when Kumi::Syntax::InputElementReference
+                dims_from_path(elem.path, input_metadata)
+              when Kumi::Syntax::InputReference
+                field_meta = input_metadata[elem.name]
+                field_meta && field_meta[:type] == :array ? [elem.name.to_sym] : []
+              else
+                []
+              end
+            end
+
+            # If all elements have the same scope, inherit it; otherwise scalar
+            unique_scopes = element_scopes.uniq
+            unique_scopes.length == 1 ? unique_scopes.first : []
           end
         end
       end

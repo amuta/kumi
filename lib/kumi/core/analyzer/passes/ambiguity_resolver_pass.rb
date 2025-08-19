@@ -36,6 +36,18 @@ module Kumi
                 updated_metadata[:fn_class] = resolution[:fn_class]
                 updated_metadata.delete(:ambiguous_candidates)
                 
+                # Attach signature metadata if available
+                if resolution[:signature_plan]
+                  plan = resolution[:signature_plan]
+                  updated_metadata[:selected_signature] = plan[:signature]
+                  updated_metadata[:result_axes] = plan[:result_axes]
+                  updated_metadata[:join_policy] = plan[:join_policy]
+                  updated_metadata[:dropped_axes] = plan[:dropped_axes]
+                  updated_metadata[:effective_signature] = plan[:effective_signature]
+                  updated_metadata[:dim_env] = plan[:env]
+                  updated_metadata[:signature_score] = plan[:score]
+                end
+                
                 updated_entry[:metadata] = updated_metadata
                 updated_node_index[object_id] = updated_entry
               end
@@ -61,13 +73,10 @@ module Kumi
             
             if resolved_function
               if ENV["DEBUG_TYPE_CHECKER"]
-                puts "  Resolved to: #{resolved_function.name} using rich metadata"
+                puts "  Resolved to: #{resolved_function[:qualified_name]} using rich metadata"
               end
 
-              return {
-                qualified_name: resolved_function.name,
-                fn_class: resolved_function.class_sym
-              }
+              return resolved_function
             else
               # Still ambiguous after metadata-based resolution
               error_msg = "ambiguous function #{node.fn_name} (candidates: #{candidates.map(&:name).join(', ')}); use a qualified name or provide type hints"
@@ -79,7 +88,11 @@ module Kumi
           def resolve_using_rich_metadata(node, candidates, metadata, inferred_types)
             # Try signature-based resolution first (most robust)
             if result = try_signature_based_resolution(node, candidates, metadata)
-              return result
+              return { 
+                qualified_name: result[:candidate].name, 
+                fn_class: result[:candidate].class_sym,
+                signature_plan: result[:plan]
+              }
             end
 
             # Fallback to type-based resolution for simpler cases
@@ -157,7 +170,7 @@ module Kumi
               if ENV["DEBUG_TYPE_CHECKER"]
                 puts "  Resolved to: #{winner[:candidate].name} (only valid candidate)"
               end
-              return winner[:candidate]
+              return { candidate: winner[:candidate], plan: winner[:plan] }
             end
 
             # If multiple candidates are valid, choose the one with the best score
@@ -166,7 +179,7 @@ module Kumi
               if ENV["DEBUG_TYPE_CHECKER"]
                 puts "  Resolved to: #{best[:candidate].name} (best score: #{best[:plan][:score]})"
               end
-              return best[:candidate]
+              return { candidate: best[:candidate], plan: best[:plan] }
             end
 
             # No valid candidates found

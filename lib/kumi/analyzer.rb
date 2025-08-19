@@ -23,8 +23,9 @@ module Kumi
       Core::Analyzer::Passes::AmbiguityResolverPass,           # 16. Resolves ambiguous functions using complete type information.
       Core::Analyzer::Passes::InputAccessPlannerPass,          # 17. Plans access strategies for input fields.
       Core::Analyzer::Passes::ScopeResolutionPass,             # 18. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 19. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass                    # 20. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::ContractCheckPass,               # 19. Validates analyzer state contracts.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 20. Plans join/reduce operations and stores in node_index (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass                    # 21. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

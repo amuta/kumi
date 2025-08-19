@@ -37,8 +37,10 @@ module AnalyzerStateHelper
       ambiguity_resolved: 15,  # AmbiguityResolverPass
       access_plans: 16,        # InputAccessPlannerPass
       scope_plans: 17,         # ScopeResolutionPass
-      join_reduce_plans: 18,   # JoinReducePlanningPass
-      ir_module: 19            # LowerToIRPass
+      contracts_checked: 18,   # ContractCheckPass
+      join_plans: 19,          # JoinReducePlanningPass (stores join plans in node_index)
+      join_reduce_plans: 19,   # JoinReducePlanningPass (also provides join_plans via node_index)
+      ir_module: 20            # LowerToIRPass
     }
 
     target_pass_index = state_to_pass[target_state]

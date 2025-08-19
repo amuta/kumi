@@ -6,13 +6,15 @@ module Kumi
       module Passes
         # Plans join and reduce operations for declarations.
         # Determines reduction axes, flattening requirements, and join policies.
+        # Also stores join plans in node_index for LowerToIRPass compatibility.
         #
-        # DEPENDENCIES: :broadcasts, :scope_plans, :decl_shapes, :declarations, :input_metadata
-        # PRODUCES: :join_reduce_plans
+        # DEPENDENCIES: :broadcasts, :scope_plans, :decl_shapes, :declarations, :input_metadata, :node_index
+        # PRODUCES: :join_reduce_plans, updates :node_index with join plans
         class JoinReducePlanningPass < PassBase
           include Kumi::Core::Analyzer::Plans
 
           def run(_errors)
+            node_index = get_state(:node_index, required: true)
             broadcasts = get_state(:broadcasts, required: false) || {}
             scope_plans = get_state(:scope_plans, required: false) || {}
             declarations = get_state(:declarations, required: true)
@@ -21,18 +23,31 @@ module Kumi
             plans = {}
 
             # Process reduction operations
-            process_reductions(broadcasts, scope_plans, declarations, input_metadata, plans)
+            process_reductions(broadcasts, scope_plans, declarations, input_metadata, plans, node_index)
 
             # Process join operations (for non-reduction vectorized operations)
-            process_joins(broadcasts, scope_plans, declarations, plans)
+            process_joins(broadcasts, scope_plans, declarations, plans, node_index)
 
-            # Return new state with join/reduce plans
+            # Process all remaining CallExpression nodes that don't have join plans yet
+            process_remaining_calls(node_index, scope_plans, declarations, input_metadata)
+
+            # Return new state with join/reduce plans and updated node_index
             state.with(:join_reduce_plans, plans.freeze)
+                 .with(:node_index, node_index)
+          end
+
+          def each_call(expr, &blk)
+            return unless expr
+            stack = [expr]
+            while (n = stack.pop)
+              blk.call(n) if n.is_a?(Kumi::Syntax::CallExpression)
+              n.children.each { |c| stack << c if c.respond_to?(:children) }
+            end
           end
 
           private
 
-          def process_reductions(broadcasts, scope_plans, declarations, input_metadata, plans)
+          def process_reductions(broadcasts, scope_plans, declarations, input_metadata, plans, node_index)
             reduction_ops = broadcasts[:reduction_operations] || {}
 
             reduction_ops.each do |name, info|
@@ -57,34 +72,50 @@ module Kumi
 
               plans[name] = plan
 
+              # Attach to the actual reducer call in the decl
+              decl = declarations[name] or next
+              each_call(decl.expression) do |call|
+                next unless call.fn_name == info[:function] || call.effective_fn_name == info[:function]
+                arg_dims = arg_dims_list(call, node_index)
+                lifts = compute_lifts(arg_dims, source_scope)  # align arg to source_scope for reduce
+                node_index[call.object_id] ||= {}
+                node_index[call.object_id][:join_plan] = {
+                  policy: :reduce,
+                  target_scope: result_scope,
+                  axis: axis,
+                  flatten_args: Array(flatten_indices),
+                  lifts: lifts,
+                  requires_indices: compute_requires_indices(arg_dims, source_scope, is_reduce: true)
+                }
+                break
+              end
+
               debug_reduction_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
             end
           end
 
-          def process_joins(broadcasts, scope_plans, declarations, plans)
+          def process_joins(broadcasts, scope_plans, declarations, plans, node_index)
             vectorized_ops = broadcasts[:vectorized_operations] || {}
 
-            # Process vectorized operations
-            vectorized_ops.each do |name, info|
-              # Skip if already processed as reduction
+            vectorized_ops.each do |name, _info|
               next if plans.key?(name)
+              scope_plan = scope_plans[name] or next
+              decl = declarations[name] or next
 
-              debug_join(name, info) if ENV["DEBUG_JOIN_REDUCE"]
-
-              scope_plan = scope_plans[name]
-              next unless scope_plan
-
-              # Only need join planning if multiple arguments at different scopes
-              next unless requires_join?(declarations[name], scope_plan)
-
-              plan = Join.new(
-                policy: :zip, # Default to zip for array operations
-                target_scope: scope_plan.scope
-              )
-
-              plans[name] = plan
-
-              debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
+              # annotate per-call
+              each_call(decl.expression) do |call|
+                arg_dims = arg_dims_list(call, node_index)
+                tgt = Array(scope_plan.scope)
+                policy = resolve_policy(call) # defaults to :zip unless registry says otherwise
+                lifts = compute_lifts(arg_dims, tgt)
+                node_index[call.object_id] ||= {}
+                node_index[call.object_id][:join_plan] = {
+                  policy: policy,
+                  target_scope: tgt,
+                  lifts: lifts,
+                  requires_indices: compute_requires_indices(arg_dims, tgt, is_reduce: false)
+                }
+              end
             end
 
             # Process scalar declarations that need broadcasting to vectorized scopes
@@ -109,6 +140,9 @@ module Kumi
                 )
 
                 plans[name] = plan
+
+                # Also store in node_index for LowerToIRPass compatibility
+                store_join_plan_in_node_index(name, plan, declarations, node_index)
 
                 debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
               end
@@ -191,34 +225,24 @@ module Kumi
 
             case arg
             when Kumi::Syntax::InputElementReference
-              dims_from_path(arg.path, input_metadata)
+              # Extract scope from the input path
+              path = arg.path
+              return [] if path.empty?
+              
+              # Remove the leaf field to get the array path
+              array_path = path[0...-1]
+              return [] if array_path.empty?
+              
+              array_path
             when Kumi::Syntax::DeclarationReference
-              # Look up the declaration's scope if available
+              # Follow declaration reference to its source
               decl = declarations[arg.name]
-              decl ? infer_scope_from_argument(decl.expression, declarations, input_metadata) : []
-            when Kumi::Syntax::CallExpression
-              # For calls, use the deepest scope from arguments
-              scopes = arg.args.map { |a| infer_scope_from_argument(a, declarations, input_metadata) }
-              scopes.max_by(&:size) || []
+              return [] unless decl
+              
+              infer_scope_from_argument(decl.expression, declarations, input_metadata)
             else
               []
             end
-          end
-
-          def dims_from_path(path, input_metadata)
-            dims = []
-            meta = input_metadata
-
-            path.each do |seg|
-              field = meta[seg] || meta[seg.to_sym] || meta[seg.to_s]
-              break unless field
-
-              dims << seg.to_sym if field[:type] == :array
-
-              meta = field[:children] || {}
-            end
-
-            dims
           end
 
           def needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
@@ -254,6 +278,97 @@ module Kumi
               expr.elements.any? { |elem| declaration_references?(elem, target_name) }
             else
               false
+            end
+          end
+
+          # === helpers used above ===
+          def arg_dims_list(call, node_index)
+            call.args.map { |a| (node_index[a.object_id] || {})[:inferred_scope] || [] }
+          end
+
+          def resolve_policy(call)
+            entry = Kumi::Registry.entry(call.fn_name) rescue nil
+            entry = Kumi::Registry.entry(call.effective_fn_name) rescue nil if !entry
+            (entry && entry.zip_policy) || :zip
+          end
+
+          def compute_lifts(arg_dims_list, target_scope)
+            td = Array(target_scope).size
+            arg_dims_list.map do |dims|
+              need = td - Array(dims).size
+              need <= 0 ? [] : Array.new(need, :lift)
+            end
+          end
+
+          def compute_requires_indices(arg_dims_list, target_scope, is_reduce:)
+            td = Array(target_scope).size
+            arg_dims_list.map do |dims|
+              d = Array(dims).size
+              is_reduce ? (d > 0) : (d < td) || (d > 0) # if we need to lift/broadcast or carry rows, prefer indexed
+            end
+          end
+
+          def process_remaining_calls(node_index, scope_plans, declarations, input_metadata)
+            if ENV["DEBUG_JOIN_REDUCE"]
+              puts "\n=== Processing remaining CallExpression nodes ==="
+            end
+
+            # Find all CallExpression nodes that don't have join plans yet
+            node_index.each do |object_id, entry|
+              next unless entry[:type] == "CallExpression"
+              next if entry[:join_plan] # Skip if already has a join plan
+
+              call = entry[:node]
+              if ENV["DEBUG_JOIN_REDUCE"]
+                puts "Processing remaining call: #{call.fn_name} (#{object_id})"
+              end
+
+              # Create a basic scalar join plan for this call
+              # Most scalar operations will use this
+              arg_dims = arg_dims_list(call, node_index)
+              lifts = [] # No lifts needed for scalar operations
+              
+              entry[:join_plan] = {
+                policy: :zip, # Default policy for scalar operations
+                target_scope: [], # Scalar result
+                axis: [],
+                flatten_args: [],
+                lifts: lifts,
+                requires_indices: Array.new(arg_dims.length, false)
+              }
+
+              if ENV["DEBUG_JOIN_REDUCE"]
+                puts "  Added scalar join plan: #{entry[:join_plan].inspect}"
+              end
+            end
+          end
+
+          def store_join_plan_in_node_index(name, plan, declarations, node_index)
+            # Find the expression that needs the join plan
+            declaration = declarations[name]
+            return unless declaration
+
+            expr = declaration.expression
+            return unless expr
+
+            # Store the join plan in node_index for LowerToIRPass to find
+            node_index[expr.object_id] ||= {}
+            
+            case plan
+            when Join
+              node_index[expr.object_id][:join_plan] = {
+                policy: plan.policy,
+                target_scope: plan.target_scope,
+                lifts: [] # LowerToIRPass will compute specific lifts as needed
+              }
+            when Reduce
+              # For reduction plans, create a simplified join plan that LowerToIRPass can use
+              node_index[expr.object_id][:join_plan] = {
+                policy: :reduce,
+                target_scope: plan.result_scope,
+                axis: plan.axis,
+                lifts: []
+              }
             end
           end
 

@@ -113,7 +113,14 @@ module Kumi
       private
 
       def unwrap(_decl, v)
-        v[:k] == :scalar ? v[:v] : v # no grouping needed
+        case v[:k]
+        when :scalar
+          v[:v]
+        when :vec
+          v[:rows].map { |r| r[:v] }
+        else
+          v
+        end
       end
     end
 

@@ -62,31 +62,17 @@ module Kumi
               # Removed: compilation metadata is unused; reintroduce when lowering consumes it.
             end
 
-            state.with(:broadcasts, compiler_metadata.freeze)
+            # Update state with broadcasts metadata for DimTracer use
+            @state = state.with(:broadcasts, compiler_metadata.freeze)
+            @state
           end
 
           private
 
           def infer_argument_scope(arg, array_fields, nested_paths)
-            case arg
-            when Kumi::Syntax::InputElementReference
-              if nested_paths.key?(arg.path)
-                # Extract scope from path - each array dimension in the path
-                arg.path.select.with_index { |_seg, i| nested_paths[arg.path[0..i]] }
-              else
-                arg.path.select { |seg| array_fields.key?(seg) }
-              end
-            when Kumi::Syntax::CallExpression
-              # For nested calls, find the deepest input reference
-              deepest_scope = []
-              arg.args.each do |nested_arg|
-                scope = infer_argument_scope(nested_arg, array_fields, nested_paths)
-                deepest_scope = scope if scope.length > deepest_scope.length
-              end
-              deepest_scope
-            else
-              []
-            end
+            # Use unified DimTracer for dimensional analysis
+            trace_result = DimTracer.trace(arg, @state)
+            trace_result[:dims]
           end
 
           def format_broadcast_info(result)

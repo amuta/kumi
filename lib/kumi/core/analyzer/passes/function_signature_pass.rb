@@ -67,13 +67,22 @@ module Kumi
               metadata[:resolved_name] = metadata[:qualified_name]
             end
 
-            # Skip signature resolution for cascade_and nodes that will be desugared or have skip_signature flag
-            if metadata[:desugar_to_identity] || metadata[:desugared_to] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
+            # Skip signature resolution for cascade_and nodes that will be desugared to identity or have skip_signature flag
+            if metadata[:desugar_to_identity] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
               if ENV["DEBUG_LOWER"]
-                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared or skip_signature flag set"
+                puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared to identity or skip_signature flag set"
                 puts "      metadata: #{metadata.keys.inspect}"
               end
               return
+            end
+            
+            # For nodes that have been desugared to a new function (e.g., cascade_and -> core.and),
+            # we need to resolve the signature for the new qualified name
+            if metadata[:desugared_to] && metadata[:qualified_name]
+              if ENV["DEBUG_LOWER"]
+                puts "    DESUGARED NODE: #{node.fn_name} -> #{metadata[:qualified_name]}, resolving signature for new function"
+              end
+              # Continue with signature resolution using the new qualified name
             end
 
             # Skip signature resolution for ambiguous functions - they will be resolved later in AmbiguityResolverPass
@@ -165,10 +174,14 @@ module Kumi
             if ENV["DEBUG_LOWER"]
               puts "      Attaching metadata to entry..."
               puts "        Before: entry[:metadata] = #{entry[:metadata].inspect}"
+              puts "        Before: entry[:inferred_scope] = #{entry[:inferred_scope].inspect}"
             end
             attach_signature_metadata(entry, plan)
+            # Set inferred_scope as per NEP-20 contract
+            entry[:inferred_scope] = Array(plan[:result_axes])
             if ENV["DEBUG_LOWER"]
               puts "        After: entry[:metadata] = #{entry[:metadata].inspect}"
+              puts "        After: entry[:inferred_scope] = #{entry[:inferred_scope].inspect}"
             end
           end
 
@@ -410,7 +423,7 @@ module Kumi
           end
 
           def attach_core_signature_data(metadata, plan)
-            metadata[:signature]           = plan[:signature]
+            metadata[:selected_signature]  = plan[:signature]         # NEP-20 contract requirement
             metadata[:result_axes]         = plan[:result_axes]        # e.g., [:i, :j]
             metadata[:join_policy]         = plan[:join_policy]        # nil | :zip | :product
             metadata[:dropped_axes]        = plan[:dropped_axes]       # e.g., [:j] for reductions
