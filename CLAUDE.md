@@ -162,6 +162,13 @@ In cascade expressions (`value :name do ... end`), trait references use bare ide
 - `DEBUG_LOWER=1` - Show IR lowering and kernel selection
 - `DEBUG_SCOPE_RESOLUTION=1` - Show scope inference and propagation
 
+**StateDumper Utility** (`lib/kumi/support/state_dumper.rb`):
+- `dump_state(state, keys: nil, max_depth: 3)` - Dump specific state keys or all
+- `dump_node_index(state, filter: nil)` - Dump node_index with optional filter
+- `dump_calls_only(state)` - Show only CallExpression nodes from node_index
+- Essential for debugging analyzer passes and dimensional analysis issues
+- See `scripts/debug_analyzer_state.rb` for usage example
+
 **Debug Output Format:**
 All passes use standardized debug output with `call_id=object_id` for tracing:
 ```
