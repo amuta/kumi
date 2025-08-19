@@ -78,6 +78,7 @@ module Kumi
                     entry[:metadata][:effective_fn_name] = :and
                     entry[:metadata][:canonical_name] = :and
                     entry[:metadata][:qualified_name] = "core.and"
+                    entry[:metadata][:desugar_to_chained_and] = true
                   else
                     if ENV["DEBUG_CASCADE"]
                       puts("    Warning: cascade_and call_id=#{node.object_id} not found in node_index")

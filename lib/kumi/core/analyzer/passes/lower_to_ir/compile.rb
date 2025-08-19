@@ -86,6 +86,12 @@ module Kumi
                                     need_indices: false, required_scope: required_scope)
               end
 
+              # Handle cascade_and chained AND transformation
+              if call.fn_name == :cascade_and && meta.dig(:metadata, :desugar_to_chained_and)
+                # Chain multiple arguments into nested binary AND calls: and(a, and(b, c))
+                return compile_chained_and(call.args, access_plans, scope_plans, node_index, required_scope)
+              end
+
               plan = meta[:join_plan]
 
               # 1) compile args with per-arg indexing requirement
@@ -172,6 +178,20 @@ module Kumi
               emit_guard_pop
 
               emit_switch(cases_attr, default_slot)
+            end
+
+            def compile_chained_and(args, access_plans, scope_plans, node_index, required_scope)
+              # Compile all arguments first
+              compiled_args = args.map do |arg|
+                compile_expr(arg, access_plans, scope_plans, node_index,
+                             need_indices: false, required_scope: required_scope)
+              end
+
+              # Chain them into nested binary AND operations: and(a, and(b, c))
+              # For N args, we need N-1 nested AND calls
+              compiled_args.reverse.reduce do |acc, arg|
+                emit_map("core.and", arg, acc)
+              end
             end
           end
         end

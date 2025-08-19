@@ -67,8 +67,8 @@ module Kumi
               metadata[:resolved_name] = metadata[:qualified_name]
             end
 
-            # Skip signature resolution for cascade_and nodes that will be desugared to identity or have skip_signature flag
-            if metadata[:desugar_to_identity] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
+            # Skip signature resolution for cascade_and nodes that will be desugared to identity, chained and, or have skip_signature flag
+            if metadata[:desugar_to_identity] || metadata[:desugar_to_chained_and] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
               if ENV["DEBUG_LOWER"]
                 puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared to identity or skip_signature flag set"
                 puts "      metadata: #{metadata.keys.inspect}"

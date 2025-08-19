@@ -13,6 +13,7 @@ module Kumi
               if call.fn_name == :cascade_and && 
                  (meta.dig(:metadata, :skip_signature) || 
                   meta.dig(:metadata, :desugar_to_identity) ||
+                  meta.dig(:metadata, :desugar_to_chained_and) ||
                   meta.dig(:metadata, :invalid_cascade_and))
                 # These nodes will be handled specially during compilation
                 return meta
