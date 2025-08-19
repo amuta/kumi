@@ -29,6 +29,7 @@ RSpec.configure do |config|
   end
 
   config.include DualModeHelpers
+  config.include PreLowerHelper
 end
 
 # Suppress warnings about potentially false-positive raise_error matchers

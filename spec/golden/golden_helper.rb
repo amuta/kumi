@@ -42,4 +42,23 @@ module GoldenHelper
     end
     puts
   end
+
+  # Helper to get dimensions from a path using metadata lineage
+  # Same logic as ScopeResolutionPass.dims_from_path
+  def dims_from_path(path_array, input_metadata)
+    dims = []
+    meta = input_metadata
+
+    path_array.each do |seg|
+      field = meta[seg] || meta[seg.to_sym] || meta[seg.to_s]
+      break unless field
+
+      # Only array boundaries create dimensions
+      dims << seg.to_sym if field[:type] == :array
+
+      meta = field[:children] || {}
+    end
+
+    dims
+  end
 end

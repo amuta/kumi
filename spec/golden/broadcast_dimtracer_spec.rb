@@ -114,6 +114,8 @@ RSpec.describe "Golden: Semantic Dimensions and Array Boundaries" do
     end
 
     it "correctly handles semantic dimensions ignoring hash navigation" do
+      # NOTE: YOU CAN print the S-Expression and a lot of metadata with ENV flags
+
       result = execute_schema_raw(schema_block, test_data)
       inspect_results(result, "SEMANTIC DIMENSIONS TEST")
 
