@@ -339,7 +339,11 @@ module Kumi
             when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
               # Minimal, conservative hinting from broadcasts (keep this simple)
               # If path is known vector (in nested_paths/array_fields), return a 1-deep scope.
-              path = arg_node.path_string rescue nil
+              path = if arg_node.respond_to?(:path) && arg_node.path
+                       arg_node.path.join(".")
+                     else
+                       arg_node.path_string rescue nil
+                     end
               if path && vector_like_input_path?(path, broadcasts)
                 [:i]  # symbolic placeholder scope; analyzer downstream will normalize
               else
@@ -351,9 +355,24 @@ module Kumi
           end
 
           def vector_like_input_path?(path, broadcasts)
-            np = broadcasts[:nested_paths] || []
-            af = broadcasts[:array_fields] || []
-            np.any? { |p| path.start_with?(p) } || af.any? { |p| path.start_with?(p) }
+            return false unless path && !path.empty?
+            
+            # Use new prefix arrays if available (preferred)
+            if broadcasts[:nested_prefixes] && broadcasts[:array_prefixes]
+              np = broadcasts[:nested_prefixes]
+              ap = broadcasts[:array_prefixes]
+              return np.any? { |p| path.start_with?(p) } || ap.any? { |p| path.start_with?(p) }
+            end
+            
+            # Handle legacy hash format for backward compatibility
+            np = broadcasts[:nested_paths] || {}
+            af = broadcasts[:array_fields] || {}
+            
+            # Convert hash keys to string prefixes if needed
+            nested_prefixes = np.is_a?(Hash) ? np.keys.map { |k| k.join(".") } : Array(np)
+            array_prefixes = af.is_a?(Hash) ? af.keys.map(&:to_s) : Array(af)
+            
+            nested_prefixes.any? { |p| path.start_with?(p) } || array_prefixes.any? { |p| path.start_with?(p) }
           end
 
           def build_signature_error_message(fn_name, arg_shapes, sig_strings, original_error, node)

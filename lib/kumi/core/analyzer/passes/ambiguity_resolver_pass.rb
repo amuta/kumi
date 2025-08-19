@@ -217,27 +217,8 @@ module Kumi
           end
 
           def build_argument_shapes_for_node(node)
-            # Build argument shapes similar to FunctionSignaturePass
-            # For now, use simple shape building - can be enhanced later
-            node.args.map do |arg|
-              case arg
-              when Kumi::Syntax::ArrayExpression
-                # Array literal has shape [:i] where i is the array size
-                [:i]
-              when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
-                # Scalar input references have empty shape []
-                []
-              when Kumi::Syntax::DeclarationReference
-                # Declaration references are scalar
-                []
-              when Kumi::Syntax::Literal
-                # Literals are scalar
-                []
-              else
-                # Default to scalar for unknown types
-                []
-              end
-            end
+            # Use DimTracer for accurate dimensional analysis
+            node.args.map { |arg| Kumi::Core::Analyzer::DimTracer.trace(arg, @state)[:dims] }
           end
 
           def parse_signatures(sig_strings)

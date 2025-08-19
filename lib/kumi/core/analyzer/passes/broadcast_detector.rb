@@ -24,6 +24,8 @@ module Kumi
               vectorized_operations: {},
               reduction_operations: {},
               nested_paths: nested_paths,
+              nested_prefixes: nested_paths.keys.map { |segs| segs.join(".") },  # For DimTracer string matching
+              array_prefixes: array_fields.keys.map(&:to_s),  # For DimTracer string matching
               flattening_declarations: {},  # Track which declarations need flattening
               cascade_strategies: {}       # Pre-computed cascade processing strategies
             }

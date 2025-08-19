@@ -30,11 +30,27 @@ module Kumi
 
         def input_dims_for(path, broadcasts)
           return [] unless path
-          np = broadcasts[:nested_paths] || []
-          af = broadcasts[:array_fields] || []
-          # Simple heuristic: if path starts with a known array/nested prefix,
-          # infer one dimension; extend as needed when you support multi-dim inputs.
-          if np.any? { |p| path.start_with?(p) } || af.any? { |p| path.start_with?(p) }
+          
+          # Handle new string prefix format (preferred)
+          if broadcasts[:nested_prefixes] && broadcasts[:array_prefixes]
+            np = broadcasts[:nested_prefixes]
+            ap = broadcasts[:array_prefixes]
+            if np.any? { |p| path.start_with?(p) } || ap.any? { |p| path.start_with?(p) }
+              return [:i]
+            else
+              return []
+            end
+          end
+          
+          # Handle legacy hash format for backward compatibility
+          np = broadcasts[:nested_paths] || {}
+          af = broadcasts[:array_fields] || {}
+          
+          # Convert hash keys to string prefixes if needed
+          nested_prefixes = np.is_a?(Hash) ? np.keys.map { |k| k.join(".") } : Array(np)
+          array_prefixes = af.is_a?(Hash) ? af.keys.map(&:to_s) : Array(af)
+          
+          if nested_prefixes.any? { |p| path.start_with?(p) } || array_prefixes.any? { |p| path.start_with?(p) }
             [:i]
           else
             []
