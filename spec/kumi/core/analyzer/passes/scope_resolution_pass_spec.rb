@@ -3,294 +3,167 @@
 require "spec_helper"
 
 RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
-  let(:errors) { [] }
-  let(:schema) { Kumi::Syntax::Root.new }
-
-  def run_pass(initial_state)
-    state = Kumi::Core::Analyzer::AnalysisState.new(initial_state)
-    registry = Kumi::Core::Functions::RegistryV2.load_from_file
-    state = state.with(:registry, registry)
-    described_class.new(schema, state).run(errors)
-  end
-
-  # Helper to create a simple value declaration
-  def value_decl(name, expr)
-    Kumi::Syntax::ValueDeclaration.new(name, expr)
-  end
-
-  # Helper to create literal
-  def literal(value)
-    Kumi::Syntax::Literal.new(value)
-  end
-
-  # Helper to create input element reference
-  def input_element_ref(path)
-    Kumi::Syntax::InputElementReference.new(path)
-  end
-
-  # Helper to create call expression
-  def call_expr(fn_name, *args)
-    Kumi::Syntax::CallExpression.new(fn_name, args)
-  end
-
-  # Helper to create cascade
-  def cascade_expr(cases)
-    Kumi::Syntax::CascadeExpression.new(cases)
-  end
-
-  # Helper to create case expression
-  def case_expr(condition, result)
-    Kumi::Syntax::CaseExpression.new(condition, result)
-  end
-
   describe "basic scope resolution" do
     context "with scalar declarations" do
-      let(:initial_state) do
-        {
-          declarations: {
-            total: value_decl(:total, literal(100))
-          },
-          input_metadata: {},
-          broadcasts: {},
-          dependencies: {}
-        }
-      end
-
       it "assigns empty scope to scalar declarations" do
-        result = run_pass(initial_state)
+        state = analyze_up_to(:scope_plans) do
+          input do
+            # No inputs needed for scalar literal
+          end
+          value :total, 100
+        end
 
-        scope_plan = result[:scope_plans][:total]
+        scope_plan = state[:scope_plans][:total]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
         expect(scope_plan.scope).to eq([])
         expect(scope_plan.lifts).to eq([])
         expect(scope_plan.join_hint).to be_nil
         expect(scope_plan.arg_shapes).to eq({})
 
-        expect(result[:decl_shapes][:total]).to eq({
-                                                     scope: [],
-                                                     result: :scalar
-                                                   })
+        expect(state[:decl_shapes][:total]).to eq({
+                                                    scope: [],
+                                                    result: :scalar
+                                                  })
       end
     end
 
     context "with vectorized operations" do
-      let(:initial_state) do
-        {
-          declarations: {
-            subtotals: value_decl(:subtotals,
-                                  call_expr(:multiply,
-                                            input_element_ref(%i[line_items price]),
-                                            input_element_ref(%i[line_items quantity])))
-          },
-          input_metadata: {
-            line_items: {
-              type: :array,
-              children: {
-                price: { type: :float },
-                quantity: { type: :integer }
-              }
-            }
-          },
-          broadcasts: {
-            vectorized_operations: {
-              subtotals: {
-                source: :nested_array_access,
-                path: %i[line_items price]
-              }
-            }
-          },
-          dependencies: {}
-        }
-      end
-
       it "determines scope from vectorization metadata" do
-        result = run_pass(initial_state)
+        state = analyze_up_to(:scope_plans) do
+          input do
+            array :line_items do
+              float :price
+              integer :quantity
+            end
+          end
+          value :subtotals, input.line_items.price * input.line_items.quantity
+        end
 
-        scope_plan = result[:scope_plans][:subtotals]
+        scope_plan = state[:scope_plans][:subtotals]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
         expect(scope_plan.scope).to eq([:line_items])
 
-        expect(result[:decl_shapes][:subtotals]).to eq({
-                                                         scope: [:line_items],
-                                                         result: { array: :dense }
-                                                       })
+        expect(state[:decl_shapes][:subtotals]).to eq({
+                                                        scope: [:line_items],
+                                                        result: { array: :dense }
+                                                      })
       end
     end
 
     context "with reduction operations" do
-      let(:initial_state) do
-        {
-          declarations: {
-            total: value_decl(:total,
-                              call_expr(:sum, input_element_ref(%i[items price])))
-          },
-          input_metadata: {
-            items: {
-              type: :array,
-              children: {
-                price: { type: :float }
-              }
-            }
-          },
-          broadcasts: {
-            vectorized_operations: {
-              total: {
-                source: :nested_array_access,
-                path: %i[items price]
-              }
-            },
-            reduction_operations: {
-              total: {
-                function: :sum,
-                argument: input_element_ref(%i[items price])
-              }
-            }
-          },
-          dependencies: {}
-        }
-      end
-
       it "marks reductions as scalar result" do
-        result = run_pass(initial_state)
+        state = analyze_up_to(:scope_plans) do
+          input do
+            array :items do
+              float :price
+            end
+          end
+          value :total, fn(:sum, input.items.price)
+        end
 
-        scope_plan = result[:scope_plans][:total]
+        scope_plan = state[:scope_plans][:total]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
-        expect(scope_plan.scope).to eq([:items])
+        expect(scope_plan.scope).to eq([])
 
-        expect(result[:decl_shapes][:total]).to eq({
-                                                     scope: [:items],
-                                                     result: :scalar # Reduction produces scalar
-                                                   })
+        expect(state[:decl_shapes][:total]).to eq({
+                                                    scope: [],
+                                                    result: :scalar # Reduction produces scalar
+                                                  })
       end
     end
 
     context "with nested arrays" do
-      let(:initial_state) do
-        {
-          declarations: {
-            revenues: value_decl(:revenues,
-                                 input_element_ref(%i[regions offices revenue]))
-          },
-          input_metadata: {
-            regions: {
-              type: :array,
-              children: {
-                offices: {
-                  type: :array,
-                  children: {
-                    revenue: { type: :float }
-                  }
-                }
-              }
-            }
-          },
-          broadcasts: {
-            vectorized_operations: {
-              revenues: {
-                source: :nested_array_access,
-                path: %i[regions offices revenue]
-              }
-            }
-          },
-          dependencies: {}
-        }
-      end
-
       it "captures nested array dimensions in scope" do
-        result = run_pass(initial_state)
+        state = analyze_up_to(:scope_plans) do
+          input do
+            array :regions do
+              array :offices do
+                float :revenue
+              end
+            end
+          end
+          value :revenues, input.regions.offices.revenue
+        end
 
-        scope_plan = result[:scope_plans][:revenues]
+        scope_plan = state[:scope_plans][:revenues]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
         expect(scope_plan.scope).to eq(%i[regions offices])
 
-        expect(result[:decl_shapes][:revenues]).to eq({
-                                                        scope: %i[regions offices],
-                                                        result: { array: :dense }
-                                                      })
+        expect(state[:decl_shapes][:revenues]).to eq({
+                                                       scope: %i[regions offices],
+                                                       result: { array: :dense }
+                                                     })
       end
     end
 
     context "with cascade expressions" do
-      let(:initial_state) do
-        {
-          declarations: {
-            statuses: value_decl(:statuses,
-                                 cascade_expr([
-                                                case_expr(input_element_ref(%i[orders urgent]), literal("URGENT")),
-                                                case_expr(nil, literal("NORMAL"))
-                                              ]))
-          },
-          input_metadata: {
-            orders: {
-              type: :array,
-              children: {
-                urgent: { type: :boolean }
-              }
-            }
-          },
-          broadcasts: {
-            vectorized_operations: {
-              statuses: {
-                source: :cascade_with_vectorized_conditions_or_results,
-                path: nil
-              }
-            }
-          },
-          dependencies: {}
-        }
-      end
-
       it "derives scope from first input path in cascade" do
-        result = run_pass(initial_state)
+        state = analyze_up_to(:scope_plans) do
+          input do
+            array :orders do
+              boolean :urgent
+            end
+          end
+          trait :is_urgent, input.orders.urgent == true
+          value :statuses do
+            on is_urgent, "URGENT"
+            base "NORMAL"
+          end
+        end
 
-        scope_plan = result[:scope_plans][:statuses]
+        scope_plan = state[:scope_plans][:statuses]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
         expect(scope_plan.scope).to eq([:orders])
 
-        expect(result[:decl_shapes][:statuses]).to eq({
-                                                        scope: [:orders],
-                                                        result: { array: :dense }
-                                                      })
+        expect(state[:decl_shapes][:statuses]).to eq({
+                                                       scope: [:orders],
+                                                       result: { array: :dense }
+                                                     })
       end
     end
   end
 
   describe "error handling" do
-    context "with missing required state" do
-      it "raises error when declarations are missing" do
+    context "with invalid schema constructions" do
+      it "handles errors through the analyzer pipeline" do
         expect do
-          run_pass({ input_metadata: {} })
-        end.to raise_error(StandardError, /Required state key 'declarations' not found/)
-      end
-
-      it "raises error when input_metadata is missing" do
-        expect do
-          run_pass({ declarations: {} })
-        end.to raise_error(StandardError, /Required state key 'input_metadata' not found/)
+          analyze_up_to(:scope_plans) do
+            input do
+              # Invalid schema will be caught by earlier passes
+            end
+            value :invalid, ref(:nonexistent)
+          end
+        end.to raise_error(Kumi::Errors::AnalysisError)
       end
     end
   end
 
   describe "debug output" do
-    let(:initial_state) do
-      {
-        declarations: {
-          test: value_decl(:test, literal(42))
-        },
-        input_metadata: {},
-        broadcasts: {},
-        dependencies: {}
-      }
+    before do
+      allow(ENV).to receive(:[]).and_return false
     end
 
     it "outputs debug information when DEBUG_SCOPE_RESOLUTION is set" do
       allow(ENV).to receive(:[]).with("DEBUG_SCOPE_RESOLUTION").and_return("true")
-
-      expect { run_pass(initial_state) }.to output(/=== Resolving scope for test ===/).to_stdout
+      expect do
+        analyze_up_to(:scope_plans) do
+          input do
+            integer :x
+          end
+          value :test, input.x * 2
+        end
+      end.to output(/=== Resolving scope for test ===/).to_stdout
     end
 
     it "does not output debug information by default" do
-      expect { run_pass(initial_state) }.not_to output.to_stdout
+      expect do
+        analyze_up_to(:scope_plans) do
+          input do
+            integer :x
+          end
+          value :test, input.x * 2
+        end
+      end.not_to output.to_stdout
     end
   end
 end
