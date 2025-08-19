@@ -12,49 +12,56 @@ module Kumi
         # - dims: array of symbolic indices, e.g. [:i], [:i, :j], or []
         # - depth: dims.size
         def trace(node, state)
-          broadcasts  = state[:broadcasts] || {}
+          input_metadata = state[:input_metadata] || {}
           decl_shapes = state[:decl_shapes] || {}
+          
           case node
           when Kumi::Syntax::DeclarationReference
-            shape = decl_shapes[node.name] || {}
-            dims  = shape[:scope] || []
+            # Pass-order safety: before Pass 18, decl_shapes may not exist
+            shape = decl_shapes[node.name]
+            dims = shape&.dig(:scope) || []
             { root: :decl, path: node.name, dims: dims, depth: dims.size }
+            
           when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
-            path = node.respond_to?(:path_string) ? node.path_string : nil
-            dims = input_dims_for(path, broadcasts)
-            { root: :input, path: path, dims: dims, depth: dims.size }
+            # Use metadata-driven approach (not broadcast prefixes)
+            path_array = node.respond_to?(:path) ? node.path : []
+            dims = input_dims_for_metadata(path_array, input_metadata)
+            path_string = node.respond_to?(:path_string) ? node.path_string : nil
+            { root: :input, path: path_string, dims: dims, depth: dims.size }
+            
           else
+            # Literals and other nodes have no dimensions
             { root: :literal, path: nil, dims: [], depth: 0 }
           end
         end
 
-        def input_dims_for(path, broadcasts)
-          return [] unless path
+        # Metadata-driven dimension calculation (replaces broadcast prefix heuristics)
+        def input_dims_for_metadata(path_array, input_metadata)
+          return [] if path_array.nil? || path_array.empty?
           
-          # Handle new string prefix format (preferred)
-          if broadcasts[:nested_prefixes] && broadcasts[:array_prefixes]
-            np = broadcasts[:nested_prefixes]
-            ap = broadcasts[:array_prefixes]
-            if np.any? { |p| path.start_with?(p) } || ap.any? { |p| path.start_with?(p) }
-              return [:i]
-            else
-              return []
+          dims = []
+          meta = input_metadata
+          
+          path_array.each do |seg|
+            field = meta[seg] || meta[seg.to_sym] || meta[seg.to_s]
+            unless field
+              raise "Path segment '#{seg}' not found in input metadata at #{path_array.inspect}"
             end
+            
+            # Only array boundaries create dimensions
+            dims << seg.to_sym if field[:type] == :array
+            
+            meta = field[:children] || {}
           end
           
-          # Handle legacy hash format for backward compatibility
-          np = broadcasts[:nested_paths] || {}
-          af = broadcasts[:array_fields] || {}
-          
-          # Convert hash keys to string prefixes if needed
-          nested_prefixes = np.is_a?(Hash) ? np.keys.map { |k| k.join(".") } : Array(np)
-          array_prefixes = af.is_a?(Hash) ? af.keys.map(&:to_s) : Array(af)
-          
-          if nested_prefixes.any? { |p| path.start_with?(p) } || array_prefixes.any? { |p| path.start_with?(p) }
-            [:i]
-          else
-            []
-          end
+          dims
+        end
+        
+        # Legacy method - deprecated, raises to prevent broadcast prefix usage
+        def input_dims_for(path, broadcasts)
+          raise "DEPRECATED: input_dims_for with broadcast prefixes is no longer supported. " \
+                "Use input_dims_for_metadata with input_metadata instead. " \
+                "This prevents hash navigation from being treated as dimensions."
         end
       end
     end
