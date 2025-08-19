@@ -67,6 +67,9 @@
 - [ ] Optimize signature resolution for large function sets
 - [ ] Implement lazy loading of function kernels
 
+### Passes Cleanup
+- [ ] Have a clear separation of concerns around CascadeDesguarPass and the Lower Compiling of Cascades (maybe this desugar was not the right approach)
+
 ### Successful RegistryV2 Migration Reference (NEW)
 **Completed migrations for reference:**
 - [x] ~~Manual IR construction~~ (Fixed: Replaced manual IR with `analyze_up_to(:ir_module)` helper)
