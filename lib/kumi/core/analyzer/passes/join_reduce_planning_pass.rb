@@ -327,22 +327,61 @@ module Kumi
                 puts "Processing remaining call: #{call.fn_name} (#{object_id})"
               end
 
-              # Create a basic scalar join plan for this call
-              # Most scalar operations will use this
+              # Check if this should be a reduction based on post-propagation argument scopes
               arg_dims = arg_dims_list(call, node_index)
-              lifts = [] # No lifts needed for scalar operations
+              vectorized_args = arg_dims.any? { |dims| !dims.empty? }
               
-              entry[:join_plan] = {
-                policy: :zip, # Default policy for scalar operations
-                target_scope: [], # Scalar result
-                axis: [],
-                flatten_args: [],
-                lifts: lifts,
-                requires_indices: Array.new(arg_dims.length, false)
-              }
-
+              # Check if this is an aggregate function using metadata from node_index
+              function_metadata = entry[:metadata] || {}
+              function_class = function_metadata[:fn_class]
+              is_aggregate = function_class == :aggregate
+              
               if ENV["DEBUG_JOIN_REDUCE"]
-                puts "  Added scalar join plan: #{entry[:join_plan].inspect}"
+                puts "  Function metadata: #{function_metadata.inspect}"
+                puts "  Function class: #{function_class.inspect}"
+                puts "  Is aggregate: #{is_aggregate}"
+              end
+              
+              if vectorized_args && is_aggregate
+                if ENV["DEBUG_JOIN_REDUCE"]
+                  puts "  Detected as post-propagation reduction: #{call.fn_name}"
+                end
+                
+                # Create reduction plan for this overlooked reduction
+                source_scope = arg_dims.find { |dims| !dims.empty? } || []
+                axis = source_scope  # Reduce all dimensions for now
+                result_scope = []
+                
+                lifts = compute_lifts(arg_dims, source_scope)
+                
+                entry[:join_plan] = {
+                  policy: :reduce,
+                  target_scope: result_scope,
+                  axis: axis,
+                  flatten_args: Array.new(arg_dims.length, false),
+                  lifts: lifts,
+                  requires_indices: compute_requires_indices(arg_dims, source_scope, is_reduce: true)
+                }
+
+                if ENV["DEBUG_JOIN_REDUCE"]
+                  puts "  Created reduction plan: axis=#{axis.inspect}, result_scope=#{result_scope.inspect}"
+                end
+              else
+                # Create a basic scalar join plan for this call
+                lifts = [] # No lifts needed for scalar operations
+                
+                entry[:join_plan] = {
+                  policy: :zip, # Default policy for scalar operations
+                  target_scope: [], # Scalar result
+                  axis: [],
+                  flatten_args: [],
+                  lifts: lifts,
+                  requires_indices: Array.new(arg_dims.length, false)
+                }
+
+                if ENV["DEBUG_JOIN_REDUCE"]
+                  puts "  Added scalar join plan: #{entry[:join_plan].inspect}"
+                end
               end
             end
           end
