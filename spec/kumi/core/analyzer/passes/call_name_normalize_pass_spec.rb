@@ -7,6 +7,8 @@ RSpec.describe Kumi::Core::Analyzer::Passes::CallNameNormalizePass do
 
   def run_pass(initial_state)
     state = Kumi::Core::Analyzer::AnalysisState.new(initial_state)
+    registry = Kumi::Core::Functions::RegistryV2.load_from_file
+    state = state.with(:registry, registry)
     described_class.new(schema, state).run(errors)
   end
 

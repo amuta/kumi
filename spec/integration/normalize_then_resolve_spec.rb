@@ -6,6 +6,8 @@ RSpec.describe "Normalize → Resolve" do
 
   def run_normalize_pass(node_index)
     state = Kumi::Core::Analyzer::AnalysisState.new({ node_index: node_index })
+    registry = Kumi::Core::Functions::RegistryV2.load_from_file
+    state = state.with(:registry, registry)
     Kumi::Core::Analyzer::Passes::CallNameNormalizePass.new(schema, state).run([])
   end
 
