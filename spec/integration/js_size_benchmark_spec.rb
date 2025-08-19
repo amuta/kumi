@@ -141,19 +141,19 @@ RSpec.describe "JavaScript Size Benchmark", :js, :pending do
                                          cascade_depth: 30)
     results << measure_js_size(massive_schema, "Massive (200 inputs, 150 traits, 250 values, 30 cascades)")
 
-    puts "\n#{'=' * 80}"
-    puts "JavaScript Size Benchmark Results"
-    puts "=" * 80
-    puts "Schema Complexity                                             Size (KB)    Lines    Bytes"
-    puts "-" * 80
+    # puts "\n#{'=' * 80}"
+    # puts "JavaScript Size Benchmark Results"
+    # puts "=" * 80
+    # puts "Schema Complexity                                             Size (KB)    Lines    Bytes"
+    # puts "-" * 80
 
     results.each do |result|
       puts format("%-60s %10.2f %8d %8d", result[:label], result[:size_kb], result[:lines], result[:size_bytes])
     end
 
-    puts "-" * 80
-    puts "Files generated in: #{temp_dir}"
-    puts "=" * 80
+    # puts "-" * 80
+    # puts "Files generated in: #{temp_dir}"
+    # puts "=" * 80
 
     # Verify all schemas compile without errors
     results.each do |result|
@@ -165,10 +165,10 @@ RSpec.describe "JavaScript Size Benchmark", :js, :pending do
     expect(results.last[:size_kb]).to be > results.first[:size_kb] * 5
 
     # Analyze growth patterns
-    puts "\nGrowth Analysis:"
+    # puts "\nGrowth Analysis:"
     results.each_cons(2) do |prev, curr|
       growth_factor = (curr[:size_kb] / prev[:size_kb]).round(2)
-      puts "#{prev[:label]} -> #{curr[:label]}: #{growth_factor}x growth"
+      # puts "#{prev[:label]} -> #{curr[:label]}: #{growth_factor}x growth"
     end
   end
 
@@ -230,11 +230,11 @@ RSpec.describe "JavaScript Size Benchmark", :js, :pending do
     # Run the JavaScript performance test
     result = `node "#{test_file}" 2>&1`
 
-    puts "\n#{'=' * 60}"
-    puts "JavaScript Runtime Performance Test"
-    puts "=" * 60
+    # puts "\n#{'=' * 60}"
+    # puts "JavaScript Runtime Performance Test"
+    # puts "=" * 60
     puts result
-    puts "=" * 60
+    # puts "=" * 60
 
     expect(result).to include("Generated JS size:")
     expect(result).to include("Runtime performance:")

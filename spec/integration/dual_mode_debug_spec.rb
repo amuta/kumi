@@ -44,12 +44,12 @@ RSpec.describe "Dual Mode Debug Output", :pending do
         test_data = { age: 30, salary: 60_000.0 }
         runner = schema.from(test_data)
 
-        puts "\n=== Testing fetch operations ==="
+        # puts "\n=== Testing fetch operations ==="
         result1 = runner.fetch(:adult)
         result2 = runner.fetch(:monthly_salary)
         result3 = runner.fetch(:status)
 
-        puts "\n=== Testing slice operation ==="
+        # puts "\n=== Testing slice operation ==="
         slice_result = runner.slice(:adult, :status)
 
         # Verify results are correct
@@ -68,7 +68,7 @@ RSpec.describe "Dual Mode Debug Output", :pending do
         test_data = { age: 25, salary: 50_000.0 }
         runner = test_schema.from(test_data)
 
-        puts "\n=== Environment variable debug test ==="
+        # puts "\n=== Environment variable debug test ==="
         result = runner.fetch(:monthly_salary)
         expect(result).to be_within(0.01).of(4_166.67)
       ensure

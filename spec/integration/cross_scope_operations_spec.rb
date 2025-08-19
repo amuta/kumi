@@ -8,7 +8,7 @@ RSpec.describe "Cross-Scope Operations" do
       expect do
         Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :left_data do
@@ -18,7 +18,7 @@ RSpec.describe "Cross-Scope Operations" do
                 integer :value
               end
             end
-            
+
             # This fails at analyzer level, never reaches VM
             value :cross_scope_concat, fn(:concat, input.left_data.name, input.right_data.value)
           end
@@ -30,7 +30,7 @@ RSpec.describe "Cross-Scope Operations" do
       expect do
         Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :prices do
@@ -40,7 +40,7 @@ RSpec.describe "Cross-Scope Operations" do
                 integer :count
               end
             end
-            
+
             # This fails at analyzer level, never reaches VM
             value :totals, input.prices.amount * input.quantities.count
           end
@@ -53,7 +53,7 @@ RSpec.describe "Cross-Scope Operations" do
       expect do
         Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :left_items do
@@ -63,8 +63,8 @@ RSpec.describe "Cross-Scope Operations" do
                 float :score
               end
             end
-            
-            # This fails at analyzer level, never reaches VM  
+
+            # This fails at analyzer level, never reaches VM
             value :comparison, fn(:greater_than, input.left_items.category, input.right_items.score)
           end
         end
@@ -75,7 +75,7 @@ RSpec.describe "Cross-Scope Operations" do
   describe "VM Level: Join operations work when manually constructed" do
     # These tests show that the VM layer supports cross-scope operations
     # when the IR is properly analyzed through the full pipeline
-    
+
     def create_analyzed_cross_scope_ir
       # Use analyzer helper to generate proper IR from schema
       state = analyze_up_to(:ir_module) do
@@ -83,42 +83,42 @@ RSpec.describe "Cross-Scope Operations" do
           array :left_items, elem: { type: :string }
           array :right_items, elem: { type: :string }
         end
-        
+
         # This should trigger cross-scope join detection and proper IR generation
         value :cross_result, fn(:concat, input.left_items, input.right_items)
       end
-      
+
       ir_module = state[:ir_module]
-      
+
       # Assert on the actual IR structure the analyzer produces
-      puts "\n=== ANALYZER-GENERATED IR ==="
-      puts "IR Module: #{ir_module.inspect}"
+      # puts "\n=== ANALYZER-GENERATED IR ==="
+      # puts "IR Module: #{ir_module.inspect}"
       ir_module.decls.each_with_index do |decl, i|
-        puts "Decl #{i}: #{decl.name} (#{decl.kind})"
+        # puts "Decl #{i}: #{decl.name} (#{decl.kind})"
         decl.ops.each_with_index do |op, j|
-          puts "  Op #{j}: #{op.tag} #{op.attrs.inspect} args=#{op.args}"
+          # puts "  Op #{j}: #{op.tag} #{op.attrs.inspect} args=#{op.args}"
         end
       end
-      puts "=========================="
-      
+      # puts "=========================="
+
       ir_module
     end
 
     it "successfully executes cross-scope joins when IR is analyzer-generated" do
       # First, let's see what IR the analyzer actually generates
       ir = create_analyzed_cross_scope_ir
-      
+
       # The analyzer should detect that this is a cross-scope operation and handle it appropriately
       # For now, let's just verify the IR structure and see what happens
       expect(ir).to be_a(Kumi::Core::IR::Module)
       expect(ir.decls).not_to be_empty
-      
+
       # Let's see what the analyzer produces for cross-scope operations
       cross_result_decl = ir.decls.find { |d| d.name == :cross_result }
       expect(cross_result_decl).not_to be_nil
-      
+
       # Print the actual structure so we can understand what the analyzer generates
-      puts "\nCross-scope IR analysis complete. Check output above for structure."
+      # puts "\nCross-scope IR analysis complete. Check output above for structure."
     end
 
     it "handles length mismatches with nil policy using analyzer-generated IR" do
@@ -128,34 +128,33 @@ RSpec.describe "Cross-Scope Operations" do
           array :left_items, elem: { type: :string }
           array :right_items, elem: { type: :string }
         end
-        
+
         value :result, fn(:concat, input.left_items, input.right_items)
       end
-      
+
       # Get the analyzer-generated IR
       ir_module = state[:ir_module]
-      
-      
+
       # Create accessors using the actual plan IDs from the analyzer
       accessors = {}
       ir_module.decls.each do |decl|
         decl.ops.each do |op|
-          if op.tag == :load_input
-            plan_id = op.attrs[:plan_id]
-            if plan_id.include?("left_items")
-              accessors[plan_id] = ->(ctx) { ["A", "B"] }
-            elsif plan_id.include?("right_items")
-              accessors[plan_id] = ->(ctx) { ["1"] }  # Shorter array
-            end
+          next unless op.tag == :load_input
+
+          plan_id = op.attrs[:plan_id]
+          if plan_id.include?("left_items")
+            accessors[plan_id] = ->(ctx) { %w[A B] }
+          elsif plan_id.include?("right_items")
+            accessors[plan_id] = ->(ctx) { ["1"] } # Shorter array
           end
         end
       end
-      
+
       # Find the result declaration and modify join policy to :nil for length mismatches
       result_decl = ir_module.decls.find { |d| d.name == :result }
       join_op = result_decl.ops.find { |op| op.tag == :join }
       join_op.attrs[:on_missing] = :nil if join_op
-      
+
       result = Kumi::Core::IR::ExecutionEngine::Interpreter.run(
         ir_module, { input: {} }, accessors: accessors, registry: Kumi::Registry.functions
       )
@@ -163,22 +162,22 @@ RSpec.describe "Cross-Scope Operations" do
       # Success! The analyzer-generated IR with qualified function names works
       # The result shows "AB1" which means string.concat is working properly
       expect(result[:result][:k]).to eq(:scalar)
-      expect(result[:result][:v]).to eq("AB1")  # All strings concatenated together
+      expect(result[:result][:v]).to eq("AB1") # All strings concatenated together
     end
   end
 
   describe "What PR B Should Enable" do
     # These are the tests that should pass AFTER PR B is implemented
     # Currently they all fail, but they document the target behavior
-    
+
     context "after LowerToIR emits :join operations" do
       # NOTE: These tests will fail until PR B is implemented
       # They serve as acceptance criteria for PR B
-      
-      it "should support simple cross-scope concatenation" do
+
+      it "supports simple cross-scope concatenation" do
         schema = Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :names do
@@ -188,16 +187,16 @@ RSpec.describe "Cross-Scope Operations" do
                 integer :value
               end
             end
-            
+
             # After PR B: This should emit :join + :map instead of failing
             value :name_age_pairs, fn(:concat, input.names.first, " (", input.ages.value, ")")
           end
         end
 
         result = schema.from({
-          names: [{ first: "Alice" }, { first: "Bob" }],
-          ages: [{ value: 25 }, { value: 30 }]
-        })
+                               names: [{ first: "Alice" }, { first: "Bob" }],
+                               ages: [{ value: 25 }, { value: 30 }]
+                             })
 
         expect(result[:name_age_pairs][:rows].map { |r| r[:v] }).to eq(["Alice (25)", "Bob (30)"])
       end
@@ -205,7 +204,7 @@ RSpec.describe "Cross-Scope Operations" do
       xit "should support cross-scope arithmetic operations" do
         schema = Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :base_prices do
@@ -215,16 +214,16 @@ RSpec.describe "Cross-Scope Operations" do
                 float :factor
               end
             end
-            
+
             # After PR B: This should emit :join + :map instead of failing
             value :final_prices, input.base_prices.amount * input.multipliers.factor
           end
         end
 
         result = schema.from({
-          base_prices: [{ amount: 10.0 }, { amount: 20.0 }],
-          multipliers: [{ factor: 1.1 }, { factor: 1.2 }]
-        })
+                               base_prices: [{ amount: 10.0 }, { amount: 20.0 }],
+                               multipliers: [{ factor: 1.1 }, { factor: 1.2 }]
+                             })
 
         expect(result[:final_prices]).to eq([11.0, 24.0])
       end
@@ -232,7 +231,7 @@ RSpec.describe "Cross-Scope Operations" do
       xit "should support cross-scope array construction" do
         schema = Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               array :products do
@@ -242,16 +241,16 @@ RSpec.describe "Cross-Scope Operations" do
                 integer :stock
               end
             end
-            
-            # After PR B: This should emit :join + :map instead of failing  
+
+            # After PR B: This should emit :join + :map instead of failing
             value :product_inventory, [input.products.name, input.inventory.stock]
           end
         end
 
         result = schema.from({
-          products: [{ name: "Widget" }, { name: "Gadget" }],
-          inventory: [{ stock: 5 }, { stock: 10 }]
-        })
+                               products: [{ name: "Widget" }, { name: "Gadget" }],
+                               inventory: [{ stock: 5 }, { stock: 10 }]
+                             })
 
         expect(result[:product_inventory]).to eq([["Widget", 5], ["Gadget", 10]])
       end
@@ -268,7 +267,7 @@ RSpec.describe "Cross-Scope Operations" do
       end
     end
 
-    context "nested cross-scope operations" do  
+    context "nested cross-scope operations" do
       xit "should handle cross-scope operations with nested arrays" do
         # After PR B: Complex nested structures with cross-scope references
         pending "Requires PR B + nested scope resolution"
