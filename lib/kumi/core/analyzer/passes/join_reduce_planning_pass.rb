@@ -16,7 +16,7 @@ module Kumi
           def run(_errors)
             node_index = get_state(:node_index, required: true)
             broadcasts = get_state(:broadcasts, required: false) || {}
-            scope_plans = get_state(:scope_plans, required: false) || {}
+            scope_plans = (get_state(:scope_plans, required: false) || {}).dup  # Make mutable copy
             declarations = get_state(:declarations, required: true)
             input_metadata = get_state(:input_metadata, required: true)
 
@@ -31,9 +31,13 @@ module Kumi
             # Process all remaining CallExpression nodes that don't have join plans yet
             process_remaining_calls(node_index, scope_plans, declarations, input_metadata)
 
-            # Return new state with join/reduce plans and updated node_index
+            # Propagate indexing requirements to declarations
+            propagate_indexing_requirements(node_index, scope_plans)
+
+            # Return new state with join/reduce plans, updated node_index, and updated scope_plans
             state.with(:join_reduce_plans, plans.freeze)
                  .with(:node_index, node_index)
+                 .with(:scope_plans, scope_plans)  # Don't freeze scope_plans since we've added indexing annotations
           end
 
           def each_call(expr, &blk)
@@ -370,6 +374,39 @@ module Kumi
                 lifts: []
               }
             end
+          end
+
+          def propagate_indexing_requirements(node_index, scope_plans)
+            puts "\n=== Propagating indexing requirements to declarations ===" if ENV["DEBUG_JOIN_REDUCE"]
+
+            # Scan all join plans for indexing requirements
+            node_index.each_value do |entry|
+              join_plan = entry[:join_plan]
+              next unless join_plan && join_plan[:requires_indices]
+
+              # Find the call node
+              call = entry[:node]
+              next unless call.respond_to?(:args)
+
+              # Check each argument that requires indices
+              join_plan[:requires_indices].each_with_index do |needs_indices, arg_idx|
+                next unless needs_indices
+
+                arg = call.args[arg_idx]
+                next unless arg.is_a?(Kumi::Syntax::DeclarationReference)
+
+                # Annotate the referenced declaration as needing indexed compilation
+                decl_name = arg.name
+                scope_plans["#{decl_name}:needs_indices"] = true
+
+                if ENV["DEBUG_JOIN_REDUCE"]
+                  puts "  Annotated declaration '#{decl_name}' as needing indexed compilation"
+                  puts "    (referenced by #{call.fn_name} at arg[#{arg_idx}])"
+                end
+              end
+            end
+
+            puts "=== Propagation complete ===" if ENV["DEBUG_JOIN_REDUCE"]
           end
 
           # Debug helpers

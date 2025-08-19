@@ -36,8 +36,8 @@ module Kumi
               @ops.length - 1
             end
 
-            def emit_reduce(fn, axis, result_scope, flatten_args, src_slot)
-              @ops << Kumi::Core::IR::Ops.Reduce(fn, Array(axis), Array(result_scope), Array(flatten_args), src_slot)
+            def emit_reduce(fn, axis, result_scope, flatten_args, *arg_slots)
+              @ops << Kumi::Core::IR::Ops.Reduce(fn, Array(axis), Array(result_scope), Array(flatten_args), *arg_slots)
               @ops.length - 1
             end
 

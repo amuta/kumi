@@ -12,8 +12,10 @@ module Kumi
               @errors = errors
 
               target_scope = Array(scope_plans.dig(name, :scope))
+              # Use explicit annotation from JoinReducePlanningPass instead of fallback logic
+              needs_indices = scope_plans["#{name}:needs_indices"] || false
               slot = compile_expr(decl.expression, access_plans, scope_plans, node_index,
-                                  need_indices: false, required_scope: target_scope)
+                                  need_indices: needs_indices, required_scope: target_scope)
 
               return nil if slot.nil? # Error occurred during compilation
 
@@ -118,8 +120,8 @@ module Kumi
                 emit_map(qualified_name, *aligned)
               when :reduce
                 axis = plan[:axis] || []
-                src  = aligned.first # reducers take their main vector as first arg
-                emit_reduce(qualified_name, axis, plan[:target_scope], plan[:flatten_args], src)
+                # Pass all arguments to reduce operation - first is the vector, rest are scalars
+                emit_reduce(qualified_name, axis, plan[:target_scope], plan[:flatten_args], *aligned)
               else
                 @errors << Core::ErrorReporter.create_error(
                   "Unknown join policy: #{plan[:policy].inspect}",
@@ -193,6 +195,7 @@ module Kumi
                 emit_map("core.and", arg, acc)
               end
             end
+
           end
         end
       end

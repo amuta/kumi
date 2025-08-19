@@ -375,8 +375,8 @@ RSpec.describe "RegistryV2 Migration Integration" do
       expect(result[:has_high_earner]).to eq(true)
       expect(result[:department_status]).to eq("premium")
 
-      # Verify nested array access works - expect nested structure
-      expect(result[:employee_total_hours]).to eq([[60], [30]])
+      # Verify nested array access works - expect flattened structure
+      expect(result[:employee_total_hours]).to eq([60, 30])
     end
   end
 end
