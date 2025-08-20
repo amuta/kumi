@@ -58,7 +58,7 @@ module Kumi
               debug_reduction(name, info) if ENV["DEBUG_JOIN_REDUCE"]
 
               # Get the source scope from scope_plans or infer from argument
-              source_scope = get_source_scope(name, info, scope_plans, declarations, input_metadata)
+              source_scope = get_source_scope(name, info, scope_plans, declarations, input_metadata, node_index)
 
               # Determine reduction axis and result scope
               axis, result_scope = determine_reduction_axis(source_scope, info, scope_plans, name)
@@ -153,9 +153,9 @@ module Kumi
             end
           end
 
-          def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata)
+          def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata, node_index)
             # Always infer from the reduction argument - this is the full dimensional scope
-            infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata)
+            infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata, node_index)
           end
 
           def determine_reduction_axis(source_scope, reduction_info, scope_plans, name)
@@ -224,26 +224,30 @@ module Kumi
             end
           end
 
-          def infer_scope_from_argument(arg, declarations, input_metadata)
+          def infer_scope_from_argument(arg, declarations, input_metadata, node_index)
             return [] unless arg
 
             case arg
             when Kumi::Syntax::InputElementReference
-              # Extract scope from the input path
-              path = arg.path
-              return [] if path.empty?
+              # Use the corrected inferred_scope from node_index (fixed by DimTracer)
+              # This ensures we get dimensions from metadata, not raw path with hash navigation
+              node_metadata = node_index[arg.object_id] || {}
+              inferred_scope = node_metadata[:inferred_scope]
               
-              # Remove the leaf field to get the array path
-              array_path = path[0...-1]
-              return [] if array_path.empty?
-              
-              array_path
+              if inferred_scope && !inferred_scope.empty?
+                inferred_scope
+              else
+                # Fallback should not happen if DimTracer is working correctly
+                # This would indicate a missing inferred_scope which should be investigated
+                raise "Missing inferred_scope for InputElementReference at path #{arg.path}. " +
+                      "This indicates DimTracer did not process this node correctly."
+              end
             when Kumi::Syntax::DeclarationReference
               # Follow declaration reference to its source
               decl = declarations[arg.name]
               return [] unless decl
               
-              infer_scope_from_argument(decl.expression, declarations, input_metadata)
+              infer_scope_from_argument(decl.expression, declarations, input_metadata, node_index)
             else
               []
             end

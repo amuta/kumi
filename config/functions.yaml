@@ -227,7 +227,7 @@
   class: scalar
   summary: Ternary conditional with broadcasting of then/else
   signature:
-    - "(),(),((),()->()"
+    - "(),(),(),()->()"
     - "(i),(i),(i)->(i)"
     - "(i),(),()->(i)"
     - "(),(i),()->(i)"
