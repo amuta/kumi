@@ -33,10 +33,23 @@ module Kumi
     end
 
     def self.run_analysis_passes(schema, passes, state, errors)
-      debug_on = Core::Analyzer::Debug.enabled?
+      # Resume from a saved state if configured
+      state = Core::Analyzer::Checkpoint.load_initial_state(state)
 
-      passes.each do |pass_class|
+      debug_on = Core::Analyzer::Debug.enabled?
+      resume_at  = Core::Analyzer::Checkpoint.resume_at
+      stop_after = Core::Analyzer::Checkpoint.stop_after
+      skipping   = !!resume_at
+
+      passes.each_with_index do |pass_class, idx|
         pass_name = pass_class.name.split("::").last
+
+        if skipping
+          skipping = false if pass_name == resume_at
+          next if skipping
+        end
+
+        Core::Analyzer::Checkpoint.entering(pass_name:, idx:, state:)
 
         before = state.to_h if debug_on
         Core::Analyzer::Debug.reset_log(pass: pass_name) if debug_on
@@ -88,6 +101,10 @@ module Kumi
             logs: logs
           )
         end
+
+        Core::Analyzer::Checkpoint.leaving(pass_name:, idx:, state:)
+
+        break if stop_after && pass_name == stop_after
       end
       state
     end

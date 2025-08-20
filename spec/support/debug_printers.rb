@@ -27,9 +27,10 @@ module DebugPrinters
       when Kumi::Core::Analyzer::Passes::TypeChecker then "TypeChecker"
       when Kumi::Core::Analyzer::Passes::BroadcastDetector then "BroadcastDetector"
       when Kumi::Core::Analyzer::Structs::InputMeta then print_input_meta(obj)
-      when Kumi::Core::Analyzer::AccessPlan then print_access_plan(obj)
+      when Kumi::Core::Analyzer::Structs::AccessPlan then print_access_plan(obj)
       when Kumi::Core::Analyzer::Plans::Scope then print_scope_plan(obj)
       when Kumi::Core::Analyzer::Plans::Reduce then print_reduce_plan(obj)
+      when Kumi::Core::Analyzer::Plans::Join then print_join_plan(obj)
       when Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge then print_dependency_edge(obj)
       
       # IR objects
@@ -115,6 +116,14 @@ module DebugPrinters
       "ReducePlan(#{obj.function})"
     end
 
+    def print_join_plan(obj)
+      "JoinPlan(#{obj.policy})"
+    end
+
+    def print_dependency_edge(obj)
+      "DependencyEdge(#{obj.to})"
+    end
+
     def print_ir_module(obj)
       "IRModule(#{obj.inputs.size} inputs)"
     end
@@ -125,10 +134,6 @@ module DebugPrinters
 
     def print_ir_op(obj)
       "IROp(#{obj.tag})"
-    end
-
-    def print_dependency_edge(obj)
-      "DependencyEdge(...)"
     end
 
     def print_set(obj)

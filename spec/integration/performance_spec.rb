@@ -154,8 +154,8 @@ RSpec.describe "Kumi Performance" do
 
       # The threshold is arbitrary; adjust based on expectations.
       # This asserts that the compilation is not excessively slow.
-      # expect(compilation_time).to be < 0.001 # seconds
-      # puts "\nCompilation Time: #{(compilation_time * 1000).round(2)} ms"
+      expect(compilation_time).to be < 0.001 # seconds
+      # puts " \nCompilation Time: #{(compilation_time * 1000).round(2)} ms"
     end
   end
 
@@ -193,7 +193,7 @@ RSpec.describe "Kumi Performance" do
       compiled_schema
       customer_data_set
 
-      puts "\n--- Runtime Performance Benchmark ---"
+      # puts " \n--- Runtime Performance Benchmark ---"
       Benchmark.ips do |x|
         x.report("Kumi Schema") do
           compiled_schema.evaluate(customer_data_set.sample)
@@ -210,7 +210,7 @@ RSpec.describe "Kumi Performance" do
     end
 
     it "is faster than plain ruby if it only evaluates a few keys" do
-      puts "\n--- Runtime Performance Benchmark (Partial Evaluation) ---"
+      # puts " \n--- Runtime Performance Benchmark (Partial Evaluation) ---"
       Benchmark.ips do |x|
         x.report("Kumi Schema (Partial)") do
           compiled_schema.evaluate(customer_data_set.sample, :customer_tier, :marketing_segment)
