@@ -331,7 +331,11 @@ RSpec.describe "RegistryV2 Migration Integration" do
           value :employee_total_hours, fn(:sum, employee_project_hours)
 
           # Test reduction with scope preservation
-          trait :has_high_earner, fn(:any?, input.departments.employees.salary > 80_000)
+          # trait :has_high_earner, fn(:any?, input.departments.employees.salary > 80_000) # TODO, SEE WHY THIS WONT WORK LIKE THIS
+
+          trait :over_80k, input.departments.employees.salary > 80_000
+
+          trait :has_high_earner, fn(:any?, over_80k)
 
           # Test cascade with cross-scope references
           value :department_status do

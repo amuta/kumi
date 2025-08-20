@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Validators
         # Encapsulates all call-level type checks for TypeCheckerV2 pass.
-        # 
+        #
         # RESPONSIBILITIES:
         #   - Resolve functions via RegistryV2 using qualified names from CallNameNormalizePass
         #   - Compute result dtypes using function metadata and argument types
@@ -21,17 +21,17 @@ module Kumi
         #
         # STATE DEPENDENCIES:
         #   - node_index: CallExpression metadata with qualified_name and result_dtype
-        #   - input_metadata: declared types for input field references  
+        #   - input_metadata: declared types for input field references
         #   - inferred_types: computed types for declaration references
         #   - broadcasts: vectorization context for constraint skip logic
         class CallTypeValidator
           include Kumi::Core::ErrorReporting
-          
+
           attr_reader :functions_required
 
           def initialize(registry_v2:, state:)
             @registry_v2 = registry_v2
-            @state        = state
+            @state = state
             @functions_required = Set.new
           end
 
@@ -40,7 +40,7 @@ module Kumi
             idx = get_state(:node_index, required: true)
             entry = idx[node.object_id]
             raise "Missing node_index entry for CallExpression #{node.object_id}" unless entry
-            
+
             meta = entry[:metadata]
             raise "Missing metadata for CallExpression #{node.object_id}" unless meta
 
@@ -56,22 +56,22 @@ module Kumi
             # Record usage
             @functions_required.add(fn.name)
 
+            compute_function_result_dtype(fn, node)
+
             # Compute result dtype if not already set by FunctionSignaturePass
             if meta[:result_dtype].nil?
               result_dtype = compute_function_result_dtype(fn, node)
               if result_dtype
                 meta[:result_dtype] = result_dtype
-                if ENV["DEBUG_TYPE_CHECKER"]
-                  puts "    Computed result dtype: #{fn.name} -> #{result_dtype}"
-                end
+                puts "    Computed result dtype: #{fn.name} -> #{result_dtype}" if ENV["DEBUG_TYPE_CHECKER"]
               end
             elsif ENV["DEBUG_TYPE_CHECKER"]
               puts "    Using pre-computed result dtype: #{fn.name} -> #{meta[:result_dtype]}"
             end
 
-            if ENV["DEBUG_TYPE_CHECKER"]
-              puts "  TypeCheck pass1 call_id=#{node.object_id} qualified=#{fn.name} result_dtype=#{meta[:result_dtype]}"
-            end
+            return unless ENV["DEBUG_TYPE_CHECKER"]
+
+            puts "  TypeCheck pass1 call_id=#{node.object_id} qualified=#{fn.name} result_dtype=#{meta[:result_dtype]}"
           end
 
           def validate_constraints!(node, errors)
@@ -79,7 +79,7 @@ module Kumi
             idx = get_state(:node_index, required: true)
             entry = idx[node.object_id]
             raise "Missing node_index entry for CallExpression #{node.object_id}" unless entry
-            
+
             meta = entry[:metadata]
             raise "Missing metadata for CallExpression #{node.object_id}" unless meta
 
@@ -96,10 +96,10 @@ module Kumi
             validate_arg_constraints!(fn, node, meta, errors)
 
             debug_log(node, meta, fn) if ENV["DEBUG_TYPE_CHECKER"]
-            
-            if ENV["DEBUG_TYPE_CHECKER"]
-              puts "  TypeCheck pass2 call_id=#{node.object_id} qualified=#{fn.name} constraints=validated"
-            end
+
+            return unless ENV["DEBUG_TYPE_CHECKER"]
+
+            puts "  TypeCheck pass2 call_id=#{node.object_id} qualified=#{fn.name} constraints=validated"
           end
 
           private
@@ -109,6 +109,7 @@ module Kumi
             if required && val.nil?
               raise "CallTypeValidator requires state[:#{key}] but it was not found. Available keys: #{@state.keys.inspect}"
             end
+
             val
           end
 
@@ -145,10 +146,10 @@ module Kumi
               next if constraint.nil? || constraint.to_s.casecmp("Any").zero?
 
               raw_type = infer_expr_type(arg)
-              
+
               # For aggregate functions, check the element type instead of the container type
               actual_type = is_aggregate ? element_type_of(raw_type) : raw_type
-              
+
               next if satisfies_constraint?(actual_type, constraint)
 
               expected_desc = pretty_constraint(constraint)
@@ -164,6 +165,7 @@ module Kumi
 
           def vectorized_context?(node, bmeta)
             return false unless bmeta && node.args
+
             node.args.any? do |arg|
               case arg
               when Kumi::Syntax::DeclarationReference
@@ -201,21 +203,21 @@ module Kumi
                     return plan.dig(:metadata, :type) || :any if plan.respond_to?(:dig)
                   end
                 end
-                
+
                 # Fallback: navigate through nested input_metadata structure
                 path = expr.path
                 root_name = path.first
-                
+
                 root_meta = input_meta[root_name]
                 return :any unless root_meta
-                
+
                 # Navigate through nested children metadata for arbitrary depth
                 current_meta = root_meta
                 path[1..-1].each do |segment|
                   current_meta = current_meta.dig(:children, segment)
                   return :any unless current_meta
                 end
-                
+
                 current_meta[:type] || :any
               else
                 :any
@@ -230,10 +232,10 @@ module Kumi
               idx = get_state(:node_index, required: true)
               entry = idx[expr.object_id]
               raise "Missing node_index entry for CallExpression #{expr.object_id}" unless entry
-              
+
               md = entry[:metadata]
               raise "Missing metadata for CallExpression #{expr.object_id}" unless md
-              
+
               result_dtype = md[:result_dtype]
               if result_dtype.nil?
                 qualified = (md[:qualified_name] || expr.fn_name).to_s
@@ -247,6 +249,7 @@ module Kumi
               # Coarse: unify all element types
               elems = expr.elements
               raise "Missing elements for ArrayExpression" unless elems
+
               elems.map { |e| infer_expr_type(e) }.reduce(:any) { |acc, t| Kumi::Core::Types.unify(acc, t) }
 
             else
@@ -258,27 +261,18 @@ module Kumi
 
           def compute_function_result_dtype(fn, node)
             return nil unless fn.respond_to?(:dtypes) && fn.dtypes
-            
+
             result_spec = fn.dtypes[:result] || fn.dtypes["result"]
             return nil unless result_spec
-            
+
             # Build argument types for dtype computation
             arg_types = node.args.map { |arg| infer_expr_type(arg) }
-            
+
             # Use DTypeAdapter to evaluate the result type
             Kumi::Core::Functions::DTypeAdapter.evaluate(fn, arg_types)
-          rescue => e
-            if ENV["DEBUG_TYPE_CHECKER"]
-              puts "    Failed to compute result dtype for #{fn.name}: #{e.message}"
-            end
+          rescue StandardError => e
+            puts "    Failed to compute result dtype for #{fn.name}: #{e.message}" if ENV["DEBUG_TYPE_CHECKER"]
             nil
-          end
-
-          def store_declaration_metadata!(decl_name, result_dtype)
-            # Store inferred types in state for DeclarationReference lookups
-            inferred_types = get_state(:inferred_types, required: true).dup
-            inferred_types[decl_name] = result_dtype
-            @state = @state.with(:inferred_types, inferred_types)
           end
 
           # --- Helper methods -------------------------------------------------
@@ -293,9 +287,9 @@ module Kumi
           def aggregate_function?(fn)
             # Check various ways the function class might be stored in RegistryV2
             (fn.respond_to?(:class_sym) && fn.class_sym.to_s == "aggregate") ||
-            (fn.respond_to?(:class_name) && fn.class_name.to_s == "aggregate") ||
-            (fn.respond_to?(:fn_class)   && fn.fn_class.to_s   == "aggregate") ||
-            (fn.respond_to?(:klass)      && fn.klass.to_s      == "aggregate")
+              (fn.respond_to?(:class_name) && fn.class_name.to_s == "aggregate") ||
+              (fn.respond_to?(:fn_class)   && fn.fn_class.to_s   == "aggregate") ||
+              (fn.respond_to?(:klass)      && fn.klass.to_s      == "aggregate")
           end
 
           # --- Constraints ----------------------------------------------------
@@ -303,11 +297,11 @@ module Kumi
           def satisfies_constraint?(type, constraint)
             # :any type satisfies all constraints
             return true if type == :any
-            
+
             c = constraint.to_s.downcase
 
             case c
-            when "any"         then true
+            when "any" then true
             when "bool", "boolean"
               type == :boolean
             when "numeric"

@@ -10,7 +10,7 @@ module Kumi
         class BroadcastDetector < PassBase
           def run(errors)
             @input_meta = get_state(:input_metadata)
-            @input_index = get_state(:input_index)
+            @input_name_index = get_state(:input_name_index)
             definitions = get_state(:declarations)
 
             # Find array fields with their element types
@@ -24,6 +24,7 @@ module Kumi
               array_fields: array_fields,
               vectorized_operations: {},
               reduction_operations: {},
+              scalar_operations: {},
               nested_paths: nested_paths,
               nested_prefixes: nested_paths.keys.map { |segs| segs.join(".") }, # For DimTracer string matching
               array_prefixes: array_fields.keys.map(&:to_s), # For DimTracer string matching
@@ -35,10 +36,10 @@ module Kumi
             vectorized_values = {}
 
             # Analyze traits first, then values (to handle dependencies)
-            traits = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::TraitDeclaration) }
-            values = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::ValueDeclaration) }
+            # traits = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::TraitDeclaration) }
+            # values = definitions.select { |_name, decl| decl.is_a?(Kumi::Syntax::ValueDeclaration) }
 
-            (traits.to_a + values.to_a).each do |name, decl|
+            definitions.each do |name, decl|
               result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors,
                                                    definitions)
 
@@ -61,7 +62,7 @@ module Kumi
                 # Reduction produces scalar, not vectorized
                 vectorized_values[name] = { vectorized: false }
               when :scalar
-                compiler_metadata[:vectorized_operations][name] = result[:info] # TODO: (URGENT) REMOVE
+                compiler_metadata[:scalar_operations][name] = result[:info]
                 vectorized_values[name] = { vectorized: false }
               end
 
@@ -119,7 +120,7 @@ module Kumi
 
           def infer_argument_scope(arg)
             # Use unified DimTracer for dimensional analysis
-            trace_result = DimTracer.trace(arg, @input_meta, @input_index)
+            trace_result = DimTracer.trace(arg, @input_meta, @input_name_index)
             trace_result[:dims]
           end
 
@@ -421,6 +422,8 @@ module Kumi
             when Kumi::Syntax::DeclarationReference
               # Check if this references a vectorized value
               vector_info = vectorized_values[arg.name]
+
+              # trace_dimensional_source(expr)
               if vector_info && vector_info[:vectorized]
                 array_source = vector_info[:array_source]
                 { vectorized: true, source: :vectorized_value, array_source: array_source }

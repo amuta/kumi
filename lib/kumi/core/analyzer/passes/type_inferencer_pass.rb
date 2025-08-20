@@ -5,17 +5,17 @@ module Kumi
     module Analyzer
       module Passes
         # RESPONSIBILITY: Infer types for all declarations based on expression analysis
-        # 
+        #
         # Provides initial type inference for all declarations using expression structure,
         # input metadata, and RegistryV2. TypeCheckerV2 will later update inferred_types
         # for value declarations with CallExpression result dtypes computed from RegistryV2.
         #
-        # DEPENDENCIES: 
+        # DEPENDENCIES:
         #   - Toposorter (needs evaluation_order for dependency resolution)
         #   - DeclarationValidator (needs declarations mapping)
         #   - BroadcastDetector (needs broadcasts for vectorized type handling)
         #
-        # PRODUCES: 
+        # PRODUCES:
         #   - inferred_types hash mapping declaration names to inferred types
         #
         # RELATIONSHIP WITH TypeCheckerV2:
@@ -45,13 +45,13 @@ module Kumi
               begin
                 # Check if this declaration is actually vectorized (not just scalar with empty dimensional_scope)
                 vectorized_info = broadcast_meta[:vectorized_operations]&.[](name)
-                is_truly_vectorized = vectorized_info && 
-                                     (vectorized_info[:dimensional_scope]&.any? || 
-                                      vectorized_info[:source] == :nested_array_access ||
-                                      vectorized_info[:source] == :array_field_access ||
-                                      vectorized_info[:source] == :nested_array_field ||
-                                      vectorized_info[:source] == :vectorized_declaration)
-                
+                is_truly_vectorized = vectorized_info &&
+                                      (vectorized_info[:dimensional_scope]&.any? ||
+                                       vectorized_info[:source] == :nested_array_access ||
+                                       vectorized_info[:source] == :array_field_access ||
+                                       vectorized_info[:source] == :nested_array_field ||
+                                       vectorized_info[:source] == :vectorized_declaration)
+
                 if is_truly_vectorized
                   # Infer the element type and wrap in array
                   element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
@@ -85,15 +85,17 @@ module Kumi
             when CallExpression
               # Infer argument types and annotate node for AmbiguityResolver
               if node_index && expr.respond_to?(:object_id)
-                arg_types = expr.args.map { |arg| infer_expression_type(arg, type_context, broadcast_metadata, current_decl_name, node_index) }
-                
+                arg_types = expr.args.map do |arg|
+                  infer_expression_type(arg, type_context, broadcast_metadata, current_decl_name, node_index)
+                end
+
                 # Annotate this CallExpression node with argument type information
                 if node_index[expr.object_id]
                   node_index[expr.object_id][:metadata] ||= {}
                   node_index[expr.object_id][:metadata][:inferred_arg_types] = arg_types
                 end
               end
-              
+
               infer_call_type(expr, type_context, broadcast_metadata, current_decl_name)
             when ArrayExpression
               infer_list_type(expr, type_context, broadcast_metadata, current_decl_name, node_index)
@@ -125,7 +127,7 @@ module Kumi
 
             # Get RegistryV2 from state and use dtypes directly
             registry = get_state(:registry, required: true)
-            
+
             # Check if function exists in registry
             unless registry.function_exists?(fn_name)
               # Don't push error here - let existing TypeChecker handle it
@@ -134,11 +136,11 @@ module Kumi
 
             begin
               function = registry.resolve(fn_name)
-              
+
               # Extract return type from dtypes.result field directly
               result_dtype = function.dtypes["result"] || function.dtypes[:result]
               return Types.infer_from_dtype(result_dtype) if result_dtype
-              
+
               # No dtypes.result specified - return :any
               :any
             rescue KeyError
@@ -161,21 +163,17 @@ module Kumi
           def infer_function_return_type(fn_name, _args, _type_context, _broadcast_metadata)
             # Get RegistryV2 from state and use dtypes directly
             registry = get_state(:registry, required: true)
-            
-            return :any unless registry.function_exists?(fn_name)
 
-            begin
-              function = registry.resolve(fn_name)
-              
-              # Extract return type from dtypes.result field directly
-              result_dtype = function.dtypes["result"] || function.dtypes[:result]
-              return Types.infer_from_dtype(result_dtype) if result_dtype
-              
-              # No dtypes.result specified - return :any
-              :any
-            rescue KeyError
-              :any
-            end
+            function = registry.resolve(fn_name)
+
+            binding.pry
+
+            # Extract return type from dtypes.result field directly
+            result_dtype = function.dtypes["result"] || function.dtypes[:result]
+            return Types.infer_from_dtype(result_dtype) if result_dtype
+
+            # No dtypes.result specified - return :any
+            :any
           end
 
           def infer_list_type(list_expr, type_context, broadcast_metadata = {}, current_decl_name = nil, node_index = nil)
@@ -271,7 +269,6 @@ module Kumi
             # TODO: understand if this right to fallback or we should raise
             :any
           end
-          
         end
       end
     end

@@ -26,8 +26,7 @@ module Kumi
             node_index = get_state(:node_index)
             @node_index = node_index
             @input_metadata = get_state(:input_metadata)
-            @input_index = get_state(:input_index)
-            @inferred_types = get_state(:inferred_types)
+            @input_name_index = get_state(:input_name_index)
             # @decl_shapes = get_state(:decl_shapes) # WHY? BROADCAST IS USING?
             @broadcasts = get_state(:broadcasts)
 
@@ -43,6 +42,8 @@ module Kumi
             # Process all CallExpression nodes in the index
             node_index.each do |object_id, entry|
               next unless entry[:type] == "CallExpression"
+
+              puts "  Skipping cascade_and" if (entry[:fn_name] == :cascade_and) && ENV.fetch("DEBUG_LOWER", nil)
 
               if ENV["DEBUG_LOWER"]
                 node = entry[:node]
@@ -85,13 +86,6 @@ module Kumi
               end
               return
             end
-
-            # For nodes that have been desugared to a new function (e.g., cascade_and -> core.and),
-            # we need to resolve the signature for the new qualified name
-            if metadata[:desugared_to] && metadata[:qualified_name] && ENV.fetch("DEBUG_LOWER", nil)
-              puts "    DESUGARED NODE: #{node.fn_name} -> #{metadata[:qualified_name]}, resolving signature for new function"
-            end
-            # Continue with signature resolution using the new qualified name
 
             # Skip signature resolution for ambiguous functions - they will be resolved later in AmbiguityResolverPass
             if metadata[:ambiguous_candidates]
@@ -225,40 +219,6 @@ module Kumi
             result
           end
 
-          def legacy_registry_signatures(node)
-            # Try to get signatures from the current registry
-            # For now, we'll create basic signatures from the current registry format
-
-            meta = Kumi::Registry.signature(node.fn_name)
-
-            # Check if the function already has NEP-20 signatures
-            return meta[:signatures] if meta[:signatures] && meta[:signatures].is_a?(Array)
-
-            # Otherwise, create a basic signature from arity
-            # This is a bridge until we have full NEP-20 signatures in the registry
-            create_basic_signature(meta[:arity])
-          rescue Kumi::Errors::UnknownFunction
-            # For now, return empty array - function existence will be caught by TypeChecker
-            []
-          end
-
-          def create_basic_signature(arity)
-            return [] if arity.nil? || arity < 0 # Variable arity - skip for now
-
-            case arity
-            when 0
-              ["()->()"] # Scalar function
-            when 1
-              ["()->()", "(i)->(i)"] # Scalar or element-wise
-            when 2
-              ["(),()->()", "(i),(i)->(i)"] # Scalar or element-wise binary
-            else
-              # For higher arity, just provide scalar signature
-              args = (["()"] * arity).join(",")
-              ["#{args}->()"]
-            end
-          end
-
           def build_argument_shapes(node, object_id)
             # Build argument shapes from current analysis context
             node.args.map.with_index do |arg, i|
@@ -300,7 +260,7 @@ module Kumi
               end
 
             when Kumi::Syntax::DeclarationReference
-              @inferred_types[expr.name] || :any
+              node_entry[]
 
             when Kumi::Syntax::CallExpression
               # For nested call expressions, we might not have computed the result dtype yet
@@ -338,9 +298,9 @@ module Kumi
             when Kumi::Syntax::DeclarationReference
               # Get dimensional scope from BroadcastDetector analysis (required)
               broadcast_info = broadcasts&.dig(:vectorized_operations, arg_node.name)
+              broadcast_info ||= broadcasts&.dig(:scalar_operations, arg_node.name)
               broadcast_info ||= broadcasts&.dig(:reduction_operations, arg_node.name) # TODO: SEE THIS THROUGH
-              broadcast_info&.dig(:dimensional_scope) ||
-                (raise "Missing dimensional_scope for DeclarationReference #{arg_node.name} - BroadcastDetector must provide this")
+              broadcast_info&.dig(:dimensional_scope) || [] # TODO!! BAAAD!
             when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
               # Use precomputed dimensional scope from InputCollector
               if arg_node.respond_to?(:path) && arg_node.path && @input_metadata

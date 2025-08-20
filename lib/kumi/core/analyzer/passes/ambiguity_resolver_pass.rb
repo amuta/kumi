@@ -19,7 +19,7 @@ module Kumi
           def run(errors)
             node_index = get_state(:node_index)
             @input_meta = get_state(:input_metadata)
-            @input_index = get_state(:input_index)
+            @input_name_index = get_state(:input_name_index)
             inferred_types = get_state(:inferred_types)
 
             # Create updated node_index with resolved ambiguous functions
@@ -192,7 +192,7 @@ module Kumi
 
           def build_argument_shapes_for_node(node)
             # Use DimTracer for accurate dimensional analysis
-            node.args.map { |arg| Kumi::Core::Analyzer::DimTracer.trace(arg, @input_metadata, @input_index)[:dims] }
+            node.args.map { |arg| Kumi::Core::Analyzer::DimTracer.trace(arg, @input_metadata, @input_name_index)[:dims] }
           end
 
           def parse_signatures(sig_strings)

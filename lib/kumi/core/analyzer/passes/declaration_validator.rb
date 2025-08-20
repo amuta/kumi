@@ -21,16 +21,16 @@ module Kumi
           def validate_node(node, errors)
             case node
             when Kumi::Syntax::ValueDeclaration
-              validate_attribute(node, errors)
+              validate_value(node, errors)
             when Kumi::Syntax::TraitDeclaration
               validate_trait(node, errors)
             end
           end
 
-          def validate_attribute(node, errors)
+          def validate_value(node, errors)
             return unless node.expression.nil?
 
-            report_error(errors, "attribute `#{node.name}` requires an expression", location: node.loc)
+            report_error(errors, "value `#{node.name}` requires an expression", location: node.loc)
           end
 
           def validate_trait(node, errors)

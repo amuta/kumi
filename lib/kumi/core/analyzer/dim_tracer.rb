@@ -11,11 +11,11 @@ module Kumi
         # - path: "users.name" (for inputs) or :decl_name (for decls)
         # - dims: array of symbolic indices, e.g. [:i], [:i, :j], or []
         # - depth: dims.size
-        def trace(node, input_metadata = {}, input_index = {})
+        def trace(node, input_metadata = {}, input_name_index = {})
           case node
           when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
             # Use metadata-driven approach (not broadcast prefixes)
-            dims = input_index[node.name][:dimensional_scope]
+            dims = input_name_index[node.name][:dimensional_scope]
             { root: :input, path: node.name, dims: dims, depth: dims.size }
 
           else

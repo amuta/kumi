@@ -10,7 +10,6 @@ module Kumi
       Core::Analyzer::Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
       Core::Analyzer::Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
       Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
-      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
       Core::Analyzer::Passes::CascadeConstraintValidator,      # 8. Validates cascade_and usage constraints.
       Core::Analyzer::Passes::CascadeDesugarPass,              # 9. Desugar cascade_and to regular and operations.
@@ -22,6 +21,7 @@ module Kumi
       Core::Analyzer::Passes::FunctionSignaturePass,           # 15. Resolves NEP-20 signatures for function calls.
       Core::Analyzer::Passes::TypeCheckerV2,                   # 16. Computes CallExpression result dtypes and validates constraints via RegistryV2.
       Core::Analyzer::Passes::AmbiguityResolverPass,           # 17. Resolves ambiguous functions using complete type information.
+      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Core::Analyzer::Passes::InputAccessPlannerPass,          # 18. Plans access strategies for input fields.
       Core::Analyzer::Passes::ScopeResolutionPass,             # 19. Plans execution scope and lifting needs for declarations.
       Core::Analyzer::Passes::JoinReducePlanningPass,          # 20. Plans join/reduce operations and stores in node_index (Generates IR Structs)
@@ -32,7 +32,7 @@ module Kumi
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
-      registry = Kumi::Registry.registry_v2  # Use the facade that includes custom functions
+      registry = Kumi::Registry.registry_v2 # Use the facade that includes custom functions
       state = state.with(:registry, registry)
 
       state = run_analysis_passes(schema, passes, state, errors)

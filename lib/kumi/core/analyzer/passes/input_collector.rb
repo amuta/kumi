@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO: ADD INFO ABOUT INPUT_INDEX -> easy way to get to the meta from references.
+# TODO: ADD INFO ABOUT input_name_index -> easy way to get to the meta from references.
 
 module Kumi
   module Core
@@ -30,7 +30,7 @@ module Kumi
         class InputCollector < PassBase
           def run(errors)
             input_meta = {}
-            @input_index = {}
+            @input_name_index = {}
 
             schema.inputs.each do |decl|
               name = decl.name
@@ -40,7 +40,7 @@ module Kumi
 
             input_meta.each_value(&:deep_freeze!)
 
-            state.with(:input_metadata, input_meta.freeze).with(:input_index, @input_index)
+            state.with(:input_metadata, input_meta.freeze).with(:input_name_index, @input_name_index)
           end
 
           private
@@ -91,7 +91,7 @@ module Kumi
             stamp_edges_from!(meta, errors, parent_depth: depth)
             validate_access_modes!(meta, errors, parent_depth: depth)
 
-            @input_index[full_name] = meta
+            @input_name_index[full_name] = meta
 
             meta
           end

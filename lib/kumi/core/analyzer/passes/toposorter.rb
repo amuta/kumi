@@ -18,7 +18,7 @@ module Kumi
             # Create node index for later passes to use
             node_index = build_node_index(definitions)
             order = compute_topological_order(dependency_graph, definitions, errors)
-            
+
             state.with(:evaluation_order, order).with(:node_index, node_index)
           end
 
@@ -26,50 +26,43 @@ module Kumi
 
           def build_node_index(definitions)
             index = {}
-            
+
             # Walk all declarations and their expressions to index every node
             definitions.each_value do |decl|
               index_node_recursive(decl, index)
             end
-            
+
             index
           end
-          
+
           def index_node_recursive(node, index)
             return unless node
-            
+
             # Index this node by its object_id
             index[node.object_id] = {
               node: node,
-              type: node.class.name.split('::').last,
+              type: node.class.name.split("::").last,
               metadata: {}
             }
-            
+
             # Use the same approach as the visitor pattern - recursively index all children
-            if node.respond_to?(:children)
-              node.children.each { |child| index_node_recursive(child, index) }
-            end
-            
+            node.children.each { |child| index_node_recursive(child, index) } if node.respond_to?(:children)
+
             # Index expression for declaration nodes
-            if node.respond_to?(:expression)
-              index_node_recursive(node.expression, index)
-            end
+            return unless node.respond_to?(:expression)
+
+            index_node_recursive(node.expression, index)
           end
 
           def compute_topological_order(graph, definitions, errors)
             temp_marks = Set.new
             perm_marks = Set.new
             order = []
-            cascades = get_state(:cascades) || {}
 
             visit_node = lambda do |node, path = []|
               return if perm_marks.include?(node)
 
               if temp_marks.include?(node)
-                # Check if this is a safe conditional cycle
-                cycle_path = path + [node]
-                return if safe_conditional_cycle?(cycle_path, graph, cascades)
-
                 # Allow this cycle - it's safe due to cascade mutual exclusion
                 report_unexpected_cycle(temp_marks, node, errors)
 
