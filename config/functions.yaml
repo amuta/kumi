@@ -181,7 +181,7 @@
   domain: core
   opset: 1
   class: scalar
-  signature: ["()->()", "(i)->(i)","(),()->()", "(i),(i)->(i)"]
+  signature: ["()->()", "(i)->(i)","(),()->()", "(i),(i)->(i)", "(),(),()->()","(i),(i),(i)->(i)"]
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate
@@ -707,7 +707,7 @@
 - name: struct.searchsorted
   domain: struct
   opset: 1
-  class: vector
+  class: aggregate # TODO: We probably need to pass info about each arg! about which one will be reduced
   summary: Indices where values should be inserted to maintain order
   signature:
     - "(i),()->()"       # edges 1-D, scalar v
