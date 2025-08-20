@@ -33,18 +33,60 @@ module Kumi
     end
 
     def self.run_analysis_passes(schema, passes, state, errors)
+      debug_on = Core::Analyzer::Debug.enabled?
+
       passes.each do |pass_class|
+        pass_name = pass_class.name.split("::").last
+
+        before = state.to_h if debug_on
+        Core::Analyzer::Debug.reset_log(pass: pass_name) if debug_on
+
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         pass_instance = pass_class.new(schema, state)
         begin
           state = pass_instance.run(errors)
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
           # and the pass that failed and line number if relevant
-          pass_name = pass_class.name.split("::").last
           message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
           errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
 
+          if debug_on
+            logs = Core::Analyzer::Debug.drain_log
+            elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
+            
+            Core::Analyzer::Debug.emit(
+              pass: pass_name,
+              diff: {},
+              elapsed_ms: elapsed_ms,
+              logs: logs + [{ level: :error, id: :exception, message: e.message, error_class: e.class.name }]
+            )
+          end
+
           raise
+        end
+        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
+
+        if debug_on
+          after = state.to_h
+          
+          # Optional immutability guard
+          if ENV["KUMI_DEBUG_REQUIRE_FROZEN"] == "1"
+            (after || {}).each do |k, v|
+              next if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) || (v.is_a?(String) && v.frozen?)
+              raise "State[#{k}] not frozen: #{v.class}" unless v.frozen?
+            end
+          end
+          
+          diff = Core::Analyzer::Debug.diff_state(before, after)
+          logs = Core::Analyzer::Debug.drain_log
+
+          Core::Analyzer::Debug.emit(
+            pass: pass_name,
+            diff: diff,
+            elapsed_ms: elapsed_ms,
+            logs: logs
+          )
         end
       end
       state

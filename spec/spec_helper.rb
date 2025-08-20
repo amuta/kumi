@@ -10,6 +10,7 @@ SimpleCov.start do
   add_filter "/spec/"
   add_filter "/vendor/"
 
+  add_group "AnalyzerDebug", ["lib/kumi/core/analyzer/debug/*.rb", "lib/kumi/core/analyzer/debug.rb"]
   add_group "Analyzer", ["lib/kumi/core/analyzer/**/*.rb", "lib/kumi/analyzer.rb"]
   add_group "Compiler", ["lib/kumi/compiler.rb", "lib/kumi/core/compiler/**/*.rb"]
   add_group "IR", ["lib/kumi/core/ir/**/*.rb"]
