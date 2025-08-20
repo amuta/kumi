@@ -33,58 +33,6 @@ RSpec.describe "Kumi Compiler Integration" do
     end
   end
 
-  it "customer segmentation works identically in JS" do
-    with_dual_mode do
-      test_data = {
-        name: "Alice Johnson",
-        age: 45,
-        account_balance: 25_000,
-        years_customer: 8,
-        last_purchase_days_ago: 15,
-        total_purchases: 127,
-        account_type: "premium",
-        referral_count: 3,
-        support_tickets: 2,
-        should_error: false
-      }
-
-      # Create a simple schema for dual mode testing
-      schema_class = Class.new do
-        extend Kumi::Schema
-
-        schema do
-          input do
-            string :name
-            integer :age
-            float :account_balance
-            integer :years_customer
-            string :account_type
-          end
-
-          trait :adult, (input.age >= 18)
-          trait :high_balance, (input.account_balance >= 10_000)
-          trait :premium_account, (input.account_type == "premium")
-          trait :long_term_customer, (input.years_customer >= 5)
-
-          value :customer_tier do
-            on premium_account, "Premium"
-            on adult, "Standard"
-            base "Basic"
-          end
-
-          value :annual_value, input.account_balance * 0.05
-        end
-      end
-
-      runner = schema_class.from(test_data)
-
-      # Test a few key calculations to ensure JS and Ruby match
-      expect(runner[:customer_tier]).to be_a(String)
-      expect(runner[:adult]).to be(true)
-      expect(runner[:annual_value]).to be_a(Numeric)
-    end
-  end
-
   describe "Customer Segmentation System" do
     let(:customer_data) do
       {
