@@ -26,7 +26,7 @@ module Kumi
         end
 
         def load_json(json_str)
-          h = JSON.parse(json_str, symbolize_names: true)
+          h = JSON.parse(json_str)  # Don't symbolize keys - let decode_json_safe handle it
           ::Kumi::Core::Analyzer::AnalysisState.new(decode_json_safe(h))
         end
 
@@ -46,12 +46,15 @@ module Kumi
         def decode_json_safe(x)
           case x
           when Hash
+            # Check for special encoding markers first (before key transformation)
             if    x.key?("$sym") then x["$sym"].to_sym
-            elsif x.key?("$set") then Set.new(x["$set"].map { decode_json_safe(_1) })
+            elsif x.key?("$set") then Set.new(x["$set"].map { |item| decode_json_safe(item) })
             elsif x.key?("$ir")  then x["$ir"]  # Keep as string inspection for JSON round-trip
-            else x.transform_keys(&:to_sym).transform_values { decode_json_safe(_1) }
+            else 
+              # Regular hash - transform keys to symbols and recursively decode values
+              x.transform_keys(&:to_sym).transform_values { |value| decode_json_safe(value) }
             end
-          when Array then x.map { decode_json_safe(_1) }
+          when Array then x.map { |item| decode_json_safe(item) }
           else x
           end
         end
