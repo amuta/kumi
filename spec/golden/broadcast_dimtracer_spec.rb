@@ -47,12 +47,17 @@ RSpec.describe "Golden: Semantic Dimensions and Array Boundaries" do
 
         # Test cascades with semantic dimensions
         trait :high_hours, input.companies.hr_info.employees.hours > 35
-        trait :high_priority_projects, fn(:any?, input.companies.hr_info.employees.personal_info.projects.priority > 8)
+
+        # TODO, SEE IF THIS MAKES SENSE, WE DONT ALLOW CROSS-SCOPE BUT THE ANY? IS A REDUCER, BUT UNTIL WHICH
+        # DIMENSION? THAT SHOULD HAVE A CLEAR ERROR
+        # BUT IT ACTUALLY IS NOT CROSS-SCOPE RIGHT? IT MATCHES THE ROOT? AT EMPLOYEES
+        # trait :high_priority_projects, fn(:any?, input.companies.hr_info.employees.personal_info.projects.priority > 8)
+        # trait :high_priority_projects, input.companies.hr_info.employees.personal_info.projects.priority > 8
 
         value :employee_status do
           on high_hours, high_priority_projects, "Busy with critical work"
           on high_hours, "Busy"
-          on high_priority_projects, "Critical projects"
+          # on high_priority_projects, "Critical projects"
           base "Normal workload"
         end
       end

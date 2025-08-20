@@ -9,14 +9,15 @@ module Kumi
         # PRODUCES: :broadcasts
         class BroadcastDetector < PassBase
           def run(errors)
-            input_meta = get_state(:input_metadata) || {}
-            definitions = get_state(:declarations) || {}
+            @input_meta = get_state(:input_metadata)
+            @input_index = get_state(:input_index)
+            definitions = get_state(:declarations)
 
             # Find array fields with their element types
-            array_fields = find_array_fields(input_meta)
+            array_fields = find_array_fields(@input_meta)
 
             # Build nested paths metadata for nested array traversal
-            nested_paths = build_nested_paths_metadata(input_meta)
+            nested_paths = build_nested_paths_metadata(@input_meta)
 
             # Build compiler metadata
             compiler_metadata = {
@@ -24,10 +25,10 @@ module Kumi
               vectorized_operations: {},
               reduction_operations: {},
               nested_paths: nested_paths,
-              nested_prefixes: nested_paths.keys.map { |segs| segs.join(".") },  # For DimTracer string matching
-              array_prefixes: array_fields.keys.map(&:to_s),  # For DimTracer string matching
-              flattening_declarations: {},  # Track which declarations need flattening
-              cascade_strategies: {}       # Pre-computed cascade processing strategies
+              nested_prefixes: nested_paths.keys.map { |segs| segs.join(".") }, # For DimTracer string matching
+              array_prefixes: array_fields.keys.map(&:to_s), # For DimTracer string matching
+              flattening_declarations: {}, # Track which declarations need flattening
+              cascade_strategies: {} # Pre-computed cascade processing strategies
             }
 
             # Track which values are vectorized for type inference
@@ -59,10 +60,16 @@ module Kumi
                 compiler_metadata[:flattening_declarations][name] = result[:info]
                 # Reduction produces scalar, not vectorized
                 vectorized_values[name] = { vectorized: false }
+              when :scalar
+                compiler_metadata[:vectorized_operations][name] = result[:info] # TODO: (URGENT) REMOVE
+                vectorized_values[name] = { vectorized: false }
               end
 
               # Removed: compilation metadata is unused; reintroduce when lowering consumes it.
             end
+
+            # Validate that all declarations have dimensional_scope
+            validate_dimensional_scope_completeness(compiler_metadata)
 
             # Update state with broadcasts metadata for DimTracer use
             @state = state.with(:broadcasts, compiler_metadata.freeze)
@@ -71,9 +78,48 @@ module Kumi
 
           private
 
-          def infer_argument_scope(arg, array_fields, nested_paths)
+          def validate_dimensional_scope_completeness(compiler_metadata)
+            missing_scope = []
+
+            # Check vectorized_operations for dimensional_scope in each declaration
+            vectorized_ops = compiler_metadata[:vectorized_operations] || {}
+            vectorized_ops.each do |name, metadata|
+              puts "DEBUG: vectorized_operations[#{name}] -> #{metadata.inspect}" if ENV["DEBUG_BROADCAST"]
+
+              next if !metadata || metadata[:dimensional_scope]
+
+              missing_scope << {
+                name: name,
+                category: :vectorized_operations,
+                keys: metadata.keys
+              }
+            end
+
+            # Check reduction_operations for declarations that might need dimensional_scope
+            reduction_ops = compiler_metadata[:reduction_operations] || {}
+            reduction_ops.each do |name, metadata|
+              puts "DEBUG: reduction_operations[#{name}] -> #{metadata.inspect}" if ENV["DEBUG_BROADCAST"]
+
+              # For reduction operations, we might not need dimensional_scope since they reduce dimensions
+              # But let's see what they have for now
+            end
+
+            if missing_scope.any?
+              if ENV["DEBUG_BROADCAST"]
+                puts "❌ BroadcastDetector validation FAILED: Missing dimensional_scope for:"
+                missing_scope.each do |item|
+                  puts "  - #{item[:name]} in #{item[:category]} (keys: #{item[:keys]})"
+                end
+              end
+              raise "BroadcastDetector must provide dimensional_scope for ALL declarations. Found #{missing_scope.size} missing."
+            elsif ENV["DEBUG_BROADCAST"]
+              puts "✅ BroadcastDetector validation PASSED: All vectorized operations have dimensional_scope"
+            end
+          end
+
+          def infer_argument_scope(arg)
             # Use unified DimTracer for dimensional analysis
-            trace_result = DimTracer.trace(arg, @state)
+            trace_result = DimTracer.trace(arg, @input_meta, @input_index)
             trace_result[:dims]
           end
 
@@ -92,7 +138,6 @@ module Kumi
             end
           end
 
-
           def find_array_fields(input_meta)
             result = {}
             input_meta.each do |name, meta|
@@ -100,7 +145,7 @@ module Kumi
 
               result[name] = {
                 element_fields: meta[:children].keys,
-                element_types: meta[:children].transform_values { |v| v[:type] || :any }
+                element_types: meta[:children].transform_values { |v| v[:type] || :any } # TODO: CHECK IF NEEDED
               }
             end
             result
@@ -160,20 +205,30 @@ module Kumi
             when Kumi::Syntax::InputElementReference
               # Check if this path exists in nested_paths metadata (supports nested arrays)
               if nested_paths.key?(expr.path)
-                { type: :vectorized, info: { source: :nested_array_access, path: expr.path, nested_metadata: nested_paths[expr.path] } }
+                # Vectorized: scope is the first path element (array container)
+                scope = expr.path.length > 1 ? [expr.path.first] : []
+                { type: :vectorized,
+                  info: { source: :nested_array_access, path: expr.path, nested_metadata: nested_paths[expr.path],
+                          dimensional_scope: scope } }
               elsif array_fields.key?(expr.path.first)
-                { type: :vectorized, info: { source: :array_field_access, path: expr.path } }
+                # Vectorized: scope is the first path element (array container)
+                scope = [expr.path.first]
+                { type: :vectorized, info: { source: :array_field_access, path: expr.path, dimensional_scope: scope } }
               else
-                { type: :scalar }
+                # Scalar: no dimensional scope
+                { type: :scalar, info: { dimensional_scope: [] } }
               end
 
             when Kumi::Syntax::DeclarationReference
               # Check if this references a vectorized value
               vector_info = vectorized_values[expr.name]
               if vector_info && vector_info[:vectorized]
-                { type: :vectorized, info: { source: :vectorized_declaration, name: expr.name } }
+                # Extract scope from the referenced declaration's vectorization info
+                ref_scope = vector_info[:scope] || []
+                { type: :vectorized, info: { source: :vectorized_declaration, name: expr.name, dimensional_scope: ref_scope } }
               else
-                { type: :scalar }
+                # Scalar declaration reference
+                { type: :scalar, info: { dimensional_scope: [] } }
               end
 
             when Kumi::Syntax::CallExpression
@@ -183,7 +238,8 @@ module Kumi
               analyze_cascade_vectorization(name, expr, array_fields, nested_paths, vectorized_values, errors, definitions)
 
             else
-              { type: :scalar }
+              # Default scalar case - literals, etc.
+              { type: :scalar, info: { dimensional_scope: [] } }
             end
           end
 
@@ -219,7 +275,7 @@ module Kumi
 
             # 3) Reducers: only reduce when the input is actually vectorized
             if is_reducer
-              return { type: :scalar } unless vec_any
+              return { type: :scalar, dimensional_scope: [] } unless vec_any
 
               # which args were vectorized?
               flatten_indices = vec_idx.dup
@@ -228,13 +284,17 @@ module Kumi
 
               src_info = arg_infos[vectorized_arg_index]
 
+              # Compute dimensional scope for reduction operations
+              scope = infer_argument_scope(argument_ast)
+
               return {
                 type: :reduction,
                 info: {
                   function: expr.fn_name,
                   source: src_info[:source],
                   argument: argument_ast, # << keep AST of the vectorized argument
-                  flatten_argument_indices: flatten_indices
+                  flatten_argument_indices: flatten_indices,
+                  dimensional_scope: scope
                 }
               }
             end
@@ -243,7 +303,7 @@ module Kumi
             if is_structure
               # If any arg is itself a PURE reducer call (e.g., size(sum(x))), the inner collapses first ⇒ outer is scalar
               # But dual-nature functions (both reducer AND structure) should be treated as structure functions when nested
-              return { type: :scalar } if expr.args.any? do |a|
+              return { type: :scalar, dimensional_scope: [] } if expr.args.any? do |a|
                 if a.is_a?(Kumi::Syntax::CallExpression)
                   arg_metadata = node_index&.dig(a.object_id, :metadata) || {}
                   arg_fn_class = arg_metadata[:fn_class] || get_function_class(a, arg_metadata)
@@ -254,17 +314,23 @@ module Kumi
               end
 
               # Structure fn over a vectorized element path ⇒ per-parent vectorization
-              return { type: :scalar } unless vec_any
+              return { type: :scalar, dimensional_scope: [] } unless vec_any
 
               src_info     = arg_infos[vec_idx.first]
               parent_scope = src_info[:parent_scope] || src_info[:source] # fallback if analyzer encodes parent separately
+
+              # Compute dimensional scope for structure operations
+              first_vec_arg = expr.args[vec_idx.first]
+              scope = infer_argument_scope(first_vec_arg)
+
               return {
                 type: :vectorized,
                 info: {
                   operation: expr.fn_name,
                   source: src_info[:source],
                   parent_scope: parent_scope,
-                  vectorized_args: vec_idx.to_h { |i| [i, true] }
+                  vectorized_args: vec_idx.to_h { |i| [i, true] },
+                  dimensional_scope: scope
                 }
               }
 
@@ -278,6 +344,10 @@ module Kumi
               sources = vec_idx.map { |i| arg_infos[i][:array_source] }.compact.uniq
               if sources.size > 1
                 # Cross-scope operation detected - mark it for join handling in LowerToIR
+                # Compute dimensional scope from first vectorized argument
+                first_vec_arg = expr.args[vec_idx.first]
+                scope = infer_argument_scope(first_vec_arg)
+
                 return {
                   type: :vectorized,
                   info: {
@@ -286,23 +356,32 @@ module Kumi
                     requires_join: true,
                     dimensions: vec_idx.map { |i| arg_infos[i][:dimension] || [arg_infos[i][:array_source]] },
                     vec_idx: vec_idx,
-                    array_source: sources.first # Use first source as primary for compatibility
+                    array_source: sources.first, # Use first source as primary for compatibility
+                    dimensional_scope: scope
                   }
                 }
               end
+
+              # Compute dimensional scope for vectorized operations
+              first_vec_arg = expr.args[vec_idx.first]
+              _source, dimension = trace_dimensional_source(first_vec_arg, arg_infos[vec_idx.first], vectorized_values, array_fields,
+                                                            definitions)
+              scope = dimension.is_a?(Array) && dimension.length > 1 ? [dimension.first] : []
 
               return {
                 type: :vectorized,
                 info: {
                   operation: expr.fn_name,
                   source: arg_infos[vec_idx.first][:source],
-                  vectorized_args: vec_idx.to_h { |i| [i, true] }
+                  vectorized_args: vec_idx.to_h { |i| [i, true] },
+                  dimensional_scope: scope,
+                  dimension: dimension
                 }
               }
             end
 
-            # 6) Pure scalar
-            { type: :scalar }
+            # 6) Pure scalar - still store dimensional scope (empty for scalars)
+            { type: :scalar, info: { dimensional_scope: [] } }
           end
 
           def get_function_class(expr, metadata)
@@ -360,7 +439,7 @@ module Kumi
                 info = result[:info]
                 if info && info[:argument]
                   # Check if the reduction argument has array scope that would be preserved
-                  arg_scope = infer_argument_scope(info[:argument], array_fields, nested_paths)
+                  arg_scope = infer_argument_scope(info[:argument])
                   if arg_scope.length > 1
                     # Multi-dimensional reduction - likely preserves outer dimension (per-player)
                     { vectorized: true, source: :grouped_reduction, array_source: arg_scope.first }
@@ -489,7 +568,12 @@ module Kumi
                     puts "    Dimension conflict: #{has_dimension_conflict}"
                   end
                   # Mark for scalar handling but don't error - let ScopeResolutionPass handle it
-                  return { type: :scalar }
+                  return {
+                    type: :scalar,
+                    info: {
+                      dimensional_scope: []
+                    }
+                  }
                 end
 
                 # Use the first valid source as the overall condition source
@@ -504,6 +588,7 @@ module Kumi
             end
 
             if is_vectorized
+
               # Validate dimensional compatibility
               all_sources = (condition_sources + result_sources).compact.uniq
               all_dimensions = (condition_dimensions + result_dimensions).compact.uniq
@@ -534,25 +619,31 @@ module Kumi
                 unless is_valid_hierarchical
                   # Multiple definite dimensional sources - mark for scalar handling
                   puts "  -> MARKING FOR SCALAR HANDLING" if ENV["DEBUG_CASCADE"]
-                  return { type: :scalar } # Treat as scalar to prevent further errors
+                  return {
+                    type: :scalar,
+                    info: {
+                      dimensional_scope: []
+                    }
+                  } # Treat as scalar to prevent further errors
                 end
               end
 
               # Compute cascade processing strategy based on dimensional analysis
               processing_strategy = compute_cascade_processing_strategy(all_dimensions.first, nested_paths)
 
+              dimensional_scope = all_dimensions.max_by(&:size) # TODO: IS THIS IT?
               { type: :vectorized, info: {
                 source: :cascade_with_vectorized_conditions_or_results,
                 dimensional_requirements: {
                   conditions: { sources: condition_sources.uniq, dimensions: condition_dimensions.uniq },
                   results: { sources: result_sources.uniq, dimensions: result_dimensions.uniq }
                 },
-                primary_dimension: all_dimensions.first,
+                dimensional_scope:,
                 nested_paths: extract_nested_paths_from_dimensions(all_dimensions.first, nested_paths),
                 processing_strategy: processing_strategy
               } }
             else
-              { type: :scalar }
+              { type: :scalar, info: { dimensional_scope: [] } }
             end
           end
 

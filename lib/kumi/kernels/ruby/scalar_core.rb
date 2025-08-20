@@ -54,7 +54,7 @@ module Kumi
           a != b
         end
 
-        def kumi_and(a, b)
+        def kumi_and(a, b = true)
           a && b
         end
 

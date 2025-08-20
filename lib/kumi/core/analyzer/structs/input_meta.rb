@@ -7,6 +7,7 @@ module Kumi
       module Structs
         # Represents metadata for a single input field produced by InputCollector
         InputMeta = Struct.new(
+          :full_name,
           :type,
           :domain,
           :container,

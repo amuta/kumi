@@ -7,6 +7,10 @@ module Kumi
       include Node
 
       def children = []
+
+      def name
+        path.join(".")
+      end
     end
   end
 end

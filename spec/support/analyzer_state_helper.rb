@@ -16,7 +16,6 @@ module AnalyzerStateHelper
   def analyze_up_to(target_state, &schema_block)
     syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&schema_block)
 
-    # Map state names to pass indices
     state_to_pass = {
       name_index: 0,           # NameIndexer
       input_metadata: 1,       # InputCollector
@@ -30,17 +29,18 @@ module AnalyzerStateHelper
       cascade_desugared: 8,    # CascadeDesugarPass
       call_normalized: 9,      # CallNameNormalizePass
       broadcasts: 10,          # BroadcastDetector
-      types_inferred: 11,      # TypeInferencerPass
-      types_consistent: 12,    # TypeConsistencyChecker
-      function_signatures: 13, # FunctionSignaturePass
-      types_checked: 14,       # TypeChecker
-      ambiguity_resolved: 15,  # AmbiguityResolverPass
-      access_plans: 16,        # InputAccessPlannerPass
-      scope_plans: 17,         # ScopeResolutionPass
-      join_plans: 18,          # JoinReducePlanningPass (stores join plans in node_index)
-      join_reduce_plans: 18,   # JoinReducePlanningPass (also provides join_plans via node_index)
-      contracts_checked: 19,   # ContractCheckPass
-      ir_module: 20            # LowerToIRPass
+      cross_scope_validated: 11, # CrossScopeValidator
+      types_inferred: 12,      # TypeInferencerPass
+      types_consistent: 13,    # TypeConsistencyChecker
+      function_signatures: 14, # FunctionSignaturePass
+      types_checked: 15,       # TypeChecker
+      ambiguity_resolver: 16,  # AmbiguityResolverPass
+      access_plans: 17,        # InputAccessPlannerPass
+      scope_plans: 18,         # ScopeResolutionPass
+      join_plans: 19,          # JoinReducePlanningPass (stores join plans in node_index)
+      join_reduce_plans: 19,   # JoinReducePlanningPass (alias for join_plans)
+      contracts_checked: 20,   # ContractCheckPass
+      ir_module: 21            # LowerToIRPass
     }
 
     target_pass_index = state_to_pass[target_state]
@@ -96,9 +96,9 @@ module AnalyzerStateHelper
     # Find the latest state we need
     state_order = %i[name_index input_metadata declarations validated semantic_valid
                      dependencies unsat_detected evaluation_order cascade_validated
-                     cascade_desugared call_normalized broadcasts types_inferred
-                     types_consistent function_signatures types_checked ambiguity_resolved
-                     access_plans scope_plans join_reduce_plans ir_module]
+                     cascade_desugared call_normalized broadcasts cross_scope_validated
+                     types_inferred types_consistent function_signatures types_checked
+                     ambiguity_resolver access_plans scope_plans join_reduce_plans ir_module]
 
     latest_index = state_names.map { |s| state_order.index(s) }.compact.max
     latest_state = state_order[latest_index]

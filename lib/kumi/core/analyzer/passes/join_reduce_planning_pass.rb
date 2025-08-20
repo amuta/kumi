@@ -26,7 +26,7 @@ module Kumi
             process_reductions(broadcasts, scope_plans, declarations, input_metadata, plans, node_index)
 
             # Process join operations (for non-reduction vectorized operations)
-            process_joins(broadcasts, scope_plans, declarations, plans, node_index)
+            process_joins(broadcasts, scope_plans, declarations, input_metadata, plans, node_index)
 
             # Process all remaining CallExpression nodes that don't have join plans yet
             process_remaining_calls(node_index, scope_plans, declarations, input_metadata)
@@ -98,7 +98,7 @@ module Kumi
             end
           end
 
-          def process_joins(broadcasts, scope_plans, declarations, plans, node_index)
+          def process_joins(broadcasts, scope_plans, declarations, input_metadata, plans, node_index)
             vectorized_ops = broadcasts[:vectorized_operations] || {}
 
             vectorized_ops.each do |name, _info|
@@ -109,16 +109,56 @@ module Kumi
               # annotate per-call
               each_call(decl.expression) do |call|
                 arg_dims = arg_dims_list(call, node_index)
-                tgt = Array(scope_plan.scope)
-                policy = resolve_policy(call) # defaults to :zip unless registry says otherwise
-                lifts = compute_lifts(arg_dims, tgt)
-                node_index[call.object_id] ||= {}
-                node_index[call.object_id][:join_plan] = {
-                  policy: policy,
-                  target_scope: tgt,
-                  lifts: lifts,
-                  requires_indices: compute_requires_indices(arg_dims, tgt, is_reduce: false)
-                }
+                vectorized_args = arg_dims.any? { |dims| !dims.empty? }
+                
+                # Check if this is an aggregate function using metadata from node_index
+                function_metadata = node_index.dig(call.object_id, :metadata) || {}
+                function_class = function_metadata[:fn_class]
+                is_aggregate = function_class == :aggregate
+                
+                # Handle aggregate functions as reductions, even in vectorized contexts
+                if vectorized_args && is_aggregate
+                  if ENV["DEBUG_JOIN_REDUCE"]
+                    puts "  Detected nested reduction in vectorized context: #{call.fn_name}"
+                  end
+                  
+                  # Create a synthetic reduction info structure to reuse existing logic
+                  reduction_info = {
+                    function: call.fn_name,
+                    argument: call.args.find { |arg| 
+                      arg_scope = (node_index[arg.object_id] || {})[:inferred_scope] || []
+                      !arg_scope.empty?
+                    }
+                  }
+                  
+                  # Use existing helper functions for proper axis/scope calculation
+                  source_scope = get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata, node_index)
+                  axis, result_scope = determine_reduction_axis(source_scope, reduction_info, scope_plans, name)
+                  flatten_indices = determine_flatten_indices(reduction_info)
+                  lifts = compute_lifts(arg_dims, source_scope)
+                  
+                  node_index[call.object_id] ||= {}
+                  node_index[call.object_id][:join_plan] = {
+                    policy: :reduce,
+                    target_scope: result_scope,
+                    axis: axis,
+                    flatten_args: Array(flatten_indices),
+                    lifts: lifts,
+                    requires_indices: compute_requires_indices(arg_dims, source_scope, is_reduce: true)
+                  }
+                else
+                  # Non-aggregate functions use the existing logic
+                  tgt = Array(scope_plan.scope)
+                  policy = resolve_policy(call) # defaults to :zip unless registry says otherwise
+                  lifts = compute_lifts(arg_dims, tgt)
+                  node_index[call.object_id] ||= {}
+                  node_index[call.object_id][:join_plan] = {
+                    policy: policy,
+                    target_scope: tgt,
+                    lifts: lifts,
+                    requires_indices: compute_requires_indices(arg_dims, tgt, is_reduce: false)
+                  }
+                end
               end
             end
 
@@ -351,10 +391,22 @@ module Kumi
                   puts "  Detected as post-propagation reduction: #{call.fn_name}"
                 end
                 
-                # Create reduction plan for this overlooked reduction
+                # Create a synthetic reduction info structure to reuse existing logic
+                reduction_info = {
+                  function: call.fn_name,
+                  argument: call.args.find { |arg| 
+                    arg_scope = (node_index[arg.object_id] || {})[:inferred_scope] || []
+                    !arg_scope.empty?
+                  }
+                }
+                
+                # Use existing helper functions for proper axis/scope calculation  
                 source_scope = arg_dims.find { |dims| !dims.empty? } || []
-                axis = source_scope  # Reduce all dimensions for now
-                result_scope = []
+                # For post-propagation reductions, we don't have a declaration name context,
+                # so we use a simplified version of the reduction axis logic
+                axis = source_scope  # Reduce all source dimensions
+                result_scope = []   # Reductions always produce scalar results
+                flatten_indices = [0] # Flatten the first (vectorized) argument
                 
                 lifts = compute_lifts(arg_dims, source_scope)
                 
@@ -362,7 +414,7 @@ module Kumi
                   policy: :reduce,
                   target_scope: result_scope,
                   axis: axis,
-                  flatten_args: Array.new(arg_dims.length, false),
+                  flatten_args: flatten_indices,
                   lifts: lifts,
                   requires_indices: compute_requires_indices(arg_dims, source_scope, is_reduce: true)
                 }

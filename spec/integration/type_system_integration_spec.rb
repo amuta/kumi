@@ -108,7 +108,7 @@ RSpec.describe "Type System Integration" do
         Kumi.schema do
           value :invalid, fn(:unknown_function, 1, 2)
         end
-      end.to raise_error(KeyError, /unknown function/)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /unknown function/)
     end
   end
 

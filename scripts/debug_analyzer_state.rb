@@ -4,8 +4,8 @@
 # Enhanced debug script for analyzing Kumi's analyzer state
 # Usage: ruby scripts/debug_analyzer_state.rb
 
-require_relative '../lib/kumi'
-require_relative '../spec/support/analyzer_state_helper'
+require_relative "../lib/kumi"
+require_relative "../spec/support/analyzer_state_helper"
 
 include AnalyzerStateHelper
 include Kumi::Support
@@ -13,7 +13,7 @@ include Kumi::Support
 puts "=== ENHANCED ANALYZER STATE DEBUGGING ==="
 
 # Complex schema for dimensional analysis testing
-state = analyze_up_to(:join_plans) do
+state = analyze_up_to(:ir_module) do
   input do
     array :companies do
       string :name
@@ -43,9 +43,9 @@ end
 puts "🚀 ONE-COMMAND COMPLETE DIAGNOSTIC:"
 StateDumper.dump_complete_diagnostic(state)
 
-puts "\n" + "="*60
+puts "\n" + ("=" * 60)
 puts "ADDITIONAL ANALYSIS EXAMPLES:"
-puts "="*60
+puts "=" * 60
 
 puts "\n🔍 Quick issue detection:"
 StateDumper.dump_issue_summary(state)
@@ -57,10 +57,10 @@ puts "\n📊 Find reduction operations:"
 StateDumper.find_nodes_by_function(state, :sum)
 
 puts "\n🔗 Dependency analysis:"
-sum_nodes = state[:node_index].select { |oid, meta|
-  node = meta[:expression_node] || meta[:node] 
+sum_nodes = state[:node_index].select do |oid, meta|
+  node = meta[:expression_node] || meta[:node]
   node&.respond_to?(:fn_name) && node.fn_name == :sum
-}
+end
 
 if sum_nodes.any?
   target_oid = sum_nodes.keys.first

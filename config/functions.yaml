@@ -181,7 +181,7 @@
   domain: core
   opset: 1
   class: scalar
-  signature: ["(),()->()", "(i),(i)->(i)"]
+  signature: ["()->()", "(i)->(i)","(),()->()", "(i),(i)->(i)"]
   type_vars: {B1: Bool, B2: Bool}
   dtypes: {result: "bool"}
   null_policy: propagate

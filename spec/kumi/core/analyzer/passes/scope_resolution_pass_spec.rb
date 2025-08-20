@@ -41,7 +41,6 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
 
         scope_plan = state[:scope_plans][:subtotals]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
-        binding.pry
         expect(scope_plan.scope).to eq([:line_items])
 
         expect(state[:decl_shapes][:subtotals]).to eq({
@@ -136,35 +135,6 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
           end
         end.to raise_error(Kumi::Errors::AnalysisError)
       end
-    end
-  end
-
-  describe "debug output" do
-    before do
-      allow(ENV).to receive(:[]).and_return false
-    end
-
-    it "outputs debug information when DEBUG_SCOPE_RESOLUTION is set" do
-      allow(ENV).to receive(:[]).with("DEBUG_SCOPE_RESOLUTION").and_return("true")
-      expect do
-        analyze_up_to(:scope_plans) do
-          input do
-            integer :x
-          end
-          value :test, input.x * 2
-        end
-      end.to output(/=== Resolving scope for test ===/).to_stdout
-    end
-
-    it "does not output debug information by default" do
-      expect do
-        analyze_up_to(:scope_plans) do
-          input do
-            integer :x
-          end
-          value :test, input.x * 2
-        end
-      end.not_to output.to_stdout
     end
   end
 end

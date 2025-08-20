@@ -1,23 +1,36 @@
 # frozen_string_literal: true
 
+# TODO: ADD INFO ABOUT INPUT_INDEX -> easy way to get to the meta from references.
+
 module Kumi
   module Core
     module Analyzer
       module Passes
-        # Emits per-node metadata:
-        #   :type, :domain
-        #   :container     => :scalar | :field | :array
-        #   :access_mode   => :field | :element          # how THIS node is read once reached
-        #   :enter_via     => :hash | :array           # how we HOP from parent to THIS node
-        #   :consume_alias => true|false               # inline array hop (alias is not a hash key)
-        #   :children      => { name => node_meta }    # optional
+        # RESPONSIBILITY: Collect and structure input field metadata for type inference and access planning
+        # DEPENDENCIES: Schema input declarations from parser
         #
-        # Invariants:
-        # - Any nested array (child depth ≥ 1) must declare its element (i.e., have children).
-        # - Depth-0 inputs always: enter_via :hash, consume_alias false, access_mode :field.
+        # PRODUCES:
+        #   - :input_metadata - Hierarchical metadata for all input fields containing:
+        #     * :type, :domain - Field type and validation constraints
+        #     * :container - Classification: :scalar | :field | :array | :hash
+        #     * :access_mode - How field is accessed: :field | :element
+        #     * :enter_via - Navigation method: :hash | :array
+        #     * :consume_alias - Whether field creates array hop alias
+        #     * :children - Nested field metadata for complex types
+        #     * :dimensional_scope - Array scopes containing this field
+        #
+        # RELATIONSHIP WITH FunctionSignaturePass:
+        #   - Provides structured input metadata for initial analysis and validation
+        #   - FunctionSignaturePass populates node_index with types as the canonical interface
+        #   - Node_index (object_id-based) eliminates naming issues with nested array elements
+        #
+        # INVARIANTS:
+        #   - Nested arrays (depth ≥ 1) must declare their element structure
+        #   - Root inputs always: enter_via :hash, consume_alias false, access_mode :field
         class InputCollector < PassBase
           def run(errors)
             input_meta = {}
+            @input_index = {}
 
             schema.inputs.each do |decl|
               name = decl.name
@@ -26,7 +39,8 @@ module Kumi
             end
 
             input_meta.each_value(&:deep_freeze!)
-            state.with(:input_metadata, input_meta.freeze)
+
+            state.with(:input_metadata, input_meta.freeze).with(:input_index, @input_index)
           end
 
           private
@@ -35,20 +49,20 @@ module Kumi
 
           def collect_field_metadata(decl, errors, depth:, name:, path:, parent_scope:)
             children = nil
-            
+
             # For children, the current field becomes part of the scope if it's an array
             current_scope = parent_scope.dup
             current_scope << name.to_sym if decl.type == :array
-            
+
             if decl.children&.any?
               children = {}
               decl.children.each do |child|
                 child_path = path + [child.name]
                 children[child.name] = collect_field_metadata(
-                  child, errors, 
-                  depth: depth + 1, 
-                  name: child.name, 
-                  path: child_path, 
+                  child, errors,
+                  depth: depth + 1,
+                  name: child.name,
+                  path: child_path,
                   parent_scope: current_scope
                 )
               end
@@ -60,7 +74,10 @@ module Kumi
             # This represents the dimensional scope when accessing this field
             dimensional_scope = parent_scope.dup
 
+            full_name = path.join(".")
+
             meta = Structs::InputMeta.new(
+              full_name: full_name,
               type: decl.type,
               domain: decl.domain,
               container: kind_from_type(decl.type),
@@ -70,8 +87,12 @@ module Kumi
               children: children,
               dimensional_scope: dimensional_scope
             )
+
             stamp_edges_from!(meta, errors, parent_depth: depth)
             validate_access_modes!(meta, errors, parent_depth: depth)
+
+            @input_index[full_name] = meta
+
             meta
           end
 
@@ -107,7 +128,7 @@ module Kumi
               kids.each_value do |child|
                 child.enter_via = :hash
                 child.consume_alias = false
-                child.access_mode ||= :field  # Only set if not explicitly specified
+                child.access_mode ||= :field # Only set if not explicitly specified
               end
 
             when :array
@@ -156,12 +177,10 @@ module Kumi
                   unless single && %i[scalar array].include?(child.container)
                     report_error(errors, "access_mode :element only valid for single scalar/array element (at :#{kname})", location: nil)
                   end
-                else
+                elsif child.container == :scalar
                   # Only scalar children under non-array parents are invalid with :element mode
                   # Arrays under hash/object parents can have :element mode (for arrays of scalars)
-                  if child.container == :scalar
-                    report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
-                  end
+                  report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
                 end
               end
             end

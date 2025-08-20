@@ -4,24 +4,35 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Apply NEP-20 signature resolution to function calls
-        # DEPENDENCIES: :node_index from Toposorter, :decl_shapes (preferred), :broadcasts (optional)
+        # RESPONSIBILITY: Apply NEP-20 signature resolution to function calls and populate type information
+        # DEPENDENCIES: :node_index from Toposorter, :input_metadata, :inferred_types, :decl_shapes (preferred), :broadcasts (optional)
         #
-        # PRODUCES: 
+        # PRODUCES:
         #   - Signature metadata in node_index for CallExpression nodes
+        #   - :inferred_type in node_index for InputElementReference nodes (direct object_id-based storage)
         #   - :result_dtype (optional, if function declares dtype computation rules)
         #
         # RELATIONSHIP WITH TypeCheckerV2:
         #   - This pass may pre-compute result_dtype, TypeCheckerV2 computes if missing
         #   - TypeCheckerV2 uses the signature metadata for constraint validation
         #   - Both passes use the same RegistryV2 function resolution
+        #
+        # TYPE STORAGE ARCHITECTURE:
+        #   - Stores type information directly in node_index keyed by object_id as the primary interface
+        #   - Eliminates awkward name-based input type indexing for nested array elements without names
+        #   - Node_index provides the canonical source of truth for InputElementReference types
         class FunctionSignaturePass < PassBase
           def run(errors)
-            node_index = get_state(:node_index, required: true)
-            @input_metadata = get_state(:input_metadata, required: false) || {}
-            @inferred_types = get_state(:inferred_types, required: false) || {}
-            @decl_shapes = get_state(:decl_shapes, required: false) || {}
-            @broadcasts = get_state(:broadcasts, required: false) || {}
+            node_index = get_state(:node_index)
+            @node_index = node_index
+            @input_metadata = get_state(:input_metadata)
+            @input_index = get_state(:input_index)
+            @inferred_types = get_state(:inferred_types)
+            # @decl_shapes = get_state(:decl_shapes) # WHY? BROADCAST IS USING?
+            @broadcasts = get_state(:broadcasts)
+
+            # Store type information directly in node_index instead of building separate index
+            populate_node_types(node_index)
 
             if ENV["DEBUG_LOWER"]
               puts "FunctionSignaturePass: Processing #{node_index.size} nodes"
@@ -46,6 +57,7 @@ module Kumi
               puts "FunctionSignaturePass: Completed. Checking final metadata..."
               node_index.each do |object_id, entry|
                 next unless entry[:type] == "CallExpression"
+
                 node = entry[:node]
                 metadata = entry[:metadata] || {}
                 puts "  Node #{node.fn_name} (#{object_id}): metadata keys = #{metadata.keys.inspect}"
@@ -60,30 +72,26 @@ module Kumi
           def resolve_function_signature(entry, object_id, errors)
             node = entry[:node]
             metadata = entry[:metadata] || {}
-            
+
             # Ensure metadata has effective_fn_name and resolved_name
             metadata[:effective_fn_name] ||= node.fn_name
-            if metadata[:qualified_name]
-              metadata[:resolved_name] = metadata[:qualified_name]
-            end
+            metadata[:resolved_name] = metadata[:qualified_name] if metadata[:qualified_name]
 
-            # Skip signature resolution for cascade_and nodes that will be desugared to identity, chained and, or have skip_signature flag
-            if metadata[:desugar_to_identity] || metadata[:desugar_to_chained_and] || metadata[:invalid_cascade_and] || metadata[:skip_signature]
+            # Skip signature resolution for invalid cascade_and nodes or nodes with skip_signature flag
+            if metadata[:invalid_cascade_and] || metadata[:skip_signature]
               if ENV["DEBUG_LOWER"]
                 puts "    SKIPPING signature resolution for #{node.fn_name} - will be desugared to identity or skip_signature flag set"
                 puts "      metadata: #{metadata.keys.inspect}"
               end
               return
             end
-            
+
             # For nodes that have been desugared to a new function (e.g., cascade_and -> core.and),
             # we need to resolve the signature for the new qualified name
-            if metadata[:desugared_to] && metadata[:qualified_name]
-              if ENV["DEBUG_LOWER"]
-                puts "    DESUGARED NODE: #{node.fn_name} -> #{metadata[:qualified_name]}, resolving signature for new function"
-              end
-              # Continue with signature resolution using the new qualified name
+            if metadata[:desugared_to] && metadata[:qualified_name] && ENV.fetch("DEBUG_LOWER", nil)
+              puts "    DESUGARED NODE: #{node.fn_name} -> #{metadata[:qualified_name]}, resolving signature for new function"
             end
+            # Continue with signature resolution using the new qualified name
 
             # Skip signature resolution for ambiguous functions - they will be resolved later in AmbiguityResolverPass
             if metadata[:ambiguous_candidates]
@@ -94,15 +102,11 @@ module Kumi
               return
             end
 
-            if ENV["DEBUG_LOWER"]
-              puts "    resolve_function_signature for #{node.fn_name}"
-            end
+            puts "    resolve_function_signature for #{node.fn_name}" if ENV["DEBUG_LOWER"]
 
             # 1) Gather candidate signatures from current registry
             sig_strings = get_function_signatures(entry)
-            if ENV["DEBUG_LOWER"]
-              puts "      Found signatures: #{sig_strings.inspect}"
-            end
+            puts "      Found signatures: #{sig_strings.inspect}" if ENV["DEBUG_LOWER"]
             return if sig_strings.empty?
 
             begin
@@ -122,9 +126,7 @@ module Kumi
 
             # 2) Build arg_shapes from current node context
             arg_shapes = build_argument_shapes(node, object_id)
-            if ENV["DEBUG_LOWER"]
-              puts "      Argument shapes: #{arg_shapes.inspect}"
-            end
+            puts "      Argument shapes: #{arg_shapes.inspect}" if ENV["DEBUG_LOWER"]
 
             # 2.5) Add variadic signature synthesis if needed
             sigs = synthesize_variadic_signatures(entry, sigs, arg_shapes)
@@ -139,12 +141,10 @@ module Kumi
                 puts "        Result axes: #{plan[:result_axes].inspect}"
               end
             rescue Kumi::Core::Functions::SignatureMatchError => e
-              if ENV["DEBUG_LOWER"]
-                puts "      Signature resolution failed: #{e.message}"
-              end
+              puts "      Signature resolution failed: #{e.message}" if ENV["DEBUG_LOWER"]
               # Use qualified name for error message if available
               effective_name = entry[:metadata][:qualified_name] || entry[:metadata][:effective_fn_name] || node.fn_name
-              
+
               # Generate helpful error message
               error_msg = build_signature_error_message(effective_name, arg_shapes, sig_strings, e, node)
               report_error(errors, error_msg, location: node.loc, type: :type)
@@ -159,14 +159,10 @@ module Kumi
                 arg_types = build_argument_types(node)
                 result_dtype = Kumi::Core::Functions::DTypeAdapter.evaluate(fn, arg_types)
                 entry[:metadata][:result_dtype] = result_dtype if result_dtype
-                if ENV["DEBUG_LOWER"]
-                  puts "      Computed result dtype: #{result_dtype} for #{fn.name} with args #{arg_types.inspect}"
-                end
+                puts "      Computed result dtype: #{result_dtype} for #{fn.name} with args #{arg_types.inspect}" if ENV["DEBUG_LOWER"]
               end
-            rescue => e
-              if ENV["DEBUG_LOWER"]
-                puts "      Failed to compute result dtype: #{e.message}"
-              end
+            rescue StandardError => e
+              puts "      Failed to compute result dtype: #{e.message}" if ENV["DEBUG_LOWER"]
               # Continue - result dtype computation is optional
             end
 
@@ -179,10 +175,10 @@ module Kumi
             attach_signature_metadata(entry, plan)
             # Set inferred_scope as per NEP-20 contract
             entry[:inferred_scope] = Array(plan[:result_axes])
-            if ENV["DEBUG_LOWER"]
-              puts "        After: entry[:metadata] = #{entry[:metadata].inspect}"
-              puts "        After: entry[:inferred_scope] = #{entry[:inferred_scope].inspect}"
-            end
+            return unless ENV["DEBUG_LOWER"]
+
+            puts "        After: entry[:metadata] = #{entry[:metadata].inspect}"
+            puts "        After: entry[:inferred_scope] = #{entry[:inferred_scope].inspect}"
           end
 
           def get_function_signatures(entry)
@@ -199,7 +195,7 @@ module Kumi
               puts "          Available functions: #{registry_v2.all_function_names.first(10).inspect}..."
               puts "          Function exists?: #{registry_v2.function_exists?(fn_name.to_s)}"
             end
-            
+
             # Debug the fetch process step by step
             if ENV["DEBUG_LOWER"]
               begin
@@ -209,25 +205,23 @@ module Kumi
                 puts "          Signatures count: #{fn.signatures.length}" if fn.respond_to?(:signatures)
                 if fn.respond_to?(:signatures) && fn.signatures.any?
                   puts "          First signature: #{fn.signatures.first.inspect}"
-                  puts "          to_signature_string: #{fn.signatures.first.to_signature_string}" if fn.signatures.first.respond_to?(:to_signature_string)
+                  if fn.signatures.first.respond_to?(:to_signature_string)
+                    puts "          to_signature_string: #{fn.signatures.first.to_signature_string}"
+                  end
                 end
-              rescue => fetch_error
-                puts "          Fetch error: #{fetch_error.message}"
+              rescue StandardError => e
+                puts "          Fetch error: #{e.message}"
                 puts "          This means the function is not properly loaded in RegistryV2"
-                raise fetch_error  # Don't fallback - force the issue to be fixed
+                raise e # Don't fallback - force the issue to be fixed
               end
             end
-            
+
             result = registry_v2.get_function_signatures(fn_name)
-            
-            if ENV["DEBUG_LOWER"]
-              puts "          Direct lookup result: #{result.inspect}"
-            end
-            
-            if result.empty?
-              raise "No signatures found for #{fn_name} in RegistryV2 - function must be properly defined"
-            end
-            
+
+            puts "          Direct lookup result: #{result.inspect}" if ENV["DEBUG_LOWER"]
+
+            raise "No signatures found for #{fn_name} in RegistryV2 - function must be properly defined" if result.empty?
+
             result
           end
 
@@ -269,12 +263,10 @@ module Kumi
             # Build argument shapes from current analysis context
             node.args.map.with_index do |arg, i|
               shape = infer_arg_shape(arg, @decl_shapes, @broadcasts)
-              
+
               # Debug shape inference
-              if ENV["DEBUG_LOWER"]
-                puts "        Argument #{i+1} (#{arg.class}) shape: #{shape.inspect}"
-              end
-              
+              puts "        Argument #{i + 1} (#{arg.class}) shape: #{shape.inspect}" if ENV["DEBUG_LOWER"]
+
               shape
             end
           end
@@ -290,16 +282,21 @@ module Kumi
             when Kumi::Syntax::Literal
               Kumi::Core::Types.infer_from_value(expr.value)
 
-            when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
+            when Kumi::Syntax::InputReference
               if expr.respond_to?(:name) && @input_metadata[expr.name]
                 @input_metadata[expr.name][:type] || :any
-              elsif expr.respond_to?(:path)
-                # fall back for element paths: last segment's declared type if present
-                leaf = Array(expr.path).last
-                im   = @input_metadata[leaf]
-                im && im[:type] || :any
               else
                 :any
+              end
+
+            when Kumi::Syntax::InputElementReference
+              # Use node_index as the primary interface for InputElementReference types
+              node_entry = @node_index[expr.object_id]
+              if node_entry && node_entry[:inferred_type]
+                node_entry[:inferred_type]
+              else
+                # Type not yet populated in node_index - this should be resolved during populate_node_types
+                traverse_input_metadata_path(expr) || :any
               end
 
             when Kumi::Syntax::DeclarationReference
@@ -312,7 +309,11 @@ module Kumi
 
             when Kumi::Syntax::ArrayExpression
               # Coarse: unify all element types
-              elems = expr.elements rescue [] # defensive
+              elems = begin
+                expr.elements
+              rescue StandardError
+                []
+              end # defensive
               elems.map { |e| infer_expr_type(e) }.reduce(:any) { |acc, t| Kumi::Core::Types.unify(acc, t) }
 
             else
@@ -335,8 +336,11 @@ module Kumi
           def infer_arg_shape(arg_node, decl_shapes, broadcasts)
             case arg_node
             when Kumi::Syntax::DeclarationReference
-              # Safe fallback before Pass 18 when decl_shapes exists
-              (decl_shapes.dig(arg_node.name, :scope) || [])
+              # Get dimensional scope from BroadcastDetector analysis (required)
+              broadcast_info = broadcasts&.dig(:vectorized_operations, arg_node.name)
+              broadcast_info ||= broadcasts&.dig(:reduction_operations, arg_node.name) # TODO: SEE THIS THROUGH
+              broadcast_info&.dig(:dimensional_scope) ||
+                (raise "Missing dimensional_scope for DeclarationReference #{arg_node.name} - BroadcastDetector must provide this")
             when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
               # Use precomputed dimensional scope from InputCollector
               if arg_node.respond_to?(:path) && arg_node.path && @input_metadata
@@ -374,7 +378,7 @@ module Kumi
             msg = "Function `#{fn_name}` signature mismatch:\n"
             msg << "  Called with: #{format_shapes(arg_shapes)}\n"
             msg << "  Available signatures: #{format_sigs(sig_strings)}\n"
-            
+
             # Check for common issues
             if arg_shapes.all?(&:empty?)
               msg << "\n  Hint: All arguments appear as scalars (). This often means:\n"
@@ -382,7 +386,7 @@ module Kumi
               msg << "    - Missing array element access patterns (e.g., input.items.field)\n"
               msg << "    - Function called with literal arrays instead of vectorized inputs\n"
             end
-            
+
             # Add specific hints for known functions
             case fn_name.to_s
             when "struct.searchsorted"
@@ -396,7 +400,7 @@ module Kumi
                 msg << "  Try: fn(:get, rates, index) with proper array shapes\n"
               end
             end
-            
+
             msg << "\n  Original error: #{original_error.message}"
             msg
           end
@@ -409,7 +413,7 @@ module Kumi
           end
 
           def format_shapes(shapes)
-            shapes.map { |ax| "(#{ax.join(',')})" }.join(', ')
+            shapes.map { |ax| "(#{ax.join(',')})" }.join(", ")
           end
 
           def format_sigs(sig_strings)
@@ -424,20 +428,20 @@ module Kumi
             if ENV["DEBUG_LOWER"]
               puts "        attach_signature_metadata called"
               puts "          entry[:metadata] exists: #{!!metadata}"
-              puts "          plan keys: #{plan.keys.inspect}"
+              puts "          plan: #{plan.class} with signature=#{plan.signature.to_signature_string}"
             end
 
             attach_core_signature_data(metadata, plan)
             attach_shape_contract(metadata, plan)
 
-            if ENV["DEBUG_LOWER"]
-              puts "          Final metadata keys: #{metadata.keys.inspect}"
-              puts "          join_policy value: #{metadata[:join_policy].inspect}"
-            end
+            return unless ENV["DEBUG_LOWER"]
+
+            puts "          Final metadata keys: #{metadata.keys.inspect}"
+            puts "          join_policy value: #{metadata[:join_policy].inspect}"
           end
 
           def attach_core_signature_data(metadata, plan)
-            metadata[:selected_signature]  = plan[:signature]         # NEP-20 contract requirement
+            metadata[:selected_signature]  = plan[:signature] # NEP-20 contract requirement
             metadata[:result_axes]         = plan[:result_axes]        # e.g., [:i, :j]
             metadata[:join_policy]         = plan[:join_policy]        # nil | :zip | :product
             metadata[:dropped_axes]        = plan[:dropped_axes]       # e.g., [:j] for reductions
@@ -449,8 +453,8 @@ module Kumi
           def attach_shape_contract(metadata, plan)
             # Attach shape contract for lowering convenience
             metadata[:shape_contract] = {
-              in:   plan[:effective_signature][:in_shapes],
-              out:  plan[:effective_signature][:out_shape],
+              in: plan[:effective_signature][:in_shapes],
+              out: plan[:effective_signature][:out_shape],
               join: plan[:effective_signature][:join_policy]
             }
           end
@@ -471,16 +475,12 @@ module Kumi
             # Check if function is variadic
             fn = get_function_for_entry(entry)
             unless fn&.variadic
-              if ENV["DEBUG_LOWER"]
-                puts "      Function #{fn&.name || 'unknown'} is not variadic, skipping synthesis"
-              end
+              puts "      Function #{fn&.name || 'unknown'} is not variadic, skipping synthesis" if ENV["DEBUG_LOWER"]
               return existing_signatures
             end
 
             provided_arity = arg_shapes.length
-            if ENV["DEBUG_LOWER"]
-              puts "      Function #{fn.name} is variadic, provided_arity=#{provided_arity}"
-            end
+            puts "      Function #{fn.name} is variadic, provided_arity=#{provided_arity}" if ENV["DEBUG_LOWER"]
 
             # Check if we already have a signature with the exact arity
             if ENV["DEBUG_LOWER"]
@@ -491,14 +491,10 @@ module Kumi
             end
             exact_match = existing_signatures.find { |sig| sig.in_shapes.length == provided_arity }
             if exact_match
-              if ENV["DEBUG_LOWER"]
-                puts "        Found exact match for arity #{provided_arity}: #{exact_match.inspect}"
-              end
+              puts "        Found exact match for arity #{provided_arity}: #{exact_match.inspect}" if ENV["DEBUG_LOWER"]
               return existing_signatures
-            else
-              if ENV["DEBUG_LOWER"]
-                puts "        No exact match found for arity #{provided_arity}"
-              end
+            elsif ENV["DEBUG_LOWER"]
+              puts "        No exact match found for arity #{provided_arity}"
             end
 
             # Find template signatures for synthesis
@@ -508,24 +504,18 @@ module Kumi
             end
 
             if template_sigs.empty?
-              if ENV["DEBUG_LOWER"]
-                puts "        No suitable template signatures found for variadic synthesis"
-              end
+              puts "        No suitable template signatures found for variadic synthesis" if ENV["DEBUG_LOWER"]
               return existing_signatures
             end
 
             # Use the signature with the highest arity as template
             template = template_sigs.max_by { |sig| sig.in_shapes.length }
-            if ENV["DEBUG_LOWER"]
-              puts "        Using template: #{template.inspect}"
-            end
+            puts "        Using template: #{template.inspect}" if ENV["DEBUG_LOWER"]
 
             # Synthesize new signature by extending the template
             synthesized = synthesize_signature_for_arity(template, provided_arity, fn)
             if synthesized
-              if ENV["DEBUG_LOWER"]
-                puts "        Synthesized signature: #{synthesized.inspect}"
-              end
+              puts "        Synthesized signature: #{synthesized.inspect}" if ENV["DEBUG_LOWER"]
               return existing_signatures + [synthesized]
             end
 
@@ -552,10 +542,8 @@ module Kumi
               join_policy: fn.zip_policy || template.join_policy,
               raw: "synthesized_variadic_#{target_arity}_args"
             )
-          rescue => e
-            if ENV["DEBUG_LOWER"]
-              puts "        Failed to synthesize signature: #{e.message}"
-            end
+          rescue StandardError => e
+            puts "        Failed to synthesize signature: #{e.message}" if ENV["DEBUG_LOWER"]
             nil
           end
 
@@ -564,8 +552,47 @@ module Kumi
             return nil unless qualified_name
 
             registry_v2.resolve(qualified_name)
-          rescue
+          rescue StandardError
             nil
+          end
+
+          def populate_node_types(node_index)
+            # Store type information for InputElementReference nodes in node_index
+            node_index.each do |object_id, entry|
+              next unless entry[:type] == "InputElementReference"
+
+              node = entry[:node]
+              next unless node.respond_to?(:path) && node.path
+
+              # Traverse input metadata to find the type for this path
+              inferred_type = traverse_input_metadata_path(node)
+              entry[:inferred_type] = inferred_type if inferred_type
+            end
+          end
+
+          def traverse_input_metadata_path(expr)
+            return nil unless expr.respond_to?(:path) && expr.path
+
+            path = Array(expr.path)
+            return nil if path.empty?
+
+            # Start with the root field
+            root_name = path.first
+            current_meta = @input_metadata[root_name]
+            return nil unless current_meta
+
+            # If this is just a root reference, return its type
+            return current_meta[:type] if path.length == 1
+
+            # Traverse the nested path
+            path[1..-1].each do |field_name|
+              return nil unless current_meta[:children]
+
+              current_meta = current_meta[:children][field_name]
+              return nil unless current_meta
+            end
+
+            current_meta[:type]
           end
         end
       end

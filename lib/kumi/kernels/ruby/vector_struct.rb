@@ -81,7 +81,6 @@ module Kumi
         def kumi_concatenate(a, b, **_) = a + b
         def kumi_prepend(head, xs) = [head] + xs
 
-
         def kumi_searchsorted(edges, v, side: :right)
           lo = 0
           hi = edges.length

@@ -33,8 +33,9 @@ module Kumi
 
               annotated_mode = (node_index[node.object_id] || {})[:access_mode]
               mode = annotated_mode || (need_indices ? :each_indexed : :read)
-              # Fallbacks
+              # Fallbacks: prefer :materialize for scalar access (materializes containers as scalars)
               candidate = plans.find { |p| p.mode == mode } ||
+                          plans.find { |p| p.mode == :materialize } ||
                           plans.find { |p| p.mode == :ravel } ||
                           plans.first
 

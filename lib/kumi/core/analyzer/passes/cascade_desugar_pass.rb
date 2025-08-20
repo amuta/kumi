@@ -9,13 +9,13 @@ module Kumi
         # INTERFACE: new(schema, state).run(errors)
         #
         # CASCADE_AND SEMANTICS:
-        # - cascade_and(condition)           → IDENTITY (just evaluate condition)
-        # - cascade_and(cond1, cond2, ...)   → BOOLEAN AND with short-circuit evaluation
+        # - cascade_and(condition)           → UNARY AND (core.and with unary signature)
+        # - cascade_and(cond1, cond2, ...)   → BINARY/CHAINED AND with short-circuit evaluation
         # - cascade_and()                    → SEMANTIC ERROR (at least one condition required)
         #
         # EXAMPLES:
-        # - on t1, "big"       → condition: t1               → IR: ref {:name=>:t1}
-        # - on t1, t2, "both"  → condition: core.and(t1, t2) → IR: guard-based short-circuit AND
+        # - on t1, "big"       → condition: core.and(t1)     → IR: unary AND (identity)
+        # - on t1, t2, "both"  → condition: core.and(t1, t2) → IR: chained AND compilation
         # - on cascade_and()   → SEMANTIC ERROR: "cascade_and requires at least one condition"
         #
         # NOTE: cascade_and is pure syntax sugar - no core.cascade_and function exists in registry
@@ -55,12 +55,15 @@ module Kumi
                   }
                   entry[:metadata][:invalid_cascade_and] = true if entry
                 when 1
-                  # Single-argument cascade_and is identity - just return the argument
-                  puts("    CascadeDesugar call_id=#{node.object_id} args=1 desugar=identity skip_signature=true") if ENV["DEBUG_CASCADE"]
+                  # Single-argument cascade_and also becomes core.and for consistency
+                  puts("    CascadeDesugar call_id=#{node.object_id} args=1 desugar=and qualified=core.and") if ENV["DEBUG_CASCADE"]
                   if entry
-                    entry[:metadata][:desugar_to_identity] = true
-                    entry[:metadata][:identity_arg] = node.args.first
-                    entry[:metadata][:skip_signature] = true # Skip signature resolution for identity cases
+                    entry[:metadata][:original_fn_name] = :cascade_and
+                    entry[:metadata][:desugared_to] = :and
+                    entry[:metadata][:effective_fn_name] = :and
+                    entry[:metadata][:canonical_name] = :and
+                    entry[:metadata][:qualified_name] = "core.and"
+                    entry[:metadata][:desugar_to_chained_and] = true
                   end
                 else
                   # Multi-argument cascade_and becomes boolean AND

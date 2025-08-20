@@ -5,6 +5,7 @@ RSpec.describe "Element Access Mode Integration (simplified)" do
   describe "3D Arrays (cube)" do
     module CubeSchema
       extend Kumi::Schema
+
       schema do
         input do
           array :cube do

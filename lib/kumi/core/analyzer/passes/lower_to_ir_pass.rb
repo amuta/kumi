@@ -50,7 +50,34 @@ module Kumi
             decl_ir.sort_by! { |d| order.fetch(d.name, Float::INFINITY) }
 
             ir_module = Kumi::Core::IR::Module.new(inputs: inputs_meta, decls: decl_ir)
+            
+            # Dump IR operations if requested
+            if ENV["DUMP_IR"]
+              dump_ir_operations(ir_module, ENV["DUMP_IR"])
+            end
+            
             state.with(:ir_module, ir_module)
+          end
+
+          private
+
+          def dump_ir_operations(ir_module, dump_path)
+            File.open(dump_path, 'w') do |f|
+              f.puts "=== IR MODULE DUMP ==="
+              f.puts "Inputs: #{ir_module.inputs.keys.inspect}"
+              f.puts 
+              f.puts "Declarations:"
+              ir_module.decls.each do |decl|
+                f.puts "  #{decl.name}: (#{decl.kind}, shape: #{decl.shape.inspect})"
+                f.puts "    operations:"
+                decl.ops.each_with_index do |op, i|
+                  f.puts "      [#{i}] #{op.tag}: #{op.attrs.inspect}"
+                  f.puts "           args: #{op.args.inspect}" if op.args.any?
+                end
+                f.puts
+              end
+            end
+            puts "IR dumped to #{dump_path}"
           end
         end
       end

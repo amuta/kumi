@@ -16,16 +16,17 @@ module Kumi
       Core::Analyzer::Passes::CascadeDesugarPass,              # 9. Desugar cascade_and to regular and operations.
       Core::Analyzer::Passes::CallNameNormalizePass,           # 10. Normalize function names to canonical basenames.
       Core::Analyzer::Passes::BroadcastDetector,               # 11. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 12. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeConsistencyChecker,          # 13. Validates declared vs inferred type consistency.
-      Core::Analyzer::Passes::FunctionSignaturePass,           # 14. Resolves NEP-20 signatures for function calls.
-      Core::Analyzer::Passes::TypeCheckerV2,                   # 15. Computes CallExpression result dtypes and validates constraints via RegistryV2.
-      Core::Analyzer::Passes::AmbiguityResolverPass,           # 16. Resolves ambiguous functions using complete type information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 17. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 18. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 19. Plans join/reduce operations and stores in node_index (Generates IR Structs)
-      Core::Analyzer::Passes::ContractCheckPass,               # 20. Validates analyzer state contracts.
-      Core::Analyzer::Passes::LowerToIRPass                    # 21. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::CrossScopeValidator,             # 12. Validates cross-scope operations and throws semantic errors.
+      Core::Analyzer::Passes::TypeInferencerPass,              # 13. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeConsistencyChecker,          # 14. Validates declared vs inferred type consistency.
+      Core::Analyzer::Passes::FunctionSignaturePass,           # 15. Resolves NEP-20 signatures for function calls.
+      Core::Analyzer::Passes::TypeCheckerV2,                   # 16. Computes CallExpression result dtypes and validates constraints via RegistryV2.
+      Core::Analyzer::Passes::AmbiguityResolverPass,           # 17. Resolves ambiguous functions using complete type information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 18. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 19. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 20. Plans join/reduce operations and stores in node_index (Generates IR Structs)
+      Core::Analyzer::Passes::ContractCheckPass,               # 21. Validates analyzer state contracts.
+      Core::Analyzer::Passes::LowerToIRPass                    # 22. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

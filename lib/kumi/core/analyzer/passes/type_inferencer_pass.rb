@@ -43,8 +43,16 @@ module Kumi
               next unless decl
 
               begin
-                # Check if this declaration is marked as vectorized
-                if broadcast_meta[:vectorized_operations]&.key?(name)
+                # Check if this declaration is actually vectorized (not just scalar with empty dimensional_scope)
+                vectorized_info = broadcast_meta[:vectorized_operations]&.[](name)
+                is_truly_vectorized = vectorized_info && 
+                                     (vectorized_info[:dimensional_scope]&.any? || 
+                                      vectorized_info[:source] == :nested_array_access ||
+                                      vectorized_info[:source] == :array_field_access ||
+                                      vectorized_info[:source] == :nested_array_field ||
+                                      vectorized_info[:source] == :vectorized_declaration)
+                
+                if is_truly_vectorized
                   # Infer the element type and wrap in array
                   element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
                   types[name] = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }

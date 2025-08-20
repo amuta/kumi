@@ -79,10 +79,32 @@ module Kumi
               
               result_dtype = meta[:result_dtype]
               if result_dtype
-                inferred_types[decl.name] = result_dtype
-                if ENV["DEBUG_TYPE_CHECKER"]
-                  puts "  Updated inferred type for declaration #{decl.name}: #{result_dtype}"
+                # TODO: ARCHITECTURAL CONCERN - This pass is overriding TypeInferencerPass results.
+                # There's a potential conflict: TypeInferencerPass handles vectorized context properly
+                # but TypeCheckerV2 computes scalar function result types and overwrites them.
+                # This needs architectural review to determine single source of truth for type inference.
+                #
+                # For now, preserve vectorized types from broadcast metadata to fix failing tests.
+                
+                # Check if this declaration is vectorized - if so, preserve array wrapper
+                broadcasts = state[:broadcasts] || {}
+                vectorized_info = broadcasts[:vectorized_operations]&.[](decl.name)
+                
+                if vectorized_info && vectorized_info[:dimensional_scope]&.any?
+                  # Vectorized operation - wrap scalar result_dtype in array
+                  final_type = { array: result_dtype }
+                  if ENV["DEBUG_TYPE_CHECKER"]
+                    puts "  Vectorized declaration #{decl.name}: scalar #{result_dtype} → {array: #{result_dtype}}"
+                  end
+                else
+                  # Scalar operation - use result_dtype as-is
+                  final_type = result_dtype
+                  if ENV["DEBUG_TYPE_CHECKER"]
+                    puts "  Scalar declaration #{decl.name}: #{result_dtype}"
+                  end
                 end
+                
+                inferred_types[decl.name] = final_type
               end
             end
             

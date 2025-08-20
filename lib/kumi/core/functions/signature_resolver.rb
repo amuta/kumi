@@ -32,6 +32,9 @@ module Kumi
               out_axes = bind_out_axes(sig, env)
               dropped  = compute_dropped_axes(sig, env, matched_vars)
 
+              # Sanity check arity
+              raise SignatureMatchError, "arity mismatch: signature has #{sig.arity} args, got #{arg_shapes.length}" unless sig.arity == arg_shapes.length
+
               Result.new(
                 signature: sig,
                 score: score,
@@ -92,8 +95,8 @@ module Kumi
           # ---------- CELL matching ----------
 
           def match_cell(got_cell, expected, env)
-            # Scalar extension (empty cell → broadcast)
-            return { env: env, score: expected.empty? ? 0 : 1, matched_vars: Set.new } if got_cell.empty?
+            # Scalar extension (empty cell → broadcast) - always has cost to prefer exact matches
+            return { env: env, score: expected.empty? ? 2 : 3, matched_vars: Set.new } if got_cell.empty?
 
             gi = got_cell.length - 1
             ei = expected.length - 1

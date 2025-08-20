@@ -13,7 +13,7 @@ RSpec.describe "Kumi Default Functions" do
           base "default"
         end
 
-        trait :test_trait, input.number, :between?, 6, 8
+        trait :test_trait, fn(:and, input.number >= 6, input.number <= 8)
       end
 
       analyzer = Kumi::Analyzer.analyze!(syntax_tree)

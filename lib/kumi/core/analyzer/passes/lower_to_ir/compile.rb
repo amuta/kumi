@@ -157,29 +157,26 @@ module Kumi
             end
 
             def compile_vector_cascade(node, access_plans, scope_plans, node_index, target_scope)
-              # For vectorized cascades, we compile them similarly to scalar cascades
-              # but the conditions and results are evaluated in the vector context
-              any_prev = emit_const(false)
-              cases_attr = []
-
-              node.cases.each do |c|
-                not_prev = emit_map("core.not", any_prev)
-                cond     = compile_expr(c.condition, access_plans, scope_plans, node_index, need_indices: false, required_scope: target_scope, cacheable: false)
-                guard    = emit_map("core.and", not_prev, cond)
-                emit_guard_push(guard)
-                val_slot = compile_expr(c.result, access_plans, scope_plans, node_index, need_indices: false, required_scope: target_scope, cacheable: false)
-                emit_guard_pop
-                cases_attr << [cond, val_slot]
-                any_prev = emit_map("core.or", any_prev, cond)
-              end
-
+              # For vectorized cascades, build result element-wise using MAP operations
+              # instead of relying on SWITCH operation which doesn't handle vectors properly
+              
+              # Start with default value for all elements
               default_expr = node.cases.find { |cc| cc.condition.is_a?(Syntax::Literal) && cc.condition.value == true }&.result || Syntax::Literal.new(nil)
-              not_prev = emit_map("core.not", any_prev)
-              emit_guard_push(not_prev)
-              default_slot = compile_expr(default_expr, access_plans, scope_plans, node_index, need_indices: false, required_scope: target_scope, cacheable: false)
-              emit_guard_pop
-
-              emit_switch(cases_attr, default_slot)
+              # FIXED: Use need_indices: true for vectorized context to get element-wise access
+              result = compile_expr(default_expr, access_plans, scope_plans, node_index, need_indices: true, required_scope: target_scope, cacheable: false)
+              
+              # Process cases in reverse order so first matching condition wins
+              node.cases.reverse.each do |c|
+                # FIXED: Use need_indices: true for vectorized context to get element-wise access
+                cond = compile_expr(c.condition, access_plans, scope_plans, node_index, need_indices: true, required_scope: target_scope, cacheable: false)
+                val = compile_expr(c.result, access_plans, scope_plans, node_index, need_indices: true, required_scope: target_scope, cacheable: false)
+                
+                # Use conditional selection: where(condition, true_value, false_value)
+                # This applies element-wise: result[i] = cond[i] ? val[i] : result[i]
+                result = emit_map("mask.where", cond, val, result)
+              end
+              
+              result
             end
 
             def compile_chained_and(args, access_plans, scope_plans, node_index, required_scope)
@@ -191,6 +188,7 @@ module Kumi
 
               # Chain them into nested binary AND operations: and(a, and(b, c))
               # For N args, we need N-1 nested AND calls
+              # Single arg case: reduce just returns the single argument unchanged
               compiled_args.reverse.reduce do |acc, arg|
                 emit_map("core.and", arg, acc)
               end

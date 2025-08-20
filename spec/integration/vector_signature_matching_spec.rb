@@ -39,21 +39,15 @@ RSpec.describe "Vector Function Signature Matching" do
       result = schema.from(income: 100.0)
       expect(result[:result]).to eq(200.0)
     end
-  end
 
-  describe "type mismatch error messages" do
-    it "provides helpful error for searchsorted with array literal instead of input array" do
-      expect do
-        build_schema do
-          input { float :income }
-          value :edges, [0.0, 50.0, 100.0]
-          value :result, fn(:searchsorted, edges, input.income)
-        end
-      end.to raise_error(Kumi::Core::Errors::TypeError) do |error|
-        expect(error.message).to include("argument 1 of `fn(:searchsorted)`")
-        expect(error.message).to include("got reference to declaration `edges` of inferred type {:array=>:float}")
-        expect(error.message).to include("expects float")
+    it "handles mixed signatures dimensions" do
+      schema = build_schema do
+        input { float :income }
+        value :edges, [0.0, 50.0, 100.0]
+        value :result, fn(:searchsorted, edges, input.income)
       end
+      result = schema.from(income: 100.0)
+      expect(result[:result]).to eq(3)
     end
   end
 

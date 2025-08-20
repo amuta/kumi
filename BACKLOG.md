@@ -5,6 +5,13 @@
 
 ## High Priority
 
+### Vector Cascade Semantic Correctness Issue
+- [ ] **Fix vector cascade over-evaluation**: Vector cascades currently evaluate all conditions for all elements instead of short-circuiting
+  - **Issue**: `compile_vector_cascade` uses chained `Map(mask.where)` operations that evaluate all conditions
+  - **Problem**: Semantically incorrect - should stop at first matching condition per element (like scalar cascades)
+  - **Current behavior**: For `on cond1, val1; on cond2, val2; base default`, all conditions are evaluated for every element
+  - **Expected behavior**: For each element, evaluate conditions in order until one matches, then stop
+  - **Impact**: Performance overhead and semantic inconsistency with scalar cascade behavior
 
 ### Lazy Evaluation Completion
 - [ ] Replace cascade `Map(mask.where)` operations with `Select` operations for consistency

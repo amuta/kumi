@@ -53,12 +53,9 @@ RSpec.describe 'RegistryV2 Migration Basic Tests' do
       test_data = { numbers: [{ value: 10 }, { value: 5 }, { value: 15 }] }
       result = schema.from(test_data)
       
-      # The new system should return arrays with a single sum/max result
-      expect(result[:total][:rows].size).to eq(1)
-      expect(result[:total][:rows].first[:v]).to eq(30)
-      
-      expect(result[:maximum][:rows].size).to eq(1)
-      expect(result[:maximum][:rows].first[:v]).to eq(15)
+      # The new system returns unwrapped scalar values directly
+      expect(result[:total]).to eq(30)
+      expect(result[:maximum]).to eq(15)
     end
   end
   
