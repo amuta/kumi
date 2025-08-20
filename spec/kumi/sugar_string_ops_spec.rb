@@ -1,25 +1,17 @@
 # frozen_string_literal: true
 
-module StringOpsSugar
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      string :name
-    end
-
-    # String equality (only supported operation)
-    trait :is_john, input.name == "John"
-    trait :not_jane, input.name != "Jane"
-    trait :inverted_check, input.name == "Alice"
-  end
-end
-
 RSpec.describe "Sugar syntax string operations" do
+  include SchemaFixtureHelper
+  
+  let(:schema) do
+    require_schema("string_ops_sugar")
+    StringOpsSugar
+  end
+
   describe "string_ops_sugar schema" do
     it "supports string equality operations" do
       data = { name: "John" }
-      runner = StringOpsSugar.from(data)
+      runner = schema.from(data)
 
       expect(runner[:is_john]).to be true
       expect(runner[:not_jane]).to be true
@@ -28,7 +20,7 @@ RSpec.describe "Sugar syntax string operations" do
 
     it "handles different names correctly" do
       data = { name: "Jane" }
-      runner = StringOpsSugar.from(data)
+      runner = schema.from(data)
 
       expect(runner[:is_john]).to be false
       expect(runner[:not_jane]).to be false
@@ -37,7 +29,7 @@ RSpec.describe "Sugar syntax string operations" do
 
     it "handles Alice specifically" do
       data = { name: "Alice" }
-      runner = StringOpsSugar.from(data)
+      runner = schema.from(data)
 
       expect(runner[:is_john]).to be false
       expect(runner[:not_jane]).to be true
@@ -46,7 +38,7 @@ RSpec.describe "Sugar syntax string operations" do
 
     it "handles empty and special strings" do
       data = { name: "" }
-      runner = StringOpsSugar.from(data)
+      runner = schema.from(data)
 
       expect(runner[:is_john]).to be false
       expect(runner[:not_jane]).to be true
@@ -55,7 +47,7 @@ RSpec.describe "Sugar syntax string operations" do
 
     it "handles case sensitivity" do
       data = { name: "john" }
-      runner = StringOpsSugar.from(data)
+      runner = schema.from(data)
 
       expect(runner[:is_john]).to be false
       expect(runner[:not_jane]).to be true

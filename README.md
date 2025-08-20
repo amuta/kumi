@@ -436,24 +436,6 @@ runner[:after_tax]     # => 196,844.80 (cached)
 - Sequential procedural workflows  
 - High-frequency processing
 
-## JavaScript Transpiler (V 0.0.10)
-Note: On the current 0.0.11 this is disabled but will be back in later versions. reason: IR/Interpreter update.
-Transpiles compiled schemas to standalone JavaScript code. See [docs/features/javascript-transpiler.md](docs/features/javascript-transpiler.md) for details.
-
-```ruby
-Kumi::Js.export_to_file(FederalTax2024, "federal-tax-2024.js")
-```
-
-```javascript
-const { schema } = require('./federal-tax-2024.js');
-const calculator = schema.from({ income: 100_000, filing_status: "single" });
-console.log(calculator.fetch('total_tax'));   // 21491
-```
-
-Generated JavaScript includes only functions used by the schema.
-
-All tests run in dual mode to verify compiled schemas produce identical results in both Ruby and JavaScript.
-
 ## Performance
 
 Benchmarks on Linux with Ruby 3.3.8 on a Dell Latitude 7450:
