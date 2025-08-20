@@ -72,8 +72,8 @@ module DSLBreakageHelpers
     end
   end
 
-  def schema(&block)
-    Kumi.schema(&block)
+  def schema(&)
+    Kumi.schema(&)
   end
 
   def expect_syntax_error

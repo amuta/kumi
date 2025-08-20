@@ -42,14 +42,14 @@ module Kumi
       nil
     end
 
-    def build_syntax_tree(&block)
-      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+    def build_syntax_tree(&)
+      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&).freeze
     end
 
-    def schema(&block)
+    def schema(&)
       # from_location = caller_locations(1, 1).first
       # raise "Called from #{from_location.path}:#{from_location.lineno}"
-      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&block).freeze
+      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&).freeze
 
       puts Support::SExpressionPrinter.print(@__syntax_tree__, indent: 2) if ENV["KUMI_DEBUG"] || ENV["KUMI_PRINT_SYNTAX_TREE"]
 
