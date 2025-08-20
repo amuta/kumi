@@ -229,7 +229,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Combinators do
       result = described_class.join_zip([v1, v2])
 
       expect(result[:k]).to eq(:vec)
-      expect(result[:scope]).to eq([:i, :j])
+      expect(result[:scope]).to eq(%i[i j])
       expect(result[:has_idx]).to be true
       expect(result[:rows]).to eq([
                                     { v: [1, 10], idx: [0] },
@@ -244,7 +244,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Combinators do
 
       result = described_class.join_zip([v1, v2, v3])
 
-      expect(result[:scope]).to eq([:i, :j, :k])
+      expect(result[:scope]).to eq(%i[i j k])
       expect(result[:rows]).to eq([
                                     { v: [1, 2, 3], idx: [0] }
                                   ])
@@ -311,12 +311,12 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Combinators do
     end
 
     it "concatenates output scope from all input scopes" do
-      v1 = vec.call([:x, :y], [row.call(1, [0, 0])], true)
+      v1 = vec.call(%i[x y], [row.call(1, [0, 0])], true)
       v2 = vec.call([:z], [row.call(2, [0])], true)
 
       result = described_class.join_zip([v1, v2])
 
-      expect(result[:scope]).to eq([:x, :y, :z])
+      expect(result[:scope]).to eq(%i[x y z])
     end
 
     it "preserves has_idx if any input has indices" do
