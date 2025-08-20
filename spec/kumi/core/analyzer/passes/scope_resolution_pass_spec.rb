@@ -41,6 +41,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::ScopeResolutionPass do
 
         scope_plan = state[:scope_plans][:subtotals]
         expect(scope_plan).to be_a(Kumi::Core::Analyzer::Plans::Scope)
+        binding.pry
         expect(scope_plan.scope).to eq([:line_items])
 
         expect(state[:decl_shapes][:subtotals]).to eq({

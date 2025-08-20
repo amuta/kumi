@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# NOTE: THIS COULD BE JUST LIKE THE NODE_INDEX - INDEXED BY THE NODE ID
 module Kumi
   module Core
     module Analyzer
@@ -13,6 +14,7 @@ module Kumi
           :enter_via,
           :consume_alias,
           :children,
+          :dimensional_scope,
           keyword_init: true
         ) do
           def deep_freeze!

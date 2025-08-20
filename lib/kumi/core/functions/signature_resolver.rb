@@ -1,269 +1,286 @@
 # frozen_string_literal: true
 
-require_relative "errors"
-require_relative "shape"
-require_relative "signature"
-
 module Kumi
   module Core
     module Functions
-      # Given a set of signatures and actual argument shapes, pick the best match.
-      # Supports NEP 20 extensions: fixed-size, flexible, and broadcastable dimensions.
+      # Picks the best signature for a set of argument shapes.
       #
-      # Inputs:
-      #   signatures : Array<Signature> (with Dimension objects)
-      #   arg_shapes : Array<Array<Symbol|Integer>>   e.g., [[:i], [:i]] or [[], [3]] or [[2, :i]]
-      #
-      # Returns:
-      #   { signature:, result_axes:, join_policy:, dropped_axes:, effective_signature: }
-      #
-      # NEP 20 Matching rules:
-      # - Arity must match exactly (before flexible dimension resolution).
-      # - Fixed-size dimensions (integers) must match exactly.
-      # - Flexible dimensions (?) can be omitted if not present in all operands.
-      # - Broadcastable dimensions (|1) can match scalar or size-1 dimensions.
-      # - For each param position, shapes are checked according to NEP 20 rules.
-      # - We prefer exact matches, then flexible matches, then broadcast matches.
+      # Key ideas:
+      # - Split each arg into OUTER + CELL where CELL rank = required (non-flexible) dims in that arg's signature.
+      # - Match only CELL against the signature (right-aligned).
+      # - Keep OUTER via "lifting": reducers drop inner axes but preserve OUTER.
+      # - Enforce OUTER compatibility for elementwise ops (join_policy nil), with broadcast of size-1 outer dims.
+      # - Support NEP-20 flexible dims (?x) and broadcastable dims (x|1).
+      # - Prefer exact match, then scalar extension, then broadcastable, then flexible-drop (high cost).
       class SignatureResolver
+        Result = Struct.new(:signature, :score, :result_axes, :join_policy, :dropped_axes, :env, :effective_signature, keyword_init: true)
+
         class << self
           def choose(signatures:, arg_shapes:)
-            # Handle empty arg_shapes for zero-arity functions
             arg_shapes = [] if arg_shapes.nil?
-            sanity_check_args!(arg_shapes)
+            validate_arg_shapes!(arg_shapes)
 
-            candidates = signatures.map do |sig|
-              score = match_score(sig, arg_shapes)
-              next if score.nil?
+            # Normalize incoming shapes (Array<Symbol|Integer>) → Array<Array<Dimension>>
+            normalized_args = arg_shapes.map { |shape| shape.map { |d| dim_of(d) } }
 
-              # Convert arg_shapes to normalized Dimension arrays for environment building
-              normalized_args = arg_shapes.map { |shape| normalize_shape(shape) }
-              env = build_dimension_environment(sig, normalized_args)
-              next if env.nil?  # Skip candidates with dimension conflicts
+            candidates = signatures.filter_map do |sig|
+              match = match_signature(sig, normalized_args)
+              next unless match
 
-              {
+              env, score, merged_outer_names, matched_vars = match.values_at(:env, :score, :outer, :matched_vars)
+
+              out_axes = bind_out_axes(sig, env)
+              dropped  = compute_dropped_axes(sig, env, matched_vars)
+
+              Result.new(
                 signature: sig,
                 score: score,
-                result_axes: sig.out_shape.map(&:name), # Convert Dimension objects to names for backward compatibility
+                result_axes: merged_outer_names + out_axes,
                 join_policy: sig.join_policy,
-                dropped_axes: sig.dropped_axes.map { |name| name.is_a?(Symbol) ? name : name.to_sym }, # Convert to symbols
-                env: env
-              }
-            end.compact
+                dropped_axes: dropped,
+                env: env,
+                effective_signature: {
+                  in_shapes: sig.in_shapes.map { |dims| dims.map(&:name) },
+                  out_shape: sig.out_shape.map(&:name),
+                  join_policy: sig.join_policy
+                }
+              )
+            end
 
             raise SignatureMatchError, mismatch_message(signatures, arg_shapes) if candidates.empty?
 
-            # Lower score is better: 0 = exact-everywhere, then number of broadcasts
-            best = candidates.min_by { |c| c[:score] }
-            
-            # Add effective signature and environment for analyzer/lowering
-            best[:effective_signature] = {
-              in_shapes: best[:signature].in_shapes.map { |dims| dims.map(&:name) },
-              out_shape: best[:signature].out_shape.map(&:name),
-              join_policy: best[:signature].join_policy
-            }
-            # env is already included from candidate building
-            
-            best
+            candidates.min_by(&:score)
           end
 
           private
 
-          def sanity_check_args!(arg_shapes)
-            unless arg_shapes.is_a?(Array) &&
-                   arg_shapes.all? { |s| s.is_a?(Array) && s.all? { |a| a.is_a?(Symbol) || a.is_a?(Integer) } }
-              raise SignatureMatchError, "arg_shapes must be an array of dimension arrays (symbols or integers), got: #{arg_shapes.inspect}"
+          # ---------- Matching pipeline ----------
+
+          def match_signature(sig, normalized_args)
+            return nil unless sig.arity == normalized_args.length
+
+            # Split each arg into OUTER + CELL according to its own expected rank
+            splits = sig.in_shapes.each_with_index.map do |expected, idx|
+              cell_rank = required_rank(expected)
+              outer, cell = split_outer_cell(normalized_args[idx], cell_rank)
+              { outer: outer, cell: cell, expected: expected }
             end
+
+            # 1) Match CELLs and build env
+            env = {}
+            score = 0
+            matched_vars = Set.new
+
+            splits.each do |sp|
+              res = match_cell(sp[:cell], sp[:expected], env)
+              return nil unless res
+
+              env = res[:env]
+              score += res[:score]
+              matched_vars.merge(res[:matched_vars])
+            end
+
+            # 2) Enforce OUTER compatibility for elementwise ops (nil join_policy)
+            outer_names, outer_cost = unify_outer_for_elementwise(sig.join_policy, splits.map { _1[:outer] })
+            return nil if outer_names.is_a?(Symbol) && outer_names == :__outer_mismatch__
+
+            score += outer_cost
+
+            { env: env, score: score, outer: outer_names, matched_vars: matched_vars }
           end
 
-          # Returns an integer "broadcast cost" or nil if not matchable.
-          # Lower score = better match: 0 = exact, then increasing cost for broadcasts/flexibility
-          def match_score(sig, arg_shapes)
-            return nil unless sig.arity == arg_shapes.length
+          # ---------- CELL matching ----------
 
-            # Convert arg_shapes to normalized Dimension arrays for comparison
-            normalized_args = arg_shapes.map { |shape| normalize_shape(shape) }
+          def match_cell(got_cell, expected, env)
+            # Scalar extension (empty cell → broadcast)
+            return { env: env, score: expected.empty? ? 0 : 1, matched_vars: Set.new } if got_cell.empty?
 
-            # Try to match each argument against its expected signature shape
-            cost = 0
-            sig.in_shapes.each_with_index do |expected_dims, idx|
-              got_dims = normalized_args[idx]
-              arg_cost = match_argument_cost(got: got_dims, expected: expected_dims)
-              return nil if arg_cost.nil?
-
-              cost += arg_cost
-            end
-
-            # Additional checks for join_policy constraints
-            return nil unless valid_join_policy?(sig, normalized_args)
-
-            cost
-          end
-
-          private
-
-          # Convert a shape array (symbols/integers) to normalized Dimension array
-          def normalize_shape(shape)
-            shape.map do |dim|
-              case dim
-              when Symbol
-                Dimension.new(dim)
-              when Integer
-                Dimension.new(dim)
-              else
-                raise SignatureMatchError, "Invalid dimension type: #{dim.class}"
-              end
-            end
-          end
-
-          # Calculate cost of matching one argument against expected dimensions
-          def match_argument_cost(got:, expected:)
-            # Handle scalar first
-            if got.empty?
-              return expected.empty? ? 0 : (expected.any?(&:flexible?) ? 10 : 1) # scalar broadcast or flexible-tail
-            end
-
-            # Try strict matching first if no flexible dimensions
-            if !expected.any?(&:flexible?) && got.length == expected.length
-              total = 0
-              got.zip(expected).each do |g, e|
-                c = match_dimension_cost(got: g, expected: e)
-                return nil if c.nil?
-                total += c
-              end
-              return total
-            end
-
-            # Use right-aligned flexible matching
-            right_align_match(got: got, expected: expected)
-          end
-
-          # Right-aligned matching for flexible dimensions (NEP 20 ? modifier)
-          def right_align_match(got:, expected:)
-            gi = got.length - 1
+            gi = got_cell.length - 1
             ei = expected.length - 1
-            cost = 0
+            score = 0
+            matched_vars = Set.new
+            new_env = env.dup
 
             while ei >= 0
               exp = expected[ei]
 
               if exp.flexible? && gi < 0
-                # optional tail dimension that we don't have → ok, consume expected only
+                # optional tail not present
                 ei -= 1
-                cost += 10
+                score += FLEX_DROP_COST
                 next
               end
 
-              return nil if gi < 0 # ran out of got dims and exp wasn't flexible
+              return nil if gi < 0 # got exhausted and expected not flexible
 
-              got_dim = got[gi]
-              dim_cost = match_dimension_cost(got: got_dim, expected: exp)
-              if dim_cost.nil?
-                # if exp is flexible, we can try to drop it
-                if exp.flexible?
-                  ei -= 1
-                  cost += 10
-                  next
-                else
-                  return nil
-                end
-              else
-                cost += dim_cost
+              got = got_cell[gi]
+
+              # Try to match got vs exp; possibly updates env
+              m = match_dim(got, exp, new_env)
+              if m
+                new_env = m[:env]
+                score += m[:score]
+                matched_vars << exp.name if exp.named?
                 gi -= 1
                 ei -= 1
+                next
               end
+
+              # If expected is flexible, we may drop it
+              if exp.flexible?
+                ei -= 1
+                score += FLEX_DROP_COST
+                next
+              end
+
+              return nil
             end
 
-            # if we still have leftover got dims, argument is longer than expected → not a match
-            return nil if gi >= 0
+            # Any extra leading dims in got_cell are fine (they were OUTER already)
 
-            cost
+            { env: new_env, score: score, matched_vars: matched_vars }
           end
 
-          # Calculate cost of matching one dimension against another
-          def match_dimension_cost(got:, expected:)
-            return 0 if got == expected # Exact match
+          def match_dim(got, exp, env)
+            # exact literals (same symbol/integer)
+            return { env: env, score: 0 } if got == exp
 
-            # Fixed-size equality
-            if got.fixed_size? && expected.fixed_size?
-              return got.size == expected.size ? 0 : nil
+            # fixed-size integers
+            if got.fixed_size? && exp.fixed_size?
+              return got.size == exp.size ? { env: env, score: 0 } : nil
             end
 
-            # Same symbolic name (ignoring modifiers) → ok unless one is fixed and the other isn't (penalize)
-            if got.named? && expected.named? && got.name == expected.name
-              return (got.fixed_size? || expected.fixed_size?) ? 2 : 0
+            # broadcastable dim (x|1) accepts got == 1 or scalar-like promotion
+            if exp.broadcastable?
+              return { env: env, score: BROADCAST_COST } if got.fixed_size? && got.size == 1
+              # If got is a named axis, we allow it (treat as broadcastable match with cost)
+              return { env: env, score: BROADCAST_COST } if got.named?
             end
 
-            # Broadcastable expected dim accepts scalar or size-1
-            if expected.broadcastable?
-              # scalar at argument level would have been handled in match_argument_cost
-              # so here we check for size-1 fixed dimensions
-              return 3 if got.fixed_size? && got.size == 1
-              # Named dimensions that could be size-1 at runtime also get broadcast cost
-              return 3 if got.named?
+            # named variable binding / unification across args
+            if exp.named?
+              unified = unify_binding(env[exp.name], got)
+              return nil if unified == :__conflict__
+
+              new_env = env.dup
+              new_env[exp.name] = unified
+              # prefer 0 on exact same-name, small cost if we had to prefer non-1 over 1
+              add_cost = env.key?(exp.name) && env[exp.name] != unified ? OUTER_BCAST_COST : 0
+              return { env: new_env, score: add_cost }
             end
 
-            nil # No match possible
+            nil
           end
 
-          # Check if join_policy constraints are satisfied
-          def valid_join_policy?(sig, normalized_args)
-            return true if sig.join_policy # :zip or :product allows different axes
+          # ---------- OUTER merging for elementwise ----------
 
-            # nil join_policy: check if dimension names are consistent
-            non_scalar_args = normalized_args.reject { |a| Shape.scalar?(a) }
-            return true if non_scalar_args.empty?
+          def unify_outer_for_elementwise(join_policy, outers)
+            # Non-elementwise joins (e.g., :zip, :product) place no restriction on OUTER
+            return [[], 0] if outers.all?(&:empty?)
+            return [outers.first.map(&:name), 0] if join_policy
 
-            # For nil join_policy, we allow different dimension names if:
-            # 1. All args have same dimension names (element-wise operations), OR
-            # 2. The constraint solver can validate cross-dimensional consistency (like matmul)
-            first_names = non_scalar_args.first.map(&:name)
-            same_names = non_scalar_args.all? { |arg| arg.map(&:name) == first_names }
-            
-            return true if same_names
-            
-            # If dimension names differ, check if constraint solver can handle it
-            # This allows operations like matmul where dimensions are linked across arguments
-            env = build_dimension_environment(sig, normalized_args)
-            !env.nil?
+            # All non-scalar args must agree on OUTER up to broadcasting of size-1 dims.
+            # We left-align OUTER (leading axes), merging across args.
+            max_len = outers.map(&:length).max
+            merged = []
+            cost = 0
+
+            (0...max_len).each do |i|
+              dims_at_i = outers.map { |o| o[i] }.compact
+              # pick a representative
+              rep = dims_at_i.find { |d| d.named? } || dims_at_i.find { |d| d.fixed_size? && d.size != 1 } || dims_at_i.first
+              # check compatibility
+              dims_at_i.each do |d|
+                next if same_dim?(d, rep)
+
+                if (d.fixed_size? && d.size == 1) || (rep.fixed_size? && rep.size == 1)
+                  cost += OUTER_BCAST_COST
+                  next
+                end
+                # mismatch on named/non-1 dims
+                return :__outer_mismatch__
+              end
+              merged << (rep.named? ? rep.name : rep.size)
+            end
+
+            [merged, cost]
+          end
+
+          # ---------- Result helpers ----------
+
+          def bind_out_axes(sig, env)
+            sig.out_shape.map { |d| d.named? && env[d.name] ? env[d.name].name : d.name }
+          end
+
+          # Only report truly dropped axes that were PRESENT in the match
+          # (flexible '?j' that was absent should NOT appear as dropped).
+          # We detect presence via matched_vars set.
+          def compute_dropped_axes(sig, env, matched_vars)
+            # dropped = (vars_seen_in_inputs) - (vars_used_in_output)
+            out_vars = sig.out_shape.select(&:named?).map(&:name)
+            (matched_vars.to_a - out_vars).map do |name|
+              env[name] ? env[name].name : name
+            end
+          end
+
+          # ---------- Small utilities ----------
+
+          FLEX_DROP_COST     = 10
+          BROADCAST_COST     = 3
+          OUTER_BCAST_COST   = 2
+
+          def required_rank(expected_dims)
+            expected_dims.count { |d| !d.flexible? }
+          end
+
+          def split_outer_cell(got_dims, cell_rank)
+            return [[], got_dims] if got_dims.length <= cell_rank
+
+            split_at = got_dims.length - cell_rank
+            [got_dims[0...split_at], got_dims[split_at..]]
+          end
+
+          def same_dim?(a, b)
+            return true if a == b
+
+            a.named? && b.named? && a.name == b.name
+          end
+
+          def unify_binding(existing, new_dim)
+            return new_dim unless existing
+            return existing if existing == new_dim
+            # prefer non-1 over 1 for broadcast unification
+            if existing.fixed_size? && existing.size == 1
+              return new_dim
+            elsif new_dim.fixed_size? && new_dim.size == 1
+              return existing
+            end
+            # if both are named but different, conflict
+            return :__conflict__ unless same_dim?(existing, new_dim)
+
+            existing
+          end
+
+          def dim_of(x)
+            case x
+            when Dimension then x
+            when Symbol    then Dimension.new(x)
+            when Integer   then Dimension.new(x)
+            else
+              raise SignatureMatchError, "Invalid dimension: #{x.inspect}"
+            end
+          end
+
+          def validate_arg_shapes!(arg_shapes)
+            ok = arg_shapes.is_a?(Array) &&
+                 arg_shapes.all? { |s| s.is_a?(Array) && s.all? { |a| a.is_a?(Symbol) || a.is_a?(Integer) } }
+            raise SignatureMatchError, "arg_shapes must be arrays of symbols/integers, got: #{arg_shapes.inspect}" unless ok
           end
 
           def mismatch_message(signatures, arg_shapes)
             sigs = signatures.map(&:inspect).join(", ")
-            "no matching signature for shapes #{pp_shapes(arg_shapes)} among [#{sigs}]"
-          end
-
-          def pp_shapes(shapes)
-            shapes.map { |ax| "(#{ax.join(',')})" }.join(", ")
-          end
-
-          # Build dimension environment by checking consistency of named dimensions across arguments
-          def build_dimension_environment(sig, normalized_args)
-            env = {}
-            
-            # Walk all expected dimensions across all arguments
-            sig.in_shapes.each_with_index do |expected_shape, arg_idx|
-              got_shape = normalized_args[arg_idx] || []
-              
-              expected_shape.each_with_index do |exp_dim, dim_idx|
-                next unless exp_dim.named? && dim_idx < got_shape.length
-                
-                got_dim = got_shape[dim_idx]
-                dim_name = exp_dim.name
-                
-                # Check for consistency: same dimension name must map to same concrete value
-                if env.key?(dim_name)
-                  # If we've seen this dimension name before, it must match
-                  if env[dim_name] != got_dim
-                    return nil  # Inconsistent binding - signature doesn't match
-                  end
-                else
-                  # First time seeing this dimension name - record the binding
-                  env[dim_name] = got_dim
-                end
-              end
-            end
-            
-            env
+            shapes = arg_shapes.map { |ax| "(#{ax.join(',')})" }.join(", ")
+            "no matching signature for shapes #{shapes} among [#{sigs}]"
           end
         end
       end

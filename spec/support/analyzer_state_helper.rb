@@ -59,7 +59,9 @@ module AnalyzerStateHelper
       pass_instance = pass_class.new(syntax_tree, state)
       state = pass_instance.run(errors)
 
-      raise Kumi::Errors::AnalysisError, "Analysis failed: #{errors.map(&:to_s).join(', ')}" unless errors.empty?
+      pass_name = pass_class.to_s.split("::").last
+
+      raise Kumi::Errors::AnalysisError, "Analysis(#{pass_name}) failed: #{errors.map(&:to_s).join(', ')}" unless errors.empty?
     end
 
     state

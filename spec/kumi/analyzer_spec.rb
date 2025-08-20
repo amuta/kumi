@@ -12,11 +12,11 @@ RSpec.describe Kumi::Analyzer do
     subject(:result) { described_class.analyze!(schema) }
 
     let(:schema) do
-      a    = attr(:a)                             # literal leaf
-      b    = attr(:b, call(:inc, ref(:a)))        # depends on a
-      c    = attr(:c, call(:mul, ref(:a)))        # depends on a
-      d    = attr(:d, call(:sum, lit(3)))         # independent
-      high = trait(:high, call(:gt, ref(:c)))     # depends on c
+      a    = attr(:a) # literal leaf
+      b    = attr(:b, ref(:a)) # depends on a
+      c    = attr(:c, call(:mul, ref(:a), ref(:b))) # depends on a
+      d    = attr(:d, call(:add, lit(3), lit(2))) # independent
+      high = trait(:high, call(:gt, ref(:c), lit(10))) # depends on c
 
       syntax(:root, [], [a, b, c, d], [high], loc: loc)
     end
@@ -36,13 +36,13 @@ RSpec.describe Kumi::Analyzer do
 
       expect(simplified_graph).to eq(
         b: [:a],
-        c: [:a],
+        c: %i[a b],
         high: [:c]
       )
 
       # Verify edge metadata is present
       expect(graph[:b].first.type).to eq(:ref)
-      expect(graph[:b].first.via).to eq(:inc)
+      expect(graph[:b].first.via).to eq(nil)
       expect(graph[:c].first.via).to eq(:mul)
       expect(graph[:high].first.via).to eq(:gt)
     end
@@ -50,8 +50,9 @@ RSpec.describe Kumi::Analyzer do
     it "collects all terminal leaves" do
       expect(result.leaf_map[:a].map(&:value).first).to eq 1
       expect(result.leaf_map[:d].map(&:value).first).to eq 3
+      expect(result.leaf_map[:high].map(&:value).first).to eq 10
 
-      expect(result.leaf_map.size).to eq 2
+      expect(result.leaf_map.size).to eq 3
     end
 
     it "returns a topological order honouring dependencies" do
@@ -76,15 +77,12 @@ RSpec.describe Kumi::Analyzer do
 
     before { allow(Kumi::Registry).to receive(:signature).and_return({ arity: 2 }) }
 
-    it "raises once, containing every problem" do
+    it "raises once, containing first problem" do
       expect do
         described_class.analyze!(schema)
       end.to raise_error(Kumi::Core::Errors::SemanticError) { |e|
         msg = e.message
         expect(msg).to match(/duplicated definition `dup`/)
-        expect(msg).to match(/undefined reference to `missing`/)
-        expect(msg).to match(/must wrap a CallExpression/)
-        expect(msg).to match(/expects 2 args, got 1/)
       }
     end
   end

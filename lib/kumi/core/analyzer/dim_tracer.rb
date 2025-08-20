@@ -35,26 +35,25 @@ module Kumi
           end
         end
 
-        # Metadata-driven dimension calculation (replaces broadcast prefix heuristics)
+        # Metadata-driven dimension calculation using precomputed dimensional scope
         def input_dims_for_metadata(path_array, input_metadata)
-          return [] if path_array.nil? || path_array.empty?
+          raise "Path cannot be nil or empty" if path_array.nil? || path_array.empty?
           
-          dims = []
+          # Navigate to the final field and get its precomputed dimensional_scope
           meta = input_metadata
-          
-          path_array.each do |seg|
-            field = meta[seg] || meta[seg.to_sym] || meta[seg.to_s]
-            unless field
-              raise "Path segment '#{seg}' not found in input metadata at #{path_array.inspect}"
-            end
-            
-            # Only array boundaries create dimensions
-            dims << seg.to_sym if field[:type] == :array
-            
-            meta = field[:children] || {}
+          path_array.each do |segment|
+            field = meta[segment]
+            raise "Path segment '#{segment}' not found in input metadata at #{path_array}" unless field
+
+            # If this is the final segment, return its precomputed dimensional scope
+            return field.dimensional_scope if segment == path_array.last
+
+            # Navigate to children for next segment
+            meta = field.children
+            raise "Field '#{segment}' missing children metadata at #{path_array}" unless meta
           end
-          
-          dims
+
+          raise "Should not reach here - path traversal failed for #{path_array}"
         end
         
         # Legacy method - deprecated, raises to prevent broadcast prefix usage

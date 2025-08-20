@@ -21,7 +21,8 @@ module Kumi
 
             schema.inputs.each do |decl|
               name = decl.name
-              input_meta[name] = collect_field_metadata(decl, errors, depth: 0, name: name)
+              # Start with path containing just the field name, empty scope for root
+              input_meta[name] = collect_field_metadata(decl, errors, depth: 0, name: name, path: [name], parent_scope: [])
             end
 
             input_meta.each_value(&:deep_freeze!)
@@ -32,16 +33,32 @@ module Kumi
 
           # ---------- builders ----------
 
-          def collect_field_metadata(decl, errors, depth:, name:)
+          def collect_field_metadata(decl, errors, depth:, name:, path:, parent_scope:)
             children = nil
+            
+            # For children, the current field becomes part of the scope if it's an array
+            current_scope = parent_scope.dup
+            current_scope << name.to_sym if decl.type == :array
+            
             if decl.children&.any?
               children = {}
               decl.children.each do |child|
-                children[child.name] = collect_field_metadata(child, errors, depth: depth + 1, name: child.name)
+                child_path = path + [child.name]
+                children[child.name] = collect_field_metadata(
+                  child, errors, 
+                  depth: depth + 1, 
+                  name: child.name, 
+                  path: child_path, 
+                  parent_scope: current_scope
+                )
               end
             end
 
             access_mode = decl.access_mode || :field
+
+            # The dimensional scope for this field is the parent_scope (arrays that contain this field)
+            # This represents the dimensional scope when accessing this field
+            dimensional_scope = parent_scope.dup
 
             meta = Structs::InputMeta.new(
               type: decl.type,
@@ -50,7 +67,8 @@ module Kumi
               access_mode: access_mode,
               enter_via: :hash,
               consume_alias: false,
-              children: children
+              children: children,
+              dimensional_scope: dimensional_scope
             )
             stamp_edges_from!(meta, errors, parent_depth: depth)
             validate_access_modes!(meta, errors, parent_depth: depth)

@@ -331,21 +331,16 @@ module Kumi
             end
           end
 
-          # New: prefer declaration-derived scope; otherwise fall back to input-path hints; else scalar.
+          # Step 1 fix: Use metadata-driven approach instead of broadcast prefix heuristics
           def infer_arg_shape(arg_node, decl_shapes, broadcasts)
             case arg_node
             when Kumi::Syntax::DeclarationReference
+              # Safe fallback before Pass 18 when decl_shapes exists
               (decl_shapes.dig(arg_node.name, :scope) || [])
             when Kumi::Syntax::InputReference, Kumi::Syntax::InputElementReference
-              # Minimal, conservative hinting from broadcasts (keep this simple)
-              # If path is known vector (in nested_paths/array_fields), return a 1-deep scope.
-              path = if arg_node.respond_to?(:path) && arg_node.path
-                       arg_node.path.join(".")
-                     else
-                       arg_node.path_string rescue nil
-                     end
-              if path && vector_like_input_path?(path, broadcasts)
-                [:i]  # symbolic placeholder scope; analyzer downstream will normalize
+              # Use precomputed dimensional scope from InputCollector
+              if arg_node.respond_to?(:path) && arg_node.path && @input_metadata
+                get_dimensional_scope_from_metadata(arg_node.path, @input_metadata)
               else
                 []
               end
@@ -354,25 +349,25 @@ module Kumi
             end
           end
 
-          def vector_like_input_path?(path, broadcasts)
-            return false unless path && !path.empty?
-            
-            # Use new prefix arrays if available (preferred)
-            if broadcasts[:nested_prefixes] && broadcasts[:array_prefixes]
-              np = broadcasts[:nested_prefixes]
-              ap = broadcasts[:array_prefixes]
-              return np.any? { |p| path.start_with?(p) } || ap.any? { |p| path.start_with?(p) }
+          # Step 1: Retrieve precomputed dimensional scope from InputCollector
+          def get_dimensional_scope_from_metadata(path, input_metadata)
+            raise "Path cannot be nil or empty" if path.nil? || path.empty?
+
+            # Navigate to the final field and get its precomputed dimensional_scope
+            meta = input_metadata
+            path.each do |segment|
+              field = meta[segment]
+              raise "Path segment '#{segment}' not found in input metadata at #{path}" unless field
+
+              # If this is the final segment, return its precomputed dimensional scope
+              return field.dimensional_scope if segment == path.last
+
+              # Navigate to children for next segment
+              meta = field.children
+              raise "Field '#{segment}' missing children metadata at #{path}" unless meta
             end
-            
-            # Handle legacy hash format for backward compatibility
-            np = broadcasts[:nested_paths] || {}
-            af = broadcasts[:array_fields] || {}
-            
-            # Convert hash keys to string prefixes if needed
-            nested_prefixes = np.is_a?(Hash) ? np.keys.map { |k| k.join(".") } : Array(np)
-            array_prefixes = af.is_a?(Hash) ? af.keys.map(&:to_s) : Array(af)
-            
-            nested_prefixes.any? { |p| path.start_with?(p) } || array_prefixes.any? { |p| path.start_with?(p) }
+
+            raise "Should not reach here - path traversal failed for #{path}"
           end
 
           def build_signature_error_message(fn_name, arg_shapes, sig_strings, original_error, node)
