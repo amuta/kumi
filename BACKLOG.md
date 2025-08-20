@@ -1,6 +1,10 @@
 # Kumi Development Backlog
 
+# FINAL STEPS NEEDS:
+- [ ] Write the “laws of motion” for axes and reductions in public docs. we have them internally; the world needs them condensed to a page.
+
 ## High Priority
+
 
 ### Lazy Evaluation Completion
 - [ ] Replace cascade `Map(mask.where)` operations with `Select` operations for consistency
