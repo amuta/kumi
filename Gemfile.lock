@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kumi (0.0.13)
+    kumi (0.0.14)
       zeitwerk (~> 2.6.0)
 
 GEM
