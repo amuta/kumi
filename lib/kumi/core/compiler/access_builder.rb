@@ -2,17 +2,28 @@ module Kumi
   module Core
     module Compiler
       class AccessBuilder
+        class << self
+          attr_accessor :strategy
+        end
+
+        self.strategy = (ENV["KUMI_CODEGEN"] ? :codegen : :interp)
+
         def self.build(plans)
           accessors = {}
           plans.each_value do |variants|
             variants.each do |plan|
-              accessors[plan.accessor_key] = build_proc_for(
-                mode: plan.mode,
-                path_key: plan.path,
-                missing: (plan.on_missing || :error).to_sym,
-                key_policy: (plan.key_policy || :indifferent).to_sym,
-                operations: plan.operations
-              )
+              accessors[plan.accessor_key] =
+                case strategy
+                when :codegen then AccessCodegen.fetch_or_compile(plan)
+                else
+                  build_proc_for(
+                    mode: plan.mode,
+                    path_key: plan.path,
+                    missing: (plan.on_missing || :error).to_sym,
+                    key_policy: (plan.key_policy || :indifferent).to_sym,
+                    operations: plan.operations
+                  )
+                end
             end
           end
           accessors.freeze
