@@ -8,28 +8,16 @@ module Kumi
         module Interpreter
           PRODUCES_SLOT = %i[const load_input ref array map reduce lift align_to switch].freeze
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
+          EMPTY_ARY = [].freeze
 
-          def self.build_name_index(ir_module)
-            index = {}
-            ir_module.decls.each do |decl|
-              decl.ops.each do |op|
-                next unless op.tag == :store
-
-                name = op.attrs[:name]
-                index[name] = decl if name
-              end
-            end
-            index
-          end
-
-          def self.run(ir_module, ctx, accessors:, registry:)
+          def self.run(ir_module, input:, runtime:, accessors:, registry:)
             # Validate registry is properly initialized
             raise ArgumentError, "Registry cannot be nil" if registry.nil?
             raise ArgumentError, "Registry must be a Hash, got #{registry.class}" unless registry.is_a?(Hash)
 
             # --- PROFILER: init per run (but not in persistent mode) ---
             if Profiler.enabled?
-              schema_name = ctx[:schema_name] || "UnknownSchema"
+              schema_name = runtime[:schema_name] || "UnknownSchema"
               if Profiler.persistent?
                 # In persistent mode, just update schema name without full reset
                 Profiler.set_schema_name(schema_name)
@@ -40,30 +28,14 @@ module Kumi
             end
 
             outputs = {}
-            target = ctx[:target]
+            target = runtime[:target]
             guard_stack = [true]
 
-            # Always ensure we have a declaration cache - either from caller or new for this VM run
-            declaration_cache = ctx[:declaration_cache] || {}
-
-            # Build name index for targeting by stored names
-            name_index = ctx[:name_index] || (target ? build_name_index(ir_module) : nil)
+            # Caches live in runtime (engine frame), not input
+            declaration_cache = runtime[:declaration_cache] ||= {}
 
             # Choose declarations to execute - prefer explicit schedule if present
-            decls_to_run =
-              if ctx[:decls_to_run]
-                ctx[:decls_to_run] # array of decl objects
-              elsif target
-                # Prefer a decl that STORES the target (covers __vec twins)
-                d = name_index && name_index[target]
-                # Fallback: allow targeting by decl name (legacy behavior)
-                d ||= ir_module.decls.find { |dd| dd.name == target }
-                raise "Unknown target: #{target}" unless d
-
-                [d]
-              else
-                ir_module.decls
-              end
+            decls_to_run = runtime[:decls_to_run] || ir_module.decls
 
             decls_to_run.each do |decl|
               slots = []
@@ -122,41 +94,19 @@ module Kumi
 
                 case op.tag
 
-                when :assign
-                  dst = op.attrs[:dst]
-                  src = op.attrs[:src]
-                  raise "assign: dst/src OOB" if dst >= slots.length || src >= slots.length
-
-                  slots[dst] = slots[src]
-                  Profiler.record!(decl: decl.name, idx: op_index, tag: :assign, op: op, t0: t0, cpu_t0: cpu_t0, rows: 1) if t0
-
                 when :const
                   result = Values.scalar(op.attrs[:value])
-                  puts "DEBUG Const #{op.attrs[:value].inspect}: result=#{result}" if ENV["DEBUG_VM_ARGS"]
                   slots << result
                   Profiler.record!(decl: decl.name, idx: op_index, tag: :const, op: op, t0: t0, cpu_t0: cpu_t0, rows: 1) if t0
 
                 when :load_input
                   plan_id = op.attrs[:plan_id]
-                  scope = op.attrs[:scope] || []
+                  scope = op.attrs[:scope] || EMPTY_ARY
                   scalar = op.attrs[:is_scalar]
                   indexed = op.attrs[:has_idx]
 
-                  # NEW: consult runtime accessor cache
-                  acc_cache = ctx[:accessor_cache] || {}
-                  input_obj = ctx[:input] || ctx["input"]
-                  cache_key = [plan_id, input_obj.object_id]
+                  raw = accessors.fetch(plan_id).call(input) # <- memoized by ExecutionEngine
 
-                  if acc_cache.key?(cache_key)
-                    raw = acc_cache[cache_key]
-                    hit = true
-                  else
-                    raw = accessors.fetch(plan_id).call(input_obj)
-                    acc_cache[cache_key] = raw
-                    hit = false
-                  end
-
-                  puts "DEBUG LoadInput plan_id: #{plan_id} raw_values: #{raw.inspect} cache_hit: #{hit}" if ENV["DEBUG_VM_ARGS"]
                   slots << if scalar
                              Values.scalar(raw)
                            elsif indexed
@@ -167,28 +117,14 @@ module Kumi
                              Values.vec(scope, raw.map { |v| { v: v } }, false)
                            end
                   rows_touched ||= 1
-                  cache_note = hit ? "hit:#{plan_id}" : "miss:#{plan_id}"
                   if t0
                     Profiler.record!(decl: decl.name, idx: op_index, tag: :load_input, op: op, t0: t0, cpu_t0: cpu_t0,
-                                     rows: rows_touched, note: cache_note)
+                                     rows: rows_touched, note: "ok")
                   end
 
                 when :ref
                   name = op.attrs[:name]
-
-                  if outputs.key?(name)
-                    referenced = outputs[name]
-                    hit = :outputs
-                  elsif declaration_cache.key?(name)
-                    referenced = declaration_cache[name]
-                    hit = :cache
-                  else
-                    raise "unscheduled ref #{name}: producer not executed or dependency analysis failed"
-                  end
-
-                  if ENV["DEBUG_VM_ARGS"]
-                    puts "DEBUG Ref #{name}: #{referenced[:k] == :scalar ? "scalar(#{referenced[:v].inspect})" : "#{referenced[:k]}(#{referenced[:rows]&.size || 0} rows)"}"
-                  end
+                  referenced = outputs[name] { raise "unscheduled ref #{name}: producer not executed or dependency analysis failed" }
 
                   slots << referenced
                   rows_touched = referenced[:k] == :vec ? (referenced[:rows]&.size || 0) : 1
@@ -198,16 +134,6 @@ module Kumi
                   end
 
                 when :array
-                  # Validate slot indices before accessing
-                  op.args.each do |slot_idx|
-                    if slot_idx >= slots.length
-                      raise "Array operation: slot index #{slot_idx} out of bounds (slots.length=#{slots.length})"
-                    elsif slots[slot_idx].nil?
-                      raise "Array operation: slot #{slot_idx} is nil " \
-                            "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                    end
-                  end
-
                   parts = op.args.map { |i| slots[i] }
                   if parts.all? { |p| p[:k] == :scalar }
                     slots << Values.scalar(parts.map { |p| p[:v] })
@@ -231,7 +157,6 @@ module Kumi
                   fn_name = op.attrs[:fn]
                   fn_entry = registry[fn_name] or raise "Function #{fn_name} not found in registry"
                   fn = fn_entry.fn
-                  puts "DEBUG Map #{fn_name}: args=#{op.args.inspect}" if ENV["DEBUG_VM_ARGS"]
 
                   # Validate slot indices before accessing
                   op.args.each do |slot_idx|
@@ -246,48 +171,29 @@ module Kumi
                   args = op.args.map { |slot_idx| slots[slot_idx] }
 
                   if args.all? { |a| a[:k] == :scalar }
-                    puts "DEBUG Scalar call #{fn_name}: args=#{args.map { |a| a[:v] }.inspect}" if ENV["DEBUG_VM_ARGS"]
                     scalar_args = args.map { |a| a[:v] }
                     result = fn.call(*scalar_args)
                     slots << Values.scalar(result)
                   else
                     base = args.find { |a| a[:k] == :vec } or raise "Map needs a vec carrier"
-                    puts "DEBUG Vec call #{fn_name}: base=#{base.inspect}" if ENV["DEBUG_VM_ARGS"]
                     # Preserve original order: broadcast scalars in-place
                     arg_vecs = args.map { |a| a[:k] == :scalar ? Combinators.broadcast_scalar(a, base) : a }
-                    puts "DEBUG Vec call #{fn_name}: arg_vecs=#{arg_vecs.inspect}" if ENV["DEBUG_VM_ARGS"]
                     scopes = arg_vecs.map { |v| v[:scope] }.uniq
-                    puts "DEBUG Vec call #{fn_name}: scopes=#{scopes.inspect}" if ENV["DEBUG_VM_ARGS"]
                     raise "Cross-scope Map without Join" unless scopes.size <= 1
 
                     zipped = Combinators.zip_same_scope(*arg_vecs)
 
-                    # if ENV["DEBUG_VM_ARGS"] && fn_name == :if
-                    #   puts "DEBUG Vec call #{fn_name}: zipped rows:"
-                    #   zipped[:rows].each_with_index do |row, i|
-                    #     puts "  [#{i}] args=#{Array(row[:v]).inspect}"
-                    #   end
-                    # end
-
-                    puts "DEBUG Vec call #{fn_name}: zipped rows=#{zipped[:rows].inspect}" if ENV["DEBUG_VM_ARGS"]
                     rows = zipped[:rows].map do |row|
                       row_args = Array(row[:v])
                       vr = fn.call(*row_args)
                       row.key?(:idx) ? { v: vr, idx: row[:idx] } : { v: vr }
                     end
-                    puts "DEBUG Vec call #{fn_name}: result rows=#{rows.inspect}" if ENV["DEBUG_VM_ARGS"]
 
                     slots << Values.vec(base[:scope], rows, base[:has_idx])
                   end
 
                 when :switch
                   chosen = op.attrs[:cases].find do |(cond_slot, _)|
-                    if cond_slot >= slots.length
-                      raise "Switch operation: condition slot #{cond_slot} out of bounds (slots.length=#{slots.length})"
-                    elsif slots[cond_slot].nil?
-                      raise "Switch operation: condition slot #{cond_slot} is nil (available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                    end
-
                     c = slots[cond_slot]
                     if c[:k] == :scalar
                       !!c[:v]
@@ -297,22 +203,12 @@ module Kumi
                     end
                   end
                   result_slot = chosen ? chosen[1] : op.attrs[:default]
-                  if result_slot >= slots.length
-                    raise "Switch operation: result slot #{result_slot} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[result_slot].nil?
-                    raise "Switch operation: result slot #{result_slot} is nil (available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                  end
 
                   slots << slots[result_slot]
 
                 when :store
                   name = op.attrs[:name]
                   src  = op.args[0] or raise "store: missing source slot"
-                  if src >= slots.length
-                    raise "Store operation '#{name}': source slot #{src} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[src].nil?
-                    raise "Store operation '#{name}': source slot #{src} is nil (available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                  end
 
                   result = slots[src]
                   outputs[name] = result
@@ -329,10 +225,8 @@ module Kumi
                   fn = fn_entry.fn
 
                   src = slots[op.args[0]]
-                  raise "Reduce expects Vec" unless src[:k] == :vec
-
-                  result_scope = Array(op.attrs[:result_scope] || [])
-                  axis         = Array(op.attrs[:axis] || [])
+                  result_scope = op.attrs[:result_scope]
+                  axis         = op.attrs[:axis]
 
                   if result_scope.empty?
                     # === GLOBAL REDUCE ===
@@ -340,12 +234,6 @@ module Kumi
                     vals = src[:rows].map { |r| r[:v] }
                     slots << Values.scalar(fn.call(vals))
                   else
-                    # === GROUPED REDUCE ===
-                    # Must have indices to group by prefix keys.
-                    unless src[:has_idx]
-                      raise "Grouped reduce requires indexed input (got ravel) for #{op.attrs[:fn]} at #{result_scope.inspect}"
-                    end
-
                     group_len = result_scope.length
 
                     # Preserve stable source order so zips with other @result_scope vecs line up.
@@ -368,39 +256,17 @@ module Kumi
 
                 when :lift
                   src_slot = op.args[0]
-                  if src_slot >= slots.length
-                    raise "Lift operation: source slot #{src_slot} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[src_slot].nil?
-                    raise "Lift operation: source slot #{src_slot} is nil (available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                  end
 
                   v = slots[src_slot]
-                  to_scope = op.attrs[:to_scope] || []
+                  to_scope = op.attrs[:to_scope] || EMPTY_ARY
                   depth    = [to_scope.length, v[:rank] || v[:rows].first&.dig(:idx)&.length || 0].min
                   slots << Values.scalar(Combinators.group_rows(v[:rows], depth))
 
                 when :align_to
-                  tgt_slot = op.args[0]
-                  src_slot = op.args[1]
+                  tgt = slots[op.args[0]]
+                  src = slots[op.args[1]]
 
-                  if tgt_slot >= slots.length
-                    raise "AlignTo operation: target slot #{tgt_slot} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[tgt_slot].nil?
-                    raise "AlignTo operation: target slot #{tgt_slot} is nil " \
-                          "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                  end
-
-                  if src_slot >= slots.length
-                    raise "AlignTo operation: source slot #{src_slot} out of bounds (slots.length=#{slots.length})"
-                  elsif slots[src_slot].nil?
-                    raise "AlignTo operation: source slot #{src_slot} is nil " \
-                          "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                  end
-
-                  tgt = slots[tgt_slot]
-                  src = slots[src_slot]
-
-                  to_scope = op.attrs[:to_scope] || []
+                  to_scope = op.attrs[:to_scope] || EMPTY_ARY
                   require_unique = op.attrs[:require_unique] || false
                   on_missing = op.attrs[:on_missing] || :error
 
@@ -408,9 +274,6 @@ module Kumi
                                                            require_unique: require_unique,
                                                            on_missing: on_missing)
                   slots << aligned
-
-                when :join
-                  raise NotImplementedError, "Join not implemented yet"
 
                 else
                   raise "Unknown operation: #{op.tag}"

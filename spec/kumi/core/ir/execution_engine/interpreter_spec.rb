@@ -32,7 +32,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:x][:k]).to eq(:scalar)
         expect(result[:x][:v]).to eq(42)
@@ -48,7 +48,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:result][:k]).to eq(:scalar)
         expect(result[:result][:v]).to eq(30)
@@ -68,7 +68,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: { x: 5 } }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: { x: 5 }, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:doubled][:k]).to eq(:scalar)
         expect(result[:doubled][:v]).to eq(10)
@@ -88,7 +88,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:items_vec][:k]).to eq(:vec)
         expect(result[:items_vec][:scope]).to eq([:items])
@@ -114,7 +114,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:doubled][:k]).to eq(:vec)
         expect(result[:doubled][:rows].map { |r| r[:v] }).to eq([4, 6])
@@ -136,7 +136,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:prices_with_tax][:k]).to eq(:vec)
         values = result[:prices_with_tax][:rows].map { |r| r[:v] }
@@ -154,12 +154,12 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
         ir = ir_module([
                          ir_decl(:total, [
                                    ir_op(:load_input, { plan_id: "items:ravel", scope: [:items], is_scalar: false, has_idx: false }),
-                                   ir_op(:reduce, { fn: :sum }, [0]),
+                                   ir_op(:reduce, { fn: :sum, axis: [], result_scope: [] }, [0]),
                                    ir_op(:store, { name: :total }, [1])
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:total][:k]).to eq(:scalar)
         expect(result[:total][:v]).to eq(60)
@@ -182,7 +182,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:nested][:k]).to eq(:scalar)
         # VM lifts with full depth based on index dimensions
@@ -204,7 +204,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:arr][:k]).to eq(:scalar)
         expect(result[:arr][:v]).to eq([1, 2, 3])
@@ -224,7 +224,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:mixed_array][:k]).to eq(:vec)
         expect(result[:mixed_array][:rows].map { |r| r[:v] }).to eq([[10, 100], [20, 100]])
@@ -246,7 +246,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:x][:v]).to eq(10)
         expect(result[:y][:v]).to eq(20)
@@ -265,7 +265,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:result][:v]).to eq("yes")
       end
@@ -281,7 +281,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, {}, accessors: {}, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
 
         expect(result[:result][:v]).to eq("default")
       end
@@ -307,7 +307,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                                  ])
                        ])
 
-        result = described_class.run(ir, { input: {} }, accessors: accessors, registry: registry)
+        result = described_class.run(ir, input: {}, runtime: {}, accessors: accessors, registry: registry)
 
         expect(result[:aligned][:k]).to eq(:vec)
         expect(result[:aligned][:rows].map { |r| r[:v] }).to eq([10, 10, 20])
@@ -326,28 +326,8 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
                        ])
 
         expect do
-          described_class.run(ir, {}, accessors: {}, registry: registry)
+          described_class.run(ir, input: {}, runtime: {}, accessors: {}, registry: registry)
         end.to raise_error(/bad@op1 map: Unknown function: unknown_function/)
-      end
-    end
-
-    context "with target parameter" do
-      it "returns early when target is reached" do
-        ir = ir_module([
-                         ir_decl(:x, [
-                                   ir_op(:const, { value: 10 }),
-                                   ir_op(:store, { name: :x }, [0])
-                                 ]),
-                         ir_decl(:y, [
-                                   ir_op(:const, { value: 20 }),
-                                   ir_op(:store, { name: :y }, [0])
-                                 ])
-                       ])
-
-        result = described_class.run(ir, { target: :x }, accessors: {}, registry: registry)
-
-        expect(result).to have_key(:x)
-        expect(result).not_to have_key(:y)
       end
     end
   end

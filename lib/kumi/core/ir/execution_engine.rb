@@ -41,27 +41,27 @@ module Kumi
       # - DEBUG_VM_ARGS=1 prints per-op execution and arguments.
       # - DEBUG_GROUP_ROWS=1 prints grouping decisions during Lift.
       module ExecutionEngine
-        def self.run(ir_module, ctx, accessors:, registry:)
-          # Use persistent accessor cache if available, otherwise create temporary one
+        def self.run(ir_module, input:, runtime: {}, accessors:, registry:)
+          runtime[:accessor_cache] ||= {}
+
           memoized_accessors = Dev::Profiler.phase("engine.memoization") do
-            # Include input data in cache key to avoid cross-context pollution
-            input_key = ctx[:input]&.hash || ctx["input"]&.hash || 0
-            add_persistent_memoization(accessors, ctx[:accessor_cache], input_key)
+            add_persistent_memoization(accessors, runtime[:accessor_cache], input.__id__)
           end
 
           Dev::Profiler.phase("engine.interpreter") do
-            Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: registry)
+            Interpreter.run(ir_module, input: input, runtime: runtime, accessors: memoized_accessors, registry: registry)
           end
         end
 
+
         private
 
-        def self.add_persistent_memoization(accessors, cache, input_key)
+        def self.add_persistent_memoization(accessors, cache, input_oid)
           accessors.map do |plan_id, accessor_fn|
-            [plan_id, lambda do |input_data|
-              cache_key = [plan_id, input_key]
-              cache[cache_key] ||= accessor_fn.call(input_data)
-            end]
+            [plan_id, ->(input_data) {
+              key = [plan_id, input_oid]
+              cache[key] ||= accessor_fn.call(input_data)
+            }]
           end.to_h
         end
       end
