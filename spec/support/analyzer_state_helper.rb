@@ -18,22 +18,25 @@ module AnalyzerStateHelper
 
     # Map state names to pass indices
     state_to_pass = {
-      name_index: 0,           # NameIndexer
-      input_metadata: 1,       # InputCollector
-      declarations: 1,         # InputCollector also produces declarations
-      validated: 2,            # DeclarationValidator
-      semantic_valid: 3,       # SemanticConstraintValidator
-      dependencies: 4,         # DependencyResolver
-      unsat_detected: 5,       # UnsatDetector
-      evaluation_order: 6,     # Toposorter
-      broadcasts: 7,           # BroadcastDetector
-      types_inferred: 8,       # TypeInferencerPass
-      types_consistent: 9,     # TypeConsistencyChecker
-      types_checked: 10,       # TypeChecker
-      access_plans: 11,        # InputAccessPlannerPass
-      scope_plans: 12,         # ScopeResolutionPass
-      join_reduce_plans: 13,   # JoinReducePlanningPass
-      ir_module: 14            # LowerToIRPass
+      name_index: 0,             # NameIndexer
+      input_metadata: 1,         # InputCollector
+      declarations: 1,           # InputCollector also produces declarations
+      validated: 2,              # DeclarationValidator
+      semantic_valid: 3,         # SemanticConstraintValidator
+      dependencies: 4,           # DependencyResolver
+      unsat_detected: 5,         # UnsatDetector
+      evaluation_order: 6,       # Toposorter
+      broadcasts: 7,             # BroadcastDetector
+      types_inferred: 8,         # TypeInferencerPass
+      types_consistent: 9,       # TypeConsistencyChecker
+      signatures: 10,            # FunctionSignaturePass
+      types_checked: 11,         # TypeChecker
+      access_plans: 12,          # InputAccessPlannerPass  
+      scope_plans: 13,           # ScopeResolutionPass
+      join_reduce_plans: 14,     # JoinReducePlanningPass
+      ir_module: 15,             # LowerToIRPass
+      optimized_ir: 16,          # LoadInputCSE
+      ir_dependencies: 17        # IRDependencyPass
     }
 
     target_pass_index = state_to_pass[target_state]
@@ -85,8 +88,8 @@ module AnalyzerStateHelper
     # Find the latest state we need
     state_order = %i[name_index input_metadata declarations validated semantic_valid
                      dependencies unsat_detected evaluation_order broadcasts
-                     types_inferred types_consistent types_checked access_plans
-                     scope_plans join_reduce_plans ir_module]
+                     types_inferred types_consistent signatures types_checked access_plans
+                     scope_plans join_reduce_plans ir_module optimized_ir ir_dependencies]
 
     latest_index = state_names.map { |s| state_order.index(s) }.compact.max
     latest_state = state_order[latest_index]

@@ -42,6 +42,8 @@ module Kumi
         access_plans = state.fetch(:access_plans)
         input_metadata = state[:input_metadata] || {}
         dependents = state[:dependents] || {}
+        ir_dependencies = state[:ir_dependencies] || {} # <-- from IR dependency pass
+        name_index = state[:name_index] || {} # <-- from IR dependency pass
         accessors = Dev::Profiler.phase("compiler.access_builder") do
           Kumi::Core::Compiler::AccessBuilder.build(access_plans)
         end
@@ -62,10 +64,12 @@ module Kumi
         # Use the internal functions hash that VM expects
         registry ||= Kumi::Registry.functions
         new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry,
-            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids, dependents: dependents, schema_name: schema_name)
+            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids, dependents: dependents,
+            ir_dependencies: ir_dependencies, name_index: name_index, schema_name: schema_name)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {}, dependents: {}, schema_name: nil)
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {}, dependents: {}, ir_dependencies: {},
+                     name_index: {}, schema_name: nil)
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
@@ -73,6 +77,8 @@ module Kumi
         @input_metadata = input_metadata.freeze
         @field_to_plan_ids = field_to_plan_ids.freeze
         @dependents = dependents.freeze
+        @ir_dependencies = ir_dependencies.freeze # decl -> [stored_bindings_it_references]
+        @name_index = name_index.freeze # store_name -> producing decl
         @schema_name = schema_name
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
         @accessor_cache = {} # Persistent accessor cache across evaluations
@@ -99,14 +105,19 @@ module Kumi
       def eval_decl(name, input, mode: :ruby, declaration_cache: nil)
         raise Kumi::Core::Errors::RuntimeError, "unknown decl #{name}" unless decl?(name)
 
-        vm_context = { 
-          input: input, 
-          target: name, 
+        # If the caller asked for a specific binding, schedule deps once
+        decls_to_run = topo_closure_for_target(name)
+
+        vm_context = {
+          input: input,
           accessor_cache: @accessor_cache,
-          declaration_cache: declaration_cache,
+          declaration_cache: declaration_cache || {}, # run-local cache
+          decls_to_run: decls_to_run,                # <-- explicit schedule
+          strict_refs: true,                         # <-- refs must be precomputed
+          name_index: @name_index,                   # for error messages, twins, etc.
           schema_name: @schema_name
         }
-        
+
         out = Dev::Profiler.phase("vm.run", target: name) do
           Kumi::Core::IR::ExecutionEngine.run(@ir, vm_context, accessors: @acc, registry: @reg).fetch(name)
         end
@@ -123,6 +134,39 @@ module Kumi
 
       def unwrap(_decl, v)
         v[:k] == :scalar ? v[:v] : v # no grouping needed
+      end
+
+      def topo_closure_for_target(store_name)
+        target_decl = @name_index[store_name]
+        raise "Unknown target store #{store_name}" unless target_decl
+
+        # DFS collect closure of decl names using pre-computed IR-level dependencies
+        seen = {}
+        order = []
+        visiting = {}
+
+        visit = lambda do |dname|
+          return if seen[dname]
+          raise "Cycle detected in DAG scheduler: #{dname}. Mutual recursion should be caught earlier by UnsatDetector." if visiting[dname]
+
+          visiting[dname] = true
+
+          # Visit declarations that produce the bindings this decl references
+          Array(@ir_dependencies[dname]).each do |ref_binding|
+            # Find which declaration produces this binding
+            producer = @name_index[ref_binding]
+            visit.call(producer.name) if producer
+          end
+
+          visiting.delete(dname)
+          seen[dname] = true
+          order << dname
+        end
+
+        visit.call(target_decl.name)
+
+        # 'order' is postorder; it already yields producers before consumers
+        order.map { |dname| @decl[dname] }
       end
 
       private
@@ -152,7 +196,7 @@ module Kumi
           # Store VM format for cross-VM caching
           @cache[name] = vm_result
         end
-        
+
         # Convert to requested format when returning
         vm_result = @cache[name]
         @mode == :wrapped ? vm_result : @program.unwrap(nil, vm_result)
@@ -209,18 +253,6 @@ module Kumi
         self
       end
 
-      def wrapped!
-        @mode = :wrapped
-        @cache.clear
-        self
-      end
-
-      def ruby!
-        @mode = :ruby
-        @cache.clear
-        self
-      end
-
       private
 
       def input_field_exists?(field)
@@ -250,12 +282,6 @@ module Kumi
         else
           false
         end
-      end
-
-      def deep_merge(a, b)
-        return b unless a.is_a?(Hash) && b.is_a?(Hash)
-
-        a.merge(b) { |_k, v1, v2| deep_merge(v1, v2) }
       end
     end
   end

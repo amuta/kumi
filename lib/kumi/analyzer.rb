@@ -21,7 +21,8 @@ module Kumi
       Core::Analyzer::Passes::ScopeResolutionPass,             # 15. Plans execution scope and lifting needs for declarations.
       Core::Analyzer::Passes::JoinReducePlanningPass,          # 16. Plans join/reduce operations (Generates IR Structs)
       Core::Analyzer::Passes::LowerToIRPass,                   # 17. Lowers the schema to IR (Generates IR Structs)
-      Core::Analyzer::Passes::LoadInputCSE                     # 18. Eliminates redundant load_input operations
+      Core::Analyzer::Passes::LoadInputCSE,                    # 18. Eliminates redundant load_input operations
+      Core::Analyzer::Passes::IRDependencyPass                 # 19. Extracts IR-level dependencies for VM execution optimization
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
