@@ -43,15 +43,19 @@ module Kumi
       module ExecutionEngine
         def self.run(ir_module, ctx, accessors:, registry:)
           # Use persistent accessor cache if available, otherwise create temporary one
-          if ctx[:accessor_cache]
-            # Include input data in cache key to avoid cross-context pollution
-            input_key = ctx[:input]&.hash || ctx["input"]&.hash || 0
-            memoized_accessors = add_persistent_memoization(accessors, ctx[:accessor_cache], input_key)
-          else
-            memoized_accessors = add_temporary_memoization(accessors)
+          memoized_accessors = Dev::Profiler.phase("engine.memoization") do
+            if ctx[:accessor_cache]
+              # Include input data in cache key to avoid cross-context pollution
+              input_key = ctx[:input]&.hash || ctx["input"]&.hash || 0
+              add_persistent_memoization(accessors, ctx[:accessor_cache], input_key)
+            else
+              add_temporary_memoization(accessors)
+            end
           end
           
-          Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: registry)
+          Dev::Profiler.phase("engine.interpreter") do
+            Interpreter.run(ir_module, ctx, accessors: memoized_accessors, registry: registry)
+          end
         end
 
         private

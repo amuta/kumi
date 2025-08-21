@@ -58,7 +58,9 @@ module Kumi
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         pass_instance = pass_class.new(schema, state)
         begin
-          state = pass_instance.run(errors)
+          state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
+            pass_instance.run(errors)
+          end
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
           # and the pass that failed and line number if relevant
