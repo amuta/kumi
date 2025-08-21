@@ -108,8 +108,7 @@ module Kumi
         # If the caller asked for a specific binding, schedule deps once
         decls_to_run = topo_closure_for_target(name)
 
-        vm_context = {
-          input: input,
+        runtime = {
           accessor_cache: @accessor_cache,
           declaration_cache: declaration_cache || {}, # run-local cache
           decls_to_run: decls_to_run,                # <-- explicit schedule
@@ -119,7 +118,7 @@ module Kumi
         }
 
         out = Dev::Profiler.phase("vm.run", target: name) do
-          Kumi::Core::IR::ExecutionEngine.run(@ir, vm_context, accessors: @acc, registry: @reg).fetch(name)
+          Kumi::Core::IR::ExecutionEngine.run(@ir, input: input, runtime: runtime, accessors: @acc, registry: @reg).fetch(name)
         end
 
         mode == :ruby ? unwrap(@decl[name], out) : out
