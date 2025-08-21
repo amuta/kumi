@@ -44,23 +44,31 @@ module Kumi
         accessors = Kumi::Core::Compiler::AccessBuilder.build(access_plans)
 
         access_meta = {}
+        field_to_plan_ids = Hash.new { |h, k| h[k] = [] }
+        
         access_plans.each_value do |plans|
           plans.each do |p|
             access_meta[p.accessor_key] = { mode: p.mode, scope: p.scope }
+            
+            # Build precise field -> plan_ids mapping for invalidation
+            root_field = p.accessor_key.to_s.split(":").first.split(".").first.to_sym
+            field_to_plan_ids[root_field] << p.accessor_key
           end
         end
 
         # Use the internal functions hash that VM expects
         registry ||= Kumi::Registry.functions
-        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry, input_metadata: input_metadata)
+        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry, 
+            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:)
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {})
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
         @reg = registry
         @input_metadata = input_metadata.freeze
+        @field_to_plan_ids = field_to_plan_ids.freeze
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
         @accessor_cache = {} # Persistent accessor cache across evaluations
       end
@@ -93,11 +101,10 @@ module Kumi
       end
 
       def clear_field_accessor_cache(field_name)
-        # Clear cache entries for all accessor plans related to this field
-        # Cache keys are now [plan_id, input_key] arrays
-        @accessor_cache.delete_if { |cache_key, _| 
-          cache_key.is_a?(Array) && cache_key[0].to_s.start_with?("#{field_name}:")
-        }
+        # Use precise field -> plan_ids mapping for exact invalidation
+        plan_ids = @field_to_plan_ids[field_name] || []
+        # Cache keys are [plan_id, input_object_id] arrays
+        @accessor_cache.delete_if { |(pid, _), _| plan_ids.include?(pid) }
       end
 
       private

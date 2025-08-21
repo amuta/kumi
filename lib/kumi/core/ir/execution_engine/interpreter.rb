@@ -14,6 +14,9 @@ module Kumi
             raise ArgumentError, "Registry cannot be nil" if registry.nil?
             raise ArgumentError, "Registry must be a Hash, got #{registry.class}" unless registry.is_a?(Hash)
 
+            # --- PROFILER: init per run ---
+            Profiler.reset!(meta: { decls: ir_module.decls&.size || 0 }) if Profiler.enabled?
+
             outputs = {}
             target = ctx[:target]
             guard_stack = [true]
@@ -23,6 +26,8 @@ module Kumi
               guard_stack = [true] # reset per decl
 
               decl.ops.each_with_index do |op, op_index|
+                t0 = Profiler.enabled? ? Profiler.t0 : nil
+                rows_touched = nil
                 if ENV["ASSERT_VM_SLOTS"] == "1"
                   expected = op_index
                   unless slots.length == expected
@@ -47,17 +52,20 @@ module Kumi
                                    false
                                  end
                   slots << nil # keep slot_id == op_index
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, rows: 0, note: "enter") if t0
                   next
 
                 when :guard_pop
                   guard_stack.pop
                   slots << nil
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, rows: 0, note: "exit") if t0
                   next
                 end
 
                 # Skip body when guarded off, but keep indices aligned
                 unless guard_stack.last
                   slots << nil if PRODUCES_SLOT.include?(op.tag) || NON_PRODUCERS.include?(op.tag)
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, rows: 0, note: "skipped") if t0
                   next
                 end
 
@@ -69,27 +77,48 @@ module Kumi
                   raise "assign: dst/src OOB" if dst >= slots.length || src >= slots.length
 
                   slots[dst] = slots[src]
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: :assign, op: op, t0: t0, rows: 1) if t0
 
                 when :const
                   result = Values.scalar(op.attrs[:value])
                   puts "DEBUG Const #{op.attrs[:value].inspect}: result=#{result}" if ENV["DEBUG_VM_ARGS"]
                   slots << result
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: :const, op: op, t0: t0, rows: 1) if t0
 
                 when :load_input
                   plan_id = op.attrs[:plan_id]
                   scope = op.attrs[:scope] || []
                   scalar = op.attrs[:is_scalar]
                   indexed = op.attrs[:has_idx]
-                  raw = accessors.fetch(plan_id).call(ctx[:input] || ctx["input"])
 
-                  puts "DEBUG LoadInput plan_id: #{plan_id} raw_values: #{raw.inspect}" if ENV["DEBUG_VM_ARGS"]
+                  # NEW: consult runtime accessor cache
+                  acc_cache = ctx[:accessor_cache] || {}
+                  input_obj = ctx[:input] || ctx["input"]
+                  cache_key = [plan_id, input_obj.object_id]
+
+                  if acc_cache.key?(cache_key)
+                    raw = acc_cache[cache_key]
+                    hit = true
+                  else
+                    raw = accessors.fetch(plan_id).call(input_obj)
+                    acc_cache[cache_key] = raw
+                    hit = false
+                  end
+
+                  puts "DEBUG LoadInput plan_id: #{plan_id} raw_values: #{raw.inspect} cache_hit: #{hit}" if ENV["DEBUG_VM_ARGS"]
                   slots << if scalar
                              Values.scalar(raw)
                            elsif indexed
+                             rows_touched = raw.respond_to?(:size) ? raw.size : raw.count
                              Values.vec(scope, raw.map { |v, idx| { v: v, idx: Array(idx) } }, true)
                            else
+                             rows_touched = raw.respond_to?(:size) ? raw.size : raw.count
                              Values.vec(scope, raw.map { |v| { v: v } }, false)
                            end
+                  rows_touched ||= 1
+                  cache_note = hit ? "hit:#{plan_id}" : "miss:#{plan_id}"
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: :load_input, op: op, t0: t0,
+                                   rows: rows_touched, note: cache_note) if t0
 
                 when :ref
                   name = op.attrs[:name]
@@ -98,6 +127,8 @@ module Kumi
                     puts "DEBUG Ref #{name}: #{referenced_value[:k] == :scalar ? "scalar(#{referenced_value[:v].inspect})" : "#{referenced_value[:k]}(#{referenced_value[:rows]&.size || 0} rows)"}"
                   end
                   slots << referenced_value
+                  rows_touched = (referenced_value[:k] == :vec) ? (referenced_value[:rows]&.size || 0) : 1
+                  Profiler.record!(decl: decl.name, idx: op_index, tag: :ref, op: op, t0: t0, rows: rows_touched) if t0
 
                 when :array
                   # Validate slot indices before accessing
@@ -327,6 +358,8 @@ module Kumi
               end
             end
 
+            # --- end-of-run summary ---
+            Profiler.emit_summary! if Profiler.enabled?
             outputs
           end
         end
