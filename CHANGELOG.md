@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+## [0.0.15] – 2025-08-21
+### Added
+- (DX) Schema-aware VM profiling with multi-schema performance analysis
+- DAG-based execution optimization with pre-computed dependency resolution
+
+### Performance
+- Reference operations eliminated as VM bottleneck via O(1) hash lookups
+
 ## [0.0.14] – 2025-08-21
 ### Added
 - Text schema frontend with `.kumi` file format support
