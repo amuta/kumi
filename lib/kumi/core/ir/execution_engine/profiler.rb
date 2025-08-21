@@ -3,6 +3,7 @@
 require "json"
 require "fileutils"
 require "time"
+require "set"
 
 module Kumi
   module Core
@@ -11,19 +12,71 @@ module Kumi
         module Profiler
           class << self
             def enabled? = ENV["KUMI_PROFILE"] == "1"
+            def ops_enabled? = ENV.fetch("KUMI_PROFILE_OPS", "1") == "1"
+            def sample_rate = (ENV["KUMI_PROFILE_SAMPLE"]&.to_i || 1)
+            def persistent? = ENV["KUMI_PROFILE_PERSISTENT"] == "1"
+            
+            def set_schema_name(name)
+              @schema_name = name
+              
+              # Ensure profiler is initialized in persistent mode
+              unless @initialized
+                @events = []
+                @meta = {}
+                @file = ENV["KUMI_PROFILE_FILE"] || "tmp/profile.jsonl"
+                @run_id ||= 1
+                @op_seq ||= 0
+                @aggregated_stats ||= Hash.new { |h, k| h[k] = { count: 0, total_ms: 0.0, total_cpu_ms: 0.0, rows: 0, runs: Set.new } }
+                
+                # Truncate file if needed
+                if ENV["KUMI_PROFILE_TRUNCATE"] == "1" && !@persistent_initialized
+                  FileUtils.mkdir_p(File.dirname(@file))
+                  File.write(@file, "")
+                  @aggregated_stats.clear
+                  @persistent_initialized = true
+                end
+                
+                @initialized = true
+              end
+            end
 
             def reset!(meta: {})
+              set_schema_name(meta[:schema_name]) if meta[:schema_name]
               return unless enabled?
-              @events = []
-              @meta   = meta
-              @file   = ENV["KUMI_PROFILE_FILE"] || "tmp/profile.jsonl"
-              @run_id = (@run_id || 0) + 1  # Track run number for averaging
-              @aggregated_stats = (@aggregated_stats || Hash.new { |h, k| h[k] = { count: 0, total_ms: 0.0, total_cpu_ms: 0.0, rows: 0, runs: Set.new } })
               
-              if ENV["KUMI_PROFILE_TRUNCATE"] == "1"
-                FileUtils.mkdir_p(File.dirname(@file))
-                File.write(@file, "")
-                @aggregated_stats.clear  # Clear aggregated stats on truncate
+              # In persistent mode, don't reset aggregated stats or increment run_id
+              # This allows profiling across multiple schema creations
+              if persistent?
+                @events = []
+                @meta = (@meta || {}).merge(meta)
+                @schema_name = meta[:schema_name] if meta[:schema_name]
+                @file = ENV["KUMI_PROFILE_FILE"] || "tmp/profile.jsonl"
+                @run_id ||= 1
+                @op_seq ||= 0
+                @aggregated_stats ||= Hash.new { |h, k| h[k] = { count: 0, total_ms: 0.0, total_cpu_ms: 0.0, rows: 0, runs: Set.new } }
+                
+                # Only truncate on very first reset in persistent mode
+                if ENV["KUMI_PROFILE_TRUNCATE"] == "1" && !@persistent_initialized
+                  FileUtils.mkdir_p(File.dirname(@file))
+                  File.write(@file, "")
+                  @aggregated_stats.clear
+                  @persistent_initialized = true
+                end
+              else
+                # Original behavior: full reset each time
+                @events = []
+                @meta   = meta
+                @schema_name = meta[:schema_name]
+                @file   = ENV["KUMI_PROFILE_FILE"] || "tmp/profile.jsonl"
+                @run_id = (@run_id || 0) + 1
+                @op_seq = 0
+                @aggregated_stats = (@aggregated_stats || Hash.new { |h, k| h[k] = { count: 0, total_ms: 0.0, total_cpu_ms: 0.0, rows: 0, runs: Set.new } })
+                
+                if ENV["KUMI_PROFILE_TRUNCATE"] == "1"
+                  FileUtils.mkdir_p(File.dirname(@file))
+                  File.write(@file, "")
+                  @aggregated_stats.clear
+                end
               end
             end
 
@@ -37,9 +90,54 @@ module Kumi
               Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
             end
 
-            # Per-op record with both wall time and CPU time
-            def record!(decl:, idx:, tag:, op:, t0:, cpu_t0: nil, rows: nil, note: nil)
+            # Phase timing for coarse-grained operations
+            def phase(name, tags = {})
+              return yield unless enabled?
+              p0 = t0; c0 = cpu_t0
+              result = yield
+              wall_ms = (t0 - p0) * 1000.0
+              cpu_ms = (cpu_t0 - c0) * 1000.0
+              stream({
+                ts: Time.now.utc.iso8601(3),
+                kind: "phase",
+                name: name,
+                wall_ms: wall_ms.round(3),
+                cpu_ms: cpu_ms.round(3),
+                tags: tags,
+                run: @run_id
+              })
+              result
+            end
+
+            # Memory snapshot with GC statistics
+            def memory_snapshot(label, extra: {})
               return unless enabled?
+              s = GC.stat
+              stream({
+                ts: Time.now.utc.iso8601(3),
+                kind: "mem",
+                label: label,
+                heap_live: s[:heap_live_slots],
+                old_objects: s[:old_objects],
+                minor_gc: s[:minor_gc_count],
+                major_gc: s[:major_gc_count],
+                rss_mb: read_rss_mb,
+                run: @run_id,
+                **extra
+              })
+            end
+
+            def read_rss_mb
+              ((File.read("/proc/#{$$}/status")[/VmRSS:\s+(\d+)\skB/, 1].to_i) / 1024.0).round(2)
+            rescue
+              nil
+            end
+
+            # Per-op record with both wall time and CPU time (with sampling support)
+            def record!(decl:, idx:, tag:, op:, t0:, cpu_t0: nil, rows: nil, note: nil)
+              return unless enabled? && ops_enabled?
+              @op_seq += 1
+              return unless sample_rate <= 1 || (@op_seq % sample_rate).zero?
               
               wall_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000.0)
               cpu_ms = cpu_t0 ? ((Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID) - cpu_t0) * 1000.0) : wall_ms
@@ -47,6 +145,7 @@ module Kumi
               ev = {
                 ts:     Time.now.utc.iso8601(3),
                 run:    @run_id,
+                schema: @schema_name,  # schema identifier for multi-schema differentiation
                 decl:   decl,     # decl name (string/symbol)
                 i:      idx,      # op index
                 tag:    tag,      # op tag (symbol)
@@ -170,6 +269,35 @@ module Kumi
             def emit_summary!
               return unless enabled?
               stream({ ts: Time.now.utc.iso8601(3), kind: "summary", data: summary })
+            end
+
+            def init_persistent!
+              return unless enabled? && persistent?
+              @persistent_initialized = false
+              reset!
+            end
+
+            def finalize!
+              return unless enabled?
+              
+              # Emit final aggregated summary
+              if @aggregated_stats&.any?
+                stream({
+                  ts: Time.now.utc.iso8601(3),
+                  kind: "final_summary",
+                  data: averaged_analysis
+                })
+              end
+              
+              # Emit cache analysis if available
+              cache_analysis = cache_overhead_analysis
+              if cache_analysis[:cache_operations]&.any?
+                stream({
+                  ts: Time.now.utc.iso8601(3),
+                  kind: "cache_analysis", 
+                  data: cache_analysis
+                })
+              end
             end
 
             # Stable textual key for "match ops one by one"

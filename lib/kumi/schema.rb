@@ -49,12 +49,18 @@ module Kumi
     def schema(&)
       # from_location = caller_locations(1, 1).first
       # raise "Called from #{from_location.path}:#{from_location.lineno}"
-      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&).freeze
+      @__syntax_tree__ = Dev::Profiler.phase("frontend.parse") do
+        Core::RubyParser::Dsl.build_syntax_tree(&).freeze
+      end
 
       puts Support::SExpressionPrinter.print(@__syntax_tree__, indent: 2) if ENV["KUMI_DEBUG"] || ENV["KUMI_PRINT_SYNTAX_TREE"]
 
-      @__analyzer_result__ = Analyzer.analyze!(@__syntax_tree__).freeze
-      @__compiled_schema__ = Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__).freeze
+      @__analyzer_result__ = Dev::Profiler.phase("analyzer") do
+        Analyzer.analyze!(@__syntax_tree__).freeze
+      end
+      @__compiled_schema__ = Dev::Profiler.phase("compiler") do
+        Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__, schema_name: self.name).freeze
+      end
 
       Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
     end
