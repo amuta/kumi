@@ -67,7 +67,7 @@ module Kumi
           if debug_on
             logs = Core::Analyzer::Debug.drain_log
             elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
-            
+
             Core::Analyzer::Debug.emit(
               pass: pass_name,
               diff: {},
@@ -82,15 +82,17 @@ module Kumi
 
         if debug_on
           after = state.to_h
-          
+
           # Optional immutability guard
           if ENV["KUMI_DEBUG_REQUIRE_FROZEN"] == "1"
             (after || {}).each do |k, v|
-              next if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) || (v.is_a?(String) && v.frozen?)
+              if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) || (v.is_a?(String) && v.frozen?)
+                next
+              end
               raise "State[#{k}] not frozen: #{v.class}" unless v.frozen?
             end
           end
-          
+
           diff = Core::Analyzer::Debug.diff_state(before, after)
           logs = Core::Analyzer::Debug.drain_log
 
@@ -111,14 +113,11 @@ module Kumi
 
     def self.handle_analysis_errors(errors)
       type_errors = errors.select { |e| e.type == :type }
-      semantic_errors = errors.select { |e| e.type == :semantic }
       first_error_location = errors.first.location
 
       raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?
 
-      raise Errors::SemanticError.new(format_errors(errors), first_error_location) if first_error_location || semantic_errors
-
-      raise Errors::AnalysisError.new(format_errors(errors))
+      raise Errors::SemanticError.new(format_errors(errors), first_error_location)
     end
 
     def self.create_analysis_result(state)
@@ -136,16 +135,7 @@ module Kumi
     def self.format_errors(errors)
       return "" if errors.empty?
 
-      backtrace = errors.first.backtrace
-
-      message = errors.map(&:to_s).join("\n")
-
-      message.tap do |msg|
-        if backtrace && !backtrace.empty?
-          msg << "\n\nBacktrace:\n"
-          msg << backtrace[0..10].join("\n") # Limit to first 10 lines for readability
-        end
-      end
+      errors.map(&:to_s).join("\n")
     end
   end
 end

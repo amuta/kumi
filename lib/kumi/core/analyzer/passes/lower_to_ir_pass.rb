@@ -194,9 +194,6 @@ module Kumi
             when :reduce
               rs = Array(op.attrs[:result_scope] || [])
               rs.empty? ? SlotShape.scalar : SlotShape.vec(rs, has_idx: true)
-
-            when :lift
-              SlotShape.scalar # lift groups to nested Ruby arrays
             when :switch
               branch_shapes =
                 op.attrs[:cases].map { |(_, v)| determine_slot_shape(v, ops, access_plans) } +
@@ -215,7 +212,7 @@ module Kumi
               end
 
             else
-              SlotShape.scalar
+              raise "Op `#{op.tag}` not supported"
             end
           end
 
@@ -377,7 +374,7 @@ module Kumi
               when Syntax::InputReference
                 plan_id = pick_plan_id_for_input([expr.name], access_plans,
                                                  scope_plan: scope_plan, need_indices: need_indices)
-                
+
                 plans    = access_plans.fetch(expr.name.to_s, [])
                 selected = plans.find { |p| p.accessor_key == plan_id }
                 scope    = selected ? selected.scope : []
@@ -450,22 +447,13 @@ module Kumi
                   # For comparison ops with nested reducers, we need to ensure
                   # the nested reducer gets the right required_scope (per-player)
                   # instead of the full dimensional scope from infer_expr_scope
-
-                  # Get the desired result scope from our scope plan (per-player scope)
-                  # This should be [:players] for per-player operations
                   plan = @join_reduce_plans[@current_decl]
                   target_scope = if plan.is_a?(Kumi::Core::Analyzer::Plans::Reduce) && plan.result_scope && !plan.result_scope.empty?
                                    plan.result_scope
                                  elsif required_scope && !required_scope.empty?
                                    required_scope
                                  else
-                                   # Try to infer per-player scope from the nested reducer argument
-                                   nested_reducer_arg = find_nested_reducer_arg(expr)
-                                   if nested_reducer_arg
-                                     infer_per_player_scope(nested_reducer_arg)
-                                   else
-                                     []
-                                   end
+                                   []
                                  end
 
                   puts "  NESTED_REDUCTION target_scope=#{target_scope.inspect}" if ENV["DEBUG_LOWER"]
@@ -768,44 +756,29 @@ module Kumi
               twin = :"#{cond.name}__vec"
               twin_meta = @vec_meta && @vec_meta[twin]
 
-              if cascade_scope && !Array(cascade_scope).empty?
-                # Consumer needs a grouped view of this declaration.
-                if twin_meta && twin_meta[:scope] == Array(cascade_scope)
-                  # We have a vectorized twin at exactly the required scope - use it!
-                  ops << Kumi::Core::IR::Ops.Ref(twin)
-                  ops.size - 1
-                else
-                  # Need to inline re-lower the referenced declaration's *expression*
-                  decl = @declarations.fetch(cond.name) { raise "unknown decl #{cond.name}" }
-                  slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
-                                          true, Array(cascade_scope), cacheable: true)
-                  project_mask_to_scope(slot, cascade_scope, ops, access_plans)
-                end
-              else
-                # Plain (scalar) use, or already-materialized vec twin
-                ref = twin_meta ? twin : cond.name
-                ops << Kumi::Core::IR::Ops.Ref(ref)
-                ops.size - 1
-              end
+              raise "Missing cascade_scope" unless cascade_scope && !Array(cascade_scope).empty?
 
-            when Syntax::CallExpression
-              if cond.fn_name == :cascade_and
-                parts = cond.args.map { |a| lower_cascade_pred(a, cascade_scope, ops, access_plans, scope_plan) }
-                # They’re all @ cascade_scope (or scalar) now; align scalars broadcast, vecs already match.
-                parts.reduce do |acc, s|
-                  ops << Kumi::Core::IR::Ops.Map(:and, 2, acc, s)
-                  ops.size - 1
-                end
+              # Consumer needs a grouped view of this declaration.
+              if twin_meta && twin_meta[:scope] == Array(cascade_scope)
+                # We have a vectorized twin at exactly the required scope - use it!
+                ops << Kumi::Core::IR::Ops.Ref(twin)
+                ops.size - 1
               else
-                slot = lower_expression(cond, ops, access_plans, scope_plan,
-                                        true, Array(cascade_scope), cacheable: false)
+                # Need to inline re-lower the referenced declaration's *expression*
+                decl = @declarations.fetch(cond.name) { raise "unknown decl #{cond.name}" }
+                slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
+                                        true, Array(cascade_scope), cacheable: true)
                 project_mask_to_scope(slot, cascade_scope, ops, access_plans)
               end
-
+            when Syntax::CallExpression
+              parts = cond.args.map { |a| lower_cascade_pred(a, cascade_scope, ops, access_plans, scope_plan) }
+              # They’re all @ cascade_scope (or scalar) now; align scalars broadcast, vecs already match.
+              parts.reduce do |acc, s|
+                ops << Kumi::Core::IR::Ops.Map(:and, 2, acc, s)
+                ops.size - 1
+              end
             else
-              slot = lower_expression(cond, ops, access_plans, scope_plan,
-                                      true, Array(cascade_scope), cacheable: false)
-              project_mask_to_scope(slot, cascade_scope, ops, access_plans)
+              raise "Unexpected Expression #{cond.class} in Cascade"
             end
           end
 
@@ -871,86 +844,10 @@ module Kumi
             end
           end
 
-          def find_nested_reducer_arg(expr)
-            return nil unless expr.is_a?(Kumi::Syntax::CallExpression)
-
-            expr.args.each do |arg|
-              case arg
-              when Kumi::Syntax::CallExpression
-                entry = Kumi::Registry.entry(arg.fn_name)
-                return arg if entry&.reducer
-
-                nested = find_nested_reducer_arg(arg)
-                return nested if nested
-              end
-            end
-            nil
-          end
-
-          def infer_per_player_scope(reducer_expr)
-            return [] unless reducer_expr.is_a?(Kumi::Syntax::CallExpression)
-
-            # Look at the reducer's argument to determine the full scope
-            arg = reducer_expr.args.first
-            return [] unless arg
-
-            case arg
-            when Kumi::Syntax::InputElementReference
-              # For paths like [:players, :score_matrices, :session, :points]
-              # We want to keep [:players] and reduce over the rest
-              arg.path.empty? ? [] : [arg.path.first]
-            when Kumi::Syntax::CallExpression
-              # For nested expressions, get the deepest input path and take first element
-              deepest = find_deepest_input_path(arg)
-              deepest && !deepest.empty? ? [deepest.first] : []
-            else
-              []
-            end
-          end
-
-          def find_deepest_input_path(expr)
-            case expr
-            when Kumi::Syntax::InputElementReference
-              expr.path
-            when Kumi::Syntax::InputReference
-              [expr.name]
-            when Kumi::Syntax::CallExpression
-              paths = expr.args.map { |a| find_deepest_input_path(a) }.compact
-              paths.max_by(&:length)
-            else
-              nil
-            end
-          end
-
           # Make sure a boolean mask lives at exactly cascade_scope.
           def project_mask_to_scope(slot, cascade_scope, ops, access_plans)
             sh = determine_slot_shape(slot, ops, access_plans)
             return slot if sh.scope == cascade_scope
-
-            # If we have a scalar condition but need it at cascade scope, broadcast it
-            if sh.kind == :scalar && cascade_scope && !Array(cascade_scope).empty?
-              # Find a target vector that already has the cascade scope
-              target_slot = nil
-              ops.each_with_index do |op, i|
-                next unless %i[load_input map].include?(op.tag)
-
-                shape = determine_slot_shape(i, ops, access_plans)
-                if shape.kind == :vec && shape.scope == Array(cascade_scope) && shape.has_idx
-                  target_slot = i
-                  break
-                end
-              end
-
-              return slot unless target_slot
-
-              ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: Array(cascade_scope), on_missing: :error,
-                                                                    require_unique: true)
-              return ops.size - 1
-
-              # Can't broadcast, use as-is
-
-            end
-
             return slot if sh.kind == :scalar
 
             cascade_scope = Array(cascade_scope)
@@ -962,38 +859,23 @@ module Kumi
               raise "cascade condition scope #{slot_scope.inspect} is not prefix-compatible with #{cascade_scope.inspect}"
             end
 
-            if slot_scope.length < cascade_scope.length
-              # Need to broadcast UP: slot scope is shorter, needs to be aligned to cascade scope
-              # Find a target vector that already has the cascade scope
-              target_slot = nil
-              ops.each_with_index do |op, i|
-                next unless %i[load_input map].include?(op.tag)
+            return unless slot_scope.length < cascade_scope.length
 
-                shape = determine_slot_shape(i, ops, access_plans)
-                if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
-                  target_slot = i
-                  break
-                end
-              end
+            # Need to broadcast UP: slot scope is shorter, needs to be aligned to cascade scope
+            # Find a target vector that already has the cascade scope
+            target_slot = nil
+            ops.each_with_index do |op, i|
+              next unless %i[load_input map].include?(op.tag)
 
-              if target_slot
-                ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
-                ops.size - 1
-              else
-                # Fallback: use the slot itself (might not work but worth trying)
-                ops << Kumi::Core::IR::Ops.AlignTo(slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
-                ops.size - 1
-              end
-            else
-              # Need to reduce DOWN: slot scope is longer, reduce extra dimensions
-              extra_axes = slot_scope - cascade_scope
-              if extra_axes.empty?
-                slot # should not happen due to early return above
-              else
-                ops << Kumi::Core::IR::Ops.Reduce(:any?, extra_axes, cascade_scope, [], slot)
-                ops.size - 1
+              shape = determine_slot_shape(i, ops, access_plans)
+              if shape.kind == :vec && shape.scope == cascade_scope && shape.has_idx
+                target_slot = i
+                break
               end
             end
+
+            ops << Kumi::Core::IR::Ops.AlignTo(target_slot, slot, to_scope: cascade_scope, on_missing: :error, require_unique: true)
+            ops.size - 1
           end
 
           # Constant folding optimization helpers
@@ -1001,49 +883,47 @@ module Kumi
             return false unless entry&.fn # Skip if function not found
             return false if entry.reducer # Skip reducer functions for now
             return false if expr.args.empty? # Need at least one argument
-            
+
             # Check if all arguments are literals
             expr.args.all? { |arg| arg.is_a?(Syntax::Literal) }
           end
 
           def validate_signature_metadata(expr, entry)
-            # Get the node index to access signature metadata  
+            # Get the node index to access signature metadata
             node_index = get_state(:node_index, required: false)
             return unless node_index
-            
+
             node_entry = node_index[expr.object_id]
             return unless node_entry
-            
+
             metadata = node_entry[:metadata]
             return unless metadata
-            
+
             # Validate that dropped axes make sense for reduction functions
             if entry&.reducer && metadata[:dropped_axes]
-              dropped_axes = metadata[:dropped_axes] 
+              dropped_axes = metadata[:dropped_axes]
               unless dropped_axes.is_a?(Array)
                 raise "Invalid dropped_axes metadata for reducer #{expr.fn_name}: expected Array, got #{dropped_axes.class}"
               end
-              
+
               # For reductions, we should have at least one dropped axis (or empty for scalar reductions)
-              if ENV["DEBUG_LOWER"]
-                puts "  SIGNATURE[#{expr.fn_name}] dropped_axes: #{dropped_axes.inspect}"
-              end
+              puts "  SIGNATURE[#{expr.fn_name}] dropped_axes: #{dropped_axes.inspect}" if ENV["DEBUG_LOWER"]
             end
-            
+
             # Validate join_policy is recognized
-            if metadata[:join_policy] && ![:zip, :product].include?(metadata[:join_policy])
+            if metadata[:join_policy] && !%i[zip product].include?(metadata[:join_policy])
               raise "Invalid join_policy for #{expr.fn_name}: #{metadata[:join_policy].inspect}"
             end
-            
-            # Warn about join_policy when no join op exists yet (future integration point)  
-            if metadata[:join_policy] && ENV["DEBUG_LOWER"]
-              puts "  SIGNATURE[#{expr.fn_name}] join_policy: #{metadata[:join_policy]} (join op not yet implemented)"
-            end
+
+            # Warn about join_policy when no join op exists yet (future integration point)
+            return unless metadata[:join_policy] && ENV["DEBUG_LOWER"]
+
+            puts "  SIGNATURE[#{expr.fn_name}] join_policy: #{metadata[:join_policy]} (join op not yet implemented)"
           end
 
           def constant_fold(expr, entry)
             literal_values = expr.args.map(&:value)
-            
+
             begin
               # Call the function with literal values at compile time
               entry.fn.call(*literal_values)
@@ -1054,7 +934,6 @@ module Kumi
               raise "Cannot constant fold #{expr.fn_name}: #{e.message}"
             end
           end
-
         end
       end
     end

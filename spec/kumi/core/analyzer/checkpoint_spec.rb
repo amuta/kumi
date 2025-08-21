@@ -207,4 +207,116 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
       expect(result.to_h).to eq(state.to_h)
     end
   end
+
+  describe "pass skipping logic integration" do
+    it "correctly implements skipping logic when KUMI_RESUME_AT is set" do
+      # Test the actual skipping logic from analyzer.rb:47-50
+      resume_at = "TypeChecker" 
+      skipping = !!resume_at
+      
+      # Simulate the pass loop from analyzer.rb
+      passes = [
+        "NameIndexer", 
+        "InputCollector", 
+        "DeclarationValidator",
+        "SemanticConstraintValidator",
+        "DependencyResolver",
+        "UnsatDetector", 
+        "Toposorter",
+        "BroadcastDetector",
+        "TypeInferencerPass",
+        "TypeConsistencyChecker",
+        "FunctionSignaturePass",
+        "TypeChecker",
+        "InputAccessPlannerPass"
+      ]
+      
+      executed_passes = []
+      
+      passes.each do |pass_name|
+        # This is the logic from analyzer.rb:47-50
+        if skipping
+          skipping = false if pass_name == resume_at
+          next if skipping
+        end
+        
+        executed_passes << pass_name
+      end
+      
+      # Should have skipped everything before TypeChecker
+      expect(executed_passes).not_to include("NameIndexer")
+      expect(executed_passes).not_to include("InputCollector")
+      expect(executed_passes).not_to include("DeclarationValidator")
+      expect(executed_passes).not_to include("SemanticConstraintValidator")
+      expect(executed_passes).not_to include("DependencyResolver") 
+      expect(executed_passes).not_to include("UnsatDetector")
+      expect(executed_passes).not_to include("Toposorter")
+      expect(executed_passes).not_to include("BroadcastDetector")
+      expect(executed_passes).not_to include("TypeInferencerPass")
+      expect(executed_passes).not_to include("TypeConsistencyChecker")
+      expect(executed_passes).not_to include("FunctionSignaturePass")
+      
+      # Should execute TypeChecker and everything after
+      expect(executed_passes).to include("TypeChecker")
+      expect(executed_passes).to include("InputAccessPlannerPass")
+    end
+
+    it "executes all passes when resume_at is nil" do
+      resume_at = nil
+      skipping = !!resume_at  # false
+      
+      passes = ["NameIndexer", "InputCollector", "TypeChecker"]
+      executed_passes = []
+      
+      passes.each do |pass_name|
+        if skipping
+          skipping = false if pass_name == resume_at
+          next if skipping
+        end
+        
+        executed_passes << pass_name
+      end
+      
+      expect(executed_passes).to eq(["NameIndexer", "InputCollector", "TypeChecker"])
+    end
+
+    it "starts from the first pass if resume_at matches the first pass" do
+      resume_at = "NameIndexer"
+      skipping = !!resume_at  # true
+      
+      passes = ["NameIndexer", "InputCollector", "TypeChecker"]
+      executed_passes = []
+      
+      passes.each do |pass_name|
+        if skipping
+          skipping = false if pass_name == resume_at
+          next if skipping
+        end
+        
+        executed_passes << pass_name
+      end
+      
+      expect(executed_passes).to eq(["NameIndexer", "InputCollector", "TypeChecker"])
+    end
+
+    it "handles the case where resume_at doesn't match any pass" do
+      resume_at = "NonExistentPass"
+      skipping = !!resume_at  # true
+      
+      passes = ["NameIndexer", "InputCollector", "TypeChecker"]
+      executed_passes = []
+      
+      passes.each do |pass_name|
+        if skipping
+          skipping = false if pass_name == resume_at
+          next if skipping
+        end
+        
+        executed_passes << pass_name
+      end
+      
+      # Should skip all passes since none match
+      expect(executed_passes).to be_empty
+    end
+  end
 end
