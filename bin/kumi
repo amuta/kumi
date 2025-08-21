@@ -5,7 +5,7 @@ require "bundler/setup"
 require "optparse"
 require "kumi"
 
-cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff> ..."
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
 
 case cmd
 when "parse"
@@ -83,6 +83,41 @@ when "diff"
     abort "kumi diff <ir> ..."
   end
 
+when "profile"
+  opts = {}
+  parser = OptionParser.new do |o|
+    o.banner = "Usage: kumi profile <script.rb> [options]"
+    o.separator ""
+    o.separator "Profiling control:"
+    o.on("--phases-only", "Only phase timing (fastest, default)") { opts[:phases_only] = true }
+    o.on("--ops", "Include per-operation profiling") { opts[:ops] = true }
+    o.on("--sample N", Integer, "Sample 1 out of N operations (reduces overhead)") { |v| opts[:sample] = v }
+    o.on("--persistent", "Persistent mode (accumulate across schema creations)") { opts[:persistent] = true }
+    o.on("--memory", "Enable memory snapshots") { opts[:memory] = true }
+    o.separator ""
+    o.separator "Output control:"
+    o.on("--output FILE", "Output JSONL file (default: tmp/profile.jsonl)") { |v| opts[:output] = v }
+    o.on("--stream", "Stream events to file during execution") { opts[:stream] = true }
+    o.on("--truncate", "Truncate output file at start") { opts[:truncate] = true }
+    o.on("--quiet", "Don't show analysis, just run") { opts[:quiet] = true }
+    o.on("--json [FILE]", "Output final analysis as JSON (optionally to file)") { |v| opts[:json] = true; opts[:json_file] = v if v }
+    o.on("--detailed", "Show detailed performance analysis") { opts[:detailed] = true }
+    o.on("--limit N", Integer, "Limit detailed results to N entries (default: 15)") { |v| opts[:limit] = v }
+    o.separator ""
+    o.separator "Examples:"
+    o.separator "  kumi profile examples/poc_mc.rb --phases-only --persistent --truncate"
+    o.separator "  kumi profile my_script.rb --ops --sample 10 --detailed --limit 20"
+    o.separator "  kumi profile test.rb --memory --stream --json profile_analysis.json"
+    o.separator "  kumi profile script.rb --ops --persistent --detailed # Full VM analysis"
+  end
+  parser.parse!(ARGV)
+  
+  script = ARGV.shift or abort parser.help
+
+  # Run the profiler
+  success = Kumi::Dev::ProfileRunner.run(script, opts)
+  exit(success ? 0 : 1)
+
 else
-  abort "usage: kumi <parse|analyze|pp|golden|diff> ..."
+  abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
 end

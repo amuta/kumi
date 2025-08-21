@@ -19,7 +19,9 @@ module Kumi
         errors = []
 
         begin
-          final_state = Kumi::Analyzer.run_analysis_passes(schema, Kumi::Analyzer::DEFAULT_PASSES, state, errors)
+          final_state = Dev::Profiler.phase("text.analyzer") do
+            Kumi::Analyzer.run_analysis_passes(schema, Kumi::Analyzer::DEFAULT_PASSES, state, errors)
+          end
           ir = final_state[:ir_module]
           
           result = Result.new(

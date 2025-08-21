@@ -37,12 +37,14 @@ module Kumi
     # - DEBUG_VM_ARGS=1 to trace VM execution
     # - Accessors can be debugged independently with DEBUG_ACCESSOR_OPS=1
     class Executable
-      def self.from_analysis(state, registry: nil)
+      def self.from_analysis(state, registry: nil, schema_name: nil)
         ir = state.fetch(:ir_module)
         access_plans = state.fetch(:access_plans)
         input_metadata = state[:input_metadata] || {}
         dependents = state[:dependents] || {}
-        accessors = Kumi::Core::Compiler::AccessBuilder.build(access_plans)
+        accessors = Dev::Profiler.phase("compiler.access_builder") do
+          Kumi::Core::Compiler::AccessBuilder.build(access_plans)
+        end
 
         access_meta = {}
         field_to_plan_ids = Hash.new { |h, k| h[k] = [] }
@@ -60,10 +62,10 @@ module Kumi
         # Use the internal functions hash that VM expects
         registry ||= Kumi::Registry.functions
         new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry,
-            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids, dependents: dependents)
+            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids, dependents: dependents, schema_name: schema_name)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {}, dependents: {})
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {}, dependents: {}, schema_name: nil)
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
@@ -71,6 +73,7 @@ module Kumi
         @input_metadata = input_metadata.freeze
         @field_to_plan_ids = field_to_plan_ids.freeze
         @dependents = dependents.freeze
+        @schema_name = schema_name
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
         @accessor_cache = {} # Persistent accessor cache across evaluations
       end
@@ -100,10 +103,13 @@ module Kumi
           input: input, 
           target: name, 
           accessor_cache: @accessor_cache,
-          declaration_cache: declaration_cache
+          declaration_cache: declaration_cache,
+          schema_name: @schema_name
         }
         
-        out = Kumi::Core::IR::ExecutionEngine.run(@ir, vm_context, accessors: @acc, registry: @reg).fetch(name)
+        out = Dev::Profiler.phase("vm.run", target: name) do
+          Kumi::Core::IR::ExecutionEngine.run(@ir, vm_context, accessors: @acc, registry: @reg).fetch(name)
+        end
 
         mode == :ruby ? unwrap(@decl[name], out) : out
       end

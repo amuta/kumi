@@ -26,8 +26,17 @@ module Kumi
             raise ArgumentError, "Registry cannot be nil" if registry.nil?
             raise ArgumentError, "Registry must be a Hash, got #{registry.class}" unless registry.is_a?(Hash)
 
-            # --- PROFILER: init per run ---
-            Profiler.reset!(meta: { decls: ir_module.decls&.size || 0 }) if Profiler.enabled?
+            # --- PROFILER: init per run (but not in persistent mode) ---
+            if Profiler.enabled?
+              schema_name = ctx[:schema_name] || "UnknownSchema"
+              if Profiler.persistent?
+                # In persistent mode, just update schema name without full reset
+                Profiler.set_schema_name(schema_name)
+              else
+                # Normal mode: full reset with schema name
+                Profiler.reset!(meta: { decls: ir_module.decls&.size || 0, schema_name: schema_name })
+              end
+            end
 
             outputs = {}
             target = ctx[:target]
