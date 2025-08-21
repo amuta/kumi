@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Performance
+- Input accessor code generation replaces nested lambda chains with compiled Ruby methods
 
 ## [0.0.15] – 2025-08-21
 ### Added
