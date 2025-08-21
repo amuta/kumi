@@ -11,7 +11,9 @@ module Kumi
             empty?: FunctionBuilder.collection_unary(:empty?, "Check if collection is empty", :empty?, reducer: true,
                                                                                                        structure_function: true),
             size: FunctionBuilder::Entry.new(
-              fn: ->(collection) { collection.size },
+              fn: lambda { |collection|
+                collection.size
+              },
               arity: 1,
               param_types: [:any],
               return_type: :integer,

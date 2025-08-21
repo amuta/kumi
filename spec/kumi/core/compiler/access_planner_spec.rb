@@ -41,7 +41,7 @@ RSpec.describe Kumi::Core::Compiler::AccessPlanner do
         expect(plans.keys).to contain_exactly("name", "age")
 
         name_plan = plans["name"].first
-        expect(name_plan).to be_a(Kumi::Core::Analyzer::AccessPlan)
+        expect(name_plan).to be_a(Kumi::Core::Analyzer::Structs::AccessPlan)
         expect(name_plan.path).to eq("name")
         expect(name_plan.mode).to eq(:read)
         expect(name_plan.depth).to eq(0)

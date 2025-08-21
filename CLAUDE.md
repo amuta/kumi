@@ -1,11 +1,9 @@
 # CLAUDE.md
 
-!! Important:
-!! Remember, this gem is not on production yet, so no backward compatilibity is necessary. But do not change the public interfaces (e.g. DSL, Schema) without explicitly requested or demanded. 
-!! We are using zeitwerk, i.e.: no requires
-!! Disregard linting or coverage issues unless asked to do so.
-!! Communication style - Write direct, factual statements. Avoid promotional language, unnecessary claims, or marketing speak. State what the system does, not what benefits it provides. Use TODOs for missing information rather than placeholder claims.
-!! See all Available Functions in docs/FUNCTIONS.md
+IMPORTANT!: Use `kumi parse` to see IR or Analysis States Diff - see docs/dev/parse-command.md
+Remember, this gem is not on production yet, so no backward compatilibity is necessary. But do not change the public interfaces (e.g. DSL, Schema) without explicitly requested or demanded. 
+We are using zeitwerk, i.e.: no requires
+See all Available Functions in docs/FUNCTIONS.md
 
 ## Project Overview
 

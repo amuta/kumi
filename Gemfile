@@ -24,6 +24,9 @@ gem "benchmark-ips", "~> 2.14"
 gem "parslet", "~> 2.0"
 gem "simplecov", "~> 0.21"
 
+# Optional: for text frontend support
+gem "kumi-parser", "~> 0.0.10", require: false
+
 group :development do
   gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"

@@ -49,7 +49,7 @@ RSpec.describe Kumi::Schema do
           input do
             integer :age
           end
-          
+
           trait :adult, (input.age >= 18)
         end
       end
@@ -60,7 +60,7 @@ RSpec.describe Kumi::Schema do
 
       it "sets internal instance variables" do
         valid_schema
-        
+
         expect(test_class.instance_variable_get(:@__syntax_tree__)).not_to be_nil
         expect(test_class.instance_variable_get(:@__analyzer_result__)).not_to be_nil
         expect(test_class.instance_variable_get(:@__compiled_schema__)).not_to be_nil
@@ -68,7 +68,7 @@ RSpec.describe Kumi::Schema do
 
       it "freezes the created objects" do
         valid_schema
-        
+
         expect(test_class.instance_variable_get(:@__syntax_tree__)).to be_frozen
         expect(test_class.instance_variable_get(:@__analyzer_result__)).to be_frozen
         expect(test_class.instance_variable_get(:@__compiled_schema__)).to be_frozen
@@ -76,7 +76,7 @@ RSpec.describe Kumi::Schema do
 
       it "creates Runtime::Executable as compiled schema" do
         valid_schema
-        
+
         compiled_schema = test_class.instance_variable_get(:@__compiled_schema__)
         expect(compiled_schema).to be_a(Kumi::Runtime::Executable)
       end
@@ -96,14 +96,14 @@ RSpec.describe Kumi::Schema do
           input do
             integer :age
           end
-          
+
           trait :adult, (input.age >= 18)
         end
       end
 
       it "creates runtime run instance with valid input" do
         instance = test_class.from(age: 25)
-        
+
         expect(instance).not_to be_nil
         expect(instance).to be_a(Kumi::Runtime::Run)
         expect(instance).to respond_to(:[])
@@ -112,7 +112,7 @@ RSpec.describe Kumi::Schema do
 
       it "allows accessing computed values through the instance" do
         instance = test_class.from(age: 25)
-        
+
         expect(instance[:adult]).to be true
         expect(instance.adult).to be true
       end
@@ -140,19 +140,14 @@ RSpec.describe Kumi::Schema do
           input do
             integer :age
           end
-          
+
           trait :adult, (input.age >= 18)
           value :status, adult ? "Adult" : "Minor"
         end
       end
 
       it "explains computation without error" do
-        expect { test_class.explain({ age: 25 }, :adult) }.not_to raise_error
-      end
-
-      it "returns nil" do
-        result = test_class.explain({ age: 25 }, :adult)
-        expect(result).to be_nil
+        expect { test_class.explain({ age: 25 }, :adult) }.to output(/adult = input.age >= 18 = 25 >= 18 => true/).to_stdout
       end
 
       it "validates input before explaining" do
@@ -174,7 +169,7 @@ RSpec.describe Kumi::Schema do
           input do
             integer :age
           end
-          
+
           trait :adult, (input.age >= 18)
         end
       end
@@ -187,7 +182,7 @@ RSpec.describe Kumi::Schema do
       it "memoizes metadata object" do
         metadata1 = test_class.schema_metadata
         metadata2 = test_class.schema_metadata
-        
+
         expect(metadata1).to be(metadata2)
       end
     end

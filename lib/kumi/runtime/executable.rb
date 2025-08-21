@@ -41,26 +41,36 @@ module Kumi
         ir = state.fetch(:ir_module)
         access_plans = state.fetch(:access_plans)
         input_metadata = state[:input_metadata] || {}
+        dependents = state[:dependents] || {}
         accessors = Kumi::Core::Compiler::AccessBuilder.build(access_plans)
 
         access_meta = {}
+        field_to_plan_ids = Hash.new { |h, k| h[k] = [] }
+
         access_plans.each_value do |plans|
           plans.each do |p|
             access_meta[p.accessor_key] = { mode: p.mode, scope: p.scope }
+
+            # Build precise field -> plan_ids mapping for invalidation
+            root_field = p.accessor_key.to_s.split(":").first.split(".").first.to_sym
+            field_to_plan_ids[root_field] << p.accessor_key
           end
         end
 
         # Use the internal functions hash that VM expects
         registry ||= Kumi::Registry.functions
-        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry, input_metadata: input_metadata)
+        new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry,
+            input_metadata: input_metadata, field_to_plan_ids: field_to_plan_ids, dependents: dependents)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:)
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, field_to_plan_ids: {}, dependents: {})
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
         @reg = registry
         @input_metadata = input_metadata.freeze
+        @field_to_plan_ids = field_to_plan_ids.freeze
+        @dependents = dependents.freeze
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
         @accessor_cache = {} # Persistent accessor cache across evaluations
       end
@@ -68,14 +78,14 @@ module Kumi
       def decl?(name) = @decl.key?(name)
 
       def read(input, mode: :ruby)
-        Run.new(self, input, mode: mode, input_metadata: @input_metadata)
+        Run.new(self, input, mode: mode, input_metadata: @input_metadata, dependents: @dependents)
       end
 
       # API compatibility for backward compatibility
       def evaluate(ctx, *key_names)
         target_keys = key_names.empty? ? @decl.keys : validate_keys(key_names)
 
-        # Handle context wrapping for backward compatibility  
+        # Handle context wrapping for backward compatibility
         input = ctx.respond_to?(:ctx) ? ctx.ctx : ctx
 
         target_keys.each_with_object({}) do |key, result|
@@ -83,21 +93,30 @@ module Kumi
         end
       end
 
-      def eval_decl(name, input, mode: :ruby)
+      def eval_decl(name, input, mode: :ruby, declaration_cache: nil)
         raise Kumi::Core::Errors::RuntimeError, "unknown decl #{name}" unless decl?(name)
 
-        out = Kumi::Core::IR::ExecutionEngine.run(@ir, { input: input, target: name, accessor_cache: @accessor_cache },
-                                              accessors: @acc, registry: @reg).fetch(name)
+        vm_context = { 
+          input: input, 
+          target: name, 
+          accessor_cache: @accessor_cache,
+          declaration_cache: declaration_cache
+        }
+        
+        out = Kumi::Core::IR::ExecutionEngine.run(@ir, vm_context, accessors: @acc, registry: @reg).fetch(name)
 
         mode == :ruby ? unwrap(@decl[name], out) : out
       end
 
       def clear_field_accessor_cache(field_name)
-        # Clear cache entries for all accessor plans related to this field
-        # Cache keys are now [plan_id, input_key] arrays
-        @accessor_cache.delete_if { |cache_key, _| 
-          cache_key.is_a?(Array) && cache_key[0].to_s.start_with?("#{field_name}:")
-        }
+        # Use precise field -> plan_ids mapping for exact invalidation
+        plan_ids = @field_to_plan_ids[field_name] || []
+        # Cache keys are [plan_id, input_object_id] arrays
+        @accessor_cache.delete_if { |(pid, _), _| plan_ids.include?(pid) }
+      end
+
+      def unwrap(_decl, v)
+        v[:k] == :scalar ? v[:v] : v # no grouping needed
       end
 
       private
@@ -108,25 +127,29 @@ module Kumi
 
         raise Kumi::Errors::RuntimeError, "No binding named #{unknown_keys.first}"
       end
-
-      private
-
-      def unwrap(_decl, v)
-        v[:k] == :scalar ? v[:v] : v # no grouping needed
-      end
     end
 
     class Run
-      def initialize(program, input, mode:, input_metadata:)
+      def initialize(program, input, mode:, input_metadata:, dependents:)
         @program = program
         @input = input
         @mode = mode
         @input_metadata = input_metadata
+        @dependents = dependents
         @cache = {}
       end
 
       def get(name)
-        @cache[name] ||= @program.eval_decl(name, @input, mode: @mode)
+        unless @cache.key?(name)
+          # Get the result in VM internal format
+          vm_result = @program.eval_decl(name, @input, mode: :wrapped, declaration_cache: @cache)
+          # Store VM format for cross-VM caching
+          @cache[name] = vm_result
+        end
+        
+        # Convert to requested format when returning
+        vm_result = @cache[name]
+        @mode == :wrapped ? vm_result : @program.unwrap(nil, vm_result)
       end
 
       def [](name)
@@ -135,6 +158,7 @@ module Kumi
 
       def slice(*keys)
         return {} if keys.empty?
+
         keys.each_with_object({}) { |key, result| result[key] = get(key) }
       end
 
@@ -142,7 +166,7 @@ module Kumi
         @program
       end
 
-      def method_missing(sym, *args, **kwargs, &blk)
+      def method_missing(sym, *args, **kwargs, &)
         return super unless args.empty? && kwargs.empty? && @program.decl?(sym)
 
         get(sym)
@@ -153,6 +177,8 @@ module Kumi
       end
 
       def update(**changes)
+        affected_declarations = Set.new
+
         changes.each do |field, value|
           # Validate field exists
           raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)
@@ -160,15 +186,20 @@ module Kumi
           # Validate domain constraints
           validate_domain_constraint(field, value)
 
-          # Update the input data
-          @input = deep_merge(@input, { field => value })
-          
+          # Update the input data IN-PLACE to preserve object_id for cache keys
+          @input[field] = value
+
           # Clear accessor cache for this specific field
           @program.clear_field_accessor_cache(field)
+
+          # Collect all declarations that depend on this input field
+          field_dependents = @dependents[field] || []
+          affected_declarations.merge(field_dependents)
         end
 
-        # Clear declaration evaluation cache after all updates
-        @cache.clear
+        # Only clear cache for affected declarations, not all declarations
+        affected_declarations.each { |decl| @cache.delete(decl) }
+
         self
       end
 

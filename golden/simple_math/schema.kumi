@@ -1,0 +1,10 @@
+schema do
+  input do
+    integer :x
+    integer :y
+  end
+
+  value :sum, input.x**input.y
+  value :product, input.x * input.y
+  value :difference, input.x - input.y
+end

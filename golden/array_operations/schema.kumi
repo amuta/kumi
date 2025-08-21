@@ -1,0 +1,17 @@
+schema do
+  input do
+    array :items do
+      float :price
+      integer :quantity
+      string :category
+    end
+    float :tax_rate
+  end
+  
+  value :subtotals, input.items.price * input.items.quantity
+  trait :expensive_items, input.items.price > 100.0
+  trait :electronics, input.items.category == "electronics"
+  
+  value :discounted_price, input.items.price * 0.9
+  value :is_valid_quantity, input.items.quantity > 0
+end

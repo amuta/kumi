@@ -73,7 +73,7 @@ module Kumi
           modes.each do |mode|
             operations = build_operations(path, mode)
 
-            list << Kumi::Core::Analyzer::AccessPlan.new(
+            list << Kumi::Core::Analyzer::Structs::AccessPlan.new(
               path: base[:path],
               containers: base[:containers],
               leaf: base[:leaf],
@@ -148,7 +148,8 @@ module Kumi
               ops << enter_hash(seg)
               puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
             else
-              raise ArgumentError, "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, :hash, or nil (root)"
+              raise ArgumentError,
+                    "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, :hash, or nil (root)"
             end
 
             parent_meta = node

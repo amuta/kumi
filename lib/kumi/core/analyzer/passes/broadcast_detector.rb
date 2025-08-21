@@ -40,9 +40,7 @@ module Kumi
               result = analyze_value_vectorization(name, decl.expression, array_fields, nested_paths, vectorized_values, errors,
                                                    definitions)
 
-              if ENV["DEBUG_BROADCAST_CLEAN"]
-                puts "#{name}: #{result[:type]} #{format_broadcast_info(result)}"
-              end
+              puts "#{name}: #{result[:type]} #{format_broadcast_info(result)}" if ENV["DEBUG_BROADCAST_CLEAN"]
 
               case result[:type]
               when :vectorized
