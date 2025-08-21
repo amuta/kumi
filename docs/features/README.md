@@ -9,13 +9,6 @@ Analyzes rule combinations to detect logical impossibilities across dependency c
 - Validates domain constraints
 - Reports multiple errors
 
-### [Cascade Mutual Exclusion](analysis-cascade-mutual-exclusion.md)
-Enables safe mutual recursion when cascade conditions are mutually exclusive.
-
-- Allows mathematically sound recursive patterns
-- Detects mutually exclusive conditions
-- Prevents unsafe cycles while enabling safe ones
-
 ### [Type Inference](analysis-type-inference.md)  
 Determines types from expressions and propagates them through dependencies.
 

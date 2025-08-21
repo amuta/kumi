@@ -207,33 +207,6 @@ end
 # ❌ Function arity error: divide expects 2 arguments, got 1
 ```
 
-**Mutual Recursion**: Kumi supports mutual recursion when cascade conditions are mutually exclusive:
-
-```ruby
-trait :is_forward, input.operation == "forward"
-trait :is_reverse, input.operation == "reverse"
-
-# Safe mutual recursion - conditions are mutually exclusive
-value :forward_processor do
-  on is_forward, input.value * 2        # Direct calculation
-  on is_reverse, reveAnalysisrse_processor + 10  # Delegates to reverse (safe)
-  base "invalid operation"
-end
-
-value :reverse_processor do
-  on is_forward, forward_processor - 5   # Delegates to forward (safe) 
-  on is_reverse, input.value / 2         # Direct calculation
-  base "invalid operation"
-end
-
-# Usage examples:
-# operation="forward", value=10  => forward: 20, reverse: 15
-# operation="reverse", value=10  => forward: 15, reverse: 5  
-# operation="unknown", value=10  => both: "invalid operation"
-```
-
-This compiles because `operation` can only be "forward" or "reverse", never both. Each recursion executes one step before hitting a direct calculation.
-
 #### **Runtime Introspection: Debug and Understand**
 
 **Explainability**: Trace exactly how any value is computed, step-by-step. This is invaluable for debugging complex logic and auditing results.

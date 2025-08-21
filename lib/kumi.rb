@@ -8,6 +8,7 @@ loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
   "lower_to_ir_pass" => "LowerToIRPass",
   "load_input_cse" => "LoadInputCSE",
+  "ir_dependency_pass" => "IRDependencyPass",
   "vm" => "VM",
   "ir" => "IR",
   'ir_dump' => 'IRDump',

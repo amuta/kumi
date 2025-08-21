@@ -14,6 +14,7 @@ module Kumi
             ir_module.decls.each do |decl|
               decl.ops.each do |op|
                 next unless op.tag == :store
+
                 name = op.attrs[:name]
                 index[name] = decl if name
               end
@@ -41,21 +42,24 @@ module Kumi
             outputs = {}
             target = ctx[:target]
             guard_stack = [true]
-            
+
             # Always ensure we have a declaration cache - either from caller or new for this VM run
             declaration_cache = ctx[:declaration_cache] || {}
 
             # Build name index for targeting by stored names
             name_index = ctx[:name_index] || (target ? build_name_index(ir_module) : nil)
 
-            # Choose declarations to execute by stored name (not only decl name)
-            decls_to_run = 
-              if target
+            # Choose declarations to execute - prefer explicit schedule if present
+            decls_to_run =
+              if ctx[:decls_to_run]
+                ctx[:decls_to_run] # array of decl objects
+              elsif target
                 # Prefer a decl that STORES the target (covers __vec twins)
                 d = name_index && name_index[target]
                 # Fallback: allow targeting by decl name (legacy behavior)
                 d ||= ir_module.decls.find { |dd| dd.name == target }
                 raise "Unknown target: #{target}" unless d
+
                 [d]
               else
                 ir_module.decls
@@ -93,7 +97,10 @@ module Kumi
                                    false
                                  end
                   slots << nil # keep slot_id == op_index
-                  Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, cpu_t0: cpu_t0, rows: 0, note: "enter") if t0
+                  if t0
+                    Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, cpu_t0: cpu_t0, rows: 0,
+                                     note: "enter")
+                  end
                   next
 
                 when :guard_pop
@@ -106,7 +113,10 @@ module Kumi
                 # Skip body when guarded off, but keep indices aligned
                 unless guard_stack.last
                   slots << nil if PRODUCES_SLOT.include?(op.tag) || NON_PRODUCERS.include?(op.tag)
-                  Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, cpu_t0: cpu_t0, rows: 0, note: "skipped") if t0
+                  if t0
+                    Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, cpu_t0: cpu_t0, rows: 0,
+                                     note: "skipped")
+                  end
                   next
                 end
 
@@ -158,41 +168,34 @@ module Kumi
                            end
                   rows_touched ||= 1
                   cache_note = hit ? "hit:#{plan_id}" : "miss:#{plan_id}"
-                  Profiler.record!(decl: decl.name, idx: op_index, tag: :load_input, op: op, t0: t0, cpu_t0: cpu_t0,
-                                   rows: rows_touched, note: cache_note) if t0
+                  if t0
+                    Profiler.record!(decl: decl.name, idx: op_index, tag: :load_input, op: op, t0: t0, cpu_t0: cpu_t0,
+                                     rows: rows_touched, note: cache_note)
+                  end
 
                 when :ref
                   name = op.attrs[:name]
-                  
+
                   if outputs.key?(name)
                     referenced = outputs[name]
+                    hit = :outputs
                   elsif declaration_cache.key?(name)
                     referenced = declaration_cache[name]
+                    hit = :cache
                   else
-                    # demand-compute the producing decl up to the store of `name`
-                    active = (ctx[:active] ||= {})
-                    raise "cycle detected: #{name}" if active[name]
-                    active[name] = true
-                    
-                    subctx = {
-                      input: ctx[:input] || ctx["input"],
-                      target: name,                         # target is the STORED NAME
-                      accessor_cache: ctx[:accessor_cache],
-                      declaration_cache: ctx[:declaration_cache],
-                      name_index: name_index,               # reuse map
-                      active: active
-                    }
-                    referenced = self.run(ir_module, subctx, accessors: accessors, registry: registry).fetch(name)
-                    active.delete(name)
+                    raise "unscheduled ref #{name}: producer not executed or dependency analysis failed"
                   end
-                  
+
                   if ENV["DEBUG_VM_ARGS"]
                     puts "DEBUG Ref #{name}: #{referenced[:k] == :scalar ? "scalar(#{referenced[:v].inspect})" : "#{referenced[:k]}(#{referenced[:rows]&.size || 0} rows)"}"
                   end
-                  
+
                   slots << referenced
-                  rows_touched = (referenced[:k] == :vec) ? (referenced[:rows]&.size || 0) : 1
-                  Profiler.record!(decl: decl.name, idx: op_index, tag: :ref, op: op, t0: t0, cpu_t0: cpu_t0, rows: rows_touched) if t0
+                  rows_touched = referenced[:k] == :vec ? (referenced[:rows]&.size || 0) : 1
+                  if t0
+                    Profiler.record!(decl: decl.name, idx: op_index, tag: :ref, op: op, t0: t0, cpu_t0: cpu_t0,
+                                     rows: rows_touched, note: hit)
+                  end
 
                 when :array
                   # Validate slot indices before accessing
