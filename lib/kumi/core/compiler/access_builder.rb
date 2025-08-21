@@ -6,8 +6,7 @@ module Kumi
           accessors = {}
           plans.each_value do |variants|
             variants.each do |plan|
-              key = plan.respond_to?(:accessor_key) ? plan.accessor_key : "#{plan.path}:#{mode}"
-              accessors[key] = build_proc_for(
+              accessors[plan.accessor_key] = build_proc_for(
                 mode: plan.mode,
                 path_key: plan.path,
                 missing: (plan.on_missing || :error).to_sym,
@@ -25,7 +24,6 @@ module Kumi
           when :materialize then Accessors::MaterializeAccessor.build(operations, path_key, missing, key_policy)
           when :ravel       then Accessors::RavelAccessor.build(operations, path_key, missing, key_policy)
           when :each_indexed then Accessors::EachIndexedAccessor.build(operations, path_key, missing, key_policy, true)
-          when :each then Accessors::EachAccessor.build(operations, path_key, missing, key_policy)
           else
             raise "Unknown accessor mode: #{mode.inspect}"
           end

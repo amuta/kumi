@@ -52,7 +52,7 @@ return unless ENV["DUAL_MODE_ENABLED"] == "true"
 # module Kumi
 #   module Schema
 #     def from(context)
-#       raise("No schema defined") unless @__compiled_schema__
+#       raise("No schema defined") unless @__executable__
 
 #       # Validate input types and domain constraints
 #       input_meta = @__analyzer_result__.state[:input_metadata] || {}

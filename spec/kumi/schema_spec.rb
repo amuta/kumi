@@ -18,23 +18,7 @@ RSpec.describe Kumi::Schema do
     it "adds instance variable readers" do
       expect(test_class).to respond_to(:__syntax_tree__)
       expect(test_class).to respond_to(:__analyzer_result__)
-      expect(test_class).to respond_to(:__compiled_schema__)
-    end
-  end
-
-  describe "Inspector struct" do
-    let(:inspector) { Kumi::Schema::Inspector.new("tree", "result", "schema") }
-
-    it "creates inspector with correct attributes" do
-      expect(inspector.syntax_tree).to eq("tree")
-      expect(inspector.analyzer_result).to eq("result")
-      expect(inspector.compiled_schema).to eq("schema")
-    end
-
-    it "has custom inspect method" do
-      expect(inspector.inspect).to include("Inspector")
-      expect(inspector.inspect).to include("syntax_tree")
-      expect(inspector.inspect).to include("analyzer_result")
+      expect(test_class).to respond_to(:__executable__)
     end
   end
 
@@ -54,8 +38,8 @@ RSpec.describe Kumi::Schema do
         end
       end
 
-      it "returns inspector object" do
-        expect(valid_schema).to be_a(Kumi::Schema::Inspector)
+      it "returns nil" do
+        expect(valid_schema).to be_nil
       end
 
       it "sets internal instance variables" do
@@ -63,7 +47,7 @@ RSpec.describe Kumi::Schema do
 
         expect(test_class.instance_variable_get(:@__syntax_tree__)).not_to be_nil
         expect(test_class.instance_variable_get(:@__analyzer_result__)).not_to be_nil
-        expect(test_class.instance_variable_get(:@__compiled_schema__)).not_to be_nil
+        expect(test_class.instance_variable_get(:@__executable__)).not_to be_nil
       end
 
       it "freezes the created objects" do
@@ -71,13 +55,13 @@ RSpec.describe Kumi::Schema do
 
         expect(test_class.instance_variable_get(:@__syntax_tree__)).to be_frozen
         expect(test_class.instance_variable_get(:@__analyzer_result__)).to be_frozen
-        expect(test_class.instance_variable_get(:@__compiled_schema__)).to be_frozen
+        expect(test_class.instance_variable_get(:@__executable__)).to be_frozen
       end
 
       it "creates Runtime::Executable as compiled schema" do
         valid_schema
 
-        compiled_schema = test_class.instance_variable_get(:@__compiled_schema__)
+        compiled_schema = test_class.instance_variable_get(:@__executable__)
         expect(compiled_schema).to be_a(Kumi::Runtime::Executable)
       end
     end

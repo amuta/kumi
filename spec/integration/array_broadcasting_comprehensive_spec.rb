@@ -3,9 +3,11 @@
 RSpec.describe "Array Broadcasting Comprehensive Tests" do
   # Helper to perform the full analysis and compilation pipeline
   def analyze_and_compile(&schema_block)
-    syntax_tree = Kumi.schema(&schema_block)
-    analyzer_result = Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
-    Kumi::Compiler.compile(syntax_tree.syntax_tree, analyzer: analyzer_result)
+    test_schema = Module.new do
+      extend Kumi::Schema
+      schema(&schema_block)
+    end
+    test_schema.__executable__
   end
 
   # Helper to create a runner with compiled schema and input data
@@ -247,26 +249,29 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
     end
 
     let(:analyzer_result) do
-      syntax_tree = Kumi.schema do
-        input do
-          array :numbers do
-            integer :int_val
-            float   :float_val
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          input do
+            array :numbers do
+              integer :int_val
+              float   :float_val
+            end
+            array :strings do
+              string :text
+            end
           end
-          array :strings do
-            string :text
-          end
-        end
 
-        value :doubled_ints, input.numbers.int_val * 2
-        value :scaled_floats, input.numbers.float_val * 1.5
-        value :mixed_math, input.numbers.int_val * input.numbers.float_val
-        value :uppercased, fn(:upcase, input.strings.text)
-        trait :large_numbers, input.numbers.int_val > 10
-        value :sum_ints, fn(:sum, doubled_ints)
+          value :doubled_ints, input.numbers.int_val * 2
+          value :scaled_floats, input.numbers.float_val * 1.5
+          value :mixed_math, input.numbers.int_val * input.numbers.float_val
+          value :uppercased, fn(:upcase, input.strings.text)
+          trait :large_numbers, input.numbers.int_val > 10
+          value :sum_ints, fn(:sum, doubled_ints)
+        end
       end
 
-      Kumi::Analyzer.analyze!(syntax_tree.syntax_tree)
+      test_schema.__analyzer_result__
     end
 
     it "infers correct types for vectorized operations" do

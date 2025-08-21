@@ -4,18 +4,12 @@ require "ostruct"
 
 module Kumi
   module Schema
-    attr_reader :__syntax_tree__, :__analyzer_result__, :__compiled_schema__
-
-    Inspector = Struct.new(:syntax_tree, :analyzer_result, :compiled_schema) do
-      def inspect
-        "#<#{self.class} syntax_tree: #{syntax_tree.inspect}, analyzer_result: #{analyzer_result.inspect}, compiled_schema: #{compiled_schema.inspect}>"
-      end
-    end
+    attr_reader :__syntax_tree__, :__analyzer_result__, :__executable__
 
     def from(context)
       # VERY IMPORTANT: This method is overriden on specs in order to use dual mode.
 
-      raise("No schema defined") unless @__compiled_schema__
+      raise("No schema defined") unless @__executable__
 
       # Validate input types and domain constraints
       input_meta = @__analyzer_result__.state[:input_metadata] || {}
@@ -23,11 +17,11 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
-      @__compiled_schema__.read(context, mode: :ruby)
+      @__executable__.read(context, mode: :ruby)
     end
 
     def explain(context, *keys)
-      raise("No schema defined") unless @__compiled_schema__
+      raise("No schema defined") unless @__executable__
 
       # Validate input types and domain constraints
       input_meta = @__analyzer_result__.state[:input_metadata] || {}
@@ -58,11 +52,11 @@ module Kumi
       @__analyzer_result__ = Dev::Profiler.phase("analyzer") do
         Analyzer.analyze!(@__syntax_tree__).freeze
       end
-      @__compiled_schema__ = Dev::Profiler.phase("compiler") do
+      @__executable__ = Dev::Profiler.phase("compiler") do
         Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__, schema_name: self.name).freeze
       end
 
-      Inspector.new(@__syntax_tree__, @__analyzer_result__, @__compiled_schema__)
+      nil
     end
 
     def schema_metadata

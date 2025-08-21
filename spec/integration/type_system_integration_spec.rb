@@ -3,14 +3,17 @@
 RSpec.describe "Type System Integration" do
   describe "basic type inference" do
     it "infers types for literal values" do
-      schema_result = Kumi.schema do
-        value :int_val, 42
-        value :float_val, 3.14
-        value :string_val, "hello"
-        value :bool_val, true
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :int_val, 42
+          value :float_val, 3.14
+          value :string_val, "hello"
+          value :bool_val, true
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
 
       expect(types[:int_val]).to eq(Kumi::Core::Types::INT)
       expect(types[:float_val]).to eq(Kumi::Core::Types::FLOAT)
@@ -19,26 +22,32 @@ RSpec.describe "Type System Integration" do
     end
 
     it "uses annotated field types" do
-      schema_result = Kumi.schema do
-        input do
-          key :age, type: Kumi::Core::Types::INT
-        end
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          input do
+            key :age, type: Kumi::Core::Types::INT
+          end
 
-        value :age_check, fn(:>=, input.age, 18)
+          value :age_check, fn(:>=, input.age, 18)
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
       expect(types[:age_check]).to eq(Kumi::Core::Types::BOOL)
     end
 
     it "infers function return types" do
-      schema_result = Kumi.schema do
-        value :sum, fn(:add, 10, 20)
-        value :comparison, fn(:>, 5, 3)
-        value :text, fn(:upcase, "hello")
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :sum, fn(:add, 10, 20)
+          value :comparison, fn(:>, 5, 3)
+          value :text, fn(:upcase, "hello")
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
 
       expect(types[:sum]).to eq(Kumi::Core::Types::NUMERIC)
       expect(types[:comparison]).to eq(Kumi::Core::Types::BOOL)
@@ -46,12 +55,15 @@ RSpec.describe "Type System Integration" do
     end
 
     it "infers array types" do
-      schema_result = Kumi.schema do
-        value :numbers, [1, 2, 3]
-        value :strings, %w[a b c]
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :numbers, [1, 2, 3]
+          value :strings, %w[a b c]
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
 
       expect(types[:numbers]).to eq({ array: :integer })
       expect(types[:strings]).to eq({ array: :string })
@@ -60,14 +72,17 @@ RSpec.describe "Type System Integration" do
 
   describe "type propagation through dependencies" do
     it "propagates types through references" do
-      schema_result = Kumi.schema do
-        value :base_amount, 1000
-        value :tax_rate, 0.08
-        value :tax_amount, fn(:multiply, base_amount, tax_rate)
-        value :total, fn(:add, base_amount, tax_amount)
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :base_amount, 1000
+          value :tax_rate, 0.08
+          value :tax_amount, fn(:multiply, base_amount, tax_rate)
+          value :total, fn(:add, base_amount, tax_amount)
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
 
       expect(types[:base_amount]).to eq(Kumi::Core::Types::INT)
       expect(types[:tax_rate]).to eq(Kumi::Core::Types::FLOAT)
@@ -114,22 +129,28 @@ RSpec.describe "Type System Integration" do
 
   describe "complex type scenarios" do
     it "handles nested function calls" do
-      schema_result = Kumi.schema do
-        value :nested, fn(:add, fn(:multiply, 2, 3), fn(:subtract, 10, 5))
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :nested, fn(:add, fn(:multiply, 2, 3), fn(:subtract, 10, 5))
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
       expect(types[:nested]).to eq(Kumi::Core::Types::NUMERIC)
     end
 
     it "handles list operations" do
-      schema_result = Kumi.schema do
-        value :numbers, [1, 2, 3, 4, 5]
-        value :sum_total, fn(:sum, numbers)
-        value :first_num, fn(:first, numbers)
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :numbers, [1, 2, 3, 4, 5]
+          value :sum_total, fn(:sum, numbers)
+          value :first_num, fn(:first, numbers)
+        end
       end
 
-      types = schema_result.analyzer_result.decl_types
+      types = test_schema.__analyzer_result__.decl_types
 
       expect(types[:numbers]).to eq({ array: :integer })
       expect(types[:sum_total]).to eq(:float)
@@ -155,12 +176,15 @@ RSpec.describe "Type System Integration" do
 
   describe "type information access" do
     it "stores type information in analysis state" do
-      schema_result = Kumi.schema do
-        value :test_val, 42
+      test_schema = Module.new do
+        extend Kumi::Schema
+        schema do
+          value :test_val, 42
+        end
       end
 
-      expect(schema_result.analyzer_result.decl_types).to have_key(:test_val)
-      expect(schema_result.analyzer_result.decl_types[:test_val]).to eq(Kumi::Core::Types::INT)
+      expect(test_schema.__analyzer_result__.decl_types).to have_key(:test_val)
+      expect(test_schema.__analyzer_result__.decl_types[:test_val]).to eq(Kumi::Core::Types::INT)
     end
   end
 
