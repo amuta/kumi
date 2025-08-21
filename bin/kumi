@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "optparse"
+require "kumi"
+
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff> ..."
+
+case cmd
+when "parse"
+  path = ARGV.shift or abort "kumi parse <schema.kumi> [options]"
+  opts = {}
+  OptionParser.new do |o|
+    o.on("--write", "Write golden file instead of diffing") { opts[:write] = true }
+    o.on("--update", "Update golden file only if different") { opts[:update] = true }
+    o.on("--json", "Use JSON format instead of text") { opts[:json] = true }
+    o.on("--no-diff", "Just print output, don't diff") { opts[:no_diff] = true }
+    o.on("--trace", "Enable state tracing") { opts[:trace] = true }
+    o.on("--snap PHASES", "Snapshot phases") { |v| opts[:snap] = v }
+    o.on("--snap-dir DIR", "Snapshot directory") { |v| opts[:snap_dir] = v }
+  end.parse!(ARGV)
+
+  success = Kumi::Dev::Parse.run(path, opts)
+  exit(success ? 0 : 1)
+
+when "analyze"
+  path = ARGV.shift or abort "kumi analyze <schema-path>"
+  opts = {}
+  OptionParser.new do |o|
+    o.on("--trace") { opts[:trace] = true }
+    o.on("--snap PHASES") { |v| opts[:checkpoints] ||= {}; opts[:checkpoints][:phase] = v }
+    o.on("--snap-dir DIR") { |v| opts[:checkpoints] ||= {}; opts[:checkpoints][:dir] = v }
+    o.on("--resume FILE") { |v| opts[:resume_from] = v }
+    o.on("--resume-at NAME") { |v| opts[:resume_at] = v }
+    o.on("--stop-after NAME"){ |v| opts[:stop_after] = v }
+    o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
+  end.parse!(ARGV)
+
+  schema, _ = Kumi::Frontends.load(path: path)
+  res = Kumi::Pipeline::AnalyzerRunner.run(schema, opts)
+  abort("Analysis errors:\n#{res.errors.inspect}") unless res.ok?
+  puts "OK (#{res.stats[:total_ms]}ms)"
+
+when "pp"
+  kind = ARGV.shift or abort "kumi pp <ast|ir> <schema-path>"
+  path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
+  schema, _ = Kumi::Frontends.load(path: path)
+  if kind == "ast"
+    require "pp"; pp schema
+  elsif kind == "ir"
+    res = Kumi::Pipeline::AnalyzerRunner.run(schema, {})
+    abort "No IR" unless res.ir
+    puts Kumi::Support::IRRender.to_text(res.ir, analysis_state: res.state)
+  else
+    abort "unknown: #{kind}"
+  end
+
+when "golden"
+  sub = ARGV.shift or abort "kumi golden <init|record|verify|diff> ..."
+  name = ARGV.shift if %w[init record verify].include?(sub)
+  opts = {}
+  OptionParser.new do |o|
+    o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
+  end.parse!(ARGV)
+  
+  case sub
+  when "init"   then Kumi::Tools::Golden::Service.init!(name)
+  when "record" then Kumi::Tools::Golden::Service.record!(name, **opts)
+  when "verify" then exit(Kumi::Tools::Golden::Service.verify!(name, **opts) ? 0 : 1)
+  else
+    abort "kumi golden <init|record|verify>"
+  end
+
+when "diff"
+  sub = ARGV.shift or abort "kumi diff <ir> <path> [--golden NAME]"
+  if sub == "ir"
+    path = ARGV.shift or abort "kumi diff ir <path> [--golden NAME]"
+    golden = nil
+    OptionParser.new { |o| o.on("--golden NAME") { |v| golden = v } }.parse!(ARGV)
+    Kumi::Tools::Golden::Service.diff!(path, golden: golden)
+  else
+    abort "kumi diff <ir> ..."
+  end
+
+else
+  abort "usage: kumi <parse|analyze|pp|golden|diff> ..."
+end

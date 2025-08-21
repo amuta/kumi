@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../../support/ir_dump"
-
 module Kumi
   module Core
     module Analyzer

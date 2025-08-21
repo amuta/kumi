@@ -10,6 +10,7 @@ loader.inflector.inflect(
   "vm" => "VM",
   "ir" => "IR",
   'ir_dump' => 'IRDump',
+  'ir_render' => 'IRRender',
 )
 loader.setup
 
