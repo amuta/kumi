@@ -259,8 +259,10 @@ RSpec.describe "Incremental Updates" do
       expect(theme[:css_vars]).to include("--accent: #3366cc-light")
       expect(theme[:css_vars]).to include("--text: #ffffff")
 
-      # User changes primary color - should update accent_color and css_vars
+      # # User changes primary color - should update accent_color and css_vars
+      # css_vars: "--primary: #3366cc; --accent: #3366cc-light; --text: #ffffff; --font-size: 14px;" }
       theme.update(primary_color: "#cc3366")
+      # css_vars: "--primary: #3366cc; --accent: #3366cc-light; --text: #ffffff; --font-size: 14px;" }
 
       expect(theme[:accent_color]).to eq("#cc3366-light")
       expect(theme[:css_vars]).to include("--primary: #cc3366")

@@ -3,13 +3,18 @@
 module Kumi
   module Runtime
     class Run
-      def initialize(program, input, mode:, input_metadata:, dependents:)
+      def initialize(program, input, mode:, input_metadata:, dependents:, declarations:)
         @program = program
         @input = input
         @mode = mode
         @input_metadata = input_metadata
+        @declarations = declarations
         @dependents = dependents
         @cache = {}
+      end
+
+      def key?(name)
+        @declarations.include? name
       end
 
       def get(name)
@@ -23,6 +28,10 @@ module Kumi
         # Convert to requested format when returning
         vm_result = @cache[name]
         @mode == :wrapped ? vm_result : @program.unwrap(nil, vm_result)
+      end
+
+      def to_h
+        slice(*@declarations)
       end
 
       def [](name)
@@ -40,13 +49,13 @@ module Kumi
       end
 
       def method_missing(sym, *args, **kwargs, &)
-        return super unless args.empty? && kwargs.empty? && @program.decl?(sym)
+        return super unless args.empty? && kwargs.empty? && key?(sym)
 
         get(sym)
       end
 
       def respond_to_missing?(sym, priv = false)
-        @program.decl?(sym) || super
+        key?(sym) || super
       end
 
       def update(**changes)
@@ -62,16 +71,11 @@ module Kumi
           # Update the input data IN-PLACE to preserve object_id for cache keys
           @input[field] = value
 
-          # Clear accessor cache for this specific field
-          @program.clear_field_accessor_cache(field)
-
           # Collect all declarations that depend on this input field
-          field_dependents = @dependents[field] || []
-          affected_declarations.merge(field_dependents)
+          @dependents[field] && @dependents[field].each do |decl|
+            @cache.delete(decl)
+          end
         end
-
-        # Only clear cache for affected declarations, not all declarations
-        affected_declarations.each { |decl| @cache.delete(decl) }
 
         self
       end

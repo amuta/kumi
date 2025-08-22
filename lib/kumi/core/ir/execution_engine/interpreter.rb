@@ -10,7 +10,7 @@ module Kumi
           NON_PRODUCERS = %i[guard_push guard_pop assign store].freeze
           EMPTY_ARY = [].freeze
 
-          def self.run(ir_module, input:, runtime:, accessors:, registry:)
+          def self.run(schedule, input:, runtime:, accessors:, registry:)
             # Validate registry is properly initialized
             raise ArgumentError, "Registry cannot be nil" if registry.nil?
             raise ArgumentError, "Registry must be a Hash, got #{registry.class}" unless registry.is_a?(Hash)
@@ -18,13 +18,8 @@ module Kumi
             # --- PROFILER: init per run (but not in persistent mode) ---
             if Profiler.enabled?
               schema_name = runtime[:schema_name] || "UnknownSchema"
-              if Profiler.persistent?
-                # In persistent mode, just update schema name without full reset
-                Profiler.set_schema_name(schema_name)
-              else
-                # Normal mode: full reset with schema name
-                Profiler.reset!(meta: { decls: ir_module.decls&.size || 0, schema_name: schema_name })
-              end
+              # In persistent mode, just update schema name without full reset
+              Profiler.set_schema_name(schema_name)
             end
 
             outputs = {}
@@ -32,12 +27,12 @@ module Kumi
             guard_stack = [true]
 
             # Caches live in runtime (engine frame), not input
-            declaration_cache = runtime[:declaration_cache] ||= {}
+            declaration_cache = runtime[:declaration_cache]
 
             # Choose declarations to execute - prefer explicit schedule if present
-            decls_to_run = runtime[:decls_to_run] || ir_module.decls
+            # decls_to_run = runtime[:decls_to_run] || ir_module.decls
 
-            decls_to_run.each do |decl|
+            schedule.each do |decl|
               slots = []
               guard_stack = [true] # reset per decl
 
@@ -105,7 +100,7 @@ module Kumi
                   scalar = op.attrs[:is_scalar]
                   indexed = op.attrs[:has_idx]
 
-                  raw = accessors.fetch(plan_id).call(input) # <- memoized by ExecutionEngine
+                  raw = accessors[plan_id].call(input) # <- memoized by ExecutionEngine
 
                   slots << if scalar
                              Values.scalar(raw)
