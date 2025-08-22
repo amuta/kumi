@@ -11,8 +11,9 @@ loader.inflector.inflect(
   "ir_dependency_pass" => "IRDependencyPass",
   "vm" => "VM",
   "ir" => "IR",
-  'ir_dump' => 'IRDump',
-  'ir_render' => 'IRRender',
+  "ir_dump" => "IRDump",
+  "ir_render" => "IRRender",
+  "ir_execution_schedule_pass" => "IRExecutionSchedulePass"
 )
 loader.setup
 

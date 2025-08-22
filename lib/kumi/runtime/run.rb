@@ -3,13 +3,18 @@
 module Kumi
   module Runtime
     class Run
-      def initialize(program, input, mode:, input_metadata:, dependents:)
+      def initialize(program, input, mode:, input_metadata:, dependents:, declarations:)
         @program = program
         @input = input
         @mode = mode
         @input_metadata = input_metadata
+        @declarations = declarations
         @dependents = dependents
         @cache = {}
+      end
+
+      def key?(name)
+        @declarations.include? name
       end
 
       def get(name)
@@ -23,6 +28,10 @@ module Kumi
         # Convert to requested format when returning
         vm_result = @cache[name]
         @mode == :wrapped ? vm_result : @program.unwrap(nil, vm_result)
+      end
+
+      def to_h
+        slice(*@declarations)
       end
 
       def [](name)
@@ -40,38 +49,28 @@ module Kumi
       end
 
       def method_missing(sym, *args, **kwargs, &)
-        return super unless args.empty? && kwargs.empty? && @program.decl?(sym)
+        return super unless args.empty? && kwargs.empty? && key?(sym)
 
         get(sym)
       end
 
       def respond_to_missing?(sym, priv = false)
-        @program.decl?(sym) || super
+        key?(sym) || super
       end
 
       def update(**changes)
         affected_declarations = Set.new
 
         changes.each do |field, value|
-          # Validate field exists
           raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)
 
-          # Validate domain constraints
           validate_domain_constraint(field, value)
 
-          # Update the input data IN-PLACE to preserve object_id for cache keys
           @input[field] = value
-
-          # Clear accessor cache for this specific field
-          @program.clear_field_accessor_cache(field)
-
-          # Collect all declarations that depend on this input field
-          field_dependents = @dependents[field] || []
-          affected_declarations.merge(field_dependents)
+          if (deps = @dependents[field])
+            deps.each { |d| @cache.delete(d) }
+          end
         end
-
-        # Only clear cache for affected declarations, not all declarations
-        affected_declarations.each { |decl| @cache.delete(decl) }
 
         self
       end
@@ -80,7 +79,7 @@ module Kumi
 
       def input_field_exists?(field)
         # Check if field is declared in input block
-        @input_metadata.key?(field) || @input.key?(field)
+        @input_metadata.key?(field)
       end
 
       def validate_domain_constraint(field, value)

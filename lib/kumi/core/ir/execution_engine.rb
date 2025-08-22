@@ -41,28 +41,12 @@ module Kumi
       # - DEBUG_VM_ARGS=1 prints per-op execution and arguments.
       # - DEBUG_GROUP_ROWS=1 prints grouping decisions during Lift.
       module ExecutionEngine
-        def self.run(ir_module, input:, runtime: {}, accessors:, registry:)
+        def self.run(schedule, input:, accessors:, registry:, runtime: {})
           runtime[:accessor_cache] ||= {}
 
-          memoized_accessors = Dev::Profiler.phase("engine.memoization") do
-            add_persistent_memoization(accessors, runtime[:accessor_cache], input.__id__)
-          end
-
           Dev::Profiler.phase("engine.interpreter") do
-            Interpreter.run(ir_module, input: input, runtime: runtime, accessors: memoized_accessors, registry: registry)
+            Interpreter.run(schedule, input: input, runtime: runtime, accessors: accessors, registry: registry)
           end
-        end
-
-
-        private
-
-        def self.add_persistent_memoization(accessors, cache, input_oid)
-          accessors.map do |plan_id, accessor_fn|
-            [plan_id, ->(input_data) {
-              key = [plan_id, input_oid]
-              cache[key] ||= accessor_fn.call(input_data)
-            }]
-          end.to_h
         end
       end
     end

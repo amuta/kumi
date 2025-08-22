@@ -3,6 +3,7 @@
 module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
+    ERROR_THRESHOLD_PASS = Core::Analyzer::Passes::LowerToIRPass
 
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
@@ -22,7 +23,9 @@ module Kumi
       Core::Analyzer::Passes::JoinReducePlanningPass,          # 16. Plans join/reduce operations (Generates IR Structs)
       Core::Analyzer::Passes::LowerToIRPass,                   # 17. Lowers the schema to IR (Generates IR Structs)
       Core::Analyzer::Passes::LoadInputCSE,                    # 18. Eliminates redundant load_input operations
-      Core::Analyzer::Passes::IRDependencyPass                 # 19. Extracts IR-level dependencies for VM execution optimization
+      Core::Analyzer::Passes::IRDependencyPass,                # 19. Extracts IR-level dependencies for VM execution optimization
+      Core::Analyzer::Passes::IRExecutionSchedulePass # 20. Builds a precomputed execution schedule.
+
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
@@ -44,6 +47,8 @@ module Kumi
       skipping   = !!resume_at
 
       passes.each_with_index do |pass_class, idx|
+        raise handle_analysis_errors(errors) if (ERROR_THRESHOLD_PASS == pass_class) && !errors.empty?
+
         pass_name = pass_class.name.split("::").last
 
         if skipping
