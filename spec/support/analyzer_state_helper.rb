@@ -31,12 +31,14 @@ module AnalyzerStateHelper
       types_consistent: 9,       # TypeConsistencyChecker
       signatures: 10,            # FunctionSignaturePass
       types_checked: 11,         # TypeChecker
-      access_plans: 12,          # InputAccessPlannerPass  
+      access_plans: 12,          # InputAccessPlannerPass
       scope_plans: 13,           # ScopeResolutionPass
       join_reduce_plans: 14,     # JoinReducePlanningPass
       ir_module: 15,             # LowerToIRPass
       optimized_ir: 16,          # LoadInputCSE
-      ir_dependencies: 17        # IRDependencyPass
+      ir_dependencies: 17,       # IRDependencyPass
+      ir_name_index: 17,         #
+      ir_execution_schedules: 18 # IRExecutionSchedulePass
     }
 
     target_pass_index = state_to_pass[target_state]

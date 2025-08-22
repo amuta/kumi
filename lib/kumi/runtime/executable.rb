@@ -42,9 +42,7 @@ module Kumi
         access_plans = state.fetch(:access_plans)
         input_metadata = state[:input_metadata] || {}
         dependents = state[:dependents] || {}
-        ir_dependencies = state[:ir_dependencies] || {}
-        name_index = state[:name_index] || {}
-        schedules = state[:execution_schedules] || {}
+        schedules = state[:ir_execution_schedules] || {}
 
         accessors = Dev::Profiler.phase("compiler.access_builder") do
           Kumi::Core::Compiler::AccessBuilder.build(access_plans)
@@ -66,19 +64,16 @@ module Kumi
         registry ||= Kumi::Registry.functions
         new(ir: ir, accessors: accessors, access_meta: access_meta, registry: registry,
             input_metadata: input_metadata, dependents: dependents,
-            ir_dependencies: ir_dependencies, name_index: name_index, schema_name: schema_name, schedules: schedules)
+            schema_name: schema_name, schedules: schedules)
       end
 
-      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, dependents: {}, ir_dependencies: {},
-                     name_index: {}, schedules: {}, schema_name: nil)
+      def initialize(ir:, accessors:, access_meta:, registry:, input_metadata:, dependents: {}, schedules: {}, schema_name: nil)
         @ir = ir.freeze
         @acc = accessors.freeze
         @meta = access_meta.freeze
         @reg = registry
         @input_metadata = input_metadata.freeze
         @dependents = dependents.freeze
-        @ir_dependencies = ir_dependencies.freeze # decl -> [stored_bindings_it_references]
-        @name_index = name_index.freeze # store_name -> producing decl
         @schema_name = schema_name
         @schedules = schedules
         @decl = @ir.decls.map { |d| [d.name, d] }.to_h
