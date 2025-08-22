@@ -13,14 +13,14 @@ module Kumi
 
           # Create a vector with scope and rows
           def self.vec(scope, rows, has_idx)
-            if has_idx
-              rank = rows.empty? ? 0 : rows.first[:idx].length
-              # TODO: > Make sure this is not costly
-              # raise if rows.any? { |r| r[:idx].length != rank }
-              rows = rows.sort_by { |r| r[:idx] } # one-time sort
-            else
-              rank = 0
-            end
+            rank = if has_idx
+                     rows.empty? ? 0 : rows.first[:idx].length
+                   # TODO: > Make sure this is not costly
+                   # raise if rows.any? { |r| r[:idx].length != rank }
+                   # rows = rows.sort_by { |r| r[:idx] } # one-time sort
+                   else
+                     0
+                   end
 
             { k: :vec, scope: scope, rows: rows, has_idx: has_idx, rank: rank }
           end

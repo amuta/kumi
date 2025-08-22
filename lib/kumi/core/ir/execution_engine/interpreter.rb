@@ -11,12 +11,9 @@ module Kumi
           EMPTY_ARY = [].freeze
 
           def self.run(schedule, input:, runtime:, accessors:, registry:)
-            # Validate registry is properly initialized
-            raise ArgumentError, "Registry cannot be nil" if registry.nil?
-            raise ArgumentError, "Registry must be a Hash, got #{registry.class}" unless registry.is_a?(Hash)
-
+            prof = Profiler.enabled?
             # --- PROFILER: init per run (but not in persistent mode) ---
-            if Profiler.enabled?
+            if prof
               schema_name = runtime[:schema_name] || "UnknownSchema"
               # In persistent mode, just update schema name without full reset
               Profiler.set_schema_name(schema_name)
@@ -37,8 +34,8 @@ module Kumi
               guard_stack = [true] # reset per decl
 
               decl.ops.each_with_index do |op, op_index|
-                t0 = Profiler.enabled? ? Profiler.t0 : nil
-                cpu_t0 = Profiler.enabled? ? Profiler.cpu_t0 : nil
+                t0 = prof ? Profiler.t0 : nil
+                cpu_t0 = prof ? Profiler.cpu_t0 : nil
                 rows_touched = nil
                 if ENV["ASSERT_VM_SLOTS"] == "1"
                   expected = op_index
@@ -64,7 +61,7 @@ module Kumi
                                    false
                                  end
                   slots << nil # keep slot_id == op_index
-                  if t0
+                  if prof
                     Profiler.record!(decl: decl.name, idx: op_index, tag: op.tag, op: op, t0: t0, cpu_t0: cpu_t0, rows: 0,
                                      note: "enter")
                   end
@@ -105,10 +102,10 @@ module Kumi
                   slots << if scalar
                              Values.scalar(raw)
                            elsif indexed
-                             rows_touched = raw.respond_to?(:size) ? raw.size : raw.count
+                             rows_touched = prof && raw.respond_to?(:size) ? raw.size : raw.count
                              Values.vec(scope, raw.map { |v, idx| { v: v, idx: Array(idx) } }, true)
                            else
-                             rows_touched = raw.respond_to?(:size) ? raw.size : raw.count
+                             rows_touched = prof && raw.respond_to?(:size) ? raw.size : raw.count
                              Values.vec(scope, raw.map { |v| { v: v } }, false)
                            end
                   rows_touched ||= 1
@@ -123,7 +120,7 @@ module Kumi
 
                   slots << referenced
                   rows_touched = referenced[:k] == :vec ? (referenced[:rows]&.size || 0) : 1
-                  if t0
+                  if prof
                     Profiler.record!(decl: decl.name, idx: op_index, tag: :ref, op: op, t0: t0, cpu_t0: cpu_t0,
                                      rows: rows_touched, note: hit)
                   end
@@ -154,14 +151,14 @@ module Kumi
                   fn = fn_entry.fn
 
                   # Validate slot indices before accessing
-                  op.args.each do |slot_idx|
-                    if slot_idx >= slots.length
-                      raise "Map operation #{fn_name}: slot index #{slot_idx} out of bounds (slots.length=#{slots.length})"
-                    elsif slots[slot_idx].nil?
-                      raise "Map operation #{fn_name}: slot #{slot_idx} is nil " \
-                            "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
-                    end
-                  end
+                  # op.args.each do |slot_idx|
+                  #   if slot_idx >= slots.length
+                  #     raise "Map operation #{fn_name}: slot index #{slot_idx} out of bounds (slots.length=#{slots.length})"
+                  #   elsif slots[slot_idx].nil?
+                  #     raise "Map operation #{fn_name}: slot #{slot_idx} is nil " \
+                  #           "(available slots: #{slots.length}, non-nil slots: #{slots.compact.length})"
+                  #   end
+                  # end
 
                   args = op.args.map { |slot_idx| slots[slot_idx] }
 

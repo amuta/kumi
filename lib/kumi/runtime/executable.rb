@@ -112,7 +112,8 @@ module Kumi
         runtime = {
           accessor_cache: @accessor_cache,
           declaration_cache: declaration_cache, # run-local cache
-          schema_name: @schema_name
+          schema_name: @schema_name,
+          target: name
         }
 
         out = Dev::Profiler.phase("vm.run", target: name) do

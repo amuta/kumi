@@ -62,18 +62,13 @@ module Kumi
         affected_declarations = Set.new
 
         changes.each do |field, value|
-          # Validate field exists
           raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)
 
-          # Validate domain constraints
           validate_domain_constraint(field, value)
 
-          # Update the input data IN-PLACE to preserve object_id for cache keys
           @input[field] = value
-
-          # Collect all declarations that depend on this input field
-          @dependents[field] && @dependents[field].each do |decl|
-            @cache.delete(decl)
+          if (deps = @dependents[field])
+            deps.each { |d| @cache.delete(d) }
           end
         end
 
@@ -84,7 +79,7 @@ module Kumi
 
       def input_field_exists?(field)
         # Check if field is declared in input block
-        @input_metadata.key?(field) || @input.key?(field)
+        @input_metadata.key?(field)
       end
 
       def validate_domain_constraint(field, value)
