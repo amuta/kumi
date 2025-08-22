@@ -17,6 +17,7 @@ module Kumi
 
       raise Errors::InputValidationError, violations unless violations.empty?
 
+      # TODO: Lazily start a Runner
       @__executable__.read(context, mode: :ruby)
     end
 
@@ -53,7 +54,7 @@ module Kumi
         Analyzer.analyze!(@__syntax_tree__).freeze
       end
       @__executable__ = Dev::Profiler.phase("compiler") do
-        Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__, schema_name: self.name).freeze
+        Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__, schema_name: name).freeze
       end
 
       nil

@@ -1,6 +1,11 @@
 ## [Unreleased]
+
+## [0.0.16] – 2025-08-22
+
 ### Performance
 - Input accessor code generation replaces nested lambda chains with compiled Ruby methods
+- Fix cache handling in Runtime - it was being recreated on updates
+- Add early shortcut for Analyzer Passes.
 
 ## [0.0.15] – 2025-08-21
 ### Added
