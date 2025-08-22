@@ -6,7 +6,11 @@ module Kumi
           attr_accessor :strategy
         end
 
-        self.strategy = (ENV["KUMI_CODEGEN"] ? :codegen : :interp)
+        self.strategy = if defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
+                          :interp
+                        else
+                          :codegen
+                        end
 
         def self.build(plans)
           accessors = {}

@@ -35,20 +35,20 @@ module Kumi
         end
 
         # Report trace file if enabled
-        if opts[:trace] && res.respond_to?(:trace_file)
-          puts "Trace written to: #{res.trace_file}"
-        end
+        puts "Trace written to: #{res.trace_file}" if opts[:trace] && res.respond_to?(:trace_file)
 
         # Determine file extension and renderer
         extension = opts[:json] ? "json" : "txt"
-        golden_path = File.join(File.dirname(schema_path), "expected", "ir.#{extension}")
+
+        file_name = File.basename(schema_path)
+        golden_path = File.join(File.dirname(schema_path), "expected", "#{file_name}_ir.#{extension}")
 
         # Render IR
         rendered = if opts[:json]
-          Dev::IR.to_json(res.ir, pretty: true)
-        else
-          Dev::IR.to_text(res.ir)
-        end
+                     Dev::IR.to_json(res.ir, pretty: true)
+                   else
+                     Dev::IR.to_text(res.ir)
+                   end
 
         # Handle write mode
         if opts[:write]
@@ -71,7 +71,7 @@ module Kumi
           end
         end
 
-        # Handle no-diff mode  
+        # Handle no-diff mode
         if opts[:no_diff]
           puts rendered
           return true
@@ -84,7 +84,7 @@ module Kumi
           Tempfile.create(["actual", File.extname(golden_path)]) do |actual_file|
             actual_file.write(rendered)
             actual_file.flush
-            
+
             result = `diff -u --label=expected --label=actual #{golden_path} #{actual_file.path}`
             if result.empty?
               puts "No changes (#{golden_path})"
@@ -97,7 +97,7 @@ module Kumi
         else
           # No golden file exists, just print the output
           puts rendered
-          return true
+          true
         end
       end
     end

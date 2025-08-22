@@ -28,25 +28,25 @@ module Kumi
         end
 
         private_class_method def self.gen_read(plan)
-          code = AccessEmit.read(plan)
+          code = AccessEmit::Read.build(plan)
           debug_code(code, plan, "READ") if ENV["DEBUG_CODEGEN"]
           eval(code, TOPLEVEL_BINDING)
         end
 
         private_class_method def self.gen_materialize(plan)
-          code = AccessEmit.materialize(plan)
+          code = AccessEmit::Materialize.build(plan)
           debug_code(code, plan, "MATERIALIZE") if ENV["DEBUG_CODEGEN"]
           eval(code, TOPLEVEL_BINDING)
         end
 
         private_class_method def self.gen_ravel(plan)
-          code = AccessEmit.ravel(plan)
+          code = AccessEmit::Ravel.build(plan)
           debug_code(code, plan, "RAVEL") if ENV["DEBUG_CODEGEN"]
           eval(code, TOPLEVEL_BINDING)
         end
 
         private_class_method def self.gen_each_indexed(plan)
-          code = AccessEmit.each_indexed(plan)
+          code = AccessEmit::EachIndexed.build(plan)
           debug_code(code, plan, "EACH_INDEXED") if ENV["DEBUG_CODEGEN"]
           eval(code, TOPLEVEL_BINDING)
         end
