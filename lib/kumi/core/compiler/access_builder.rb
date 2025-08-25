@@ -3,17 +3,14 @@ module Kumi
     module Compiler
       class AccessBuilder
         class << self
-          attr_accessor :strategy
+          attr_accessor :yjit
         end
+        self.yjit = defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
 
-        self.strategy = if defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
-                          :interp
-                        else
-                          :codegen
-                        end
-
-        def self.build(plans)
+        def self.build(plans, strategy: nil)
+          strategy ||= yjit ? :interp : :codegen
           accessors = {}
+
           plans.each_value do |variants|
             variants.each do |plan|
               accessors[plan.accessor_key] =
