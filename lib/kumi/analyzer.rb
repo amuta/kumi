@@ -15,16 +15,12 @@ module Kumi
       Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
       Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
       Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::FunctionSignaturePass,           # 12. Resolves NEP-20 signatures for function calls.
-      Core::Analyzer::Passes::TypeChecker,                     # 13. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 14. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 15. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 16. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass,                   # 17. Lowers the schema to IR (Generates IR Structs)
-      Core::Analyzer::Passes::LoadInputCSE,                    # 18. Eliminates redundant load_input operations
-      Core::Analyzer::Passes::IRDependencyPass,                # 19. Extracts IR-level dependencies for VM execution optimization
-      Core::Analyzer::Passes::IRExecutionSchedulePass # 20. Builds a precomputed execution schedule.
-
+      Core::Analyzer::Passes::TypeConsistencyChecker,          # 11. Validates declared vs inferred type consistency.
+      Core::Analyzer::Passes::TypeChecker,                     # 12. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 13. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 14. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 15. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass # 16. Lowers the schema to IR (Generates IR Structs)
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

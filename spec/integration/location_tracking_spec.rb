@@ -133,7 +133,7 @@ RSpec.describe "Location Tracking Accuracy" do
 
   def create_schema_with_single_error(error_line, line_number)
     base_lines = [
-      "class LocationTrackingTestSchema#{rand(100_000)}",
+      "class TestSchema#{rand(10_000)}",
       "  extend Kumi::Schema",
       "",
       "  schema do",
@@ -155,7 +155,7 @@ RSpec.describe "Location Tracking Accuracy" do
 
   def create_simple_error_schema
     <<~RUBY
-      class LocationTrackingSimpleErrorSchema#{rand(100_000)}
+      class SimpleErrorSchema#{rand(10_000)}
         extend Kumi::Schema
 
         schema do
@@ -171,7 +171,7 @@ RSpec.describe "Location Tracking Accuracy" do
 
   def create_complex_error_schema
     <<~RUBY
-      class LocationTrackingComplexErrorSchema#{rand(100_000)}
+      class ComplexErrorSchema#{rand(10_000)}
         extend Kumi::Schema
 
         schema do
