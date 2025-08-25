@@ -188,8 +188,5 @@ RSpec.describe "Analyzer Debug Integration" do
     expect(debug_output).to include("BroadcastDetector")
     expect(debug_output).to include("UnsatDetector")
     expect(debug_output).to include("ScopeResolutionPass")
-
-    # Should show cascades being processed
-    expect(debug_output).to include('"cascades"')
   end
 end

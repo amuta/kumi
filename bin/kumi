@@ -46,8 +46,9 @@ when "pp"
   kind = ARGV.shift or abort "kumi pp <ast|ir> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
   schema, _ = Kumi::Frontends.load(path: path)
+
   if kind == "ast"
-    require "pp"; pp schema
+    puts Kumi::Support::SExpressionPrinter.print(schema)
   elsif kind == "ir"
     res = Kumi::Pipeline::AnalyzerRunner.run(schema, {})
     abort "No IR" unless res.ir

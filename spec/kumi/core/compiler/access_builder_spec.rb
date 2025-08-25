@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require_relative "../../../support/strategy_test_helper"
 
 RSpec.describe Kumi::Core::Compiler::AccessBuilder do
   include ASTFactory
@@ -32,28 +33,30 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
       }
     end
 
-    it "builds an accessor that navigates nested objects and arrays" do
-      accessors = described_class.build(access_plans)
-      accessor = accessors["departments.teams.team_name:materialize"]
-      result = accessor.call(data)
+    test_both_strategies do
+      it "builds an accessor that navigates nested objects and arrays" do
+        accessors = build_accessors_with_strategy(access_plans)
+        accessor = accessors["departments.teams.team_name:materialize"]
+        result = accessor.call(data)
 
-      expect(result).to eq([%w[Backend Frontend], ["UX"]])
-    end
+        expect(result).to eq([%w[Backend Frontend], ["UX"]])
+      end
 
-    it "ravels nested structures" do
-      accessors = described_class.build(access_plans)
-      accessor = accessors["departments.teams.team_name:ravel"]
-      result = accessor.call(data)
+      it "ravels nested structures" do
+        accessors = build_accessors_with_strategy(access_plans)
+        accessor = accessors["departments.teams.team_name:ravel"]
+        result = accessor.call(data)
 
-      expect(result).to eq(%w[Backend Frontend UX])
-    end
+        expect(result).to eq(%w[Backend Frontend UX])
+      end
 
-    it "ravels array-of-objects without extra nesting" do
-      accessors = described_class.build(access_plans)
+      it "ravels array-of-objects without extra nesting" do
+        accessors = build_accessors_with_strategy(access_plans)
 
-      ravel = accessors["departments:ravel"]
-      # Should produce an array of department objects, not nested-in-an-array
-      expect(ravel.call(data)).to eq(data[:departments])
+        ravel = accessors["departments:ravel"]
+        # Should produce an array of department objects, not nested-in-an-array
+        expect(ravel.call(data)).to eq(data[:departments])
+      end
     end
   end
 
@@ -88,42 +91,44 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
       }
     end
 
-    it "builds an accessor that correctly enters nested arrays without fetching" do
-      accessors = described_class.build(access_plans)
+    test_both_strategies do
+      it "builds an accessor that correctly enters nested arrays without fetching" do
+        accessors = build_accessors_with_strategy(access_plans)
 
-      ops = access_plans["table.rows.cell"].find { |p| p.mode == :materialize }.operations
-      expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array])
+        ops = access_plans["table.rows.cell"].find { |p| p.mode == :materialize }.operations
+        expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array])
 
-      ops = access_plans["table.rows.cell.value"].find { |p| p.mode == :materialize }.operations
-      expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array enter_array])
+        ops = access_plans["table.rows.cell.value"].find { |p| p.mode == :materialize }.operations
+        expect(ops.map { |o| o[:type] }).to eq(%i[enter_hash enter_array enter_array enter_array])
 
-      accessor = accessors["table.rows.cell:materialize"]
-      result = accessor.call(data)
+        accessor = accessors["table.rows.cell:materialize"]
+        result = accessor.call(data)
 
-      expect(result).to eq(data[:table])
+        expect(result).to eq(data[:table])
 
-      accessor = accessors["table.rows.cell.value:materialize"]
-      result = accessor.call(data)
-      expect(result).to eq([[[0]], [[1, 2], [3]], [[4, 5]]])
-    end
+        accessor = accessors["table.rows.cell.value:materialize"]
+        result = accessor.call(data)
+        expect(result).to eq([[[0]], [[1, 2], [3]], [[4, 5]]])
+      end
 
-    it "ravels leaf values to a flat array" do
-      accessors = described_class.build(access_plans)
-      ravel = accessors["table.rows.cell.value:ravel"]
-      expect(ravel.call(data)).to eq([0, 1, 2, 3, 4, 5])
-    end
+      it "ravels leaf values to a flat array" do
+        accessors = build_accessors_with_strategy(access_plans)
+        ravel = accessors["table.rows.cell.value:ravel"]
+        expect(ravel.call(data)).to eq([0, 1, 2, 3, 4, 5])
+      end
 
-    it "each_indexed yields value with 3-axis indices" do
-      accessors = described_class.build(access_plans)
-      each = accessors["table.rows.cell.value:each_indexed"]
-      expect(each.call(data)).to eq([
-                                      [0, [0, 0, 0]],
-                                      [1, [1, 0, 0]],
-                                      [2, [1, 0, 1]],
-                                      [3, [1, 1, 0]],
-                                      [4, [2, 0, 0]],
-                                      [5, [2, 0, 1]]
-                                    ])
+      it "each_indexed yields value with 3-axis indices" do
+        accessors = build_accessors_with_strategy(access_plans)
+        each = accessors["table.rows.cell.value:each_indexed"]
+        expect(each.call(data)).to eq([
+                                        [0, [0, 0, 0]],
+                                        [1, [1, 0, 0]],
+                                        [2, [1, 0, 1]],
+                                        [3, [1, 1, 0]],
+                                        [4, [2, 0, 0]],
+                                        [5, [2, 0, 1]]
+                                      ])
+      end
     end
   end
 
@@ -156,14 +161,16 @@ RSpec.describe Kumi::Core::Compiler::AccessBuilder do
       }
     end
 
-    it "raises a descriptive error when encountering nil instead of an array" do
-      accessors = described_class.build(access_plans)
-      expect(accessors).to have_key("departments.teams.team_name:materialize")
-      accessor = accessors["departments.teams.team_name:materialize"]
+    test_both_strategies do
+      it "raises a descriptive error when encountering nil instead of an array" do
+        accessors = build_accessors_with_strategy(access_plans)
+        expect(accessors).to have_key("departments.teams.team_name:materialize")
+        accessor = accessors["departments.teams.team_name:materialize"]
 
-      expect { accessor.call(incomplete_data) }.to raise_error(
-        KeyError, /Missing key 'teams' at 'departments.teams.team_name' \(materialize\)/
-      )
+        expect { accessor.call(incomplete_data) }.to raise_error(
+          KeyError, /Missing key 'teams' at 'departments.teams.team_name' \(materialize\)/
+        )
+      end
     end
 
     xit "raises a descriptive error when encountering nil instead of an object" do
