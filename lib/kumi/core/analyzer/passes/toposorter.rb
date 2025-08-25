@@ -8,51 +8,17 @@ module Kumi
         # RESPONSIBILITY: Compute topological ordering of declarations, blocking all cycles
         # DEPENDENCIES: :dependencies from DependencyResolver, :declarations from NameIndexer
         # PRODUCES: :evaluation_order - Array of declaration names in evaluation order
-        #           :node_index - Hash mapping object_id to node metadata for later passes
         # INTERFACE: new(schema, state).run(errors)
         class Toposorter < PassBase
           def run(errors)
             dependency_graph = get_state(:dependencies, required: false) || {}
             definitions = get_state(:declarations, required: false) || {}
 
-            # Create node index for later passes to use
-            node_index = build_node_index(definitions)
             order = compute_topological_order(dependency_graph, definitions, errors)
-
-            state.with(:evaluation_order, order).with(:node_index, node_index)
+            state.with(:evaluation_order, order)
           end
 
           private
-
-          def build_node_index(definitions)
-            index = {}
-
-            # Walk all declarations and their expressions to index every node
-            definitions.each_value do |decl|
-              index_node_recursive(decl, index)
-            end
-
-            index
-          end
-
-          def index_node_recursive(node, index)
-            return unless node
-
-            # Index this node by its object_id
-            index[node.object_id] = {
-              node: node,
-              type: node.class.name.split("::").last,
-              metadata: {}
-            }
-
-            # Use the same approach as the visitor pattern - recursively index all children
-            node.children.each { |child| index_node_recursive(child, index) } if node.respond_to?(:children)
-
-            # Index expression for declaration nodes
-            return unless node.respond_to?(:expression)
-
-            index_node_recursive(node.expression, index)
-          end
 
           def compute_topological_order(graph, definitions, errors)
             temp_marks = Set.new
