@@ -8,29 +8,41 @@ module Kumi
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
       Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Core::Analyzer::Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
-      Core::Analyzer::Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
-      Core::Analyzer::Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
-      Core::Analyzer::Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeChecker,                     # 11. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 12. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 13. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 14. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass,                   # 15. Lowers the schema to IR (Generates IR Structs)
-      Core::Analyzer::Passes::LoadInputCSE,                    # 16. Eliminates redundant load_input operations
-      Core::Analyzer::Passes::IRDependencyPass,                # 17. Extracts IR-level dependencies for VM execution optimization
-      Core::Analyzer::Passes::IRExecutionSchedulePass,         # 18. Builds a precomputed execution schedule.
-      Core::Analyzer::Passes::NormalizeToNASTPass               # 19. Normalizes AST to uniform NAST representation
+      Core::Analyzer::Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
+      Core::Analyzer::Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+      Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+      Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      Core::Analyzer::Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
+      Core::Analyzer::Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeChecker,                     # 10. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 11. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
+      Core::Analyzer::Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
+      Core::Analyzer::Passes::IRExecutionSchedulePass,         # 17. Builds a precomputed execution schedule.
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
+    # Parallel pipeline passes for NAST->HIR->IR approach
+    # These run independently to build side tables for deterministic HIR generation
+    SIDE_TABLE_PASSES = [
+      Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
+      Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
+    ].freeze
+
+    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
 
       state = run_analysis_passes(schema, passes, state, errors)
+      
+      # Run side table passes for NAST->HIR->IR pipeline
+      if side_tables
+        state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors)
+      end
+      
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)
     end
