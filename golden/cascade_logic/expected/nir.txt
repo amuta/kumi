@@ -1,0 +1,36 @@
+(NIR
+  (TRAIT y_positive
+    (Call :"core.gt"
+    (InputRef [:y])
+    (Const 0)
+  )
+  )
+  (TRAIT x_positive
+    (Call :"core.gt"
+    (InputRef [:x])
+    (Const 0)
+  )
+  )
+  (VALUE status
+    (Call :"core.select"
+    (Call :"core.and"
+      (Ref y_positive)
+      (Ref x_positive)
+    )
+    (Const "both positive")
+    (Call :"core.select"
+      (Call :"core.and"
+        (Ref x_positive)
+      )
+      (Const "x positive")
+      (Call :"core.select"
+        (Call :"core.and"
+          (Ref y_positive)
+        )
+        (Const "y positive")
+        (Const "neither positive")
+      )
+    )
+  )
+  )
+)

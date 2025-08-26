@@ -1,0 +1,45 @@
+(NIR
+  (VALUE org_name
+    (InputRef [:organization, :name])
+  )
+  (VALUE region_names
+    (InputRef [:organization, :regions, :region_name])
+  )
+  (VALUE hq_cities
+    (InputRef [:organization, :regions, :headquarters, :city])
+  )
+  (VALUE building_names
+    (InputRef [:organization, :regions, :headquarters, :buildings, :building_name])
+  )
+  (VALUE facility_types
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :facility_type])
+  )
+  (VALUE capacities
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :capacity])
+  )
+  (VALUE utilization_rates
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :utilization_rate])
+  )
+  (TRAIT large_organization
+    (Call :"core.gt"
+    (Call :"core.length"
+      (InputRef [:organization, :regions])
+    )
+    (Const 1)
+  )
+  )
+  (VALUE org_classification
+    (Call :"core.select"
+    (Call :"core.and"
+      (Ref large_organization)
+    )
+    (Const "Enterprise")
+    (Const "Standard")
+  )
+  )
+  (VALUE total_capacity
+    (Call :"agg.sum"
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :capacity])
+  )
+  )
+)

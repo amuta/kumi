@@ -1,0 +1,47 @@
+(NIR
+  (TRAIT high_performer
+    (Call :"core.gte"
+    (InputRef [:regions, :offices, :teams, :employees, :rating])
+    (Const 4.5)
+  )
+  )
+  (TRAIT senior_level
+    (Call :"core.eq"
+    (InputRef [:regions, :offices, :teams, :employees, :level])
+    (Const "senior")
+  )
+  )
+  (TRAIT top_team
+    (Call :"core.gte"
+    (InputRef [:regions, :offices, :teams, :performance_score])
+    (Const 0.9)
+  )
+  )
+  (VALUE employee_bonus
+    (Call :"core.select"
+    (Call :"core.and"
+      (Ref high_performer)
+      (Ref senior_level)
+      (Ref top_team)
+    )
+    (Call :"core.mul"
+      (InputRef [:regions, :offices, :teams, :employees, :salary])
+      (Const 0.3)
+    )
+    (Call :"core.select"
+      (Call :"core.and"
+        (Ref high_performer)
+        (Ref top_team)
+      )
+      (Call :"core.mul"
+        (InputRef [:regions, :offices, :teams, :employees, :salary])
+        (Const 0.2)
+      )
+      (Call :"core.mul"
+        (InputRef [:regions, :offices, :teams, :employees, :salary])
+        (Const 0.05)
+      )
+    )
+  )
+  )
+)

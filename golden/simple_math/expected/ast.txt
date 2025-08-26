@@ -1,0 +1,40 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+    (InputDeclaration :y :integer)
+  ]
+  values: [
+    (ValueDeclaration :sum
+      (CallExpression :power
+        (InputReference :x)
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :product
+      (CallExpression :multiply
+        (InputReference :x)
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :difference
+      (CallExpression :subtract
+        (InputReference :x)
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :results_array
+      (ArrayExpression
+        (Literal 1)
+        (CallExpression :add
+          (InputReference :x)
+          (Literal 10)
+        )
+        (CallExpression :multiply
+          (InputReference :y)
+          (Literal 2)
+        )
+      )
+    )
+  ]
+  traits: []
+)

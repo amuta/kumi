@@ -45,36 +45,23 @@ when "analyze"
 when "pp"
   kind = ARGV.shift or abort "kumi pp <ast|ir|nir> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
-  schema, _ = Kumi::Frontends.load(path: path)
-
-  if kind == "ast"
-    puts Kumi::Support::SExpressionPrinter.print(schema)
-  elsif kind == "ir"
-    res = Kumi::Analyzer.analyze!(schema)
-    abort "No IR" unless res.state[:ir_module]
-    puts Kumi::Support::IRRender.to_text(res.state[:ir_module], analysis_state: res.state)
-  elsif kind == "nir"
-    res = Kumi::Analyzer.analyze!(schema)
-    abort "No NIR" unless res.state[:nir_module]
-    puts Kumi::Support::NIRPrinter.print(res.state[:nir_module])
-  else
-    abort "unknown: #{kind}"
-  end
+  Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  sub = ARGV.shift or abort "kumi golden <init|record|verify|diff> ..."
-  name = ARGV.shift if %w[init record verify].include?(sub)
+  sub = ARGV.shift or abort "kumi golden <list|record|verify|diff> ..."
+  name = ARGV.shift if %w[record verify diff].include?(sub)
   opts = {}
   OptionParser.new do |o|
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
   end.parse!(ARGV)
   
   case sub
-  when "init"   then Kumi::Tools::Golden::Service.init!(name)
-  when "record" then Kumi::Tools::Golden::Service.record!(name, **opts)
-  when "verify" then exit(Kumi::Tools::Golden::Service.verify!(name, **opts) ? 0 : 1)
+  when "list"   then Kumi::Dev::Golden.list
+  when "record" then Kumi::Dev::Golden.record!(name)
+  when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
+  when "diff"   then Kumi::Dev::Golden.diff!(name)
   else
-    abort "kumi golden <init|record|verify>"
+    abort "kumi golden <list|record|verify|diff>"
   end
 
 when "diff"

@@ -22,4 +22,4 @@
 /scripts/check_docs.rb
 
 # Golden test artifacts
-/golden/*/expected/
+/golden/*/tmp/

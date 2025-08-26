@@ -1,0 +1,69 @@
+(Root
+  inputs: [
+    (InputDeclaration :regions :array access_mode: :field
+      [
+        (InputDeclaration :offices :array access_mode: :field
+          [
+            (InputDeclaration :teams :array access_mode: :field
+              [
+                (InputDeclaration :performance_score :float)
+                (InputDeclaration :employees :array access_mode: :field
+                  [
+                    (InputDeclaration :salary :float)
+                    (InputDeclaration :rating :float)
+                    (InputDeclaration :level :string)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :employee_bonus
+      (CascadeExpression
+        ((CallExpression :cascade_and
+        (DeclarationReference :high_performer)
+        (DeclarationReference :senior_level)
+        (DeclarationReference :top_team)
+      ) (CallExpression :multiply
+        (InputElementReference regions.offices.teams.employees.salary)
+        (Literal 0.3)
+      ))
+        ((CallExpression :cascade_and
+        (DeclarationReference :high_performer)
+        (DeclarationReference :top_team)
+      ) (CallExpression :multiply
+        (InputElementReference regions.offices.teams.employees.salary)
+        (Literal 0.2)
+      ))
+        ((Literal true) (CallExpression :multiply
+        (InputElementReference regions.offices.teams.employees.salary)
+        (Literal 0.05)
+      ))
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :high_performer
+      (CallExpression :>=
+        (InputElementReference regions.offices.teams.employees.rating)
+        (Literal 4.5)
+      )
+    )
+    (TraitDeclaration :senior_level
+      (CallExpression :==
+        (InputElementReference regions.offices.teams.employees.level)
+        (Literal "senior")
+      )
+    )
+    (TraitDeclaration :top_team
+      (CallExpression :>=
+        (InputElementReference regions.offices.teams.performance_score)
+        (Literal 0.9)
+      )
+    )
+  ]
+)
