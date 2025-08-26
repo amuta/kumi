@@ -2,7 +2,7 @@
 
 module Kumi
   module Core
-    module NIR
+    module NAST
       Node = Struct.new(:loc, keyword_init: true)
 
       class Const < Node

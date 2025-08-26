@@ -1,4 +1,4 @@
-(NIR
+(NAST
   (VALUE org_name
     (InputRef [:organization, :name])
   )

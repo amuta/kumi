@@ -1,4 +1,4 @@
-# NIR Normalization Rules
+# NAST Normalization Rules
 
 ## Core Invariant
 **Every AST node becomes exactly one of: `Const`, `InputRef`, `Ref`, `Call`**
@@ -7,7 +7,7 @@
 
 ### Literals → Const
 ```ruby
-Kumi::Syntax::Literal(value: x) → NIR::Const(value: x)
+Kumi::Syntax::Literal(value: x) → NAST::Const(value: x)
 ```
 - Numbers: `42` → `(Const 42)`
 - Strings: `"hello"` → `(Const "hello")` 
@@ -15,22 +15,22 @@ Kumi::Syntax::Literal(value: x) → NIR::Const(value: x)
 
 ### Input References → InputRef
 ```ruby
-Kumi::Syntax::InputReference(name: :x) → NIR::InputRef(path: [:x])
-Kumi::Syntax::InputElementReference(path: [:items, :price]) → NIR::InputRef(path: [:items, :price])
+Kumi::Syntax::InputReference(name: :x) → NAST::InputRef(path: [:x])
+Kumi::Syntax::InputElementReference(path: [:items, :price]) → NAST::InputRef(path: [:items, :price])
 ```
 - Simple: `input.x` → `(InputRef [:x])`
 - Nested: `input.items.price` → `(InputRef [:items, :price])`
 
 ### Declaration References → Ref
 ```ruby
-Kumi::Syntax::DeclarationReference(name: :total) → NIR::Ref(name: :total)
+Kumi::Syntax::DeclarationReference(name: :total) → NAST::Ref(name: :total)
 ```
 - Trait refs: `high_performer` → `(Ref high_performer)`
 - Value refs: `subtotal` → `(Ref subtotal)`
 
 ### Function Calls → Call (with Canonical Names)
 ```ruby
-Kumi::Syntax::CallExpression(fn_name: :multiply, args: [a, b]) → NIR::Call(fn: :'core.mul', args: [norm(a), norm(b)])
+Kumi::Syntax::CallExpression(fn_name: :multiply, args: [a, b]) → NAST::Call(fn: :'core.mul', args: [norm(a), norm(b)])
 ```
 - **Canonical normalization**: `:multiply` → `:'core.mul'`, `:>=` → `:'core.gte'`
 - **Domain separation**: `core.*` (elementwise), `agg.*` (reductions)  
@@ -72,8 +72,8 @@ Becomes:
 ```
 
 ## Location Preservation
-**Every NIR node carries original `loc` for error reporting**
-- `NIR::Node.new(..., loc: ast_node.loc)`
+**Every NAST node carries original `loc` for error reporting**
+- `NAST::Node.new(..., loc: ast_node.loc)`
 - Location preserved through all transformations for precise error messages
 - Self-contained - no fragile references to original AST nodes
 - Serializable and persistent across process boundaries
@@ -83,10 +83,10 @@ Becomes:
 ```ruby
 else
   add_error(errors, node&.loc, "Unsupported AST node: #{node&.class}")
-  NIR::Const.new(value: nil, loc: node&.loc)
+  NAST::Const.new(value: nil, loc: node&.loc)
 ```
 
-## What NIR Does NOT Do
+## What NAST Does NOT Do
 - ❌ No type inference
 - ❌ No scope analysis  
 - ❌ No broadcasting logic

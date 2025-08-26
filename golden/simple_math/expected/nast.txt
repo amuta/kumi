@@ -1,4 +1,4 @@
-(NIR
+(NAST
   (VALUE sum
     (Call :"core.pow"
     (InputRef [:x])

@@ -9,7 +9,7 @@ module Kumi
         case kind
         when "ast" then print_ast(path)
         when "ir"  then print_ir(path) 
-        when "nir" then print_nir(path)
+        when "nast" then print_nast(path)
         else
           abort "unknown representation: #{kind}"
         end
@@ -27,11 +27,11 @@ module Kumi
         puts Kumi::Support::IRRender.to_text(res.state[:ir_module], analysis_state: res.state)
       end
 
-      def print_nir(path)
+      def print_nast(path)
         schema, _ = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema)
-        abort "No NIR" unless res.state[:nir_module]
-        puts Kumi::Support::NIRPrinter.print(res.state[:nir_module])
+        abort "No NAST" unless res.state[:nast_module]
+        puts Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
 
       # For golden testing - returns the output instead of printing
@@ -47,11 +47,11 @@ module Kumi
         Kumi::Support::IRRender.to_text(res.state[:ir_module], analysis_state: res.state)
       end
 
-      def generate_nir(path)
+      def generate_nast(path)
         schema, _ = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema)
-        return nil unless res.state[:nir_module]
-        Kumi::Support::NIRPrinter.print(res.state[:nir_module])
+        return nil unless res.state[:nast_module]
+        Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
     end
   end

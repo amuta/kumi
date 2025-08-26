@@ -43,7 +43,7 @@ when "analyze"
   puts "OK (#{res.stats[:total_ms]}ms)"
 
 when "pp"
-  kind = ARGV.shift or abort "kumi pp <ast|ir|nir> <schema-path>"
+  kind = ARGV.shift or abort "kumi pp <ast|ir|nast> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 

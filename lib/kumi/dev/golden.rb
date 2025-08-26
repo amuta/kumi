@@ -7,7 +7,7 @@ module Kumi
     module Golden
       module_function
 
-      REPRESENTATIONS = %w[ast nir].freeze
+      REPRESENTATIONS = %w[ast nast].freeze
 
       def list
         golden_dirs.each do |name|

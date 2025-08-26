@@ -1,4 +1,4 @@
-(NIR
+(NAST
   (TRAIT y_positive
     (Call :"core.gt"
     (InputRef [:y])

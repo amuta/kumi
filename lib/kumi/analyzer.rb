@@ -23,7 +23,7 @@ module Kumi
       Core::Analyzer::Passes::LoadInputCSE,                    # 16. Eliminates redundant load_input operations
       Core::Analyzer::Passes::IRDependencyPass,                # 17. Extracts IR-level dependencies for VM execution optimization
       Core::Analyzer::Passes::IRExecutionSchedulePass,         # 18. Builds a precomputed execution schedule.
-      Core::Analyzer::Passes::NormalizeToNIRPass               # 19. Normalizes AST to uniform NIR representation
+      Core::Analyzer::Passes::NormalizeToNASTPass               # 19. Normalizes AST to uniform NAST representation
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)

@@ -2,7 +2,7 @@
 
 module Kumi
   module Support
-    class NIRPrinter
+    class NASTPrinter
       def self.print(nir_module)
         new.print(nir_module)
       end
@@ -15,7 +15,7 @@ module Kumi
         return "nil" unless nir_module
 
         lines = []
-        lines << "(NIR"
+        lines << "(NAST"
         
         nir_module.decls.each do |name, decl|
           lines << indent("(#{decl.kind.upcase} #{name}")
@@ -31,16 +31,16 @@ module Kumi
 
       def print_node(node, depth = 1)
         case node
-        when Kumi::Core::NIR::Const
+        when Kumi::Core::NAST::Const
           "(Const #{node.value.inspect})"
           
-        when Kumi::Core::NIR::InputRef
+        when Kumi::Core::NAST::InputRef
           "(InputRef #{node.path.inspect})"
           
-        when Kumi::Core::NIR::Ref
+        when Kumi::Core::NAST::Ref
           "(Ref #{node.name})"
           
-        when Kumi::Core::NIR::Call
+        when Kumi::Core::NAST::Call
           if node.args.empty?
             "(Call #{node.fn.inspect})"
           else

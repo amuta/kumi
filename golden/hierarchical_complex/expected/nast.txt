@@ -1,4 +1,4 @@
-(NIR
+(NAST
   (TRAIT high_performer
     (Call :"core.gte"
     (InputRef [:regions, :offices, :teams, :employees, :rating])

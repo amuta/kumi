@@ -1,4 +1,4 @@
-(NIR
+(NAST
   (VALUE subtotals
     (Call :"core.mul"
     (InputRef [:items, :price])
