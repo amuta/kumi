@@ -13,7 +13,10 @@ loader.inflector.inflect(
   "ir" => "IR",
   "ir_dump" => "IRDump",
   "ir_render" => "IRRender",
-  "ir_execution_schedule_pass" => "IRExecutionSchedulePass"
+  "ir_execution_schedule_pass" => "IRExecutionSchedulePass",
+  "nir" => "NIR",
+  "normalize_to_nir_pass" => "NormalizeToNIRPass",
+  "nir_printer" => "NIRPrinter"
 )
 loader.setup
 

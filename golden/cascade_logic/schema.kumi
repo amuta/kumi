@@ -7,10 +7,8 @@ schema do
   trait :x_positive, input.x > 0
   trait :y_positive, input.y > 0
 
-  trait :both_positive, y_positive & x_positive
-  
   value :status do
-    on both_positive, "both positive"
+    on y_positive, x_positive, "both positive"
     on x_positive, "x positive"  
     on y_positive, "y positive"
     base "neither positive"
