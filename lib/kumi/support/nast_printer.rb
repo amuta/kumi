@@ -52,6 +52,18 @@ module Kumi
             lines.join("\n")
           end
           
+        when Kumi::Core::NAST::TupleLiteral
+          if node.elements.empty?
+            "(TupleLiteral)"
+          else
+            lines = ["(TupleLiteral"]
+            node.elements.each do |elem|
+              lines << indent(print_node(elem, depth + 1), depth + 1)
+            end
+            lines << indent(")", depth)
+            lines.join("\n")
+          end
+          
         else
           node.inspect
         end

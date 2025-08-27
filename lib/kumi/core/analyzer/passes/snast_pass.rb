@@ -18,7 +18,7 @@ module Kumi
         class SNASTPass < PassBase
           def run(errors)
             @nast_module = get_state(:nast_module, required: true)
-            @call_table = get_state(:call_table, required: true)
+            @metadata_table = get_state(:metadata_table, required: true)
             @declaration_table = get_state(:declaration_table, required: true)
             @input_table = get_state(:input_table, required: true)
             
@@ -82,6 +82,8 @@ module Kumi
             case expr
             when Core::NAST::Call
               annotate_call_expression(expr)
+            when Core::NAST::TupleLiteral
+              annotate_tuple_literal(expr)
             when Core::NAST::InputRef
               annotate_input_ref(expr)
             when Core::NAST::Const
@@ -94,9 +96,8 @@ module Kumi
           end
           
           def annotate_call_expression(call)
-            # Find call metadata by object_id
-            call_id = "call_#{call.object_id}"
-            call_meta = @call_table.fetch(call_id)
+            # Find call metadata
+            call_meta = @metadata_table.fetch(node_id(call))
             
             # Annotate arguments first
             annotated_args = call.args.map { |arg| annotate_expression(arg) }
@@ -163,22 +164,53 @@ module Kumi
           end
           
           def annotate_declaration_ref(ref)
-            # Get referenced declaration metadata
-            decl_meta = @declaration_table.fetch(ref.name)
+            # Get ref metadata (stored during dimensional analysis)
+            ref_meta = @metadata_table.fetch(node_id(ref))
             
             # Create new ref
             new_ref = ref.class.new(name: ref.name, loc: ref.loc)
             
-            # Copy stamp from referenced declaration (no plan - parent decides broadcast)
+            # Copy stamp from stored metadata
             new_ref.meta[:stamp] = {
-              axes_tokens: decl_meta[:result_scope],
-              dtype: decl_meta[:result_type]
+              axes_tokens: ref_meta[:result_scope],
+              dtype: ref_meta[:result_type]
             }.freeze
             new_ref.meta[:value_id] = next_value_id
             new_ref.meta[:topo_index] = next_topo_index
-            new_ref.meta[:referenced_name] = ref.name
+            new_ref.meta[:referenced_name] = ref_meta[:referenced_name]
             
             new_ref
+          end
+          
+          def annotate_tuple_literal(tuple_literal)
+            # Find tuple metadata
+            tuple_meta = @metadata_table.fetch(node_id(tuple_literal))
+            
+            # Annotate elements first
+            annotated_elements = tuple_literal.elements.map { |elem| annotate_expression(elem) }
+            
+            # Create new tuple literal with annotated elements
+            new_tuple = tuple_literal.class.new(elements: annotated_elements, loc: tuple_literal.loc)
+            
+            # Add stamp metadata (from pre-calculated analysis)
+            new_tuple.meta[:stamp] = {
+              axes_tokens: tuple_meta[:result_scope],
+              dtype: tuple_meta[:result_type]
+            }.freeze
+            new_tuple.meta[:value_id] = next_value_id
+            new_tuple.meta[:topo_index] = next_topo_index
+            
+            # Add execution plan (from pre-calculated analysis)
+            new_tuple.meta[:plan] = {
+              kind: :constructor,
+              arity: annotated_elements.length,
+              target_axes_tokens: tuple_meta[:result_scope],
+              needs_expand_flags: tuple_meta[:needs_expand_flags]
+            }.freeze
+            
+            debug "    TupleLiteral: #{tuple_meta[:arg_scopes]} -> #{tuple_meta[:result_scope]} (#{tuple_meta[:result_type]})"
+            
+            new_tuple
           end
           
           def build_execution_plan(call_meta, annotated_args)
@@ -219,6 +251,10 @@ module Kumi
           
           def next_topo_index
             @topo_index += 1
+          end
+          
+          def node_id(node)
+            "#{node.class}_#{node.object_id}"
           end
         end
       end

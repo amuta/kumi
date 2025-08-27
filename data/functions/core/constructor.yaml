@@ -1,8 +1,4 @@
 functions:
-  - id: core.tuple
-    kind: constructor
-    params: [{ name: elements, variadic: true }]
-    dtype: "tuple(types(elements))"
 # length is probably in the wrong place 
   - id: core.length
     kind: elementwise

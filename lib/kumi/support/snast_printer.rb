@@ -79,6 +79,20 @@ module Kumi
           lines << indent(")", depth)
           lines.join("\n")
           
+        when Kumi::Core::NAST::TupleLiteral
+          lines = ["(TupleLiteral"]
+          lines << print_tuple_meta(node, depth + 1)
+          
+          unless node.elements.empty?
+            lines << indent("elements:", depth + 1)
+            node.elements.each do |elem|
+              lines << indent(print_node(elem, depth + 2), depth + 2)
+            end
+          end
+          
+          lines << indent(")", depth)
+          lines.join("\n")
+          
         else
           node.inspect
         end
@@ -130,6 +144,29 @@ module Kumi
           lines << indent("needs_expand_flags: #{plan[:needs_expand_flags].inspect}", depth + 2)
         end
         
+        lines << indent("}", depth + 1)
+        lines << indent("}", depth)
+        
+        lines.join("\n")
+      end
+
+      def print_tuple_meta(tuple_node, depth)
+        meta = tuple_node.meta
+        stamp = meta[:stamp]
+        plan = meta[:plan]
+        
+        lines = []
+        lines << indent("meta: {", depth)
+        lines << indent("stamp: {axes_tokens: #{stamp[:axes_tokens].inspect}, dtype: #{stamp[:dtype]}}", depth + 1)
+        lines << indent("value_id: #{meta[:value_id].inspect}", depth + 1)
+        lines << indent("topo_index: #{meta[:topo_index]}", depth + 1)
+        
+        # Print execution plan
+        lines << indent("plan: {", depth + 1)
+        lines << indent("kind: #{plan[:kind]}", depth + 2)
+        lines << indent("arity: #{plan[:arity]}", depth + 2)
+        lines << indent("target_axes_tokens: #{plan[:target_axes_tokens].inspect}", depth + 2)
+        lines << indent("needs_expand_flags: #{plan[:needs_expand_flags].inspect}", depth + 2)
         lines << indent("}", depth + 1)
         lines << indent("}", depth)
         

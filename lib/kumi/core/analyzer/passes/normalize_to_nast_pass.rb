@@ -5,7 +5,6 @@ module Kumi
     module Analyzer
       module Passes
         class NormalizeToNASTPass < PassBase
-          FNAME_TUPLE = :'core.tuple'
           FNAME_SELECT = :'core.select'
 
           def run(errors)
@@ -59,8 +58,8 @@ module Kumi
             when Kumi::Syntax::CascadeExpression
               normalize_cascade(node, errors)
             when Kumi::Syntax::ArrayExpression
-              args = node.elements.map { |a| normalize_expr(a, errors) }
-              Kumi::Core::NAST::Call.new(fn: FNAME_TUPLE, args: args, loc: node.loc)
+              elements = node.elements.map { |a| normalize_expr(a, errors) }
+              Kumi::Core::NAST::TupleLiteral.new(elements: elements, loc: node.loc)
             else
               add_error(errors, node&.loc, "Unsupported AST node: #{node&.class}")
               Kumi::Core::NAST::Const.new(value: nil, loc: node&.loc)

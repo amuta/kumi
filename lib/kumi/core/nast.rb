@@ -43,6 +43,14 @@ module Kumi
         end
       end
 
+      class TupleLiteral < Node
+        attr_reader :elements
+        def initialize(elements:, **k)
+          super(**k)
+          @elements = elements
+        end
+      end
+
       Decl = Struct.new(:name, :kind, :body, :loc, :meta, keyword_init: true) do
         def initialize(**args)
           super

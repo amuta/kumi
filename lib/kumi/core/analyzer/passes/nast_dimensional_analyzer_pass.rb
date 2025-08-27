@@ -16,7 +16,7 @@ module Kumi
             @input_table = get_state(:input_table, required: true)
             
             @function_specs = Functions::Loader.load_minimal_functions
-            @call_table = {}
+            @metadata_table = {}
             @declaration_table = {}
 
             debug "Analyzing NAST module with #{nast_module.decls.size} declarations"
@@ -27,10 +27,10 @@ module Kumi
               analyze_declaration(name, decl, errors)
             end
 
-            debug "Generated call_table with #{@call_table.size} entries"
+            debug "Generated metadata_table with #{@metadata_table.size} entries"
             debug "Generated declaration_table with #{@declaration_table.size} entries"
 
-            state.with(:call_table, @call_table.freeze)
+            state.with(:metadata_table, @metadata_table.freeze)
                  .with(:declaration_table, @declaration_table.freeze)
           end
 
@@ -43,12 +43,16 @@ module Kumi
             # Analyze the declaration body and extract metadata
             result_metadata = analyze_expression(decl.body, errors)
             
-            @declaration_table[name] = {
+            # Store in both tables
+            decl_metadata = {
               kind: decl.kind,
               result_type: result_metadata[:type],
               result_scope: result_metadata[:scope],
               target_name: name
             }.freeze
+            
+            @metadata_table[node_id(decl)] = decl_metadata
+            @declaration_table[name] = decl_metadata
 
             debug "  #{name}: #{result_metadata[:type]} in scope #{result_metadata[:scope].inspect}"
           end
@@ -57,6 +61,8 @@ module Kumi
             case expr
             when Kumi::Core::NAST::Call
               analyze_call_expression(expr, errors)
+            when Kumi::Core::NAST::TupleLiteral
+              analyze_tuple_literal(expr, errors)
             when Kumi::Core::NAST::InputRef
               analyze_input_ref(expr, errors)
             when Kumi::Core::NAST::Const
@@ -102,8 +108,7 @@ module Kumi
               end
 
             # Store call metadata
-            call_id = generate_call_id(call)
-            @call_table[call_id] = {
+            @metadata_table[node_id(call)] = {
               function: function_spec.id,
               kind: function_spec.kind,
               parameter_names: function_spec.parameter_names,
@@ -116,6 +121,39 @@ module Kumi
             }.freeze
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
+
+            { type: result_type, scope: result_scope }
+          end
+
+          def analyze_tuple_literal(tuple_literal, errors)
+            # Analyze all elements
+            element_metadata = tuple_literal.elements.map { |elem| analyze_expression(elem, errors) }
+            element_types = element_metadata.map { |meta| meta[:type] }
+            element_scopes = element_metadata.map { |meta| meta[:scope] }
+
+            # Calculate LUB by prefix for result scope
+            result_scope = lub_by_prefix(element_scopes)
+            
+            # Build tuple type from element types  
+            result_type = "tuple<#{element_types.join(', ')}>"
+
+            # Calculate needs_expand_flags (which elements need broadcasting)
+            needs_expand_flags = element_scopes.map { |scope| scope != result_scope }
+
+            # Store tuple metadata
+            @metadata_table[node_id(tuple_literal)] = {
+              function: :tuple_literal,
+              kind: :constructor,
+              parameter_names: [],
+              result_type: result_type,
+              result_scope: result_scope,
+              arg_types: element_types,
+              arg_scopes: element_scopes,
+              needs_expand_flags: needs_expand_flags,
+              last_axis_token: nil
+            }.freeze
+
+            debug "    TupleLiteral: (#{element_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
 
             { type: result_type, scope: result_scope }
           end
@@ -140,8 +178,17 @@ module Kumi
 
           def analyze_declaration_ref(ref, errors)
             # Since NAST is topologically sorted, referenced declaration should already be analyzed
-            entry = @declaration_table.fetch(ref.name)
-            { type: entry[:result_type], scope: entry[:result_scope] }
+            referenced_decl_meta = @declaration_table.fetch(ref.name)
+            
+            # Store metadata for this Ref node too
+            @metadata_table[node_id(ref)] = {
+              kind: :ref,
+              result_type: referenced_decl_meta[:result_type],
+              result_scope: referenced_decl_meta[:result_scope],
+              referenced_name: ref.name
+            }.freeze
+            
+            { type: referenced_decl_meta[:result_type], scope: referenced_decl_meta[:result_scope] }
           end
 
           def compute_result_scope(function_spec, arg_scopes)
@@ -172,9 +219,8 @@ module Kumi
             candidate
           end
 
-          def generate_call_id(call)
-            # Generate unique ID for call node (simplified)
-            "call_#{call.object_id}"
+          def node_id(node)
+            "#{node.class}_#{node.object_id}"
           end
         end
       end

@@ -10,7 +10,7 @@
   )
   )
   (VALUE mixed_array
-    (Call :"core.tuple"
+    (TupleLiteral
     (InputRef [:scalar_val])
     (Ref sum_numbers)
     (InputRef [:matrix, :row, :cell])
