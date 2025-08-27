@@ -3,7 +3,12 @@
 module Kumi
   module Core
     module NAST
-      Node = Struct.new(:loc, keyword_init: true)
+      Node = Struct.new(:loc, :meta, keyword_init: true) do
+        def initialize(**args)
+          super
+          self.meta ||= {}
+        end
+      end
 
       class Const < Node
         attr_reader :value
@@ -38,7 +43,12 @@ module Kumi
         end
       end
 
-      Decl = Struct.new(:name, :kind, :body, :loc, keyword_init: true)
+      Decl = Struct.new(:name, :kind, :body, :loc, :meta, keyword_init: true) do
+        def initialize(**args)
+          super
+          self.meta ||= {}
+        end
+      end
       Module = Struct.new(:decls, keyword_init: true)
     end
   end

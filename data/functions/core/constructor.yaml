@@ -1,9 +1,9 @@
 functions:
-  - id: core.array
+  - id: core.tuple
     kind: constructor
     params: [{ name: elements, variadic: true }]
-    dtype: "common_type(elements)"
-
+    dtype: "tuple(types(elements))"
+# length is probably in the wrong place 
   - id: core.length
     kind: elementwise
     params: [{ name: collection }]

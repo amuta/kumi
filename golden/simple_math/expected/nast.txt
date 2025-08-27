@@ -18,7 +18,7 @@
   )
   )
   (VALUE results_array
-    (Call :"core.array"
+    (Call :"core.tuple"
     (Const 1)
     (Call :"core.add"
       (InputRef [:x])

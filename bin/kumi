@@ -27,6 +27,7 @@ when "parse"
 when "analyze"
   path = ARGV.shift or abort "kumi analyze <schema-path>"
   opts = {}
+  dump_key = nil
   OptionParser.new do |o|
     o.on("--trace") { opts[:trace] = true }
     o.on("--snap PHASES") { |v| opts[:checkpoints] ||= {}; opts[:checkpoints][:phase] = v }
@@ -35,17 +36,28 @@ when "analyze"
     o.on("--resume-at NAME") { |v| opts[:resume_at] = v }
     o.on("--stop-after NAME"){ |v| opts[:stop_after] = v }
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
+    o.on("--dump STATE_KEY", "Dump and inspect specific analyzer state key") { |v| dump_key = v.to_sym }
   end.parse!(ARGV)
 
   schema, _ = Kumi::Frontends.load(path: path)
   begin 
-    res = Kumi::Analyzer.analyze!(schema)
+    res = Kumi::Analyzer.analyze!(schema, **opts)
   rescue => errors
     abort("Analysis errors:\n#{errors.inspect}")
   end
-  puts "Analysis finished without errors."
+  
+  if dump_key
+    if res.state.key?(dump_key)
+      puts "=== #{dump_key.upcase} ==="
+      puts res.state[dump_key].inspect
+    else
+      puts "State key '#{dump_key}' not found. Available keys: #{res.state.keys.inspect}"
+    end
+  else
+    puts "Analysis finished without errors."
+  end
 when "pp"
-  kind = ARGV.shift or abort "kumi pp <ast|ir|nast> <schema-path>"
+  kind = ARGV.shift or abort "kumi pp <ast|ir|nast|snast> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 

@@ -1,0 +1,22 @@
+(NAST
+  (VALUE sum_numbers
+    (Call :"agg.sum"
+    (InputRef [:numbers, :value])
+  )
+  )
+  (VALUE matrix_sums
+    (Call :"agg.sum"
+    (InputRef [:matrix, :row, :cell])
+  )
+  )
+  (VALUE mixed_array
+    (Call :"core.tuple"
+    (InputRef [:scalar_val])
+    (Ref sum_numbers)
+    (InputRef [:matrix, :row, :cell])
+  )
+  )
+  (VALUE constant
+    (Const 42)
+  )
+)

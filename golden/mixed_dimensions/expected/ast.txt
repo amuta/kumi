@@ -1,0 +1,42 @@
+(Root
+  inputs: [
+    (InputDeclaration :numbers :array access_mode: :field
+      [
+        (InputDeclaration :value :integer)
+      ]
+    )
+    (InputDeclaration :scalar_val :integer)
+    (InputDeclaration :matrix :array access_mode: :field
+      [
+        (InputDeclaration :row :array access_mode: :field
+          [
+            (InputDeclaration :cell :float)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :constant
+      (Literal 42)
+    )
+    (ValueDeclaration :sum_numbers
+      (CallExpression :sum
+        (InputElementReference numbers.value)
+      )
+    )
+    (ValueDeclaration :matrix_sums
+      (CallExpression :sum
+        (InputElementReference matrix.row.cell)
+      )
+    )
+    (ValueDeclaration :mixed_array
+      (ArrayExpression
+        (InputReference :scalar_val)
+        (DeclarationReference :sum_numbers)
+        (InputElementReference matrix.row.cell)
+      )
+    )
+  ]
+  traits: []
+)

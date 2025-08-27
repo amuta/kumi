@@ -10,6 +10,7 @@ module Kumi
         when "ast" then print_ast(path)
         when "ir"  then print_ir(path) 
         when "nast" then print_nast(path)
+        when "snast" then print_snast(path)
         else
           abort "unknown representation: #{kind}"
         end
@@ -34,6 +35,13 @@ module Kumi
         puts Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
 
+      def print_snast(path)
+        schema, _ = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema)
+        abort "No SNAST" unless res.state[:snast_module]
+        puts Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
+      end
+
       # For golden testing - returns the output instead of printing
       def generate_ast(path)
         schema, _ = Kumi::Frontends.load(path: path)
@@ -52,6 +60,13 @@ module Kumi
         res = Kumi::Analyzer.analyze!(schema)
         return nil unless res.state[:nast_module]
         Kumi::Support::NASTPrinter.print(res.state[:nast_module])
+      end
+
+      def generate_snast(path)
+        schema, _ = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema)
+        return nil unless res.state[:snast_module]
+        Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
       end
     end
   end

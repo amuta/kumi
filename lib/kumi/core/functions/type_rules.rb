@@ -31,6 +31,15 @@ module Kumi
           normalize_type_symbol(reference_type_symbol)
         end
 
+        def array_type(element_type)
+          "array<#{element_type}>".to_sym
+        end
+
+        def tuple_type(*element_types)
+          "tuple<#{element_types.join(', ')}>".to_sym
+        end
+
+
         # Compile dtype rule string into callable
         def compile_dtype_rule(rule_string, parameter_names)
           rule = rule_string.to_s.strip
@@ -51,6 +60,16 @@ module Kumi
           if (m = /\Acommon_type\((.+)\)\z/.match(rule))
             param_name = m[1].strip.to_sym
             return ->(named) { common_type(named.fetch(param_name)) }
+          end
+          if (m = /\Aarray\((.+)\)\z/.match(rule))
+            inner_rule = m[1].strip
+            # Recursively compile the inner rule
+            inner_compiled = compile_dtype_rule(inner_rule, parameter_names)
+            return ->(named) { array_type(inner_compiled.call(named)) }
+          end
+          if (m = /\Atuple\(types\((.+)\)\)\z/.match(rule))
+            param_name = m[1].strip.to_sym
+            return ->(named) { tuple_type(*named.fetch(param_name)) }
           end
           
           # Handle literal types: "boolean", "integer", "float", etc.

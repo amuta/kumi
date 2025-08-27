@@ -31,6 +31,7 @@ module Kumi
       Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
+      Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)

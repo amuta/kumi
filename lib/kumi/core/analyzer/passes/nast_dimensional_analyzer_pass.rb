@@ -93,6 +93,14 @@ module Kumi
             result_type = function_spec.dtype_rule.call(named_types)
             result_scope = compute_result_scope(function_spec, arg_scopes)
 
+            # Compute expansion flags for elementwise and constructor operations
+            needs_expand_flags = 
+              if [:elementwise, :constructor].include?(function_spec.kind)
+                arg_scopes.map { |axes| axes != result_scope }
+              else
+                nil
+              end
+
             # Store call metadata
             call_id = generate_call_id(call)
             @call_table[call_id] = {
@@ -102,7 +110,9 @@ module Kumi
               result_type: result_type,
               result_scope: result_scope,
               arg_types: arg_types,
-              arg_scopes: arg_scopes
+              arg_scopes: arg_scopes,
+              needs_expand_flags: needs_expand_flags,
+              last_axis_token: (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil)
             }.freeze
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
@@ -138,17 +148,28 @@ module Kumi
             case function_spec.kind
             when :elementwise
               # Elementwise operations broadcast to the largest scope
-              arg_scopes.max_by(&:length) || []
+              lub_by_prefix(arg_scopes)
             when :reduce
               # Reduce operations collapse the last dimension
-              largest_scope = arg_scopes.max_by(&:length) || []
-              largest_scope[0...-1] || []
+              child = arg_scopes.first || []
+              child[0...-1]
             when :constructor
-              # Constructors like array create new scope
-              []
+              # Constructors use LUB to handle mixed dimensions
+              lub_by_prefix(arg_scopes)
             else
               []
             end
+          end
+
+          def lub_by_prefix(list_of_axes_arrays)
+            return [] if list_of_axes_arrays.empty?
+            candidate = list_of_axes_arrays.max_by(&:length)
+            list_of_axes_arrays.each do |axes|
+              unless axes.each_with_index.all? { |tok, i| candidate[i] == tok }
+                raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{axes.inspect} vs #{candidate.inspect}"
+              end
+            end
+            candidate
           end
 
           def generate_call_id(call)

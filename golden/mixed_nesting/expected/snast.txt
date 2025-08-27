@@ -1,0 +1,225 @@
+(SNAST
+  (VALUE org_name
+    meta: {
+      stamp: {axes_tokens: [], dtype: string}
+      value_id: "v2"
+      topo_index: 2
+      target_name: :org_name
+    }
+    (InputRef [:organization, :name]
+    meta: {
+      stamp: {axes_tokens: [], dtype: string}
+      value_id: "v1"
+      topo_index: 1
+    }
+  )
+  )
+  (VALUE region_names
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v4"
+      topo_index: 4
+      target_name: :region_names
+    }
+    (InputRef [:organization, :regions, :region_name]
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v3"
+      topo_index: 3
+    }
+  )
+  )
+  (VALUE hq_cities
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v6"
+      topo_index: 6
+      target_name: :hq_cities
+    }
+    (InputRef [:organization, :regions, :headquarters, :city]
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v5"
+      topo_index: 5
+    }
+  )
+  )
+  (VALUE building_names
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: string}
+      value_id: "v8"
+      topo_index: 8
+      target_name: :building_names
+    }
+    (InputRef [:organization, :regions, :headquarters, :buildings, :building_name]
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: string}
+      value_id: "v7"
+      topo_index: 7
+    }
+  )
+  )
+  (VALUE facility_types
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: string}
+      value_id: "v10"
+      topo_index: 10
+      target_name: :facility_types
+    }
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :facility_type]
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: string}
+      value_id: "v9"
+      topo_index: 9
+    }
+  )
+  )
+  (VALUE capacities
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: integer}
+      value_id: "v12"
+      topo_index: 12
+      target_name: :capacities
+    }
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :capacity]
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: integer}
+      value_id: "v11"
+      topo_index: 11
+    }
+  )
+  )
+  (VALUE utilization_rates
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: float}
+      value_id: "v14"
+      topo_index: 14
+      target_name: :utilization_rates
+    }
+    (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :utilization_rate]
+    meta: {
+      stamp: {axes_tokens: [:regions, :buildings], dtype: float}
+      value_id: "v13"
+      topo_index: 13
+    }
+  )
+  )
+  (TRAIT large_organization
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: boolean}
+      value_id: "v19"
+      topo_index: 19
+      target_name: :large_organization
+    }
+    (Call :"core.gt"
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: boolean}
+      value_id: "v18"
+      topo_index: 18
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:regions]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (Call :"core.length"
+        meta: {
+          stamp: {axes_tokens: [:regions], dtype: integer}
+          value_id: "v16"
+          topo_index: 16
+          plan: {
+            kind: elementwise
+            target_axes_tokens: [:regions]
+            needs_expand_flags: [false]
+          }
+        }
+        args:
+          (InputRef [:organization, :regions]
+            meta: {
+              stamp: {axes_tokens: [:regions], dtype: array}
+              value_id: "v15"
+              topo_index: 15
+            }
+          )
+      )
+      (Const 1
+        meta: {
+          stamp: {axes_tokens: [], dtype: integer}
+          value_id: "v17"
+          topo_index: 17
+        }
+      )
+  )
+  )
+  (VALUE org_classification
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v24"
+      topo_index: 24
+      target_name: :org_classification
+    }
+    (Call :"core.select"
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: string}
+      value_id: "v23"
+      topo_index: 23
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:regions]
+        needs_expand_flags: [false, true, true]
+      }
+    }
+    args:
+      (Ref large_organization
+        meta: {
+          stamp: {axes_tokens: [:regions], dtype: boolean}
+          value_id: "v20"
+          topo_index: 20
+          referenced_name: :large_organization
+        }
+      )
+      (Const "Enterprise"
+        meta: {
+          stamp: {axes_tokens: [], dtype: string}
+          value_id: "v21"
+          topo_index: 21
+        }
+      )
+      (Const "Standard"
+        meta: {
+          stamp: {axes_tokens: [], dtype: string}
+          value_id: "v22"
+          topo_index: 22
+        }
+      )
+  )
+  )
+  (VALUE total_capacity
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: integer}
+      value_id: "v27"
+      topo_index: 27
+      target_name: :total_capacity
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [:regions], dtype: integer}
+      value_id: "v26"
+      topo_index: 26
+      plan: {
+        kind: reduce
+        last_axis_token: :buildings
+      }
+    }
+    args:
+      (InputRef [:organization, :regions, :headquarters, :buildings, :facilities, :capacity]
+        meta: {
+          stamp: {axes_tokens: [:regions, :buildings], dtype: integer}
+          value_id: "v25"
+          topo_index: 25
+        }
+      )
+  )
+  )
+)

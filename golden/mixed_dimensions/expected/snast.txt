@@ -1,0 +1,115 @@
+(SNAST
+  (VALUE sum_numbers
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v3"
+      topo_index: 3
+      target_name: :sum_numbers
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v2"
+      topo_index: 2
+      plan: {
+        kind: reduce
+        last_axis_token: :numbers
+      }
+    }
+    args:
+      (InputRef [:numbers, :value]
+        meta: {
+          stamp: {axes_tokens: [:numbers], dtype: integer}
+          value_id: "v1"
+          topo_index: 1
+        }
+      )
+  )
+  )
+  (VALUE matrix_sums
+    meta: {
+      stamp: {axes_tokens: [:matrix], dtype: float}
+      value_id: "v6"
+      topo_index: 6
+      target_name: :matrix_sums
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [:matrix], dtype: float}
+      value_id: "v5"
+      topo_index: 5
+      plan: {
+        kind: reduce
+        last_axis_token: :row
+      }
+    }
+    args:
+      (InputRef [:matrix, :row, :cell]
+        meta: {
+          stamp: {axes_tokens: [:matrix, :row], dtype: float}
+          value_id: "v4"
+          topo_index: 4
+        }
+      )
+  )
+  )
+  (VALUE mixed_array
+    meta: {
+      stamp: {axes_tokens: [:matrix, :row], dtype: tuple<integer, integer, float>}
+      value_id: "v11"
+      topo_index: 11
+      target_name: :mixed_array
+    }
+    (Call :"core.tuple"
+    meta: {
+      stamp: {axes_tokens: [:matrix, :row], dtype: tuple<integer, integer, float>}
+      value_id: "v10"
+      topo_index: 10
+      plan: {
+        kind: constructor
+        arity: 3
+        target_axes_tokens: [:matrix, :row]
+        needs_expand_flags: [true, true, false]
+      }
+    }
+    args:
+      (InputRef [:scalar_val]
+        meta: {
+          stamp: {axes_tokens: [], dtype: integer}
+          value_id: "v7"
+          topo_index: 7
+        }
+      )
+      (Ref sum_numbers
+        meta: {
+          stamp: {axes_tokens: [], dtype: integer}
+          value_id: "v8"
+          topo_index: 8
+          referenced_name: :sum_numbers
+        }
+      )
+      (InputRef [:matrix, :row, :cell]
+        meta: {
+          stamp: {axes_tokens: [:matrix, :row], dtype: float}
+          value_id: "v9"
+          topo_index: 9
+        }
+      )
+  )
+  )
+  (VALUE constant
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v13"
+      topo_index: 13
+      target_name: :constant
+    }
+    (Const 42
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v12"
+      topo_index: 12
+    }
+  )
+  )
+)
