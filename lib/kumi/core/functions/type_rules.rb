@@ -1,0 +1,62 @@
+# frozen_string_literal: true
+
+module Kumi
+  module Core
+    module Functions
+      module TypeRules
+        module_function
+
+        def normalize_type_symbol(type_symbol)
+          Kumi::Core::Types.normalize(type_symbol)
+        end
+
+        # Minimal type promotion for NAST analysis
+        def promote_types(*input_types)
+          normalized = input_types.flatten.compact.uniq
+          return :float if normalized.include?(:float)
+          return :integer if normalized.include?(:integer) 
+          normalized.first
+        end
+
+        def common_type(element_types)
+          promote_types(element_types)
+        end
+
+        def unify_types(type1, type2)
+          return type1 if type1 == type2
+          promote_types(type1, type2) # Fall back to promotion for now
+        end
+
+        def same_type_as(reference_type_symbol)
+          normalize_type_symbol(reference_type_symbol)
+        end
+
+        # Compile dtype rule string into callable
+        def compile_dtype_rule(rule_string, parameter_names)
+          rule = rule_string.to_s.strip
+          
+          # Handle function-based rules
+          if (m = /\Apromote\((.+)\)\z/.match(rule))
+            keys = m[1].split(",").map { _1.strip.to_sym }
+            return ->(named) { promote_types(*keys.map { |k| named.fetch(k) }) }
+          end
+          if (m = /\Asame_as\((.+)\)\z/.match(rule))
+            key = m[1].strip.to_sym
+            return ->(named) { same_type_as(named.fetch(key)) }
+          end
+          if (m = /\Aunify\(([^,]+),\s*([^)]+)\)\z/.match(rule))
+            k1, k2 = m[1].strip.to_sym, m[2].strip.to_sym
+            return ->(named) { unify_types(named.fetch(k1), named.fetch(k2)) }
+          end
+          if (m = /\Acommon_type\((.+)\)\z/.match(rule))
+            param_name = m[1].strip.to_sym
+            return ->(named) { common_type(named.fetch(param_name)) }
+          end
+          
+          # Handle literal types: "boolean", "integer", "float", etc.
+          ->(_) { normalize_type_symbol(rule.to_sym) }
+        end
+      end
+    end
+  end
+end

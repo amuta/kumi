@@ -30,9 +30,7 @@
   )
   (VALUE org_classification
     (Call :"core.select"
-    (Call :"core.and"
-      (Ref large_organization)
-    )
+    (Ref large_organization)
     (Const "Enterprise")
     (Const "Standard")
   )

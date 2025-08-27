@@ -1,0 +1,10 @@
+functions:
+  - id: core.array
+    kind: constructor
+    params: [{ name: elements, variadic: true }]
+    dtype: "common_type(elements)"
+
+  - id: core.length
+    kind: elementwise
+    params: [{ name: collection }]
+    dtype: "integer"

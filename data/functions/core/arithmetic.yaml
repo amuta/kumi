@@ -1,0 +1,20 @@
+functions:
+  - id: core.add
+    kind: elementwise  
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "promote(left_operand,right_operand)"
+
+  - id: core.sub
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }] 
+    dtype: "promote(left_operand,right_operand)"
+
+  - id: core.mul
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "promote(left_operand,right_operand)"
+
+  - id: core.pow
+    kind: elementwise
+    params: [{ name: base }, { name: exponent }]
+    dtype: "promote(base,exponent)"

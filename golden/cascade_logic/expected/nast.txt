@@ -19,14 +19,10 @@
     )
     (Const "both positive")
     (Call :"core.select"
-      (Call :"core.and"
-        (Ref x_positive)
-      )
+      (Ref x_positive)
       (Const "x positive")
       (Call :"core.select"
-        (Call :"core.and"
-          (Ref y_positive)
-        )
+        (Ref y_positive)
         (Const "y positive")
         (Const "neither positive")
       )

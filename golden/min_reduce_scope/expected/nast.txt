@@ -1,0 +1,29 @@
+(NAST
+  (VALUE dept_total
+    (Call :"agg.sum"
+    (InputRef [:depts, :teams, :headcount])
+  )
+  )
+  (VALUE company_total
+    (Call :"agg.sum"
+    (Call :"agg.sum"
+      (InputRef [:depts, :teams, :headcount])
+    )
+  )
+  )
+  (TRAIT big_team
+    (Call :"core.gt"
+    (InputRef [:depts, :teams, :headcount])
+    (Const 10)
+  )
+  )
+  (VALUE dept_total_masked
+    (Call :"agg.sum"
+    (Call :"core.select"
+      (Ref big_team)
+      (InputRef [:depts, :teams, :headcount])
+      (Const 0)
+    )
+  )
+  )
+)

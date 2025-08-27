@@ -16,6 +16,7 @@ loader.inflector.inflect(
   "ir_execution_schedule_pass" => "IRExecutionSchedulePass",
   "nast" => "NAST",
   "normalize_to_nast_pass" => "NormalizeToNASTPass",
+  "nast_dimensional_analyzer_pass" => "NASTDimensionalAnalyzerPass",
   "nast_printer" => "NASTPrinter"
 )
 loader.setup

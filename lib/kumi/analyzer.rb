@@ -30,6 +30,7 @@ module Kumi
     SIDE_TABLE_PASSES = [
       Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
+      Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)

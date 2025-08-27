@@ -76,7 +76,6 @@ module Kumi
           :"&&"      => :'core.and',
           :"||"      => :'core.or',
           :"!"       => :'core.not',
-          :cascade_and => :'core.and',   # multi-condition cascade sugar
 
           # indexing / structural
           :at        => :'core.at',

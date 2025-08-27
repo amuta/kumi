@@ -21,6 +21,7 @@ module Kumi
             end
 
             nast = Kumi::Core::NAST::Module.new(decls: nast_decls)
+            debug "NAST decl keys: #{nast.decls.keys.inspect}"
             state.with(:nast_module, nast)
           end
 
@@ -41,9 +42,20 @@ module Kumi
               Kumi::Core::NAST::Ref.new(name: node.name, loc: node.loc)
 
             when Kumi::Syntax::CallExpression
-              fn = Kumi::Core::Analyzer::FnAliases.canonical(node.fn_name)
-              args = node.args.map { |a| normalize_expr(a, errors) }
-              Kumi::Core::NAST::Call.new(fn: fn, args: args, loc: node.loc)
+              # Special handling section - very clear what's happening
+              case node.fn_name
+              when :cascade_and
+                # Desugar cascade_and into chained binary core.and operations
+                normalize_cascade_and(node.args, errors, node.loc)
+              when :sum_if, :count_if, :max_if, :avg_if
+                # Macro expansion: agg_if(values, condition) → agg(select(condition, values, neutral))
+                normalize_agg_if_macro(node, errors)
+              else
+                # Regular function call
+                fn = Kumi::Core::Analyzer::FnAliases.canonical(node.fn_name)
+                args = node.args.map { |a| normalize_expr(a, errors) }
+                Kumi::Core::NAST::Call.new(fn: fn, args: args, loc: node.loc)
+              end
             when Kumi::Syntax::CascadeExpression
               normalize_cascade(node, errors)
             when Kumi::Syntax::ArrayExpression
@@ -71,6 +83,71 @@ module Kumi
               else_n = Kumi::Core::NAST::Call.new(fn: FNAME_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
             end
             else_n
+          end
+
+          def normalize_cascade_and(args, errors, loc)
+            # Desugar cascade_and into chained binary core.and operations
+            case args.size
+            when 0
+              # Edge case: no arguments - should probably be an error
+              add_error(errors, loc, "cascade_and requires at least one argument")
+              Kumi::Core::NAST::Const.new(value: true, loc: loc)
+            when 1
+              # Single argument: no 'and' needed, just normalize the argument
+              normalize_expr(args[0], errors)
+            else
+              # Multiple arguments: create right-associative binary tree
+              # cascade_and(a, b, c) -> and(a, and(b, c))
+              normalized_args = args.map { |arg| normalize_expr(arg, errors) }
+              build_right_associative_and(normalized_args, loc)
+            end
+          end
+
+          def build_right_associative_and(normalized_args, loc)
+            # Build: and(first, and(second, and(third, ...)))
+            normalized_args.reverse.reduce do |right, left|
+              Kumi::Core::NAST::Call.new(fn: :'core.and', args: [left, right], loc: loc)
+            end
+          end
+
+          def normalize_agg_if_macro(node, errors)
+            # Very clear: sum_if(values, condition) → sum(select(condition, values, neutral))
+            base_fn = node.fn_name.to_s.sub('_if', '')  # sum_if → sum
+            
+            if node.args.size != 2
+              add_error(errors, node.loc, "#{node.fn_name} expects exactly 2 arguments: values and condition")
+              return Kumi::Core::NAST::Const.new(value: nil, loc: node.loc)
+            end
+            
+            values, condition = node.args
+            neutral = neutral_value_for(base_fn)
+            
+            # Expand to: sum(select(condition, values, neutral))
+            select_call = Kumi::Core::NAST::Call.new(
+              fn: :'core.select',
+              args: [normalize_expr(condition, errors), 
+                     normalize_expr(values, errors),
+                     Kumi::Core::NAST::Const.new(value: neutral, loc: node.loc)],
+              loc: node.loc
+            )
+            
+            Kumi::Core::NAST::Call.new(
+              fn: "agg.#{base_fn}".to_sym,
+              args: [select_call],
+              loc: node.loc
+            )
+          end
+
+          def neutral_value_for(base_fn)
+            # Return appropriate neutral values for different aggregation functions
+            case base_fn
+            when 'sum'   then 0
+            when 'count' then 0  # For count, we'll filter out rather than use neutral
+            when 'max'   then Float::INFINITY * -1  # -∞
+            when 'avg'   then 0  # For average, this is more complex but start with 0
+            else
+              0  # Default neutral value
+            end
           end
         end
       end

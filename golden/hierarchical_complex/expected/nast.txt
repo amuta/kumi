@@ -21,8 +21,10 @@
     (Call :"core.select"
     (Call :"core.and"
       (Ref high_performer)
-      (Ref senior_level)
-      (Ref top_team)
+      (Call :"core.and"
+        (Ref senior_level)
+        (Ref top_team)
+      )
     )
     (Call :"core.mul"
       (InputRef [:regions, :offices, :teams, :employees, :salary])

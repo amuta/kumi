@@ -1,0 +1,20 @@
+functions:
+  - id: core.gte
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+
+  - id: core.gt
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+
+  - id: core.eq
+    kind: elementwise  
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+
+  - id: core.and
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"

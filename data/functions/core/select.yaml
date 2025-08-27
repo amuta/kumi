@@ -1,0 +1,5 @@
+functions:
+  - id: core.select
+    kind: elementwise
+    params: [{ name: condition_mask }, { name: value_when_true }, { name: value_when_false }]
+    dtype: "unify(value_when_true,value_when_false)"

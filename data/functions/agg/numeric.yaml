@@ -1,0 +1,5 @@
+functions:
+  - id: agg.sum
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "same_as(source_value)"
