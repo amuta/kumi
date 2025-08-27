@@ -38,10 +38,12 @@ when "analyze"
   end.parse!(ARGV)
 
   schema, _ = Kumi::Frontends.load(path: path)
-  res = Kumi::Pipeline::AnalyzerRunner.run(schema, opts)
-  abort("Analysis errors:\n#{res.errors.inspect}") unless res.ok?
-  puts "OK (#{res.stats[:total_ms]}ms)"
-
+  begin 
+    res = Kumi::Analyzer.analyze!(schema)
+  rescue => errors
+    abort("Analysis errors:\n#{errors.inspect}")
+  end
+  puts "Analysis finished without errors."
 when "pp"
   kind = ARGV.shift or abort "kumi pp <ast|ir|nast> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
