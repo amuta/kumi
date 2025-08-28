@@ -38,7 +38,7 @@ module Kumi
       Core::Analyzer::Passes::AssembleIRV2Pass                 # Assembles final IRV2 JSON structure
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: false, **opts)
+    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
 

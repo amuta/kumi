@@ -124,12 +124,12 @@ module Kumi
           def build_canonical_inputs(input_plans)
             input_plans.map do |plan|
               {
-                "path" => plan[:path],
-                "axes" => plan[:axes], 
-                "dtype" => plan[:dtype],
-                "key_policy" => "indifferent",
-                "on_missing" => "error",
-                "chain" => plan[:chain]
+                "path" => plan.path,
+                "axes" => plan.axes, 
+                "dtype" => plan.dtype,
+                "key_policy" => plan.key_policy,
+                "on_missing" => plan.on_missing,
+                "chain" => plan.access_chain
               }
             end
           end
