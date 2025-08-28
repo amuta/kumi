@@ -22,7 +22,7 @@ module Kumi
       Core::Analyzer::Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
       Core::Analyzer::Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
       Core::Analyzer::Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
-      Core::Analyzer::Passes::IRExecutionSchedulePass,         # 17. Builds a precomputed execution schedule.
+      Core::Analyzer::Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
     ].freeze
 
     # Parallel pipeline passes for NAST->HIR->IR approach
@@ -32,7 +32,7 @@ module Kumi
       Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
+      Core::Analyzer::Passes::LowerToIRV2Pass                  # Lowers SNAST to backend-agnostic IRV2 representation
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
@@ -40,12 +40,10 @@ module Kumi
       errors = []
 
       state = run_analysis_passes(schema, passes, state, errors)
-      
+
       # Run side table passes for NAST->HIR->IR pipeline
-      if side_tables
-        state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors)
-      end
-      
+      state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors) if side_tables
+
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)
     end

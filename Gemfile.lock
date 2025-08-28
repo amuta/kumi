@@ -14,7 +14,7 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     json (2.13.2)
-    kumi-parser (0.0.12)
+    kumi-parser (0.0.13)
       kumi (~> 0.0.13)
       parslet (~> 2.0)
       zeitwerk (~> 2.6)

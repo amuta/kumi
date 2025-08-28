@@ -1,0 +1,16 @@
+schema do
+  input do
+    array :cube do
+      element :array, :layer do
+        element :array, :row do
+          element :integer, :cell
+        end
+      end
+    end
+  end
+
+  value :cube,  input.cube
+  value :layer, input.cube.layer
+  value :row, input.cube.layer.row
+  value :cell, input.cube.layer.row.cell
+end

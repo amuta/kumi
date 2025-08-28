@@ -1,0 +1,14 @@
+(NAST
+  (VALUE cube
+    (InputRef [:cube])
+  )
+  (VALUE layer
+    (InputRef [:cube, :layer])
+  )
+  (VALUE row
+    (InputRef [:cube, :layer, :row])
+  )
+  (VALUE cell
+    (InputRef [:cube, :layer, :row, :cell])
+  )
+)

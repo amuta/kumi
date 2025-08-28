@@ -1,0 +1,32 @@
+(Root
+  inputs: [
+    (InputDeclaration :cube :array access_mode: :field
+      [
+        (InputDeclaration :layer :array access_mode: :field
+          [
+            (InputDeclaration :row :array access_mode: :field
+              [
+                (InputDeclaration :cell :integer)
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :cube
+      (InputReference :cube)
+    )
+    (ValueDeclaration :layer
+      (InputElementReference cube.layer)
+    )
+    (ValueDeclaration :row
+      (InputElementReference cube.layer.row)
+    )
+    (ValueDeclaration :cell
+      (InputElementReference cube.layer.row.cell)
+    )
+  ]
+  traits: []
+)
