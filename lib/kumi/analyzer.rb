@@ -32,6 +32,7 @@ module Kumi
       Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)

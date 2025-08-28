@@ -1,0 +1,67 @@
+; — Module: Declaration-Based IR
+
+Declaration high_performer {
+  params:
+    in_rating : View(float, axes=[:regions, :offices, :teams, :employees])
+  operations: [
+    %0 = LoadInput [:regions, :offices, :teams, :employees, :rating] ; [:regions,:offices,:teams,:employees], boolean
+    %1 = Const(4.5)                                   ; [:regions,:offices,:teams,:employees], boolean
+    %2 = AlignTo(%1, [:regions,:offices,:teams,:employees]) ; [:regions,:offices,:teams], boolean
+    %3 = Map(core.gte, %0, %2)                        ; [:regions,:offices,:teams], boolean
+  ]
+  result: %3
+}
+
+Declaration senior_level {
+  params:
+    in_level : View(string, axes=[:regions, :offices, :teams, :employees])
+  operations: [
+    %0 = LoadInput [:regions, :offices, :teams, :employees, :level] ; [:regions,:offices,:teams,:employees], boolean
+    %1 = Const("senior")                              ; [:regions,:offices,:teams,:employees], boolean
+    %2 = AlignTo(%1, [:regions,:offices,:teams,:employees]) ; [:regions,:offices,:teams], boolean
+    %3 = Map(core.eq, %0, %2)                         ; [:regions,:offices,:teams], boolean
+  ]
+  result: %3
+}
+
+Declaration top_team {
+  params:
+    in_performance_score : View(float, axes=[:regions, :offices, :teams])
+  operations: [
+    %0 = LoadInput [:regions, :offices, :teams, :performance_score] ; [:regions,:offices,:teams,:employees], boolean
+    %1 = Const(0.9)                                   ; [:regions,:offices,:teams,:employees], boolean
+    %2 = AlignTo(%1, [:regions,:offices,:teams])      ; [:regions,:offices,:teams], boolean
+    %3 = Map(core.gte, %0, %2)                        ; [:regions,:offices,:teams], boolean
+  ]
+  result: %3
+}
+
+Declaration employee_bonus {
+  params:
+    in_salary : View(float, axes=[:regions, :offices, :teams, :employees])
+    dep_high_performer : View(boolean, axes=[:regions, :offices, :teams, :employees])  ; high_performer
+    dep_senior_level : View(boolean, axes=[:regions, :offices, :teams, :employees])  ; senior_level
+    dep_top_team : View(boolean, axes=[:regions, :offices, :teams])  ; top_team
+  operations: [
+    %0 = LoadParam :high_performer                    ; [:regions,:offices,:teams,:employees], boolean
+    %1 = LoadParam :senior_level                      ; [:regions,:offices,:teams,:employees], boolean
+    %2 = LoadParam :top_team                          ; [:regions,:offices,:teams], boolean
+    %3 = AlignTo(%2, [:regions,:offices,:teams,:employees]) ; [:regions,:offices,:teams], boolean
+    %4 = Map(core.and, %1, %3)                        ; [:regions,:offices,:teams,:employees], boolean
+    %5 = Map(core.and, %0, %4)                        ; [:regions,:offices,:teams,:employees], boolean
+    %6 = LoadInput [:regions, :offices, :teams, :employees, :salary] ; [:regions,:offices,:teams,:employees], float
+    %7 = Const(0.3)                                   ; [], float
+    %8 = AlignTo(%7, [:regions,:offices,:teams,:employees]) ; [], unknown
+    %9 = Map(core.mul, %6, %8)                        ; [:regions,:offices,:teams,:employees], float
+    %13 = Map(core.and, %0, %3)                       ; [:regions,:offices,:teams,:employees], boolean
+    %14 = Const(0.2)                                  ; [], float
+    %15 = AlignTo(%14, [:regions,:offices,:teams,:employees]) ; [], unknown
+    %16 = Map(core.mul, %6, %15)                      ; [:regions,:offices,:teams,:employees], float
+    %17 = Const(0.05)                                 ; [], float
+    %18 = AlignTo(%17, [:regions,:offices,:teams,:employees]) ; [], unknown
+    %19 = Map(core.mul, %6, %18)                      ; [:regions,:offices,:teams,:employees], float
+    %20 = Map(core.select, %13, %16, %19)             ; [:regions,:offices,:teams,:employees], float
+    %21 = Map(core.select, %5, %9, %20)               ; [:regions,:offices,:teams,:employees], float
+  ]
+  result: %21
+}

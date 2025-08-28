@@ -1,0 +1,49 @@
+; — Module: Declaration-Based IR
+
+Declaration dept_total {
+  params:
+    in_headcount : View(integer, axes=[:depts, :teams])
+  operations: [
+    %0 = LoadInput [:depts, :teams, :headcount]       ; [:depts,:teams], boolean
+    %1 = Reduce(agg.sum, %0, :teams)                  ; [:depts,:teams], integer
+  ]
+  result: %1
+}
+
+Declaration company_total {
+  params:
+    in_headcount : View(integer, axes=[:depts, :teams])
+  operations: [
+    %0 = LoadInput [:depts, :teams, :headcount]       ; [:depts,:teams], boolean
+    %1 = Reduce(agg.sum, %0, :teams)                  ; [:depts,:teams], integer
+    %2 = Reduce(agg.sum, %1, :depts)                  ; [], integer
+  ]
+  result: %2
+}
+
+Declaration big_team {
+  params:
+    in_headcount : View(integer, axes=[:depts, :teams])
+  operations: [
+    %0 = LoadInput [:depts, :teams, :headcount]       ; [:depts,:teams], boolean
+    %1 = Const(10)                                    ; [:depts,:teams], integer
+    %2 = AlignTo(%1, [:depts,:teams])                 ; [], integer
+    %3 = Map(core.gt, %0, %2)                         ; [:depts,:teams], boolean
+  ]
+  result: %3
+}
+
+Declaration dept_total_masked {
+  params:
+    in_headcount : View(integer, axes=[:depts, :teams])
+    dep_big_team : View(boolean, axes=[:depts, :teams])  ; big_team
+  operations: [
+    %0 = LoadParam :big_team                          ; [:depts,:teams], boolean
+    %1 = LoadInput [:depts, :teams, :headcount]       ; [:depts,:teams], integer
+    %2 = Const(0)                                     ; [], integer
+    %3 = AlignTo(%2, [:depts,:teams])                 ; [:depts,:teams], boolean
+    %4 = Map(core.select, %0, %1, %3)                 ; [:depts,:teams], integer
+    %5 = Reduce(agg.sum, %4, :teams)                  ; [:depts], integer
+  ]
+  result: %5
+}

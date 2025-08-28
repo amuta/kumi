@@ -9,6 +9,7 @@ module Kumi
         case kind
         when "ast" then print_ast(path)
         when "ir"  then print_ir(path) 
+        when "irv2" then print_irv2(path)
         when "nast" then print_nast(path)
         when "snast" then print_snast(path)
         else
@@ -42,6 +43,13 @@ module Kumi
         puts Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
       end
 
+      def print_irv2(path)
+        schema, _ = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema)
+        abort "No IRV2" unless res.state[:irv2_module]
+        puts res.state[:irv2_module].to_s
+      end
+
       # For golden testing - returns the output instead of printing
       def generate_ast(path)
         schema, _ = Kumi::Frontends.load(path: path)
@@ -67,6 +75,13 @@ module Kumi
         res = Kumi::Analyzer.analyze!(schema)
         return nil unless res.state[:snast_module]
         Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
+      end
+
+      def generate_irv2(path)
+        schema, _ = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema)
+        return nil unless res.state[:irv2_module]
+        res.state[:irv2_module].to_s
       end
     end
   end

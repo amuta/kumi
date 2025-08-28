@@ -1,0 +1,61 @@
+; — Module: Declaration-Based IR
+
+Declaration subtotals {
+  params:
+    in_price : View(float, axes=[:items])
+    in_quantity : View(integer, axes=[:items])
+  operations: [
+    %0 = LoadInput [:items, :price]                   ; [:items], string
+    %1 = LoadInput [:items, :quantity]                ; [], string
+    %2 = Map(core.mul, %0, %1)                        ; [:items], float
+  ]
+  result: %2
+}
+
+Declaration discounted_price {
+  params:
+    in_price : View(float, axes=[:items])
+  operations: [
+    %0 = LoadInput [:items, :price]                   ; [:items], string
+    %1 = Const(0.9)                                   ; [], string
+    %2 = AlignTo(%1, [:items])                        ; [:items], float
+    %3 = Map(core.mul, %0, %2)                        ; [:items], boolean
+  ]
+  result: %3
+}
+
+Declaration is_valid_quantity {
+  params:
+    in_quantity : View(integer, axes=[:items])
+  operations: [
+    %0 = LoadInput [:items, :quantity]                ; [:items], string
+    %1 = Const(0)                                     ; [], string
+    %2 = AlignTo(%1, [:items])                        ; [:items], float
+    %3 = Map(core.gt, %0, %2)                         ; [:items], boolean
+  ]
+  result: %3
+}
+
+Declaration expensive_items {
+  params:
+    in_price : View(float, axes=[:items])
+  operations: [
+    %0 = LoadInput [:items, :price]                   ; [:items], string
+    %1 = Const(100.0)                                 ; [], string
+    %2 = AlignTo(%1, [:items])                        ; [:items], float
+    %3 = Map(core.gt, %0, %2)                         ; [:items], boolean
+  ]
+  result: %3
+}
+
+Declaration electronics {
+  params:
+    in_category : View(string, axes=[:items])
+  operations: [
+    %0 = LoadInput [:items, :category]                ; [:items], string
+    %1 = Const("electronics")                         ; [], string
+    %2 = AlignTo(%1, [:items])                        ; [:items], float
+    %3 = Map(core.eq, %0, %2)                         ; [:items], boolean
+  ]
+  result: %3
+}

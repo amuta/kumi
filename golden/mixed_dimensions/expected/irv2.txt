@@ -1,0 +1,44 @@
+; — Module: Declaration-Based IR
+
+Declaration sum_numbers {
+  params:
+    in_value : View(integer, axes=[:numbers])
+  operations: [
+    %0 = LoadInput [:numbers, :value]                 ; [], integer
+    %1 = Reduce(agg.sum, %0, :numbers)                ; [], integer
+  ]
+  result: %1
+}
+
+Declaration matrix_sums {
+  params:
+    in_cell : View(float, axes=[:matrix, :row])
+  operations: [
+    %0 = LoadInput [:matrix, :row, :cell]             ; [], integer
+    %1 = Reduce(agg.sum, %0, :row)                    ; [], integer
+  ]
+  result: %1
+}
+
+Declaration mixed_array {
+  params:
+    in_scalar_val : View(integer, axes=[])
+    in_cell : View(float, axes=[:matrix, :row])
+    dep_sum_numbers : View(integer, axes=[])  ; sum_numbers
+  operations: [
+    %0 = LoadInput [:scalar_val]                      ; [], integer
+    %1 = LoadParam :sum_numbers                       ; [], integer
+    %2 = LoadInput [:matrix, :row, :cell]             ; [:matrix,:row], float
+    %3 = AlignTo(%0, [:matrix,:row])                  ; [], unknown
+    %4 = AlignTo(%1, [:matrix,:row])                  ; [], unknown
+    %5 = ConstructTuple(%3, %4, %2)                   ; [:matrix,:row], tuple<integer, integer, float>
+  ]
+  result: %5
+}
+
+Declaration constant {
+  operations: [
+    %0 = Const(42)                                    ; [], integer
+  ]
+  result: %0
+}

@@ -1,0 +1,101 @@
+; — Module: Declaration-Based IR
+
+Declaration org_name {
+  params:
+    in_name : View(string, axes=[])
+  operations: [
+    %0 = LoadInput [:organization, :name]             ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration region_names {
+  params:
+    in_region_name : View(string, axes=[:regions])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :region_name] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration hq_cities {
+  params:
+    in_city : View(string, axes=[:regions])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :city] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration building_names {
+  params:
+    in_building_name : View(string, axes=[:regions, :buildings])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :buildings, :building_name] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration facility_types {
+  params:
+    in_facility_type : View(string, axes=[:regions, :buildings])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :buildings, :facilities, :facility_type] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration capacities {
+  params:
+    in_capacity : View(integer, axes=[:regions, :buildings])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :buildings, :facilities, :capacity] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration utilization_rates {
+  params:
+    in_utilization_rate : View(float, axes=[:regions, :buildings])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :buildings, :facilities, :utilization_rate] ; [:regions,:buildings], integer
+  ]
+  result: %0
+}
+
+Declaration large_organization {
+  params:
+    in_regions : View(array, axes=[:regions])
+  operations: [
+    %0 = LoadInput [:organization, :regions]          ; [:regions,:buildings], integer
+    %1 = Map(core.length, %0)                         ; [:regions], integer
+    %2 = Const(1)                                     ; [], string
+    %3 = AlignTo(%2, [:regions])                      ; [], unknown
+    %4 = Map(core.gt, %1, %3)                         ; [:regions], boolean
+  ]
+  result: %4
+}
+
+Declaration org_classification {
+  params:
+    dep_large_organization : View(boolean, axes=[:regions])  ; large_organization
+  operations: [
+    %0 = LoadParam :large_organization                ; [:regions,:buildings], integer
+    %1 = Const("Enterprise")                          ; [:regions], integer
+    %2 = Const("Standard")                            ; [], string
+    %3 = AlignTo(%1, [:regions])                      ; [], unknown
+    %4 = AlignTo(%2, [:regions])                      ; [:regions], boolean
+    %5 = Map(core.select, %0, %3, %4)                 ; [:regions], string
+  ]
+  result: %5
+}
+
+Declaration total_capacity {
+  params:
+    in_capacity : View(integer, axes=[:regions, :buildings])
+  operations: [
+    %0 = LoadInput [:organization, :regions, :headquarters, :buildings, :facilities, :capacity] ; [:regions,:buildings], integer
+    %1 = Reduce(agg.sum, %0, :buildings)              ; [:regions], integer
+  ]
+  result: %1
+}

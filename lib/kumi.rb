@@ -7,10 +7,12 @@ loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
   "lower_to_ir_pass" => "LowerToIRPass",
+  "lower_to_irv2_pass" => "LowerToIRV2Pass",
   "load_input_cse" => "LoadInputCSE",
   "ir_dependency_pass" => "IRDependencyPass",
   "vm" => "VM",
   "ir" => "IR",
+  "irv2" => "IRV2",
   "ir_dump" => "IRDump",
   "ir_render" => "IRRender",
   "ir_execution_schedule_pass" => "IRExecutionSchedulePass",

@@ -1,0 +1,54 @@
+; — Module: Declaration-Based IR
+
+Declaration sum {
+  params:
+    in_x : View(integer, axes=[])
+    in_y : View(integer, axes=[])
+  operations: [
+    %0 = LoadInput [:x]                               ; [], integer
+    %1 = LoadInput [:y]                               ; [], integer
+    %2 = Map(core.pow, %0, %1)                        ; [], integer
+  ]
+  result: %2
+}
+
+Declaration product {
+  params:
+    in_x : View(integer, axes=[])
+    in_y : View(integer, axes=[])
+  operations: [
+    %0 = LoadInput [:x]                               ; [], integer
+    %1 = LoadInput [:y]                               ; [], integer
+    %2 = Map(core.mul, %0, %1)                        ; [], integer
+  ]
+  result: %2
+}
+
+Declaration difference {
+  params:
+    in_x : View(integer, axes=[])
+    in_y : View(integer, axes=[])
+  operations: [
+    %0 = LoadInput [:x]                               ; [], integer
+    %1 = LoadInput [:y]                               ; [], integer
+    %2 = Map(core.sub, %0, %1)                        ; [], integer
+  ]
+  result: %2
+}
+
+Declaration results_array {
+  params:
+    in_x : View(integer, axes=[])
+    in_y : View(integer, axes=[])
+  operations: [
+    %0 = Const(1)                                     ; [], integer
+    %1 = LoadInput [:x]                               ; [], integer
+    %2 = Const(10)                                    ; [], integer
+    %3 = Map(core.add, %1, %2)                        ; [], integer
+    %4 = LoadInput [:y]                               ; [], integer
+    %5 = Const(2)                                     ; [], integer
+    %6 = Map(core.mul, %4, %5)                        ; [], integer
+    %7 = ConstructTuple(%0, %3, %6)                   ; [], tuple<integer, integer, integer>
+  ]
+  result: %7
+}
