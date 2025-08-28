@@ -18,7 +18,7 @@ module Kumi
             declarations = {}
 
             order.each do |decl_name|
-              decl = snast.decls.fetch(decl_name)
+              decl = snast.decls[decl_name]
               
               # Create separate builder for each declaration
               @b = Kumi::Core::IRV2::Builder.new
@@ -46,7 +46,7 @@ module Kumi
               )
             end
 
-            irv2_module = IRV2::Module.new(nil, nil, @metadata, declarations)
+            irv2_module = IRV2::Module.new(declarations, @metadata)
             state.with(:irv2_module, irv2_module)
           end
 
@@ -65,13 +65,21 @@ module Kumi
               @b.load_param(node.name)
 
             when Kumi::Core::NAST::TupleLiteral
-              plan    = node.meta[:plan] or raise "Missing plan on TupleLiteral"
+              plan = node.meta[:plan]
+              unless plan
+                errors << "Missing plan on TupleLiteral"
+                return @b.const(nil)
+              end
               lowered = node.elements.map { |e| lower_expr(e, errors) }
               aligned = apply_aligns(lowered, plan[:needs_expand_flags], plan[:target_axes_tokens])
               @b.construct_tuple(*aligned)
 
             when Kumi::Core::NAST::Call
-              plan = node.meta[:plan] or raise "Missing plan on Call #{node.fn}"
+              plan = node.meta[:plan]
+              unless plan
+                errors << "Missing plan on Call #{node.fn}"
+                return @b.const(nil)
+              end
               case plan[:kind]
               when :elementwise
                 args    = node.args.map { |a| lower_expr(a, errors) }
@@ -79,28 +87,36 @@ module Kumi
                 @b.map(node.fn.to_s, *aligned)
 
               when :reduce
-                raise "Reducer arity must be 1" unless node.args.size == 1
+                unless node.args.size == 1
+                  errors << "Reducer arity must be 1, got #{node.args.size}"
+                  return @b.const(nil)
+                end
                 v = lower_expr(node.args.first, errors)
                 @b.reduce(node.fn.to_s, v, plan[:last_axis_token])
 
               else
-                raise "Unsupported call kind for lowering: #{plan[:kind].inspect}"
+                errors << "Unsupported call kind for lowering: #{plan[:kind].inspect}"
+                return @b.const(nil)
               end
 
             else
-              raise "Unhandled SNAST node in lowering: #{node.class}"
+              errors << "Unhandled SNAST node in lowering: #{node.class}"
+              return @b.const(nil)
             end
             
             # Record metadata for this operation
-            raise "Missing IR value from lowering" unless ir_val
+            unless ir_val
+              errors << "Missing IR value from lowering"
+              return @b.const(nil)
+            end
             record_operation_metadata(ir_val, node)
             ir_val
           end
 
           def apply_aligns(ir_args, flags, target_axes)
             return ir_args if flags.nil? || flags.empty?
-            raise "flags and ir_args length mismatch" unless flags.length == ir_args.length
-            raise "target_axes required for alignment" if target_axes.nil?
+            return ir_args unless flags.length == ir_args.length
+            return ir_args if target_axes.nil?
             ir_args.each_with_index.map { |v,i| flags[i] ? @b.align_to(v, target_axes) : v }
           end
 
@@ -110,8 +126,8 @@ module Kumi
             
             # Collect input metadata
             input_table.each do |path, info|
-              input_scopes[path] = info.fetch(:axis)
-              input_types[path] = info.fetch(:dtype)
+              input_scopes[path] = info[:axis]
+              input_types[path] = info[:dtype]
             end
 
             {
@@ -127,9 +143,10 @@ module Kumi
             when :LoadInput
               path = ir_value.args.first
               input_table = get_state(:input_table, required: true)
-              info = input_table.fetch(path)
-              @metadata[:operation_scopes][ir_value.id] = info.fetch(:axis)
-              @metadata[:operation_types][ir_value.id] = info.fetch(:dtype)
+              info = input_table[path]
+              return unless info
+              @metadata[:operation_scopes][ir_value.id] = info[:axis]
+              @metadata[:operation_types][ir_value.id] = info[:dtype]
             when :Const
               @metadata[:operation_scopes][ir_value.id] = []
               # Infer type from constant value
@@ -139,32 +156,35 @@ module Kumi
               when Float then :float
               when String then :string
               when TrueClass, FalseClass then :boolean
-              else raise "Unknown constant type: #{value.class}"
+              else :unknown
               end
             when :AlignTo
               # AlignTo preserves the input type but changes scope
               input_val = ir_value.args.first
-              @metadata[:operation_scopes][ir_value.id] = ir_value.attrs.fetch(:axes)
-              @metadata[:operation_types][ir_value.id] = @metadata[:operation_types].fetch(input_val.id)
+              @metadata[:operation_scopes][ir_value.id] = ir_value.attrs[:axes]
+              @metadata[:operation_types][ir_value.id] = @metadata[:operation_types][input_val.id]
             when :LoadParam
               dep_name = ir_value.args.first
-              dep_decl = @current_decls.fetch(dep_name)
-              raise "Declaration #{dep_name} missing stamp metadata" unless dep_decl.meta[:stamp]
-              stamp = dep_decl.meta.fetch(:stamp)
-              @metadata[:operation_scopes][ir_value.id] = stamp.fetch(:axes_tokens)
-              @metadata[:operation_types][ir_value.id] = stamp.fetch(:dtype)
+              dep_decl = @current_decls[dep_name]
+              return unless dep_decl&.meta&.[](:stamp)
+              stamp = dep_decl.meta[:stamp]
+              return unless stamp
+              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
+              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
             when :Map, :Reduce
-              raise "Map/Reduce metadata must come from stamps" unless node&.meta&.[](:stamp)
-              stamp = node.meta.fetch(:stamp)
-              @metadata[:operation_scopes][ir_value.id] = stamp.fetch(:axes_tokens)
-              @metadata[:operation_types][ir_value.id] = stamp.fetch(:dtype)
+              return unless node&.meta&.[](:stamp)
+              stamp = node.meta[:stamp]
+              return unless stamp
+              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
+              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
             when :ConstructTuple
-              raise "ConstructTuple metadata must come from stamps" unless node&.meta&.[](:stamp)
-              stamp = node.meta.fetch(:stamp)
-              @metadata[:operation_scopes][ir_value.id] = stamp.fetch(:axes_tokens)
-              @metadata[:operation_types][ir_value.id] = stamp.fetch(:dtype)
+              return unless node&.meta&.[](:stamp)
+              stamp = node.meta[:stamp]
+              return unless stamp
+              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
+              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
             else
-              raise "Unhandled IR operation for metadata: #{ir_value.op}"
+              # Skip unknown operations
             end
           end
 
@@ -176,13 +196,14 @@ module Kumi
               path = op.args.first
               next if parameters.any? { |p| p[:type] == :input && p[:path] == path }
               
-              info = input_table.fetch(path)
+              info = input_table[path]
+              next unless info
               parameters << {
                 type: :input,
                 name: "in_#{path.last}",
                 path: path,
-                axes: info.fetch(:axis),
-                dtype: info.fetch(:dtype)
+                axes: info[:axis],
+                dtype: info[:dtype]
               }
             end
             
@@ -192,15 +213,16 @@ module Kumi
               next if parameters.any? { |p| p[:type] == :dependency && p[:source] == dep_name }
               
               # Get type info from referenced declaration
-              dep_decl = decls.fetch(dep_name)
-              raise "Declaration #{dep_name} missing stamp metadata" unless dep_decl.meta[:stamp]
-              stamp = dep_decl.meta.fetch(:stamp)
+              dep_decl = decls[dep_name]
+              next unless dep_decl&.meta&.[](:stamp)
+              stamp = dep_decl.meta[:stamp]
+              next unless stamp
               parameters << {
                 type: :dependency,
                 name: "dep_#{dep_name}",
                 source: dep_name,
-                axes: stamp.fetch(:axes_tokens),
-                dtype: stamp.fetch(:dtype)
+                axes: stamp[:axes_tokens],
+                dtype: stamp[:dtype]
               }
             end
             

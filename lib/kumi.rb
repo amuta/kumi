@@ -21,7 +21,8 @@ loader.inflector.inflect(
   "nast_dimensional_analyzer_pass" => "NASTDimensionalAnalyzerPass",
   "snast_pass" => "SNASTPass",
   "nast_printer" => "NASTPrinter",
-  "snast_printer" => "SNASTPrinter"
+  "snast_printer" => "SNASTPrinter",
+  "assemble_irv2_pass" => "AssembleIRV2Pass"
 )
 loader.setup
 

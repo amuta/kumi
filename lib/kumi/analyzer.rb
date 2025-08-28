@@ -32,10 +32,13 @@ module Kumi
       Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Core::Analyzer::Passes::LowerToIRV2Pass                  # Lowers SNAST to backend-agnostic IRV2 representation
+      Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
+      Core::Analyzer::Passes::SynthesizeAccessChainsPass,      # Creates canonical input plans from access_plans
+      Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
+      Core::Analyzer::Passes::AssembleIRV2Pass                 # Assembles final IRV2 JSON structure
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
+    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: false, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
 
@@ -76,7 +79,7 @@ module Kumi
         pass_instance = pass_class.new(schema, state)
         begin
           state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
-            pass_instance.run(errors)
+            pass_state = pass_instance.run(errors)
           end
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
@@ -98,6 +101,10 @@ module Kumi
 
           raise
         end
+        unless state.is_a? Kumi::Core::Analyzer::AnalysisState
+          raise "Pass #{pass_name} returned a '#{state.class}', expected 'AnalysisState'"
+        end
+
         elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
 
         if debug_on

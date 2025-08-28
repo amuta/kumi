@@ -6,8 +6,8 @@ module Kumi
       module Structs
         # One plan for a specific path and mode (path:mode)
         AccessPlan = Struct.new(:path, :containers, :leaf, :scope, :depth, :mode,
-                                :on_missing, :key_policy, :operations, keyword_init: true) do
-          def initialize(path:, containers:, leaf:, scope:, depth:, mode:, on_missing:, key_policy:, operations:)
+                                :on_missing, :key_policy, :operations, :chain, keyword_init: true) do
+          def initialize(path:, containers:, leaf:, scope:, depth:, mode:, on_missing:, key_policy:, operations:, chain:)
             super
             freeze
           end

@@ -40,11 +40,7 @@ when "analyze"
   end.parse!(ARGV)
 
   schema, _ = Kumi::Frontends.load(path: path)
-  begin 
-    res = Kumi::Analyzer.analyze!(schema, **opts)
-  rescue => errors
-    abort("Analysis errors:\n#{errors.inspect}")
-  end
+  res = Kumi::Analyzer.analyze!(schema, **opts)
   
   if dump_key
     if res.state.key?(dump_key)
