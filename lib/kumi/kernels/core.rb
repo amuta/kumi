@@ -35,6 +35,10 @@ module Kumi
         left && right
       end
 
+      def self.or(left, right)
+        left || right
+      end
+
       def self.length(collection)
         collection.size
       end

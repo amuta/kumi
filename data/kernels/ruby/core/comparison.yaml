@@ -14,3 +14,7 @@ kernels:
   - id: core.and:ruby:v1
     fn: core.and
     impl: "Kumi::Kernels::Core.and"
+
+  - id: core.or:ruby:v1
+    fn: core.or
+    impl: "Kumi::Kernels::Core.or"

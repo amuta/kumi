@@ -18,3 +18,8 @@ functions:
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+
+  - id: core.or
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"

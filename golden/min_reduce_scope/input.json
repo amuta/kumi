@@ -1,0 +1,18 @@
+{
+  "depts": [
+    {
+      "teams": [
+        {"headcount": 15},
+        {"headcount": 8},
+        {"headcount": 12}
+      ]
+    },
+    {
+      "teams": [
+        {"headcount": 5},
+        {"headcount": 20},
+        {"headcount": 7}
+      ]
+    }
+  ]
+}
