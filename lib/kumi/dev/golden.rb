@@ -33,34 +33,32 @@ module Kumi
           schema_changed = false
 
           REPRESENTATIONS.each do |repr|
-            begin
-              current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
-              next unless current_output
+            current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
+            next unless current_output
 
-              extension = JSON_REPRESENTATIONS.include?(repr) ? "json" : "txt"
-              filename = "#{repr}.#{extension}"
-              expected_file = File.join(expected_dir, filename)
+            extension = JSON_REPRESENTATIONS.include?(repr) ? "json" : "txt"
+            filename = "#{repr}.#{extension}"
+            expected_file = File.join(expected_dir, filename)
 
-              # Check if file exists and content differs
-              if File.exist?(expected_file)
-                expected_content = File.read(expected_file)
-                if current_output.strip != expected_content.strip
-                  File.write(expected_file, current_output)
-                  puts "  #{schema_name}/#{filename} (updated)"
-                  schema_changed = true
-                  changed_any = true
-                end
-              else
-                # New file
+            # Check if file exists and content differs
+            if File.exist?(expected_file)
+              expected_content = File.read(expected_file)
+              if current_output.strip != expected_content.strip
                 File.write(expected_file, current_output)
-                puts "  #{schema_name}/#{filename} (created)"
+                puts "  #{schema_name}/#{filename} (updated)"
                 schema_changed = true
                 changed_any = true
               end
-            rescue StandardError => e
-              puts "  ✗ #{schema_name}/#{repr} (error: #{e.message})"
-              raise
+            else
+              # New file
+              File.write(expected_file, current_output)
+              puts "  #{schema_name}/#{filename} (created)"
+              schema_changed = true
+              changed_any = true
             end
+          rescue StandardError => e
+            puts "  ✗ #{schema_name}/#{repr} (error: #{e.message})"
+            raise
           end
 
           puts "  #{schema_name} (no changes)" unless schema_changed

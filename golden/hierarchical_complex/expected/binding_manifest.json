@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:84d4014f313679f20f633431eff965f6048df02823cbfb7169ef69593667ceb7",
   "target": "ruby",
-  "registry_ref": "sha256:3456f30419950733b0f19118395fbaf0f41cc6672925b6172c2f727e34353108",
+  "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
   "bindings": [
     {"decl":"high_performer","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
     {"decl":"senior_level","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1"},

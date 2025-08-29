@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:1a8b72309340f69f97b2a9c6cc0a7b79fb04284a818814810ebb16916f9af885",
   "target": "ruby",
-  "registry_ref": "sha256:3456f30419950733b0f19118395fbaf0f41cc6672925b6172c2f727e34353108",
+  "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
   "bindings": [
     {"decl":"sum","op":2,"fn":"core.add","kernel_id":"core.add:ruby:v1"},
     {"decl":"product","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},

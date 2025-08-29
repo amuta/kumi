@@ -1,7 +1,10 @@
 kernels:
   - id: agg.sum:ruby:v1
     fn: agg.sum
-    impl:
-      init:     "Kumi::Kernels::Agg.zero"   # neutral element for dtype
-      step:     "Kumi::Kernels::Agg.sum"    # acc, val -> acc'
-      finalize: "Kumi::Kernels::Agg.id"     # acc -> out
+    impl: "->(a,b) {a + b}"
+    identity: 
+      float: 0.0
+      integer: 0
+      # init:     "Kumi::Kernels::Ruby::Agg.zero"   # neutral element for dtype
+      # step:     "Kumi::Kernels::Ruby::Agg.sum"    # acc, val -> acc'
+      # finalize: "Kumi::Kernels::Ruby::Agg.id"     # acc -> out

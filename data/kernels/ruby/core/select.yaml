@@ -1,4 +1,4 @@
 kernels:
   - id: core.select:ruby:v1
     fn: core.select
-    impl: "Kumi::Kernels::Core.select"
+    impl: "->(condition, true_val, false_val) { condition ? true_val : false_val }"

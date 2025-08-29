@@ -5,7 +5,7 @@ require "bundler/setup"
 require "optparse"
 require "kumi"
 
-cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen> ..."
 
 case cmd
 when "parse"
@@ -122,6 +122,50 @@ when "profile"
   success = Kumi::Dev::ProfileRunner.run(script, opts)
   exit(success ? 0 : 1)
 
+when "codegen"
+  require "kumi/codegen/ruby"
+  
+  opts = {}
+  irv2_path = nil
+  manifest_path = nil
+  golden_name = nil
+  output_file = nil
+  
+  OptionParser.new do |o|
+    o.banner = "Usage: kumi codegen [options]"
+    o.separator ""
+    o.separator "Input options (choose one):"
+    o.on("--irv2 PATH", "IRv2 JSON file path") { |v| irv2_path = v }
+    o.on("--manifest PATH", "Binding manifest JSON file path") { |v| manifest_path = v }
+    o.on("--golden NAME", "Golden schema name (loads from golden/NAME/expected/)") { |v| golden_name = v }
+    o.separator ""
+    o.separator "Output options:"
+    o.on("--output FILE", "Output Ruby file (default: stdout)") { |v| output_file = v }
+    o.separator ""
+    o.separator "Examples:"
+    o.separator "  kumi codegen --golden simple_math --output generated.rb"
+    o.separator "  kumi codegen --irv2 schema.json --manifest manifest.json"
+  end.parse!(ARGV)
+  
+  begin
+    if golden_name
+      generated_code = Kumi::Codegen::Ruby.generate_from_golden(golden_name)
+    elsif irv2_path && manifest_path
+      generated_code = Kumi::Codegen::Ruby.generate_from_files(irv2_path, manifest_path)
+    else
+      abort "Must specify either --golden NAME or both --irv2 and --manifest"
+    end
+    
+    if output_file
+      File.write(output_file, generated_code)
+      puts "Generated Ruby code written to: #{output_file}"
+    else
+      puts generated_code
+    end
+  rescue => e
+    abort "Codegen error: #{e.message}"
+  end
+
 else
-  abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
+  abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen> ..."
 end

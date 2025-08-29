@@ -1,20 +1,20 @@
 kernels:
   - id: core.eq:ruby:v1
     fn: core.eq
-    impl: "Kumi::Kernels::Core.eq"
+    impl: "->(a, b) { a == b }"
 
   - id: core.gt:ruby:v1
     fn: core.gt
-    impl: "Kumi::Kernels::Core.gt"
+    impl: "->(a, b) { a > b }"
 
   - id: core.gte:ruby:v1
     fn: core.gte
-    impl: "Kumi::Kernels::Core.gte"
+    impl: "->(a, b) { a >= b }"
 
   - id: core.and:ruby:v1
     fn: core.and
-    impl: "Kumi::Kernels::Core.and"
+    impl: "->(a, b) { a && b }"
 
   - id: core.or:ruby:v1
     fn: core.or
-    impl: "Kumi::Kernels::Core.or"
+    impl: "->(a, b) { a || b }"
