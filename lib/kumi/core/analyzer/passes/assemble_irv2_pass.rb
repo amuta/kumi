@@ -24,8 +24,7 @@ module Kumi
 
           def build_irv2_structure(irv2_module, input_plans, errors)
             {
-              "$schema" => "https://kumi.dev/schema/irv2-core.schema.json",
-              "version" => "2.0",
+              "version" => IR_SCHEMA_VERSION,
               "module" => determine_module_name(irv2_module),
               "declarations" => build_declarations(irv2_module.declarations),
               "analysis" => build_analysis_section(input_plans, irv2_module.metadata)

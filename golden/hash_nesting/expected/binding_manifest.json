@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:0878e8f36a01e5abfbad2269ad4375e5f3fb3a9df5e835453adaf6e189269848",
   "target": "ruby",
-  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "registry_ref": "sha256:3456f30419950733b0f19118395fbaf0f41cc6672925b6172c2f727e34353108",
   "bindings": [
     {"decl":"large_organization","op":1,"fn":"core.length","kernel_id":"core.length:ruby:v1"},
     {"decl":"large_organization","op":4,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},

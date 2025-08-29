@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:81e3ddeee93fd25a535418c35cbe0b9dcebbbeaf6b72e2cdb3cf4ad6ee71d163",
   "target": "ruby",
-  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "registry_ref": "sha256:3456f30419950733b0f19118395fbaf0f41cc6672925b6172c2f727e34353108",
   "bindings": [
     {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
     {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},

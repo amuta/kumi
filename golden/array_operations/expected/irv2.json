@@ -1,6 +1,5 @@
 {
-  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
-  "version": "2.0",
+  "version": "0.1",
   "module": "schema_module",
   "declarations": {
     "subtotals": {

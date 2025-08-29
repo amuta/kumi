@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:74025e59e3d3c9716ce6209c280db62e4bc8526d03c6669add4426f90199c0c3",
   "target": "ruby",
-  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "registry_ref": "sha256:3456f30419950733b0f19118395fbaf0f41cc6672925b6172c2f727e34353108",
   "bindings": [
     {"decl":"cell_over_limit","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
     {"decl":"cell_sum","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
