@@ -6,13 +6,15 @@ module Kumi
   module Core
     module IRV2
       class Value
-        attr_reader :id, :op, :args, :attrs
+        attr_reader :id, :op, :args, :attrs, :stamp, :elem_stamps
 
-        def initialize(id, op, args, attrs)
+        def initialize(id, op, args, attrs, stamp: nil, elem_stamps: nil)
           @id = id
           @op = op
           @args = args
           @attrs = attrs
+          @stamp = stamp
+          @elem_stamps = elem_stamps
         end
 
         def to_s

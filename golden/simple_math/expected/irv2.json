@@ -1,0 +1,78 @@
+{
+  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
+  "version": "2.0",
+  "module": "schema_module",
+  "declarations": {
+    "sum": {
+      "name": "sum",
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.add"}}
+      ],
+      "result": 2
+    },
+    "product": {
+      "name": "product",
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 2
+    },
+    "difference": {
+      "name": "difference",
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.sub"}}
+      ],
+      "result": 2
+    },
+    "results_array": {
+      "name": "results_array",
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "operations": [
+        {"id":0,"op":"Const","args":[1],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Const","args":[10],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":3,"op":"Map","args":[1,2],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.add"}},
+        {"id":4,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":5,"op":"Const","args":[2],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":6,"op":"Map","args":[4,5],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.mul"}},
+        {
+          "id": 7,
+          "op": "ConstructTuple",
+          "args": [0,3,6],
+          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]}]
+        }
+      ],
+      "result": 7
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["x"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"x"}]
+      },
+      {
+        "path": ["y"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"y"}]
+      }
+    ]
+  }
+}

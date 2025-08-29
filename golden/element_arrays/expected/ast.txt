@@ -27,6 +27,19 @@
     (ValueDeclaration :cell
       (InputElementReference cube.layer.row.cell)
     )
+    (ValueDeclaration :cell_sum
+      (CallExpression :sum_if
+        (InputElementReference cube.layer.row.cell)
+        (DeclarationReference :cell_over_limit)
+      )
+    )
   ]
-  traits: []
+  traits: [
+    (TraitDeclaration :cell_over_limit
+      (CallExpression :>
+        (InputElementReference cube.layer.row.cell)
+        (Literal 100)
+      )
+    )
+  ]
 )

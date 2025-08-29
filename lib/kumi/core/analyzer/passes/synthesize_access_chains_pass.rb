@@ -42,17 +42,19 @@ module Kumi
               input_plan = build_input_plan(path_array, selected_plan, input_info)
               input_plans << input_plan
 
-              debug "Synthesized canonical plan for #{path_string}: #{input_plan.path.join('.')} (mode: #{selected_plan.mode})"
+              debug "Synthesized canonical plan for #{path_string}: #{input_plan.source_path.join('.')} (mode: #{selected_plan.mode})"
             end
 
             input_plans
           end
 
           def build_input_plan(path_array, selected_plan, input_info)
-            Core::IRV2::Builder.new.input_plan(
-              path: path_array,
+            Core::IRV2::InputPlan.new(
+              source_path: path_array,
               axes: selected_plan.containers,
               dtype: input_info[:dtype],
+              key_policy: "indifferent",
+              missing_policy: "error",
               access_chain: selected_plan.chain
             )
           end

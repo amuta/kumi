@@ -1,0 +1,12 @@
+{
+  "ir_ref": "sha256:8d6efa1862afcead2c0e5c01df70a36055b1544b1195f0eefd4b09bf441395cd",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"subtotals","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"discounted_price","op":3,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"is_valid_quantity","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"expensive_items","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"electronics","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1"}
+  ]
+}

@@ -1,0 +1,4 @@
+kernels:
+  - id: core.select:ruby:v1
+    fn: core.select
+    impl: "Kumi::Kernels::Core.select"

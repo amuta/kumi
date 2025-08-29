@@ -4,7 +4,7 @@ schema do
     integer :y
   end
 
-  value :sum, input.x**input.y
+  value :sum, input.x + input.y
   value :product, input.x * input.y
   value :difference, input.x - input.y
   value :results_array, [1, input.x + 10, input.y * 2]

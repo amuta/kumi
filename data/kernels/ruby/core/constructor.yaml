@@ -1,0 +1,4 @@
+kernels:
+  - id: core.length:ruby:v1
+    fn: core.length
+    impl: "Kumi::Kernels::Core.length"

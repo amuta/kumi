@@ -6,7 +6,7 @@
       topo_index: 4
       target_name: :sum
     }
-    (Call :"core.pow"
+    (Call :"core.add"
     meta: {
       stamp: {axes_tokens: [], dtype: integer}
       value_id: "v3"

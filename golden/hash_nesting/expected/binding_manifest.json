@@ -1,0 +1,11 @@
+{
+  "ir_ref": "sha256:4601ed76414504c9bfdb2d15343a3fa31dba0e3f2443f9d94978f5f19ff56777",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"large_organization","op":1,"fn":"core.length","kernel_id":"core.length:ruby:v1"},
+    {"decl":"large_organization","op":4,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"org_classification","op":5,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
+    {"decl":"total_capacity","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+  ]
+}

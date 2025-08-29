@@ -1,0 +1,106 @@
+{
+  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
+  "version": "2.0",
+  "module": "schema_module",
+  "declarations": {
+    "subtotals": {
+      "name": "subtotals",
+      "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","quantity"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 2
+    },
+    "discounted_price": {
+      "name": "discounted_price",
+      "parameters": [{"kind":"input","path":["items","price"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"target_axes":["items"]}},
+        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 3
+    },
+    "is_valid_quantity": {
+      "name": "is_valid_quantity",
+      "parameters": [{"kind":"input","path":["items","quantity"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"integer","axes":["items"]},"attrs":{"target_axes":["items"]}},
+        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 3
+    },
+    "expensive_items": {
+      "name": "expensive_items",
+      "parameters": [{"kind":"input","path":["items","price"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"target_axes":["items"]}},
+        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 3
+    },
+    "electronics": {
+      "name": "electronics",
+      "parameters": [{"kind":"input","path":["items","category"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":["items"]}},
+        {"id":1,"op":"Const","args":["electronics"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"string","axes":["items"]},"attrs":{"target_axes":["items"]}},
+        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.eq"}}
+      ],
+      "result": 3
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["items"],
+        "axes": ["items"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"}]
+      },
+      {
+        "path": ["items","price"],
+        "axes": ["items"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"price"}]
+      },
+      {
+        "path": ["items","quantity"],
+        "axes": ["items"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"quantity"}]
+      },
+      {
+        "path": ["items","category"],
+        "axes": ["items"],
+        "dtype": "string",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"category"}]
+      },
+      {
+        "path": ["tax_rate"],
+        "axes": [],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"tax_rate"}]
+      }
+    ]
+  }
+}

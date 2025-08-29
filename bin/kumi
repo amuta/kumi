@@ -60,8 +60,8 @@ when "pp"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  sub = ARGV.shift or abort "kumi golden <list|record|verify|diff> ..."
-  name = ARGV.shift if %w[record verify diff].include?(sub)
+  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff> ..."
+  name = ARGV.shift if %w[update verify diff].include?(sub)
   opts = {}
   OptionParser.new do |o|
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
@@ -69,11 +69,11 @@ when "golden"
   
   case sub
   when "list"   then Kumi::Dev::Golden.list
-  when "record" then Kumi::Dev::Golden.record!(name)
+  when "update" then Kumi::Dev::Golden.update!(name)
   when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
   when "diff"   then Kumi::Dev::Golden.diff!(name)
   else
-    abort "kumi golden <list|record|verify|diff>"
+    abort "kumi golden <list|update|verify|diff>"
   end
 
 when "diff"

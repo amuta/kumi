@@ -1,0 +1,13 @@
+{
+  "ir_ref": "sha256:54346dd1dd21aa2687406c0fe76f9f4cfd8dfdae77846ab58f7b1a3dc3e50b6c",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
+    {"decl":"status","op":9,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
+    {"decl":"status","op":10,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
+    {"decl":"status","op":11,"fn":"core.select","kernel_id":"core.select:ruby:v1"}
+  ]
+}

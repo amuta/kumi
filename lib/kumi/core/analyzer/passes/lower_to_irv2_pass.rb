@@ -19,24 +19,26 @@ module Kumi
 
             order.each do |decl_name|
               decl = snast.decls[decl_name]
-              
+
+              @current_decl_name = decl_name # Track current declaration
+
               # Create separate builder for each declaration
               @b = Kumi::Core::IRV2::Builder.new
-              @input_cache = {}  # Fresh input cache per declaration
-              
+              @input_cache = {} # Fresh input cache per declaration
+
               # Store references to input_table and decls for metadata
-              @current_input_table = input_table  
+              @current_input_table = input_table
               @current_decls = snast.decls
-              
+
               # Lower the declaration body
               ir_val = lower_expr(decl.body, errors)
-              
+
               # Apply within-declaration CSE
               optimize_declaration(@b)
-              
+
               # Collect parameters (inputs and dependencies) used in this declaration
               parameters = collect_declaration_parameters(@b.values, input_table, snast.decls)
-              
+
               # Create the declaration
               declarations[decl_name] = IRV2::Declaration.new(
                 decl_name,
@@ -52,64 +54,88 @@ module Kumi
 
           private
 
+          # Helper for qualified metadata keys
+          def fqid(val)
+            "#{@current_decl_name}/#{val.id}"
+          end
+
+          # Serialize SNAST stamp to IR stamp format
+          def ser_stamp(snast_stamp)
+            {
+              "dtype" => snast_stamp[:dtype].to_s,
+              "axes" => Array(snast_stamp[:axes_tokens]).map(&:to_s)
+            }
+          end
+
           def lower_expr(node, errors)
             ir_val = case node
-            when Kumi::Core::NAST::Const
-              @b.const(node.value)
+                     when Kumi::Core::NAST::Const
+                       stamp = ser_stamp(node.meta[:stamp])
+                       @b.const(node.value, stamp: stamp)
 
-            when Kumi::Core::NAST::InputRef
-              # Deduplicate LoadInput operations
-              @input_cache[node.path] ||= @b.load_input(node.path)
+                     when Kumi::Core::NAST::InputRef
+                       # Deduplicate LoadInput operations
+                       path = node.path
+                       unless @input_cache[path]
+                         info = @current_input_table[path]
+                         stamp = { "dtype" => info[:dtype].to_s, "axes" => info[:axis].map(&:to_s) }
+                         @input_cache[path] = @b.load_input(path, stamp: stamp)
+                       end
+                       @input_cache[path]
 
-            when Kumi::Core::NAST::Ref
-              @b.load_param(node.name)
+                     when Kumi::Core::NAST::Ref
+                       dep_name = node.name
+                       stamp = ser_stamp(@current_decls[dep_name].meta[:stamp])
+                       @b.load_declaration(dep_name.to_s, stamp: stamp)
 
-            when Kumi::Core::NAST::TupleLiteral
-              plan = node.meta[:plan]
-              unless plan
-                errors << "Missing plan on TupleLiteral"
-                return @b.const(nil)
-              end
-              lowered = node.elements.map { |e| lower_expr(e, errors) }
-              aligned = apply_aligns(lowered, plan[:needs_expand_flags], plan[:target_axes_tokens])
-              @b.construct_tuple(*aligned)
+                     when Kumi::Core::NAST::TupleLiteral
+                       plan = node.meta[:plan]
+                       unless plan
+                         errors << "Missing plan on TupleLiteral"
+                         return @b.const(nil)
+                       end
+                       lowered = node.elements.map { |e| lower_expr(e, errors) }
+                       aligned = apply_aligns(lowered, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                       elem_stamps = node.elements.map { |elem| ser_stamp(elem.meta[:stamp]) }
+                       @b.construct_tuple(*aligned, elem_stamps: elem_stamps)
 
-            when Kumi::Core::NAST::Call
-              plan = node.meta[:plan]
-              unless plan
-                errors << "Missing plan on Call #{node.fn}"
-                return @b.const(nil)
-              end
-              case plan[:kind]
-              when :elementwise
-                args    = node.args.map { |a| lower_expr(a, errors) }
-                aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
-                @b.map(node.fn.to_s, *aligned)
+                     when Kumi::Core::NAST::Call
+                       plan = node.meta[:plan]
+                       unless plan
+                         errors << "Missing plan on Call #{node.fn}"
+                         return @b.const(nil)
+                       end
+                       case plan[:kind]
+                       when :elementwise
+                         args    = node.args.map { |a| lower_expr(a, errors) }
+                         aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                         stamp = ser_stamp(node.meta[:stamp])
+                         @b.map(node.fn.to_s, *aligned, stamp: stamp)
 
-              when :reduce
-                unless node.args.size == 1
-                  errors << "Reducer arity must be 1, got #{node.args.size}"
-                  return @b.const(nil)
-                end
-                v = lower_expr(node.args.first, errors)
-                @b.reduce(node.fn.to_s, v, plan[:last_axis_token])
+                       when :reduce
+                         unless node.args.size == 1
+                           errors << "Reducer arity must be 1, got #{node.args.size}"
+                           return @b.const(nil)
+                         end
+                         v = lower_expr(node.args.first, errors)
+                         stamp = ser_stamp(node.meta[:stamp])
+                         @b.reduce(node.fn.to_s, v, plan[:last_axis_token], stamp: stamp)
 
-              else
-                errors << "Unsupported call kind for lowering: #{plan[:kind].inspect}"
-                return @b.const(nil)
-              end
+                       else
+                         errors << "Unsupported call kind for lowering: #{plan[:kind].inspect}"
+                         return @b.const(nil)
+                       end
 
-            else
-              errors << "Unhandled SNAST node in lowering: #{node.class}"
-              return @b.const(nil)
-            end
-            
-            # Record metadata for this operation
+                     else
+                       errors << "Unhandled SNAST node in lowering: #{node.class}"
+                       return @b.const(nil)
+                     end
+
+            # Embed type information directly on the operation
             unless ir_val
               errors << "Missing IR value from lowering"
               return @b.const(nil)
             end
-            record_operation_metadata(ir_val, node)
             ir_val
           end
 
@@ -117,125 +143,67 @@ module Kumi
             return ir_args if flags.nil? || flags.empty?
             return ir_args unless flags.length == ir_args.length
             return ir_args if target_axes.nil?
-            ir_args.each_with_index.map { |v,i| flags[i] ? @b.align_to(v, target_axes) : v }
+
+            axes = Array(target_axes).map(&:to_s) # Normalize once
+            ir_args.each_with_index.map do |v, i|
+              if flags[i]
+                # AlignTo preserves dtype but changes axes
+                input_stamp = v.stamp
+                if input_stamp
+                  align_stamp = {
+                    "dtype" => input_stamp["dtype"],
+                    "axes" => axes
+                  }
+                  @b.align_to(v, axes, stamp: align_stamp)
+                else
+                  @b.align_to(v, axes)
+                end
+              else
+                v
+              end
+            end
           end
 
           def collect_metadata(snast, input_table)
-            input_scopes = {}
-            input_types = {}
-            
-            # Collect input metadata
-            input_table.each do |path, info|
-              input_scopes[path] = info[:axis]
-              input_types[path] = info[:dtype]
-            end
-
-            {
-              input_scopes: input_scopes,
-              input_types: input_types,
-              operation_scopes: {},
-              operation_types: {}
-            }
-          end
-
-          def record_operation_metadata(ir_value, node)
-            case ir_value.op
-            when :LoadInput
-              path = ir_value.args.first
-              input_table = get_state(:input_table, required: true)
-              info = input_table[path]
-              return unless info
-              @metadata[:operation_scopes][ir_value.id] = info[:axis]
-              @metadata[:operation_types][ir_value.id] = info[:dtype]
-            when :Const
-              @metadata[:operation_scopes][ir_value.id] = []
-              # Infer type from constant value
-              value = ir_value.args.first
-              @metadata[:operation_types][ir_value.id] = case value
-              when Integer then :integer
-              when Float then :float
-              when String then :string
-              when TrueClass, FalseClass then :boolean
-              else :unknown
-              end
-            when :AlignTo
-              # AlignTo preserves the input type but changes scope
-              input_val = ir_value.args.first
-              @metadata[:operation_scopes][ir_value.id] = ir_value.attrs[:axes]
-              @metadata[:operation_types][ir_value.id] = @metadata[:operation_types][input_val.id]
-            when :LoadParam
-              dep_name = ir_value.args.first
-              dep_decl = @current_decls[dep_name]
-              return unless dep_decl&.meta&.[](:stamp)
-              stamp = dep_decl.meta[:stamp]
-              return unless stamp
-              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
-              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
-            when :Map, :Reduce
-              return unless node&.meta&.[](:stamp)
-              stamp = node.meta[:stamp]
-              return unless stamp
-              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
-              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
-            when :ConstructTuple
-              return unless node&.meta&.[](:stamp)
-              stamp = node.meta[:stamp]
-              return unless stamp
-              @metadata[:operation_scopes][ir_value.id] = stamp[:axes_tokens]
-              @metadata[:operation_types][ir_value.id] = stamp[:dtype]
-            else
-              # Skip unknown operations
-            end
+            # Minimal metadata - type info now embedded in operation stamps
+            {}
           end
 
           def collect_declaration_parameters(operations, input_table, decls)
             parameters = []
-            
-            # Collect input parameters
+
+            # Collect input parameters (simplified - type info now in embedded stamps)
             operations.select { |op| op.op == :LoadInput }.each do |op|
               path = op.args.first
-              next if parameters.any? { |p| p[:type] == :input && p[:path] == path }
-              
-              info = input_table[path]
-              next unless info
+              next if parameters.any? { |p| p[:type] == :input && p[:source] == path }
+
               parameters << {
                 type: :input,
-                name: "in_#{path.last}",
-                path: path,
-                axes: info[:axis],
-                dtype: info[:dtype]
+                source: path
               }
             end
-            
-            # Collect dependency parameters  
-            operations.select { |op| op.op == :LoadParam }.each do |op|
+
+            # Collect dependency parameters (simplified - type info now in embedded stamps)
+            operations.select { |op| op.op == :LoadDeclaration }.each do |op|
               dep_name = op.args.first
               next if parameters.any? { |p| p[:type] == :dependency && p[:source] == dep_name }
-              
-              # Get type info from referenced declaration
-              dep_decl = decls[dep_name]
-              next unless dep_decl&.meta&.[](:stamp)
-              stamp = dep_decl.meta[:stamp]
-              next unless stamp
+
               parameters << {
                 type: :dependency,
-                name: "dep_#{dep_name}",
-                source: dep_name,
-                axes: stamp[:axes_tokens],
-                dtype: stamp[:dtype]
+                source: dep_name
               }
             end
-            
+
             parameters
           end
-          
+
           def optimize_declaration(builder)
             # Simple CSE: find and deduplicate identical operations
-            value_map = {}  # operation signature -> first value
-            
+            value_map = {} # operation signature -> first value
+
             builder.values.each do |val|
               signature = operation_signature(val)
-              
+
               if value_map[signature]
                 # Found duplicate - replace references
                 original = value_map[signature]
@@ -244,35 +212,38 @@ module Kumi
                 value_map[signature] = val
               end
             end
-            
+
             # Remove duplicated values (now unreferenced)
-            builder.values.reject! { |val| 
+            builder.values.reject! do |val|
               sig = operation_signature(val)
               value_map[sig] != val
-            }
+            end
           end
-          
+
           def operation_signature(val)
             # Create signature for CSE matching
             case val.op
-            when :LoadParam, :LoadInput
-              [val.op, val.args.first]
-            when :Const
+            when :LoadDeclaration, :LoadInput, :Const
               [val.op, val.args.first]
             when :AlignTo
-              [val.op, val.args.first.id, val.attrs[:axes]]
+              [val.op, val.args.first.id, Array(val.attrs[:target_axes]).map(&:to_s)]
             when :Map
-              [val.op, val.attrs[:op], val.args.map(&:id)]
+              [val.op, val.attrs[:fn], val.args.map(&:id)]
+            when :Reduce
+              last = val.attrs[:axis]
+              [val.op, val.args.first.id, last.to_s, val.attrs[:fn]]
             else
               [val.op, val.args.map(&:id), val.attrs]
             end
           end
-          
+
           def replace_references(operations, old_val, new_val)
             operations.each do |op|
               op.args.map! { |arg| arg == old_val ? new_val : arg }
             end
           end
+
+          private
         end
       end
     end

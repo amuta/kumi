@@ -1,0 +1,12 @@
+{
+  "ir_ref": "sha256:1a8b72309340f69f97b2a9c6cc0a7b79fb04284a818814810ebb16916f9af885",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"sum","op":2,"fn":"core.add","kernel_id":"core.add:ruby:v1"},
+    {"decl":"product","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"difference","op":2,"fn":"core.sub","kernel_id":"core.sub:ruby:v1"},
+    {"decl":"results_array","op":3,"fn":"core.add","kernel_id":"core.add:ruby:v1"},
+    {"decl":"results_array","op":6,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"}
+  ]
+}

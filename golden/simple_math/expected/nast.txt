@@ -1,6 +1,6 @@
 (NAST
   (VALUE sum
-    (Call :"core.pow"
+    (Call :"core.add"
     (InputRef [:x])
     (InputRef [:y])
   )

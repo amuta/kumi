@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "json"
+require_relative "printer/irv2_formatter"
+
 module Kumi
   module Dev
     module PrettyPrinter
@@ -45,9 +48,10 @@ module Kumi
 
       def print_irv2(path)
         schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema)
-        abort "No IRV2" unless res.state[:irv2_module]
-        puts res.state[:irv2_module]
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        abort "No IRV2" unless res.state[:irv2]
+
+        puts generate_irv2(path)
       end
 
       # For golden testing - returns the output instead of printing
@@ -82,10 +86,18 @@ module Kumi
 
       def generate_irv2(path)
         schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema)
-        return nil unless res.state[:irv2_module]
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:irv2]
 
-        res.state[:irv2_module].to_s
+        Printer::WidthAwareJson.dump(res.state[:irv2])
+      end
+
+      def generate_binding_manifest(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:binding_manifest]
+
+        Printer::WidthAwareJson.dump(res.state[:binding_manifest])
       end
     end
   end

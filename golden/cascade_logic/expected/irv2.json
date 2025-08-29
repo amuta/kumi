@@ -1,0 +1,65 @@
+{
+  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
+  "version": "2.0",
+  "module": "schema_module",
+  "declarations": {
+    "y_positive": {
+      "name": "y_positive",
+      "parameters": [{"kind":"input","path":["y"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 2
+    },
+    "x_positive": {
+      "name": "x_positive",
+      "parameters": [{"kind":"input","path":["x"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 2
+    },
+    "status": {
+      "name": "status",
+      "parameters": [{"kind":"dependency","source":"y_positive"},{"kind":"dependency","source":"x_positive"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["y_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":1,"op":"LoadDeclaration","args":["x_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.and"}},
+        {"id":3,"op":"Const","args":["both positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":5,"op":"Const","args":["x positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":7,"op":"Const","args":["y positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":8,"op":"Const","args":["neither positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":9,"op":"Map","args":[0,7,8],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}},
+        {"id":10,"op":"Map","args":[1,5,9],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}},
+        {"id":11,"op":"Map","args":[2,3,10],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}}
+      ],
+      "result": 11
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["x"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"x"}]
+      },
+      {
+        "path": ["y"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"y"}]
+      }
+    ]
+  }
+}

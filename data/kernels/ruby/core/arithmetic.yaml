@@ -1,0 +1,16 @@
+kernels:
+  - id: core.add:ruby:v1
+    fn: core.add
+    impl: "Kumi::Kernels::Core.add"
+
+  - id: core.sub:ruby:v1
+    fn: core.sub
+    impl: "Kumi::Kernels::Core.sub"
+
+  - id: core.mul:ruby:v1
+    fn: core.mul
+    impl: "Kumi::Kernels::Core.mul"
+
+  - id: core.pow:ruby:v1
+    fn: core.pow
+    impl: "Kumi::Kernels::Core.pow"

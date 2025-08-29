@@ -1,0 +1,16 @@
+kernels:
+  - id: core.eq:ruby:v1
+    fn: core.eq
+    impl: "Kumi::Kernels::Core.eq"
+
+  - id: core.gt:ruby:v1
+    fn: core.gt
+    impl: "Kumi::Kernels::Core.gt"
+
+  - id: core.gte:ruby:v1
+    fn: core.gte
+    impl: "Kumi::Kernels::Core.gte"
+
+  - id: core.and:ruby:v1
+    fn: core.and
+    impl: "Kumi::Kernels::Core.and"

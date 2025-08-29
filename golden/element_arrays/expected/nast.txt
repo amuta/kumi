@@ -11,4 +11,19 @@
   (VALUE cell
     (InputRef [:cube, :layer, :row, :cell])
   )
+  (TRAIT cell_over_limit
+    (Call :"core.gt"
+    (InputRef [:cube, :layer, :row, :cell])
+    (Const 100)
+  )
+  )
+  (VALUE cell_sum
+    (Call :"agg.sum"
+    (Call :"core.select"
+      (Ref cell_over_limit)
+      (InputRef [:cube, :layer, :row, :cell])
+      (Const 0)
+    )
+  )
+  )
 )

@@ -5,7 +5,7 @@
   ]
   values: [
     (ValueDeclaration :sum
-      (CallExpression :power
+      (CallExpression :add
         (InputReference :x)
         (InputReference :y)
       )

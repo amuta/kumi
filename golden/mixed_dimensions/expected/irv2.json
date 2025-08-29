@@ -1,0 +1,122 @@
+{
+  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
+  "version": "2.0",
+  "module": "schema_module",
+  "declarations": {
+    "sum_numbers": {
+      "name": "sum_numbers",
+      "parameters": [{"kind":"input","path":["numbers","value"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["numbers","value"]],"stamp":{"dtype":"integer","axes":["numbers"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"numbers"}}
+      ],
+      "result": 1
+    },
+    "matrix_sums": {
+      "name": "matrix_sums",
+      "parameters": [{"kind":"input","path":["matrix","row","cell"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["matrix"]},"attrs":{"fn":"agg.sum","axis":"row"}}
+      ],
+      "result": 1
+    },
+    "mixed_array": {
+      "name": "mixed_array",
+      "parameters": [
+        {"kind":"input","path":["scalar_val"]},
+        {"kind":"input","path":["matrix","row","cell"]},
+        {"kind":"dependency","source":"sum_numbers"}
+      ],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["scalar_val"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":1,"op":"LoadDeclaration","args":["sum_numbers"],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
+        {
+          "id": 3,
+          "op": "AlignTo",
+          "args": [0],
+          "stamp": {"dtype":"integer","axes":["matrix","row"]},
+          "attrs": {"target_axes":["matrix","row"]}
+        },
+        {
+          "id": 4,
+          "op": "AlignTo",
+          "args": [1],
+          "stamp": {"dtype":"integer","axes":["matrix","row"]},
+          "attrs": {"target_axes":["matrix","row"]}
+        },
+        {
+          "id": 5,
+          "op": "ConstructTuple",
+          "args": [3,4,2],
+          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"float","axes":["matrix","row"]}]
+        }
+      ],
+      "result": 5
+    },
+    "constant": {
+      "name": "constant",
+      "parameters": [],
+      "operations": [{"id":0,"op":"Const","args":[42],"stamp":{"dtype":"integer","axes":[]}}],
+      "result": 0
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["numbers"],
+        "axes": ["numbers"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"numbers","axis":"numbers"}]
+      },
+      {
+        "path": ["numbers","value"],
+        "axes": ["numbers"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"numbers","axis":"numbers"},{"kind":"scalar_leaf","key":"value"}]
+      },
+      {
+        "path": ["scalar_val"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"scalar_leaf","key":"scalar_val"}]
+      },
+      {
+        "path": ["matrix"],
+        "axes": ["matrix"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"matrix","axis":"matrix"}]
+      },
+      {
+        "path": ["matrix","row"],
+        "axes": ["matrix","row"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"matrix","axis":"matrix"},{"kind":"array_element","alias":"row","axis":"row"}]
+      },
+      {
+        "path": ["matrix","row","cell"],
+        "axes": ["matrix","row"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [
+          {"kind":"array_field","key":"matrix","axis":"matrix"},
+          {"kind":"array_element","alias":"row","axis":"row"},
+          {"kind":"scalar_leaf","key":"cell"}
+        ]
+      }
+    ]
+  }
+}

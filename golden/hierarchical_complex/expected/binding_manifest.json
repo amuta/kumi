@@ -1,0 +1,18 @@
+{
+  "ir_ref": "sha256:706fcfd14914de4293ef9676fa5d424f29eca32338c4c9db422efa58fbf71937",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"high_performer","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
+    {"decl":"senior_level","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1"},
+    {"decl":"top_team","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
+    {"decl":"employee_bonus","op":4,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
+    {"decl":"employee_bonus","op":5,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
+    {"decl":"employee_bonus","op":9,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"employee_bonus","op":13,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
+    {"decl":"employee_bonus","op":16,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"employee_bonus","op":19,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"employee_bonus","op":20,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
+    {"decl":"employee_bonus","op":21,"fn":"core.select","kernel_id":"core.select:ruby:v1"}
+  ]
+}

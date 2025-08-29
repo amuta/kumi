@@ -58,8 +58,8 @@ module Kumi
             output << ""
             @metadata["analysis"]["inputs"].each do |input|
               path_str = input["path"].join(".")
-              scope_str = input["scope"].empty? ? "[]" : "[#{input["scope"].join(', ')}]"
-              output << "#{path_str}: #{input["dtype"]} (scope=#{scope_str})"
+              scope_str = input["scope"].empty? ? "[]" : "[#{input['scope'].join(', ')}]"
+              output << "#{path_str}: #{input['dtype']} (scope=#{scope_str})"
             end
             output << ""
           end
@@ -73,20 +73,20 @@ module Kumi
           case val.op
           when :LoadInput
             "%#{val.id} = LoadInput #{val.args.first.inspect}"
-          when :LoadParam
-            "%#{val.id} = LoadParam #{val.args.first.inspect}"
+          when :LoadDeclaration
+            "%#{val.id} = LoadDeclaration #{val.args.first.inspect}"
           when :LoadDecl
             "%#{val.id} = LoadDecl #{val.args.first.inspect}"
           when :Map
             args_str = val.args.map { |a| "%#{a.id}" }.join(", ")
-            op_name = val.attrs[:op] || "unknown"
+            op_name = val.attrs[:fn] || "unknown"
             "%#{val.id} = Map(#{op_name}, #{args_str})"
           when :Reduce
-            op_name = val.attrs[:op] || "unknown"
-            last_axis = val.attrs[:last_axis]
+            op_name = val.attrs[:fn] || "unknown"
+            last_axis = val.attrs[:axis]
             "%#{val.id} = Reduce(#{op_name}, %#{val.args.first.id}, #{last_axis.inspect})"
           when :AlignTo
-            axes_str = val.attrs[:axes].map(&:inspect).join(",")
+            axes_str = val.attrs[:target_axes].map(&:inspect).join(",")
             "%#{val.id} = AlignTo(%#{val.args.first.id}, [#{axes_str}])"
           when :ConstructTuple
             args_str = val.args.map { |a| "%#{a.id}" }.join(", ")

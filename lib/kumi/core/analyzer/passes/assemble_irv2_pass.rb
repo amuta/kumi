@@ -6,7 +6,7 @@ module Kumi
       module Passes
         # Assembles the final IRv2 JSON structure from analyzer state
         #
-        # Input: state[:irv2_module], state[:ir_input_plans] 
+        # Input: state[:irv2_module], state[:ir_input_plans]
         # Output: state[:irv2] (complete JSON structure ready for serialization)
         class AssembleIRV2Pass < PassBase
           def run(errors)
@@ -15,7 +15,7 @@ module Kumi
 
             irv2_structure = build_irv2_structure(irv2_module, input_plans, errors)
 
-            debug "Assembled IRv2 structure with #{irv2_structure["declarations"].size} declarations"
+            debug "Assembled IRv2 structure with #{irv2_structure['declarations'].size} declarations"
 
             state.with(:irv2, irv2_structure.freeze)
           end
@@ -28,7 +28,7 @@ module Kumi
               "version" => "2.0",
               "module" => determine_module_name(irv2_module),
               "declarations" => build_declarations(irv2_module.declarations),
-              "analysis" => build_analysis_section(input_plans)
+              "analysis" => build_analysis_section(input_plans, irv2_module.metadata)
             }
           end
 
@@ -40,11 +40,11 @@ module Kumi
 
           def build_declarations(declarations_hash)
             result = {}
-            
+
             declarations_hash.each do |name, declaration|
               result[name.to_s] = build_declaration_structure(declaration)
             end
-            
+
             result
           end
 
@@ -52,7 +52,7 @@ module Kumi
             {
               "name" => declaration.name.to_s,
               "parameters" => build_parameters(declaration.parameters),
-              "operations" => build_operations(declaration.operations),
+              "operations" => build_operations(declaration.operations, declaration.name),
               "result" => declaration.result.id
             }
           end
@@ -62,43 +62,45 @@ module Kumi
               case param[:type]
               when :input
                 {
-                  "type" => "input",
-                  "name" => param[:name],
-                  "path" => param[:path],
-                  "axes" => param[:axes],
-                  "dtype" => param[:dtype]
+                  "kind" => "input",
+                  "path" => param[:source]
                 }
               when :dependency
                 {
-                  "type" => "dependency", 
-                  "name" => param[:name],
-                  "source" => param[:source],
-                  "axes" => param[:axes],
-                  "dtype" => param[:dtype]
+                  "kind" => "dependency",
+                  "source" => param[:source]
                 }
               else
-                param  # Pass through unknown parameter types
+                param # Pass through unknown parameter types
               end
             end
           end
 
-          def build_operations(operations)
+          def build_operations(operations, current_decl_name)
             operations.map do |op|
-              {
+              result = {
                 "id" => op.id,
                 "op" => op.op.to_s,
-                "args" => build_operation_args(op.args),
-                "attrs" => build_operation_attrs(op.attrs)
+                "args" => build_operation_args(op.args)
               }
+
+              # Add type information at top level if present
+              result["stamp"] = op.stamp if op.stamp
+              result["elem_stamps"] = op.elem_stamps if op.elem_stamps
+
+              # Only include attrs if there are execution controls
+              result["attrs"] = build_operation_attrs(op.attrs) unless op.attrs.empty?
+
+              result
             end
           end
 
           def build_operation_args(args)
             args.map do |arg|
               if arg.respond_to?(:id)
-                arg.id  # Reference to another operation
+                arg.id
               else
-                arg     # Literal value
+                arg # Literal value
               end
             end
           end
@@ -111,10 +113,10 @@ module Kumi
             result
           end
 
-          def build_analysis_section(input_plans)
+          def build_analysis_section(input_plans, _metadata)
             {
               "defaults" => {
-                "key_policy" => "indifferent", 
+                "key_policy" => "indifferent",
                 "on_missing" => "error"
               },
               "inputs" => build_canonical_inputs(input_plans)
@@ -124,11 +126,11 @@ module Kumi
           def build_canonical_inputs(input_plans)
             input_plans.map do |plan|
               {
-                "path" => plan.path,
-                "axes" => plan.axes, 
+                "path" => plan.source_path,
+                "axes" => plan.axes,
                 "dtype" => plan.dtype,
                 "key_policy" => plan.key_policy,
-                "on_missing" => plan.on_missing,
+                "on_missing" => plan.missing_policy,
                 "chain" => plan.access_chain
               }
             end

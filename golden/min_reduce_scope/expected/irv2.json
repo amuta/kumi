@@ -1,0 +1,95 @@
+{
+  "$schema": "https://kumi.dev/schema/irv2-core.schema.json",
+  "version": "2.0",
+  "module": "schema_module",
+  "declarations": {
+    "dept_total": {
+      "name": "dept_total",
+      "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}}
+      ],
+      "result": 1
+    },
+    "company_total": {
+      "name": "company_total",
+      "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}},
+        {"id":2,"op":"Reduce","args":[1],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"depts"}}
+      ],
+      "result": 2
+    },
+    "big_team": {
+      "name": "big_team",
+      "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":1,"op":"Const","args":[10],"stamp":{"dtype":"integer","axes":[]}},
+        {
+          "id": 2,
+          "op": "AlignTo",
+          "args": [1],
+          "stamp": {"dtype":"integer","axes":["depts","teams"]},
+          "attrs": {"target_axes":["depts","teams"]}
+        },
+        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["depts","teams"]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 3
+    },
+    "dept_total_masked": {
+      "name": "dept_total_masked",
+      "parameters": [{"kind":"input","path":["depts","teams","headcount"]},{"kind":"dependency","source":"big_team"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["big_team"],"stamp":{"dtype":"boolean","axes":["depts","teams"]}},
+        {"id":1,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":2,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {
+          "id": 3,
+          "op": "AlignTo",
+          "args": [2],
+          "stamp": {"dtype":"integer","axes":["depts","teams"]},
+          "attrs": {"target_axes":["depts","teams"]}
+        },
+        {"id":4,"op":"Map","args":[0,1,3],"stamp":{"dtype":"integer","axes":["depts","teams"]},"attrs":{"fn":"core.select"}},
+        {"id":5,"op":"Reduce","args":[4],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}}
+      ],
+      "result": 5
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["depts"],
+        "axes": ["depts"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"depts","axis":"depts"}]
+      },
+      {
+        "path": ["depts","teams"],
+        "axes": ["depts","teams"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"depts","axis":"depts"},{"kind":"array_element","alias":"teams","axis":"teams"}]
+      },
+      {
+        "path": ["depts","teams","headcount"],
+        "axes": ["depts","teams"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [
+          {"kind":"array_field","key":"depts","axis":"depts"},
+          {"kind":"array_element","alias":"teams","axis":"teams"},
+          {"kind":"scalar_leaf","key":"headcount"}
+        ]
+      }
+    ]
+  }
+}

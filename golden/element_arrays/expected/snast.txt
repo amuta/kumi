@@ -59,4 +59,94 @@
     }
   )
   )
+  (TRAIT cell_over_limit
+    meta: {
+      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
+      value_id: "v12"
+      topo_index: 12
+      target_name: :cell_over_limit
+    }
+    (Call :"core.gt"
+    meta: {
+      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
+      value_id: "v11"
+      topo_index: 11
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:cube, :layer, :row]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (InputRef [:cube, :layer, :row, :cell]
+        meta: {
+          stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
+          value_id: "v9"
+          topo_index: 9
+        }
+      )
+      (Const 100
+        meta: {
+          stamp: {axes_tokens: [], dtype: integer}
+          value_id: "v10"
+          topo_index: 10
+        }
+      )
+  )
+  )
+  (VALUE cell_sum
+    meta: {
+      stamp: {axes_tokens: [:cube, :layer], dtype: integer}
+      value_id: "v18"
+      topo_index: 18
+      target_name: :cell_sum
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [:cube, :layer], dtype: integer}
+      value_id: "v17"
+      topo_index: 17
+      plan: {
+        kind: reduce
+        last_axis_token: :row
+      }
+    }
+    args:
+      (Call :"core.select"
+        meta: {
+          stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
+          value_id: "v16"
+          topo_index: 16
+          plan: {
+            kind: elementwise
+            target_axes_tokens: [:cube, :layer, :row]
+            needs_expand_flags: [false, false, true]
+          }
+        }
+        args:
+          (Ref cell_over_limit
+            meta: {
+              stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
+              value_id: "v13"
+              topo_index: 13
+              referenced_name: :cell_over_limit
+            }
+          )
+          (InputRef [:cube, :layer, :row, :cell]
+            meta: {
+              stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
+              value_id: "v14"
+              topo_index: 14
+            }
+          )
+          (Const 0
+            meta: {
+              stamp: {axes_tokens: [], dtype: integer}
+              value_id: "v15"
+              topo_index: 15
+            }
+          )
+      )
+  )
+  )
 )

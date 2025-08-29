@@ -1,0 +1,10 @@
+{
+  "ir_ref": "sha256:ae85a1aded02308ba171b9097f5be668b0f8179f09916ff46d7c14455c0b9354",
+  "target": "ruby",
+  "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
+  "bindings": [
+    {"decl":"cell_over_limit","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"cell_sum","op":4,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
+    {"decl":"cell_sum","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+  ]
+}
