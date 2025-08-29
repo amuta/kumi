@@ -118,7 +118,7 @@
       }
     }
     args:
-      (Call :"core.select"
+      (Call :__select__
         meta: {
           stamp: {axes_tokens: [:depts, :teams], dtype: integer}
           value_id: "v15"

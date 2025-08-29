@@ -112,7 +112,7 @@
       }
     }
     args:
-      (Call :"core.select"
+      (Call :__select__
         meta: {
           stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
           value_id: "v16"

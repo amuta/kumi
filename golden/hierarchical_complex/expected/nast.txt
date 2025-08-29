@@ -18,7 +18,7 @@
   )
   )
   (VALUE employee_bonus
-    (Call :"core.select"
+    (Call :__select__
     (Call :"core.and"
       (Ref high_performer)
       (Call :"core.and"
@@ -30,7 +30,7 @@
       (InputRef [:regions, :offices, :teams, :employees, :salary])
       (Const 0.3)
     )
-    (Call :"core.select"
+    (Call :__select__
       (Call :"core.and"
         (Ref high_performer)
         (Ref top_team)

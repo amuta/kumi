@@ -12,16 +12,16 @@
   )
   )
   (VALUE status
-    (Call :"core.select"
+    (Call :__select__
     (Call :"core.and"
       (Ref y_positive)
       (Ref x_positive)
     )
     (Const "both positive")
-    (Call :"core.select"
+    (Call :__select__
       (Ref x_positive)
       (Const "x positive")
-      (Call :"core.select"
+      (Call :__select__
         (Ref y_positive)
         (Const "y positive")
         (Const "neither positive")

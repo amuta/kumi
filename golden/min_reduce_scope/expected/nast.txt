@@ -19,7 +19,7 @@
   )
   (VALUE dept_total_masked
     (Call :"agg.sum"
-    (Call :"core.select"
+    (Call :__select__
       (Ref big_team)
       (InputRef [:depts, :teams, :headcount])
       (Const 0)

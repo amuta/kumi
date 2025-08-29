@@ -9,6 +9,9 @@ module Kumi
           include Kumi::Syntax
           include Kumi::Core::ErrorReporting
 
+          # Core builtin operation names
+          BUILTIN_SELECT = :__select__
+
           # @param schema [Syntax::Root] The schema to analyze
           # @param state [AnalysisState] Current analysis state
           def initialize(schema, state)

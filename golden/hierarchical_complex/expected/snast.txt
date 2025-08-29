@@ -111,7 +111,7 @@
       topo_index: 32
       target_name: :employee_bonus
     }
-    (Call :"core.select"
+    (Call :__select__
     meta: {
       stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
       value_id: "v31"
@@ -200,7 +200,7 @@
             }
           )
       )
-      (Call :"core.select"
+      (Call :__select__
         meta: {
           stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
           value_id: "v30"

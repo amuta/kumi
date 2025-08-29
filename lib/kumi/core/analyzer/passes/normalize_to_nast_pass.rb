@@ -5,7 +5,6 @@ module Kumi
     module Analyzer
       module Passes
         class NormalizeToNASTPass < PassBase
-          FNAME_SELECT = :'core.select'
 
           def run(errors)
             decls = get_state(:declarations, required: true)
@@ -79,7 +78,7 @@ module Kumi
             branches.reverse_each do |br|
               cond = normalize_expr(br.condition, errors)
               val = normalize_expr(br.result, errors)
-              else_n = Kumi::Core::NAST::Call.new(fn: FNAME_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
+              else_n = Kumi::Core::NAST::Call.new(fn: BUILTIN_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
             end
             else_n
           end
@@ -123,7 +122,7 @@ module Kumi
             
             # Expand to: sum(select(condition, values, neutral))
             select_call = Kumi::Core::NAST::Call.new(
-              fn: :'core.select',
+              fn: BUILTIN_SELECT,
               args: [normalize_expr(condition, errors), 
                      normalize_expr(values, errors),
                      Kumi::Core::NAST::Const.new(value: neutral, loc: node.loc)],

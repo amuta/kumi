@@ -21,6 +21,7 @@ module Kumi
         def load_decl(name, stamp: nil)      = emit(:LoadDecl, [name], {}, stamp: stamp)
         def const(lit, stamp: nil)           = emit(:Const, [lit], {}, stamp: stamp)
         def align_to(v, target_axes, stamp: nil) = emit(:AlignTo, [v], { target_axes: Array(target_axes).map(&:to_s) }, stamp: stamp)
+        def select(cond, then_v, else_v, stamp: nil) = emit(:Select, [cond, then_v, else_v], {}, stamp: stamp)
         def map(func, *values, stamp: nil)       = emit(:Map, values, { fn: func }, stamp: stamp)
         def reduce(func, val, axis, stamp: nil)  = emit(:Reduce, [val], { fn: func, axis: axis.to_s }, stamp: stamp)
         def construct_tuple(*vs, elem_stamps: nil) = emit(:ConstructTuple, vs, {}, elem_stamps: elem_stamps)

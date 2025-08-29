@@ -107,10 +107,18 @@ module Kumi
                        end
                        case plan[:kind]
                        when :elementwise
-                         args    = node.args.map { |a| lower_expr(a, errors) }
-                         aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
-                         stamp = ser_stamp(node.meta[:stamp])
-                         @b.map(node.fn.to_s, *aligned, stamp: stamp)
+                         # Handle builtin select operation
+                         if node.fn == BUILTIN_SELECT
+                           args = node.args.map { |a| lower_expr(a, errors) }
+                           aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                           stamp = ser_stamp(node.meta[:stamp])
+                           @b.select(*aligned, stamp: stamp)
+                         else
+                           args    = node.args.map { |a| lower_expr(a, errors) }
+                           aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                           stamp = ser_stamp(node.meta[:stamp])
+                           @b.map(node.fn.to_s, *aligned, stamp: stamp)
+                         end
 
                        when :reduce
                          unless node.args.size == 1

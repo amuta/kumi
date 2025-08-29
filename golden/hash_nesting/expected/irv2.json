@@ -106,11 +106,10 @@
         {"id":0,"op":"LoadDeclaration","args":["large_organization"],"stamp":{"dtype":"boolean","axes":["regions"]}},
         {"id":1,"op":"Const","args":["Enterprise"],"stamp":{"dtype":"string","axes":[]}},
         {"id":2,"op":"Const","args":["Standard"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":3,"op":"AlignTo","args":[1],"stamp":{"dtype":"string","axes":["regions"]},"attrs":{"target_axes":["regions"]}},
-        {"id":4,"op":"AlignTo","args":[2],"stamp":{"dtype":"string","axes":["regions"]},"attrs":{"target_axes":["regions"]}},
-        {"id":5,"op":"Map","args":[0,3,4],"stamp":{"dtype":"string","axes":["regions"]},"attrs":{"fn":"core.select"}}
+        {"id":3,"op":"AlignTo","args":[0],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"target_axes":[]}},
+        {"id":4,"op":"Select","args":[3,1,2],"stamp":{"dtype":"string","axes":[]}}
       ],
-      "result": 5
+      "result": 4
     },
     "total_capacity": {
       "name": "total_capacity",

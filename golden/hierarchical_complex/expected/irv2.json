@@ -188,20 +188,8 @@
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
-        {
-          "id": 20,
-          "op": "Map",
-          "args": [13,16,19],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"fn":"core.select"}
-        },
-        {
-          "id": 21,
-          "op": "Map",
-          "args": [5,9,20],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"fn":"core.select"}
-        }
+        {"id":20,"op":"Select","args":[13,16,19],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}},
+        {"id":21,"op":"Select","args":[5,9,20],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}}
       ],
       "result": 21
     }

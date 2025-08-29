@@ -1,5 +1,5 @@
 {
-  "ir_ref": "sha256:706fcfd14914de4293ef9676fa5d424f29eca32338c4c9db422efa58fbf71937",
+  "ir_ref": "sha256:84d4014f313679f20f633431eff965f6048df02823cbfb7169ef69593667ceb7",
   "target": "ruby",
   "registry_ref": "sha256:6ebe89a26e25f65352996d24cd8cf4b59d3e99ca14893bacc4cdd8fe87cb7d4d",
   "bindings": [
@@ -11,8 +11,6 @@
     {"decl":"employee_bonus","op":9,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
     {"decl":"employee_bonus","op":13,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
     {"decl":"employee_bonus","op":16,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"employee_bonus","op":19,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"employee_bonus","op":20,"fn":"core.select","kernel_id":"core.select:ruby:v1"},
-    {"decl":"employee_bonus","op":21,"fn":"core.select","kernel_id":"core.select:ruby:v1"}
+    {"decl":"employee_bonus","op":19,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"}
   ]
 }

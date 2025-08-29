@@ -29,7 +29,7 @@
   )
   )
   (VALUE org_classification
-    (Call :"core.select"
+    (Call :__select__
     (Ref large_organization)
     (Const "Enterprise")
     (Const "Standard")

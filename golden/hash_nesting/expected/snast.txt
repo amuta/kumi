@@ -159,15 +159,15 @@
       topo_index: 24
       target_name: :org_classification
     }
-    (Call :"core.select"
+    (Call :__select__
     meta: {
-      stamp: {axes_tokens: [:regions], dtype: string}
+      stamp: {axes_tokens: [], dtype: string}
       value_id: "v23"
       topo_index: 23
       plan: {
         kind: elementwise
-        target_axes_tokens: [:regions]
-        needs_expand_flags: [false, true, true]
+        target_axes_tokens: []
+        needs_expand_flags: [true, false, false]
       }
     }
     args:

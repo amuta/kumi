@@ -116,6 +116,9 @@ module Kumi
             # Add execution plan
             new_call.meta[:plan] = build_execution_plan(call_meta, annotated_args).freeze
             
+            # Apply builtin semantics for core operations
+            apply_builtin_semantics!(new_call, call_meta)
+            
             debug "    Call #{call_meta[:function]}: #{call_meta[:arg_scopes]} -> #{call_meta[:result_scope]} (#{call_meta[:result_type]})"
             
             new_call
@@ -244,6 +247,38 @@ module Kumi
             end
           end
           
+          def apply_builtin_semantics!(call, call_meta)
+            case call.fn
+            when BUILTIN_SELECT
+              canonicalize_select!(call)
+            end
+          end
+          
+          def canonicalize_select!(call)
+            cond, then_v, else_v = call.args
+            cond_s, then_s, else_s = [cond, then_v, else_v].map { _1.meta[:stamp] }
+
+            # Select semantics: result follows the data branch ("then")
+            target_axes = then_s[:axes_tokens]
+            result_dtype = then_s[:dtype]
+            
+            # Override stamp with builtin semantics
+            call.meta[:stamp] = { axes_tokens: target_axes, dtype: result_dtype }.freeze
+
+            # Override plan: broadcast all args to target axes
+            needs_expand_flags = [
+              cond_s[:axes_tokens] != target_axes,
+              then_s[:axes_tokens] != target_axes,
+              else_s[:axes_tokens] != target_axes
+            ]
+            call.meta[:plan] = {
+              kind: :elementwise,
+              target_axes_tokens: target_axes,
+              needs_expand_flags: needs_expand_flags
+            }.freeze
+
+          end
+
           
           def next_value_id
             "v#{@value_id_counter += 1}"

@@ -76,7 +76,7 @@
       topo_index: 21
       target_name: :status
     }
-    (Call :"core.select"
+    (Call :__select__
     meta: {
       stamp: {axes_tokens: [], dtype: string}
       value_id: "v20"
@@ -124,7 +124,7 @@
           topo_index: 12
         }
       )
-      (Call :"core.select"
+      (Call :__select__
         meta: {
           stamp: {axes_tokens: [], dtype: string}
           value_id: "v19"
@@ -151,7 +151,7 @@
               topo_index: 14
             }
           )
-          (Call :"core.select"
+          (Call :__select__
             meta: {
               stamp: {axes_tokens: [], dtype: string}
               value_id: "v18"

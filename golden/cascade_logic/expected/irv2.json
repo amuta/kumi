@@ -34,9 +34,9 @@
         {"id":5,"op":"Const","args":["x positive"],"stamp":{"dtype":"string","axes":[]}},
         {"id":7,"op":"Const","args":["y positive"],"stamp":{"dtype":"string","axes":[]}},
         {"id":8,"op":"Const","args":["neither positive"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":9,"op":"Map","args":[0,7,8],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}},
-        {"id":10,"op":"Map","args":[1,5,9],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}},
-        {"id":11,"op":"Map","args":[2,3,10],"stamp":{"dtype":"string","axes":[]},"attrs":{"fn":"core.select"}}
+        {"id":9,"op":"Select","args":[0,7,8],"stamp":{"dtype":"string","axes":[]}},
+        {"id":10,"op":"Select","args":[1,5,9],"stamp":{"dtype":"string","axes":[]}},
+        {"id":11,"op":"Select","args":[2,3,10],"stamp":{"dtype":"string","axes":[]}}
       ],
       "result": 11
     }
