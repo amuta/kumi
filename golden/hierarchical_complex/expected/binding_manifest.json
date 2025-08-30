@@ -3,14 +3,14 @@
   "target": "ruby",
   "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
   "bindings": [
-    {"decl":"high_performer","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
-    {"decl":"senior_level","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1"},
-    {"decl":"top_team","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
-    {"decl":"employee_bonus","op":4,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
-    {"decl":"employee_bonus","op":5,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
-    {"decl":"employee_bonus","op":9,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"employee_bonus","op":13,"fn":"core.and","kernel_id":"core.and:ruby:v1"},
-    {"decl":"employee_bonus","op":16,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"employee_bonus","op":19,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"}
+    {"decl":"high_performer","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1","impl":"->(a, b) { a >= b }"},
+    {"decl":"senior_level","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1","impl":"->(a, b) { a == b }"},
+    {"decl":"top_team","op":3,"fn":"core.gte","kernel_id":"core.gte:ruby:v1","impl":"->(a, b) { a >= b }"},
+    {"decl":"employee_bonus","op":4,"fn":"core.and","kernel_id":"core.and:ruby:v1","impl":"->(a, b) { a && b }"},
+    {"decl":"employee_bonus","op":5,"fn":"core.and","kernel_id":"core.and:ruby:v1","impl":"->(a, b) { a && b }"},
+    {"decl":"employee_bonus","op":9,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"employee_bonus","op":13,"fn":"core.and","kernel_id":"core.and:ruby:v1","impl":"->(a, b) { a && b }"},
+    {"decl":"employee_bonus","op":16,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"employee_bonus","op":19,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"}
   ]
 }

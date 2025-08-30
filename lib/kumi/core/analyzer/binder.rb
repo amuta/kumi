@@ -19,11 +19,13 @@ module Kumi
               next unless fn
 
               kernel_id = registry.pick(fn)
+              impl = registry.impl_for(kernel_id)
               bindings << {
                 "decl" => decl_name.to_s,
                 "op" => op.id,
                 "fn" => fn,
-                "kernel_id" => kernel_id
+                "kernel_id" => kernel_id,
+                "impl" => impl
               }
             end
           end

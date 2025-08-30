@@ -5,6 +5,3 @@ kernels:
     identity: 
       float: 0.0
       integer: 0
-      # init:     "Kumi::Kernels::Ruby::Agg.zero"   # neutral element for dtype
-      # step:     "Kumi::Kernels::Ruby::Agg.sum"    # acc, val -> acc'
-      # finalize: "Kumi::Kernels::Ruby::Agg.id"     # acc -> out

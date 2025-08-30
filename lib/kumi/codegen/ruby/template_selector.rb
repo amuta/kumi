@@ -2,18 +2,22 @@
 
 module Kumi
   module Codegen
-    class RubyV2
+    class Ruby
       class TemplateSelector
-        def select_template(op_plan)
+        def select_template(op_plan, ops_by_id = {}, _ = nil)
           case op_plan[:op_type]
           when "Const"           then :const_scalar
-          when "LoadInput"       then :load_input # scalar or vector; accessor returns shape
+          when "LoadInput"       then :load_input
           when "AlignTo"         then :align_to_noop
-          when "Map"             then :map_generic
-          when "Select"          then :select_generic
           when "Reduce"          then :reduce_last
           when "ConstructTuple"  then :construct_tuple
           when "LoadDeclaration" then :load_declaration
+          when "Select"
+            r = op_plan[:stamp]["axes"]
+            r.empty? ? :select_scalar : :select_vector
+          when "Map"
+            r = op_plan[:stamp]["axes"]
+            r.empty? ? :map_scalar : :map_nary
           else
             raise "Unknown operation type: #{op_plan[:op_type]}"
           end

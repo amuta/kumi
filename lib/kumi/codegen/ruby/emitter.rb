@@ -2,79 +2,66 @@
 
 module Kumi
   module Codegen
-    class RubyV2
+    class Ruby
       class Emitter
         def initialize(options)
-          @options   = options
-          @templates = TemplateLibrary.new(options)
-          @selector  = TemplateSelector.new
+          @options      = options
+          @templates    = TemplateLibrary.new(options)
+          @selector     = TemplateSelector.new
+          # { "core.mul:ruby:v1" => "->(a,b){ a * b }", ... }
+          @kernel_impls = options[:kernel_impls] || {}
         end
 
         def emit_program(declaration_plans, analysis)
+          kernel_ids = collect_kernel_ids(declaration_plans)
+
           code = []
           code << emit_program_header
-          code << emit_from_and_kernel
+          code << emit_from
           code << emit_bound_header
 
-          # dispatch: no memo, just call the method
+          # Dispatch
           declaration_plans.each do |plan|
             code << %(        when :#{plan.name} then #{plan.name})
           end
 
-          code << emit_bound_case_end
-          code << emit_decl_methods(declaration_plans) # ← methods, not compute_*
+          code << emit_bound_case_end # inserts "private" section header
+
+          # ---- kernels live INSIDE Bound (private) ----
+          code << indent_block(emit_kernel_methods(kernel_ids), 6)
+
+          # ---- declaration methods ----
+          code << emit_decl_methods(declaration_plans)
+
+          # ---- accessors ----
           code << emit_accessors(analysis["inputs"])
+
           code << emit_footers
           code.join("\n")
         end
 
         private
 
+        def collect_kernel_ids(plans)
+          plans.flat_map { |p| p.operations.map { |op| (op[:binding] || {})["kernel_id"] } }.compact.uniq
+        end
+
         def emit_program_header
           <<~RUBY
             module Generated
               class Program
                 def initialize(registry:, assertions: #{@options[:assertions]})
+                  # registry kept for API compatibility; not used by inlined kernels
                   @registry   = registry
                   @assertions = assertions
-                  @kern_cache = {}
                 end
           RUBY
         end
 
-        def emit_from_and_kernel
+        def emit_from
           <<~RUBY
             def from(data)
               Bound.new(self, data)
-            end
-
-            # Resolve registry entry to a callable:
-            # - Proc/Method => use directly
-            # - "Module::Path.method" => resolve constant chain and return .method(:method)
-            # - otherwise, last-resort eval (must return an object responding to :call)
-            def bind_kernel(id)
-              @kern_cache[id] ||= begin
-                impl = @registry.impl_for(id)
-
-                case impl
-                when Proc, Method
-                  impl
-                when String
-                  if impl.include?('.') && impl.include?('::')
-                    mod_path, meth = impl.split('.', 2)
-                    mod = mod_path.split('::').inject(Object) { |m, c| m.const_get(c) }
-                    mod.method(meth)
-                  else
-                    val = eval(impl)
-                    unless val.respond_to?(:call)
-                      raise "Registry impl for \#{id} did not resolve to a callable: \#{impl.inspect}"
-                    end
-                    val
-                  end
-                else
-                  raise "Unsupported registry impl for \#{id}: \#{impl.class}"
-                end
-              end
             end
           RUBY
         end
@@ -104,7 +91,51 @@ module Kumi
           RUBY
         end
 
-        # one method per declaration (no memo)
+        # ---------- Kernel inlining (now inside Bound) ----------
+        def emit_kernel_methods(kernel_ids)
+          kernel_ids.map do |kid|
+            impl = @kernel_impls[kid]
+            raise "No impl string for kernel #{kid.inspect} (expected manifest to provide 'impl')" unless impl.is_a?(String)
+
+            sig_body = parse_lambda_string(impl) or raise(
+              "Kernel impl for #{kid.inspect} is not a supported lambda/proc string: #{impl.inspect}.\n" \
+              "Accepted forms: ->(a,b){ a + b }, ->(a,b) { a + b }, lambda { |a,b| a + b }, proc { |a,b| a + b }"
+            )
+            "def #{kernel_method_name(kid)}#{sig_body}\nend"
+          end.join("\n\n")
+        end
+
+        # Must match TemplateLibrary
+        def kernel_method_name(kid)
+          "k_" + kid.gsub(/[^a-zA-Z0-9]+/, "_")
+        end
+
+        # Accept common lambda/proc forms, return "(args)\n  body"
+        def parse_lambda_string(src)
+          s = src.strip
+
+          if m = s.match(/\A->\s*\(([^)]*)\)\s*\{\s*(.+)\s*\}\s*\z/m)
+            args = m[1].strip
+            body = m[2].strip
+            return "(#{args})\n  #{body}"
+          end
+
+          if m = s.match(/\A->\s*\(([^)]*)\)\s*do\s*(.+)\s*end\s*\z/m)
+            args = m[1].strip
+            body = m[2].strip
+            return "(#{args})\n  #{body}"
+          end
+
+          if m = s.match(/\A(?:lambda|proc)\s*\{\s*\|([^|]*)\|\s*(.+)\s*\}\s*\z/m)
+            args = m[1].strip
+            body = m[2].strip
+            return "(#{args})\n  #{body}"
+          end
+
+          nil
+        end
+
+        # ---------- Declaration methods (inside Bound) ----------
         def emit_decl_methods(declaration_plans)
           out = []
           declaration_plans.each do |plan|
@@ -112,9 +143,12 @@ module Kumi
             out << "      def #{plan.name}"
             out << "        # ops: #{plan.operations.map { |o| "#{o[:id]}:#{o[:op_type]}" }.join(', ')}" if @options[:comments]
 
+            ops_by_id = {}
+            plan.operations.each { |o| ops_by_id[o[:id]] = o }
+
             plan.operations.each do |op|
-              tpl  = @selector.select_template(op)
-              code = @templates.emit_operation(op, tpl)
+              tpl  = @selector.select_template(op, ops_by_id)
+              code = @templates.emit_operation(op, tpl, ops_by_id)
               next if code.empty?
 
               out << code.split("\n").map { |l| "        #{l}" }
@@ -131,7 +165,7 @@ module Kumi
           input_specs.each do |spec|
             lines << ""
             lines << "      def #{accessor_name(spec['path'])}(data)"
-            lines << accessor_body(spec) # uses axes/chain to decide scalar vs array path
+            lines << accessor_body(spec)
             lines << "      end"
           end
           lines.join("\n")
@@ -139,55 +173,45 @@ module Kumi
 
         def accessor_name(path) = "fetch_#{path.join('_')}"
 
+        # Chain → code (depth-aware)
         def accessor_body(spec)
-          chain      = spec["chain"]
-          key_policy = spec["key_policy"] || "indifferent"
-          on_missing = spec["on_missing"] || "error"
-
-          # If there is any array_field in the chain, this accessor yields array-structured data
-          vector_mode = chain.any? { |s| s["kind"] == "array_field" }
+          chain      = spec["chain"] || []
+          key_policy = (spec["key_policy"] || "indifferent").to_s
+          on_missing = (spec["on_missing"] || "error").to_s
 
           lines = []
           cur   = "data"
+          depth = 0
 
-          chain.each_with_index do |step, _idx|
+          chain.each do |step|
             case step["kind"]
             when "array_field"
-              key  = step["key"]
-              get  = if key_policy == "indifferent"
-                       "(#{cur}[:#{key}] || #{cur}[\"#{key}\"])"
-                     else
-                       "#{cur}[:#{key}]"
-                     end
-              miss = on_missing == "error" ? %( || (raise "Missing key: #{key}")) : ""
-              lines << "        #{cur} = #{get}#{miss}"
-            when "array_element"
-              # lineage carrier — structure remains array; loops happen in Map/Reduce
-              lines << "        raise \"Expected Array for array_element\" unless #{cur}.is_a?(Array)"
-            when "scalar_leaf"
               key = step["key"]
-
-              if vector_mode
-                # We are inside an array context → map the leaf out of each element
-                if key_policy == "indifferent"
-                  lines << %(        #{cur} = #{cur}.map { |it| (it[:#{key}] || it["#{key}"])#{if on_missing == 'error'
-                                                                                                 %( || (raise "Missing key: #{key}"))
-                                                                                               end} })
-                else
-                  lines << %(        #{cur} = #{cur}.map { |it| it[:#{key}]#{if on_missing == 'error'
-                                                                               %( || (raise "Missing key: #{key}"))
-                                                                             end} })
-                end
+              if depth.zero?
+                expr = indifferent_get_expr(cur, key, key_policy, on_missing)
+                lines << "        #{cur} = #{expr}"
               else
-                # Scalar accessor (no array_field in chain)
-                get  = if key_policy == "indifferent"
-                         "(#{cur}[:#{key}] || #{cur}[\"#{key}\"])"
-                       else
-                         "#{cur}[:#{key}]"
-                       end
-                miss = on_missing == "error" ? %( || (raise "Missing key: #{key}")) : ""
-                lines << "        #{cur} = #{get}#{miss}"
+                inner = indifferent_get_expr("it#{depth - 1}", key, key_policy, on_missing)
+                lines << "        #{cur} = #{nested_map_expr(cur, depth, inner)}"
               end
+              depth += 1
+
+            when "array_element"
+              depth += 1
+
+            when "field_leaf"
+              key = step["key"]
+              if depth.zero?
+                expr = indifferent_get_expr(cur, key, key_policy, on_missing)
+                lines << "        #{cur} = #{expr}"
+              else
+                inner = indifferent_get_expr("it#{depth - 1}", key, key_policy, on_missing)
+                lines << "        #{cur} = #{nested_map_expr(cur, depth, inner)}"
+              end
+
+            when "element_leaf", "scalar_leaf"
+              # no-op
+
             else
               raise "Unknown chain step: #{step['kind']}"
             end
@@ -197,12 +221,38 @@ module Kumi
           lines.join("\n")
         end
 
+        def indifferent_get_expr(receiver, key, key_policy, on_missing)
+          expr = if key_policy == "indifferent"
+                   "(#{receiver}[:#{key}] || #{receiver}[\"#{key}\"])"
+                 else
+                   "#{receiver}[:#{key}]"
+                 end
+          expr += %( || (raise "Missing key: #{key}")) if on_missing == "error"
+          expr
+        end
+
+        def nested_map_expr(var, depth, inner_expr)
+          return inner_expr if depth <= 0
+
+          parts = []
+          parts << "#{var}.map { |it0| "
+          (1...depth).each { |lvl| parts << "it#{lvl - 1}.map { |it#{lvl}| " }
+          parts << inner_expr
+          parts << (" }" * depth)
+          parts.join
+        end
+
         def emit_footers
           <<~RUBY
                 end
               end
             end
           RUBY
+        end
+
+        def indent_block(s, spaces)
+          pad = " " * spaces
+          s.split("\n").map { |l| pad + l }.join("\n")
         end
       end
     end

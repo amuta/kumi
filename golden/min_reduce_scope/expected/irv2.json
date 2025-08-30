@@ -75,7 +75,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"depts","axis":"depts"},{"kind":"array_element","alias":"teams","axis":"teams"}]
+        "chain": [{"kind":"array_field","key":"depts","axis":"depts"},{"kind":"array_field","key":"teams","axis":"teams"}]
       },
       {
         "path": ["depts","teams","headcount"],
@@ -85,8 +85,8 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"depts","axis":"depts"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"scalar_leaf","key":"headcount"}
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"field_leaf","key":"headcount"}
         ]
       }
     ]

@@ -13,6 +13,10 @@ module Kumi
         new(options).generate(ir_file, binding_manifest_file)
       end
 
+      def self.generate_from_data(ir_data, binding_manifest, options = {})
+        new(options).generate_from_data(ir_data, binding_manifest)
+      end
+
       def initialize(options = {})
         @options = {
           visibility: :public,
@@ -25,12 +29,87 @@ module Kumi
       def generate(ir_file, binding_manifest_file)
         ir_data = JSON.parse(File.read(ir_file))
         binding_manifest = JSON.parse(File.read(binding_manifest_file))
+        generate_from_data(ir_data, binding_manifest)
+      end
 
-        planner      = RubyV2::Planner.new(ir_data, binding_manifest)
-        plans        = planner.plan_all_declarations
+      def generate_from_data(ir_data, binding_manifest)
+        # 1) Plan declarations (also attaches binding records per op)
+        planner = Ruby::Planner.new(ir_data, binding_manifest)
+        plans   = planner.plan_all_declarations
 
-        ruby_emitter = RubyV2::Emitter.new(@options)
+        # 2) Determine which kernels are actually used by the IR
+        used_kernel_ids = plans.flat_map do |p|
+          p.operations.map { |op| (op[:binding] || {})["kernel_id"] }
+        end.compact.uniq
+
+        # 3) Build kernel_id → impl string map from bindings (no fallbacks)
+        impl_by_id, conflicts = extract_kernel_impls_from_bindings(binding_manifest)
+
+        unless conflicts.empty?
+          msg = conflicts.map do |kid, a, b, where|
+            "- #{kid.inspect} has conflicting impls:\n    #{a.inspect}\n    #{b.inspect}\n    #{where}"
+          end.join("\n")
+          raise "Conflicting kernel impl strings found in bindings:\n#{msg}"
+        end
+
+        missing = used_kernel_ids.reject { |kid| impl_by_id.key?(kid) }
+        unless missing.empty?
+          # Help the author by pointing to which decl/op used the missing kernel
+          where = locate_kernel_usage(plans, missing)
+          raise "Missing kernel impl strings for: #{missing.join(', ')}.\n" \
+                "Every kernel used by the IR must appear in the bindings with an 'impl' string " \
+                "(e.g. \"->(a,b){ a + b }\").\n\nUsed at:\n#{where}"
+        end
+
+        # 4) Emit Ruby with kernels fully inlined from impl strings
+        ruby_emitter = Ruby::Emitter.new(@options.merge(kernel_impls: impl_by_id))
         ruby_emitter.emit_program(plans, ir_data["analysis"])
+      end
+
+      private
+
+      # Returns [impl_by_id, conflicts]
+      # - impl_by_id: { "core.mul:ruby:v1" => "->(a,b){ a * b }", ... }
+      # - conflicts:  array of [kid, impl_a, impl_b, where_string]
+      def extract_kernel_impls_from_bindings(binding_manifest)
+        bindings = binding_manifest["bindings"] || []
+        impl_by_id = {}
+        conflicts = []
+
+        bindings.each do |b|
+          kid  = b["kernel_id"] || b["id"] # tolerate "id" if someone used that
+          impl = b["impl"]
+          next unless kid
+
+          next unless impl.is_a?(String) && !impl.strip.empty?
+
+          impl = impl.strip
+          if (prev = impl_by_id[kid])
+            if prev != impl
+              where = "(decl=#{b['decl'].inspect}, op=#{b['op'].inspect}, fn=#{b['fn'].inspect})"
+              conflicts << [kid, prev, impl, where]
+            end
+          else
+            impl_by_id[kid] = impl
+          end
+        end
+
+        [impl_by_id, conflicts]
+      end
+
+      # Build a helpful “used at” string for missing kernels
+      def locate_kernel_usage(plans, missing_ids)
+        lines = []
+        missing = missing_ids.to_set
+        plans.each do |p|
+          p.operations.each do |op|
+            kid = (op[:binding] || {})["kernel_id"]
+            next unless missing.include?(kid)
+
+            lines << "- decl=#{p.name.inspect}, op_id=#{op[:id]}, fn=#{(op[:binding] || {})['fn'].inspect}, kernel_id=#{kid.inspect}"
+          end
+        end
+        lines.join("\n")
       end
     end
   end

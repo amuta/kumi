@@ -3,7 +3,7 @@
   "target": "ruby",
   "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
   "bindings": [
-    {"decl":"cell_over_limit","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
-    {"decl":"cell_sum","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+    {"decl":"cell_over_limit","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"cell_sum","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"}
   ]
 }

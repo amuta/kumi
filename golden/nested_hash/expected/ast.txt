@@ -1,0 +1,22 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :hash access_mode: :field
+      [
+        (InputDeclaration :y :hash access_mode: :field
+          [
+            (InputDeclaration :z :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :double
+      (CallExpression :multiply
+        (InputElementReference x.y.z)
+        (Literal 2)
+      )
+    )
+  ]
+  traits: []
+)

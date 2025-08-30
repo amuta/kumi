@@ -7,7 +7,7 @@ module Kumi
     KERNEL_DIRS = {
       ruby: "data/kernels/ruby"
     }
-    Entry = Struct.new(:id, :fn, :impl, keyword_init: true)
+    Entry = Struct.new(:id, :fn, :impl, :identity, keyword_init: true)
 
     def self.load_ruby
       load_dir(KERNEL_DIRS[:ruby])
@@ -16,7 +16,7 @@ module Kumi
     def self.load_dir(dir)
       files = Dir.glob(File.join(dir, "**", "*.y{a,}ml")).sort
       entries = files.flat_map { |p| (YAML.load_file(p) || {}).fetch("kernels", []) }
-                     .map { |h| Entry.new(id: h["id"], fn: h["fn"], impl: h["impl"]) }
+                     .map { |h| Entry.new(id: h["id"], fn: h["fn"], impl: h["impl"], identity: h["identity"]) }
       new(entries)
     end
 
@@ -38,8 +38,9 @@ module Kumi
 
     def identity(kernel_id, dtype)
       e = @by_id[kernel_id] or raise "unknown kernel id #{kernel_id}"
+      identity_map = e.identity or raise "no identity map for #{kernel_id}"
 
-      e[dtype.to_sym] or raise "no identity with dtype `#{dtype}` for #{kernel_id}"
+      identity_map[dtype.to_s] or raise "no identity with dtype `#{dtype}` for #{kernel_id}"
     end
 
     # Late-bind the Ruby implementation

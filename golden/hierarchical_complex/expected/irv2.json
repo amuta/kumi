@@ -210,7 +210,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"regions","axis":"regions"},{"kind":"array_element","alias":"offices","axis":"offices"}]
+        "chain": [{"kind":"array_field","key":"regions","axis":"regions"},{"kind":"array_field","key":"offices","axis":"offices"}]
       },
       {
         "path": ["regions","offices","teams"],
@@ -220,8 +220,8 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"}
         ]
       },
       {
@@ -232,9 +232,9 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"scalar_leaf","key":"performance_score"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"field_leaf","key":"performance_score"}
         ]
       },
       {
@@ -245,9 +245,9 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"array_element","alias":"employees","axis":"employees"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"array_field","key":"employees","axis":"employees"}
         ]
       },
       {
@@ -258,10 +258,10 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"array_element","alias":"employees","axis":"employees"},
-          {"kind":"scalar_leaf","key":"salary"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"array_field","key":"employees","axis":"employees"},
+          {"kind":"field_leaf","key":"salary"}
         ]
       },
       {
@@ -272,10 +272,10 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"array_element","alias":"employees","axis":"employees"},
-          {"kind":"scalar_leaf","key":"rating"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"array_field","key":"employees","axis":"employees"},
+          {"kind":"field_leaf","key":"rating"}
         ]
       },
       {
@@ -286,10 +286,10 @@
         "on_missing": "error",
         "chain": [
           {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_element","alias":"offices","axis":"offices"},
-          {"kind":"array_element","alias":"teams","axis":"teams"},
-          {"kind":"array_element","alias":"employees","axis":"employees"},
-          {"kind":"scalar_leaf","key":"level"}
+          {"kind":"array_field","key":"offices","axis":"offices"},
+          {"kind":"array_field","key":"teams","axis":"teams"},
+          {"kind":"array_field","key":"employees","axis":"employees"},
+          {"kind":"field_leaf","key":"level"}
         ]
       }
     ]

@@ -3,8 +3,8 @@
   "target": "ruby",
   "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
   "bindings": [
-    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
-    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
-    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1"}
+    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1","impl":"->(a, b) { a && b }"}
   ]
 }

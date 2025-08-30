@@ -1,0 +1,34 @@
+{
+  "high_performer": [
+    [
+      [
+        [true, false],
+        [true, false]
+      ]
+    ]
+  ],
+  "senior_level": [
+    [
+      [
+        [true, false],
+        [true, false]
+      ]
+    ]
+  ],
+  "top_team": [
+    [
+      [
+        true,
+        false
+      ]
+    ]
+  ],
+  "employee_bonus": [
+    [
+      [
+        [36000.0, 4250.0],
+        [4750.0, 3500.0]
+      ]
+    ]
+  ]
+}

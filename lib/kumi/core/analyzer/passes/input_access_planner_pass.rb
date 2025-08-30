@@ -16,11 +16,13 @@ module Kumi
             # TODO : Allow by input definition on policies or at least general policy definition
             plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, options)
 
+            plans_v2 = Kumi::Core::Compiler::AccessPlannerV2.plan(input_metadata, options)
+
             # Quick validation
             validate_plans!(plans, errors)
 
             # Create new state with access plans
-            state.with(:access_plans, plans.freeze)
+            state.with(:access_plans, plans.freeze).with(:access_plans_v2, plans_v2.freeze)
           end
 
           private

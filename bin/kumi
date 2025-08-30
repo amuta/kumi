@@ -3,7 +3,7 @@
 
 require "bundler/setup"
 require "optparse"
-require "kumi"
+require_relative "../lib/kumi"
 
 cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen> ..."
 
@@ -60,8 +60,8 @@ when "pp"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff> ..."
-  name = ARGV.shift if %w[update verify diff].include?(sub)
+  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> ..."
+  name = ARGV.shift if %w[update verify diff test].include?(sub)
   opts = {}
   OptionParser.new do |o|
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
@@ -72,8 +72,9 @@ when "golden"
   when "update" then Kumi::Dev::Golden.update!(name)
   when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
   when "diff"   then Kumi::Dev::Golden.diff!(name)
+  when "test"   then exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
   else
-    abort "kumi golden <list|update|verify|diff>"
+    abort "kumi golden <list|update|verify|diff|test>"
   end
 
 when "diff"
@@ -123,47 +124,37 @@ when "profile"
   exit(success ? 0 : 1)
 
 when "codegen"
-  require "kumi/codegen/ruby"
+  sub = ARGV.shift or abort "kumi codegen <ruby> ..."
   
-  opts = {}
-  irv2_path = nil
-  manifest_path = nil
-  golden_name = nil
-  output_file = nil
-  
-  OptionParser.new do |o|
-    o.banner = "Usage: kumi codegen [options]"
-    o.separator ""
-    o.separator "Input options (choose one):"
-    o.on("--irv2 PATH", "IRv2 JSON file path") { |v| irv2_path = v }
-    o.on("--manifest PATH", "Binding manifest JSON file path") { |v| manifest_path = v }
-    o.on("--golden NAME", "Golden schema name (loads from golden/NAME/expected/)") { |v| golden_name = v }
-    o.separator ""
-    o.separator "Output options:"
-    o.on("--output FILE", "Output Ruby file (default: stdout)") { |v| output_file = v }
-    o.separator ""
-    o.separator "Examples:"
-    o.separator "  kumi codegen --golden simple_math --output generated.rb"
-    o.separator "  kumi codegen --irv2 schema.json --manifest manifest.json"
-  end.parse!(ARGV)
-  
-  begin
-    if golden_name
-      generated_code = Kumi::Codegen::Ruby.generate_from_golden(golden_name)
-    elsif irv2_path && manifest_path
-      generated_code = Kumi::Codegen::Ruby.generate_from_files(irv2_path, manifest_path)
-    else
-      abort "Must specify either --golden NAME or both --irv2 and --manifest"
+  case sub
+  when "ruby"
+    
+    golden_names = ARGV.shift || Kumi::Dev::Golden.list
+    
+    begin
+      Array(golden_names).each do |golden_name|
+        # Use the expected IRv2 and binding manifest from the golden test
+        golden_dir = "golden/#{golden_name}"
+        ir_file = "#{golden_dir}/expected/irv2.json"
+        binding_file = "#{golden_dir}/expected/binding_manifest.json"
+        output_file = "#{golden_dir}/expected/generated_code.rb"
+        
+        unless File.exist?(ir_file) && File.exist?(binding_file)
+          abort "Missing expected files: #{ir_file} or #{binding_file}"
+        end
+        
+        puts "Generating Ruby code for #{golden_name}..."
+        generated_code = Kumi::Codegen::RubyCodegen.generate(ir_file, binding_file)
+        
+        File.write(output_file, generated_code)
+        puts "Generated Ruby code written to: #{output_file}"
+        
+        # TODO: Add diff functionality to compare with existing generated_code.rb
+      end
     end
     
-    if output_file
-      File.write(output_file, generated_code)
-      puts "Generated Ruby code written to: #{output_file}"
-    else
-      puts generated_code
-    end
-  rescue => e
-    abort "Codegen error: #{e.message}"
+  else
+    abort "kumi codegen <ruby> ..."
   end
 
 else

@@ -99,6 +99,16 @@ module Kumi
 
         Printer::WidthAwareJson.dump(res.state[:binding_manifest])
       end
+
+      def generate_generated_code(path)
+        require "kumi/codegen/ruby"
+
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:irv2] && res.state[:binding_manifest]
+
+        Kumi::Codegen::Ruby.generate_from_data(res.state[:irv2], res.state[:binding_manifest])
+      end
     end
   end
 end

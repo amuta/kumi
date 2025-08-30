@@ -74,7 +74,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"price"}]
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"price"}]
       },
       {
         "path": ["items","quantity"],
@@ -82,7 +82,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"quantity"}]
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"quantity"}]
       },
       {
         "path": ["items","category"],
@@ -90,7 +90,7 @@
         "dtype": "string",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"scalar_leaf","key":"category"}]
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"category"}]
       },
       {
         "path": ["tax_rate"],
@@ -98,7 +98,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"scalar_leaf","key":"tax_rate"}]
+        "chain": [{"kind":"field_leaf","key":"tax_rate"}]
       }
     ]
   }

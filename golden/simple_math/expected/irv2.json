@@ -62,7 +62,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"scalar_leaf","key":"x"}]
+        "chain": [{"kind":"field_leaf","key":"x"}]
       },
       {
         "path": ["y"],
@@ -70,7 +70,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"scalar_leaf","key":"y"}]
+        "chain": [{"kind":"field_leaf","key":"y"}]
       }
     ]
   }

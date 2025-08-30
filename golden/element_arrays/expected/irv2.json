@@ -127,7 +127,7 @@
           {"kind":"array_field","key":"cube","axis":"cube"},
           {"kind":"array_element","alias":"layer","axis":"layer"},
           {"kind":"array_element","alias":"row","axis":"row"},
-          {"kind":"scalar_leaf","key":"cell"}
+          {"kind":"element_leaf"}
         ]
       }
     ]

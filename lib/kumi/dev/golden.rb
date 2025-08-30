@@ -8,8 +8,9 @@ module Kumi
     module Golden
       module_function
 
-      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest].freeze
+      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code].freeze
       JSON_REPRESENTATIONS = %w[irv2 binding_manifest].freeze
+      RUBY_REPRESENTATIONS = %w[generated_code].freeze
 
       def list
         golden_dirs.each do |name|
@@ -37,7 +38,13 @@ module Kumi
             current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
             next unless current_output
 
-            extension = JSON_REPRESENTATIONS.include?(repr) ? "json" : "txt"
+            extension = if JSON_REPRESENTATIONS.include?(repr)
+                          "json"
+                        elsif RUBY_REPRESENTATIONS.include?(repr)
+                          "rb"
+                        else
+                          "txt"
+                        end
             filename = "#{repr}.#{extension}"
             expected_file = File.join(expected_dir, filename)
 
@@ -86,7 +93,13 @@ module Kumi
           puts "Verifying #{schema_name}..."
 
           REPRESENTATIONS.each do |repr|
-            extension = JSON_REPRESENTATIONS.include?(repr) ? "json" : "txt"
+            extension = if JSON_REPRESENTATIONS.include?(repr)
+                          "json"
+                        elsif RUBY_REPRESENTATIONS.include?(repr)
+                          "rb"
+                        else
+                          "txt"
+                        end
             expected_file = File.join(expected_dir, "#{repr}.#{extension}")
             tmp_file = File.join(tmp_dir, "#{repr}.#{extension}")
             filename = "#{repr}.#{extension}"
@@ -116,6 +129,7 @@ module Kumi
               end
             rescue StandardError => e
               puts "  ✗ #{filename} (error: #{e.message})"
+              puts "Backtrace:" + e.backtrace.first(10).join("\n")
               success = false
             end
           end
@@ -148,12 +162,14 @@ module Kumi
 
       def test_codegen!(name = nil)
         require "json"
-        require "kumi/kernel_registry"
 
         names = name ? [name] : golden_dirs_with_codegen
         success = true
         total_tests = 0
         passed_tests = 0
+
+        # Clean tmp directories before testing
+        clean_tmp_dirs!(names)
 
         names.each do |schema_name|
           puts "Testing codegen for #{schema_name}..."
@@ -214,13 +230,14 @@ module Kumi
                   success = false
                 end
               rescue StandardError => e
-                puts "  ✗ #{decl_name}: ERROR - #{e.message}"
-                puts "    Backtrace:"
-                e.backtrace.first(10).each_with_index do |line, i|
-                  puts "      #{i + 1}. #{line}"
-                end
+                # puts "  ✗ #{decl_name}: ERROR - #{e.message}"
+                # puts "    Backtrace:"
+                # e.backtrace.first(10).each_with_index do |line, i|
+                #   puts "      #{i + 1}. #{line}"
+                # end
                 schema_passed = false
                 success = false
+                raise
               end
             end
 
@@ -230,12 +247,13 @@ module Kumi
               puts "  ⚠️  #{schema_name}: #{schema_correct}/#{schema_total} outputs correct"
             end
           rescue StandardError => e
-            puts "  ✗ #{schema_name}: SYSTEM ERROR - #{e.message}"
-            puts "    System backtrace:"
-            e.backtrace.first(10).each_with_index do |line, i|
-              puts "      #{i + 1}. #{line}"
-            end
+            # puts "  ✗ #{schema_name}: SYSTEM ERROR - #{e.message}"
+            # puts "    System backtrace:"
+            # e.backtrace.first(10).each_with_index do |line, i|
+            #   puts "      #{i + 1}. #{line}"
+            # end
             success = false
+            raise
           end
 
           puts
@@ -263,6 +281,20 @@ module Kumi
           File.exist?(golden_path(name, "expected/generated_code.rb")) &&
             File.exist?(golden_path(name, "input.json")) &&
             File.exist?(golden_path(name, "expected.json"))
+        end
+      end
+
+      def clean_tmp_dirs!(names)
+        names.each do |schema_name|
+          tmp_dir = golden_path(schema_name, "tmp")
+          next unless File.exist?(tmp_dir)
+
+          # Remove test-specific files, keep the main golden files
+          test_files = %w[test_generated_code.rb]
+          test_files.each do |file|
+            file_path = File.join(tmp_dir, file)
+            FileUtils.rm_f(file_path)
+          end
         end
       end
 

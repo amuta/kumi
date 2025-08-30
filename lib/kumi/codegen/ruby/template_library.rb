@@ -2,21 +2,24 @@
 
 module Kumi
   module Codegen
-    class RubyV2
+    class Ruby
       class TemplateLibrary
         def initialize(options)
           @options = options
         end
 
-        def emit_operation(op, template)
+        # Entrypoint: return Ruby source for a single scheduled op
+        def emit_operation(op, template, ops_by_id = {})
           case template
           when :const_scalar      then emit_const_scalar(op)
           when :load_input        then emit_load_input(op)
-          when :align_to_noop     then "" # semantic only
-          when :map_generic       then emit_map_generic(op)
-          when :select_generic    then emit_select_generic(op)
+          when :align_to_noop     then "" # semantic-only marker
+          when :map_scalar        then emit_map_scalar(op, ops_by_id)
+          when :map_nary          then emit_map_nary(op, ops_by_id)
+          when :select_scalar     then emit_select_scalar(op, ops_by_id)
+          when :select_vector     then emit_select_vector(op, ops_by_id)
           when :reduce_last       then emit_reduce_last(op)
-          when :construct_tuple   then emit_construct_tuple(op)
+          when :construct_tuple   then emit_construct_tuple(op, ops_by_id)
           when :load_declaration  then emit_load_declaration(op)
           else
             raise "Unknown template: #{template}"
@@ -25,189 +28,225 @@ module Kumi
 
         private
 
-        # ---------- helpers for code string building ----------
-        def build_idx_expr(var, mask, depth)
-          idx = []
-          (0..depth).each { |d| idx << "[i#{d}]" unless mask[d] }
-          "#{var}#{idx.join}"
+        # ---- utilities ----
+
+        # Must mirror emitter’s method-name scheme
+        def kernel_method_name(kid)
+          "k_" + kid.gsub(/[^a-zA-Z0-9]+/, "_")
         end
 
-        def build_prefix_expr(var, depth) # index every axis up to 'depth'
-          return var if depth < 0
+        # Collapse AlignTo → its true source id (so scalars aren’t indexed)
+        # NOTE: ops_by_id contains *scheduled* ops with symbol keys
+        def resolve_actual_id(op_id, ops_by_id)
+          op = ops_by_id[op_id]
+          return op_id unless op
+          return resolve_actual_id(op[:args][0], ops_by_id) if op[:op_type] == "AlignTo"
 
-          "#{var}#{(0..depth).map { |d| "[i#{d}]" }.join}"
+          op_id
         end
 
-        # ---------- primitives ----------
-        def emit_const_scalar(op)
-          value = op[:args][0]
-          lit   = value.is_a?(String) ? value.inspect : value.to_s
-          "op_#{op[:id]} = #{lit}"
+        # Build “[i0][i1]..” skipping axes with broadcast=true
+        def index_suffix_for(mask_row, rank)
+          s = +""
+          0.upto(rank - 1) { |k| s << "[i#{k}]" unless mask_row[k] }
+          s
         end
 
-        def emit_load_input(op)
-          path     = op[:args][0]
-          accessor = "fetch_#{path.join('_')}"
-          "op_#{op[:id]} = #{accessor}(@d)"
+        # ---- Map ----
+
+        # Scalar result: single kernel call
+        def emit_map_scalar(op, ops_by_id)
+          kid  = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id"
+          meth = kernel_method_name(kid)
+          args = op[:args].map { |id| "op_#{resolve_actual_id(id, ops_by_id)}" }.join(", ")
+          <<~RUBY.strip
+            op_#{op[:id]} = #{meth}(#{args})
+          RUBY
         end
 
-        def emit_construct_tuple(op)
-          args = op[:args].map { |id| "op_#{id}" }.join(", ")
-          "op_#{op[:id]} = [#{args}]"
-        end
+        # Vector result (rank >= 1): loops over driver’s shape, apply broadcast masks
+        def emit_map_nary(op, ops_by_id)
+          kid         = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id"
+          meth        = kernel_method_name(kid)
+          driver_idx  = op[:driver_index] or raise "missing driver_index"
+          driver_id   = op[:args][driver_idx] or raise "map needs args"
+          result_axes = op[:result_axes] || []
+          masks       = op[:masks]       || []
+          resolved    = op[:args].map { |aid| resolve_actual_id(aid, ops_by_id) }
 
-        def emit_load_declaration(op)
-          decl = op[:args][0]
-          # call the declaration method directly (no memo)
-          "op_#{op[:id]} = #{decl}"
-        end
-
-        # ---------- Map (generic with driver + masks) ----------
-        def emit_map_generic(op)
-          kernel_id  = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id for Map"
-          args       = op[:args]
-          r          = op[:result_axes]
-          driver_idx = op[:driver_index]
-          masks      = op[:masks]
-
+          rank = result_axes.length
+          drv  = "op_#{driver_id}"
           lines = []
-          lines << %(k_#{op[:id]} = @p.bind_kernel("#{kernel_id}"))
 
-          if r.empty?
-            call_args = args.map { |aid| "op_#{aid}" }.join(", ")
-            lines << %(op_#{op[:id]} = k_#{op[:id]}.call(#{call_args}))
+          if rank == 1
+            lines << "n0 = #{drv}.length"
+            lines << "out0 = Array.new(n0)"
+            lines << "i0 = 0"
+            lines << "while i0 < n0"
+            call = resolved.each_with_index.map { |rid, j| masks[j][0] ? "op_#{rid}" : "op_#{rid}[i0]" }.join(", ")
+            lines << "  out0[i0] = #{meth}(#{call})"
+            lines << "  i0 += 1"
+            lines << "end"
+            lines << "op_#{op[:id]} = out0"
             return lines.join("\n")
           end
 
-          driver = "op_#{args[driver_idx]}"
-          last   = r.length - 1
-
-          r.each_index do |d|
-            driver_slice = (d.zero? ? driver : build_prefix_expr(driver, d - 1))
-            lines << "n#{d} = #{driver_slice}.length"
-            lines << "out#{d} = Array.new(n#{d})"
-            lines << "i#{d} = 0"
-            lines << "while i#{d} < n#{d}"
+          # rank >= 2
+          0.upto(rank - 1) do |k|
+            path = (0...k).map { |t| "[i#{t}]" }.join
+            lines << "n#{k} = #{drv}#{path}.length"
+            lines << "out#{k} = Array.new(n#{k})"
+            lines << "i#{k} = 0"
+            lines << "while i#{k} < n#{k}"
           end
-
-          leaf_args = args.each_with_index.map do |aid, j|
-            build_idx_expr("op_#{aid}", masks[j], last)
-          end.join(", ")
-          lines << "  leaf = k_#{op[:id]}.call(#{leaf_args})"
-
-          r.length.times.reverse_each do |d|
-            lines << if d == last
-                       "  out#{d}[i#{d}] = leaf"
-                     else
-                       "  out#{d}[i#{d}] = out#{d + 1}"
-                     end
-            lines << "  i#{d} += 1"
-            lines << "end"
+          args_str = resolved.each_with_index.map { |rid, j| "op_#{rid}#{index_suffix_for(masks[j], rank)}" }.join(", ")
+          lines << (("  " * rank) + "out#{rank - 1}[i#{rank - 1}] = #{meth}(#{args_str})")
+          (rank - 1).downto(0) do |k|
+            indent = "  " * k
+            lines << "#{indent}i#{k} += 1"
+            lines << "#{indent}end"
+            if k > 0
+              parent_indent = "  " * (k - 1)
+              lines << "#{parent_indent}out#{k - 1}[i#{k - 1}] = out#{k}"
+            end
           end
-
           lines << "op_#{op[:id]} = out0"
           lines.join("\n")
         end
 
-        # ---------- Select (same loops, different leaf) ----------
-        def emit_select_generic(op)
-          args = op[:args]
-          raise "select expects 3 args" unless args.length == 3
+        # ---- Select ----
 
-          r          = op[:result_axes]
-          driver_idx = op[:driver_index]
-          masks      = op[:masks]
+        def emit_select_scalar(op, ops_by_id)
+          cid, tid, fid = op[:args]
+          rc, rt, rf = [cid, tid, fid].map { |id| resolve_actual_id(id, ops_by_id) }
+          "op_#{op[:id]} = (op_#{rc} ? op_#{rt} : op_#{rf})"
+        end
 
-          cond_id, t_id, f_id = args
+        def emit_select_vector(op, ops_by_id)
+          cid, tid, fid = op[:args]
+          driver_idx  = op[:driver_index] or raise "missing driver_index"
+          driver_id   = op[:args][driver_idx]
+          result_axes = op[:result_axes] || []
+          masks       = op[:masks]       || []
+          rc, rt, rf  = [cid, tid, fid].map { |id| resolve_actual_id(id, ops_by_id) }
+
+          rank = result_axes.length
+          drv  = "op_#{driver_id}"
           lines = []
 
-          if r.empty?
-            lines << "op_#{op[:id]} = (op_#{cond_id} ? op_#{t_id} : op_#{f_id})"
+          if rank == 1
+            lines << "n0 = #{drv}.length"
+            lines << "out0 = Array.new(n0)"
+            lines << "i0 = 0"
+            lines << "while i0 < n0"
+            c = masks[0][0] ? "op_#{rc}" : "op_#{rc}[i0]"
+            t = masks[1][0] ? "op_#{rt}" : "op_#{rt}[i0]"
+            f = masks[2][0] ? "op_#{rf}" : "op_#{rf}[i0]"
+            lines << "  out0[i0] = (#{c} ? #{t} : #{f})"
+            lines << "  i0 += 1"
+            lines << "end"
+            lines << "op_#{op[:id]} = out0"
             return lines.join("\n")
           end
 
-          driver = "op_#{args[driver_idx]}"
-          last   = r.length - 1
-
-          r.each_index do |d|
-            driver_slice = (d.zero? ? driver : build_prefix_expr(driver, d - 1))
-            lines << "n#{d} = #{driver_slice}.length"
-            lines << "out#{d} = Array.new(n#{d})"
-            lines << "i#{d} = 0"
-            lines << "while i#{d} < n#{d}"
+          0.upto(rank - 1) do |k|
+            path = (0...k).map { |t| "[i#{t}]" }.join
+            lines << "n#{k} = #{drv}#{path}.length"
+            lines << "out#{k} = Array.new(n#{k})"
+            lines << "i#{k} = 0"
+            lines << "while i#{k} < n#{k}"
           end
-
-          cond_expr = build_idx_expr("op_#{cond_id}", masks[0], last)
-          t_expr    = build_idx_expr("op_#{t_id}",    masks[1], last)
-          f_expr    = build_idx_expr("op_#{f_id}",    masks[2], last)
-          lines << "  leaf = (#{cond_expr} ? #{t_expr} : #{f_expr})"
-
-          r.length.times.reverse_each do |d|
-            lines << if d == last
-                       "  out#{d}[i#{d}] = leaf"
-                     else
-                       "  out#{d}[i#{d}] = out#{d + 1}"
-                     end
-            lines << "  i#{d} += 1"
-            lines << "end"
+          c = "op_#{rc}#{index_suffix_for(masks[0], rank)}"
+          t = "op_#{rt}#{index_suffix_for(masks[1], rank)}"
+          f = "op_#{rf}#{index_suffix_for(masks[2], rank)}"
+          lines << (("  " * rank) + "out#{rank - 1}[i#{rank - 1}] = (#{c} ? #{t} : #{f})")
+          (rank - 1).downto(0) do |k|
+            indent = "  " * k
+            lines << "#{indent}i#{k} += 1"
+            lines << "#{indent}end"
+            if k > 0
+              parent_indent = "  " * (k - 1)
+              lines << "#{parent_indent}out#{k - 1}[i#{k - 1}] = out#{k}"
+            end
           end
-
           lines << "op_#{op[:id]} = out0"
           lines.join("\n")
         end
 
-        # ---------- reduce (last axis only) ----------
+        # ---- Reduce(last axis) ----
+
         def emit_reduce_last(op)
-          kernel_id = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id for reduce"
-          src_id    = op[:args][0]
-          rprime    = op[:result_axes]
+          kid  = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id"
+          meth = kernel_method_name(kid)
+          src  = op[:args][0] or raise "reduce needs a source"
+          res_rank = (op[:result_axes] || []).length
+          src_expr = "op_#{src}"
 
           lines = []
-          lines << %(k_#{op[:id]} = @p.bind_kernel("#{kernel_id}"))
 
-          if rprime.empty?
-            lines << "row = op_#{src_id}"
-            lines << %(raise "Empty row at reduce op #{op[:id]}" if row.empty?) # TODO(muta): identity?
+          if res_rank == 0
+            lines << "row = #{src_expr}"
+            lines << "raise \"Empty row at reduce op #{op[:id]}\" if row.empty?"
             lines << "acc = row[0]"
             lines << "j = 1"
             lines << "while j < row.length"
-            lines << "  acc = k_#{op[:id]}.call(acc, row[j])"
+            lines << "  acc = #{meth}(acc, row[j])"
             lines << "  j += 1"
             lines << "end"
             lines << "op_#{op[:id]} = acc"
             return lines.join("\n")
           end
 
-          last = rprime.length - 1
-          driver = "op_#{src_id}"
-
-          rprime.each_index do |d|
-            driver_slice = (d.zero? ? driver : build_prefix_expr(driver, d - 1))
-            lines << "n#{d} = #{driver_slice}.length"
-            lines << "out#{d} = Array.new(n#{d})"
-            lines << "i#{d} = 0"
-            lines << "while i#{d} < n#{d}"
+          0.upto(res_rank - 1) do |k|
+            path = (0...k).map { |t| "[i#{t}]" }.join
+            lines << "n#{k} = #{src_expr}#{path}.length"
+            lines << "out#{k} = Array.new(n#{k})"
+            lines << "i#{k} = 0"
+            lines << "while i#{k} < n#{k}"
           end
-
-          row_expr = build_prefix_expr(driver, last)
-          lines << "  row = #{row_expr}"
-          lines << %(  raise "Empty row at reduce op #{op[:id]}" if row.empty?) # TODO(muta): identity?
-          lines << "  acc = row[0]"
-          lines << "  j = 1"
-          lines << "  while j < row.length"
-          lines << "    acc = k_#{op[:id]}.call(acc, row[j])"
-          lines << "    j += 1"
-          lines << "  end"
-          lines << "  out#{last}[i#{last}] = acc"
-
-          rprime.length.times.reverse_each do |d|
-            lines << "  out#{d}[i#{d}] = out#{d + 1}" unless d == last
-            lines << "  i#{d} += 1"
-            lines << "end"
+          path_to_row = (0...res_rank).map { |t| "[i#{t}]" }.join
+          lines << (("  " * res_rank) + "row = #{src_expr}#{path_to_row}")
+          lines << (("  " * res_rank) + "raise \"Empty row at reduce op #{op[:id]}\" if row.empty?")
+          lines << (("  " * res_rank) + "acc = row[0]")
+          lines << (("  " * res_rank) + "j = 1")
+          lines << (("  " * res_rank) + "while j < row.length")
+          lines << (("  " * res_rank) + "  acc = #{meth}(acc, row[j])")
+          lines << (("  " * res_rank) + "  j += 1")
+          lines << (("  " * res_rank) + "end")
+          lines << (("  " * (res_rank - 1)) + "out#{res_rank - 1}[i#{res_rank - 1}] = acc")
+          (res_rank - 1).downto(0) do |k|
+            indent = "  " * k
+            lines << "#{indent}i#{k} += 1"
+            lines << "#{indent}end"
+            if k > 0
+              parent_indent = "  " * (k - 1)
+              lines << "#{parent_indent}out#{k - 1}[i#{k - 1}] = out#{k}"
+            end
           end
-
           lines << "op_#{op[:id]} = out0"
           lines.join("\n")
+        end
+
+        # ---- trivial ----
+
+        def emit_const_scalar(op)
+          v = op[:args][0]
+          lit = v.is_a?(String) ? v.inspect : v.to_s
+          "op_#{op[:id]} = #{lit}"
+        end
+
+        def emit_load_input(op)
+          path = op[:args][0]
+          "op_#{op[:id]} = fetch_#{path.join('_')}(@d)"
+        end
+
+        def emit_construct_tuple(op, ops_by_id)
+          args = op[:args].map { |id| "op_#{resolve_actual_id(id, ops_by_id)}" }.join(", ")
+          "op_#{op[:id]} = [#{args}]"
+        end
+
+        def emit_load_declaration(op)
+          "op_#{op[:id]} = #{op[:args][0]}"
         end
       end
     end
