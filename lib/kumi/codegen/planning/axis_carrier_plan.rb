@@ -11,19 +11,48 @@ module Kumi
       #   #carrier_for(axis) -> InputSpec
       #   #len_call(axis, idx_var: "idx", data_var: "data") -> String (codegen helper)
       class AxisCarrierPlan
-        def self.build(decl_axes:, access_plan:)
+        def self.build(decl_axes:, access_plan:, required_prefix: [])
           mapping = {}
-          decl_axes.each do |a|
-            candidates = access_plan.carriers_for_axis(a)
-            raise "No input path carries axis #{a.inspect}" if candidates.empty?
+          decl_axes.each do |axis|
+            candidates = access_plan.carriers_for_axis(axis)
+            raise "No input path carries axis #{axis.inspect}" if candidates.empty?
 
-            # Deterministic choice: 1) exact path == [a], else 2) shortest chain length, else 3) first by path name
-            chosen =
-              candidates.find { |s| s.path.map(&:to_s) == [a.to_s] } ||
-              candidates.min_by { |s| s.chain.length } ||
-              candidates.sort_by { |s| s.path.map(&:to_s).join("/") }.first
+            # Calculate required prefix for this axis at this declaration site
+            axis_required_prefix = required_prefix + decl_axes.take_while { |ax| ax != axis }
+            
+            # Filter candidates that have compatible prefix
+            compatible_candidates = candidates.select do |spec|
+              consumed_axes = access_plan.consumes_axes(spec.path)
+              axis_index = consumed_axes.index(axis.to_sym)
+              
+              if axis_index.nil?
+                false # doesn't actually consume this axis
+              else
+                # Check if prefix before this axis matches required prefix
+                actual_prefix = consumed_axes.take(axis_index)
+                actual_prefix == axis_required_prefix
+              end
+            end
 
-            mapping[a.to_sym] = chosen
+            if compatible_candidates.empty?
+              candidate_info = candidates.map { |s| 
+                consumed = access_plan.consumes_axes(s.path)
+                axis_idx = consumed.index(axis.to_sym)
+                prefix = axis_idx ? consumed.take(axis_idx) : consumed
+                "#{s.path.join('.')} (prefix: #{prefix.inspect})"
+              }.join(", ")
+              
+              raise "No prefix-compatible carrier for axis #{axis.inspect}. " \
+                    "Required prefix: #{axis_required_prefix.inspect}. " \
+                    "Candidates: #{candidate_info}"
+            end
+
+            # Deterministic choice among compatible candidates
+            chosen = compatible_candidates.find { |s| s.path.map(&:to_s) == [axis.to_s] } ||
+                     compatible_candidates.min_by { |s| s.chain.length } ||
+                     compatible_candidates.sort_by { |s| s.path.map(&:to_s).join("/") }.first
+
+            mapping[axis.to_sym] = chosen
           end
           new(mapping, access_plan)
         end

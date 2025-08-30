@@ -30,7 +30,8 @@
       "result_id": 1,
       "site_schedule": {
         "max_depth": 2,
-        "hoisted": [],
+        "hoisted_scalars": [],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":1,"kind":"reduce"}]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [{"axis":"depts","carrier_path":["depts"],"len_call":"len_depts__via_depts(@d, idx)"}],
@@ -53,7 +54,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 2,
-        "hoisted": [{"id":2,"kind":"reduce"}],
+        "hoisted_scalars": [],
+        "root_reduces": [{"id":2,"kind":"reduce"}],
         "by_depth": [
           {"depth":0,"ops":[{"id":2,"kind":"reduce"}]},
           {"depth":1,"ops":[{"id":1,"kind":"reduce"}]},
@@ -81,7 +83,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 2,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":1,"kind":"const"}]},
           {"depth":1,"ops":[]},
@@ -102,7 +105,8 @@
       "result_id": 4,
       "site_schedule": {
         "max_depth": 2,
-        "hoisted": [{"id":2,"kind":"const"}],
+        "hoisted_scalars": [{"id":2,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":2,"kind":"const"}]},
           {"depth":1,"ops":[{"id":4,"kind":"reduce"}]},
@@ -120,7 +124,7 @@
           "len_call": "len_teams__via_depts_teams(@d, idx)"
         }
       ],
-      "inlining_decisions": {"big_team":"call"}
+      "inlining_decisions": {"big_team":"inline"}
     }
   }
 }

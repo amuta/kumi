@@ -38,14 +38,10 @@ module Kumi
 
             per_decl = {}
             mod.decls.each_value do |decl|
-              # Collect all axes used by operations in this declaration
-              all_axes = decl.ops.flat_map(&:stamp_axes).uniq
-              all_axes.concat(decl.ops.select { |op| op.kind == :reduce }.map { |op| op.attrs[:axis] || op.attrs["axis"] }).uniq
-              all_axes = all_axes.map(&:to_sym).uniq
-              
-              carriers = AxisCarrierPlan.build(decl_axes: all_axes, access_plan: access)
+              # Build carriers only for outer declaration axes
+              carriers = AxisCarrierPlan.build(decl_axes: decl.axes, access_plan: access)
               schedule = SiteSchedule.build(decl: decl)
-              reduces  = build_reduce_plans(decl, carriers, access)
+              reduces  = build_reduce_plans(decl, access)
 
               per_decl[decl.name] = PerDecl.new(
                 decl: decl,
@@ -99,8 +95,8 @@ module Kumi
             axes = if d["axes"] && !d["axes"].empty?
               Array(d["axes"]).map(&:to_sym)
             else
-              result_op ? result_op.stamp_axes : []
-            end
+              result_op ? Array(result_op.stamp_axes) : []
+            end.freeze
             
             Kumi::Codegen::Planning::DeclSpec.new(
               name: name.to_s.to_sym,
@@ -122,10 +118,10 @@ module Kumi
             )
           end
 
-          def build_reduce_plans(decl, carriers, access)
+          def build_reduce_plans(decl, access)
             decl.ops
                 .select { |op| op.kind == :reduce }
-                .map { |op| [op.id, ReducePlan.from_op(op: op, carrier_plan: carriers, access_plan: access)] }
+                .map { |op| [op.id, ReducePlan.from_op(op: op, access_plan: access)] }
                 .to_h
           end
         end

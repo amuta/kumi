@@ -32,7 +32,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
-        "hoisted": [],
+        "hoisted_scalars": [],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
@@ -46,7 +47,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
@@ -60,7 +62,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
@@ -74,7 +77,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
@@ -88,7 +92,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],

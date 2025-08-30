@@ -6,13 +6,12 @@ module Kumi
       # InliningPolicy decides whether a consumer should inline a producer
       # (LoadDeclaration) or call it as a separate method.
       #
-      # Minimal deterministic rule (good default):
-      #   inline if producer.result_axes == consumer_site_axes
-      #   otherwise: call
+      # Key rule: inline if producer.result_axes == consumer_use_site_axes
+      # where use_site_axes is the stamp.axes of the LoadDeclaration op
       #
       # Interface:
       #   .build(module_spec:) -> InliningPolicy
-      #   #decision(consumer_decl:, producer_decl:) -> :inline | :call
+      #   #decision(producer_decl:, consumer_use_site_axes:) -> :inline | :call
       class InliningPolicy
         def self.build(module_spec:)
           new(module_spec)
@@ -22,13 +21,12 @@ module Kumi
           @mod = mod
         end
 
-        # @param consumer_decl [DeclSpec]
-        # @param producer_decl [DeclSpec]
-        def decision(consumer_decl:, producer_decl:)
-          # NOTE: this is a scaffold. Replace with your exact rule if needed.
-          producer_axes = Array(producer_decl.axes)
-          consumer_axes = Array(consumer_decl.axes)
-          producer_axes == consumer_axes ? :inline : :call
+        # @param producer_decl [DeclSpec] The declaration being loaded
+        # @param consumer_use_site_axes [Array<Symbol>] The stamp.axes of the LoadDeclaration op
+        def decision(producer_decl:, consumer_use_site_axes:)
+          producer_axes = Array(producer_decl.axes).map(&:to_sym)
+          use_site_axes = Array(consumer_use_site_axes).map(&:to_sym)
+          producer_axes == use_site_axes ? :inline : :call
         end
       end
     end

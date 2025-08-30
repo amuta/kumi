@@ -1,0 +1,60 @@
+(Root
+  inputs: [
+    (InputDeclaration :batch :array access_mode: :field
+      [
+        (InputDeclaration :mean :float)
+        (InputDeclaration :row :array access_mode: :field
+          [
+            (InputDeclaration :scale :float)
+            (InputDeclaration :col :array access_mode: :field
+              [
+                (InputDeclaration :val :float)
+              ]
+            )
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :global_offset :float)
+  ]
+  values: [
+    (ValueDeclaration :global_offset_plus
+      (CallExpression :add
+        (InputReference :global_offset)
+        (Literal 1.0)
+      )
+    )
+    (ValueDeclaration :batch_bias
+      (CallExpression :add
+        (InputElementReference batch.mean)
+        (DeclarationReference :global_offset_plus)
+      )
+    )
+    (ValueDeclaration :row_scale2
+      (CallExpression :multiply
+        (InputElementReference batch.row.scale)
+        (Literal 2.0)
+      )
+    )
+    (ValueDeclaration :elem_affine
+      (CallExpression :add
+        (CallExpression :multiply
+          (InputElementReference batch.row.col.val)
+          (DeclarationReference :row_scale2)
+        )
+        (DeclarationReference :batch_bias)
+      )
+    )
+    (ValueDeclaration :row_sum_affine
+      (CallExpression :sum
+        (DeclarationReference :elem_affine)
+      )
+    )
+    (ValueDeclaration :batch_total_affine
+      (CallExpression :sum
+        (DeclarationReference :row_sum_affine)
+      )
+    )
+  ]
+  traits: []
+)

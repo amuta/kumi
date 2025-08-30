@@ -17,7 +17,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 0,
-        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [],
@@ -31,7 +32,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 0,
-        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
       "axis_carriers": [],
@@ -45,7 +47,7 @@
       "result_id": 11,
       "site_schedule": {
         "max_depth": 0,
-        "hoisted": [
+        "hoisted_scalars": [
           {"id":0,"kind":"loaddeclaration"},
           {"id":1,"kind":"loaddeclaration"},
           {"id":2,"kind":"map"},
@@ -57,6 +59,7 @@
           {"id":10,"kind":"select"},
           {"id":11,"kind":"select"}
         ],
+        "root_reduces": [],
         "by_depth": [
           {
             "depth": 0,

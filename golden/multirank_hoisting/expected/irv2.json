@@ -1,0 +1,144 @@
+{
+  "version": "0.1",
+  "module": "schema_module",
+  "declarations": {
+    "global_offset_plus": {
+      "name": "global_offset_plus",
+      "parameters": [{"kind":"input","path":["global_offset"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["global_offset"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":1,"op":"Const","args":[1.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.add"}}
+      ],
+      "result": 2
+    },
+    "batch_bias": {
+      "name": "batch_bias",
+      "parameters": [{"kind":"input","path":["batch","mean"]},{"kind":"dependency","source":"global_offset_plus"}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["batch","mean"]],"stamp":{"dtype":"float","axes":["batch"]}},
+        {"id":1,"op":"LoadDeclaration","args":["global_offset_plus"],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"core.add"}}
+      ],
+      "result": 2
+    },
+    "row_scale2": {
+      "name": "row_scale2",
+      "parameters": [{"kind":"input","path":["batch","row","scale"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["batch","row","scale"]],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":1,"op":"Const","args":[2.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch","row"]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 2
+    },
+    "elem_affine": {
+      "name": "elem_affine",
+      "parameters": [
+        {"kind":"input","path":["batch","row","col","val"]},
+        {"kind":"dependency","source":"row_scale2"},
+        {"kind":"dependency","source":"batch_bias"}
+      ],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["batch","row","col","val"]],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
+        {"id":1,"op":"LoadDeclaration","args":["row_scale2"],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.mul"}},
+        {"id":3,"op":"LoadDeclaration","args":["batch_bias"],"stamp":{"dtype":"float","axes":["batch"]}},
+        {"id":4,"op":"Map","args":[2,3],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.add"}}
+      ],
+      "result": 4
+    },
+    "row_sum_affine": {
+      "name": "row_sum_affine",
+      "parameters": [{"kind":"dependency","source":"elem_affine"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["elem_affine"],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["batch","row"]},"attrs":{"fn":"agg.sum","axis":"col"}}
+      ],
+      "result": 1
+    },
+    "batch_total_affine": {
+      "name": "batch_total_affine",
+      "parameters": [{"kind":"dependency","source":"row_sum_affine"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["row_sum_affine"],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"agg.sum","axis":"row"}}
+      ],
+      "result": 1
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["batch"],
+        "axes": ["batch"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"batch","axis":"batch"}]
+      },
+      {
+        "path": ["batch","mean"],
+        "axes": ["batch"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"batch","axis":"batch"},{"kind":"field_leaf","key":"mean"}]
+      },
+      {
+        "path": ["batch","row"],
+        "axes": ["batch","row"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"batch","axis":"batch"},{"kind":"array_field","key":"row","axis":"row"}]
+      },
+      {
+        "path": ["batch","row","scale"],
+        "axes": ["batch","row"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [
+          {"kind":"array_field","key":"batch","axis":"batch"},
+          {"kind":"array_field","key":"row","axis":"row"},
+          {"kind":"field_leaf","key":"scale"}
+        ]
+      },
+      {
+        "path": ["batch","row","col"],
+        "axes": ["batch","row","col"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [
+          {"kind":"array_field","key":"batch","axis":"batch"},
+          {"kind":"array_field","key":"row","axis":"row"},
+          {"kind":"array_field","key":"col","axis":"col"}
+        ]
+      },
+      {
+        "path": ["batch","row","col","val"],
+        "axes": ["batch","row","col"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [
+          {"kind":"array_field","key":"batch","axis":"batch"},
+          {"kind":"array_field","key":"row","axis":"row"},
+          {"kind":"array_field","key":"col","axis":"col"},
+          {"kind":"field_leaf","key":"val"}
+        ]
+      },
+      {
+        "path": ["global_offset"],
+        "axes": [],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"field_leaf","key":"global_offset"}]
+      }
+    ]
+  }
+}

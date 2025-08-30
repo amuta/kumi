@@ -52,7 +52,8 @@ module Kumi
             "result_id" => decl.result_id,
             "site_schedule" => {
               "max_depth" => schedule.max_depth,
-              "hoisted" => schedule.hoisted.map { |op| { "id" => op.id, "kind" => op.kind.to_s } },
+              "hoisted_scalars" => schedule.hoisted_scalars.map { |op| { "id" => op.id, "kind" => op.kind.to_s } },
+              "root_reduces" => schedule.root_reduces.map { |op| { "id" => op.id, "kind" => op.kind.to_s } },
               "by_depth" => (0..schedule.max_depth).map do |d|
                 {
                   "depth" => d,
@@ -81,12 +82,17 @@ module Kumi
             "inlining_decisions" => {}
           }
 
-          # Add inlining decisions for dependencies
+          # Add inlining decisions for dependencies (per use site)
           decl.ops.select { |op| op.kind == :loaddeclaration }.each do |op|
             dep_name = op.args.first
             dep_decl = bundle.by_decl[dep_name.to_sym]&.decl
             if dep_decl
-              decision = bundle.inlining_policy.decision(consumer_decl: decl, producer_decl: dep_decl)
+              # Use the specific use site axes of this LoadDeclaration op
+              decision = bundle.inlining_policy.decision(
+                producer_decl: dep_decl, 
+                consumer_use_site_axes: op.stamp_axes
+              )
+              # Key by both dependency and use site for clarity (though simplified for now)
               output["declarations"][decl_name.to_s]["inlining_decisions"][dep_name.to_s] = decision.to_s
             end
           end

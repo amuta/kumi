@@ -65,7 +65,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 4,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":1,"kind":"const"}]},
           {"depth":1,"ops":[]},
@@ -94,7 +95,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 4,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":1,"kind":"const"}]},
           {"depth":1,"ops":[]},
@@ -123,7 +125,8 @@
       "result_id": 2,
       "site_schedule": {
         "max_depth": 3,
-        "hoisted": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":1,"kind":"const"}]},
           {"depth":1,"ops":[]},
@@ -151,7 +154,8 @@
       "result_id": 16,
       "site_schedule": {
         "max_depth": 4,
-        "hoisted": [{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}],
+        "hoisted_scalars": [{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}],
+        "root_reduces": [],
         "by_depth": [
           {"depth":0,"ops":[{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}]},
           {"depth":1,"ops":[]},
@@ -186,7 +190,7 @@
         }
       ],
       "reduce_plans": [],
-      "inlining_decisions": {"high_performer":"inline","senior_level":"inline","top_team":"call"}
+      "inlining_decisions": {"high_performer":"inline","senior_level":"inline","top_team":"inline"}
     }
   }
 }

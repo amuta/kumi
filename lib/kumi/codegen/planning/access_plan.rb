@@ -15,6 +15,7 @@ module Kumi
           # key = path array joined by '/'
           @inputs_by_path = {}
           input_specs.each do |s|
+            validate_input_spec(s)
             key = path_key(s.path)
             @inputs_by_path[key] = s
           end
@@ -54,6 +55,20 @@ module Kumi
         end
 
         private
+
+        def validate_input_spec(spec)
+          # Validate that every array-consuming step in the chain declares an axis
+          (spec.chain || []).each do |step|
+            kind = step["kind"] || step[:kind]
+            if kind && kind.to_s.start_with?("array_")
+              axis = step["axis"] || step[:axis]
+              unless axis
+                raise "Untagged array step in path #{spec.path.join('.')}: step #{step.inspect}. " \
+                      "Every array step must specify 'axis' token."
+              end
+            end
+          end
+        end
 
         def path_key(path_array)
           Array(path_array).map(&:to_s).join("/")
