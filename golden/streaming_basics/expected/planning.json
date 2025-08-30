@@ -79,7 +79,10 @@
       },
       "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
       "reduce_plans": [],
-      "inlining_decisions": {"items_is_big":"inline","items_subtotal":"inline"}
+      "inlining_decisions": {
+        "op_0": {"producer":"items_is_big","decision":"inline","use_site_axes":["items"]},
+        "op_1": {"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}
+      }
     },
     "total_qty": {
       "name": "total_qty",
@@ -113,7 +116,7 @@
       "reduce_plans": [
         {"op_id":1,"axis":"items","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","len_call":"len_items__via_items(@d, idx)"}
       ],
-      "inlining_decisions": {"items_subtotal":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}}
     },
     "cart_total_effective": {
       "name": "cart_total_effective",
@@ -130,7 +133,7 @@
       "reduce_plans": [
         {"op_id":1,"axis":"items","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","len_call":"len_items__via_items(@d, idx)"}
       ],
-      "inlining_decisions": {"items_effective":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"items_effective","decision":"inline","use_site_axes":["items"]}}
     }
   }
 }

@@ -155,7 +155,7 @@
           "len_call": "len_row__via_cube_layer_row(@d, idx)"
         }
       ],
-      "inlining_decisions": {"cell_over_limit":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     },
     "count_over_limit": {
       "name": "count_over_limit",
@@ -193,7 +193,7 @@
         },
         {"op_id":6,"axis":"cube","result_depth":0,"arg_id":5,"reducer_fn":"agg.sum","len_call":"len_cube__via_cube(@d, idx)"}
       ],
-      "inlining_decisions": {"cell_over_limit":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     }
   }
 }

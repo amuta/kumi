@@ -80,7 +80,10 @@
       },
       "axis_carriers": [],
       "reduce_plans": [],
-      "inlining_decisions": {"y_positive":"inline","x_positive":"inline"}
+      "inlining_decisions": {
+        "op_0": {"producer":"y_positive","decision":"inline","use_site_axes":[]},
+        "op_1": {"producer":"x_positive","decision":"inline","use_site_axes":[]}
+      }
     }
   }
 }

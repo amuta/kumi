@@ -38,11 +38,11 @@ module Kumi
 
         # Deterministic helper names for codegen
         def scalar_accessor_name(path_array)
-          "at_#{Array(path_array).join('_')}"
+          "at_#{Array(path_array).map { |s| safe_ident(s) }.join('_')}"
         end
 
         def axis_len_method_name(axis, via_path_array)
-          "len_#{axis}__via_#{Array(via_path_array).join('_')}"
+          "len_#{safe_ident(axis)}__via_#{Array(via_path_array).map { |s| safe_ident(s) }.join('_')}"
         end
 
         # All inputs that carry a given axis (useful for diagnostics / asserts)
@@ -68,6 +68,10 @@ module Kumi
               end
             end
           end
+        end
+
+        def safe_ident(s)
+          s.to_s.gsub(/[^a-zA-Z0-9_]/, "_")
         end
 
         def path_key(path_array)

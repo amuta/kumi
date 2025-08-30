@@ -124,7 +124,7 @@
           "len_call": "len_teams__via_depts_teams(@d, idx)"
         }
       ],
-      "inlining_decisions": {"big_team":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"big_team","decision":"inline","use_site_axes":["depts","teams"]}}
     }
   }
 }

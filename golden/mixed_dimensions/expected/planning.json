@@ -101,7 +101,7 @@
       },
       "axis_carriers": [],
       "reduce_plans": [],
-      "inlining_decisions": {"sum_numbers":"inline"}
+      "inlining_decisions": {"op_1":{"producer":"sum_numbers","decision":"inline","use_site_axes":[]}}
     },
     "constant": {
       "name": "constant",

@@ -70,7 +70,7 @@
       },
       "axis_carriers": [{"axis":"batch","carrier_path":["batch"],"len_call":"len_batch__via_batch(@d, idx)"}],
       "reduce_plans": [],
-      "inlining_decisions": {"global_offset_plus":"inline"}
+      "inlining_decisions": {"op_1":{"producer":"global_offset_plus","decision":"inline","use_site_axes":[]}}
     },
     "row_scale2": {
       "name": "row_scale2",
@@ -120,7 +120,10 @@
         {"axis":"col","carrier_path":["batch","row","col"],"len_call":"len_col__via_batch_row_col(@d, idx)"}
       ],
       "reduce_plans": [],
-      "inlining_decisions": {"row_scale2":"inline","batch_bias":"inline"}
+      "inlining_decisions": {
+        "op_1": {"producer":"row_scale2","decision":"inline","use_site_axes":["batch","row"]},
+        "op_3": {"producer":"batch_bias","decision":"inline","use_site_axes":["batch"]}
+      }
     },
     "row_sum_affine": {
       "name": "row_sum_affine",
@@ -152,7 +155,7 @@
           "len_call": "len_col__via_batch_row_col(@d, idx)"
         }
       ],
-      "inlining_decisions": {"elem_affine":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"elem_affine","decision":"inline","use_site_axes":["batch","row","col"]}}
     },
     "batch_total_affine": {
       "name": "batch_total_affine",
@@ -173,7 +176,7 @@
       "reduce_plans": [
         {"op_id":1,"axis":"row","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","len_call":"len_row__via_batch_row(@d, idx)"}
       ],
-      "inlining_decisions": {"row_sum_affine":"inline"}
+      "inlining_decisions": {"op_0":{"producer":"row_sum_affine","decision":"inline","use_site_axes":["batch","row"]}}
     }
   }
 }

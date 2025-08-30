@@ -82,7 +82,7 @@ module Kumi
             "inlining_decisions" => {}
           }
 
-          # Add inlining decisions for dependencies (per use site)
+          # Add per-operation inlining decisions for LoadDeclaration ops
           decl.ops.select { |op| op.kind == :loaddeclaration }.each do |op|
             dep_name = op.args.first
             dep_decl = bundle.by_decl[dep_name.to_sym]&.decl
@@ -92,8 +92,12 @@ module Kumi
                 producer_decl: dep_decl, 
                 consumer_use_site_axes: op.stamp_axes
               )
-              # Key by both dependency and use site for clarity (though simplified for now)
-              output["declarations"][decl_name.to_s]["inlining_decisions"][dep_name.to_s] = decision.to_s
+              # Store decision per operation ID for precise codegen control
+              output["declarations"][decl_name.to_s]["inlining_decisions"]["op_#{op.id}"] = {
+                "producer" => dep_name.to_s,
+                "decision" => decision.to_s,
+                "use_site_axes" => op.stamp_axes.map(&:to_s)
+              }
             end
           end
         end

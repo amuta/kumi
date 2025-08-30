@@ -190,7 +190,11 @@
         }
       ],
       "reduce_plans": [],
-      "inlining_decisions": {"high_performer":"inline","senior_level":"inline","top_team":"inline"}
+      "inlining_decisions": {
+        "op_0": {"producer":"high_performer","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
+        "op_1": {"producer":"senior_level","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
+        "op_2": {"producer":"top_team","decision":"inline","use_site_axes":["regions","offices","teams"]}
+      }
     }
   }
 }

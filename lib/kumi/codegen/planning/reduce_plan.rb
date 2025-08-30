@@ -19,10 +19,13 @@ module Kumi
         def self.from_op(op:, access_plan:)
           raise "not a reduce op" unless op.kind == :reduce
 
-          axis_sym = (op.attrs[:axis] || op.attrs["axis"]).to_sym
+          axis_sym = (op.attrs[:axis] || op.attrs["axis"]) or raise "Reduce op #{op.id} missing :axis attribute"
+          reducer_fn = (op.attrs[:fn] || op.attrs["fn"]) or raise "Reduce op #{op.id} missing :fn attribute"
+          
+          axis_sym = axis_sym.to_sym
           arg_axes = Array(op.stamp_axes) + [axis_sym] # arg stamp includes axis by IR convention
           result_depth = arg_axes.length - 1
-          reducer_fn = (op.attrs[:fn] || op.attrs["fn"]).to_s # e.g. "agg.sum"
+          reducer_fn = reducer_fn.to_s # e.g. "agg.sum"
 
           # Select carrier with proper site prefix (result site = op.stamp_axes)
           required_prefix = Array(op.stamp_axes).map(&:to_sym)
