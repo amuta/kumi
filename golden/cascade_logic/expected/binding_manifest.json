@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:81e3ddeee93fd25a535418c35cbe0b9dcebbbeaf6b72e2cdb3cf4ad6ee71d163",
   "target": "ruby",
-  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
   "bindings": [
     {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
     {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},

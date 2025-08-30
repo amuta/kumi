@@ -18,10 +18,9 @@
       "operations": [
         {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
         {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"target_axes":["items"]}},
-        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
       ],
-      "result": 3
+      "result": 2
     },
     "is_valid_quantity": {
       "name": "is_valid_quantity",
@@ -29,10 +28,9 @@
       "operations": [
         {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
         {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"integer","axes":["items"]},"attrs":{"target_axes":["items"]}},
-        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
       ],
-      "result": 3
+      "result": 2
     },
     "expensive_items": {
       "name": "expensive_items",
@@ -40,10 +38,9 @@
       "operations": [
         {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
         {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"target_axes":["items"]}},
-        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
       ],
-      "result": 3
+      "result": 2
     },
     "electronics": {
       "name": "electronics",
@@ -51,10 +48,9 @@
       "operations": [
         {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":["items"]}},
         {"id":1,"op":"Const","args":["electronics"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":2,"op":"AlignTo","args":[1],"stamp":{"dtype":"string","axes":["items"]},"attrs":{"target_axes":["items"]}},
-        {"id":3,"op":"Map","args":[0,2],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.eq"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.eq"}}
       ],
-      "result": 3
+      "result": 2
     }
   },
   "analysis": {

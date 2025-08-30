@@ -73,12 +73,12 @@ private
       end
 
       def mixed_array
-        # ops: 0:LoadInput, 1:LoadDeclaration, 2:LoadInput, 3:AlignTo, 4:AlignTo, 5:ConstructTuple
+        # ops: 0:LoadInput, 1:LoadDeclaration, 2:LoadInput, 3:ConstructTuple
         op_0 = fetch_scalar_val(@d)
         op_1 = sum_numbers
         op_2 = fetch_matrix_row_cell(@d)
-        op_5 = [op_0, op_1, op_2]
-        op_5
+        op_3 = [op_0, op_1, op_2]
+        op_3
       end
 
       def constant

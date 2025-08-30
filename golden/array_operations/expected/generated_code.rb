@@ -60,7 +60,7 @@ private
       end
 
       def discounted_price
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_items_price(@d)
         op_1 = 0.9
         n0 = op_0.length
@@ -70,12 +70,12 @@ private
           out0[i0] = k_core_mul_ruby_v1(op_0[i0], op_1)
           i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def is_valid_quantity
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_items_quantity(@d)
         op_1 = 0
         n0 = op_0.length
@@ -85,12 +85,12 @@ private
           out0[i0] = k_core_gt_ruby_v1(op_0[i0], op_1)
           i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def expensive_items
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_items_price(@d)
         op_1 = 100.0
         n0 = op_0.length
@@ -100,12 +100,12 @@ private
           out0[i0] = k_core_gt_ruby_v1(op_0[i0], op_1)
           i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def electronics
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_items_category(@d)
         op_1 = "electronics"
         n0 = op_0.length
@@ -115,8 +115,8 @@ private
           out0[i0] = k_core_eq_ruby_v1(op_0[i0], op_1)
           i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def fetch_items(data)

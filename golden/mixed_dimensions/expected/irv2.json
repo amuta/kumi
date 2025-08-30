@@ -33,26 +33,12 @@
         {"id":2,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
         {
           "id": 3,
-          "op": "AlignTo",
-          "args": [0],
-          "stamp": {"dtype":"integer","axes":["matrix","row"]},
-          "attrs": {"target_axes":["matrix","row"]}
-        },
-        {
-          "id": 4,
-          "op": "AlignTo",
-          "args": [1],
-          "stamp": {"dtype":"integer","axes":["matrix","row"]},
-          "attrs": {"target_axes":["matrix","row"]}
-        },
-        {
-          "id": 5,
           "op": "ConstructTuple",
-          "args": [3,4,2],
+          "args": [0,1,2],
           "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"float","axes":["matrix","row"]}]
         }
       ],
-      "result": 5
+      "result": 3
     },
     "constant": {
       "name": "constant",

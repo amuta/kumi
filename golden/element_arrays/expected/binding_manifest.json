@@ -1,12 +1,12 @@
 {
-  "ir_ref": "sha256:0dadb346358abf3b2f392c384e6406703ee95375f771590dc43ad8246dcc051f",
+  "ir_ref": "sha256:9accc43d6bfb7feac86ccb26e79900dfb502d794a3f80fc80593ce51178d38a9",
   "target": "ruby",
-  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
   "bindings": [
-    {"decl":"cell_over_limit","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
-    {"decl":"cell_sum","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
-    {"decl":"count_over_limit","op":6,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
-    {"decl":"count_over_limit","op":7,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
-    {"decl":"count_over_limit","op":8,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"}
+    {"decl":"cell_over_limit","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"cell_sum","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
+    {"decl":"count_over_limit","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
+    {"decl":"count_over_limit","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
+    {"decl":"count_over_limit","op":6,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"}
   ]
 }

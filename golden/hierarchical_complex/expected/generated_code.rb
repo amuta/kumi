@@ -48,7 +48,7 @@ private
       end
 
       def high_performer
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_regions_offices_teams_employees_rating(@d)
         op_1 = 4.5
         n0 = op_0.length
@@ -79,12 +79,12 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def senior_level
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_regions_offices_teams_employees_level(@d)
         op_1 = "senior"
         n0 = op_0.length
@@ -115,12 +115,12 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def top_team
-        # ops: 0:LoadInput, 1:Const, 2:AlignTo, 3:Map
+        # ops: 0:LoadInput, 1:Const, 2:Map
         op_0 = fetch_regions_offices_teams_performance_score(@d)
         op_1 = 0.9
         n0 = op_0.length
@@ -144,12 +144,12 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_3 = out0
-        op_3
+        op_2 = out0
+        op_2
       end
 
       def employee_bonus
-        # ops: 0:LoadDeclaration, 1:LoadDeclaration, 2:LoadDeclaration, 3:AlignTo, 4:Map, 5:Map, 6:LoadInput, 7:Const, 8:AlignTo, 9:Map, 13:Map, 14:Const, 15:AlignTo, 16:Map, 17:Const, 18:AlignTo, 19:Map, 20:Select, 21:Select
+        # ops: 0:LoadDeclaration, 1:LoadDeclaration, 2:LoadDeclaration, 3:Map, 4:Map, 5:LoadInput, 6:Const, 7:Map, 10:Map, 11:Const, 12:Map, 13:Const, 14:Map, 15:Select, 16:Select
         op_0 = high_performer
         op_1 = senior_level
         op_2 = top_team
@@ -181,7 +181,7 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_4 = out0
+        op_3 = out0
         n0 = op_0.length
         out0 = Array.new(n0)
         i0 = 0
@@ -198,7 +198,7 @@ private
         out3 = Array.new(n3)
         i3 = 0
         while i3 < n3
-                out3[i3] = k_core_and_ruby_v1(op_0[i0][i1][i2][i3], op_4[i0][i1][i2][i3])
+                out3[i3] = k_core_and_ruby_v1(op_0[i0][i1][i2][i3], op_3[i0][i1][i2][i3])
               i3 += 1
               end
             out2[i2] = out3
@@ -210,26 +210,26 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_5 = out0
-        op_6 = fetch_regions_offices_teams_employees_salary(@d)
-        op_7 = 0.3
-        n0 = op_6.length
+        op_4 = out0
+        op_5 = fetch_regions_offices_teams_employees_salary(@d)
+        op_6 = 0.3
+        n0 = op_5.length
         out0 = Array.new(n0)
         i0 = 0
         while i0 < n0
-        n1 = op_6[i0].length
+        n1 = op_5[i0].length
         out1 = Array.new(n1)
         i1 = 0
         while i1 < n1
-        n2 = op_6[i0][i1].length
+        n2 = op_5[i0][i1].length
         out2 = Array.new(n2)
         i2 = 0
         while i2 < n2
-        n3 = op_6[i0][i1][i2].length
+        n3 = op_5[i0][i1][i2].length
         out3 = Array.new(n3)
         i3 = 0
         while i3 < n3
-                out3[i3] = k_core_mul_ruby_v1(op_6[i0][i1][i2][i3], op_7)
+                out3[i3] = k_core_mul_ruby_v1(op_5[i0][i1][i2][i3], op_6)
               i3 += 1
               end
             out2[i2] = out3
@@ -241,7 +241,7 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_9 = out0
+        op_7 = out0
         n0 = op_0.length
         out0 = Array.new(n0)
         i0 = 0
@@ -270,96 +270,8 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_13 = out0
-        op_14 = 0.2
-        n0 = op_6.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_6[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-        n2 = op_6[i0][i1].length
-        out2 = Array.new(n2)
-        i2 = 0
-        while i2 < n2
-        n3 = op_6[i0][i1][i2].length
-        out3 = Array.new(n3)
-        i3 = 0
-        while i3 < n3
-                out3[i3] = k_core_mul_ruby_v1(op_6[i0][i1][i2][i3], op_14)
-              i3 += 1
-              end
-            out2[i2] = out3
-            i2 += 1
-            end
-          out1[i1] = out2
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_16 = out0
-        op_17 = 0.05
-        n0 = op_6.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_6[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-        n2 = op_6[i0][i1].length
-        out2 = Array.new(n2)
-        i2 = 0
-        while i2 < n2
-        n3 = op_6[i0][i1][i2].length
-        out3 = Array.new(n3)
-        i3 = 0
-        while i3 < n3
-                out3[i3] = k_core_mul_ruby_v1(op_6[i0][i1][i2][i3], op_17)
-              i3 += 1
-              end
-            out2[i2] = out3
-            i2 += 1
-            end
-          out1[i1] = out2
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_19 = out0
-        n0 = op_13.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_13[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-        n2 = op_13[i0][i1].length
-        out2 = Array.new(n2)
-        i2 = 0
-        while i2 < n2
-        n3 = op_13[i0][i1][i2].length
-        out3 = Array.new(n3)
-        i3 = 0
-        while i3 < n3
-                out3[i3] = (op_13[i0][i1][i2][i3] ? op_16[i0][i1][i2][i3] : op_19[i0][i1][i2][i3])
-              i3 += 1
-              end
-            out2[i2] = out3
-            i2 += 1
-            end
-          out1[i1] = out2
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_20 = out0
+        op_10 = out0
+        op_11 = 0.2
         n0 = op_5.length
         out0 = Array.new(n0)
         i0 = 0
@@ -376,7 +288,7 @@ private
         out3 = Array.new(n3)
         i3 = 0
         while i3 < n3
-                out3[i3] = (op_5[i0][i1][i2][i3] ? op_9[i0][i1][i2][i3] : op_20[i0][i1][i2][i3])
+                out3[i3] = k_core_mul_ruby_v1(op_5[i0][i1][i2][i3], op_11)
               i3 += 1
               end
             out2[i2] = out3
@@ -388,8 +300,96 @@ private
         out0[i0] = out1
         i0 += 1
         end
-        op_21 = out0
-        op_21
+        op_12 = out0
+        op_13 = 0.05
+        n0 = op_5.length
+        out0 = Array.new(n0)
+        i0 = 0
+        while i0 < n0
+        n1 = op_5[i0].length
+        out1 = Array.new(n1)
+        i1 = 0
+        while i1 < n1
+        n2 = op_5[i0][i1].length
+        out2 = Array.new(n2)
+        i2 = 0
+        while i2 < n2
+        n3 = op_5[i0][i1][i2].length
+        out3 = Array.new(n3)
+        i3 = 0
+        while i3 < n3
+                out3[i3] = k_core_mul_ruby_v1(op_5[i0][i1][i2][i3], op_13)
+              i3 += 1
+              end
+            out2[i2] = out3
+            i2 += 1
+            end
+          out1[i1] = out2
+          i1 += 1
+          end
+        out0[i0] = out1
+        i0 += 1
+        end
+        op_14 = out0
+        n0 = op_10.length
+        out0 = Array.new(n0)
+        i0 = 0
+        while i0 < n0
+        n1 = op_10[i0].length
+        out1 = Array.new(n1)
+        i1 = 0
+        while i1 < n1
+        n2 = op_10[i0][i1].length
+        out2 = Array.new(n2)
+        i2 = 0
+        while i2 < n2
+        n3 = op_10[i0][i1][i2].length
+        out3 = Array.new(n3)
+        i3 = 0
+        while i3 < n3
+                out3[i3] = (op_10[i0][i1][i2][i3] ? op_12[i0][i1][i2][i3] : op_14[i0][i1][i2][i3])
+              i3 += 1
+              end
+            out2[i2] = out3
+            i2 += 1
+            end
+          out1[i1] = out2
+          i1 += 1
+          end
+        out0[i0] = out1
+        i0 += 1
+        end
+        op_15 = out0
+        n0 = op_4.length
+        out0 = Array.new(n0)
+        i0 = 0
+        while i0 < n0
+        n1 = op_4[i0].length
+        out1 = Array.new(n1)
+        i1 = 0
+        while i1 < n1
+        n2 = op_4[i0][i1].length
+        out2 = Array.new(n2)
+        i2 = 0
+        while i2 < n2
+        n3 = op_4[i0][i1][i2].length
+        out3 = Array.new(n3)
+        i3 = 0
+        while i3 < n3
+                out3[i3] = (op_4[i0][i1][i2][i3] ? op_7[i0][i1][i2][i3] : op_15[i0][i1][i2][i3])
+              i3 += 1
+              end
+            out2[i2] = out3
+            i2 += 1
+            end
+          out1[i1] = out2
+          i1 += 1
+          end
+        out0[i0] = out1
+        i0 += 1
+        end
+        op_16 = out0
+        op_16
       end
 
       def fetch_regions(data)

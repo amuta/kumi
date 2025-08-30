@@ -95,9 +95,9 @@ module Kumi
                          return @b.const(nil)
                        end
                        lowered = node.elements.map { |e| lower_expr(e, errors) }
-                       aligned = apply_aligns(lowered, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                       #  aligned = apply_aligns(lowered, plan[:needs_expand_flags], plan[:target_axes_tokens])
                        elem_stamps = node.elements.map { |elem| ser_stamp(elem.meta[:stamp]) }
-                       @b.construct_tuple(*aligned, elem_stamps: elem_stamps)
+                       @b.construct_tuple(*lowered, elem_stamps: elem_stamps)
 
                      when Kumi::Core::NAST::Call
                        plan = node.meta[:plan]
@@ -110,14 +110,14 @@ module Kumi
                          # Handle builtin select operation
                          if node.fn == BUILTIN_SELECT
                            args = node.args.map { |a| lower_expr(a, errors) }
-                           aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                           #  aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
                            stamp = ser_stamp(node.meta[:stamp])
-                           @b.select(*aligned, stamp: stamp)
+                           @b.select(*args, stamp: stamp)
                          else
-                           args    = node.args.map { |a| lower_expr(a, errors) }
-                           aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
+                           args = node.args.map { |a| lower_expr(a, errors) }
+                           #  aligned = apply_aligns(args, plan[:needs_expand_flags], plan[:target_axes_tokens])
                            stamp = ser_stamp(node.meta[:stamp])
-                           @b.map(node.fn.to_s, *aligned, stamp: stamp)
+                           @b.map(node.fn.to_s, *args, stamp: stamp)
                          end
 
                        when :reduce

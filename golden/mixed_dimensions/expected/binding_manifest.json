@@ -1,7 +1,7 @@
 {
-  "ir_ref": "sha256:578b6d8c26cd87dcb4b8b3cb30112123d19dfff4f3425378e1af1ffd61435fdb",
+  "ir_ref": "sha256:f8b566f2824d1feb205c63eb853721bed543ccab675596ecf1b6cf69246d3c83",
   "target": "ruby",
-  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
   "bindings": [
     {"decl":"sum_numbers","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
     {"decl":"matrix_sums","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"}

@@ -1,12 +1,12 @@
 {
-  "ir_ref": "sha256:8d6efa1862afcead2c0e5c01df70a36055b1544b1195f0eefd4b09bf441395cd",
+  "ir_ref": "sha256:13b2c0e7f2cc194fef132db85af5620efb8b162ceae46cead85d22b8e9a12d42",
   "target": "ruby",
-  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
   "bindings": [
     {"decl":"subtotals","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
-    {"decl":"discounted_price","op":3,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
-    {"decl":"is_valid_quantity","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
-    {"decl":"expensive_items","op":3,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
-    {"decl":"electronics","op":3,"fn":"core.eq","kernel_id":"core.eq:ruby:v1","impl":"->(a, b) { a == b }"}
+    {"decl":"discounted_price","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"is_valid_quantity","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"expensive_items","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"electronics","op":2,"fn":"core.eq","kernel_id":"core.eq:ruby:v1","impl":"->(a, b) { a == b }"}
   ]
 }

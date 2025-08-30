@@ -15,20 +15,13 @@
         {"id":1,"op":"Const","args":[4.5],"stamp":{"dtype":"float","axes":[]}},
         {
           "id": 2,
-          "op": "AlignTo",
-          "args": [1],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
-        },
-        {
-          "id": 3,
           "op": "Map",
-          "args": [0,2],
+          "args": [0,1],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.gte"}
         }
       ],
-      "result": 3
+      "result": 2
     },
     "senior_level": {
       "name": "senior_level",
@@ -43,20 +36,13 @@
         {"id":1,"op":"Const","args":["senior"],"stamp":{"dtype":"string","axes":[]}},
         {
           "id": 2,
-          "op": "AlignTo",
-          "args": [1],
-          "stamp": {"dtype":"string","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
-        },
-        {
-          "id": 3,
           "op": "Map",
-          "args": [0,2],
+          "args": [0,1],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.eq"}
         }
       ],
-      "result": 3
+      "result": 2
     },
     "top_team": {
       "name": "top_team",
@@ -71,20 +57,13 @@
         {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
         {
           "id": 2,
-          "op": "AlignTo",
-          "args": [1],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams"]},
-          "attrs": {"target_axes":["regions","offices","teams"]}
-        },
-        {
-          "id": 3,
           "op": "Map",
-          "args": [0,2],
+          "args": [0,1],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams"]},
           "attrs": {"fn":"core.gte"}
         }
       ],
-      "result": 3
+      "result": 2
     },
     "employee_bonus": {
       "name": "employee_bonus",
@@ -110,87 +89,59 @@
         {"id":2,"op":"LoadDeclaration","args":["top_team"],"stamp":{"dtype":"boolean","axes":["regions","offices","teams"]}},
         {
           "id": 3,
-          "op": "AlignTo",
-          "args": [2],
+          "op": "Map",
+          "args": [1,2],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
+          "attrs": {"fn":"core.and"}
         },
         {
           "id": 4,
-          "op": "Map",
-          "args": [1,3],
-          "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
-          "attrs": {"fn":"core.and"}
-        },
-        {
-          "id": 5,
-          "op": "Map",
-          "args": [0,4],
-          "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
-          "attrs": {"fn":"core.and"}
-        },
-        {
-          "id": 6,
-          "op": "LoadInput",
-          "args": [["regions","offices","teams","employees","salary"]],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]}
-        },
-        {"id":7,"op":"Const","args":[0.3],"stamp":{"dtype":"float","axes":[]}},
-        {
-          "id": 8,
-          "op": "AlignTo",
-          "args": [7],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
-        },
-        {
-          "id": 9,
-          "op": "Map",
-          "args": [6,8],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"fn":"core.mul"}
-        },
-        {
-          "id": 13,
           "op": "Map",
           "args": [0,3],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.and"}
         },
-        {"id":14,"op":"Const","args":[0.2],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 15,
-          "op": "AlignTo",
-          "args": [14],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
+          "id": 5,
+          "op": "LoadInput",
+          "args": [["regions","offices","teams","employees","salary"]],
+          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]}
         },
+        {"id":6,"op":"Const","args":[0.3],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 16,
+          "id": 7,
           "op": "Map",
-          "args": [6,15],
+          "args": [5,6],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
-        {"id":17,"op":"Const","args":[0.05],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 18,
-          "op": "AlignTo",
-          "args": [17],
-          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
-          "attrs": {"target_axes":["regions","offices","teams","employees"]}
-        },
-        {
-          "id": 19,
+          "id": 10,
           "op": "Map",
-          "args": [6,18],
+          "args": [0,2],
+          "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
+          "attrs": {"fn":"core.and"}
+        },
+        {"id":11,"op":"Const","args":[0.2],"stamp":{"dtype":"float","axes":[]}},
+        {
+          "id": 12,
+          "op": "Map",
+          "args": [5,11],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
-        {"id":20,"op":"Select","args":[13,16,19],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}},
-        {"id":21,"op":"Select","args":[5,9,20],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}}
+        {"id":13,"op":"Const","args":[0.05],"stamp":{"dtype":"float","axes":[]}},
+        {
+          "id": 14,
+          "op": "Map",
+          "args": [5,13],
+          "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
+          "attrs": {"fn":"core.mul"}
+        },
+        {"id":15,"op":"Select","args":[10,12,14],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}},
+        {"id":16,"op":"Select","args":[4,7,15],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}}
       ],
-      "result": 21
+      "result": 16
     }
   },
   "analysis": {

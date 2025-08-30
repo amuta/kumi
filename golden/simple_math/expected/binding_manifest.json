@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:1a8b72309340f69f97b2a9c6cc0a7b79fb04284a818814810ebb16916f9af885",
   "target": "ruby",
-  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
   "bindings": [
     {"decl":"sum","op":2,"fn":"core.add","kernel_id":"core.add:ruby:v1","impl":"->(a, b) { a + b }"},
     {"decl":"product","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
