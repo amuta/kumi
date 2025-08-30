@@ -9,7 +9,6 @@ module Kumi
       # Interface:
       #   .build(decl_axes:, access_plan:) -> AxisCarrierPlan
       #   #carrier_for(axis) -> InputSpec
-      #   #len_call(axis, idx_var: "idx", data_var: "data") -> String (codegen helper)
       class AxisCarrierPlan
         def self.build(decl_axes:, access_plan:, required_prefix: [])
           mapping = {}
@@ -66,12 +65,17 @@ module Kumi
           @mapping.fetch(axis_sym.to_sym)
         end
 
-        # Codegen-facing helper (string) — you may ignore if you construct calls elsewhere
-        def len_call(axis_sym, data_var: "@d", idx_var: "idx")
+        # Backend-agnostic entry for one axis
+        def entry_for(axis_sym)
           spec = carrier_for(axis_sym)
-          method = @access.axis_len_method_name(axis_sym, spec.path)
-          "#{method}(#{data_var}, #{idx_var})"
+          { axis: axis_sym.to_sym, via_path: Array(spec.path).map(&:to_s) }
         end
+
+        # Array of {axis, via_path} for all outer decl axes
+        def to_entries
+          @mapping.map { |axis, _| entry_for(axis) }
+        end
+
       end
     end
   end

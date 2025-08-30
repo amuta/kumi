@@ -36,7 +36,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -51,7 +51,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -66,7 +66,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -81,7 +81,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -96,7 +96,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","carrier_path":["items"],"len_call":"len_items__via_items(@d, idx)"}],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     }

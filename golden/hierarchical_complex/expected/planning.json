@@ -76,14 +76,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
-        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
-        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
-        {
-          "axis": "employees",
-          "carrier_path": ["regions","offices","teams","employees"],
-          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
-        }
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"offices","via_path":["regions","offices"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -106,14 +102,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
-        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
-        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
-        {
-          "axis": "employees",
-          "carrier_path": ["regions","offices","teams","employees"],
-          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
-        }
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"offices","via_path":["regions","offices"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -135,9 +127,9 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
-        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
-        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"}
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"offices","via_path":["regions","offices"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -180,14 +172,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
-        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
-        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
-        {
-          "axis": "employees",
-          "carrier_path": ["regions","offices","teams","employees"],
-          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
-        }
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"offices","via_path":["regions","offices"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {

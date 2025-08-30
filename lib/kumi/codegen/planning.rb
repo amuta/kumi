@@ -61,22 +61,20 @@ module Kumi
                 }
               end
             },
-            "axis_carriers" => decl.axes.map do |axis|
-              carrier = carriers.carrier_for(axis)
+            "axis_carriers" => carriers.to_entries.map do |entry|
               {
-                "axis" => axis.to_s,
-                "carrier_path" => carrier.path,
-                "len_call" => carriers.len_call(axis)
+                "axis" => entry[:axis].to_s,
+                "via_path" => entry[:via_path]
               }
             end,
-            "reduce_plans" => reduces.map do |op_id, rplan|
+            "reduce_plans" => reduces.values.map(&:to_entry).map do |entry|
               {
-                "op_id" => op_id,
-                "axis" => rplan.axis.to_s,
-                "result_depth" => rplan.result_depth,
-                "arg_id" => rplan.arg_id,
-                "reducer_fn" => rplan.reducer_fn,
-                "len_call" => rplan.len_call
+                "op_id" => entry[:op_id],
+                "axis" => entry[:axis].to_s,
+                "result_depth" => entry[:result_depth],
+                "arg_id" => entry[:arg_id],
+                "reducer_fn" => entry[:reducer_fn],
+                "via_path" => entry[:via_path]
               }
             end,
             "inlining_decisions" => {}

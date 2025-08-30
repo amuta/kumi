@@ -108,14 +108,58 @@ module Kumi
           end
 
           def parse_op(o)
+            kind = o["op"].to_s.downcase.to_sym
+
+            # Pull attrs up front so we can tack metadata on for tuples
+            attrs = (o["attrs"] || {}).dup
+
+            if kind == :constructtuple
+              elem_stamps = Array(o["elem_stamps"]).map { |st| Array(st["axes"]).map(&:to_sym) }
+              meet_axes = meet_axes_of(elem_stamps)
+
+              # Compute per-arg suffix axes (what remains under the tuple)
+              tuple_args = elem_stamps.each_with_index.map do |axes, idx|
+                # common prefix length
+                k = 0
+                while k < meet_axes.length && k < axes.length && axes[k] == meet_axes[k]
+                  k += 1
+                end
+                { 
+                  arg_index: idx, 
+                  suffix_axes: axes[k..] || [], 
+                  materialize_full: (axes.length > meet_axes.length) 
+                }
+              end
+
+              attrs["elem_stamps"] = elem_stamps
+              attrs["tuple_args"] = tuple_args
+              axes_for_op = meet_axes
+            else
+              axes_for_op = Array(o.dig("stamp", "axes")).map(&:to_sym)
+            end
+
             Kumi::Codegen::Planning::OpSpec.new(
               id: o["id"],
-              kind: o["op"].to_s.downcase.to_sym, # "LoadInput" -> :load_input
+              kind: kind,
               args: o["args"],
-              stamp_axes: Array(o.dig("stamp", "axes")).map(&:to_sym),
+              stamp_axes: axes_for_op,
               dtype: (o.dig("stamp", "dtype") || "any").to_s.to_sym,
-              attrs: o["attrs"] || {}
+              attrs: attrs
             )
+          end
+
+          # Helper to compute longest common prefix of axis lists
+          def meet_axes_of(list_of_axes)
+            return [] if list_of_axes.empty?
+
+            list_of_axes.reduce do |acc, axes|
+              # longest common prefix
+              i = 0
+              while i < acc.length && i < axes.length && acc[i] == axes[i]
+                i += 1
+              end
+              acc.take(i)
+            end
           end
 
           def build_reduce_plans(decl, access)

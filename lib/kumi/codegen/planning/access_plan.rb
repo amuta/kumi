@@ -41,10 +41,6 @@ module Kumi
           "at_#{Array(path_array).map { |s| safe_ident(s) }.join('_')}"
         end
 
-        def axis_len_method_name(axis, via_path_array)
-          "len_#{safe_ident(axis)}__via_#{Array(via_path_array).map { |s| safe_ident(s) }.join('_')}"
-        end
-
         # All inputs that carry a given axis (useful for diagnostics / asserts)
         def carriers_for_axis(axis_sym)
           @inputs_by_path.values.select do |s|

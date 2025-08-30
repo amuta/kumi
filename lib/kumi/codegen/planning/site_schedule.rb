@@ -8,7 +8,6 @@ module Kumi
       #
       # Interface:
       #   .build(decl:) -> SiteSchedule
-      #   #hoisted -> [OpSpec]         (depth 0)
       #   #ops_at_depth(d) -> [OpSpec] (d >= 0, in original topological order)
       #   #depth_for(op_id) -> Integer
       class SiteSchedule

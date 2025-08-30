@@ -41,7 +41,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
-      "axis_carriers": [{"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"}],
+      "axis_carriers": [{"axis":"cube","via_path":["cube"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -56,10 +56,7 @@
         "root_reduces": [],
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
-      "axis_carriers": [
-        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
-        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"}
-      ],
+      "axis_carriers": [{"axis":"cube","via_path":["cube"]},{"axis":"layer","via_path":["cube","layer"]}],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
@@ -75,9 +72,9 @@
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[]},{"depth":3,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [
-        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
-        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
-        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+        {"axis":"cube","via_path":["cube"]},
+        {"axis":"layer","via_path":["cube","layer"]},
+        {"axis":"row","via_path":["cube","layer","row"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -94,9 +91,9 @@
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[]},{"depth":3,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [
-        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
-        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
-        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+        {"axis":"cube","via_path":["cube"]},
+        {"axis":"layer","via_path":["cube","layer"]},
+        {"axis":"row","via_path":["cube","layer","row"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -118,9 +115,9 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
-        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
-        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+        {"axis":"cube","via_path":["cube"]},
+        {"axis":"layer","via_path":["cube","layer"]},
+        {"axis":"row","via_path":["cube","layer","row"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -141,20 +138,8 @@
           {"depth":3,"ops":[{"id":0,"kind":"loaddeclaration"},{"id":1,"kind":"loadinput"},{"id":3,"kind":"select"}]}
         ]
       },
-      "axis_carriers": [
-        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
-        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"}
-      ],
-      "reduce_plans": [
-        {
-          "op_id": 4,
-          "axis": "row",
-          "result_depth": 2,
-          "arg_id": 3,
-          "reducer_fn": "agg.sum",
-          "len_call": "len_row__via_cube_layer_row(@d, idx)"
-        }
-      ],
+      "axis_carriers": [{"axis":"cube","via_path":["cube"]},{"axis":"layer","via_path":["cube","layer"]}],
+      "reduce_plans": [{"op_id":3,"axis":"row","result_depth":2,"arg_id":3,"reducer_fn":"agg.sum","via_path":["cube","layer","row"]}],
       "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     },
     "count_over_limit": {
@@ -175,23 +160,9 @@
       },
       "axis_carriers": [],
       "reduce_plans": [
-        {
-          "op_id": 4,
-          "axis": "row",
-          "result_depth": 2,
-          "arg_id": 3,
-          "reducer_fn": "agg.sum",
-          "len_call": "len_row__via_cube_layer_row(@d, idx)"
-        },
-        {
-          "op_id": 5,
-          "axis": "layer",
-          "result_depth": 1,
-          "arg_id": 4,
-          "reducer_fn": "agg.sum",
-          "len_call": "len_layer__via_cube_layer(@d, idx)"
-        },
-        {"op_id":6,"axis":"cube","result_depth":0,"arg_id":5,"reducer_fn":"agg.sum","len_call":"len_cube__via_cube(@d, idx)"}
+        {"op_id":3,"axis":"row","result_depth":2,"arg_id":3,"reducer_fn":"agg.sum","via_path":["cube","layer","row"]},
+        {"op_id":4,"axis":"layer","result_depth":1,"arg_id":4,"reducer_fn":"agg.sum","via_path":["cube","layer"]},
+        {"op_id":5,"axis":"cube","result_depth":0,"arg_id":5,"reducer_fn":"agg.sum","via_path":["cube"]}
       ],
       "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     }

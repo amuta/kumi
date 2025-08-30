@@ -12,7 +12,6 @@ module Kumi
       #   #arg_id -> Integer
       #   #reducer_fn -> String         (e.g., "agg.sum")
       #   #kernel_id_hint -> String|nil (if you map fn->kernel id upstream)
-      #   #len_call(idx_var:, data_var:) -> String  (use carrier for axis)
       class ReducePlan
         attr_reader :axis, :result_depth, :arg_id, :reducer_fn, :kernel_id_hint, :carrier_spec
 
@@ -52,10 +51,22 @@ module Kumi
           @access = access_plan
         end
 
-        def len_call(idx_var: "idx", data_var: "@d")
-          method = @access.axis_len_method_name(@axis, @carrier_spec.path)
-          "#{method}(#{data_var}, #{idx_var})"
+        def via_path
+          Array(@carrier_spec.path).map(&:to_s)
         end
+
+        # Backend-agnostic shape for plan export / codegen adapters
+        def to_entry
+          {
+            op_id: @arg_id,
+            axis: @axis,
+            via_path: via_path,
+            reducer_fn: @reducer_fn,
+            result_depth: @result_depth,
+            arg_id: @arg_id
+          }
+        end
+
 
         private
 

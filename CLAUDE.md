@@ -8,6 +8,14 @@ Axes align by identity (lineage), not by name
 > lib/kumi/analyzer.rb
 > lib/kumi/core/analyzer/passes/pass_base.rb
 
+# For a schema.kumi
+- To view a IRV2 `bin/kumi pp irv2 <schema.kumi>`
+
+# Golden tests
+- First udpate `bin/kumi golden update <empty for all | golden_name>` then `bin/kumi golden test <same>`
+
+
+
 # Debug Tools:
 `bin/kumi pp <ast|nast|snast|ir> <schema>` - Pretty print representations
 `bin/kumi analyze <schema> --dump <state_key>` - Dump analyzer state (call_table, declaration_table, snast_module, etc.)
