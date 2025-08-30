@@ -62,9 +62,9 @@ module Kumi
       skipping   = !!resume_at
 
       passes.each_with_index do |pass_class, idx|
-        raise handle_analysis_errors(errors) if (ERROR_THRESHOLD_PASS == pass_class) && !errors.empty?
+        raise handle_analysis_errors(errors) if !errors.empty? && # (ERROR_THRESHOLD_PASS == pass_class)
 
-        pass_name = pass_class.name.split("::").last
+                                                pass_name = pass_class.name.split("::").last
 
         if skipping
           skipping = false if pass_name == resume_at

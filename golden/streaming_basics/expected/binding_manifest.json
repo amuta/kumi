@@ -1,0 +1,15 @@
+{
+  "ir_ref": "sha256:e1ee88447ea209cf8592e1abb880224a9b5d4180b2e4f534e87c7c453a5fef92",
+  "target": "ruby",
+  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
+  "bindings": [
+    {"decl":"items_subtotal","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"items_discounted","op":3,"fn":"core.sub","kernel_id":"core.sub:ruby:v1","impl":"->(a, b) { a - b }"},
+    {"decl":"items_discounted","op":4,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"items_is_big","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
+    {"decl":"items_effective","op":3,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
+    {"decl":"total_qty","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
+    {"decl":"cart_total","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
+    {"decl":"cart_total_effective","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"}
+  ]
+}

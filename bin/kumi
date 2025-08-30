@@ -55,7 +55,7 @@ when "analyze"
     puts "Analysis finished without errors."
   end
 when "pp"
-  kind = ARGV.shift or abort "kumi pp <ast|ir|nast|snast> <schema-path>"
+  kind = ARGV.shift or abort "kumi pp <ast|ir|nast|snast|> <schema-path>"
   path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 

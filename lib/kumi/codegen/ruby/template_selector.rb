@@ -17,6 +17,8 @@ module Kumi
           when "Map"
             r = op_plan[:stamp]["axes"]
             r.empty? ? :map_scalar : :map_nary
+          when "AlignTo"
+            :align_to_noop
           else
             raise "Unknown operation type: #{op_plan[:op_type]}"
           end
