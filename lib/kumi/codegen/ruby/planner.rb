@@ -29,9 +29,6 @@ module Kumi
         # L(op): logical axes by provenance
         def logical_axes_of(op_rec, ops_by_id)
           case op_rec["op"]
-          when "AlignTo"
-            src_id = op_rec["args"][0]
-            logical_axes_of(ops_by_id[src_id], ops_by_id)
           when "Reduce"
             src_id = op_rec["args"][0]
             prev   = logical_axes_of(ops_by_id[src_id], ops_by_id)

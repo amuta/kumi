@@ -8,7 +8,6 @@ module Kumi
           case op_plan[:op_type]
           when "Const"           then :const_scalar
           when "LoadInput"       then :load_input
-          when "AlignTo"         then :align_to_noop
           when "Reduce"          then :reduce_last
           when "ConstructTuple"  then :construct_tuple
           when "LoadDeclaration" then :load_declaration

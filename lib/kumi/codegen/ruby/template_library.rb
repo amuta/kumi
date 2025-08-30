@@ -35,16 +35,6 @@ module Kumi
           "k_" + kid.gsub(/[^a-zA-Z0-9]+/, "_")
         end
 
-        # Collapse AlignTo → its true source id (so scalars aren’t indexed)
-        # NOTE: ops_by_id contains *scheduled* ops with symbol keys
-        def resolve_actual_id(op_id, ops_by_id)
-          op = ops_by_id[op_id]
-          return op_id unless op
-          return resolve_actual_id(op[:args][0], ops_by_id) if op[:op_type] == "AlignTo"
-
-          op_id
-        end
-
         # Build “[i0][i1]..” skipping axes with broadcast=true
         def index_suffix_for(mask_row, rank)
           s = +""
@@ -58,7 +48,7 @@ module Kumi
         def emit_map_scalar(op, ops_by_id)
           kid  = op[:binding] && op[:binding]["kernel_id"] or raise "missing kernel_id"
           meth = kernel_method_name(kid)
-          args = op[:args].map { |id| "op_#{resolve_actual_id(id, ops_by_id)}" }.join(", ")
+          args = op[:args].map { |id| "op_#{id}" }.join(", ")
           <<~RUBY.strip
             op_#{op[:id]} = #{meth}(#{args})
           RUBY
@@ -72,7 +62,7 @@ module Kumi
           driver_id   = op[:args][driver_idx] or raise "map needs args"
           result_axes = op[:result_axes] || []
           masks       = op[:masks]       || []
-          resolved    = op[:args].map { |aid| resolve_actual_id(aid, ops_by_id) }
+          args = op[:args]
 
           rank = result_axes.length
           drv  = "op_#{driver_id}"
@@ -83,7 +73,7 @@ module Kumi
             lines << "out0 = Array.new(n0)"
             lines << "i0 = 0"
             lines << "while i0 < n0"
-            call = resolved.each_with_index.map { |rid, j| masks[j][0] ? "op_#{rid}" : "op_#{rid}[i0]" }.join(", ")
+            call = args.each_with_index.map { |arg_id, j| masks[j][0] ? "op_#{arg_id}" : "op_#{arg_id}[i0]" }.join(", ")
             lines << "  out0[i0] = #{meth}(#{call})"
             lines << "  i0 += 1"
             lines << "end"
@@ -99,7 +89,7 @@ module Kumi
             lines << "i#{k} = 0"
             lines << "while i#{k} < n#{k}"
           end
-          args_str = resolved.each_with_index.map { |rid, j| "op_#{rid}#{index_suffix_for(masks[j], rank)}" }.join(", ")
+          args_str = args.each_with_index.map { |arg_id, j| "op_#{arg_id}#{index_suffix_for(masks[j], rank)}" }.join(", ")
           lines << (("  " * rank) + "out#{rank - 1}[i#{rank - 1}] = #{meth}(#{args_str})")
           (rank - 1).downto(0) do |k|
             indent = "  " * k
@@ -118,8 +108,7 @@ module Kumi
 
         def emit_select_scalar(op, ops_by_id)
           cid, tid, fid = op[:args]
-          rc, rt, rf = [cid, tid, fid].map { |id| resolve_actual_id(id, ops_by_id) }
-          "op_#{op[:id]} = (op_#{rc} ? op_#{rt} : op_#{rf})"
+          "op_#{op[:id]} = (op_#{cid} ? op_#{tid} : op_#{fid})"
         end
 
         def emit_select_vector(op, ops_by_id)
@@ -128,7 +117,6 @@ module Kumi
           driver_id   = op[:args][driver_idx]
           result_axes = op[:result_axes] || []
           masks       = op[:masks]       || []
-          rc, rt, rf  = [cid, tid, fid].map { |id| resolve_actual_id(id, ops_by_id) }
 
           rank = result_axes.length
           drv  = "op_#{driver_id}"
@@ -139,9 +127,9 @@ module Kumi
             lines << "out0 = Array.new(n0)"
             lines << "i0 = 0"
             lines << "while i0 < n0"
-            c = masks[0][0] ? "op_#{rc}" : "op_#{rc}[i0]"
-            t = masks[1][0] ? "op_#{rt}" : "op_#{rt}[i0]"
-            f = masks[2][0] ? "op_#{rf}" : "op_#{rf}[i0]"
+            c = masks[0][0] ? "op_#{cid}" : "op_#{cid}[i0]"
+            t = masks[1][0] ? "op_#{tid}" : "op_#{tid}[i0]"
+            f = masks[2][0] ? "op_#{fid}" : "op_#{fid}[i0]"
             lines << "  out0[i0] = (#{c} ? #{t} : #{f})"
             lines << "  i0 += 1"
             lines << "end"
@@ -156,9 +144,9 @@ module Kumi
             lines << "i#{k} = 0"
             lines << "while i#{k} < n#{k}"
           end
-          c = "op_#{rc}#{index_suffix_for(masks[0], rank)}"
-          t = "op_#{rt}#{index_suffix_for(masks[1], rank)}"
-          f = "op_#{rf}#{index_suffix_for(masks[2], rank)}"
+          c = "op_#{cid}#{index_suffix_for(masks[0], rank)}"
+          t = "op_#{tid}#{index_suffix_for(masks[1], rank)}"
+          f = "op_#{fid}#{index_suffix_for(masks[2], rank)}"
           lines << (("  " * rank) + "out#{rank - 1}[i#{rank - 1}] = (#{c} ? #{t} : #{f})")
           (rank - 1).downto(0) do |k|
             indent = "  " * k
@@ -241,7 +229,7 @@ module Kumi
         end
 
         def emit_construct_tuple(op, ops_by_id)
-          args = op[:args].map { |id| "op_#{resolve_actual_id(id, ops_by_id)}" }.join(", ")
+          args = op[:args].map { |id| "op_#{id}" }.join(", ")
           "op_#{op[:id]} = [#{args}]"
         end
 
