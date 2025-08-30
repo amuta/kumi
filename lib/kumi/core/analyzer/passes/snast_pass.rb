@@ -256,30 +256,41 @@ module Kumi
           
           def canonicalize_select!(call)
             cond, then_v, else_v = call.args
-            cond_s, then_s, else_s = [cond, then_v, else_v].map { _1.meta[:stamp] }
-
-            # Select semantics: result follows the data branch ("then")
-            target_axes = then_s[:axes_tokens]
-            result_dtype = then_s[:dtype]
-            
-            # Override stamp with builtin semantics
-            call.meta[:stamp] = { axes_tokens: target_axes, dtype: result_dtype }.freeze
-
-            # Override plan: broadcast all args to target axes
-            needs_expand_flags = [
-              cond_s[:axes_tokens] != target_axes,
-              then_s[:axes_tokens] != target_axes,
-              else_s[:axes_tokens] != target_axes
-            ]
+            c_axes = Array(cond.meta[:stamp][:axes_tokens])
+            t_axes = Array(then_v.meta[:stamp][:axes_tokens])
+            e_axes = Array(else_v.meta[:stamp][:axes_tokens])
+          
+            # LUB by prefix for data branches
+            candidate = lub_by_prefix([t_axes, e_axes])
+          
+            # If both branches are scalar, lift to the mask’s axes
+            target_axes = candidate.empty? ? c_axes : candidate
+          
+            # Mask must be a prefix of target_axes
+            unless c_axes.each_with_index.all? { |tok, i| target_axes[i] == tok }
+              raise Kumi::Core::Errors::SemanticError,
+                    "select mask axes #{c_axes.inspect} must be a prefix of result axes #{target_axes.inspect}"
+            end
+          
+            # DType follows data branches (they’re identical in *_if macros)
+            result_dtype = then_v.meta[:stamp][:dtype]
+          
+            call.meta[:stamp] = {
+              axes_tokens: target_axes,
+              dtype: result_dtype
+            }.freeze
+          
             call.meta[:plan] = {
               kind: :elementwise,
               target_axes_tokens: target_axes,
-              needs_expand_flags: needs_expand_flags
+              needs_expand_flags: [
+                c_axes != target_axes,  # broadcast mask across trailing dims
+                t_axes != target_axes,  # broadcast then-branch (e.g., scalar 1)
+                e_axes != target_axes   # broadcast else-branch (e.g., scalar 0)
+              ]
             }.freeze
-
           end
 
-          
           def next_value_id
             "v#{@value_id_counter += 1}"
           end
@@ -290,6 +301,17 @@ module Kumi
           
           def node_id(node)
             "#{node.class}_#{node.object_id}"
+          end
+
+          def lub_by_prefix(list_of_axes_arrays)
+            return [] if list_of_axes_arrays.empty?
+            candidate = list_of_axes_arrays.max_by(&:length)
+            list_of_axes_arrays.each do |axes|
+              unless axes.each_with_index.all? { |tok, i| candidate[i] == tok }
+                raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{axes.inspect} vs #{candidate.inspect}"
+              end
+            end
+            candidate
           end
         end
       end

@@ -3,3 +3,8 @@ functions:
     kind: reduce
     params: [{ name: source_value }]
     dtype: "same_as(source_value)"
+    
+  - id: agg.count
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "integer"

@@ -17,4 +17,5 @@ schema do
   trait :cell_over_limit, input.cube.layer.row.cell > 100
 
   value :cell_sum, fn(:sum_if, input.cube.layer.row.cell, cell_over_limit)
+  value :count_over_limit, fn(:sum, fn(:sum, fn(:sum_if, 1, cell_over_limit)))
 end

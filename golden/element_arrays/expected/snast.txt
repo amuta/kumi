@@ -149,4 +149,83 @@
       )
   )
   )
+  (VALUE count_over_limit
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v26"
+      topo_index: 26
+      target_name: :count_over_limit
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v25"
+      topo_index: 25
+      plan: {
+        kind: reduce
+        last_axis_token: :cube
+      }
+    }
+    args:
+      (Call :"agg.sum"
+        meta: {
+          stamp: {axes_tokens: [:cube], dtype: integer}
+          value_id: "v24"
+          topo_index: 24
+          plan: {
+            kind: reduce
+            last_axis_token: :layer
+          }
+        }
+        args:
+          (Call :"agg.sum"
+            meta: {
+              stamp: {axes_tokens: [:cube, :layer], dtype: integer}
+              value_id: "v23"
+              topo_index: 23
+              plan: {
+                kind: reduce
+                last_axis_token: :row
+              }
+            }
+            args:
+              (Call :__select__
+                meta: {
+                  stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
+                  value_id: "v22"
+                  topo_index: 22
+                  plan: {
+                    kind: elementwise
+                    target_axes_tokens: [:cube, :layer, :row]
+                    needs_expand_flags: [false, true, true]
+                  }
+                }
+                args:
+                  (Ref cell_over_limit
+                    meta: {
+                      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
+                      value_id: "v19"
+                      topo_index: 19
+                      referenced_name: :cell_over_limit
+                    }
+                  )
+                  (Const 1
+                    meta: {
+                      stamp: {axes_tokens: [], dtype: integer}
+                      value_id: "v20"
+                      topo_index: 20
+                    }
+                  )
+                  (Const 0
+                    meta: {
+                      stamp: {axes_tokens: [], dtype: integer}
+                      value_id: "v21"
+                      topo_index: 21
+                    }
+                  )
+              )
+          )
+      )
+  )
+  )
 )

@@ -84,6 +84,40 @@
         }
       ],
       "result": 5
+    },
+    "count_over_limit": {
+      "name": "count_over_limit",
+      "parameters": [{"kind":"dependency","source":"cell_over_limit"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["cell_over_limit"],"stamp":{"dtype":"boolean","axes":["cube","layer","row"]}},
+        {"id":1,"op":"Const","args":[1],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {
+          "id": 3,
+          "op": "AlignTo",
+          "args": [1],
+          "stamp": {"dtype":"integer","axes":["cube","layer","row"]},
+          "attrs": {"target_axes":["cube","layer","row"]}
+        },
+        {
+          "id": 4,
+          "op": "AlignTo",
+          "args": [2],
+          "stamp": {"dtype":"integer","axes":["cube","layer","row"]},
+          "attrs": {"target_axes":["cube","layer","row"]}
+        },
+        {"id":5,"op":"Select","args":[0,3,4],"stamp":{"dtype":"integer","axes":["cube","layer","row"]}},
+        {
+          "id": 6,
+          "op": "Reduce",
+          "args": [5],
+          "stamp": {"dtype":"integer","axes":["cube","layer"]},
+          "attrs": {"fn":"agg.sum","axis":"row"}
+        },
+        {"id":7,"op":"Reduce","args":[6],"stamp":{"dtype":"integer","axes":["cube"]},"attrs":{"fn":"agg.sum","axis":"layer"}},
+        {"id":8,"op":"Reduce","args":[7],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"cube"}}
+      ],
+      "result": 8
     }
   },
   "analysis": {

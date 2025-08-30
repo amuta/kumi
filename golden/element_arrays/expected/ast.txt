@@ -1,10 +1,10 @@
 (Root
   inputs: [
-    (InputDeclaration :cube :array access_mode: :field
+    (InputDeclaration :cube :array access_mode: :element
       [
-        (InputDeclaration :layer :array access_mode: :field
+        (InputDeclaration :layer :array access_mode: :element
           [
-            (InputDeclaration :row :array access_mode: :field
+            (InputDeclaration :row :array access_mode: :element
               [
                 (InputDeclaration :cell :integer)
               ]
@@ -31,6 +31,16 @@
       (CallExpression :sum_if
         (InputElementReference cube.layer.row.cell)
         (DeclarationReference :cell_over_limit)
+      )
+    )
+    (ValueDeclaration :count_over_limit
+      (CallExpression :sum
+        (CallExpression :sum
+          (CallExpression :sum_if
+            (Literal 1)
+            (DeclarationReference :cell_over_limit)
+          )
+        )
       )
     )
   ]

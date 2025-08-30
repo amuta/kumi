@@ -1,6 +1,6 @@
 {
   "ir_ref": "sha256:54310b9673b4860221647063b27d376ceb3c4ad97a243cb1aba901c207489c18",
   "target": "ruby",
-  "registry_ref": "sha256:7f3f818b7d12885e2ba42590dfbe4334c0d69e36bdae32c812e6ca0cd8e6e702",
+  "registry_ref": "sha256:c7644520bf3d2a5a636e7448246a2ac1216fd69d6ffb6cf4ccddab1c77df7d2b",
   "bindings": [{"decl":"double","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"}]
 }
