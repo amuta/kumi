@@ -1,0 +1,83 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["y_positive","x_positive","status"],
+    "inputs": [
+      {"path":["x"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_x"},
+      {"path":["y"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_y"}
+    ]
+  },
+  "declarations": {
+    "y_positive": {
+      "name": "y_positive",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["y"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "x_positive": {
+      "name": "x_positive",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "status": {
+      "name": "status",
+      "axes": [],
+      "parameters": [{"kind":"dependency","source":"y_positive"},{"kind":"dependency","source":"x_positive"}],
+      "result_id": 11,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [
+          {"id":0,"kind":"loaddeclaration"},
+          {"id":1,"kind":"loaddeclaration"},
+          {"id":2,"kind":"map"},
+          {"id":3,"kind":"const"},
+          {"id":5,"kind":"const"},
+          {"id":7,"kind":"const"},
+          {"id":8,"kind":"const"},
+          {"id":9,"kind":"select"},
+          {"id":10,"kind":"select"},
+          {"id":11,"kind":"select"}
+        ],
+        "by_depth": [
+          {
+            "depth": 0,
+            "ops": [
+              {"id":0,"kind":"loaddeclaration"},
+              {"id":1,"kind":"loaddeclaration"},
+              {"id":2,"kind":"map"},
+              {"id":3,"kind":"const"},
+              {"id":5,"kind":"const"},
+              {"id":7,"kind":"const"},
+              {"id":8,"kind":"const"},
+              {"id":9,"kind":"select"},
+              {"id":10,"kind":"select"},
+              {"id":11,"kind":"select"}
+            ]
+          }
+        ]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {"y_positive":"inline","x_positive":"inline"}
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["double"],
+    "inputs": [
+      {"path":["x"],"axes":[],"dtype":"hash","consumes_axes":[],"accessor_name":"at_x"},
+      {"path":["x","y"],"axes":[],"dtype":"hash","consumes_axes":[],"accessor_name":"at_x_y"},
+      {"path":["x","y","z"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_x_y_z"}
+    ]
+  },
+  "declarations": {
+    "double": {
+      "name": "double",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x","y","z"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    }
+  }
+}

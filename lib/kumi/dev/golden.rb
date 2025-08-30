@@ -8,8 +8,8 @@ module Kumi
     module Golden
       module_function
 
-      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code].freeze
-      JSON_REPRESENTATIONS = %w[irv2 binding_manifest].freeze
+      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning].freeze
+      JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning].freeze
       RUBY_REPRESENTATIONS = %w[generated_code].freeze
 
       def list

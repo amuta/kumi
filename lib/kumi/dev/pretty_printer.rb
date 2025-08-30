@@ -15,6 +15,7 @@ module Kumi
         when "irv2" then print_irv2(path)
         when "nast" then print_nast(path)
         when "snast" then print_snast(path)
+        when "planning" then print_planning(path)
         else
           abort "unknown representation: #{kind}"
         end
@@ -52,6 +53,10 @@ module Kumi
         abort "No IRV2" unless res.state[:irv2]
 
         puts generate_irv2(path)
+      end
+
+      def print_planning(path)
+        puts generate_planning(path)
       end
 
       # For golden testing - returns the output instead of printing
@@ -108,6 +113,18 @@ module Kumi
         return nil unless res.state[:irv2] && res.state[:binding_manifest]
 
         Kumi::Codegen::Ruby.generate_from_data(res.state[:irv2], res.state[:binding_manifest])
+      end
+
+      def generate_planning(path)
+        require_relative "../codegen/planning"
+
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:irv2]
+
+        bundle = Kumi::Codegen::Planning.from_ir(res.state[:irv2])
+        planning_data = Kumi::Codegen::Planning.to_json(bundle)
+        Printer::WidthAwareJson.dump(planning_data)
       end
     end
   end

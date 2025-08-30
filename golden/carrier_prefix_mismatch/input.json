@@ -1,0 +1,10 @@
+{
+    "orders": [
+      { "items": [ { "qty": 5 } ] },
+      { "items": [ { "qty": 7 }, { "qty": 8 } ] }
+    ],
+    "inventory": [
+      { "items": [ { "sku": 101 }, { "sku": 102 }, { "sku": 103 }, { "sku": 104 }, { "sku": 105 }, { "sku": 106 } ] }
+    ]
+  }
+  

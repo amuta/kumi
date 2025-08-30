@@ -1,0 +1,93 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["sum","product","difference","results_array"],
+    "inputs": [
+      {"path":["x"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_x"},
+      {"path":["y"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_y"}
+    ]
+  },
+  "declarations": {
+    "sum": {
+      "name": "sum",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "product": {
+      "name": "product",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "difference": {
+      "name": "difference",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}],
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "results_array": {
+      "name": "results_array",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "result_id": 7,
+      "site_schedule": {
+        "max_depth": 0,
+        "hoisted": [
+          {"id":0,"kind":"const"},
+          {"id":1,"kind":"loadinput"},
+          {"id":2,"kind":"const"},
+          {"id":3,"kind":"map"},
+          {"id":4,"kind":"loadinput"},
+          {"id":5,"kind":"const"},
+          {"id":6,"kind":"map"},
+          {"id":7,"kind":"constructtuple"}
+        ],
+        "by_depth": [
+          {
+            "depth": 0,
+            "ops": [
+              {"id":0,"kind":"const"},
+              {"id":1,"kind":"loadinput"},
+              {"id":2,"kind":"const"},
+              {"id":3,"kind":"map"},
+              {"id":4,"kind":"loadinput"},
+              {"id":5,"kind":"const"},
+              {"id":6,"kind":"map"},
+              {"id":7,"kind":"constructtuple"}
+            ]
+          }
+        ]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    }
+  }
+}

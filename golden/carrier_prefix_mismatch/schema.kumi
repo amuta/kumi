@@ -1,0 +1,24 @@
+schema do
+  input do
+    # Axis :orders → carries nested axis :items (per-order items)
+    array :orders do
+      array :items do
+        integer :qty
+      end
+    end
+
+    # A DIFFERENT lineage that also carries axis :items (global inventory)
+    array :inventory do
+      array :items do
+        integer :sku
+      end
+    end
+  end
+
+  # Per-order reduction over axis :items.
+  # Correct carrier for :items here is *orders.items* (requires :orders prefix).
+  value :per_order_qty_sum, fn(:sum, input.orders.items.qty)
+
+  # Rank-2 value to also exercise outer loop bound for :items under :orders.
+  value :order_item_flags,  input.orders.items.qty > 0
+end

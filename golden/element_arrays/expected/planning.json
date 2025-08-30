@@ -1,0 +1,188 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["cube","layer","row","cell","cell_over_limit","cell_sum","count_over_limit"],
+    "inputs": [
+      {"path":["cube"],"axes":["cube"],"dtype":"array","consumes_axes":["cube"],"accessor_name":"at_cube"},
+      {
+        "path": ["cube","layer"],
+        "axes": ["cube","layer"],
+        "dtype": "array",
+        "consumes_axes": ["cube","layer"],
+        "accessor_name": "at_cube_layer"
+      },
+      {
+        "path": ["cube","layer","row"],
+        "axes": ["cube","layer","row"],
+        "dtype": "array",
+        "consumes_axes": ["cube","layer","row"],
+        "accessor_name": "at_cube_layer_row"
+      },
+      {
+        "path": ["cube","layer","row","cell"],
+        "axes": ["cube","layer","row"],
+        "dtype": "integer",
+        "consumes_axes": ["cube","layer","row"],
+        "accessor_name": "at_cube_layer_row_cell"
+      }
+    ]
+  },
+  "declarations": {
+    "cube": {
+      "name": "cube",
+      "axes": ["cube"],
+      "parameters": [{"kind":"input","path":["cube"]}],
+      "result_id": 0,
+      "site_schedule": {"max_depth":1,"hoisted":[],"by_depth":[{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]},
+      "axis_carriers": [{"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"}],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "layer": {
+      "name": "layer",
+      "axes": ["cube","layer"],
+      "parameters": [{"kind":"input","path":["cube","layer"]}],
+      "result_id": 0,
+      "site_schedule": {
+        "max_depth": 2,
+        "hoisted": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [
+        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
+        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "row": {
+      "name": "row",
+      "axes": ["cube","layer","row"],
+      "parameters": [{"kind":"input","path":["cube","layer","row"]}],
+      "result_id": 0,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[]},{"depth":3,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [
+        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
+        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
+        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "cell": {
+      "name": "cell",
+      "axes": ["cube","layer","row"],
+      "parameters": [{"kind":"input","path":["cube","layer","row","cell"]}],
+      "result_id": 0,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[]},{"depth":3,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [
+        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
+        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
+        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "cell_over_limit": {
+      "name": "cell_over_limit",
+      "axes": ["cube","layer","row"],
+      "parameters": [{"kind":"input","path":["cube","layer","row","cell"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [{"id":1,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
+        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"},
+        {"axis":"row","carrier_path":["cube","layer","row"],"len_call":"len_row__via_cube_layer_row(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "cell_sum": {
+      "name": "cell_sum",
+      "axes": ["cube","layer"],
+      "parameters": [{"kind":"input","path":["cube","layer","row","cell"]},{"kind":"dependency","source":"cell_over_limit"}],
+      "result_id": 4,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [{"id":2,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":2,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[{"id":4,"kind":"reduce"}]},
+          {"depth":3,"ops":[{"id":0,"kind":"loaddeclaration"},{"id":1,"kind":"loadinput"},{"id":3,"kind":"select"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"cube","carrier_path":["cube"],"len_call":"len_cube__via_cube(@d, idx)"},
+        {"axis":"layer","carrier_path":["cube","layer"],"len_call":"len_layer__via_cube_layer(@d, idx)"}
+      ],
+      "reduce_plans": [
+        {
+          "op_id": 4,
+          "axis": "row",
+          "result_depth": 2,
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_row__via_cube_layer_row(@d, idx)"
+        }
+      ],
+      "inlining_decisions": {"cell_over_limit":"call"}
+    },
+    "count_over_limit": {
+      "name": "count_over_limit",
+      "axes": [],
+      "parameters": [{"kind":"dependency","source":"cell_over_limit"}],
+      "result_id": 6,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [{"id":1,"kind":"const"},{"id":2,"kind":"const"},{"id":6,"kind":"reduce"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"},{"id":2,"kind":"const"},{"id":6,"kind":"reduce"}]},
+          {"depth":1,"ops":[{"id":5,"kind":"reduce"}]},
+          {"depth":2,"ops":[{"id":4,"kind":"reduce"}]},
+          {"depth":3,"ops":[{"id":0,"kind":"loaddeclaration"},{"id":3,"kind":"select"}]}
+        ]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [
+        {
+          "op_id": 4,
+          "axis": "row",
+          "result_depth": 2,
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_row__via_cube_layer_row(@d, idx)"
+        },
+        {
+          "op_id": 5,
+          "axis": "layer",
+          "result_depth": 1,
+          "arg_id": 4,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_layer__via_cube_layer(@d, idx)"
+        },
+        {"op_id":6,"axis":"cube","result_depth":0,"arg_id":5,"reducer_fn":"agg.sum","len_call":"len_cube__via_cube(@d, idx)"}
+      ],
+      "inlining_decisions": {"cell_over_limit":"call"}
+    }
+  }
+}

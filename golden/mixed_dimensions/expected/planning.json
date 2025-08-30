@@ -1,0 +1,114 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["sum_numbers","matrix_sums","mixed_array","constant"],
+    "inputs": [
+      {"path":["numbers"],"axes":["numbers"],"dtype":"array","consumes_axes":["numbers"],"accessor_name":"at_numbers"},
+      {
+        "path": ["numbers","value"],
+        "axes": ["numbers"],
+        "dtype": "integer",
+        "consumes_axes": ["numbers"],
+        "accessor_name": "at_numbers_value"
+      },
+      {"path":["scalar_val"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_scalar_val"},
+      {"path":["matrix"],"axes":["matrix"],"dtype":"array","consumes_axes":["matrix"],"accessor_name":"at_matrix"},
+      {
+        "path": ["matrix","row"],
+        "axes": ["matrix","row"],
+        "dtype": "array",
+        "consumes_axes": ["matrix","row"],
+        "accessor_name": "at_matrix_row"
+      },
+      {
+        "path": ["matrix","row","cell"],
+        "axes": ["matrix","row"],
+        "dtype": "float",
+        "consumes_axes": ["matrix","row"],
+        "accessor_name": "at_matrix_row_cell"
+      }
+    ]
+  },
+  "declarations": {
+    "sum_numbers": {
+      "name": "sum_numbers",
+      "axes": [],
+      "parameters": [{"kind":"input","path":["numbers","value"]}],
+      "result_id": 1,
+      "site_schedule": {
+        "max_depth": 1,
+        "hoisted": [{"id":1,"kind":"reduce"}],
+        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "numbers",
+          "result_depth": 0,
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_numbers__via_numbers(@d, idx)"
+        }
+      ],
+      "inlining_decisions": {}
+    },
+    "matrix_sums": {
+      "name": "matrix_sums",
+      "axes": ["matrix"],
+      "parameters": [{"kind":"input","path":["matrix","row","cell"]}],
+      "result_id": 1,
+      "site_schedule": {
+        "max_depth": 2,
+        "hoisted": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":1,"kind":"reduce"}]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [{"axis":"matrix","carrier_path":["matrix"],"len_call":"len_matrix__via_matrix(@d, idx)"}],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "row",
+          "result_depth": 1,
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_row__via_matrix_row(@d, idx)"
+        }
+      ],
+      "inlining_decisions": {}
+    },
+    "mixed_array": {
+      "name": "mixed_array",
+      "axes": [],
+      "parameters": [
+        {"kind":"input","path":["scalar_val"]},
+        {"kind":"input","path":["matrix","row","cell"]},
+        {"kind":"dependency","source":"sum_numbers"}
+      ],
+      "result_id": 3,
+      "site_schedule": {
+        "max_depth": 2,
+        "hoisted": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"loaddeclaration"},{"id":3,"kind":"constructtuple"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loaddeclaration"},{"id":3,"kind":"constructtuple"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[{"id":2,"kind":"loadinput"}]}
+        ]
+      },
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {"sum_numbers":"inline"}
+    },
+    "constant": {
+      "name": "constant",
+      "axes": [],
+      "parameters": [],
+      "result_id": 0,
+      "site_schedule": {"max_depth":0,"hoisted":[{"id":0,"kind":"const"}],"by_depth":[{"depth":0,"ops":[{"id":0,"kind":"const"}]}]},
+      "axis_carriers": [],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    }
+  }
+}

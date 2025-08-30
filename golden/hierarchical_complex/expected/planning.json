@@ -1,0 +1,192 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["high_performer","senior_level","top_team","employee_bonus"],
+    "inputs": [
+      {"path":["regions"],"axes":["regions"],"dtype":"array","consumes_axes":["regions"],"accessor_name":"at_regions"},
+      {
+        "path": ["regions","offices"],
+        "axes": ["regions","offices"],
+        "dtype": "array",
+        "consumes_axes": ["regions","offices"],
+        "accessor_name": "at_regions_offices"
+      },
+      {
+        "path": ["regions","offices","teams"],
+        "axes": ["regions","offices","teams"],
+        "dtype": "array",
+        "consumes_axes": ["regions","offices","teams"],
+        "accessor_name": "at_regions_offices_teams"
+      },
+      {
+        "path": ["regions","offices","teams","performance_score"],
+        "axes": ["regions","offices","teams"],
+        "dtype": "float",
+        "consumes_axes": ["regions","offices","teams"],
+        "accessor_name": "at_regions_offices_teams_performance_score"
+      },
+      {
+        "path": ["regions","offices","teams","employees"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "array",
+        "consumes_axes": ["regions","offices","teams","employees"],
+        "accessor_name": "at_regions_offices_teams_employees"
+      },
+      {
+        "path": ["regions","offices","teams","employees","salary"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "float",
+        "consumes_axes": ["regions","offices","teams","employees"],
+        "accessor_name": "at_regions_offices_teams_employees_salary"
+      },
+      {
+        "path": ["regions","offices","teams","employees","rating"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "float",
+        "consumes_axes": ["regions","offices","teams","employees"],
+        "accessor_name": "at_regions_offices_teams_employees_rating"
+      },
+      {
+        "path": ["regions","offices","teams","employees","level"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "string",
+        "consumes_axes": ["regions","offices","teams","employees"],
+        "accessor_name": "at_regions_offices_teams_employees_level"
+      }
+    ]
+  },
+  "declarations": {
+    "high_performer": {
+      "name": "high_performer",
+      "axes": ["regions","offices","teams","employees"],
+      "parameters": [{"kind":"input","path":["regions","offices","teams","employees","rating"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 4,
+        "hoisted": [{"id":1,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[]},
+          {"depth":4,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
+        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
+        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
+        {
+          "axis": "employees",
+          "carrier_path": ["regions","offices","teams","employees"],
+          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
+        }
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "senior_level": {
+      "name": "senior_level",
+      "axes": ["regions","offices","teams","employees"],
+      "parameters": [{"kind":"input","path":["regions","offices","teams","employees","level"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 4,
+        "hoisted": [{"id":1,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[]},
+          {"depth":4,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
+        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
+        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
+        {
+          "axis": "employees",
+          "carrier_path": ["regions","offices","teams","employees"],
+          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
+        }
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "top_team": {
+      "name": "top_team",
+      "axes": ["regions","offices","teams"],
+      "parameters": [{"kind":"input","path":["regions","offices","teams","performance_score"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted": [{"id":1,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
+        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
+        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "employee_bonus": {
+      "name": "employee_bonus",
+      "axes": ["regions","offices","teams","employees"],
+      "parameters": [
+        {"kind":"input","path":["regions","offices","teams","employees","salary"]},
+        {"kind":"dependency","source":"high_performer"},
+        {"kind":"dependency","source":"senior_level"},
+        {"kind":"dependency","source":"top_team"}
+      ],
+      "result_id": 16,
+      "site_schedule": {
+        "max_depth": 4,
+        "hoisted": [{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[{"id":2,"kind":"loaddeclaration"}]},
+          {
+            "depth": 4,
+            "ops": [
+              {"id":0,"kind":"loaddeclaration"},
+              {"id":1,"kind":"loaddeclaration"},
+              {"id":3,"kind":"map"},
+              {"id":4,"kind":"map"},
+              {"id":5,"kind":"loadinput"},
+              {"id":7,"kind":"map"},
+              {"id":10,"kind":"map"},
+              {"id":12,"kind":"map"},
+              {"id":14,"kind":"map"},
+              {"id":15,"kind":"select"},
+              {"id":16,"kind":"select"}
+            ]
+          }
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"regions","carrier_path":["regions"],"len_call":"len_regions__via_regions(@d, idx)"},
+        {"axis":"offices","carrier_path":["regions","offices"],"len_call":"len_offices__via_regions_offices(@d, idx)"},
+        {"axis":"teams","carrier_path":["regions","offices","teams"],"len_call":"len_teams__via_regions_offices_teams(@d, idx)"},
+        {
+          "axis": "employees",
+          "carrier_path": ["regions","offices","teams","employees"],
+          "len_call": "len_employees__via_regions_offices_teams_employees(@d, idx)"
+        }
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {"high_performer":"inline","senior_level":"inline","top_team":"call"}
+    }
+  }
+}

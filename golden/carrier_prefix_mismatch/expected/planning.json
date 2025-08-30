@@ -1,0 +1,86 @@
+{
+  "version": "0.1",
+  "module_spec": {
+    "version": "0.1",
+    "modname": "schema_module",
+    "declarations": ["per_order_qty_sum","order_item_flags"],
+    "inputs": [
+      {"path":["orders"],"axes":["orders"],"dtype":"array","consumes_axes":["orders"],"accessor_name":"at_orders"},
+      {
+        "path": ["orders","items"],
+        "axes": ["orders","items"],
+        "dtype": "array",
+        "consumes_axes": ["orders","items"],
+        "accessor_name": "at_orders_items"
+      },
+      {
+        "path": ["orders","items","qty"],
+        "axes": ["orders","items"],
+        "dtype": "integer",
+        "consumes_axes": ["orders","items"],
+        "accessor_name": "at_orders_items_qty"
+      },
+      {"path":["inventory"],"axes":["inventory"],"dtype":"array","consumes_axes":["inventory"],"accessor_name":"at_inventory"},
+      {
+        "path": ["inventory","items"],
+        "axes": ["inventory","items"],
+        "dtype": "array",
+        "consumes_axes": ["inventory","items"],
+        "accessor_name": "at_inventory_items"
+      },
+      {
+        "path": ["inventory","items","sku"],
+        "axes": ["inventory","items"],
+        "dtype": "integer",
+        "consumes_axes": ["inventory","items"],
+        "accessor_name": "at_inventory_items_sku"
+      }
+    ]
+  },
+  "declarations": {
+    "per_order_qty_sum": {
+      "name": "per_order_qty_sum",
+      "axes": ["orders"],
+      "parameters": [{"kind":"input","path":["orders","items","qty"]}],
+      "result_id": 1,
+      "site_schedule": {
+        "max_depth": 2,
+        "hoisted": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":1,"kind":"reduce"}]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [{"axis":"orders","carrier_path":["orders"],"len_call":"len_orders__via_orders(@d, idx)"}],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "items",
+          "result_depth": 1,
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "len_call": "len_items__via_orders_items(@d, idx)"
+        }
+      ],
+      "inlining_decisions": {}
+    },
+    "order_item_flags": {
+      "name": "order_item_flags",
+      "axes": ["orders","items"],
+      "parameters": [{"kind":"input","path":["orders","items","qty"]}],
+      "result_id": 2,
+      "site_schedule": {
+        "max_depth": 2,
+        "hoisted": [{"id":1,"kind":"const"}],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"orders","carrier_path":["orders"],"len_call":"len_orders__via_orders(@d, idx)"},
+        {"axis":"items","carrier_path":["orders","items"],"len_call":"len_items__via_orders_items(@d, idx)"}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    }
+  }
+}
