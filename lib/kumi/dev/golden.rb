@@ -8,8 +8,8 @@ module Kumi
     module Golden
       module_function
 
-      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning].freeze
-      JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning].freeze
+      REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning pack].freeze
+      JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning pack].freeze
       RUBY_REPRESENTATIONS = %w[generated_code].freeze
 
       def list
@@ -35,6 +35,21 @@ module Kumi
           schema_changed = false
 
           REPRESENTATIONS.each do |repr|
+            if repr == "pack"
+              # Handle pack files specially - generate target-specific files
+              begin
+                require_relative "../pack/builder"
+                Kumi::Pack::Builder.build_for_golden(schema_path, expected_dir, targets: %w[ruby])
+                puts "  #{schema_name}/pack.json (updated)"
+                schema_changed = true
+                changed_any = true
+              rescue StandardError => e
+                puts "  ✗ #{schema_name}/pack (error: #{e.message})"
+                raise
+              end
+              next
+            end
+
             current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
             next unless current_output
 
@@ -90,9 +105,39 @@ module Kumi
           tmp_dir = golden_path(schema_name, "tmp")
           FileUtils.mkdir_p(tmp_dir)
 
-          puts "Verifying #{schema_name}..."
+          schema_success = true
+          failed_reprs = []
 
           REPRESENTATIONS.each do |repr|
+            if repr == "pack"
+              # Handle pack verification specially
+              expected_pack_file = File.join(expected_dir, "pack.json")
+              unless File.exist?(expected_pack_file)
+                failed_reprs << "pack.json (no expected file)"
+                schema_success = false
+                success = false
+                next
+              end
+
+              begin
+                require_relative "../pack/builder"
+                current_pack_output = Kumi::Pack::Builder.print(schema: schema_path, targets: %w[ruby])
+                File.write(File.join(tmp_dir, "pack.json"), current_pack_output)
+                
+                expected_content = File.read(expected_pack_file)
+                unless current_pack_output.strip == expected_content.strip
+                  failed_reprs << "pack.json"
+                  schema_success = false
+                  success = false
+                end
+              rescue StandardError => e
+                failed_reprs << "pack.json (error: #{e.message})"
+                schema_success = false
+                success = false
+              end
+              next
+            end
+
             extension = if JSON_REPRESENTATIONS.include?(repr)
                           "json"
                         elsif RUBY_REPRESENTATIONS.include?(repr)
@@ -105,7 +150,8 @@ module Kumi
             filename = "#{repr}.#{extension}"
 
             unless File.exist?(expected_file)
-              puts "  ✗ #{filename} (no expected file)"
+              failed_reprs << "#{filename} (no expected file)"
+              schema_success = false
               success = false
               next
             end
@@ -113,7 +159,8 @@ module Kumi
             begin
               current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
               unless current_output
-                puts "  ✗ #{filename} (no current output)"
+                failed_reprs << "#{filename} (no current output)"
+                schema_success = false
                 success = false
                 next
               end
@@ -121,42 +168,81 @@ module Kumi
               File.write(tmp_file, current_output)
               expected_content = File.read(expected_file)
 
-              if current_output.strip == expected_content.strip
-                puts "  ✓ #{filename}"
-              else
-                puts "  ✗ #{filename} (differs)"
+              unless current_output.strip == expected_content.strip
+                failed_reprs << filename
+                schema_success = false
                 success = false
               end
             rescue StandardError => e
-              puts "  ✗ #{filename} (error: #{e.message})"
-              puts "Backtrace:" + e.backtrace.first(10).join("\n")
+              failed_reprs << "#{filename} (error: #{e.message})"
+              schema_success = false
               success = false
             end
+          end
+
+          # Show schema result
+          if schema_success
+            puts "✓ #{schema_name}"
+          else
+            puts "✗ #{schema_name} (#{failed_reprs.join(', ')})"
           end
         end
 
         success
       end
 
-      def diff!(name, repr = nil)
-        expected_dir = golden_path(name, "expected")
-        tmp_dir = golden_path(name, "tmp")
+      def diff!(name = nil, repr = nil)
+        names = name ? [name] : golden_dirs
 
-        representations = repr ? [repr] : REPRESENTATIONS
+        names.each do |schema_name|
+          expected_dir = golden_path(schema_name, "expected")
+          tmp_dir = golden_path(schema_name, "tmp")
 
-        representations.each do |r|
+          representations = repr ? [repr] : REPRESENTATIONS
+
+          representations.each do |r|
+          if r == "pack"
+            # Handle pack diffing specially
+            expected_file = File.join(expected_dir, "pack.json")
+            tmp_file = File.join(tmp_dir, "pack.json")
+            
+            if File.exist?(expected_file) && File.exist?(tmp_file)
+              # Check if files actually differ before showing diff
+              expected_content = File.read(expected_file)
+              tmp_content = File.read(tmp_file)
+              if expected_content.strip != tmp_content.strip
+                puts "=== #{schema_name}/pack.json ==="
+                json_diff(expected_file, tmp_file)
+                puts
+              end
+            elsif File.exist?(expected_file) || File.exist?(tmp_file)
+              puts "Cannot diff #{schema_name}/pack.json: missing files"
+            end
+            next
+          end
+
           extension = JSON_REPRESENTATIONS.include?(r) ? "json" : "txt"
           expected_file = File.join(expected_dir, "#{r}.#{extension}")
           tmp_file = File.join(tmp_dir, "#{r}.#{extension}")
           filename = "#{r}.#{extension}"
 
           if File.exist?(expected_file) && File.exist?(tmp_file)
-            puts "=== #{name}/#{filename} ==="
-            system("diff -u #{expected_file} #{tmp_file}")
-            puts
-          else
-            puts "Cannot diff #{name}/#{filename}: missing files"
+            # Check if files actually differ before showing diff
+            expected_content = File.read(expected_file)
+            tmp_content = File.read(tmp_file)
+            if expected_content.strip != tmp_content.strip
+              puts "=== #{schema_name}/#{filename} ==="
+              if JSON_REPRESENTATIONS.include?(r)
+                json_diff(expected_file, tmp_file)
+              else
+                system("diff -u #{expected_file} #{tmp_file}")
+              end
+              puts
+            end
+          elsif File.exist?(expected_file) || File.exist?(tmp_file)
+            puts "Cannot diff #{schema_name}/#{filename}: missing files"
           end
+        end
         end
       end
 
@@ -300,6 +386,26 @@ module Kumi
 
       def golden_path(name, file)
         File.join("golden", name, file)
+      end
+
+      def json_diff(expected_file, tmp_file)
+        # Require jq for JSON diffing in dev/CI
+        unless system("which jq > /dev/null 2>&1")
+          abort "jq is required for JSON diffing. Please install jq: apt-get install jq / brew install jq"
+        end
+
+        # Create pretty-printed temporary files
+        expected_pretty = "#{expected_file}.pretty"
+        tmp_pretty = "#{tmp_file}.pretty"
+        
+        begin
+          system("jq . #{expected_file} > #{expected_pretty}")
+          system("jq . #{tmp_file} > #{tmp_pretty}")
+          system("diff -u #{expected_pretty} #{tmp_pretty}")
+        ensure
+          File.unlink(expected_pretty) if File.exist?(expected_pretty)
+          File.unlink(tmp_pretty) if File.exist?(tmp_pretty)
+        end
       end
     end
   end

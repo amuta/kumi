@@ -1,20 +1,20 @@
 kernels:
   - id: core.add:ruby:v1
     fn: core.add
-    impl: "->(a, b) { a + b }"
+    impl: "(a, b)\n  a + b"
 
   - id: core.sub:ruby:v1
     fn: core.sub
-    impl: "->(a, b) { a - b }"
+    impl: "(a, b)\n  a - b"
 
   - id: core.mul:ruby:v1
     fn: core.mul
-    impl: "->(a, b) { a * b }"
+    impl: "(a, b)\n  a * b"
 
   - id: core.pow:ruby:v1
     fn: core.pow
-    impl: "->(a, b) { a ** b }"
+    impl: "(a, b)\n  a ** b"
 
   - id: core.div:ruby:v1
     fn: core.div
-    impl: "->(a, b) { a / b }"
+    impl: "(a, b)\n  a / b"

@@ -30,11 +30,45 @@ module Kumi
             end
           end
 
+          deduplicated = deduplicate_kernel_impls(bindings)
+          
           {
             "ir_ref" => sha256_ir_ref(irv2_module),
             "target" => target.to_s,
             "registry_ref" => registry.registry_ref,
-            "bindings" => bindings
+            "bindings" => deduplicated[:bindings],
+            "kernels" => deduplicated[:kernels]
+          }
+        end
+
+        # Separate kernel implementations from operation bindings
+        # Returns { bindings: [...], kernels: {...} } where:
+        # - bindings: operation-level mappings without duplicate impl strings  
+        # - kernels: unique kernel_id => impl mappings
+        def deduplicate_kernel_impls(bindings)
+          kernels = {}
+          deduplicated_bindings = []
+          
+          bindings.each do |binding|
+            kernel_id = binding["kernel_id"]
+            impl = binding["impl"]
+            
+            # Store unique kernel implementation
+            if kernels.key?(kernel_id)
+              unless kernels[kernel_id] == impl
+                raise "Inconsistent impl for #{kernel_id}: #{impl} vs #{kernels[kernel_id]}"
+              end
+            else
+              kernels[kernel_id] = impl
+            end
+            
+            # Store operation binding without impl duplication
+            deduplicated_bindings << binding.reject { |k, _| k == "impl" }
+          end
+          
+          {
+            bindings: deduplicated_bindings,
+            kernels: kernels
           }
         end
 

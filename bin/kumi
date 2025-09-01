@@ -5,7 +5,7 @@ require "bundler/setup"
 require "optparse"
 require_relative "../lib/kumi"
 
-cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen> ..."
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen|pack> ..."
 
 case cmd
 when "parse"
@@ -124,39 +124,53 @@ when "profile"
   exit(success ? 0 : 1)
 
 when "codegen"
-  sub = ARGV.shift or abort "kumi codegen <ruby> ..."
+  sub = ARGV.shift or abort "kumi codegen <list|build|test|verify> ..."
+  opts = { targets: %w[ruby] }
+  
+  OptionParser.new do |o|
+    o.on("--targets LIST") { |v| opts[:targets] = v.split(",").map(&:strip) }
+    o.on("--output-dir DIR") { |v| opts[:output_dir] = v }
+  end.parse!(ARGV)
   
   case sub
-  when "ruby"
-    
-    golden_names = ARGV.shift || Kumi::Dev::Golden.list
-    
-    begin
-      Array(golden_names).each do |golden_name|
-        # Use the expected IRv2 and binding manifest from the golden test
-        golden_dir = "golden/#{golden_name}"
-        ir_file = "#{golden_dir}/expected/irv2.json"
-        binding_file = "#{golden_dir}/expected/binding_manifest.json"
-        output_file = "#{golden_dir}/expected/generated_code.rb"
-        
-        unless File.exist?(ir_file) && File.exist?(binding_file)
-          abort "Missing expected files: #{ir_file} or #{binding_file}"
-        end
-        
-        puts "Generating Ruby code for #{golden_name}..."
-        generated_code = Kumi::Codegen::RubyCodegen.generate(ir_file, binding_file)
-        
-        File.write(output_file, generated_code)
-        puts "Generated Ruby code written to: #{output_file}"
-        
-        # TODO: Add diff functionality to compare with existing generated_code.rb
-      end
-    end
-    
+  when "list"   then Kumi::Dev::Codegen.list
+  when "build" 
+    name = ARGV.shift or abort "kumi codegen build <schema_name>"
+    Kumi::Dev::Codegen.build!(name, targets: opts[:targets], output_dir: opts[:output_dir])
+  when "test"   
+    names = ARGV.empty? ? nil : ARGV
+    exit(Kumi::Dev::Codegen.test!(*names) ? 0 : 1)
+  when "verify" 
+    name = ARGV.shift or abort "kumi codegen verify <schema_name>"
+    exit(Kumi::Dev::Codegen.verify!(name) ? 0 : 1)
   else
-    abort "kumi codegen <ruby> ..."
+    abort "kumi codegen <list|build|test|verify>"
+  end
+
+when "pack"
+  sub = ARGV.shift or abort "kumi pack <build|print> ..."
+  opts = { targets: %w[ruby], include_ir: false }
+  
+  OptionParser.new do |o|
+    o.on("--schema PATH") { |v| opts[:schema] = v }
+    o.on("--out-dir DIR") { |v| opts[:out_dir] = v }
+    o.on("--targets LIST"){ |v| opts[:targets] = v.split(",").map(&:strip) }
+    o.on("--include-ir")  { opts[:include_ir] = true }
+  end.parse!
+  
+  case sub
+  when "build"
+    abort "missing --schema" unless opts[:schema]
+    abort "missing --out-dir" unless opts[:out_dir]
+    puts Kumi::Pack.build(schema: opts[:schema], out_dir: opts[:out_dir],
+                          targets: opts[:targets], include_ir: opts[:include_ir])
+  when "print"
+    abort "missing --schema" unless opts[:schema]
+    puts Kumi::Pack.print(schema: opts[:schema], targets: opts[:targets], include_ir: opts[:include_ir])
+  else
+    abort "kumi pack <build|print>"
   end
 
 else
-  abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen> ..."
+  abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen|pack> ..."
 end

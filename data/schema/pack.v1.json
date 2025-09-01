@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schema/pack.v1.json",
+  "title": "Kumi Pack v1",
+  "type": "object",
+  "required": ["pack_version","module_id","plan","ops_by_decl","inputs","bindings","capabilities","hashes"],
+  "properties": {
+    "pack_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$" },
+    "module_id": { "type": "string", "minLength": 1 },
+    "plan": { "type": "object" },
+    "ops_by_decl": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["operations"],
+        "properties": {
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id","op"],
+              "properties": {
+                "id": { "type": ["integer","string"] },
+                "op": { "type": "string" },
+                "args": { "type": "array" },
+                "attrs": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name","accessor_name","chain"],
+        "properties": {
+          "name": { "type": "string" },
+          "axes": { "type": "array" },
+          "dtype": { "type": "string" },
+          "accessor_name": { "type": "string" },
+          "chain": { "type": "array" }
+        }
+      }
+    },
+    "bindings": { "type": "object" },
+    "capabilities": { "type": "object", "required": ["layout"] },
+    "hashes": { "type": "object" }
+  },
+  "additionalProperties": true
+}

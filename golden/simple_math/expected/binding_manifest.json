@@ -1,12 +1,13 @@
 {
   "ir_ref": "sha256:1a8b72309340f69f97b2a9c6cc0a7b79fb04284a818814810ebb16916f9af885",
   "target": "ruby",
-  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
+  "registry_ref": "sha256:216cb9385b440e8c88e5c8ba57100d7be96974eecee59039860dbe784ebfdfdd",
   "bindings": [
-    {"decl":"sum","op":2,"fn":"core.add","kernel_id":"core.add:ruby:v1","impl":"->(a, b) { a + b }"},
-    {"decl":"product","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"},
-    {"decl":"difference","op":2,"fn":"core.sub","kernel_id":"core.sub:ruby:v1","impl":"->(a, b) { a - b }"},
-    {"decl":"results_array","op":3,"fn":"core.add","kernel_id":"core.add:ruby:v1","impl":"->(a, b) { a + b }"},
-    {"decl":"results_array","op":6,"fn":"core.mul","kernel_id":"core.mul:ruby:v1","impl":"->(a, b) { a * b }"}
-  ]
+    {"decl":"sum","op":2,"fn":"core.add","kernel_id":"core.add:ruby:v1"},
+    {"decl":"product","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"difference","op":2,"fn":"core.sub","kernel_id":"core.sub:ruby:v1"},
+    {"decl":"results_array","op":3,"fn":"core.add","kernel_id":"core.add:ruby:v1"},
+    {"decl":"results_array","op":6,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"}
+  ],
+  "kernels": {"core.add:ruby:v1":"(a, b)\n  a + b","core.mul:ruby:v1":"(a, b)\n  a * b","core.sub:ruby:v1":"(a, b)\n  a - b"}
 }

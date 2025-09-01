@@ -1,9 +1,10 @@
 {
   "ir_ref": "sha256:40a76c9a87b536b80df3bcd94727df43bb44f240d18bfc168382988f13e56f24",
   "target": "ruby",
-  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
+  "registry_ref": "sha256:216cb9385b440e8c88e5c8ba57100d7be96974eecee59039860dbe784ebfdfdd",
   "bindings": [
-    {"decl":"per_order_qty_sum","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1","impl":"->(a,b) {a + b}"},
-    {"decl":"order_item_flags","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"}
-  ]
+    {"decl":"per_order_qty_sum","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
+    {"decl":"order_item_flags","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"}
+  ],
+  "kernels": {"agg.sum:ruby:v1":"(a,b)\n  a + b","core.gt:ruby:v1":"(a, b)\n  a > b"}
 }

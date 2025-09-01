@@ -1,10 +1,11 @@
 {
   "ir_ref": "sha256:81e3ddeee93fd25a535418c35cbe0b9dcebbbeaf6b72e2cdb3cf4ad6ee71d163",
   "target": "ruby",
-  "registry_ref": "sha256:094277b8290663754eea485c880d1596b13594e6d3ddf00bdaf28bf4f2e104a5",
+  "registry_ref": "sha256:216cb9385b440e8c88e5c8ba57100d7be96974eecee59039860dbe784ebfdfdd",
   "bindings": [
-    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
-    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1","impl":"->(a, b) { a > b }"},
-    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1","impl":"->(a, b) { a && b }"}
-  ]
+    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1"}
+  ],
+  "kernels": {"core.gt:ruby:v1":"(a, b)\n  a > b","core.and:ruby:v1":"(a, b)\n  a && b"}
 }

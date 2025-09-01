@@ -97,11 +97,7 @@ module Kumi
             impl = @kernel_impls[kid]
             raise "No impl string for kernel #{kid.inspect} (expected manifest to provide 'impl')" unless impl.is_a?(String)
 
-            sig_body = parse_lambda_string(impl) or raise(
-              "Kernel impl for #{kid.inspect} is not a supported lambda/proc string: #{impl.inspect}.\n" \
-              "Accepted forms: ->(a,b){ a + b }, ->(a,b) { a + b }, lambda { |a,b| a + b }, proc { |a,b| a + b }"
-            )
-            "def #{kernel_method_name(kid)}#{sig_body}\nend"
+            "def #{kernel_method_name(kid)}#{impl.strip}\nend"
           end.join("\n\n")
         end
 
@@ -110,30 +106,6 @@ module Kumi
           "k_" + kid.gsub(/[^a-zA-Z0-9]+/, "_")
         end
 
-        # Accept common lambda/proc forms, return "(args)\n  body"
-        def parse_lambda_string(src)
-          s = src.strip
-
-          if m = s.match(/\A->\s*\(([^)]*)\)\s*\{\s*(.+)\s*\}\s*\z/m)
-            args = m[1].strip
-            body = m[2].strip
-            return "(#{args})\n  #{body}"
-          end
-
-          if m = s.match(/\A->\s*\(([^)]*)\)\s*do\s*(.+)\s*end\s*\z/m)
-            args = m[1].strip
-            body = m[2].strip
-            return "(#{args})\n  #{body}"
-          end
-
-          if m = s.match(/\A(?:lambda|proc)\s*\{\s*\|([^|]*)\|\s*(.+)\s*\}\s*\z/m)
-            args = m[1].strip
-            body = m[2].strip
-            return "(#{args})\n  #{body}"
-          end
-
-          nil
-        end
 
         # ---------- Declaration methods (inside Bound) ----------
         def emit_decl_methods(declaration_plans)

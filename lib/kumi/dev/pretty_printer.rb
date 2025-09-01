@@ -126,6 +126,12 @@ module Kumi
         planning_data = Kumi::Codegen::Planning.to_json(bundle)
         Printer::WidthAwareJson.dump(planning_data)
       end
+
+      def generate_pack(path)
+        require_relative "../pack"
+        
+        Kumi::Pack.print(schema: path, targets: %w[ruby])
+      end
     end
   end
 end

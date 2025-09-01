@@ -1,14 +1,14 @@
 kernels:
   - id: agg.sum:ruby:v1
     fn: agg.sum
-    impl: "->(a,b) {a + b}"
+    impl: "(a,b)\n  a + b"
     identity: 
       float: 0.0
       integer: 0
       
   - id: agg.count:ruby:v1
     fn: agg.count
-    impl: "->(a,b) {a + b}"
+    impl: "(a,b)\n  a + b"
     identity:
       integer: 0
       float: 0
