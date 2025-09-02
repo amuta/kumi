@@ -1,5 +1,6 @@
 # Important
 Ignore Linting issues for now.
+Dont invent backward compatibility unless that is the plan.
 
 # Vector Semantics
 Axes align by identity (lineage), not by name
