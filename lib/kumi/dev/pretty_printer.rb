@@ -106,13 +106,16 @@ module Kumi
       end
 
       def generate_generated_code(path)
-        require "kumi/codegen/ruby"
+        require_relative "../pack/builder"
+        require_relative "../codegen/ruby_v2"
 
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:irv2] && res.state[:binding_manifest]
-
-        Kumi::Codegen::Ruby.generate_from_data(res.state[:irv2], res.state[:binding_manifest])
+        # Generate pack using same approach as golden pack generation
+        pack_json = Kumi::Pack::Builder.print(schema: path, targets: %w[ruby], include_ir: false)
+        pack = JSON.parse(pack_json)
+        
+        # Generate code using Ruby V2 generator
+        module_name = pack["module_id"].split('_').map(&:capitalize).join
+        Kumi::Codegen::RubyV2.generate(pack, module_name: module_name)
       end
 
       def generate_planning(path)

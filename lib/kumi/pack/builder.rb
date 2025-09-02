@@ -60,7 +60,6 @@ module Kumi
       end
 
       def assemble_pack(module_id, ir, planning, bindings, inputs, targets, include_ir)
-        keep_bindings = targets.any? ? bindings.slice(*targets) : bindings
         plan_obj = planning["plan"] || planning
 
         pack = {
@@ -69,7 +68,7 @@ module Kumi
           "plan" => plan_obj,
           "ops_by_decl" => extract_ops_by_decl(ir),
           "inputs" => extract_inputs(inputs),
-          "bindings" => keep_bindings,
+          "bindings" => format_bindings_for_pack(bindings),
           "capabilities" => { "layout" => "nested_array" }
         }
         pack["ir_debug"] = ir if include_ir
@@ -105,6 +104,59 @@ module Kumi
             "accessor_name" => accessor_name_for(name),
             "chain" => Array(inp["chain"]).map(&:to_s)
           }
+        end
+      end
+
+      def format_bindings_for_pack(bindings)
+        return {} unless bindings.is_a?(Hash)
+        
+        formatted = {}
+        
+        # Handle single binding manifest (not keyed by target)
+        if bindings["target"] && bindings["kernels"]
+          target = bindings["target"]
+          kernels_array = bindings["kernels"].map do |kernel_id, impl|
+            # Extract the function name from kernel_id (e.g., "core.add:ruby:v1" -> "core.add")
+            fn_name = kernel_id.split(':').first
+            # Format the implementation as proper Ruby lambda
+            ruby_impl = format_ruby_lambda(impl)
+            {
+              "kernel_id" => fn_name,
+              "impl" => ruby_impl
+            }
+          end
+          formatted[target] = { "kernels" => kernels_array }
+        else
+          # Handle multiple binding manifests keyed by target
+          bindings.each do |target, manifest|
+            next unless manifest.is_a?(Hash) && manifest["kernels"]
+            
+            kernels_array = manifest["kernels"].map do |kernel_id, impl|
+              fn_name = kernel_id.split(':').first
+              ruby_impl = format_ruby_lambda(impl)
+              {
+                "kernel_id" => fn_name,
+                "impl" => ruby_impl
+              }
+            end
+            
+            formatted[target] = { "kernels" => kernels_array }
+          end
+        end
+        
+        formatted
+      end
+
+      def format_ruby_lambda(impl)
+        # Convert "(a, b)\n  a + b" to "->(a, b) { a + b }"
+        lines = impl.strip.split("\n")
+        if lines.length >= 2
+          params = lines[0].strip.gsub(/^\(|\)$/, '')  # Remove outer parentheses
+          body = lines[1..-1].map(&:strip).join("; ")
+          "->(#{params}) { #{body} }"
+        else
+          # Fallback for single line
+          "->(#{impl.strip})"
         end
       end
 
