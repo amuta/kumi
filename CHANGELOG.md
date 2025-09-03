@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.0.18] – 2025-09-03
+- Fixed bug missing updated Gemfile.lock
+
 ## [0.0.17] – 2025-09-03
 
 ### Removed  
