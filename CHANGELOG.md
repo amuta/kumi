@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.0.17] – 2025-09-03
+
+### Removed  
+- Reverted experimental function registry v2 implementation
+- Cleaned up unused analyzer passes and simplified unsat detector logic
+
 ## [0.0.16] – 2025-08-22
 
 ### Performance
