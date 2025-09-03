@@ -2,7 +2,6 @@
 
 require "bundler/setup"
 require "kumi"
-require "pry"
 require "open3"
 
 require "simplecov"
