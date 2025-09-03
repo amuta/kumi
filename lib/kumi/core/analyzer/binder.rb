@@ -20,12 +20,24 @@ module Kumi
 
               kernel_id = registry.pick(fn)
               impl = registry.impl_for(kernel_id)
+              
+              # Extract dtype from operation stamp and get identity if available
+              dtype = op.stamp["dtype"]
+              attrs = {}
+              begin
+                identity = registry.identity(kernel_id, dtype)
+                attrs["identity"] = identity if identity
+              rescue
+                # Not all kernels have identity values (only reductions do)
+              end
+              
               bindings << {
                 "decl" => decl_name.to_s,
                 "op" => op.id,
                 "fn" => fn,
                 "kernel_id" => kernel_id,
-                "impl" => impl
+                "impl" => impl,
+                "attrs" => attrs
               }
             end
           end
@@ -44,7 +56,7 @@ module Kumi
         # Separate kernel implementations from operation bindings
         # Returns { bindings: [...], kernels: {...} } where:
         # - bindings: operation-level mappings without duplicate impl strings  
-        # - kernels: unique kernel_id => impl mappings
+        # - kernels: unique kernel_id => {impl, attrs} mappings
         def deduplicate_kernel_impls(bindings)
           kernels = {}
           deduplicated_bindings = []
@@ -52,23 +64,28 @@ module Kumi
           bindings.each do |binding|
             kernel_id = binding["kernel_id"]
             impl = binding["impl"]
+            attrs = binding["attrs"]
             
-            # Store unique kernel implementation
+            # Store unique kernel implementation and attributes
             if kernels.key?(kernel_id)
-              unless kernels[kernel_id] == impl
-                raise "Inconsistent impl for #{kernel_id}: #{impl} vs #{kernels[kernel_id]}"
+              unless kernels[kernel_id]["impl"] == impl
+                raise "Inconsistent impl for #{kernel_id}: #{impl} vs #{kernels[kernel_id]["impl"]}"
+              end
+              # Merge attrs if present
+              if attrs
+                kernels[kernel_id]["attrs"] = (kernels[kernel_id]["attrs"] || {}).merge(attrs)
               end
             else
-              kernels[kernel_id] = impl
+              kernels[kernel_id] = {"kernel_id" => kernel_id, "impl" => impl, "attrs" => attrs || {}}
             end
             
-            # Store operation binding without impl duplication
-            deduplicated_bindings << binding.reject { |k, _| k == "impl" }
+            # Store operation binding without impl and attrs duplication
+            deduplicated_bindings << binding.reject { |k, _| ["impl", "attrs"].include?(k) }
           end
           
           {
             bindings: deduplicated_bindings,
-            kernels: kernels
+            kernels: kernels.values
           }
         end
 

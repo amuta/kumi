@@ -9,16 +9,31 @@ module Kumi::Codegen::RubyV3::Pipeline::StreamLowerer
     ops = []
     rank = loop_shape[:rank]
 
-    loop_shape[:loops].each { |l| ops << CGIR::Op.open_loop(depth: l[:depth], via_path: l[:via_path]) }
-
     depth_of = {}
     ctx[:site_schedule].fetch("by_depth").each do |dinfo|
       d = dinfo.fetch("depth")
       dinfo.fetch("ops").each { |o| depth_of[o.fetch("id")] = d }
     end
 
+    # Generate all operations first, then sort by depth + type
+    
+    # AccReset operations
+    ctx[:reduce_plans].each do |rp|
+      red_id = rp.fetch("op_id")
+      reducer_fn = rp.fetch("reducer_fn")
+      identity_val = identities.fetch(reducer_fn)
+      result_depth = depth_of.fetch(red_id)
+      ops << CGIR::Op.acc_reset(name: "acc_#{red_id}", depth: result_depth, init: identity_val)
+    end
+
+    # Loop operations
+    loop_shape[:loops].each { |l| ops << CGIR::Op.open_loop(depth: l[:depth], via_path: l[:via_path]) }
+    loop_shape[:loops].reverse_each { |l| ops << CGIR::Op.close_loop(depth: l[:depth]) }
+
+    # Const preludes
     const_preludes(consts, ctx[:site_schedule]).each { |(code, d)| ops << CGIR::Op.emit(code: code, depth: d) }
 
+    # Site schedule operations
     ctx[:site_schedule].fetch("by_depth").each do |dinfo|
       d = dinfo.fetch("depth")
       dinfo.fetch("ops").each do |sched|
@@ -55,27 +70,56 @@ module Kumi::Codegen::RubyV3::Pipeline::StreamLowerer
           args = op["args"].map { |a| ref(a, consts, deps) }.join(", ")
           ops << CGIR::Op.emit(code: "v#{op['id']} = [#{args}]", depth: d)
         when "reduce"
-          reduce_plan = ctx[:reduce_plans].find { |r| r["op_id"] == op["id"] }
-          reducer_fn = reduce_plan.fetch("reducer_fn")
-          identity_val = identities.fetch(reducer_fn, 0)
-          ops << CGIR::Op.acc_reset(name: "acc_#{op['id']}", depth: d, init: identity_val)
+          # Skip - AccReset already added above
         end
       end
     end
 
+    # Reduce operations (AccAdd)
     ctx[:reduce_plans].each do |rp|
       val_id = rp.fetch("arg_id")
       red_id = rp.fetch("op_id")
       ops << CGIR::Op.acc_add(name: "acc_#{red_id}", expr: "v#{val_id}", depth: depth_of.fetch(val_id))
+    end
+
+    # Result processing
+    ctx[:reduce_plans].each do |rp|
+      red_id = rp.fetch("op_id")
       ops << CGIR::Op.emit(code: "v#{red_id} = acc_#{red_id}", depth: depth_of.fetch(red_id))
     end
 
+    # Yield
     result_depth = depth_of.fetch(ctx[:result_id])  
     idxs = (0...rank).map { |k| "i#{k}" }
     res  = "v#{ctx[:result_id]}"
     ops << CGIR::Op.yield(expr: res, indices: idxs, depth: result_depth)
 
-    loop_shape[:loops].reverse_each { |l| ops << CGIR::Op.close_loop(depth: l[:depth]) }
+    # Sort operations by logical stages and depth
+    max_depth = ops.map { |op| op[:depth] || 0 }.max
+    
+    ops.sort_by! do |op|
+      depth = op[:depth] || 0
+      case op[:k]
+      when :AccReset then [0, depth]  # Stage 0: Initialize accumulators
+      when :OpenLoop then [1, depth]  # Stage 1: Start loops (outer to inner)
+      when :Emit then 
+        # Check if this is result processing (v#{id} = acc_#{id})
+        if op[:code]&.match?(/^v\d+ = acc_\d+$/)
+          [4, depth]  # Stage 4: Result processing (after loops)
+        else
+          [2, depth]  # Stage 2: Loop body operations
+        end
+      when :AccAdd then [2, depth]     # Stage 2: Loop body operations  
+      when :CloseLoop then [3, max_depth - depth]  # Stage 3: Close loops (inner to outer)
+      when :Yield then 
+        if depth == 0
+          [5, depth]  # Stage 5: Return results (after all loops)
+        else
+          [2, depth]  # Stage 2: Yield inside loops (for array results)
+        end
+      else [2, depth]                  # Default: loop body operations
+      end
+    end
 
     CGIR::Function.new(name: ctx[:name], rank:, ops:)
   end
@@ -99,10 +143,23 @@ module Kumi::Codegen::RubyV3::Pipeline::StreamLowerer
   module_function
   
   def emit_chain_access(chain, current_depth, rank)
-    axes_in_chain = chain.count { |s| s["kind"] == "array_field" }
-    base = axes_in_chain.zero? ? "@input" : "a#{axes_in_chain - 1}"  
-    field_steps = chain.drop(axes_in_chain)
-    field_steps.reduce(base) { |acc, step| "#{acc}[#{literal(step['key'])}]" }
+    # Count array steps (both array_field and array_element) to determine base
+    array_steps = chain.count { |s| s["kind"] == "array_field" || s["kind"] == "array_element" }
+    base = array_steps.zero? ? "@input" : "a#{array_steps - 1}"
+    
+    # Process remaining field access steps
+    field_steps = chain.drop_while { |s| s["kind"] == "array_field" || s["kind"] == "array_element" }
+    field_steps.reduce(base) do |acc, step|
+      case step["kind"]
+      when "field_leaf"
+        "#{acc}[#{literal(step['key'])}]"
+      when "element_leaf"
+        # element_leaf: "the element itself is the value" - no additional access needed
+        acc
+      else
+        acc
+      end
+    end
   end
 
   def ref(arg, consts, deps)

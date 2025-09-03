@@ -58,6 +58,7 @@ module Kumi
         # Prefer enter_via==:array; allow consume_alias to force alias even if enter_via says :hash (defensive).
         def alias_step?(child_node, parent_container)
           return false unless array_parent?(parent_container)
+
           child_node[:container] == :array && (child_node[:enter_via] == :array || child_node[:consume_alias] == true)
         end
 
@@ -73,6 +74,7 @@ module Kumi
           emit_for_segments(path_segments)
           node = meta_node_for(path_segments)
           return if node[:children].nil?
+
           node[:children].each_key { |c| walk_and_emit(path_segments + [c.to_s]) }
         end
 

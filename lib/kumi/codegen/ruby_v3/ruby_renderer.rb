@@ -14,6 +14,7 @@ module Kumi::Codegen::RubyV3::RubyRenderer
       lines << "  def _each_#{fn.name}"
       lines << "    # TODO: Implement streaming method for #{fn.name}"
       
+      
       fn.ops.each do |op|
         indent = "  " * (op[:depth] + 2)
         case op[:k]
@@ -24,11 +25,13 @@ module Kumi::Codegen::RubyV3::RubyRenderer
           if op[:depth] == 0
             lines << "#{indent}arr#{op[:depth]} = @input[#{via_key.inspect}]"
             lines << "#{indent}i#{op[:depth]} = 0"
+            lines << "#{indent}a#{op[:depth]} = nil"
             lines << "#{indent}while i#{op[:depth]} < arr#{op[:depth]}.length"
             lines << "#{indent}  a#{op[:depth]} = arr#{op[:depth]}[i#{op[:depth]}]"
           else
             lines << "#{indent}arr#{op[:depth]} = a#{op[:depth] - 1}[#{via_key.inspect}]"
             lines << "#{indent}i#{op[:depth]} = 0"
+            lines << "#{indent}a#{op[:depth]} = nil"
             lines << "#{indent}while i#{op[:depth]} < arr#{op[:depth]}.length"
             lines << "#{indent}  a#{op[:depth]} = arr#{op[:depth]}[i#{op[:depth]}]"
           end
@@ -68,6 +71,14 @@ module Kumi::Codegen::RubyV3::RubyRenderer
     end
     lines << "    else raise KeyError, \"Unknown declaration: \#{name}\""
     lines << "    end"
+    lines << "  end"
+    lines << ""
+    
+    lines << "  def self.from(input_data)"
+    lines << "    instance = Object.new"
+    lines << "    instance.extend(self)"
+    lines << "    instance.instance_variable_set(:@input, input_data)"
+    lines << "    instance"
     lines << "  end"
     lines << ""
     

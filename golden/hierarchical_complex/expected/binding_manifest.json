@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:0c6ef01ec68b8c598009e5827f916030a1c0f7bf07c7519b71c833a89a7725e9",
   "target": "ruby",
-  "registry_ref": "sha256:216cb9385b440e8c88e5c8ba57100d7be96974eecee59039860dbe784ebfdfdd",
+  "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
   "bindings": [
     {"decl":"high_performer","op":2,"fn":"core.gte","kernel_id":"core.gte:ruby:v1"},
     {"decl":"senior_level","op":2,"fn":"core.eq","kernel_id":"core.eq:ruby:v1"},
@@ -13,10 +13,10 @@
     {"decl":"employee_bonus","op":12,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
     {"decl":"employee_bonus","op":14,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"}
   ],
-  "kernels": {
-    "core.gte:ruby:v1": "(a, b)\n  a >= b",
-    "core.eq:ruby:v1": "(a, b)\n  a == b",
-    "core.and:ruby:v1": "(a, b)\n  a && b",
-    "core.mul:ruby:v1": "(a, b)\n  a * b"
-  }
+  "kernels": [
+    {"kernel_id":"core.gte:ruby:v1","impl":"(a, b)\n  a >= b","attrs":{}},
+    {"kernel_id":"core.eq:ruby:v1","impl":"(a, b)\n  a == b","attrs":{}},
+    {"kernel_id":"core.and:ruby:v1","impl":"(a, b)\n  a && b","attrs":{}},
+    {"kernel_id":"core.mul:ruby:v1","impl":"(a, b)\n  a * b","attrs":{}}
+  ]
 }

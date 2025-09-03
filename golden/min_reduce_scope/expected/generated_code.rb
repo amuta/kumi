@@ -1,168 +1,138 @@
-# AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
-
 module SchemaModule
-  PACK_HASH = "e2529508629293c6058f26391d4bbc4fb9485a1bcc91b54606f78e4a3d44d86a:95ccb7df5aadfc90e63b52740208a475b02424743078f5fd761d988c405d0252:30a0d72ec88ee01757c1654c7057f1183dc29aae6ec8cc4b390651ecf1e3257a".freeze
+  # Generated code with pack hash: afe16a37162e4b64766c1e62c9335166e1ff9d711f3380ef32a06de5d4da1ae4:e2529508629293c6058f26391d4bbc4fb9485a1bcc91b54606f78e4a3d44d86a:95ccb7df5aadfc90e63b52740208a475b02424743078f5fd761d988c405d0252
 
-  class Program
-    def self.from(data) = new(data)
-    def initialize(data) = (@input = data; @memo = {})
-
-    def [](name)
-      case name
-                      when :big_team then (@memo[:big_team] ||= _eval_big_team)
-                  when :company_total then (@memo[:company_total] ||= _eval_company_total)
-                  when :dept_total then (@memo[:dept_total] ||= _eval_dept_total)
-                  when :dept_total_masked then (@memo[:dept_total_masked] ||= _eval_dept_total_masked)
-      else
-        raise ArgumentError, "unknown declaration: #{name}"
+  def _each_big_team
+    # TODO: Implement streaming method for big_team
+    arr0 = @input["depts"]
+    i0 = 0
+    a0 = nil
+    while i0 < arr0.length
+      a0 = arr0[i0]
+      arr1 = a0["teams"]
+      i1 = 0
+      a1 = nil
+      while i1 < arr1.length
+        a1 = arr1[i1]
+    c1 = 10
+    c1 = 10
+        v0 = a1["headcount"]
+        v2 = __call_kernel__("core.gt", v0, c1)
+        yield v2, [i0, i1]
+        i1 += 1
       end
-    end
-
-                  def _eval_big_team
-                    input = @input
-                  v1 = 10
-                    out = []
-    __each_array__(input, "depts") do |a_depts|
-      row_0 = []
-    a_depts.each_with_index do |a_teams, _idx|
-          cursors = { "depts"=>a_depts,"teams"=>a_teams }
-            v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-            v2 = __call_kernel__("core.gt", v0, v1)
-          row_0 << v2
-        end
-        out << row_0
-      end
-                    out
-                  end
-    
-        def _eval_company_total
-          input = @input
-    
-          acc = 0
-          __each_array__(input, "depts") do |a_depts|
-    a_depts.each_with_index do |a_teams, _idx|
-        cursors = { "depts"=>a_depts,"teams"=>a_teams }
-        inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-        acc += inl_inline_v0
-      end
-    end
-    
-          acc
-        end
-    
-                def _eval_dept_total
-                  input = @input
-            
-                  out = []
-    __each_array__(input, "depts") do |a_depts|
-      acc = 0
-        a_depts.each_with_index do |a_teams, _idx|
-            cursors = { "depts"=>a_depts,"teams"=>a_teams }
-            inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-            acc += inl_inline_v0
-        end
-      out << acc
-    end
-    
-                  out
-                end
-    
-                def _eval_dept_total_masked
-                  input = @input
-                v2 = 0
-                  out = []
-    __each_array__(input, "depts") do |a_depts|
-      acc = 0
-        a_depts.each_with_index do |a_teams, _idx|
-            cursors = { "depts"=>a_depts,"teams"=>a_teams }
-            inl_big_team_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-            inl_big_team_v1 = 10
-            inl_big_team_v2 = __call_kernel__("core.gt", inl_big_team_v0, inl_big_team_v1)
-            inl_inline_v1 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-            inl_inline_v3 = (inl_big_team_v2 ? inl_inline_v1 : 0)
-            acc += inl_inline_v3
-        end
-      out << acc
-    end
-    
-                  out
-                end
-
-    # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
-    MISSING_POLICY = {}.freeze
-    
-    private
-    
-    def __fetch_key__(obj, key)
-      return nil if obj.nil?
-      if obj.is_a?(Hash)
-        obj.key?(key) ? obj[key] : obj[key.to_sym]
-      else
-        obj.respond_to?(key) ? obj.public_send(key) : nil
-      end
-    end
-    
-    def __array_of__(obj, key)
-      arr = __fetch_key__(obj, key)
-      return arr if arr.is_a?(Array)
-      policy = MISSING_POLICY.fetch(key) { raise "No missing data policy defined for key '#{key}' in pack capabilities" }
-      case policy
-      when :empty then []
-      when :skip  then nil
-      else
-        raise KeyError, "expected Array at #{key.inspect}, got #{arr.class}"
-      end
-    end
-    
-    def __each_array__(obj, key)
-      arr = __array_of__(obj, key)
-      return if arr.nil?
-      i = 0
-      while i < arr.length
-        yield arr[i]
-        i += 1
-      end
-    end
-    
-    def __walk__(steps, root, cursors)
-      cur = root
-      steps.each do |s|
-        case s["kind"]
-        when "array_field"
-          if (ax = s["axis"]) && cursors.key?(ax)
-            cur = cursors[ax]
-          else
-            cur = __fetch_key__(cur, s["key"])
-            raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
-          end
-        when "field_leaf"
-          cur = __fetch_key__(cur, s["key"])
-          raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
-        when "array_element"
-          ax = s["axis"]; raise KeyError, "missing cursor for #{ax}" unless cursors.key?(ax)
-          cur = cursors[ax]
-        when "element_leaf"
-          # no-op
-        else
-          raise KeyError, "unknown step kind: #{s["kind"]}"
-        end
-      end
-      cur
-    end
-    CHAIN_DEPTS = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}].freeze
-    CHAIN_DEPTS_TEAMS = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}, {"axis"=>"teams", "key"=>"teams", "kind"=>"array_field"}].freeze
-    CHAIN_DEPTS_TEAMS_HEADCOUNT = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}, {"axis"=>"teams", "key"=>"teams", "kind"=>"array_field"}, {"key"=>"headcount", "kind"=>"field_leaf"}].freeze
-
-    KERNELS = {}
-    KERNELS["agg.sum"] = ( ->(a,b) { a + b } )
-    KERNELS["core.gt"] = ( ->(a, b) { a > b } )
-    
-    def __call_kernel__(key, *args)
-      fn = KERNELS[key]
-      raise NotImplementedError, "kernel not found: #{key}" unless fn
-      fn.call(*args)
+      i0 += 1
     end
   end
 
-  def self.from(data) = Program.new(data)
+  def _eval_big_team
+    # TODO: Implement materialization for big_team
+    __materialize_from_each(:big_team)
+  end
+
+  def _each_company_total
+    # TODO: Implement streaming method for company_total
+    acc_2 = 0
+      acc_1 = 0
+      acc_2 += v1
+        v0 = a1["headcount"]
+        acc_1 += v0
+    v2 = acc_2
+      v1 = acc_1
+    yield v2, []
+  end
+
+  def _eval_company_total
+    # TODO: Implement materialization for company_total
+    _each_company_total { |value, _| return value }
+  end
+
+  def _each_dept_total
+    # TODO: Implement streaming method for dept_total
+      acc_1 = 0
+    arr0 = @input["depts"]
+    i0 = 0
+    a0 = nil
+    while i0 < arr0.length
+      a0 = arr0[i0]
+      yield v1, [i0]
+        v0 = a1["headcount"]
+        acc_1 += v0
+      i0 += 1
+    end
+      v1 = acc_1
+  end
+
+  def _eval_dept_total
+    # TODO: Implement materialization for dept_total
+    __materialize_from_each(:dept_total)
+  end
+
+  def _each_dept_total_masked
+    # TODO: Implement streaming method for dept_total_masked
+      acc_4 = 0
+    arr0 = @input["depts"]
+    i0 = 0
+    a0 = nil
+    while i0 < arr0.length
+      a0 = arr0[i0]
+    c2 = 0
+    c2 = 0
+      yield v4, [i0, i1]
+        v0 = self[:big_team][i0][i1]
+        v1 = a1["headcount"]
+        v3 = (v0 ? v1 : c2)
+        acc_4 += v3
+      i0 += 1
+    end
+      v4 = acc_4
+  end
+
+  def _eval_dept_total_masked
+    # TODO: Implement materialization for dept_total_masked
+    __materialize_from_each(:dept_total_masked)
+  end
+
+  def [](name)
+    case name
+    when :big_team then _eval_big_team
+    when :company_total then _eval_company_total
+    when :dept_total then _eval_dept_total
+    when :dept_total_masked then _eval_dept_total_masked
+    else raise KeyError, "Unknown declaration: #{name}"
+    end
+  end
+
+  def self.from(input_data)
+    instance = Object.new
+    instance.extend(self)
+    instance.instance_variable_set(:@input, input_data)
+    instance
+  end
+
+  private
+
+  def __materialize_from_each(name)
+    # TODO: Implement streaming to nested array conversion
+    result = []
+    send("_each_#{name}") do |value, indices|
+      __nest_value(result, indices, value)
+    end
+    result
+  end
+
+  def __nest_value(result, indices, value)
+    current = result
+    indices[0...-1].each do |idx|
+      current[idx] ||= []
+      current = current[idx]
+    end
+    current[indices.last] = value if indices.any?
+  end
+
+  def __call_kernel__(id, *args)
+    # TODO: Implement kernel dispatch
+    return (->(a,b) { a + b }).call(*args) if id == "agg.sum"
+    return (->(a, b) { a > b }).call(*args) if id == "core.gt"
+    raise KeyError, "Unknown kernel: #{id}"
+  end
 end

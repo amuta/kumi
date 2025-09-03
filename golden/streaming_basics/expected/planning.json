@@ -73,7 +73,7 @@
         "root_reduces": [{"id":1,"kind":"reduce"}],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
-      "axis_carriers": [],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [{"op_id":1,"axis":"items","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","via_path":["items"]}],
       "inlining_decisions": {}
     },
@@ -86,7 +86,7 @@
         "root_reduces": [{"id":1,"kind":"reduce"}],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loaddeclaration"}]}]
       },
-      "axis_carriers": [],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [{"op_id":1,"axis":"items","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","via_path":["items"]}],
       "inlining_decisions": {"op_0":{"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}}
     },
@@ -99,7 +99,7 @@
         "root_reduces": [{"id":1,"kind":"reduce"}],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loaddeclaration"}]}]
       },
-      "axis_carriers": [],
+      "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [{"op_id":1,"axis":"items","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","via_path":["items"]}],
       "inlining_decisions": {"op_0":{"producer":"items_effective","decision":"inline","use_site_axes":["items"]}}
     }

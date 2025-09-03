@@ -107,15 +107,16 @@ module Kumi
 
       def generate_generated_code(path)
         require_relative "../pack/builder"
-        require_relative "../codegen/ruby_v2"
+        require_relative "../codegen/ruby_v3/generator"
 
         # Generate pack using same approach as golden pack generation
         pack_json = Kumi::Pack::Builder.print(schema: path, targets: %w[ruby], include_ir: false)
         pack = JSON.parse(pack_json)
         
-        # Generate code using Ruby V2 generator
+        # Generate code using Ruby V3 generator
         module_name = pack["module_id"].split('_').map(&:capitalize).join
-        Kumi::Codegen::RubyV2.generate(pack, module_name: module_name)
+        generator = Kumi::Codegen::RubyV3::Generator.new(pack, module_name: module_name)
+        generator.render
       end
 
       def generate_planning(path)

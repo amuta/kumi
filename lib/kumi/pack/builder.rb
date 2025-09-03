@@ -30,13 +30,12 @@ module Kumi
         canonical_json(pack)
       end
 
-
       def build_for_golden(schema_path, golden_dir, targets: %w[ruby])
         ir, planning, bindings, inputs, module_id = generate_artifacts(schema_path)
-        
+
         targets.each do |target|
           pack = assemble_pack(module_id, ir, planning, bindings, inputs, [target], false)
-          
+
           filename = targets.size == 1 ? "pack.json" : "pack_#{target}.json"
           pack_file = File.join(golden_dir, filename)
           File.write(pack_file, canonical_json(pack))
@@ -89,19 +88,19 @@ module Kumi
               "attrs" => op["attrs"] || {}
             }
           end
-          
+
           # Start with IRV2 operations
           result = { "name" => name, "operations" => ops }
           result["result_op_id"] = d["result"] if d.key?("result")
           result["axes"] = d["axes"] if d.key?("axes")
-          
+
           # Merge in planning metadata in sorted key order
           plan_data = plan_declarations[name] || {}
           plan_data.keys.sort.each do |key|
             # Don't override IRV2 fields, but add planning fields
             result[key] = plan_data[key] unless result.key?(key)
           end
-          
+
           result
         end
       end
@@ -140,41 +139,27 @@ module Kumi
 
       def format_bindings_for_pack(bindings)
         return {} unless bindings.is_a?(Hash)
-        
+
         formatted = {}
-        
-        # Handle single binding manifest (not keyed by target)
-        if bindings["target"] && bindings["kernels"]
-          target = bindings["target"]
-          kernels_array = bindings["kernels"].map do |kernel_id, impl|
-            # Extract the function name from kernel_id (e.g., "core.add:ruby:v1" -> "core.add")
-            fn_name = kernel_id.split(':').first
-            # Format the implementation as proper Ruby lambda
-            ruby_impl = format_ruby_lambda(impl)
-            {
-              "kernel_id" => fn_name,
-              "impl" => ruby_impl
-            }
-          end
-          formatted[target] = { "kernels" => kernels_array }
-        else
-          # Handle multiple binding manifests keyed by target
-          bindings.each do |target, manifest|
-            next unless manifest.is_a?(Hash) && manifest["kernels"]
-            
-            kernels_array = manifest["kernels"].map do |kernel_id, impl|
-              fn_name = kernel_id.split(':').first
-              ruby_impl = format_ruby_lambda(impl)
-              {
-                "kernel_id" => fn_name,
-                "impl" => ruby_impl
-              }
-            end
-            
-            formatted[target] = { "kernels" => kernels_array }
-          end
+        target = bindings["target"]
+        kernels_array = bindings["kernels"].map do |kernel_data|
+          kernel_id = kernel_data["kernel_id"]
+          impl = kernel_data["impl"]
+          attrs = kernel_data["attrs"] || {}
+
+          # Extract the function name from kernel_id (e.g., "core.add:ruby:v1" -> "core.add")
+          fn_name = kernel_id.split(":").first
+          # Format the implementation as proper Ruby lambda
+          ruby_impl = format_ruby_lambda(impl)
+
+          result = {
+            "kernel_id" => fn_name,
+            "impl" => ruby_impl,
+            "attrs" => attrs
+          }
         end
-        
+        formatted[target] = { "kernels" => kernels_array }
+
         formatted
       end
 
@@ -182,7 +167,7 @@ module Kumi
         # Convert "(a, b)\n  a + b" to "->(a, b) { a + b }"
         lines = impl.strip.split("\n")
         if lines.length >= 2
-          params = lines[0].strip.gsub(/^\(|\)$/, '')  # Remove outer parentheses
+          params = lines[0].strip.gsub(/^\(|\)$/, "") # Remove outer parentheses
           body = lines[1..-1].map(&:strip).join("; ")
           "->(#{params}) { #{body} }"
         else
@@ -221,9 +206,9 @@ module Kumi
       def canonical_json(obj)
         case obj
         when Hash
-          "{#{obj.keys.map(&:to_s).sort.map { |k| "\"#{k}\":#{canonical_json(obj[k])}" }.join(",")}}"
+          "{#{obj.keys.map(&:to_s).sort.map { |k| "\"#{k}\":#{canonical_json(obj[k])}" }.join(',')}}"
         when Array
-          "[#{obj.map { |v| canonical_json(v) }.join(",")}]"
+          "[#{obj.map { |v| canonical_json(v) }.join(',')}]"
         when String   then JSON.generate(obj)
         when Numeric  then obj.to_s
         when true, false then obj.to_s

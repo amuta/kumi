@@ -9,7 +9,7 @@
         "root_reduces": [{"id":1,"kind":"reduce"}],
         "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
-      "axis_carriers": [],
+      "axis_carriers": [{"axis":"numbers","via_path":["numbers"]}],
       "reduce_plans": [{"op_id":1,"axis":"numbers","result_depth":0,"arg_id":0,"reducer_fn":"agg.sum","via_path":["numbers"]}],
       "inlining_decisions": {}
     },

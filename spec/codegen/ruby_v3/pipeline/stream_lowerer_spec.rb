@@ -117,6 +117,60 @@ RSpec.describe Kumi::Codegen::RubyV3::Pipeline::StreamLowerer do
     end
   end
   
+  describe ".run with operation ordering" do
+    let(:mock_view) { double("PackView") }
+    let(:consts) { { inline_ids: Set.new, prelude: [] } }
+    let(:deps) { { inline_ids: Set.new, indexed: {} } }
+    
+    context "operations are sorted by logical stages" do
+      it "places CloseLoop after all deeper depth operations" do
+        loop_shape = { rank: 0, loops: [{ depth: 0, via_path: ["items"] }] }
+        allow(mock_view).to receive(:input_chain_by_path).and_return([
+          { "kind" => "array_field", "key" => "items" }, 
+          { "kind" => "field_leaf", "key" => "value" }
+        ])
+        
+        ctx = {
+          name: "sum_values",
+          result_id: 1,
+          ops: [
+            { "id" => 0, "op" => "LoadInput", "args" => [["items"]] },
+            { "id" => 1, "op" => "Reduce", "args" => [0], "attrs" => { "fn" => "agg.sum" } }
+          ],
+          reduce_plans: [
+            { "op_id" => 1, "arg_id" => 0, "reducer_fn" => "agg.sum" }
+          ],
+          site_schedule: {
+            "by_depth" => [
+              { "depth" => 1, "ops" => [{ "id" => 0, "kind" => "loadinput" }] },
+              { "depth" => 0, "ops" => [{ "id" => 1, "kind" => "reduce" }] }
+            ]
+          }
+        }
+        identities = { "agg.sum" => 0 }
+        
+        result = described_class.run(mock_view, ctx, loop_shape:, consts:, deps:, identities:)
+        
+        # Find operation indices
+        acc_reset_idx = result.ops.find_index { |op| op[:k] == :AccReset }
+        open_loop_idx = result.ops.find_index { |op| op[:k] == :OpenLoop }
+        load_input_idx = result.ops.find_index { |op| op[:k] == :Emit && op[:code].include?("a0") }
+        acc_add_idx = result.ops.find_index { |op| op[:k] == :AccAdd }
+        close_loop_idx = result.ops.find_index { |op| op[:k] == :CloseLoop }
+        result_idx = result.ops.find_index { |op| op[:k] == :Emit && op[:code].match?(/^v\d+ = acc_\d+$/) }
+        yield_idx = result.ops.find_index { |op| op[:k] == :Yield }
+        
+        # Verify correct ordering
+        expect(acc_reset_idx).to be < open_loop_idx
+        expect(open_loop_idx).to be < load_input_idx
+        expect(load_input_idx).to be < acc_add_idx
+        expect(acc_add_idx).to be < close_loop_idx
+        expect(close_loop_idx).to be < result_idx
+        expect(result_idx).to be < yield_idx
+      end
+    end
+  end
+  
   describe ".run with LoadInput" do
     let(:mock_view) { double("PackView") }
     let(:loop_shape) { { rank: 0, loops: [] } }

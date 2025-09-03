@@ -41,7 +41,7 @@
     },
     "results_array": {
       "axes": [],
-      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]},{"kind":"dependency","source":"product"}],
       "site_schedule": {
         "max_depth": 0,
         "hoisted_scalars": [
@@ -52,7 +52,8 @@
           {"id":4,"kind":"loadinput"},
           {"id":5,"kind":"const"},
           {"id":6,"kind":"map"},
-          {"id":7,"kind":"constructtuple"}
+          {"id":7,"kind":"loaddeclaration"},
+          {"id":8,"kind":"constructtuple"}
         ],
         "root_reduces": [],
         "by_depth": [
@@ -66,14 +67,15 @@
               {"id":4,"kind":"loadinput"},
               {"id":5,"kind":"const"},
               {"id":6,"kind":"map"},
-              {"id":7,"kind":"constructtuple"}
+              {"id":7,"kind":"loaddeclaration"},
+              {"id":8,"kind":"constructtuple"}
             ]
           }
         ]
       },
       "axis_carriers": [],
       "reduce_plans": [],
-      "inlining_decisions": {}
+      "inlining_decisions": {"op_7":{"producer":"product","decision":"inline","use_site_axes":[]}}
     }
   }
 }

@@ -38,10 +38,20 @@ module Kumi
 
             per_decl = {}
             mod.decls.each_value do |decl|
-              # Build carriers only for outer declaration axes
-              carriers = AxisCarrierPlan.build(decl_axes: decl.axes, access_plan: access)
               schedule = SiteSchedule.build(decl: decl)
               reduces  = build_reduce_plans(decl, access)
+
+              # Build carriers for result axes. For scalar results (empty axes) with simple single-axis
+              # reductions, include the reduction axis to ensure loops are generated
+              reduce_axes_needed = []
+              if decl.axes.empty? && !reduces.empty?
+                unique_reduce_axes = reduces.values.map(&:axis).uniq
+                # Only apply fix for single-axis reductions to avoid complex nested access issues
+                # TODO: THIS MAY BE WRONG!
+                reduce_axes_needed = unique_reduce_axes if unique_reduce_axes.size == 1
+              end
+              all_computation_axes = (decl.axes + reduce_axes_needed).uniq
+              carriers = AxisCarrierPlan.build(decl_axes: all_computation_axes, access_plan: access)
 
               per_decl[decl.name] = PerDecl.new(
                 decl: decl,
@@ -93,13 +103,14 @@ module Kumi
             ops = Array(d["operations"]).map { |o| parse_op(o) }
             result_op = ops.find { |op| op.id == d["result"] }
             axes = if d["axes"] && !d["axes"].empty?
-              Array(d["axes"]).map(&:to_sym)
-            else
-              raise "Decl #{name} missing explicit axes and no result op found" unless result_op
-              raise "Decl #{name} result op missing stamp axes" unless result_op.stamp_axes
-              Array(result_op.stamp_axes).map(&:to_sym)
-            end.freeze
-            
+                     Array(d["axes"]).map(&:to_sym)
+                   else
+                     raise "Decl #{name} missing explicit axes and no result op found" unless result_op
+                     raise "Decl #{name} result op missing stamp axes" unless result_op.stamp_axes
+
+                     Array(result_op.stamp_axes).map(&:to_sym)
+                   end.freeze
+
             Kumi::Codegen::Planning::DeclSpec.new(
               name: name.to_s.to_sym,
               axes: axes,
@@ -123,13 +134,11 @@ module Kumi
               tuple_args = elem_stamps.each_with_index.map do |axes, idx|
                 # common prefix length
                 k = 0
-                while k < meet_axes.length && k < axes.length && axes[k] == meet_axes[k]
-                  k += 1
-                end
-                { 
-                  arg_index: idx, 
-                  suffix_axes: axes[k..] || [], 
-                  materialize_full: (axes.length > meet_axes.length) 
+                k += 1 while k < meet_axes.length && k < axes.length && axes[k] == meet_axes[k]
+                {
+                  arg_index: idx,
+                  suffix_axes: axes[k..] || [],
+                  materialize_full: (axes.length > meet_axes.length)
                 }
               end
 
@@ -157,9 +166,7 @@ module Kumi
             list_of_axes.reduce do |acc, axes|
               # longest common prefix
               i = 0
-              while i < acc.length && i < axes.length && acc[i] == axes[i]
-                i += 1
-              end
+              i += 1 while i < acc.length && i < axes.length && acc[i] == axes[i]
               acc.take(i)
             end
           end

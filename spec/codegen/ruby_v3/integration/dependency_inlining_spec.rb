@@ -15,8 +15,9 @@ RSpec.describe "RubyV3 Integration: Dependency Inlining" do
           end
         end
         
-        value :high_earners, input.employees.salary >= 50000
-        value :bonus_eligible, high_earners and input.employees.rating >= 4
+        trait :high_earners, input.employees.salary >= 50000
+        trait :high_ratings, input.employees.rating >= 4
+        trait :bonus_eligible, high_earners & high_ratings
       end
     KUMI
     

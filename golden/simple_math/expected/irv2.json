@@ -34,7 +34,7 @@
     },
     "results_array": {
       "name": "results_array",
-      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]}],
+      "parameters": [{"kind":"input","path":["x"]},{"kind":"input","path":["y"]},{"kind":"dependency","source":"product"}],
       "operations": [
         {"id":0,"op":"Const","args":[1],"stamp":{"dtype":"integer","axes":[]}},
         {"id":1,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
@@ -43,14 +43,20 @@
         {"id":4,"op":"LoadInput","args":[["y"]],"stamp":{"dtype":"integer","axes":[]}},
         {"id":5,"op":"Const","args":[2],"stamp":{"dtype":"integer","axes":[]}},
         {"id":6,"op":"Map","args":[4,5],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"core.mul"}},
+        {"id":7,"op":"LoadDeclaration","args":["product"],"stamp":{"dtype":"integer","axes":[]}},
         {
-          "id": 7,
+          "id": 8,
           "op": "ConstructTuple",
-          "args": [0,3,6],
-          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]}]
+          "args": [0,3,6,7],
+          "elem_stamps": [
+            {"dtype":"integer","axes":[]},
+            {"dtype":"integer","axes":[]},
+            {"dtype":"integer","axes":[]},
+            {"dtype":"integer","axes":[]}
+          ]
         }
       ],
-      "result": 7
+      "result": 8
     }
   },
   "analysis": {

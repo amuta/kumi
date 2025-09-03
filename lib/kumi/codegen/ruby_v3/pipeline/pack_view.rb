@@ -44,10 +44,10 @@ class Kumi::Codegen::RubyV3::Pipeline::PackView
   def build_chain_index(inputs)
     idx = {}
     inputs.each do |inp|
-      # Extract the path from the input name (e.g. "cube.layer.row.cell" -> ["cube","layer","row","cell"])
-      # This matches what LoadInput operations use in their args[0]
-      simple_path = inp.fetch("name").split(".")
-      idx[simple_path] = inp.fetch("chain")
+      # The LoadInput operation uses the path from the input name
+      # e.g. "cube.layer.cell" becomes ["cube", "layer", "cell"]
+      path_parts = inp.fetch("name").split(".")
+      idx[path_parts] = inp.fetch("chain")
     end
     idx
   end

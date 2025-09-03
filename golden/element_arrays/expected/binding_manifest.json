@@ -1,7 +1,7 @@
 {
   "ir_ref": "sha256:9accc43d6bfb7feac86ccb26e79900dfb502d794a3f80fc80593ce51178d38a9",
   "target": "ruby",
-  "registry_ref": "sha256:216cb9385b440e8c88e5c8ba57100d7be96974eecee59039860dbe784ebfdfdd",
+  "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
   "bindings": [
     {"decl":"cell_over_limit","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
     {"decl":"cell_sum","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
@@ -9,5 +9,8 @@
     {"decl":"count_over_limit","op":5,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
     {"decl":"count_over_limit","op":6,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
   ],
-  "kernels": {"core.gt:ruby:v1":"(a, b)\n  a > b","agg.sum:ruby:v1":"(a,b)\n  a + b"}
+  "kernels": [
+    {"kernel_id":"core.gt:ruby:v1","impl":"(a, b)\n  a > b","attrs":{}},
+    {"kernel_id":"agg.sum:ruby:v1","impl":"(a,b)\n  a + b","attrs":{"identity":0}}
+  ]
 }
