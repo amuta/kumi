@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "6d7abb779097b7907e611765b99c13715812da68fd8973c7f4308d7ed5d7a4dc:63b615a28d2716ce3749bfbda57f3e92c7be5f34224887955cb5f446d8e0fa85:234af5166ea4222d549ed45b78f10f1793c5508e7a0f8e3c2c07a97c62eec919:44467cea4b1a4beaa8a2c8438e3d46f4f216807ba3465ea1a0fdf527183550e0".freeze
+  PACK_HASH = "6d7abb779097b7907e611765b99c13715812da68fd8973c7f4308d7ed5d7a4dc:d41d45bd894f0c0184cf4ac53a1f5769a0921c1d153779de9ed81059a21c20a1:234af5166ea4222d549ed45b78f10f1793c5508e7a0f8e3c2c07a97c62eec919:44467cea4b1a4beaa8a2c8438e3d46f4f216807ba3465ea1a0fdf527183550e0".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,14 +9,34 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :status then (@memo[:status] ||= _eval_status)
+                      when :y_positive then (@memo[:y_positive] ||= _eval_y_positive)
                   when :x_positive then (@memo[:x_positive] ||= _eval_x_positive)
-                  when :y_positive then (@memo[:y_positive] ||= _eval_y_positive)
+                  when :status then (@memo[:status] ||= _eval_status)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
+        def _eval_y_positive
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_Y, input, cursors)
+        v1 = 0
+        v2 = __call_kernel__("core.gt", v0, v1)
+    
+          v2
+        end
+    
+        def _eval_x_positive
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_X, input, cursors)
+        v1 = 0
+        v2 = __call_kernel__("core.gt", v0, v1)
+    
+          v2
+        end
+    
         def _eval_status
           input = @input
           cursors = {}
@@ -32,26 +52,6 @@ module SchemaModule
         v11 = (v2 ? v3 : v10)
     
           v11
-        end
-    
-        def _eval_x_positive
-          input = @input
-          cursors = {}
-        v0 = __walk__(CHAIN_X, input, cursors)
-        v1 = 0
-        v2 = __call_kernel__("core.gt", v0, v1)
-    
-          v2
-        end
-    
-        def _eval_y_positive
-          input = @input
-          cursors = {}
-        v0 = __walk__(CHAIN_Y, input, cursors)
-        v1 = 0
-        v2 = __call_kernel__("core.gt", v0, v1)
-    
-          v2
         end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===

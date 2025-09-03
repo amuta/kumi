@@ -19,9 +19,10 @@ module Kumi
 
         def render
           ms_inputs = Array(@pack.fetch("plan").fetch("module_spec").fetch("inputs"))
-          decl_order = @pack.fetch("declarations").keys
+          declarations_array = @pack.fetch("declarations")
+          decl_order = declarations_array.map { |d| d.fetch("name") }
+          declarations = declarations_array.to_h { |d| [d.fetch("name"), d] }
           plan_decls = @pack.fetch("plan").fetch("declarations")
-          declarations = @pack.fetch("declarations")
           bindings_ruby = (@pack.dig("bindings","ruby") || {})
 
           chains_src, chain_map = ChainsEmitter.render(plan_module_spec_inputs: @pack.fetch("inputs"))

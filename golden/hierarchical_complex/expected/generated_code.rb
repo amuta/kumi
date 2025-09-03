@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "3d9f68a780b4194ae97b76af1f94f432d0d696c34e46aafcd97521dead69faad:00c255b4b3a6cfcedcf7100a406398450777412ecde46c8f92675581a6d8ef31:144f411868b975a04a236a53fc6588972b19a3410d20b038ac36594a9c477df3:62bf4ad04ec171964d14d920ce093c9d00016befb325c8c62f5863728b5331bb".freeze
+  PACK_HASH = "3d9f68a780b4194ae97b76af1f94f432d0d696c34e46aafcd97521dead69faad:c925ee1bf4121bf4c891df972fa3fed7f022f55f5839109fbadeb0d5c2a5718c:144f411868b975a04a236a53fc6588972b19a3410d20b038ac36594a9c477df3:62bf4ad04ec171964d14d920ce093c9d00016befb325c8c62f5863728b5331bb".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,52 +9,15 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :employee_bonus then (@memo[:employee_bonus] ||= _eval_employee_bonus)
-                  when :high_performer then (@memo[:high_performer] ||= _eval_high_performer)
+                      when :high_performer then (@memo[:high_performer] ||= _eval_high_performer)
                   when :senior_level then (@memo[:senior_level] ||= _eval_senior_level)
                   when :top_team then (@memo[:top_team] ||= _eval_top_team)
+                  when :employee_bonus then (@memo[:employee_bonus] ||= _eval_employee_bonus)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-                  def _eval_employee_bonus
-                    input = @input
-                  v6 = 0.3
-        v11 = 0.2
-        v13 = 0.05
-                    out = []
-    __each_array__(input, "regions") do |a_regions|
-      row_0 = []
-    a_regions.each_with_index do |a_offices, _idx|
-        row_1 = []
-    a_offices.each_with_index do |a_teams, _idx|
-          row_2 = []
-    a_teams.each_with_index do |a_employees, _idx|
-              cursors = { "regions"=>a_regions,"offices"=>a_offices,"teams"=>a_teams,"employees"=>a_employees }
-                v0 = _eval_high_performer
-                v1 = _eval_senior_level
-                v2 = _eval_top_team
-                v3 = __call_kernel__("core.and", v1, v2)
-                v4 = __call_kernel__("core.and", v0, v3)
-                v5 = __walk__(CHAIN_REGIONS_OFFICES_TEAMS_EMPLOYEES_SALARY, input, cursors)
-                v7 = __call_kernel__("core.mul", v5, v6)
-                v10 = __call_kernel__("core.and", v0, v2)
-                v12 = __call_kernel__("core.mul", v5, v11)
-                v14 = __call_kernel__("core.mul", v5, v13)
-                v15 = (v10 ? v12 : v14)
-                v16 = (v4 ? v7 : v15)
-              row_2 << v16
-            end
-            row_1 << row_2
-          end
-          row_0 << row_1
-        end
-        out << row_0
-      end
-                    out
-                  end
-    
                   def _eval_high_performer
                     input = @input
                   v1 = 4.5
@@ -118,6 +81,43 @@ module SchemaModule
               v0 = __walk__(CHAIN_REGIONS_OFFICES_TEAMS_PERFORMANCE_SCORE, input, cursors)
               v2 = __call_kernel__("core.gte", v0, v1)
             row_1 << v2
+          end
+          row_0 << row_1
+        end
+        out << row_0
+      end
+                    out
+                  end
+    
+                  def _eval_employee_bonus
+                    input = @input
+                  v6 = 0.3
+        v11 = 0.2
+        v13 = 0.05
+                    out = []
+    __each_array__(input, "regions") do |a_regions|
+      row_0 = []
+    a_regions.each_with_index do |a_offices, _idx|
+        row_1 = []
+    a_offices.each_with_index do |a_teams, _idx|
+          row_2 = []
+    a_teams.each_with_index do |a_employees, _idx|
+              cursors = { "regions"=>a_regions,"offices"=>a_offices,"teams"=>a_teams,"employees"=>a_employees }
+                v0 = _eval_high_performer
+                v1 = _eval_senior_level
+                v2 = _eval_top_team
+                v3 = __call_kernel__("core.and", v1, v2)
+                v4 = __call_kernel__("core.and", v0, v3)
+                v5 = __walk__(CHAIN_REGIONS_OFFICES_TEAMS_EMPLOYEES_SALARY, input, cursors)
+                v7 = __call_kernel__("core.mul", v5, v6)
+                v10 = __call_kernel__("core.and", v0, v2)
+                v12 = __call_kernel__("core.mul", v5, v11)
+                v14 = __call_kernel__("core.mul", v5, v13)
+                v15 = (v10 ? v12 : v14)
+                v16 = (v4 ? v7 : v15)
+              row_2 << v16
+            end
+            row_1 << row_2
           end
           row_0 << row_1
         end

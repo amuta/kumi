@@ -79,7 +79,7 @@ module Kumi
 
       def extract_ops_by_decl(ir)
         declarations = ir["declarations"] || {}
-        declarations.transform_values do |d|
+        declarations.map do |name, d|
           ops = (d["operations"] || []).map do |op|
             {
               "id" => op["id"],
@@ -88,7 +88,7 @@ module Kumi
               "attrs" => op["attrs"] || {}
             }
           end
-          result = { "operations" => ops }
+          result = { "name" => name, "operations" => ops }
           result["result_op_id"] = d["result"] if d.key?("result")
           result["axes"] = d["axes"] if d.key?("axes")
           result

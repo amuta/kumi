@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "45bd418c3b845c12482d5e915ee3e4c4b5d939e1f730d49eca35b914ea729ef3:1a12a162d7d91854a456451464ca7691bf5f3c922926fadea9a58a959dae1e77:71094081f55c7aa2aae6462fdc0153ab997138d549724a490e9babc81d1764b4:54f52b116ade892602e3e97a9b105f6b16ecaf4598a5939fcfbfa49b22d54aba".freeze
+  PACK_HASH = "45bd418c3b845c12482d5e915ee3e4c4b5d939e1f730d49eca35b914ea729ef3:18fcb1f43e8134cfa12f0f653bed0680ef7997a62f7da4ddee6f9b03951689ae:71094081f55c7aa2aae6462fdc0153ab997138d549724a490e9babc81d1764b4:54f52b116ade892602e3e97a9b105f6b16ecaf4598a5939fcfbfa49b22d54aba".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,18 +9,88 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :cart_total then (@memo[:cart_total] ||= _eval_cart_total)
-                  when :cart_total_effective then (@memo[:cart_total_effective] ||= _eval_cart_total_effective)
+                      when :items_subtotal then (@memo[:items_subtotal] ||= _eval_items_subtotal)
                   when :items_discounted then (@memo[:items_discounted] ||= _eval_items_discounted)
-                  when :items_effective then (@memo[:items_effective] ||= _eval_items_effective)
                   when :items_is_big then (@memo[:items_is_big] ||= _eval_items_is_big)
-                  when :items_subtotal then (@memo[:items_subtotal] ||= _eval_items_subtotal)
+                  when :items_effective then (@memo[:items_effective] ||= _eval_items_effective)
                   when :total_qty then (@memo[:total_qty] ||= _eval_total_qty)
+                  when :cart_total then (@memo[:cart_total] ||= _eval_cart_total)
+                  when :cart_total_effective then (@memo[:cart_total_effective] ||= _eval_cart_total_effective)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
+                  def _eval_items_subtotal
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "items") do |a_items|
+        cursors = { "items"=>a_items }
+          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
+          v1 = __walk__(CHAIN_ITEMS_QTY, input, cursors)
+          v2 = __call_kernel__("core.mul", v0, v1)
+        out << v2
+      end
+                    out
+                  end
+    
+                  def _eval_items_discounted
+                    input = @input
+                  v1 = 1.0
+        v2 = __walk__(CHAIN_DISCOUNT, input, cursors)
+        v3 = __call_kernel__("core.sub", v1, v2)
+                    out = []
+    __each_array__(input, "items") do |a_items|
+        cursors = { "items"=>a_items }
+          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
+          v4 = __call_kernel__("core.mul", v0, v3)
+        out << v4
+      end
+                    out
+                  end
+    
+                  def _eval_items_is_big
+                    input = @input
+                  v1 = 100.0
+                    out = []
+    __each_array__(input, "items") do |a_items|
+        cursors = { "items"=>a_items }
+          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
+          v2 = __call_kernel__("core.gt", v0, v1)
+        out << v2
+      end
+                    out
+                  end
+    
+                  def _eval_items_effective
+                    input = @input
+                  v2 = 0.9
+                    out = []
+    __each_array__(input, "items") do |a_items|
+        cursors = { "items"=>a_items }
+          v0 = _eval_items_is_big
+          v1 = _eval_items_subtotal
+          v3 = __call_kernel__("core.mul", v1, v2)
+          v5 = (v0 ? v3 : v1)
+        out << v5
+      end
+                    out
+                  end
+    
+        def _eval_total_qty
+          input = @input
+    
+          acc = 0
+          __each_array__(input, "items") do |a_items|
+      cursors = { "items"=>a_items }
+      inl_inline_v0 = __walk__(CHAIN_ITEMS_QTY, input, cursors)
+      acc += inl_inline_v0
+    end
+    
+          acc
+        end
+    
         def _eval_cart_total
           input = @input
     
@@ -51,76 +121,6 @@ module SchemaModule
       inl_items_effective_v2 = 0.9
       inl_items_effective_v3 = __call_kernel__("core.mul", inl_items_effective_v1, inl_items_effective_v2)
       inl_items_effective_v5 = (inl_items_is_big_v2 ? inl_items_effective_v3 : inl_items_effective_v1)
-      acc += inl_inline_v0
-    end
-    
-          acc
-        end
-    
-                  def _eval_items_discounted
-                    input = @input
-                  v1 = 1.0
-        v2 = __walk__(CHAIN_DISCOUNT, input, cursors)
-        v3 = __call_kernel__("core.sub", v1, v2)
-                    out = []
-    __each_array__(input, "items") do |a_items|
-        cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
-          v4 = __call_kernel__("core.mul", v0, v3)
-        out << v4
-      end
-                    out
-                  end
-    
-                  def _eval_items_effective
-                    input = @input
-                  v2 = 0.9
-                    out = []
-    __each_array__(input, "items") do |a_items|
-        cursors = { "items"=>a_items }
-          v0 = _eval_items_is_big
-          v1 = _eval_items_subtotal
-          v3 = __call_kernel__("core.mul", v1, v2)
-          v5 = (v0 ? v3 : v1)
-        out << v5
-      end
-                    out
-                  end
-    
-                  def _eval_items_is_big
-                    input = @input
-                  v1 = 100.0
-                    out = []
-    __each_array__(input, "items") do |a_items|
-        cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
-          v2 = __call_kernel__("core.gt", v0, v1)
-        out << v2
-      end
-                    out
-                  end
-    
-                  def _eval_items_subtotal
-                    input = @input
-              
-                    out = []
-    __each_array__(input, "items") do |a_items|
-        cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
-          v1 = __walk__(CHAIN_ITEMS_QTY, input, cursors)
-          v2 = __call_kernel__("core.mul", v0, v1)
-        out << v2
-      end
-                    out
-                  end
-    
-        def _eval_total_qty
-          input = @input
-    
-          acc = 0
-          __each_array__(input, "items") do |a_items|
-      cursors = { "items"=>a_items }
-      inl_inline_v0 = __walk__(CHAIN_ITEMS_QTY, input, cursors)
       acc += inl_inline_v0
     end
     
