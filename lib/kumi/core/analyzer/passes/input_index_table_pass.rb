@@ -10,7 +10,7 @@ module Kumi
         # Output: state[:input_table] (flat index with path arrays as keys)
         class InputIndexTablePass < PassBase
           def run(errors)
-            access_plans = get_state(:access_plans)
+            access_plans = get_state(:access_plans_v2)
             input_metadata = get_state(:input_metadata)
             
             raise "InputIndexTablePass requires access_plans" unless access_plans

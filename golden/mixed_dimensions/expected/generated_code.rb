@@ -1,125 +1,148 @@
-module Generated
+# AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
+
+module SchemaModule
+  PACK_HASH = "a3283ca30e621d8f8a2fd207fba67d14978efe5d1e7d37ec33bef62f15b0d398:98e388e088ec87b58b18955254627bf79f58cbdf8f304d6cc8aa4b3cdcfab6c7:0454d172bfd4a01c4a45b10799d50e6b30118978e51576564be2260031b2b43c:d1b3f2fd806df597deeb0cc7cec61c54ccc32b929f224da88672013c073c2a39".freeze
+
   class Program
-    def initialize(registry:, assertions: true)
-      # registry kept for API compatibility; not used by inlined kernels
-      @registry   = registry
-      @assertions = assertions
+    def self.from(data) = new(data)
+    def initialize(data) = (@input = data; @memo = {})
+
+    def [](name)
+      case name
+                      when :constant then (@memo[:constant] ||= _eval_constant)
+                  when :matrix_sums then (@memo[:matrix_sums] ||= _eval_matrix_sums)
+                  when :mixed_array then (@memo[:mixed_array] ||= _eval_mixed_array)
+                  when :sum_numbers then (@memo[:sum_numbers] ||= _eval_sum_numbers)
+      else
+        raise ArgumentError, "unknown declaration: #{name}"
+      end
     end
 
-def from(data)
-  Bound.new(self, data)
-end
-
-
-class Bound
-  def initialize(program, data)
-    @p = program
-    @d = data
-  end
-
-  def [](decl)
-    case decl
-
-        when :sum_numbers then sum_numbers
-        when :matrix_sums then matrix_sums
-        when :mixed_array then mixed_array
-        when :constant then constant
-  else
-    raise "Unknown declaration: #{decl}"
-  end
-end
-
-private
-
-      def k_agg_sum_ruby_v1(a,b)
-        a + b
-      end
-
-      def sum_numbers
-        # ops: 0:LoadInput, 1:Reduce
-        op_0 = fetch_numbers_value(@d)
-        row = op_0
-        raise "Empty row at reduce op 1" if row.empty?
-        acc = row[0]
-        j = 1
-        while j < row.length
-          acc = k_agg_sum_ruby_v1(acc, row[j])
-          j += 1
+        def _eval_constant
+          input = @input
+          cursors = {}
+        v0 = 42
+    
+          v0
         end
-        op_1 = acc
-        op_1
-      end
+    
+                def _eval_matrix_sums
+                  input = @input
+            
+                  out = []
+    __each_array__(input, "matrix") do |a_matrix|
+      acc = 0
+        a_matrix.each_with_index do |a_row, _idx|
+            cursors = { "matrix"=>a_matrix,"row"=>a_row }
+            inl_inline_v0 = __walk__(CHAIN_MATRIX_ROW_CELL, input, cursors)
+            acc += inl_inline_v0
+        end
+      out << acc
+    end
+    
+                  out
+                end
+    
+        def _eval_mixed_array
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_SCALAR_VAL, input, cursors)
+        v1 = _eval_sum_numbers
+        v3 = [v0, v1, v2]
+        v2 = __walk__(CHAIN_MATRIX_ROW_CELL, input, cursors)
+          v3
+        end
+    
+        def _eval_sum_numbers
+          input = @input
+    
+          acc = 0
+          __each_array__(input, "numbers") do |a_numbers|
+      cursors = { "numbers"=>a_numbers }
+      inl_inline_v0 = __walk__(CHAIN_NUMBERS_VALUE, input, cursors)
+      acc += inl_inline_v0
+    end
+    
+          acc
+        end
 
-      def matrix_sums
-        # ops: 0:LoadInput, 1:Reduce
-        op_0 = fetch_matrix_row_cell(@d)
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-          row = op_0[i0]
-          raise "Empty row at reduce op 1" if row.empty?
-          acc = row[0]
-          j = 1
-          while j < row.length
-            acc = k_agg_sum_ruby_v1(acc, row[j])
-            j += 1
+    # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
+    MISSING_POLICY = {}.freeze
+    
+    private
+    
+    def __fetch_key__(obj, key)
+      return nil if obj.nil?
+      if obj.is_a?(Hash)
+        obj.key?(key) ? obj[key] : obj[key.to_sym]
+      else
+        obj.respond_to?(key) ? obj.public_send(key) : nil
+      end
+    end
+    
+    def __array_of__(obj, key)
+      arr = __fetch_key__(obj, key)
+      return arr if arr.is_a?(Array)
+      policy = MISSING_POLICY.fetch(key) { raise "No missing data policy defined for key '#{key}' in pack capabilities" }
+      case policy
+      when :empty then []
+      when :skip  then nil
+      else
+        raise KeyError, "expected Array at #{key.inspect}, got #{arr.class}"
+      end
+    end
+    
+    def __each_array__(obj, key)
+      arr = __array_of__(obj, key)
+      return if arr.nil?
+      i = 0
+      while i < arr.length
+        yield arr[i]
+        i += 1
+      end
+    end
+    
+    def __walk__(steps, root, cursors)
+      cur = root
+      steps.each do |s|
+        case s["kind"]
+        when "array_field"
+          if (ax = s["axis"]) && cursors.key?(ax)
+            cur = cursors[ax]
+          else
+            cur = __fetch_key__(cur, s["key"])
+            raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
           end
-        out0[i0] = acc
-        i0 += 1
+        when "field_leaf"
+          cur = __fetch_key__(cur, s["key"])
+          raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
+        when "array_element"
+          ax = s["axis"]; raise KeyError, "missing cursor for #{ax}" unless cursors.key?(ax)
+          cur = cursors[ax]
+        when "element_leaf"
+          # no-op
+        else
+          raise KeyError, "unknown step kind: #{s["kind"]}"
         end
-        op_1 = out0
-        op_1
       end
+      cur
+    end
+    CHAIN_NUMBERS = [{"axis"=>"numbers", "key"=>"numbers", "kind"=>"array_field"}].freeze
+    CHAIN_NUMBERS_VALUE = [{"axis"=>"numbers", "key"=>"numbers", "kind"=>"array_field"}, {"key"=>"value", "kind"=>"field_leaf"}].freeze
+    CHAIN_SCALAR_VAL = [{"key"=>"scalar_val", "kind"=>"field_leaf"}].freeze
+    CHAIN_MATRIX = [{"axis"=>"matrix", "key"=>"matrix", "kind"=>"array_field"}].freeze
+    CHAIN_MATRIX_ROW = [{"axis"=>"matrix", "key"=>"matrix", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}].freeze
+    CHAIN_MATRIX_ROW_CELL = [{"axis"=>"matrix", "key"=>"matrix", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}, {"key"=>"cell", "kind"=>"field_leaf"}].freeze
 
-      def mixed_array
-        # ops: 0:LoadInput, 1:LoadDeclaration, 2:LoadInput, 3:ConstructTuple
-        op_0 = fetch_scalar_val(@d)
-        op_1 = sum_numbers
-        op_2 = fetch_matrix_row_cell(@d)
-        op_3 = [op_0, op_1, op_2]
-        op_3
-      end
-
-      def constant
-        # ops: 0:Const
-        op_0 = 42
-        op_0
-      end
-
-      def fetch_numbers(data)
-        data = (data[:numbers] || data["numbers"]) || (raise "Missing key: numbers")
-        data
-      end
-
-      def fetch_numbers_value(data)
-        data = (data[:numbers] || data["numbers"]) || (raise "Missing key: numbers")
-        data = data.map { |it0| (it0[:value] || it0["value"]) || (raise "Missing key: value") }
-        data
-      end
-
-      def fetch_scalar_val(data)
-        data = (data[:scalar_val] || data["scalar_val"]) || (raise "Missing key: scalar_val")
-        data
-      end
-
-      def fetch_matrix(data)
-        data = (data[:matrix] || data["matrix"]) || (raise "Missing key: matrix")
-        data
-      end
-
-      def fetch_matrix_row(data)
-        data = (data[:matrix] || data["matrix"]) || (raise "Missing key: matrix")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data
-      end
-
-      def fetch_matrix_row_cell(data)
-        data = (data[:matrix] || data["matrix"]) || (raise "Missing key: matrix")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data = data.map { |it0| it0.map { |it1| (it1[:cell] || it1["cell"]) || (raise "Missing key: cell") } }
-        data
-      end
+    KERNELS = {}
+    KERNELS["agg.sum"] = ( ->(a,b) { a + b } )
+    
+    def __call_kernel__(key, *args)
+      fn = KERNELS[key]
+      raise NotImplementedError, "kernel not found: #{key}" unless fn
+      fn.call(*args)
     end
   end
+
+  def self.from(data) = Program.new(data)
 end

@@ -19,20 +19,22 @@ module Kumi
 
         def render
           ms_inputs = Array(@pack.fetch("plan").fetch("module_spec").fetch("inputs"))
-          decl_order = Array(@pack.fetch("plan").fetch("module_spec").fetch("declarations"))
+          decl_order = @pack.fetch("declarations").keys
           plan_decls = @pack.fetch("plan").fetch("declarations")
-          ops_by_decl = @pack.fetch("ops_by_decl")
+          declarations = @pack.fetch("declarations")
           bindings_ruby = (@pack.dig("bindings","ruby") || {})
 
-          chains_src, chain_map = ChainsEmitter.render(plan_module_spec_inputs: ms_inputs)
+          chains_src, chain_map = ChainsEmitter.render(plan_module_spec_inputs: @pack.fetch("inputs"))
 
           decls_src = +""
           decl_order.each do |name|
             decls_src << DeclarationEmitter.render_one(
               decl_name: name,
-              decl_spec: ops_by_decl.fetch(name),
+              decl_spec: declarations.fetch(name),
               plan_decl: plan_decls.fetch(name),
-              chain_map: chain_map
+              chain_map: chain_map,
+              ops_by_decl: declarations,
+              all_plan_decls: plan_decls
             )
             decls_src << "\n"
           end
@@ -43,11 +45,10 @@ module Kumi
           runtime_src  = RuntimeSnippets.helpers_block(policy_map: policy_map)
           kernels_src  = KernelsEmitter.render(bindings_ruby: bindings_ruby)
 
-          pack_hash = %w[plan ops_by_decl inputs bindings].map { |k| @pack.fetch("hashes").fetch(k) }.join(":")
+          pack_hash = %w[plan declarations inputs bindings].map { |k| @pack.fetch("hashes").fetch(k) }.join(":")
 
           <<~RUBY
             # AUTOGEN: from kumi pack v#{@pack.fetch("pack_version")} — DO NOT EDIT
-            require 'json'
             
             module #{@module_name}
               PACK_HASH = #{pack_hash.inspect}.freeze

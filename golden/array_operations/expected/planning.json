@@ -1,9 +1,5 @@
 {
-  "version": "0.1",
   "module_spec": {
-    "version": "0.1",
-    "modname": "schema_module",
-    "declarations": ["subtotals","discounted_price","is_valid_quantity","expensive_items","electronics"],
     "inputs": [
       {"path":["items"],"axes":["items"],"dtype":"array","consumes_axes":["items"],"accessor_name":"at_items"},
       {"path":["items","price"],"axes":["items"],"dtype":"float","consumes_axes":["items"],"accessor_name":"at_items_price"},
@@ -26,10 +22,8 @@
   },
   "declarations": {
     "subtotals": {
-      "name": "subtotals",
       "axes": ["items"],
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","quantity"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [],
@@ -41,10 +35,8 @@
       "inlining_decisions": {}
     },
     "discounted_price": {
-      "name": "discounted_price",
       "axes": ["items"],
       "parameters": [{"kind":"input","path":["items","price"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -56,10 +48,8 @@
       "inlining_decisions": {}
     },
     "is_valid_quantity": {
-      "name": "is_valid_quantity",
       "axes": ["items"],
       "parameters": [{"kind":"input","path":["items","quantity"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -71,10 +61,8 @@
       "inlining_decisions": {}
     },
     "expensive_items": {
-      "name": "expensive_items",
       "axes": ["items"],
       "parameters": [{"kind":"input","path":["items","price"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -86,10 +74,8 @@
       "inlining_decisions": {}
     },
     "electronics": {
-      "name": "electronics",
       "axes": ["items"],
       "parameters": [{"kind":"input","path":["items","category"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [{"id":1,"kind":"const"}],

@@ -1,241 +1,227 @@
-module Generated
+# AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
+
+module SchemaModule
+  PACK_HASH = "7b6dc6d89c79f8898e4c6b21156755693f7002af79004c14cd3c1c1c18300705:ebd4dbd72b5277205c998985b6f6eeb0f2ebb08fa6c2ac2ccee86376a36e74f9:9d85bf516b106dd0565ab16047155264e04cbd968f14abf38d5740091915f835:9c4cb6c9f7712c85330eaca88c4f5dce7fee1fdf5722c242df9a2bb56021865a".freeze
+
   class Program
-    def initialize(registry:, assertions: true)
-      # registry kept for API compatibility; not used by inlined kernels
-      @registry   = registry
-      @assertions = assertions
-    end
+    def self.from(data) = new(data)
+    def initialize(data) = (@input = data; @memo = {})
 
-def from(data)
-  Bound.new(self, data)
-end
-
-
-class Bound
-  def initialize(program, data)
-    @p = program
-    @d = data
-  end
-
-  def [](decl)
-    case decl
-
-        when :global_offset_plus then global_offset_plus
-        when :batch_bias then batch_bias
-        when :row_scale2 then row_scale2
-        when :elem_affine then elem_affine
-        when :row_sum_affine then row_sum_affine
-        when :batch_total_affine then batch_total_affine
-  else
-    raise "Unknown declaration: #{decl}"
-  end
-end
-
-private
-
-      def k_core_add_ruby_v1(a, b)
-        a + b
-      end
-      
-      def k_core_mul_ruby_v1(a, b)
-        a * b
-      end
-      
-      def k_agg_sum_ruby_v1(a,b)
-        a + b
-      end
-
-      def global_offset_plus
-        # ops: 0:LoadInput, 1:Const, 2:Map
-        op_0 = fetch_global_offset(@d)
-        op_1 = 1.0
-        op_2 = k_core_add_ruby_v1(op_0, op_1)
-        op_2
-      end
-
-      def batch_bias
-        # ops: 0:LoadInput, 1:LoadDeclaration, 2:Map
-        op_0 = fetch_batch_mean(@d)
-        op_1 = global_offset_plus
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-          out0[i0] = k_core_add_ruby_v1(op_0[i0], op_1)
-          i0 += 1
-        end
-        op_2 = out0
-        op_2
-      end
-
-      def row_scale2
-        # ops: 0:LoadInput, 1:Const, 2:Map
-        op_0 = fetch_batch_row_scale(@d)
-        op_1 = 2.0
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_0[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-            out1[i1] = k_core_mul_ruby_v1(op_0[i0][i1], op_1)
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_2 = out0
-        op_2
-      end
-
-      def elem_affine
-        # ops: 0:LoadInput, 1:LoadDeclaration, 2:Map, 3:LoadDeclaration, 4:Map
-        op_0 = fetch_batch_row_col_val(@d)
-        op_1 = row_scale2
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_0[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-        n2 = op_0[i0][i1].length
-        out2 = Array.new(n2)
-        i2 = 0
-        while i2 < n2
-              out2[i2] = k_core_mul_ruby_v1(op_0[i0][i1][i2], op_1[i0][i1])
-            i2 += 1
-            end
-          out1[i1] = out2
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_2 = out0
-        op_3 = batch_bias
-        n0 = op_2.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_2[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-        n2 = op_2[i0][i1].length
-        out2 = Array.new(n2)
-        i2 = 0
-        while i2 < n2
-              out2[i2] = k_core_add_ruby_v1(op_2[i0][i1][i2], op_3[i0])
-            i2 += 1
-            end
-          out1[i1] = out2
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_4 = out0
-        op_4
-      end
-
-      def row_sum_affine
-        # ops: 0:LoadDeclaration, 1:Reduce
-        op_0 = elem_affine
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-        n1 = op_0[i0].length
-        out1 = Array.new(n1)
-        i1 = 0
-        while i1 < n1
-            row = op_0[i0][i1]
-            raise "Empty row at reduce op 1" if row.empty?
-            acc = row[0]
-            j = 1
-            while j < row.length
-              acc = k_agg_sum_ruby_v1(acc, row[j])
-              j += 1
-            end
-          out1[i1] = acc
-          i1 += 1
-          end
-        out0[i0] = out1
-        i0 += 1
-        end
-        op_1 = out0
-        op_1
-      end
-
-      def batch_total_affine
-        # ops: 0:LoadDeclaration, 1:Reduce
-        op_0 = row_sum_affine
-        n0 = op_0.length
-        out0 = Array.new(n0)
-        i0 = 0
-        while i0 < n0
-          row = op_0[i0]
-          raise "Empty row at reduce op 1" if row.empty?
-          acc = row[0]
-          j = 1
-          while j < row.length
-            acc = k_agg_sum_ruby_v1(acc, row[j])
-            j += 1
-          end
-        out0[i0] = acc
-        i0 += 1
-        end
-        op_1 = out0
-        op_1
-      end
-
-      def fetch_batch(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data
-      end
-
-      def fetch_batch_mean(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data = data.map { |it0| (it0[:mean] || it0["mean"]) || (raise "Missing key: mean") }
-        data
-      end
-
-      def fetch_batch_row(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data
-      end
-
-      def fetch_batch_row_scale(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data = data.map { |it0| it0.map { |it1| (it1[:scale] || it1["scale"]) || (raise "Missing key: scale") } }
-        data
-      end
-
-      def fetch_batch_row_col(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data = data.map { |it0| it0.map { |it1| (it1[:col] || it1["col"]) || (raise "Missing key: col") } }
-        data
-      end
-
-      def fetch_batch_row_col_val(data)
-        data = (data[:batch] || data["batch"]) || (raise "Missing key: batch")
-        data = data.map { |it0| (it0[:row] || it0["row"]) || (raise "Missing key: row") }
-        data = data.map { |it0| it0.map { |it1| (it1[:col] || it1["col"]) || (raise "Missing key: col") } }
-        data = data.map { |it0| it0.map { |it1| it1.map { |it2| (it2[:val] || it2["val"]) || (raise "Missing key: val") } } }
-        data
-      end
-
-      def fetch_global_offset(data)
-        data = (data[:global_offset] || data["global_offset"]) || (raise "Missing key: global_offset")
-        data
+    def [](name)
+      case name
+                      when :batch_bias then (@memo[:batch_bias] ||= _eval_batch_bias)
+                  when :batch_total_affine then (@memo[:batch_total_affine] ||= _eval_batch_total_affine)
+                  when :elem_affine then (@memo[:elem_affine] ||= _eval_elem_affine)
+                  when :global_offset_plus then (@memo[:global_offset_plus] ||= _eval_global_offset_plus)
+                  when :row_scale2 then (@memo[:row_scale2] ||= _eval_row_scale2)
+                  when :row_sum_affine then (@memo[:row_sum_affine] ||= _eval_row_sum_affine)
+      else
+        raise ArgumentError, "unknown declaration: #{name}"
       end
     end
+
+                  def _eval_batch_bias
+                    input = @input
+                  v1 = _eval_global_offset_plus
+                    out = []
+    __each_array__(input, "batch") do |a_batch|
+        cursors = { "batch"=>a_batch }
+          v0 = __walk__(CHAIN_BATCH_MEAN, input, cursors)
+          v2 = __call_kernel__("core.add", v0, v1)
+        out << v2
+      end
+                    out
+                  end
+    
+                def _eval_batch_total_affine
+                  input = @input
+            
+                  out = []
+    __each_array__(input, "batch") do |a_batch|
+      acc = 0
+        a_batch.each_with_index do |a_row, _idx|
+            cursors = { "batch"=>a_batch,"row"=>a_row }
+            inl_elem_affine_v0 = __walk__(CHAIN_BATCH_ROW_COL_VAL, input, cursors)
+            inl_row_scale2_v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
+            inl_row_scale2_v1 = 2.0
+            inl_row_scale2_v2 = __call_kernel__("core.mul", inl_row_scale2_v0, inl_row_scale2_v1)
+            inl_elem_affine_v2 = __call_kernel__("core.mul", inl_elem_affine_v0, inl_elem_affine_v1)
+            inl_batch_bias_v0 = __walk__(CHAIN_BATCH_MEAN, input, cursors)
+            inl_global_offset_plus_v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
+            inl_global_offset_plus_v1 = 1.0
+            inl_global_offset_plus_v2 = __call_kernel__("core.add", inl_global_offset_plus_v0, inl_global_offset_plus_v1)
+            inl_batch_bias_v2 = __call_kernel__("core.add", inl_batch_bias_v0, inl_batch_bias_v1)
+            inl_elem_affine_v4 = __call_kernel__("core.add", inl_elem_affine_v2, inl_elem_affine_v3)
+            acc += inl_inline_v0
+        end
+      out << acc
+    end
+    
+                  out
+                end
+    
+                  def _eval_elem_affine
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "batch") do |a_batch|
+      row_0 = []
+    a_batch.each_with_index do |a_row, _idx|
+        row_1 = []
+    a_row.each_with_index do |a_col, _idx|
+            cursors = { "batch"=>a_batch,"row"=>a_row,"col"=>a_col }
+              v0 = __walk__(CHAIN_BATCH_ROW_COL_VAL, input, cursors)
+              v1 = _eval_row_scale2
+              v2 = __call_kernel__("core.mul", v0, v1)
+              v3 = _eval_batch_bias
+              v4 = __call_kernel__("core.add", v2, v3)
+            row_1 << v4
+          end
+          row_0 << row_1
+        end
+        out << row_0
+      end
+                    out
+                  end
+    
+        def _eval_global_offset_plus
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
+        v1 = 1.0
+        v2 = __call_kernel__("core.add", v0, v1)
+    
+          v2
+        end
+    
+                  def _eval_row_scale2
+                    input = @input
+                  v1 = 2.0
+                    out = []
+    __each_array__(input, "batch") do |a_batch|
+      row_0 = []
+    a_batch.each_with_index do |a_row, _idx|
+          cursors = { "batch"=>a_batch,"row"=>a_row }
+            v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
+            v2 = __call_kernel__("core.mul", v0, v1)
+          row_0 << v2
+        end
+        out << row_0
+      end
+                    out
+                  end
+    
+                def _eval_row_sum_affine
+                  input = @input
+            
+                  out = []
+    __each_array__(input, "batch") do |a_batch|
+      row_0 = []
+    a_batch.each_with_index do |a_row, _idx|
+        acc = 0
+          a_row.each_with_index do |a_col, _idx|
+                cursors = { "batch"=>a_batch,"row"=>a_row,"col"=>a_col }
+                inl_elem_affine_v0 = __walk__(CHAIN_BATCH_ROW_COL_VAL, input, cursors)
+                inl_row_scale2_v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
+                inl_row_scale2_v1 = 2.0
+                inl_row_scale2_v2 = __call_kernel__("core.mul", inl_row_scale2_v0, inl_row_scale2_v1)
+                inl_elem_affine_v2 = __call_kernel__("core.mul", inl_elem_affine_v0, inl_elem_affine_v1)
+                inl_batch_bias_v0 = __walk__(CHAIN_BATCH_MEAN, input, cursors)
+                inl_global_offset_plus_v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
+                inl_global_offset_plus_v1 = 1.0
+                inl_global_offset_plus_v2 = __call_kernel__("core.add", inl_global_offset_plus_v0, inl_global_offset_plus_v1)
+                inl_batch_bias_v2 = __call_kernel__("core.add", inl_batch_bias_v0, inl_batch_bias_v1)
+                inl_elem_affine_v4 = __call_kernel__("core.add", inl_elem_affine_v2, inl_elem_affine_v3)
+                acc += inl_inline_v0
+          end
+        row_0 << acc
+      end
+      out << row_0
+    end
+    
+                  out
+                end
+
+    # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
+    MISSING_POLICY = {}.freeze
+    
+    private
+    
+    def __fetch_key__(obj, key)
+      return nil if obj.nil?
+      if obj.is_a?(Hash)
+        obj.key?(key) ? obj[key] : obj[key.to_sym]
+      else
+        obj.respond_to?(key) ? obj.public_send(key) : nil
+      end
+    end
+    
+    def __array_of__(obj, key)
+      arr = __fetch_key__(obj, key)
+      return arr if arr.is_a?(Array)
+      policy = MISSING_POLICY.fetch(key) { raise "No missing data policy defined for key '#{key}' in pack capabilities" }
+      case policy
+      when :empty then []
+      when :skip  then nil
+      else
+        raise KeyError, "expected Array at #{key.inspect}, got #{arr.class}"
+      end
+    end
+    
+    def __each_array__(obj, key)
+      arr = __array_of__(obj, key)
+      return if arr.nil?
+      i = 0
+      while i < arr.length
+        yield arr[i]
+        i += 1
+      end
+    end
+    
+    def __walk__(steps, root, cursors)
+      cur = root
+      steps.each do |s|
+        case s["kind"]
+        when "array_field"
+          if (ax = s["axis"]) && cursors.key?(ax)
+            cur = cursors[ax]
+          else
+            cur = __fetch_key__(cur, s["key"])
+            raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
+          end
+        when "field_leaf"
+          cur = __fetch_key__(cur, s["key"])
+          raise KeyError, "missing key #{s["key"].inspect}" if cur.nil?
+        when "array_element"
+          ax = s["axis"]; raise KeyError, "missing cursor for #{ax}" unless cursors.key?(ax)
+          cur = cursors[ax]
+        when "element_leaf"
+          # no-op
+        else
+          raise KeyError, "unknown step kind: #{s["kind"]}"
+        end
+      end
+      cur
+    end
+    CHAIN_BATCH = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}].freeze
+    CHAIN_BATCH_MEAN = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}, {"key"=>"mean", "kind"=>"field_leaf"}].freeze
+    CHAIN_BATCH_ROW = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}].freeze
+    CHAIN_BATCH_ROW_SCALE = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}, {"key"=>"scale", "kind"=>"field_leaf"}].freeze
+    CHAIN_BATCH_ROW_COL = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}, {"axis"=>"col", "key"=>"col", "kind"=>"array_field"}].freeze
+    CHAIN_BATCH_ROW_COL_VAL = [{"axis"=>"batch", "key"=>"batch", "kind"=>"array_field"}, {"axis"=>"row", "key"=>"row", "kind"=>"array_field"}, {"axis"=>"col", "key"=>"col", "kind"=>"array_field"}, {"key"=>"val", "kind"=>"field_leaf"}].freeze
+    CHAIN_GLOBAL_OFFSET = [{"key"=>"global_offset", "kind"=>"field_leaf"}].freeze
+
+    KERNELS = {}
+    KERNELS["core.add"] = ( ->(a, b) { a + b } )
+    KERNELS["core.mul"] = ( ->(a, b) { a * b } )
+    KERNELS["agg.sum"] = ( ->(a,b) { a + b } )
+    
+    def __call_kernel__(key, *args)
+      fn = KERNELS[key]
+      raise NotImplementedError, "kernel not found: #{key}" unless fn
+      fn.call(*args)
+    end
   end
+
+  def self.from(data) = Program.new(data)
 end

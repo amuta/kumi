@@ -21,11 +21,7 @@ module Kumi
 
       def to_json(bundle)
         output = {
-          "version" => VERSION,
           "module_spec" => {
-            "version" => bundle.module_spec.version,
-            "modname" => bundle.module_spec.modname,
-            "declarations" => bundle.module_spec.decls.keys.map(&:to_s),
             "inputs" => bundle.module_spec.inputs.map do |inp|
               {
                 "path" => inp.path,
@@ -46,10 +42,8 @@ module Kumi
           reduces = per_decl.reduce_plans_by_id
 
           output["declarations"][decl_name.to_s] = {
-            "name" => decl_name.to_s,
             "axes" => decl.axes.map(&:to_s),
             "parameters" => decl.parameters,
-            "result_id" => decl.result_id,
             "site_schedule" => {
               "max_depth" => schedule.max_depth,
               "hoisted_scalars" => schedule.hoisted_scalars.map { |op| { "id" => op.id, "kind" => op.kind.to_s } },

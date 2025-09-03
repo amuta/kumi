@@ -92,7 +92,7 @@ module Kumi
               Hash[function_spec.parameter_names.zip(arg_types)]
             else
               # Handle variadic functions like core.array, core.and
-              param_name = function_spec.parameter_names.first || :elements
+              param_name = function_spec.parameter_names.first
               { param_name => arg_types }
             end
             

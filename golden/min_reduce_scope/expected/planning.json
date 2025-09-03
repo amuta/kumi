@@ -1,9 +1,5 @@
 {
-  "version": "0.1",
   "module_spec": {
-    "version": "0.1",
-    "modname": "schema_module",
-    "declarations": ["dept_total","company_total","big_team","dept_total_masked"],
     "inputs": [
       {"path":["depts"],"axes":["depts"],"dtype":"array","consumes_axes":["depts"],"accessor_name":"at_depts"},
       {
@@ -24,10 +20,8 @@
   },
   "declarations": {
     "dept_total": {
-      "name": "dept_total",
       "axes": ["depts"],
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
-      "result_id": 1,
       "site_schedule": {
         "max_depth": 2,
         "hoisted_scalars": [],
@@ -35,14 +29,12 @@
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":1,"kind":"reduce"}]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [{"axis":"depts","via_path":["depts"]}],
-      "reduce_plans": [{"op_id":0,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
+      "reduce_plans": [{"op_id":1,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
       "inlining_decisions": {}
     },
     "company_total": {
-      "name": "company_total",
       "axes": [],
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 2,
         "hoisted_scalars": [],
@@ -55,16 +47,14 @@
       },
       "axis_carriers": [],
       "reduce_plans": [
-        {"op_id":0,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]},
-        {"op_id":1,"axis":"depts","result_depth":0,"arg_id":1,"reducer_fn":"agg.sum","via_path":["depts"]}
+        {"op_id":1,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]},
+        {"op_id":2,"axis":"depts","result_depth":0,"arg_id":1,"reducer_fn":"agg.sum","via_path":["depts"]}
       ],
       "inlining_decisions": {}
     },
     "big_team": {
-      "name": "big_team",
       "axes": ["depts","teams"],
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 2,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -80,10 +70,8 @@
       "inlining_decisions": {}
     },
     "dept_total_masked": {
-      "name": "dept_total_masked",
       "axes": ["depts"],
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]},{"kind":"dependency","source":"big_team"}],
-      "result_id": 4,
       "site_schedule": {
         "max_depth": 2,
         "hoisted_scalars": [{"id":2,"kind":"const"}],
@@ -95,7 +83,7 @@
         ]
       },
       "axis_carriers": [{"axis":"depts","via_path":["depts"]}],
-      "reduce_plans": [{"op_id":3,"axis":"teams","result_depth":1,"arg_id":3,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
+      "reduce_plans": [{"op_id":4,"axis":"teams","result_depth":1,"arg_id":3,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
       "inlining_decisions": {"op_0":{"producer":"big_team","decision":"inline","use_site_axes":["depts","teams"]}}
     }
   }

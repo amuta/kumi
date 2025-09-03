@@ -13,7 +13,7 @@ module Kumi
       #   #reducer_fn -> String         (e.g., "agg.sum")
       #   #kernel_id_hint -> String|nil (if you map fn->kernel id upstream)
       class ReducePlan
-        attr_reader :axis, :result_depth, :arg_id, :reducer_fn, :kernel_id_hint, :carrier_spec
+        attr_reader :op_id, :axis, :result_depth, :arg_id, :reducer_fn, :kernel_id_hint, :carrier_spec
 
         def self.from_op(op:, access_plan:)
           raise "not a reduce op" unless op.kind == :reduce
@@ -31,6 +31,7 @@ module Kumi
           carrier_spec = choose_reduce_carrier(axis_sym, required_prefix, access_plan)
 
           new(
+            op_id: op.id,
             axis: axis_sym,
             result_depth: result_depth,
             arg_id: op.args.first,
@@ -41,7 +42,8 @@ module Kumi
           )
         end
 
-        def initialize(axis:, result_depth:, arg_id:, reducer_fn:, kernel_id_hint:, carrier_spec:, access_plan:)
+        def initialize(op_id:, axis:, result_depth:, arg_id:, reducer_fn:, kernel_id_hint:, carrier_spec:, access_plan:)
+          @op_id = op_id
           @axis = axis
           @result_depth = result_depth
           @arg_id = arg_id
@@ -58,7 +60,7 @@ module Kumi
         # Backend-agnostic shape for plan export / codegen adapters
         def to_entry
           {
-            op_id: @arg_id,
+            op_id: @op_id,
             axis: @axis,
             via_path: via_path,
             reducer_fn: @reducer_fn,

@@ -30,6 +30,7 @@ module Kumi
         canonical_json(pack)
       end
 
+
       def build_for_golden(schema_path, golden_dir, targets: %w[ruby])
         ir, planning, bindings, inputs, module_id = generate_artifacts(schema_path)
         
@@ -54,7 +55,7 @@ module Kumi
         planning = Kumi::Codegen::Planning.to_json(plan_bundle)
 
         bindings = stringify_keys(res.state[:binding_manifest] || {})
-        inputs = stringify_keys(res.state.dig(:analysis, :inputs) || [])
+        inputs = stringify_keys(res.state.dig(:irv2, "analysis", "inputs") || [])
 
         [irv2, planning, bindings, inputs, module_id]
       end
@@ -66,7 +67,7 @@ module Kumi
           "pack_version" => VERSION,
           "module_id" => module_id,
           "plan" => plan_obj,
-          "ops_by_decl" => extract_ops_by_decl(ir),
+          "declarations" => extract_ops_by_decl(ir),
           "inputs" => extract_inputs(inputs),
           "bindings" => format_bindings_for_pack(bindings),
           "capabilities" => { "layout" => "nested_array" }
@@ -88,7 +89,7 @@ module Kumi
             }
           end
           result = { "operations" => ops }
-          result["result"] = d["result"] if d.key?("result")
+          result["result_op_id"] = d["result"] if d.key?("result")
           result["axes"] = d["axes"] if d.key?("axes")
           result
         end
@@ -102,7 +103,7 @@ module Kumi
             "axes" => inp["axes"] || [],
             "dtype" => inp["dtype"] || "unknown",
             "accessor_name" => accessor_name_for(name),
-            "chain" => Array(inp["chain"]).map(&:to_s)
+            "chain" => Array(inp["chain"])
           }
         end
       end
@@ -181,7 +182,7 @@ module Kumi
 
       # Compute canonical section hashes (sorted-key JSON)
       def compute_hashes(pack)
-        keys = %w[plan ops_by_decl inputs bindings]
+        keys = %w[plan declarations inputs bindings]
         keys << "ir_debug" if pack.key?("ir_debug")
         keys.to_h { |k| [k, sha256(pack[k])] }
       end

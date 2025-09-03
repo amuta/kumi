@@ -279,6 +279,15 @@ module Kumi
             code = File.read(generated_code_file)
             input_data = JSON.parse(File.read(input_file))
             expected_outputs = JSON.parse(File.read(expected_file))
+            
+            # Load pack.json to get module name
+            pack_file = golden_path(schema_name, "expected/pack.json")
+            module_name = if File.exist?(pack_file)
+              pack_data = JSON.parse(File.read(pack_file))
+              pack_data["module_id"]
+            else
+              "schema_module" # default fallback
+            end
 
             # Create a temporary file in the golden tmp directory and load it
             tmp_dir = golden_path(schema_name, "tmp")
@@ -289,10 +298,10 @@ module Kumi
             # Load the generated code
             load temp_file
 
-            # Create runtime using the Generated module
+            # Create runtime using the dynamically determined module
             registry = Kumi::KernelRegistry.load_ruby
-            program = Generated::Program.new(registry: registry)
-            bound = program.from(input_data)
+            module_const = Object.const_get(module_name.split('_').map(&:capitalize).join)
+            bound = module_const.from(input_data)
 
             # NOTE: We keep test_generated_code.rb for debugging - it's in tmp/ which is ignored
 

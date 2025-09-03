@@ -1,9 +1,5 @@
 {
-  "version": "0.1",
   "module_spec": {
-    "version": "0.1",
-    "modname": "schema_module",
-    "declarations": ["high_performer","senior_level","top_team","employee_bonus"],
     "inputs": [
       {"path":["regions"],"axes":["regions"],"dtype":"array","consumes_axes":["regions"],"accessor_name":"at_regions"},
       {
@@ -59,10 +55,8 @@
   },
   "declarations": {
     "high_performer": {
-      "name": "high_performer",
       "axes": ["regions","offices","teams","employees"],
       "parameters": [{"kind":"input","path":["regions","offices","teams","employees","rating"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 4,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -85,10 +79,8 @@
       "inlining_decisions": {}
     },
     "senior_level": {
-      "name": "senior_level",
       "axes": ["regions","offices","teams","employees"],
       "parameters": [{"kind":"input","path":["regions","offices","teams","employees","level"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 4,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -111,10 +103,8 @@
       "inlining_decisions": {}
     },
     "top_team": {
-      "name": "top_team",
       "axes": ["regions","offices","teams"],
       "parameters": [{"kind":"input","path":["regions","offices","teams","performance_score"]}],
-      "result_id": 2,
       "site_schedule": {
         "max_depth": 3,
         "hoisted_scalars": [{"id":1,"kind":"const"}],
@@ -135,7 +125,6 @@
       "inlining_decisions": {}
     },
     "employee_bonus": {
-      "name": "employee_bonus",
       "axes": ["regions","offices","teams","employees"],
       "parameters": [
         {"kind":"input","path":["regions","offices","teams","employees","salary"]},
@@ -143,7 +132,6 @@
         {"kind":"dependency","source":"senior_level"},
         {"kind":"dependency","source":"top_team"}
       ],
-      "result_id": 16,
       "site_schedule": {
         "max_depth": 4,
         "hoisted_scalars": [{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}],

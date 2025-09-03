@@ -95,7 +95,9 @@ module Kumi
             axes = if d["axes"] && !d["axes"].empty?
               Array(d["axes"]).map(&:to_sym)
             else
-              result_op ? Array(result_op.stamp_axes) : []
+              raise "Decl #{name} missing explicit axes and no result op found" unless result_op
+              raise "Decl #{name} result op missing stamp axes" unless result_op.stamp_axes
+              Array(result_op.stamp_axes).map(&:to_sym)
             end.freeze
             
             Kumi::Codegen::Planning::DeclSpec.new(

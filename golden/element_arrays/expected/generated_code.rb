@@ -1,8 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
-require 'json'
 
 module SchemaModule
-  PACK_HASH = "4bd3cc61ead44066c674cdb20a54aa9cda2de88b987cf03750e0b65ed721832e:ab3fff962e440ac39017c3f328074126dc192e7321b5772b9d9d8a13c945be7d:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945:f428308d484d07f4e3ebb03b75d71494a4c9b991b6d7cf8a168e2f20fe28ffb4".freeze
+  PACK_HASH = "86d470e5a2345ca230734c0ab3d4c11c508571367444ad6b06a0612f182cf46c:e5bb1b0ec71662fcbd368e85345672cd9970770f501465c02be609e0bcfde267:855bb2591854da72a60a0c682d65bf5d9ee6ac9b4ebbf8957a511d897e0ce74f:f428308d484d07f4e3ebb03b75d71494a4c9b991b6d7cf8a168e2f20fe28ffb4".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -10,159 +9,152 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :cube then (@memo[:cube] ||= _eval_cube)
-                  when :layer then (@memo[:layer] ||= _eval_layer)
-                  when :row then (@memo[:row] ||= _eval_row)
-                  when :cell then (@memo[:cell] ||= _eval_cell)
+                      when :cell then (@memo[:cell] ||= _eval_cell)
                   when :cell_over_limit then (@memo[:cell_over_limit] ||= _eval_cell_over_limit)
                   when :cell_sum then (@memo[:cell_sum] ||= _eval_cell_sum)
                   when :count_over_limit then (@memo[:count_over_limit] ||= _eval_count_over_limit)
+                  when :cube then (@memo[:cube] ||= _eval_cube)
+                  when :layer then (@memo[:layer] ||= _eval_layer)
+                  when :row then (@memo[:row] ||= _eval_row)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-        def _eval_cube
-          input = @input
-    
-          out = []
-    __each_array__(input, "cube") do |a_cube|
-        cursors = { "cube"=>a_cube }
-          v0 = __walk__(CHAIN_CUBE, input, cursors)
-        out << v0end
-    
-          out
-        end
-    
-        def _eval_layer
-          input = @input
-    
-          out = []
+                  def _eval_cell
+                    input = @input
+              
+                    out = []
     __each_array__(input, "cube") do |a_cube|
       row_0 = []
-    __each_array__(a_cube, "layer") do |a_layer|
-          cursors = { "cube"=>a_cube,"layer"=>a_layer }
-            v0 = __walk__(CHAIN_CUBE_LAYER, input, cursors)
-          row_0 << v0    row_0 << 
-      end
-      out << row_0
-    end
-    
-          out
-        end
-    
-        def _eval_row
-          input = @input
-    
-          out = []
-    __each_array__(input, "cube") do |a_cube|
-      row_0 = []
-    __each_array__(a_cube, "layer") do |a_layer|
+    a_cube.each_with_index do |a_layer, _idx|
         row_1 = []
-    __each_array__(a_layer, "row") do |a_row|
-            cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
-              v0 = __walk__(CHAIN_CUBE_LAYER_ROW, input, cursors)
-            row_1 << v0      row_1 << 
-        end
-        row_0 << row_1
-      end
-      out << row_0
-    end
-    
-          out
-        end
-    
-        def _eval_cell
-          input = @input
-    
-          out = []
-    __each_array__(input, "cube") do |a_cube|
-      row_0 = []
-    __each_array__(a_cube, "layer") do |a_layer|
-        row_1 = []
-    __each_array__(a_layer, "row") do |a_row|
+    a_layer.each_with_index do |a_row, _idx|
             cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
               v0 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
-            row_1 << v0      row_1 << 
+            row_1 << v0
+          end
+          row_0 << row_1
         end
-        row_0 << row_1
+        out << row_0
       end
-      out << row_0
-    end
+                    out
+                  end
     
-          out
-        end
-    
-        def _eval_cell_over_limit
-          input = @input
-        v1 = 100
-          out = []
+                  def _eval_cell_over_limit
+                    input = @input
+                  v1 = 100
+                    out = []
     __each_array__(input, "cube") do |a_cube|
       row_0 = []
-    __each_array__(a_cube, "layer") do |a_layer|
+    a_cube.each_with_index do |a_layer, _idx|
         row_1 = []
-    __each_array__(a_layer, "row") do |a_row|
+    a_layer.each_with_index do |a_row, _idx|
             cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
               v0 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
               v2 = __call_kernel__("core.gt", v0, v1)
-            row_1 << v2      row_1 << 
+            row_1 << v2
+          end
+          row_0 << row_1
         end
-        row_0 << row_1
+        out << row_0
       end
-      out << row_0
-    end
+                    out
+                  end
     
-          out
-        end
-    
-        def _eval_cell_sum
-          input = @input
-        v2 = 0
-          out = []
+                def _eval_cell_sum
+                  input = @input
+                v2 = 0
+                  out = []
     __each_array__(input, "cube") do |a_cube|
       row_0 = []
-    __each_array__(a_cube, "layer") do |a_layer|
-          cursors = { "cube"=>a_cube,"layer"=>a_layer }
-            v0 = _eval_cell_over_limit
-            v1 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
-            v3 = (raise NotImplementedError, "Select")
-            v4 = nil
-            __each_array__(cursors["layer"], "row") do |a_row|
-              cursors = cursors.merge("row" => a_row)
-              v4 = v4.nil? ? v3 : __call_kernel__("agg.sum", v4, v3)
-            end
-          row_0 << v4    row_0 << 
+    a_cube.each_with_index do |a_layer, _idx|
+        acc = 0
+          a_layer.each_with_index do |a_row, _idx|
+                cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
+                inl_cell_over_limit_v0 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
+                inl_cell_over_limit_v1 = 100
+                inl_cell_over_limit_v2 = __call_kernel__("core.gt", inl_cell_over_limit_v0, inl_cell_over_limit_v1)
+                inl_inline_v1 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
+                inl_inline_v3 = (inl_cell_over_limit_v2 ? inl_inline_v1 : 0)
+                acc += inl_inline_v3
+          end
+        row_0 << acc
       end
       out << row_0
     end
     
-          out
-        end
+                  out
+                end
     
         def _eval_count_over_limit
           input = @input
-          cursors = {}
         v1 = 1
         v2 = 0
-        v0 = _eval_cell_over_limit
-        v3 = (raise NotImplementedError, "Select")
-        v4 = nil
-        __each_array__(cursors["layer"], "row") do |a_row|
-          cursors = cursors.merge("row" => a_row)
-          v4 = v4.nil? ? v3 : __call_kernel__("agg.sum", v4, v3)
+          acc = 0
+          __each_array__(input, "cube") do |a_cube|
+    a_cube.each_with_index do |a_layer, _idx|
+    a_layer.each_with_index do |a_row, _idx|
+          cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
+          inl_cell_over_limit_v0 = __walk__(CHAIN_CUBE_LAYER_ROW_CELL, input, cursors)
+          inl_cell_over_limit_v1 = 100
+          inl_cell_over_limit_v2 = __call_kernel__("core.gt", inl_cell_over_limit_v0, inl_cell_over_limit_v1)
+          inl_inline_v3 = (inl_cell_over_limit_v2 ? 1 : 0)
+          acc += inl_inline_v3
         end
-        v5 = nil
-        __each_array__(cursors["cube"], "layer") do |a_layer|
-          cursors = cursors.merge("layer" => a_layer)
-          v5 = v5.nil? ? v4 : __call_kernel__("agg.sum", v5, v4)
+      end
+    end
+    
+          acc
         end
-        v6 = nil
-        __each_array__(input, "cube") do |a_cube|
-          cursors = cursors.merge("cube" => a_cube)
-          v6 = v6.nil? ? v5 : __call_kernel__("agg.sum", v6, v5)
+    
+                  def _eval_cube
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+        cursors = { "cube"=>a_cube }
+          v0 = __walk__(CHAIN_CUBE, input, cursors)
+        out << v0
+      end
+                    out
+                  end
+    
+                  def _eval_layer
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+      row_0 = []
+    a_cube.each_with_index do |a_layer, _idx|
+          cursors = { "cube"=>a_cube,"layer"=>a_layer }
+            v0 = __walk__(CHAIN_CUBE_LAYER, input, cursors)
+          row_0 << v0
         end
-          v6
+        out << row_0
+      end
+                    out
+                  end
+    
+                  def _eval_row
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+      row_0 = []
+    a_cube.each_with_index do |a_layer, _idx|
+        row_1 = []
+    a_layer.each_with_index do |a_row, _idx|
+            cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
+              v0 = __walk__(CHAIN_CUBE_LAYER_ROW, input, cursors)
+            row_1 << v0
+          end
+          row_0 << row_1
         end
+        out << row_0
+      end
+                    out
+                  end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
     MISSING_POLICY = {}.freeze
@@ -225,10 +217,10 @@ module SchemaModule
       end
       cur
     end
-    CHAIN_CUBE = JSON.parse("[{\"kind\":\"field_leaf\",\"key\":\"cube\"}]").freeze
-    CHAIN_CUBE_LAYER = JSON.parse("[{\"kind\":\"array_field\",\"key\":\"cube\",\"axis\":\"cube\"},{\"kind\":\"field_leaf\",\"key\":\"layer\"}]").freeze
-    CHAIN_CUBE_LAYER_ROW = JSON.parse("[{\"kind\":\"array_field\",\"key\":\"cube\",\"axis\":\"cube\"},{\"kind\":\"array_field\",\"key\":\"layer\",\"axis\":\"layer\"},{\"kind\":\"field_leaf\",\"key\":\"row\"}]").freeze
-    CHAIN_CUBE_LAYER_ROW_CELL = JSON.parse("[{\"kind\":\"array_field\",\"key\":\"cube\",\"axis\":\"cube\"},{\"kind\":\"array_field\",\"key\":\"layer\",\"axis\":\"layer\"},{\"kind\":\"array_field\",\"key\":\"row\",\"axis\":\"row\"},{\"kind\":\"field_leaf\",\"key\":\"cell\"}]").freeze
+    CHAIN_CUBE = [{"axis"=>"cube", "key"=>"cube", "kind"=>"array_field"}].freeze
+    CHAIN_CUBE_LAYER = [{"axis"=>"cube", "key"=>"cube", "kind"=>"array_field"}, {"alias"=>"layer", "axis"=>"layer", "kind"=>"array_element"}].freeze
+    CHAIN_CUBE_LAYER_ROW = [{"axis"=>"cube", "key"=>"cube", "kind"=>"array_field"}, {"alias"=>"layer", "axis"=>"layer", "kind"=>"array_element"}, {"alias"=>"row", "axis"=>"row", "kind"=>"array_element"}].freeze
+    CHAIN_CUBE_LAYER_ROW_CELL = [{"axis"=>"cube", "key"=>"cube", "kind"=>"array_field"}, {"alias"=>"layer", "axis"=>"layer", "kind"=>"array_element"}, {"alias"=>"row", "axis"=>"row", "kind"=>"array_element"}, {"kind"=>"element_leaf"}].freeze
 
     KERNELS = {}
     KERNELS["core.gt"] = ( ->(a, b) { a > b } )

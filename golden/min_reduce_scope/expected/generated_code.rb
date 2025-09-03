@@ -1,8 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
-require 'json'
 
 module SchemaModule
-  PACK_HASH = "09467c58ec72ad95a54731108cf110ae7d366b149094530c303b2d79bef61f9b:3d495c8cde61d7eb347a1f3032dc9c8a264c8bcaf6e9a336e2f054c4e98873ae:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945:30a0d72ec88ee01757c1654c7057f1183dc29aae6ec8cc4b390651ecf1e3257a".freeze
+  PACK_HASH = "79b847752d77166f6f78d47ca560b648da524bff6204e1ce65d4731897190203:a65af9de32bf544ceb67237746f6e021267e3890f4066ff4a6c60f6d91c68f16:95ccb7df5aadfc90e63b52740208a475b02424743078f5fd761d988c405d0252:30a0d72ec88ee01757c1654c7057f1183dc29aae6ec8cc4b390651ecf1e3257a".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -10,86 +9,84 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :dept_total then (@memo[:dept_total] ||= _eval_dept_total)
+                      when :big_team then (@memo[:big_team] ||= _eval_big_team)
                   when :company_total then (@memo[:company_total] ||= _eval_company_total)
-                  when :big_team then (@memo[:big_team] ||= _eval_big_team)
+                  when :dept_total then (@memo[:dept_total] ||= _eval_dept_total)
                   when :dept_total_masked then (@memo[:dept_total_masked] ||= _eval_dept_total_masked)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-        def _eval_dept_total
-          input = @input
-    
-          out = []
-    __each_array__(input, "depts") do |a_depts|
-        cursors = { "depts"=>a_depts }
-          v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-          v1 = nil
-          __each_array__(cursors["depts"], "teams") do |a_teams|
-            cursors = cursors.merge("teams" => a_teams)
-            v1 = v1.nil? ? v0 : __call_kernel__("agg.sum", v1, v0)
-          end
-        out << v1end
-    
-          out
-        end
-    
-        def _eval_company_total
-          input = @input
-          cursors = {}
-    
-        v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-        v1 = nil
-        __each_array__(cursors["depts"], "teams") do |a_teams|
-          cursors = cursors.merge("teams" => a_teams)
-          v1 = v1.nil? ? v0 : __call_kernel__("agg.sum", v1, v0)
-        end
-        v2 = nil
-        __each_array__(input, "depts") do |a_depts|
-          cursors = cursors.merge("depts" => a_depts)
-          v2 = v2.nil? ? v1 : __call_kernel__("agg.sum", v2, v1)
-        end
-          v2
-        end
-    
-        def _eval_big_team
-          input = @input
-        v1 = 10
-          out = []
+                  def _eval_big_team
+                    input = @input
+                  v1 = 10
+                    out = []
     __each_array__(input, "depts") do |a_depts|
       row_0 = []
-    __each_array__(a_depts, "teams") do |a_teams|
+    a_depts.each_with_index do |a_teams, _idx|
           cursors = { "depts"=>a_depts,"teams"=>a_teams }
             v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
             v2 = __call_kernel__("core.gt", v0, v1)
-          row_0 << v2    row_0 << 
+          row_0 << v2
+        end
+        out << row_0
       end
-      out << row_0
+                    out
+                  end
+    
+        def _eval_company_total
+          input = @input
+    
+          acc = 0
+          __each_array__(input, "depts") do |a_depts|
+    a_depts.each_with_index do |a_teams, _idx|
+        cursors = { "depts"=>a_depts,"teams"=>a_teams }
+        inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+        acc += inl_inline_v0
+      end
     end
     
-          out
+          acc
         end
     
-        def _eval_dept_total_masked
-          input = @input
-        v2 = 0
-          out = []
+                def _eval_dept_total
+                  input = @input
+            
+                  out = []
     __each_array__(input, "depts") do |a_depts|
-        cursors = { "depts"=>a_depts }
-          v0 = _eval_big_team
-          v1 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-          v3 = (raise NotImplementedError, "Select")
-          v4 = nil
-          __each_array__(cursors["depts"], "teams") do |a_teams|
-            cursors = cursors.merge("teams" => a_teams)
-            v4 = v4.nil? ? v3 : __call_kernel__("agg.sum", v4, v3)
-          end
-        out << v4end
-    
-          out
+      acc = 0
+        a_depts.each_with_index do |a_teams, _idx|
+            cursors = { "depts"=>a_depts,"teams"=>a_teams }
+            inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+            acc += inl_inline_v0
         end
+      out << acc
+    end
+    
+                  out
+                end
+    
+                def _eval_dept_total_masked
+                  input = @input
+                v2 = 0
+                  out = []
+    __each_array__(input, "depts") do |a_depts|
+      acc = 0
+        a_depts.each_with_index do |a_teams, _idx|
+            cursors = { "depts"=>a_depts,"teams"=>a_teams }
+            inl_big_team_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+            inl_big_team_v1 = 10
+            inl_big_team_v2 = __call_kernel__("core.gt", inl_big_team_v0, inl_big_team_v1)
+            inl_inline_v1 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+            inl_inline_v3 = (inl_big_team_v2 ? inl_inline_v1 : 0)
+            acc += inl_inline_v3
+        end
+      out << acc
+    end
+    
+                  out
+                end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
     MISSING_POLICY = {}.freeze
@@ -152,9 +149,9 @@ module SchemaModule
       end
       cur
     end
-    CHAIN_DEPTS = JSON.parse("[{\"kind\":\"field_leaf\",\"key\":\"depts\"}]").freeze
-    CHAIN_DEPTS_TEAMS = JSON.parse("[{\"kind\":\"array_field\",\"key\":\"depts\",\"axis\":\"depts\"},{\"kind\":\"field_leaf\",\"key\":\"teams\"}]").freeze
-    CHAIN_DEPTS_TEAMS_HEADCOUNT = JSON.parse("[{\"kind\":\"array_field\",\"key\":\"depts\",\"axis\":\"depts\"},{\"kind\":\"array_field\",\"key\":\"teams\",\"axis\":\"teams\"},{\"kind\":\"field_leaf\",\"key\":\"headcount\"}]").freeze
+    CHAIN_DEPTS = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}].freeze
+    CHAIN_DEPTS_TEAMS = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}, {"axis"=>"teams", "key"=>"teams", "kind"=>"array_field"}].freeze
+    CHAIN_DEPTS_TEAMS_HEADCOUNT = [{"axis"=>"depts", "key"=>"depts", "kind"=>"array_field"}, {"axis"=>"teams", "key"=>"teams", "kind"=>"array_field"}, {"key"=>"headcount", "kind"=>"field_leaf"}].freeze
 
     KERNELS = {}
     KERNELS["agg.sum"] = ( ->(a,b) { a + b } )

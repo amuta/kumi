@@ -1,8 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
-require 'json'
 
 module SchemaModule
-  PACK_HASH = "9475af2b2eeded0d4db39c94a9a30184f30e6dcfd214101136fe66c77ccd4fd1:4f0640410c18b2d7e4d34abf0a00d3c54790985559518e0424105d0a5ac96542:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945:accf27a6abaf85aea1d27e3422c8d85bd8aaa6f8a06b88a14dba66c54659a54f".freeze
+  PACK_HASH = "a4ac20c8cb29efe07341e0e401d3659ae4da7161589f93f38a7328e2ee248c73:e5d3e78b22941afe3a1591da58808556eaec523a3d35aef929e329a4e520a2a4:234af5166ea4222d549ed45b78f10f1793c5508e7a0f8e3c2c07a97c62eec919:accf27a6abaf85aea1d27e3422c8d85bd8aaa6f8a06b88a14dba66c54659a54f".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -10,21 +9,21 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :sum then (@memo[:sum] ||= _eval_sum)
+                      when :difference then (@memo[:difference] ||= _eval_difference)
                   when :product then (@memo[:product] ||= _eval_product)
-                  when :difference then (@memo[:difference] ||= _eval_difference)
                   when :results_array then (@memo[:results_array] ||= _eval_results_array)
+                  when :sum then (@memo[:sum] ||= _eval_sum)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-        def _eval_sum
+        def _eval_difference
           input = @input
           cursors = {}
         v0 = __walk__(CHAIN_X, input, cursors)
         v1 = __walk__(CHAIN_Y, input, cursors)
-        v2 = __call_kernel__("core.add", v0, v1)
+        v2 = __call_kernel__("core.sub", v0, v1)
     
           v2
         end
@@ -35,16 +34,6 @@ module SchemaModule
         v0 = __walk__(CHAIN_X, input, cursors)
         v1 = __walk__(CHAIN_Y, input, cursors)
         v2 = __call_kernel__("core.mul", v0, v1)
-    
-          v2
-        end
-    
-        def _eval_difference
-          input = @input
-          cursors = {}
-        v0 = __walk__(CHAIN_X, input, cursors)
-        v1 = __walk__(CHAIN_Y, input, cursors)
-        v2 = __call_kernel__("core.sub", v0, v1)
     
           v2
         end
@@ -62,6 +51,16 @@ module SchemaModule
         v7 = [v0, v3, v6]
     
           v7
+        end
+    
+        def _eval_sum
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_X, input, cursors)
+        v1 = __walk__(CHAIN_Y, input, cursors)
+        v2 = __call_kernel__("core.add", v0, v1)
+    
+          v2
         end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
@@ -125,8 +124,8 @@ module SchemaModule
       end
       cur
     end
-    CHAIN_X = JSON.parse("[{\"kind\":\"field_leaf\",\"key\":\"x\"}]").freeze
-    CHAIN_Y = JSON.parse("[{\"kind\":\"field_leaf\",\"key\":\"y\"}]").freeze
+    CHAIN_X = [{"key"=>"x", "kind"=>"field_leaf"}].freeze
+    CHAIN_Y = [{"key"=>"y", "kind"=>"field_leaf"}].freeze
 
     KERNELS = {}
     KERNELS["core.add"] = ( ->(a, b) { a + b } )

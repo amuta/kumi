@@ -13,7 +13,9 @@ module Kumi
 
         def eval_method_for(decl_name)  = "_eval_#{sanitize_method(decl_name)}"
 
-        def tmp_for_op(op_id)           = "v#{op_id}"
+        def tmp_for_op(op_id, ns: nil)
+          ns ? "inl_#{sanitize_method(ns)}_v#{op_id}" : "v#{op_id}"
+        end
 
         def axis_var(axis_token)        = "a_#{sanitize_method(axis_token)}"
 
