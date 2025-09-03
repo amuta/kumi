@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "81aa6e3e4dcad24a5a871d0bbea49e57923e3b571cff0543d3a0d9dee137de1a:3ac9d1b0a8327e848f58e967a80f1098110087cb2da09ae085fb3ee85339433d:ceadd786494ca24eba7e856ae169b3f9a404987ad08ce9ea0e41bc8ed0400239:89e82912e5f75c5377da66c2b13a4796ce5f30e726ae4915f10d80da99f2debd".freeze
+  PACK_HASH = "6ec2da57b6781ac2d994432609b60356af2bfbd52c362b2f8983c8723ed9d3e3:ceadd786494ca24eba7e856ae169b3f9a404987ad08ce9ea0e41bc8ed0400239:89e82912e5f75c5377da66c2b13a4796ce5f30e726ae4915f10d80da99f2debd".freeze
 
   class Program
     def self.from(data) = new(data)

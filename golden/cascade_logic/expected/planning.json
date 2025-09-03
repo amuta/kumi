@@ -1,10 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["x"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_x"},
-      {"path":["y"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_y"}
-    ]
-  },
   "declarations": {
     "y_positive": {
       "axes": [],

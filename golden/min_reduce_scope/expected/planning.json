@@ -1,23 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["depts"],"axes":["depts"],"dtype":"array","consumes_axes":["depts"],"accessor_name":"at_depts"},
-      {
-        "path": ["depts","teams"],
-        "axes": ["depts","teams"],
-        "dtype": "array",
-        "consumes_axes": ["depts","teams"],
-        "accessor_name": "at_depts_teams"
-      },
-      {
-        "path": ["depts","teams","headcount"],
-        "axes": ["depts","teams"],
-        "dtype": "integer",
-        "consumes_axes": ["depts","teams"],
-        "accessor_name": "at_depts_teams_headcount"
-      }
-    ]
-  },
   "declarations": {
     "dept_total": {
       "axes": ["depts"],

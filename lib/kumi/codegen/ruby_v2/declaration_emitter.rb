@@ -10,13 +10,14 @@ module Kumi
       module DeclarationEmitter
         module_function
 
-        def render_one(decl_name:, decl_spec:, plan_decl:, chain_map:, ops_by_decl:, all_plan_decls:)
-          axes         = plan_decl.fetch("axes")
-          reduce_plans = plan_decl.fetch("reduce_plans", [])
-          hoisted_ids  = plan_decl.dig("site_schedule","hoisted_scalars")&.map { |h| h.fetch("id") } || []
+        def render_one(decl_name:, decl_spec:, chain_map:, ops_by_decl:)
+          # With merged format, planning data is in decl_spec itself
+          axes         = decl_spec.fetch("axes")
+          reduce_plans = decl_spec.fetch("reduce_plans", [])
+          hoisted_ids  = decl_spec.dig("site_schedule","hoisted_scalars")&.map { |h| h.fetch("id") } || []
 
           ops = OpsEmitter.new(
-            plan_decl_by_name: all_plan_decls,
+            plan_decl_by_name: ops_by_decl,  # Now contains merged data
             chain_const_by_input_name: chain_map,
             ops_by_decl: ops_by_decl
           )
@@ -25,23 +26,23 @@ module Kumi
 
           # Check if this declaration has reduces to fuse
           if reduce_plans.any?
-            render_reduce_chain(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans, axes)
+            render_reduce_chain(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans, axes)
           else
-            render_site_loops(decl_name, mname, decl_spec, plan_decl, ops, axes, hoisted_ids)
+            render_site_loops(decl_name, mname, decl_spec, ops, axes, hoisted_ids)
           end
         end
 
-        def render_reduce_chain(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans, axes = [])
+        def render_reduce_chain(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans, axes = [])
           if axes.empty?
             # Pure reduce case - no site axes
-            render_pure_reduce_chain(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans)
+            render_pure_reduce_chain(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans)
           else
             # Site + reduce case - need to compose site loops with reduce chain
-            render_site_plus_reduce(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans, axes)
+            render_site_plus_reduce(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans, axes)
           end
         end
 
-        def render_pure_reduce_chain(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans)
+        def render_pure_reduce_chain(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans)
           rheader, rfooter, cursors_line, axis_vars = LoopBuilder.build_reduce_chain(reduce_plans)
           hoisted_lines = ops.emit_ops_subset(decl_name, decl_spec, only_ids: hoisted_ids, reduce_chain: false)
           
@@ -50,7 +51,6 @@ module Kumi
           site_lines, site_val = ops.emit_site_scalar_for_decl(
             prod_name: decl_name,
             prod_spec: decl_spec,
-            plan_decl: plan_decl,
             chain_map: ops.instance_variable_get(:@chains),
             scope_axes: scope_axes,
             ns: "inline"
@@ -73,7 +73,7 @@ module Kumi
           RUBY
         end
 
-        def render_site_plus_reduce(decl_name, mname, decl_spec, plan_decl, ops, hoisted_ids, reduce_plans, axes)
+        def render_site_plus_reduce(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans, axes)
           # Build site loops first
           site_header, _, site_cursors_line, out_var, row_vars = LoopBuilder.build_nested_loops(axes)
           hoisted_lines = ops.emit_ops_subset(decl_name, decl_spec, only_ids: hoisted_ids, reduce_chain: false)
@@ -86,7 +86,6 @@ module Kumi
           site_lines, site_val = ops.emit_site_scalar_for_decl(
             prod_name: decl_name,
             prod_spec: decl_spec,
-            plan_decl: plan_decl,
             chain_map: ops.instance_variable_get(:@chains),
             scope_axes: scope_axes,
             ns: "inline"
@@ -151,7 +150,7 @@ module Kumi
           footer
         end
 
-        def render_site_loops(decl_name, mname, decl_spec, plan_decl, ops, axes, hoisted_ids)
+        def render_site_loops(decl_name, mname, decl_spec, ops, axes, hoisted_ids)
           header, _, cursors_line, out_var, row_vars = LoopBuilder.build_nested_loops(axes)
           hoisted_lines = ops.emit_ops_subset(decl_name, decl_spec, only_ids: hoisted_ids, reduce_chain: false)
           body_lines, result_var = ops.emit_body_for_decl(decl_name, decl_spec, skip_ids: hoisted_ids, reduce_chain: false)

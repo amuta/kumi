@@ -8,11 +8,11 @@ module Kumi
       module ChainsEmitter
         module_function
 
-        def render(plan_module_spec_inputs:)
+        def render(inputs:)
           src = +""
           map = {}
 
-          Array(plan_module_spec_inputs).each do |inp|
+          Array(inputs).each do |inp|
             name = inp.fetch("name")
             
             # Use the chain from the input spec (already computed by access planner)

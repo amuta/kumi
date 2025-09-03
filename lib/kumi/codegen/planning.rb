@@ -21,17 +21,6 @@ module Kumi
 
       def to_json(bundle)
         output = {
-          "module_spec" => {
-            "inputs" => bundle.module_spec.inputs.map do |inp|
-              {
-                "path" => inp.path,
-                "axes" => inp.axes.map(&:to_s),
-                "dtype" => inp.dtype.to_s,
-                "consumes_axes" => bundle.access_plan.consumes_axes(inp.path).map(&:to_s),
-                "accessor_name" => bundle.access_plan.scalar_accessor_name(inp.path)
-              }
-            end
-          },
           "declarations" => {}
         }
 

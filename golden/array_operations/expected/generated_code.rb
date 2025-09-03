@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "33e2e9bd3709df540bc8c2748b78d16c2ca90b2cc92325848a4b868fa39ba7a8:721caa216d449f95238bba2a0152a5a6eb89c05d37b36c06fc7baf679f5f3622:5ceabfc168da0f10c91bd811df22d4716956b61ca06a1816b9a880c0be5ba011:284d26cdd18929c672d4152c8f16336f789a58d61ee675acac3e59adec62c16e".freeze
+  PACK_HASH = "5fd4d793f2d8c7966436da0c79ddb59704f27ff6827b5dad3e5189c3df4fa5e7:5ceabfc168da0f10c91bd811df22d4716956b61ca06a1816b9a880c0be5ba011:284d26cdd18929c672d4152c8f16336f789a58d61ee675acac3e59adec62c16e".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,30 +9,16 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :subtotals then (@memo[:subtotals] ||= _eval_subtotals)
-                  when :discounted_price then (@memo[:discounted_price] ||= _eval_discounted_price)
-                  when :is_valid_quantity then (@memo[:is_valid_quantity] ||= _eval_is_valid_quantity)
-                  when :expensive_items then (@memo[:expensive_items] ||= _eval_expensive_items)
+                      when :discounted_price then (@memo[:discounted_price] ||= _eval_discounted_price)
                   when :electronics then (@memo[:electronics] ||= _eval_electronics)
+                  when :expensive_items then (@memo[:expensive_items] ||= _eval_expensive_items)
+                  when :is_valid_quantity then (@memo[:is_valid_quantity] ||= _eval_is_valid_quantity)
+                  when :subtotals then (@memo[:subtotals] ||= _eval_subtotals)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-                  def _eval_subtotals
-                    input = @input
-              
-                    out = []
-    __each_array__(input, "items") do |a_items|
-        cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
-          v1 = __walk__(CHAIN_ITEMS_QUANTITY, input, cursors)
-          v2 = __call_kernel__("core.mul", v0, v1)
-        out << v2
-      end
-                    out
-                  end
-    
                   def _eval_discounted_price
                     input = @input
                   v1 = 0.9
@@ -46,14 +32,14 @@ module SchemaModule
                     out
                   end
     
-                  def _eval_is_valid_quantity
+                  def _eval_electronics
                     input = @input
-                  v1 = 0
+                  v1 = "electronics"
                     out = []
     __each_array__(input, "items") do |a_items|
         cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_QUANTITY, input, cursors)
-          v2 = __call_kernel__("core.gt", v0, v1)
+          v0 = __walk__(CHAIN_ITEMS_CATEGORY, input, cursors)
+          v2 = __call_kernel__("core.eq", v0, v1)
         out << v2
       end
                     out
@@ -72,14 +58,28 @@ module SchemaModule
                     out
                   end
     
-                  def _eval_electronics
+                  def _eval_is_valid_quantity
                     input = @input
-                  v1 = "electronics"
+                  v1 = 0
                     out = []
     __each_array__(input, "items") do |a_items|
         cursors = { "items"=>a_items }
-          v0 = __walk__(CHAIN_ITEMS_CATEGORY, input, cursors)
-          v2 = __call_kernel__("core.eq", v0, v1)
+          v0 = __walk__(CHAIN_ITEMS_QUANTITY, input, cursors)
+          v2 = __call_kernel__("core.gt", v0, v1)
+        out << v2
+      end
+                    out
+                  end
+    
+                  def _eval_subtotals
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "items") do |a_items|
+        cursors = { "items"=>a_items }
+          v0 = __walk__(CHAIN_ITEMS_PRICE, input, cursors)
+          v1 = __walk__(CHAIN_ITEMS_QUANTITY, input, cursors)
+          v2 = __call_kernel__("core.mul", v0, v1)
         out << v2
       end
                     out

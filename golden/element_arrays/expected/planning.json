@@ -1,30 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["cube"],"axes":["cube"],"dtype":"array","consumes_axes":["cube"],"accessor_name":"at_cube"},
-      {
-        "path": ["cube","layer"],
-        "axes": ["cube","layer"],
-        "dtype": "array",
-        "consumes_axes": ["cube","layer"],
-        "accessor_name": "at_cube_layer"
-      },
-      {
-        "path": ["cube","layer","row"],
-        "axes": ["cube","layer","row"],
-        "dtype": "array",
-        "consumes_axes": ["cube","layer","row"],
-        "accessor_name": "at_cube_layer_row"
-      },
-      {
-        "path": ["cube","layer","row","cell"],
-        "axes": ["cube","layer","row"],
-        "dtype": "integer",
-        "consumes_axes": ["cube","layer","row"],
-        "accessor_name": "at_cube_layer_row_cell"
-      }
-    ]
-  },
   "declarations": {
     "cube": {
       "axes": ["cube"],

@@ -31,7 +31,7 @@ module Kumi
           [lines, result_var]
         end
 
-        def emit_site_scalar_for_decl(prod_name:, prod_spec:, plan_decl:, chain_map:, scope_axes:, ns:, skip_reduce_ops: true)
+        def emit_site_scalar_for_decl(prod_name:, prod_spec:, chain_map:, scope_axes:, ns:, skip_reduce_ops: true)
           lines = []
           
           # Filter out Reduce operations if requested
@@ -77,11 +77,10 @@ module Kumi
               lines << "#{id} = (#{a} ? #{b} : #{c})"
             when "LoadDeclaration"
               target = Array(op["args"]).first.to_s
-              if inline?(prod_name, op["id"], plan_decl)
-                t_plan = @plans.fetch(target)
+              if inline?(prod_name, op["id"], prod_spec)
                 t_spec = @decls.fetch(target)
                 sub_lines, sub_val = emit_site_scalar_for_decl(
-                  prod_name: target, prod_spec: t_spec, plan_decl: t_plan,
+                  prod_name: target, prod_spec: t_spec,
                   chain_map: chain_map, scope_axes: scope_axes, ns: target
                 )
                 lines.concat(sub_lines)
@@ -156,8 +155,8 @@ module Kumi
         end
 
 
-        def inline?(decl_name, op_id, plan_decl = @plans.fetch(decl_name))
-          decs = plan_decl.fetch("inlining_decisions", {})
+        def inline?(decl_name, op_id, decl_spec = @plans.fetch(decl_name))
+          decs = decl_spec.fetch("inlining_decisions", {})
           decs.dig("op_#{op_id}", "decision") == "inline"
         end
 

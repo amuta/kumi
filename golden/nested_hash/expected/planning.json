@@ -1,11 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["x"],"axes":[],"dtype":"hash","consumes_axes":[],"accessor_name":"at_x"},
-      {"path":["x","y"],"axes":[],"dtype":"hash","consumes_axes":[],"accessor_name":"at_x_y"},
-      {"path":["x","y","z"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_x_y_z"}
-    ]
-  },
   "declarations": {
     "double": {
       "axes": [],

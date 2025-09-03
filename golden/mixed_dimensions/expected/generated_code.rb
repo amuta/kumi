@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "a3283ca30e621d8f8a2fd207fba67d14978efe5d1e7d37ec33bef62f15b0d398:faa7ffdf530a44917673ede8a34c2d7f3efa2c4c8a370084929aff50ed7b80d2:0454d172bfd4a01c4a45b10799d50e6b30118978e51576564be2260031b2b43c:d1b3f2fd806df597deeb0cc7cec61c54ccc32b929f224da88672013c073c2a39".freeze
+  PACK_HASH = "f44d91e185ff1c868d513173f5a3ee4e627ca4926567004a61d91a74a335e999:0454d172bfd4a01c4a45b10799d50e6b30118978e51576564be2260031b2b43c:d1b3f2fd806df597deeb0cc7cec61c54ccc32b929f224da88672013c073c2a39".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,26 +9,21 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :sum_numbers then (@memo[:sum_numbers] ||= _eval_sum_numbers)
+                      when :constant then (@memo[:constant] ||= _eval_constant)
                   when :matrix_sums then (@memo[:matrix_sums] ||= _eval_matrix_sums)
                   when :mixed_array then (@memo[:mixed_array] ||= _eval_mixed_array)
-                  when :constant then (@memo[:constant] ||= _eval_constant)
+                  when :sum_numbers then (@memo[:sum_numbers] ||= _eval_sum_numbers)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-        def _eval_sum_numbers
+        def _eval_constant
           input = @input
+          cursors = {}
+        v0 = 42
     
-          acc = 0
-          __each_array__(input, "numbers") do |a_numbers|
-      cursors = { "numbers"=>a_numbers }
-      inl_inline_v0 = __walk__(CHAIN_NUMBERS_VALUE, input, cursors)
-      acc += inl_inline_v0
-    end
-    
-          acc
+          v0
         end
     
                 def _eval_matrix_sums
@@ -58,12 +53,17 @@ module SchemaModule
           v3
         end
     
-        def _eval_constant
+        def _eval_sum_numbers
           input = @input
-          cursors = {}
-        v0 = 42
     
-          v0
+          acc = 0
+          __each_array__(input, "numbers") do |a_numbers|
+      cursors = { "numbers"=>a_numbers }
+      inl_inline_v0 = __walk__(CHAIN_NUMBERS_VALUE, input, cursors)
+      acc += inl_inline_v0
+    end
+    
+          acc
         end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===

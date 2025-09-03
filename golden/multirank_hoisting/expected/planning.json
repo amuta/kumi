@@ -1,39 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["batch"],"axes":["batch"],"dtype":"array","consumes_axes":["batch"],"accessor_name":"at_batch"},
-      {"path":["batch","mean"],"axes":["batch"],"dtype":"float","consumes_axes":["batch"],"accessor_name":"at_batch_mean"},
-      {
-        "path": ["batch","row"],
-        "axes": ["batch","row"],
-        "dtype": "array",
-        "consumes_axes": ["batch","row"],
-        "accessor_name": "at_batch_row"
-      },
-      {
-        "path": ["batch","row","scale"],
-        "axes": ["batch","row"],
-        "dtype": "float",
-        "consumes_axes": ["batch","row"],
-        "accessor_name": "at_batch_row_scale"
-      },
-      {
-        "path": ["batch","row","col"],
-        "axes": ["batch","row","col"],
-        "dtype": "array",
-        "consumes_axes": ["batch","row","col"],
-        "accessor_name": "at_batch_row_col"
-      },
-      {
-        "path": ["batch","row","col","val"],
-        "axes": ["batch","row","col"],
-        "dtype": "float",
-        "consumes_axes": ["batch","row","col"],
-        "accessor_name": "at_batch_row_col_val"
-      },
-      {"path":["global_offset"],"axes":[],"dtype":"float","consumes_axes":[],"accessor_name":"at_global_offset"}
-    ]
-  },
   "declarations": {
     "global_offset_plus": {
       "axes": [],

@@ -62,12 +62,12 @@ module Kumi
 
       def assemble_pack(module_id, ir, planning, bindings, inputs, targets, include_ir)
         plan_obj = planning["plan"] || planning
+        plan_declarations = plan_obj["declarations"] || {}
 
         pack = {
           "pack_version" => VERSION,
           "module_id" => module_id,
-          "plan" => plan_obj,
-          "declarations" => extract_ops_by_decl(ir),
+          "declarations" => extract_ops_by_decl_with_planning(ir, plan_declarations),
           "inputs" => extract_inputs(inputs),
           "bindings" => format_bindings_for_pack(bindings),
           "capabilities" => { "layout" => "nested_array" }
@@ -77,9 +77,39 @@ module Kumi
         pack
       end
 
+      def extract_ops_by_decl_with_planning(ir, plan_declarations)
+        declarations = ir["declarations"] || {}
+        declarations.keys.sort.map do |name|
+          d = declarations[name]
+          ops = (d["operations"] || []).map do |op|
+            {
+              "id" => op["id"],
+              "op" => op["op"] || op["kind"],
+              "args" => op["args"] || [],
+              "attrs" => op["attrs"] || {}
+            }
+          end
+          
+          # Start with IRV2 operations
+          result = { "name" => name, "operations" => ops }
+          result["result_op_id"] = d["result"] if d.key?("result")
+          result["axes"] = d["axes"] if d.key?("axes")
+          
+          # Merge in planning metadata in sorted key order
+          plan_data = plan_declarations[name] || {}
+          plan_data.keys.sort.each do |key|
+            # Don't override IRV2 fields, but add planning fields
+            result[key] = plan_data[key] unless result.key?(key)
+          end
+          
+          result
+        end
+      end
+
       def extract_ops_by_decl(ir)
         declarations = ir["declarations"] || {}
-        declarations.map do |name, d|
+        declarations.keys.sort.map do |name|
+          d = declarations[name]
           ops = (d["operations"] || []).map do |op|
             {
               "id" => op["id"],
@@ -182,7 +212,7 @@ module Kumi
 
       # Compute canonical section hashes (sorted-key JSON)
       def compute_hashes(pack)
-        keys = %w[plan declarations inputs bindings]
+        keys = %w[declarations inputs bindings]
         keys << "ir_debug" if pack.key?("ir_debug")
         keys.to_h { |k| [k, sha256(pack[k])] }
       end

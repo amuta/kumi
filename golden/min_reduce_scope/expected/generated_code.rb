@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "79b847752d77166f6f78d47ca560b648da524bff6204e1ce65d4731897190203:d4bc6dd3023e133e672e77fc85ca219cb0a3f0de2060773cfd247620fa6a4e6d:95ccb7df5aadfc90e63b52740208a475b02424743078f5fd761d988c405d0252:30a0d72ec88ee01757c1654c7057f1183dc29aae6ec8cc4b390651ecf1e3257a".freeze
+  PACK_HASH = "e2529508629293c6058f26391d4bbc4fb9485a1bcc91b54606f78e4a3d44d86a:95ccb7df5aadfc90e63b52740208a475b02424743078f5fd761d988c405d0252:30a0d72ec88ee01757c1654c7057f1183dc29aae6ec8cc4b390651ecf1e3257a".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,47 +9,15 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :dept_total then (@memo[:dept_total] ||= _eval_dept_total)
+                      when :big_team then (@memo[:big_team] ||= _eval_big_team)
                   when :company_total then (@memo[:company_total] ||= _eval_company_total)
-                  when :big_team then (@memo[:big_team] ||= _eval_big_team)
+                  when :dept_total then (@memo[:dept_total] ||= _eval_dept_total)
                   when :dept_total_masked then (@memo[:dept_total_masked] ||= _eval_dept_total_masked)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-                def _eval_dept_total
-                  input = @input
-            
-                  out = []
-    __each_array__(input, "depts") do |a_depts|
-      acc = 0
-        a_depts.each_with_index do |a_teams, _idx|
-            cursors = { "depts"=>a_depts,"teams"=>a_teams }
-            inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-            acc += inl_inline_v0
-        end
-      out << acc
-    end
-    
-                  out
-                end
-    
-        def _eval_company_total
-          input = @input
-    
-          acc = 0
-          __each_array__(input, "depts") do |a_depts|
-    a_depts.each_with_index do |a_teams, _idx|
-        cursors = { "depts"=>a_depts,"teams"=>a_teams }
-        inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
-        acc += inl_inline_v0
-      end
-    end
-    
-          acc
-        end
-    
                   def _eval_big_team
                     input = @input
                   v1 = 10
@@ -66,6 +34,38 @@ module SchemaModule
       end
                     out
                   end
+    
+        def _eval_company_total
+          input = @input
+    
+          acc = 0
+          __each_array__(input, "depts") do |a_depts|
+    a_depts.each_with_index do |a_teams, _idx|
+        cursors = { "depts"=>a_depts,"teams"=>a_teams }
+        inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+        acc += inl_inline_v0
+      end
+    end
+    
+          acc
+        end
+    
+                def _eval_dept_total
+                  input = @input
+            
+                  out = []
+    __each_array__(input, "depts") do |a_depts|
+      acc = 0
+        a_depts.each_with_index do |a_teams, _idx|
+            cursors = { "depts"=>a_depts,"teams"=>a_teams }
+            inl_inline_v0 = __walk__(CHAIN_DEPTS_TEAMS_HEADCOUNT, input, cursors)
+            acc += inl_inline_v0
+        end
+      out << acc
+    end
+    
+                  out
+                end
     
                 def _eval_dept_total_masked
                   input = @input

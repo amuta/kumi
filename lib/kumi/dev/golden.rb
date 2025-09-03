@@ -39,10 +39,26 @@ module Kumi
               # Handle pack files specially - generate target-specific files
               begin
                 require_relative "../pack/builder"
-                Kumi::Pack::Builder.build_for_golden(schema_path, expected_dir, targets: %w[ruby])
-                puts "  #{schema_name}/pack.json (updated)"
-                schema_changed = true
-                changed_any = true
+                ir, planning, bindings, inputs, module_id = Kumi::Pack::Builder.generate_artifacts(schema_path)
+                pack = Kumi::Pack::Builder.assemble_pack(module_id, ir, planning, bindings, inputs, %w[ruby], false)
+                current_output = Kumi::Pack::Builder.canonical_json(pack)
+                
+                pack_file = File.join(expected_dir, "pack.json")
+                if File.exist?(pack_file)
+                  expected_content = File.read(pack_file)
+                  if current_output != expected_content
+                    File.write(pack_file, current_output)
+                    puts "  #{schema_name}/pack.json (updated)"
+                    schema_changed = true
+                    changed_any = true
+                  end
+                else
+                  # New file
+                  File.write(pack_file, current_output)
+                  puts "  #{schema_name}/pack.json (created)"
+                  schema_changed = true
+                  changed_any = true
+                end
               rescue StandardError => e
                 puts "  ✗ #{schema_name}/pack (error: #{e.message})"
                 raise

@@ -1,0 +1,5 @@
+functions:
+  - id: core.concat
+    kind: elementwise
+    params: [{ name: left_string }, { name: right_string }]
+    dtype: "string"

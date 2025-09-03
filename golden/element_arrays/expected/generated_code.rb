@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "86d470e5a2345ca230734c0ab3d4c11c508571367444ad6b06a0612f182cf46c:81088da78349aa6f57eab3ac498e15b26021f9f421e08348b5559df961febdcd:855bb2591854da72a60a0c682d65bf5d9ee6ac9b4ebbf8957a511d897e0ce74f:f428308d484d07f4e3ebb03b75d71494a4c9b991b6d7cf8a168e2f20fe28ffb4".freeze
+  PACK_HASH = "dfb6d5aa0c60e3ffc12f8a29c793c0ffd3433aba89e4ada5416d8fe132e3b3ac:855bb2591854da72a60a0c682d65bf5d9ee6ac9b4ebbf8957a511d897e0ce74f:f428308d484d07f4e3ebb03b75d71494a4c9b991b6d7cf8a168e2f20fe28ffb4".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,66 +9,18 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :cube then (@memo[:cube] ||= _eval_cube)
-                  when :layer then (@memo[:layer] ||= _eval_layer)
-                  when :row then (@memo[:row] ||= _eval_row)
-                  when :cell then (@memo[:cell] ||= _eval_cell)
+                      when :cell then (@memo[:cell] ||= _eval_cell)
                   when :cell_over_limit then (@memo[:cell_over_limit] ||= _eval_cell_over_limit)
                   when :cell_sum then (@memo[:cell_sum] ||= _eval_cell_sum)
                   when :count_over_limit then (@memo[:count_over_limit] ||= _eval_count_over_limit)
+                  when :cube then (@memo[:cube] ||= _eval_cube)
+                  when :layer then (@memo[:layer] ||= _eval_layer)
+                  when :row then (@memo[:row] ||= _eval_row)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-                  def _eval_cube
-                    input = @input
-              
-                    out = []
-    __each_array__(input, "cube") do |a_cube|
-        cursors = { "cube"=>a_cube }
-          v0 = __walk__(CHAIN_CUBE, input, cursors)
-        out << v0
-      end
-                    out
-                  end
-    
-                  def _eval_layer
-                    input = @input
-              
-                    out = []
-    __each_array__(input, "cube") do |a_cube|
-      row_0 = []
-    a_cube.each_with_index do |a_layer, _idx|
-          cursors = { "cube"=>a_cube,"layer"=>a_layer }
-            v0 = __walk__(CHAIN_CUBE_LAYER, input, cursors)
-          row_0 << v0
-        end
-        out << row_0
-      end
-                    out
-                  end
-    
-                  def _eval_row
-                    input = @input
-              
-                    out = []
-    __each_array__(input, "cube") do |a_cube|
-      row_0 = []
-    a_cube.each_with_index do |a_layer, _idx|
-        row_1 = []
-    a_layer.each_with_index do |a_row, _idx|
-            cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
-              v0 = __walk__(CHAIN_CUBE_LAYER_ROW, input, cursors)
-            row_1 << v0
-          end
-          row_0 << row_1
-        end
-        out << row_0
-      end
-                    out
-                  end
-    
                   def _eval_cell
                     input = @input
               
@@ -155,6 +107,54 @@ module SchemaModule
     
           acc
         end
+    
+                  def _eval_cube
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+        cursors = { "cube"=>a_cube }
+          v0 = __walk__(CHAIN_CUBE, input, cursors)
+        out << v0
+      end
+                    out
+                  end
+    
+                  def _eval_layer
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+      row_0 = []
+    a_cube.each_with_index do |a_layer, _idx|
+          cursors = { "cube"=>a_cube,"layer"=>a_layer }
+            v0 = __walk__(CHAIN_CUBE_LAYER, input, cursors)
+          row_0 << v0
+        end
+        out << row_0
+      end
+                    out
+                  end
+    
+                  def _eval_row
+                    input = @input
+              
+                    out = []
+    __each_array__(input, "cube") do |a_cube|
+      row_0 = []
+    a_cube.each_with_index do |a_layer, _idx|
+        row_1 = []
+    a_layer.each_with_index do |a_row, _idx|
+            cursors = { "cube"=>a_cube,"layer"=>a_layer,"row"=>a_row }
+              v0 = __walk__(CHAIN_CUBE_LAYER_ROW, input, cursors)
+            row_1 << v0
+          end
+          row_0 << row_1
+        end
+        out << row_0
+      end
+                    out
+                  end
 
     # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
     MISSING_POLICY = {}.freeze

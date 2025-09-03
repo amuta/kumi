@@ -1,32 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["numbers"],"axes":["numbers"],"dtype":"array","consumes_axes":["numbers"],"accessor_name":"at_numbers"},
-      {
-        "path": ["numbers","value"],
-        "axes": ["numbers"],
-        "dtype": "integer",
-        "consumes_axes": ["numbers"],
-        "accessor_name": "at_numbers_value"
-      },
-      {"path":["scalar_val"],"axes":[],"dtype":"integer","consumes_axes":[],"accessor_name":"at_scalar_val"},
-      {"path":["matrix"],"axes":["matrix"],"dtype":"array","consumes_axes":["matrix"],"accessor_name":"at_matrix"},
-      {
-        "path": ["matrix","row"],
-        "axes": ["matrix","row"],
-        "dtype": "array",
-        "consumes_axes": ["matrix","row"],
-        "accessor_name": "at_matrix_row"
-      },
-      {
-        "path": ["matrix","row","cell"],
-        "axes": ["matrix","row"],
-        "dtype": "float",
-        "consumes_axes": ["matrix","row"],
-        "accessor_name": "at_matrix_row_cell"
-      }
-    ]
-  },
   "declarations": {
     "sum_numbers": {
       "axes": [],

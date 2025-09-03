@@ -1,25 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["items"],"axes":["items"],"dtype":"array","consumes_axes":["items"],"accessor_name":"at_items"},
-      {"path":["items","price"],"axes":["items"],"dtype":"float","consumes_axes":["items"],"accessor_name":"at_items_price"},
-      {
-        "path": ["items","quantity"],
-        "axes": ["items"],
-        "dtype": "integer",
-        "consumes_axes": ["items"],
-        "accessor_name": "at_items_quantity"
-      },
-      {
-        "path": ["items","category"],
-        "axes": ["items"],
-        "dtype": "string",
-        "consumes_axes": ["items"],
-        "accessor_name": "at_items_category"
-      },
-      {"path":["tax_rate"],"axes":[],"dtype":"float","consumes_axes":[],"accessor_name":"at_tax_rate"}
-    ]
-  },
   "declarations": {
     "subtotals": {
       "axes": ["items"],

@@ -1,7 +1,7 @@
 # AUTOGEN: from kumi pack v0.1 — DO NOT EDIT
 
 module SchemaModule
-  PACK_HASH = "7b6dc6d89c79f8898e4c6b21156755693f7002af79004c14cd3c1c1c18300705:941f0e578cd05adb5e6e849a908297a468aa7c3e4d96e1f52bc20bd2b6c2cdf2:9d85bf516b106dd0565ab16047155264e04cbd968f14abf38d5740091915f835:9c4cb6c9f7712c85330eaca88c4f5dce7fee1fdf5722c242df9a2bb56021865a".freeze
+  PACK_HASH = "4acfcf93dbb084853037804511a2041f2c6dd4dd4184b1428f98a09a843ccadd:9d85bf516b106dd0565ab16047155264e04cbd968f14abf38d5740091915f835:9c4cb6c9f7712c85330eaca88c4f5dce7fee1fdf5722c242df9a2bb56021865a".freeze
 
   class Program
     def self.from(data) = new(data)
@@ -9,27 +9,17 @@ module SchemaModule
 
     def [](name)
       case name
-                      when :global_offset_plus then (@memo[:global_offset_plus] ||= _eval_global_offset_plus)
-                  when :batch_bias then (@memo[:batch_bias] ||= _eval_batch_bias)
-                  when :row_scale2 then (@memo[:row_scale2] ||= _eval_row_scale2)
-                  when :elem_affine then (@memo[:elem_affine] ||= _eval_elem_affine)
-                  when :row_sum_affine then (@memo[:row_sum_affine] ||= _eval_row_sum_affine)
+                      when :batch_bias then (@memo[:batch_bias] ||= _eval_batch_bias)
                   when :batch_total_affine then (@memo[:batch_total_affine] ||= _eval_batch_total_affine)
+                  when :elem_affine then (@memo[:elem_affine] ||= _eval_elem_affine)
+                  when :global_offset_plus then (@memo[:global_offset_plus] ||= _eval_global_offset_plus)
+                  when :row_scale2 then (@memo[:row_scale2] ||= _eval_row_scale2)
+                  when :row_sum_affine then (@memo[:row_sum_affine] ||= _eval_row_sum_affine)
       else
         raise ArgumentError, "unknown declaration: #{name}"
       end
     end
 
-        def _eval_global_offset_plus
-          input = @input
-          cursors = {}
-        v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
-        v1 = 1.0
-        v2 = __call_kernel__("core.add", v0, v1)
-    
-          v2
-        end
-    
                   def _eval_batch_bias
                     input = @input
                   v1 = _eval_global_offset_plus
@@ -43,22 +33,32 @@ module SchemaModule
                     out
                   end
     
-                  def _eval_row_scale2
-                    input = @input
-                  v1 = 2.0
-                    out = []
+                def _eval_batch_total_affine
+                  input = @input
+            
+                  out = []
     __each_array__(input, "batch") do |a_batch|
-      row_0 = []
-    a_batch.each_with_index do |a_row, _idx|
-          cursors = { "batch"=>a_batch,"row"=>a_row }
-            v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
-            v2 = __call_kernel__("core.mul", v0, v1)
-          row_0 << v2
+      acc = 0
+        a_batch.each_with_index do |a_row, _idx|
+            cursors = { "batch"=>a_batch,"row"=>a_row }
+            inl_elem_affine_v0 = __walk__(CHAIN_BATCH_ROW_COL_VAL, input, cursors)
+            inl_row_scale2_v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
+            inl_row_scale2_v1 = 2.0
+            inl_row_scale2_v2 = __call_kernel__("core.mul", inl_row_scale2_v0, inl_row_scale2_v1)
+            inl_elem_affine_v2 = __call_kernel__("core.mul", inl_elem_affine_v0, inl_elem_affine_v1)
+            inl_batch_bias_v0 = __walk__(CHAIN_BATCH_MEAN, input, cursors)
+            inl_global_offset_plus_v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
+            inl_global_offset_plus_v1 = 1.0
+            inl_global_offset_plus_v2 = __call_kernel__("core.add", inl_global_offset_plus_v0, inl_global_offset_plus_v1)
+            inl_batch_bias_v2 = __call_kernel__("core.add", inl_batch_bias_v0, inl_batch_bias_v1)
+            inl_elem_affine_v4 = __call_kernel__("core.add", inl_elem_affine_v2, inl_elem_affine_v3)
+            acc += inl_inline_v0
         end
-        out << row_0
-      end
-                    out
-                  end
+      out << acc
+    end
+    
+                  out
+                end
     
                   def _eval_elem_affine
                     input = @input
@@ -78,6 +78,33 @@ module SchemaModule
             row_1 << v4
           end
           row_0 << row_1
+        end
+        out << row_0
+      end
+                    out
+                  end
+    
+        def _eval_global_offset_plus
+          input = @input
+          cursors = {}
+        v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
+        v1 = 1.0
+        v2 = __call_kernel__("core.add", v0, v1)
+    
+          v2
+        end
+    
+                  def _eval_row_scale2
+                    input = @input
+                  v1 = 2.0
+                    out = []
+    __each_array__(input, "batch") do |a_batch|
+      row_0 = []
+    a_batch.each_with_index do |a_row, _idx|
+          cursors = { "batch"=>a_batch,"row"=>a_row }
+            v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
+            v2 = __call_kernel__("core.mul", v0, v1)
+          row_0 << v2
         end
         out << row_0
       end
@@ -110,33 +137,6 @@ module SchemaModule
         row_0 << acc
       end
       out << row_0
-    end
-    
-                  out
-                end
-    
-                def _eval_batch_total_affine
-                  input = @input
-            
-                  out = []
-    __each_array__(input, "batch") do |a_batch|
-      acc = 0
-        a_batch.each_with_index do |a_row, _idx|
-            cursors = { "batch"=>a_batch,"row"=>a_row }
-            inl_elem_affine_v0 = __walk__(CHAIN_BATCH_ROW_COL_VAL, input, cursors)
-            inl_row_scale2_v0 = __walk__(CHAIN_BATCH_ROW_SCALE, input, cursors)
-            inl_row_scale2_v1 = 2.0
-            inl_row_scale2_v2 = __call_kernel__("core.mul", inl_row_scale2_v0, inl_row_scale2_v1)
-            inl_elem_affine_v2 = __call_kernel__("core.mul", inl_elem_affine_v0, inl_elem_affine_v1)
-            inl_batch_bias_v0 = __walk__(CHAIN_BATCH_MEAN, input, cursors)
-            inl_global_offset_plus_v0 = __walk__(CHAIN_GLOBAL_OFFSET, input, cursors)
-            inl_global_offset_plus_v1 = 1.0
-            inl_global_offset_plus_v2 = __call_kernel__("core.add", inl_global_offset_plus_v0, inl_global_offset_plus_v1)
-            inl_batch_bias_v2 = __call_kernel__("core.add", inl_batch_bias_v0, inl_batch_bias_v1)
-            inl_elem_affine_v4 = __call_kernel__("core.add", inl_elem_affine_v2, inl_elem_affine_v3)
-            acc += inl_inline_v0
-        end
-      out << acc
     end
     
                   out

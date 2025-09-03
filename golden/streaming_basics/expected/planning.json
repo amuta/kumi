@@ -1,12 +1,4 @@
 {
-  "module_spec": {
-    "inputs": [
-      {"path":["items"],"axes":["items"],"dtype":"array","consumes_axes":["items"],"accessor_name":"at_items"},
-      {"path":["items","price"],"axes":["items"],"dtype":"float","consumes_axes":["items"],"accessor_name":"at_items_price"},
-      {"path":["items","qty"],"axes":["items"],"dtype":"integer","consumes_axes":["items"],"accessor_name":"at_items_qty"},
-      {"path":["discount"],"axes":[],"dtype":"float","consumes_axes":[],"accessor_name":"at_discount"}
-    ]
-  },
   "declarations": {
     "items_subtotal": {
       "axes": ["items"],
