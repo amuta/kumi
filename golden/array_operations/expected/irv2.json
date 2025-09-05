@@ -6,9 +6,9 @@
       "name": "subtotals",
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","quantity"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
-        {"id":1,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.mul"}}
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
       ],
       "result": 2
     },
@@ -16,9 +16,9 @@
       "name": "discounted_price",
       "parameters": [{"kind":"input","path":["items","price"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
         {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.mul"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
       ],
       "result": 2
     },
@@ -26,9 +26,9 @@
       "name": "is_valid_quantity",
       "parameters": [{"kind":"input","path":["items","quantity"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
         {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
       ],
       "result": 2
     },
@@ -36,9 +36,9 @@
       "name": "expensive_items",
       "parameters": [{"kind":"input","path":["items","price"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
         {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
       ],
       "result": 2
     },
@@ -46,9 +46,9 @@
       "name": "electronics",
       "parameters": [{"kind":"input","path":["items","category"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":[]}},
+        {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":["items"]}},
         {"id":1,"op":"Const","args":["electronics"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.eq"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.eq"}}
       ],
       "result": 2
     }
@@ -62,39 +62,54 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"}]
-      },
-      {
-        "path": ["items","price"],
-        "axes": ["items","price"],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"price"}]
-      },
-      {
-        "path": ["items","quantity"],
-        "axes": ["items","quantity"],
-        "dtype": "integer",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"quantity"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items"
       },
       {
         "path": ["items","category"],
-        "axes": ["items","category"],
+        "axes": ["items"],
         "dtype": "string",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"category"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"category"}],
+        "terminal": {"kind":"none","dtype":"string","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items.category"
       },
       {
-        "path": ["tax_rate"],
-        "axes": ["tax_rate"],
+        "path": ["items","price"],
+        "axes": ["items"],
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"field_leaf","key":"tax_rate"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"price"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items.price"
+      },
+      {
+        "path": ["items","quantity"],
+        "axes": ["items"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"quantity"}],
+        "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items.quantity"
+      },
+      {
+        "path": ["tax_rate"],
+        "axes": [],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [],
+        "leaf_nav": [{"kind":"field_leaf","key":"tax_rate"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "tax_rate"
       }
     ]
   }

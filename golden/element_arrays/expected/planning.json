@@ -1,21 +1,8 @@
 {
   "declarations": {
     "cube": {
-      "axes": [],
-      "parameters": [{"kind":"input","path":["cube"]}],
-      "site_schedule": {
-        "max_depth": 0,
-        "hoisted_scalars": [{"id":0,"kind":"loadinput"}],
-        "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"}]}]
-      },
-      "axis_carriers": [],
-      "reduce_plans": [],
-      "inlining_decisions": {}
-    },
-    "layer": {
       "axes": ["cube"],
-      "parameters": [{"kind":"input","path":["cube","layer"]}],
+      "parameters": [{"kind":"input","path":["cube"]}],
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [],
@@ -26,9 +13,9 @@
       "reduce_plans": [],
       "inlining_decisions": {}
     },
-    "row": {
+    "layer": {
       "axes": ["cube","layer"],
-      "parameters": [{"kind":"input","path":["cube","layer","row"]}],
+      "parameters": [{"kind":"input","path":["cube","layer"]}],
       "site_schedule": {
         "max_depth": 2,
         "hoisted_scalars": [],
@@ -36,6 +23,23 @@
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [{"axis":"cube","via_path":["cube"]},{"axis":"layer","via_path":["cube","layer"]}],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "row": {
+      "axes": ["cube","layer","row"],
+      "parameters": [{"kind":"input","path":["cube","layer","row"]}],
+      "site_schedule": {
+        "max_depth": 3,
+        "hoisted_scalars": [],
+        "root_reduces": [],
+        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[]},{"depth":2,"ops":[]},{"depth":3,"ops":[{"id":0,"kind":"loadinput"}]}]
+      },
+      "axis_carriers": [
+        {"axis":"cube","via_path":["cube"]},
+        {"axis":"layer","via_path":["cube","layer"]},
+        {"axis":"row","via_path":["cube","layer","row"]}
+      ],
       "reduce_plans": [],
       "inlining_decisions": {}
     },

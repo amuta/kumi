@@ -5,19 +5,19 @@
     "cube": {
       "name": "cube",
       "parameters": [{"kind":"input","path":["cube"]}],
-      "operations": [{"id":0,"op":"LoadInput","args":[["cube"]],"stamp":{"dtype":"array","axes":[]}}],
+      "operations": [{"id":0,"op":"LoadInput","args":[["cube"]],"stamp":{"dtype":"array","axes":["cube"]}}],
       "result": 0
     },
     "layer": {
       "name": "layer",
       "parameters": [{"kind":"input","path":["cube","layer"]}],
-      "operations": [{"id":0,"op":"LoadInput","args":[["cube","layer"]],"stamp":{"dtype":"array","axes":["cube"]}}],
+      "operations": [{"id":0,"op":"LoadInput","args":[["cube","layer"]],"stamp":{"dtype":"array","axes":["cube","layer"]}}],
       "result": 0
     },
     "row": {
       "name": "row",
       "parameters": [{"kind":"input","path":["cube","layer","row"]}],
-      "operations": [{"id":0,"op":"LoadInput","args":[["cube","layer","row"]],"stamp":{"dtype":"array","axes":["cube","layer"]}}],
+      "operations": [{"id":0,"op":"LoadInput","args":[["cube","layer","row"]],"stamp":{"dtype":"array","axes":["cube","layer","row"]}}],
       "result": 0
     },
     "cell": {
@@ -101,7 +101,10 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"cube","axis":"cube"}]
+        "axis_loops": [{"axes":"cube","path":["cube"],"loop_idx":0,"kind":"array_field","key":"cube"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "cube"
       },
       {
         "path": ["cube","layer"],
@@ -109,7 +112,13 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"cube","axis":"cube"},{"kind":"array_element","alias":"layer","axis":"layer"}]
+        "axis_loops": [
+          {"axes":"cube","path":["cube"],"loop_idx":0,"kind":"array_field","key":"cube"},
+          {"axes":"layer","path":["cube","layer"],"loop_idx":1,"kind":"array_element","alias":"layer"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "cube.layer"
       },
       {
         "path": ["cube","layer","row"],
@@ -117,24 +126,29 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"cube","axis":"cube"},
-          {"kind":"array_element","alias":"layer","axis":"layer"},
-          {"kind":"array_element","alias":"row","axis":"row"}
-        ]
+        "axis_loops": [
+          {"axes":"cube","path":["cube"],"loop_idx":0,"kind":"array_field","key":"cube"},
+          {"axes":"layer","path":["cube","layer"],"loop_idx":1,"kind":"array_element","alias":"layer"},
+          {"axes":"row","path":["cube","layer","row"],"loop_idx":2,"kind":"array_element","alias":"row"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "cube.layer.row"
       },
       {
         "path": ["cube","layer","row","cell"],
-        "axes": ["cube","layer","row","cell"],
+        "axes": ["cube","layer","row"],
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"cube","axis":"cube"},
-          {"kind":"array_element","alias":"layer","axis":"layer"},
-          {"kind":"array_element","alias":"row","axis":"row"},
-          {"kind":"element_leaf"}
-        ]
+        "axis_loops": [
+          {"axes":"cube","path":["cube"],"loop_idx":0,"kind":"array_field","key":"cube"},
+          {"axes":"layer","path":["cube","layer"],"loop_idx":1,"kind":"array_element","alias":"layer"},
+          {"axes":"row","path":["cube","layer","row"],"loop_idx":2,"kind":"array_element","alias":"row"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"element_leaf","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "cube.layer.row.cell"
       }
     ]
   }

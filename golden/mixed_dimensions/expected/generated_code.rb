@@ -1,14 +1,14 @@
 module SchemaModule
-  # Generated code with pack hash: af979b2df7c43ac3d200cf659d69e1cad807ccea8c10586e3b9678176ede1570:9fbed8645daf7197b2aef75a78aae1b9ed4a6300c020df7adfe9af51c07406fd:0454d172bfd4a01c4a45b10799d50e6b30118978e51576564be2260031b2b43c
+  # Generated code with pack hash: af979b2df7c43ac3d200cf659d69e1cad807ccea8c10586e3b9678176ede1570:9fbed8645daf7197b2aef75a78aae1b9ed4a6300c020df7adfe9af51c07406fd:23c781957560f94848c3da53598d334cef855744d1a39393729391e849ca9288
 
   def _each_sum_numbers
     arr0 = @input["numbers"]
     arr0.each_with_index do |a0, i0|
-    acc_1 = 0.0
+      acc_1 = 0.0
       v0 = a0["value"]
       acc_1 += v0
-    v1 = acc_1
-    yield v1, []
+      v1 = acc_1
+      yield v1, []
     end
   end
 
@@ -21,11 +21,11 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
-      acc_1 = 0.0
+        acc_1 = 0.0
         v0 = a1["cell"]
         acc_1 += v0
-      v1 = acc_1
-      yield v1, [i0]
+        v1 = acc_1
+        yield v1, [i0]
       end
     end
   end
@@ -35,11 +35,10 @@ module SchemaModule
   end
 
   def _each_mixed_array
-  v0_sum_numbers = a0["value"]
     v0 = @input["scalar_val"]
-    v3 = [v0_sum_numbers, v1, v2]
+    v2 = @input["matrix"]["row"]["cell"]
+    v3 = [v0, v1, v2]
     yield v3, []
-        v2 = a1["cell"]
   end
 
   def _eval_mixed_array

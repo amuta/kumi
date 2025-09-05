@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: 4d099f0fb984b4068ae7d12c14f5913a796f2076a0bb52660683ecad6e8d87c2:522678faa3f8a3926790d8675952576a0ce39f762bc69d6c9460328de5c65ab6:c6742dd495cd8b9cbf67522bd376b4136c7fbebc5b0f2fa0114761f3bab99218
+  # Generated code with pack hash: 4d099f0fb984b4068ae7d12c14f5913a796f2076a0bb52660683ecad6e8d87c2:c6eb5872b5d0aea843a34fecdb44d6540146120dcfad74cd8ccfc3982ebcaaaa:25fcdd78f0cd510aa903ac37b8f88f81bbc89041aac6d73d9b45eec88aa0486a
 
   def _each_subtotals
     arr0 = @input["items"]
@@ -7,12 +7,12 @@ module SchemaModule
       v0 = a0["price"]
       v1 = a0["quantity"]
       v2 = __call_kernel__("core.mul", v0, v1)
-      yield v2, []
+      yield v2, [i0]
     end
   end
 
   def _eval_subtotals
-    _each_subtotals { |value, _| return value }
+    __materialize_from_each(:subtotals)
   end
 
   def _each_discounted_price
@@ -21,12 +21,12 @@ module SchemaModule
       c1 = 0.9
       v0 = a0["price"]
       v2 = __call_kernel__("core.mul", v0, c1)
-      yield v2, []
+      yield v2, [i0]
     end
   end
 
   def _eval_discounted_price
-    _each_discounted_price { |value, _| return value }
+    __materialize_from_each(:discounted_price)
   end
 
   def _each_is_valid_quantity
@@ -35,12 +35,12 @@ module SchemaModule
       c1 = 0
       v0 = a0["quantity"]
       v2 = __call_kernel__("core.gt", v0, c1)
-      yield v2, []
+      yield v2, [i0]
     end
   end
 
   def _eval_is_valid_quantity
-    _each_is_valid_quantity { |value, _| return value }
+    __materialize_from_each(:is_valid_quantity)
   end
 
   def _each_expensive_items
@@ -49,12 +49,12 @@ module SchemaModule
       c1 = 100.0
       v0 = a0["price"]
       v2 = __call_kernel__("core.gt", v0, c1)
-      yield v2, []
+      yield v2, [i0]
     end
   end
 
   def _eval_expensive_items
-    _each_expensive_items { |value, _| return value }
+    __materialize_from_each(:expensive_items)
   end
 
   def _each_electronics
@@ -63,12 +63,12 @@ module SchemaModule
       c1 = "electronics"
       v0 = a0["category"]
       v2 = __call_kernel__("core.eq", v0, c1)
-      yield v2, []
+      yield v2, [i0]
     end
   end
 
   def _eval_electronics
-    _each_electronics { |value, _| return value }
+    __materialize_from_each(:electronics)
   end
 
   def [](name)

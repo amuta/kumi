@@ -1,16 +1,16 @@
 module SchemaModule
-  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:814a3606eafcc1eb22e2d546e4c408946d684962c609bd8a738d11eeff653527:914b3226894c3a3db36f804b583139ac7fdc6fd9a8284cc9eade5e433d6cfd28
+  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:7458170444209c5feaf8f4015285302330f721b69a04d59f40f20cf24eb26ea2:53c42da2bb59fc06d6f8f30f5150a97e636552f1be351a98d718fbb8456a61e4
 
   def _each_cube
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
       v0 = a0
-      yield v0, []
+      yield v0, [i0]
     end
   end
 
   def _eval_cube
-    _each_cube { |value, _| return value }
+    __materialize_from_each(:cube)
   end
 
   def _each_layer
@@ -19,7 +19,7 @@ module SchemaModule
       arr1 = a0
       arr1.each_with_index do |a1, i1|
         v0 = a1
-        yield v0, [i0]
+        yield v0, [i0, i1]
       end
     end
   end
@@ -36,7 +36,7 @@ module SchemaModule
         arr2 = a1
         arr2.each_with_index do |a2, i2|
           v0 = a2
-          yield v0, [i0, i1]
+          yield v0, [i0, i1, i2]
         end
       end
     end
@@ -129,11 +129,11 @@ module SchemaModule
           acc_4 += v3
           v4 = acc_4
           acc_5 += v4
-          v5 = acc_5
         end
+        v5 = acc_5
         acc_6 += v5
-        v6 = acc_6
       end
+      v6 = acc_6
       yield v6, []
     end
   end

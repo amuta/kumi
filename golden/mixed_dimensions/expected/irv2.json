@@ -35,7 +35,7 @@
           "id": 3,
           "op": "ConstructTuple",
           "args": [0,1,2],
-          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"float","axes":["matrix","row"]}]
+          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"float","axes":[]}]
         }
       ],
       "result": 3
@@ -51,36 +51,15 @@
     "defaults": {"key_policy":"indifferent","on_missing":"error"},
     "inputs": [
       {
-        "path": ["numbers"],
-        "axes": ["numbers"],
-        "dtype": "array",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"numbers","axis":"numbers"}]
-      },
-      {
-        "path": ["numbers","value"],
-        "axes": ["numbers"],
-        "dtype": "integer",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"numbers","axis":"numbers"},{"kind":"field_leaf","key":"value"}]
-      },
-      {
-        "path": ["scalar_val"],
-        "axes": [],
-        "dtype": "integer",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"field_leaf","key":"scalar_val"}]
-      },
-      {
         "path": ["matrix"],
         "axes": ["matrix"],
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"matrix","axis":"matrix"}]
+        "axis_loops": [{"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "matrix"
       },
       {
         "path": ["matrix","row"],
@@ -88,7 +67,13 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"matrix","axis":"matrix"},{"kind":"array_field","key":"row","axis":"row"}]
+        "axis_loops": [
+          {"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"},
+          {"axes":"row","path":["matrix","row"],"loop_idx":1,"kind":"array_field","key":"row"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "matrix.row"
       },
       {
         "path": ["matrix","row","cell"],
@@ -96,11 +81,46 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"matrix","axis":"matrix"},
-          {"kind":"array_field","key":"row","axis":"row"},
-          {"kind":"field_leaf","key":"cell"}
-        ]
+        "axis_loops": [
+          {"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"},
+          {"axes":"row","path":["matrix","row"],"loop_idx":1,"kind":"array_field","key":"row"}
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"cell"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "matrix.row.cell"
+      },
+      {
+        "path": ["numbers"],
+        "axes": ["numbers"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "numbers"
+      },
+      {
+        "path": ["numbers","value"],
+        "axes": ["numbers"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"value"}],
+        "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "numbers.value"
+      },
+      {
+        "path": ["scalar_val"],
+        "axes": [],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [],
+        "leaf_nav": [{"kind":"field_leaf","key":"scalar_val"}],
+        "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "scalar_val"
       }
     ]
   }

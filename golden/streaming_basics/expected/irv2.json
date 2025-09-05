@@ -78,12 +78,26 @@
     "defaults": {"key_policy":"indifferent","on_missing":"error"},
     "inputs": [
       {
+        "path": ["discount"],
+        "axes": [],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [],
+        "leaf_nav": [{"kind":"field_leaf","key":"discount"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "discount"
+      },
+      {
         "path": ["items"],
         "axes": ["items"],
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items"
       },
       {
         "path": ["items","price"],
@@ -91,7 +105,10 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"price"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"price"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items.price"
       },
       {
         "path": ["items","qty"],
@@ -99,15 +116,10 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"qty"}]
-      },
-      {
-        "path": ["discount"],
-        "axes": [],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [{"kind":"field_leaf","key":"discount"}]
+        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"qty"}],
+        "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "items.qty"
       }
     ]
   }

@@ -19,7 +19,7 @@
     args:
       (InputRef [:depts, :teams, :headcount]
         meta: {
-          stamp: {axes_tokens: [:depts, :teams], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v1"
           topo_index: 1
         }
@@ -57,7 +57,7 @@
         args:
           (InputRef [:depts, :teams, :headcount]
             meta: {
-              stamp: {axes_tokens: [:depts, :teams], dtype: integer}
+              stamp: {axes_tokens: nil, dtype: integer}
               value_id: "v4"
               topo_index: 4
             }
@@ -86,7 +86,7 @@
     args:
       (InputRef [:depts, :teams, :headcount]
         meta: {
-          stamp: {axes_tokens: [:depts, :teams], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v8"
           topo_index: 8
         }
@@ -126,7 +126,7 @@
           plan: {
             kind: elementwise
             target_axes_tokens: [:depts, :teams]
-            needs_expand_flags: [false, false, true]
+            needs_expand_flags: [false, true, true]
           }
         }
         args:
@@ -140,7 +140,7 @@
           )
           (InputRef [:depts, :teams, :headcount]
             meta: {
-              stamp: {axes_tokens: [:depts, :teams], dtype: integer}
+              stamp: {axes_tokens: nil, dtype: integer}
               value_id: "v13"
               topo_index: 13
             }

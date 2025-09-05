@@ -20,14 +20,14 @@
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [:items], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v1"
           topo_index: 1
         }
       )
       (InputRef [:items, :qty]
         meta: {
-          stamp: {axes_tokens: [:items], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v2"
           topo_index: 2
         }
@@ -55,7 +55,7 @@
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [:items], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v5"
           topo_index: 5
         }
@@ -81,7 +81,7 @@
           )
           (InputRef [:discount]
             meta: {
-              stamp: {axes_tokens: [], dtype: float}
+              stamp: {axes_tokens: nil, dtype: float}
               value_id: "v7"
               topo_index: 7
             }
@@ -110,7 +110,7 @@
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [:items], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v11"
           topo_index: 11
         }
@@ -209,7 +209,7 @@
     args:
       (InputRef [:items, :qty]
         meta: {
-          stamp: {axes_tokens: [:items], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v22"
           topo_index: 22
         }

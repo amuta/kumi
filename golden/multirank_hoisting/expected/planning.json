@@ -66,8 +66,8 @@
       },
       "axis_carriers": [
         {"axis":"batch","via_path":["batch"]},
-        {"axis":"row","via_path":["batch","row"]},
-        {"axis":"col","via_path":["batch","row","col"]}
+        {"axis":"col","via_path":["batch","row","col"]},
+        {"axis":"row","via_path":["batch","row"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {

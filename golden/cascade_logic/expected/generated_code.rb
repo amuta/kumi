@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: c406bb9647341a983c42cbeeb22c96ef2e2074a5643637f120bf644d89a1b8ee:69bcee137c17ba3ef86a34a9954ffab24d48e6c84189bfe9f1e024ea4a9c1c22:234af5166ea4222d549ed45b78f10f1793c5508e7a0f8e3c2c07a97c62eec919
+  # Generated code with pack hash: c406bb9647341a983c42cbeeb22c96ef2e2074a5643637f120bf644d89a1b8ee:69bcee137c17ba3ef86a34a9954ffab24d48e6c84189bfe9f1e024ea4a9c1c22:e796fed854d71d3f76f81b3813070d7fb1be2701639fa247cc5cb234ebb20648
 
   def _each_y_positive
     c1 = 0
@@ -24,16 +24,16 @@ module SchemaModule
   end
 
   def _each_status
-  v0_y_positive = @input["y"]
-  cy_positive_1 = 0
-  v0 = __call_kernel__("core.gt", v0_y_positive, cy_positive_1)
-  v0_x_positive = @input["x"]
-  cx_positive_1 = 0
-  v1 = __call_kernel__("core.gt", v0_x_positive, cx_positive_1)
     c3 = "both positive"
     c5 = "x positive"
     c7 = "y positive"
     c8 = "neither positive"
+    v0_y_positive = @input["y"]
+    cy_positive_1 = 0
+    v0 = __call_kernel__("core.gt", v0_y_positive, cy_positive_1)
+    v0_x_positive = @input["x"]
+    cx_positive_1 = 0
+    v1 = __call_kernel__("core.gt", v0_x_positive, cx_positive_1)
     v2 = __call_kernel__("core.and", v0_x_positive, cx_positive_1)
     v9 = (v0_x_positive ? c7 : c8)
     v10 = (cx_positive_1 ? c5 : v9)

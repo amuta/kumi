@@ -16,10 +16,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","via_path":["regions"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]},
         {"axis":"offices","via_path":["regions","offices"]},
-        {"axis":"teams","via_path":["regions","offices","teams"]},
-        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -40,10 +40,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","via_path":["regions"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]},
         {"axis":"offices","via_path":["regions","offices"]},
-        {"axis":"teams","via_path":["regions","offices","teams"]},
-        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {}
@@ -63,8 +63,8 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","via_path":["regions"]},
         {"axis":"offices","via_path":["regions","offices"]},
+        {"axis":"regions","via_path":["regions"]},
         {"axis":"teams","via_path":["regions","offices","teams"]}
       ],
       "reduce_plans": [],
@@ -106,10 +106,10 @@
         ]
       },
       "axis_carriers": [
-        {"axis":"regions","via_path":["regions"]},
+        {"axis":"employees","via_path":["regions","offices","teams","employees"]},
         {"axis":"offices","via_path":["regions","offices"]},
-        {"axis":"teams","via_path":["regions","offices","teams"]},
-        {"axis":"employees","via_path":["regions","offices","teams","employees"]}
+        {"axis":"regions","via_path":["regions"]},
+        {"axis":"teams","via_path":["regions","offices","teams"]}
       ],
       "reduce_plans": [],
       "inlining_decisions": {

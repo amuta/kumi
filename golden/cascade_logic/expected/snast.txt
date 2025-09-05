@@ -20,7 +20,7 @@
     args:
       (InputRef [:y]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v1"
           topo_index: 1
         }
@@ -55,7 +55,7 @@
     args:
       (InputRef [:x]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v5"
           topo_index: 5
         }

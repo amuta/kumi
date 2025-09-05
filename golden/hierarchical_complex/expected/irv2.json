@@ -153,7 +153,10 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"regions","axis":"regions"}]
+        "axis_loops": [{"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions"
       },
       {
         "path": ["regions","offices"],
@@ -161,7 +164,13 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"regions","axis":"regions"},{"kind":"array_field","key":"offices","axis":"offices"}]
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices"
       },
       {
         "path": ["regions","offices","teams"],
@@ -169,24 +178,14 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"}
-        ]
-      },
-      {
-        "path": ["regions","offices","teams","performance_score"],
-        "axes": ["regions","offices","teams"],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"field_leaf","key":"performance_score"}
-        ]
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams"
       },
       {
         "path": ["regions","offices","teams","employees"],
@@ -194,40 +193,21 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"array_field","key":"employees","axis":"employees"}
-        ]
-      },
-      {
-        "path": ["regions","offices","teams","employees","salary"],
-        "axes": ["regions","offices","teams","employees"],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"array_field","key":"employees","axis":"employees"},
-          {"kind":"field_leaf","key":"salary"}
-        ]
-      },
-      {
-        "path": ["regions","offices","teams","employees","rating"],
-        "axes": ["regions","offices","teams","employees"],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"array_field","key":"employees","axis":"employees"},
-          {"kind":"field_leaf","key":"rating"}
-        ]
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
+          {
+            "axes": "employees",
+            "path": ["regions","offices","teams","employees"],
+            "loop_idx": 3,
+            "kind": "array_field",
+            "key": "employees"
+          }
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams.employees"
       },
       {
         "path": ["regions","offices","teams","employees","level"],
@@ -235,13 +215,80 @@
         "dtype": "string",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"regions","axis":"regions"},
-          {"kind":"array_field","key":"offices","axis":"offices"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"array_field","key":"employees","axis":"employees"},
-          {"kind":"field_leaf","key":"level"}
-        ]
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
+          {
+            "axes": "employees",
+            "path": ["regions","offices","teams","employees"],
+            "loop_idx": 3,
+            "kind": "array_field",
+            "key": "employees"
+          }
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"level"}],
+        "terminal": {"kind":"none","dtype":"string","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams.employees.level"
+      },
+      {
+        "path": ["regions","offices","teams","employees","rating"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
+          {
+            "axes": "employees",
+            "path": ["regions","offices","teams","employees"],
+            "loop_idx": 3,
+            "kind": "array_field",
+            "key": "employees"
+          }
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"rating"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams.employees.rating"
+      },
+      {
+        "path": ["regions","offices","teams","employees","salary"],
+        "axes": ["regions","offices","teams","employees"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
+          {
+            "axes": "employees",
+            "path": ["regions","offices","teams","employees"],
+            "loop_idx": 3,
+            "kind": "array_field",
+            "key": "employees"
+          }
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"salary"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams.employees.salary"
+      },
+      {
+        "path": ["regions","offices","teams","performance_score"],
+        "axes": ["regions","offices","teams"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [
+          {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
+          {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
+          {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"}
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"performance_score"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "regions.offices.teams.performance_score"
       }
     ]
   }

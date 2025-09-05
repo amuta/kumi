@@ -20,7 +20,7 @@
     args:
       (InputRef [:regions, :offices, :teams, :employees, :rating]
         meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v1"
           topo_index: 1
         }
@@ -55,7 +55,7 @@
     args:
       (InputRef [:regions, :offices, :teams, :employees, :level]
         meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: string}
+          stamp: {axes_tokens: nil, dtype: string}
           value_id: "v5"
           topo_index: 5
         }
@@ -90,7 +90,7 @@
     args:
       (InputRef [:regions, :offices, :teams, :performance_score]
         meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v9"
           topo_index: 9
         }
@@ -187,7 +187,7 @@
         args:
           (InputRef [:regions, :offices, :teams, :employees, :salary]
             meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
+              stamp: {axes_tokens: nil, dtype: float}
               value_id: "v18"
               topo_index: 18
             }
@@ -255,7 +255,7 @@
             args:
               (InputRef [:regions, :offices, :teams, :employees, :salary]
                 meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
+                  stamp: {axes_tokens: nil, dtype: float}
                   value_id: "v24"
                   topo_index: 24
                 }
@@ -282,7 +282,7 @@
             args:
               (InputRef [:regions, :offices, :teams, :employees, :salary]
                 meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
+                  stamp: {axes_tokens: nil, dtype: float}
                   value_id: "v27"
                   topo_index: 27
                 }

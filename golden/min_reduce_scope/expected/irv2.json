@@ -53,7 +53,10 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"depts","axis":"depts"}]
+        "axis_loops": [{"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "depts"
       },
       {
         "path": ["depts","teams"],
@@ -61,7 +64,13 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"depts","axis":"depts"},{"kind":"array_field","key":"teams","axis":"teams"}]
+        "axis_loops": [
+          {"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"},
+          {"axes":"teams","path":["depts","teams"],"loop_idx":1,"kind":"array_field","key":"teams"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "depts.teams"
       },
       {
         "path": ["depts","teams","headcount"],
@@ -69,11 +78,13 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"depts","axis":"depts"},
-          {"kind":"array_field","key":"teams","axis":"teams"},
-          {"kind":"field_leaf","key":"headcount"}
-        ]
+        "axis_loops": [
+          {"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"},
+          {"axes":"teams","path":["depts","teams"],"loop_idx":1,"kind":"array_field","key":"teams"}
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"headcount"}],
+        "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "depts.teams.headcount"
       }
     ]
   }

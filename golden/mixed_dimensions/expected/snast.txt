@@ -19,7 +19,7 @@
     args:
       (InputRef [:numbers, :value]
         meta: {
-          stamp: {axes_tokens: [:numbers], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v1"
           topo_index: 1
         }
@@ -46,7 +46,7 @@
     args:
       (InputRef [:matrix, :row, :cell]
         meta: {
-          stamp: {axes_tokens: [:matrix, :row], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v4"
           topo_index: 4
         }
@@ -75,7 +75,7 @@
     elements:
       (InputRef [:scalar_val]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v7"
           topo_index: 7
         }
@@ -90,7 +90,7 @@
       )
       (InputRef [:matrix, :row, :cell]
         meta: {
-          stamp: {axes_tokens: [:matrix, :row], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v9"
           topo_index: 9
         }

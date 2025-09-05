@@ -20,7 +20,7 @@
     args:
       (InputRef [:global_offset]
         meta: {
-          stamp: {axes_tokens: [], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v1"
           topo_index: 1
         }
@@ -55,7 +55,7 @@
     args:
       (InputRef [:batch, :mean]
         meta: {
-          stamp: {axes_tokens: [:batch], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v5"
           topo_index: 5
         }
@@ -91,7 +91,7 @@
     args:
       (InputRef [:batch, :row, :scale]
         meta: {
-          stamp: {axes_tokens: [:batch, :row], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v9"
           topo_index: 9
         }
@@ -138,7 +138,7 @@
         args:
           (InputRef [:batch, :row, :col, :val]
             meta: {
-              stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+              stamp: {axes_tokens: nil, dtype: float}
               value_id: "v13"
               topo_index: 13
             }

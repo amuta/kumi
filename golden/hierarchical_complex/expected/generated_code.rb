@@ -1,10 +1,10 @@
 module SchemaModule
-  # Generated code with pack hash: ea2112c3b287545b57f6ae67e101522b86580958c0b422fd0c53171bc49f6868:70c186ead35e542951237068fc4cbd7b78bc11aec7265e0aa613d7271567747b:144f411868b975a04a236a53fc6588972b19a3410d20b038ac36594a9c477df3
+  # Generated code with pack hash: ea2112c3b287545b57f6ae67e101522b86580958c0b422fd0c53171bc49f6868:95975523a502cc4ed46859364964c9fbe7c8c49a5e890700a83a10595a389462:a270d57b20bc035db7cbb0d78787de104f1d57ed2ef318dcd4bd3b39eb5bb801
 
   def _each_high_performer
     arr0 = @input["regions"]
     arr0.each_with_index do |a0, i0|
-    c1 = 4.5
+      c1 = 4.5
       arr1 = a0["offices"]
       arr1.each_with_index do |a1, i1|
         arr2 = a1["teams"]
@@ -27,7 +27,7 @@ module SchemaModule
   def _each_senior_level
     arr0 = @input["regions"]
     arr0.each_with_index do |a0, i0|
-    c1 = "senior"
+      c1 = "senior"
       arr1 = a0["offices"]
       arr1.each_with_index do |a1, i1|
         arr2 = a1["teams"]
@@ -50,7 +50,7 @@ module SchemaModule
   def _each_top_team
     arr0 = @input["regions"]
     arr0.each_with_index do |a0, i0|
-    c1 = 0.9
+      c1 = 0.9
       arr1 = a0["offices"]
       arr1.each_with_index do |a1, i1|
         arr2 = a1["teams"]
@@ -70,29 +70,29 @@ module SchemaModule
   def _each_employee_bonus
     arr0 = @input["regions"]
     arr0.each_with_index do |a0, i0|
-    c6 = 0.3
-    c11 = 0.2
-    c13 = 0.05
+      c6 = 0.3
+      c11 = 0.2
+      c13 = 0.05
       arr1 = a0["offices"]
       arr1.each_with_index do |a1, i1|
         arr2 = a1["teams"]
         arr2.each_with_index do |a2, i2|
-        ctop_team_1 = 0.9
-        v0_top_team = a2["performance_score"]
-        v2 = __call_kernel__("core.gte", v0_top_team, ctop_team_1)
           arr3 = a2["employees"]
           arr3.each_with_index do |a3, i3|
-          chigh_performer_1 = 4.5
-          v0_high_performer = a3["rating"]
-          v0 = __call_kernel__("core.gte", v0_high_performer, chigh_performer_1)
-          csenior_level_1 = "senior"
-          v0_senior_level = a3["level"]
-          v1 = __call_kernel__("core.eq", v0_senior_level, csenior_level_1)
-            v3 = __call_kernel__("core.and", csenior_level_1, v1)
-            v4 = __call_kernel__("core.and", v0_senior_level, v3)
+            csenior_level_1 = "senior"
+            v0_senior_level = a3["level"]
+            v1 = __call_kernel__("core.eq", v0_senior_level, csenior_level_1)
+            ctop_team_1 = 0.9
+            v0_top_team = a3["performance_score"]
+            v2 = __call_kernel__("core.gte", v0_top_team, ctop_team_1)
+            v3 = __call_kernel__("core.and", ctop_team_1, v2)
+            chigh_performer_1 = 4.5
+            v0_high_performer = a3["rating"]
+            v0 = __call_kernel__("core.gte", v0_high_performer, chigh_performer_1)
+            v4 = __call_kernel__("core.and", v0_high_performer, v3)
             v5 = a3["salary"]
             v7 = __call_kernel__("core.mul", v5, c6)
-            v10 = __call_kernel__("core.and", v0_senior_level, v1)
+            v10 = __call_kernel__("core.and", v0_high_performer, v0)
             v12 = __call_kernel__("core.mul", v5, c11)
             v14 = __call_kernel__("core.mul", v5, c13)
             v15 = (v10 ? v12 : v14)

@@ -1,33 +1,33 @@
 (SNAST
   (VALUE subtotals
     meta: {
-      stamp: {axes_tokens: [], dtype: float}
+      stamp: {axes_tokens: [:items], dtype: float}
       value_id: "v4"
       topo_index: 4
       target_name: :subtotals
     }
     (Call :"core.mul"
     meta: {
-      stamp: {axes_tokens: [], dtype: float}
+      stamp: {axes_tokens: [:items], dtype: float}
       value_id: "v3"
       topo_index: 3
       plan: {
         kind: elementwise
-        target_axes_tokens: []
+        target_axes_tokens: [:items]
         needs_expand_flags: [false, false]
       }
     }
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v1"
           topo_index: 1
         }
       )
       (InputRef [:items, :quantity]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v2"
           topo_index: 2
         }
@@ -36,26 +36,26 @@
   )
   (VALUE discounted_price
     meta: {
-      stamp: {axes_tokens: [], dtype: float}
+      stamp: {axes_tokens: [:items], dtype: float}
       value_id: "v8"
       topo_index: 8
       target_name: :discounted_price
     }
     (Call :"core.mul"
     meta: {
-      stamp: {axes_tokens: [], dtype: float}
+      stamp: {axes_tokens: [:items], dtype: float}
       value_id: "v7"
       topo_index: 7
       plan: {
         kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
       }
     }
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v5"
           topo_index: 5
         }
@@ -71,26 +71,26 @@
   )
   (VALUE is_valid_quantity
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v12"
       topo_index: 12
       target_name: :is_valid_quantity
     }
     (Call :"core.gt"
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v11"
       topo_index: 11
       plan: {
         kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
       }
     }
     args:
       (InputRef [:items, :quantity]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v9"
           topo_index: 9
         }
@@ -106,26 +106,26 @@
   )
   (TRAIT expensive_items
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v16"
       topo_index: 16
       target_name: :expensive_items
     }
     (Call :"core.gt"
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v15"
       topo_index: 15
       plan: {
         kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
       }
     }
     args:
       (InputRef [:items, :price]
         meta: {
-          stamp: {axes_tokens: [], dtype: float}
+          stamp: {axes_tokens: nil, dtype: float}
           value_id: "v13"
           topo_index: 13
         }
@@ -141,26 +141,26 @@
   )
   (TRAIT electronics
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v20"
       topo_index: 20
       target_name: :electronics
     }
     (Call :"core.eq"
     meta: {
-      stamp: {axes_tokens: [], dtype: boolean}
+      stamp: {axes_tokens: [:items], dtype: boolean}
       value_id: "v19"
       topo_index: 19
       plan: {
         kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
       }
     }
     args:
       (InputRef [:items, :category]
         meta: {
-          stamp: {axes_tokens: [], dtype: string}
+          stamp: {axes_tokens: nil, dtype: string}
           value_id: "v17"
           topo_index: 17
         }

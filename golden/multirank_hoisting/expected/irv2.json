@@ -76,7 +76,10 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"batch","axis":"batch"}]
+        "axis_loops": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch"
       },
       {
         "path": ["batch","mean"],
@@ -84,7 +87,10 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"batch","axis":"batch"},{"kind":"field_leaf","key":"mean"}]
+        "axis_loops": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
+        "leaf_nav": [{"kind":"field_leaf","key":"mean"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch.mean"
       },
       {
         "path": ["batch","row"],
@@ -92,19 +98,13 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"array_field","key":"batch","axis":"batch"},{"kind":"array_field","key":"row","axis":"row"}]
-      },
-      {
-        "path": ["batch","row","scale"],
-        "axes": ["batch","row"],
-        "dtype": "float",
-        "key_policy": "indifferent",
-        "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"batch","axis":"batch"},
-          {"kind":"array_field","key":"row","axis":"row"},
-          {"kind":"field_leaf","key":"scale"}
-        ]
+        "axis_loops": [
+          {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
+          {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch.row"
       },
       {
         "path": ["batch","row","col"],
@@ -112,11 +112,14 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"batch","axis":"batch"},
-          {"kind":"array_field","key":"row","axis":"row"},
-          {"kind":"array_field","key":"col","axis":"col"}
-        ]
+        "axis_loops": [
+          {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
+          {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"},
+          {"axes":"col","path":["batch","row","col"],"loop_idx":2,"kind":"array_field","key":"col"}
+        ],
+        "leaf_nav": [],
+        "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch.row.col"
       },
       {
         "path": ["batch","row","col","val"],
@@ -124,12 +127,28 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [
-          {"kind":"array_field","key":"batch","axis":"batch"},
-          {"kind":"array_field","key":"row","axis":"row"},
-          {"kind":"array_field","key":"col","axis":"col"},
-          {"kind":"field_leaf","key":"val"}
-        ]
+        "axis_loops": [
+          {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
+          {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"},
+          {"axes":"col","path":["batch","row","col"],"loop_idx":2,"kind":"array_field","key":"col"}
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"val"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch.row.col.val"
+      },
+      {
+        "path": ["batch","row","scale"],
+        "axes": ["batch","row"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "axis_loops": [
+          {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
+          {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"}
+        ],
+        "leaf_nav": [{"kind":"field_leaf","key":"scale"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "batch.row.scale"
       },
       {
         "path": ["global_offset"],
@@ -137,7 +156,10 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "chain": [{"kind":"field_leaf","key":"global_offset"}]
+        "axis_loops": [],
+        "leaf_nav": [{"kind":"field_leaf","key":"global_offset"}],
+        "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
+        "path_fqn": "global_offset"
       }
     ]
   }

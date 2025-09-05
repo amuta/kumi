@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: 296637f7392a2d64b6e45cd73dc400e92cd93080023d5b1719bbd5225a52fabd:ae595c9e79348d4e6b1775c779651b3bbbe3aa9cd532ccfc63f685678fa22fa5:71094081f55c7aa2aae6462fdc0153ab997138d549724a490e9babc81d1764b4
+  # Generated code with pack hash: 296637f7392a2d64b6e45cd73dc400e92cd93080023d5b1719bbd5225a52fabd:ae595c9e79348d4e6b1775c779651b3bbbe3aa9cd532ccfc63f685678fa22fa5:1f5efccd8b84b9f6d92fe394203a09051c2104ebeb731420e12495eb44129801
 
   def _each_items_subtotal
     arr0 = @input["items"]
@@ -18,9 +18,9 @@ module SchemaModule
   def _each_items_discounted
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    c1 = 1.0
-    v2 = @input["discount"]
-    v3 = __call_kernel__("core.sub", c1, v2)
+      c1 = 1.0
+      v2 = a0["discount"]
+      v3 = __call_kernel__("core.sub", c1, v2)
       v0 = a0["price"]
       v4 = __call_kernel__("core.mul", v0, v3)
       yield v4, [i0]
@@ -34,7 +34,7 @@ module SchemaModule
   def _each_items_is_big
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    c1 = 100.0
+      c1 = 100.0
       v0 = a0["price"]
       v2 = __call_kernel__("core.gt", v0, c1)
       yield v2, [i0]
@@ -48,15 +48,15 @@ module SchemaModule
   def _each_items_effective
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    c2 = 0.9
-    citems_is_big_1 = 100.0
-    v0_items_is_big = a0["price"]
-    v0 = __call_kernel__("core.gt", v0_items_is_big, citems_is_big_1)
-    v0_items_subtotal = a0["price"]
-    v1_items_subtotal = a0["qty"]
-    v1 = __call_kernel__("core.mul", v0_items_subtotal, v1_items_subtotal)
+      c2 = 0.9
+      v0_items_subtotal = a0["price"]
+      v1_items_subtotal = a0["qty"]
+      v1 = __call_kernel__("core.mul", v0_items_subtotal, v1_items_subtotal)
       v3 = __call_kernel__("core.mul", v1_items_subtotal, c2)
-      v5 = (v0_items_subtotal ? v3 : v1_items_subtotal)
+      citems_is_big_1 = 100.0
+      v0_items_is_big = a0["price"]
+      v0 = __call_kernel__("core.gt", v0_items_is_big, citems_is_big_1)
+      v5 = (v0_items_is_big ? v3 : citems_is_big_1)
       yield v5, [i0]
     end
   end
@@ -68,11 +68,11 @@ module SchemaModule
   def _each_total_qty
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    acc_1 = 0.0
+      acc_1 = 0.0
       v0 = a0["qty"]
       acc_1 += v0
-    v1 = acc_1
-    yield v1, []
+      v1 = acc_1
+      yield v1, []
     end
   end
 
@@ -83,13 +83,10 @@ module SchemaModule
   def _each_cart_total
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    acc_1 = 0.0
-    v0_items_subtotal = a0["price"]
-    v1_items_subtotal = a0["qty"]
-    v0 = __call_kernel__("core.mul", v0_items_subtotal, v1_items_subtotal)
+      acc_1 = 0.0
       acc_1 += v0
-    v1 = acc_1
-    yield v1, []
+      v1 = acc_1
+      yield v1, []
     end
   end
 
@@ -100,13 +97,10 @@ module SchemaModule
   def _each_cart_total_effective
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-    acc_1 = 0.0
-    citems_effective_2 = 0.9
-    v3_items_effective = __call_kernel__("core.mul", v1_items_effective, citems_effective_2)
-    v0 = (v0 ? v3_items_effective : v1)
+      acc_1 = 0.0
       acc_1 += v0
-    v1 = acc_1
-    yield v1, []
+      v1 = acc_1
+      yield v1, []
     end
   end
 

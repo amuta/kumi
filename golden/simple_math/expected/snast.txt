@@ -20,14 +20,14 @@
     args:
       (InputRef [:x]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v1"
           topo_index: 1
         }
       )
       (InputRef [:y]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v2"
           topo_index: 2
         }
@@ -55,14 +55,14 @@
     args:
       (InputRef [:x]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v5"
           topo_index: 5
         }
       )
       (InputRef [:y]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v6"
           topo_index: 6
         }
@@ -90,14 +90,14 @@
     args:
       (InputRef [:x]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v9"
           topo_index: 9
         }
       )
       (InputRef [:y]
         meta: {
-          stamp: {axes_tokens: [], dtype: integer}
+          stamp: {axes_tokens: nil, dtype: integer}
           value_id: "v10"
           topo_index: 10
         }
@@ -145,7 +145,7 @@
         args:
           (InputRef [:x]
             meta: {
-              stamp: {axes_tokens: [], dtype: integer}
+              stamp: {axes_tokens: nil, dtype: integer}
               value_id: "v14"
               topo_index: 14
             }
@@ -172,7 +172,7 @@
         args:
           (InputRef [:y]
             meta: {
-              stamp: {axes_tokens: [], dtype: integer}
+              stamp: {axes_tokens: nil, dtype: integer}
               value_id: "v17"
               topo_index: 17
             }
