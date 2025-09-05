@@ -1,67 +1,67 @@
 {
   "declarations": {
     "subtotals": {
-      "axes": ["items"],
+      "axes": [],
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","quantity"]}],
       "site_schedule": {
-        "max_depth": 1,
-        "hoisted_scalars": [],
+        "max_depth": 0,
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","via_path":["items"]}],
+      "axis_carriers": [],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
     "discounted_price": {
-      "axes": ["items"],
+      "axes": [],
       "parameters": [{"kind":"input","path":["items","price"]}],
       "site_schedule": {
-        "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "max_depth": 0,
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","via_path":["items"]}],
+      "axis_carriers": [],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
     "is_valid_quantity": {
-      "axes": ["items"],
+      "axes": [],
       "parameters": [{"kind":"input","path":["items","quantity"]}],
       "site_schedule": {
-        "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "max_depth": 0,
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","via_path":["items"]}],
+      "axis_carriers": [],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
     "expensive_items": {
-      "axes": ["items"],
+      "axes": [],
       "parameters": [{"kind":"input","path":["items","price"]}],
       "site_schedule": {
-        "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "max_depth": 0,
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","via_path":["items"]}],
+      "axis_carriers": [],
       "reduce_plans": [],
       "inlining_decisions": {}
     },
     "electronics": {
-      "axes": ["items"],
+      "axes": [],
       "parameters": [{"kind":"input","path":["items","category"]}],
       "site_schedule": {
-        "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "max_depth": 0,
+        "hoisted_scalars": [{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":0,"kind":"loadinput"},{"id":1,"kind":"const"},{"id":2,"kind":"map"}]}]
       },
-      "axis_carriers": [{"axis":"items","via_path":["items"]}],
+      "axis_carriers": [],
       "reduce_plans": [],
       "inlining_decisions": {}
     }

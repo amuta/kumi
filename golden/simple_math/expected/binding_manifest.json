@@ -1,5 +1,5 @@
 {
-  "ir_ref": "sha256:878de89b161eaf3570e73cee9da7e6fd5620f6bc1c4c3756309d9b568182b5b1",
+  "ir_ref": "sha256:1a8b72309340f69f97b2a9c6cc0a7b79fb04284a818814810ebb16916f9af885",
   "target": "ruby",
   "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
   "bindings": [

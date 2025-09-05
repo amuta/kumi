@@ -72,7 +72,9 @@ when "golden"
   when "update" then Kumi::Dev::Golden.update!(name)
   when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
   when "diff"   then Kumi::Dev::Golden.diff!(name)
-  when "test"   then exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
+  when "test"
+    Kumi::Dev::Golden.update!(name) 
+    exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
   else
     abort "kumi golden <list|update|verify|diff|test>"
   end

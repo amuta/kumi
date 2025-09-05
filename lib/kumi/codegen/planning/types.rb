@@ -7,14 +7,12 @@ module Kumi
       # IR-facing, typed-ish structs
       # -----------------------------
 
-      # One input path from analysis.inputs
+      # One input path from analysis.input_table
       InputSpec = Struct.new(
-        :path,        # Array<String|Symbol>   e.g. ["items","price"]
-        :axes,        # Array<Symbol>         e.g. [:items]
-        :dtype,       # Symbol                e.g. :float, :integer, :array
-        :key_policy,  # Symbol                :indifferent, :symbol
-        :on_missing,  # Symbol                :error, :nil
-        :chain,       # Array<Hash>           canonical path chain (array_field/field_leaf/etc.), includes per-step "axis"
+        :path,        # Array<String|Symbol>   e.g. ["cube","layer"]
+        :axis_loops,  # Array<Hash>           e.g. [{axis: :cube, path: ["cube"], loop_idx: 0}]
+        :leaf_nav,    # Hash                  e.g. {chain: [{"kind" => "field_leaf", "key" => "layer"}]}
+        :terminal,    # Hash                  e.g. {dtype: "float", key_policy: "indifferent", on_missing: "error"}
         keyword_init: true
       )
 

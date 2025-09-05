@@ -140,12 +140,12 @@ module Kumi
               return
             end
 
-            required_keys = %i[axis dtype]
+            required_keys = %i[axes dtype]
             required_keys.each do |key|
               errors << "Input table entry #{path.inspect} missing key: #{key}" unless info.key?(key)
             end
 
-            return unless info[:axis] && !info[:axis].is_a?(Array)
+            return unless info[:axes] && !info[:axes].is_a?(Array)
 
             errors << "Input table entry #{path.inspect} axis must be Array"
           end

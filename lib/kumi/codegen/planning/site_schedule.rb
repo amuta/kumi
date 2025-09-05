@@ -34,15 +34,15 @@ module Kumi
           @ops.each do |op|
             site_axes = Array(op.stamp_axes).map(&:to_sym)
             depth = site_axes.length
-            
+
             # Validate that op site axes are consistent with the declaration structure
             # The site must either be:
-            # 1. A prefix of declaration axes (normal case), OR  
+            # 1. A prefix of declaration axes (normal case), OR
             # 2. The declaration axes plus additional deeper axes (for ops that will be reduced)
             unless prefix_of?(site_axes, @decl_axes) || prefix_of?(@decl_axes, site_axes)
               raise "Op #{op.id} site #{site_axes.inspect} is incompatible with decl axes #{@decl_axes.inspect} (#{@decl_name})"
             end
-            
+
             @depth_by_id[op.id] = depth
             @by_depth[depth] << op
           end

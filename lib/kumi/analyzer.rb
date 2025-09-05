@@ -29,11 +29,10 @@ module Kumi
     # These run independently to build side tables for deterministic HIR generation
     SIDE_TABLE_PASSES = [
       Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
-      Core::Analyzer::Passes::InputIndexTablePass,             # Creates flat input path lookup table
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
       Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
-      Core::Analyzer::Passes::SynthesizeAccessChainsPass,      # Creates canonical input plans from access_chains
+      Core::Analyzer::Passes::SynthesizeAccessChainsPass,      # Creates canonical input plans from input_table
       Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
       Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
       Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
@@ -140,7 +139,11 @@ module Kumi
     end
 
     def self.handle_analysis_errors(errors)
-      type_errors = errors.select { |e| e.type == :type }
+      if errors.first.is_a? String
+        raise Kumi::Errors::AnalysisError, "\n" + errors.join("\n")
+      end
+
+      type_errors = errors.select { |e| e.type == :type } 
       first_error_location = errors.first.location
 
       raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?

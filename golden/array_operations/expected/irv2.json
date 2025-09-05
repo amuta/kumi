@@ -6,9 +6,9 @@
       "name": "subtotals",
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","quantity"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":1,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":1,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.mul"}}
       ],
       "result": 2
     },
@@ -16,9 +16,9 @@
       "name": "discounted_price",
       "parameters": [{"kind":"input","path":["items","price"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
         {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.mul"}}
       ],
       "result": 2
     },
@@ -26,9 +26,9 @@
       "name": "is_valid_quantity",
       "parameters": [{"kind":"input","path":["items","quantity"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":0,"op":"LoadInput","args":[["items","quantity"]],"stamp":{"dtype":"integer","axes":[]}},
         {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
       ],
       "result": 2
     },
@@ -36,9 +36,9 @@
       "name": "expensive_items",
       "parameters": [{"kind":"input","path":["items","price"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":[]}},
         {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
       ],
       "result": 2
     },
@@ -46,9 +46,9 @@
       "name": "electronics",
       "parameters": [{"kind":"input","path":["items","category"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":["items"]}},
+        {"id":0,"op":"LoadInput","args":[["items","category"]],"stamp":{"dtype":"string","axes":[]}},
         {"id":1,"op":"Const","args":["electronics"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.eq"}}
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.eq"}}
       ],
       "result": 2
     }
@@ -66,7 +66,7 @@
       },
       {
         "path": ["items","price"],
-        "axes": ["items"],
+        "axes": ["items","price"],
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
@@ -74,7 +74,7 @@
       },
       {
         "path": ["items","quantity"],
-        "axes": ["items"],
+        "axes": ["items","quantity"],
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
@@ -82,7 +82,7 @@
       },
       {
         "path": ["items","category"],
-        "axes": ["items"],
+        "axes": ["items","category"],
         "dtype": "string",
         "key_policy": "indifferent",
         "on_missing": "error",
@@ -90,7 +90,7 @@
       },
       {
         "path": ["tax_rate"],
-        "axes": [],
+        "axes": ["tax_rate"],
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",

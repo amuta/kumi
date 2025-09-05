@@ -26,14 +26,13 @@ module Kumi
           @inputs_by_path[path_key(path_array)]
         end
 
-        # @return [Array<Symbol>] axis tokens consumed by this path (in chain order)
+        # @return [Array<Symbol>] axis tokens from axis_loops
         def consumes_axes(path_array)
           s = for_path(path_array) or return []
-          (s.chain || []).filter_map do |st|
-            ax = st["axis"] || st[:axis]
-            kind = st["kind"] || st[:kind]
-            kind.to_s.start_with?("array_") && ax ? ax.to_sym : nil
-          end
+          puts "[DEBUG] AccessPlan.consumes_axes: path=#{path_array.inspect}, axis_loops=#{s.axis_loops.inspect}"
+          result = s.axis_loops.map { |loop| (loop[:axis] || loop["axis"]).to_s.to_sym }
+          puts "[DEBUG] AccessPlan.consumes_axes: result=#{result.inspect}"
+          result
         end
 
         # Deterministic helper names for codegen
@@ -41,27 +40,13 @@ module Kumi
           "at_#{Array(path_array).map { |s| safe_ident(s) }.join('_')}"
         end
 
-        # All inputs that carry a given axis (useful for diagnostics / asserts)
-        def carriers_for_axis(axis_sym)
-          @inputs_by_path.values.select do |s|
-            (s.chain || []).any? do |st|
-              (st["kind"] || st[:kind]).to_s.start_with?("array_") && (st["axis"] || st[:axis]).to_s == axis_sym.to_s
-            end
-          end
-        end
-
         private
 
         def validate_input_spec(spec)
-          # Validate that every array-consuming step in the chain declares an axis
-          (spec.chain || []).each do |step|
-            kind = step["kind"] || step[:kind]
-            if kind && kind.to_s.start_with?("array_")
-              axis = step["axis"] || step[:axis]
-              unless axis
-                raise "Untagged array step in path #{spec.path.join('.')}: step #{step.inspect}. " \
-                      "Every array step must specify 'axis' token."
-              end
+          # Validate that axis_loops contain valid axis information
+          spec.axis_loops.each do |loop|
+            unless loop[:axis]
+              raise "Missing axis in loop for path #{spec.path.join('.')}: #{loop.inspect}"
             end
           end
         end

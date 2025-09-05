@@ -1,214 +1,156 @@
 module SchemaModule
-  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:dfb6d5aa0c60e3ffc12f8a29c793c0ffd3433aba89e4ada5416d8fe132e3b3ac:855bb2591854da72a60a0c682d65bf5d9ee6ac9b4ebbf8957a511d897e0ce74f
-
-  def _each_cell
-    # TODO: Implement streaming method for cell
-    arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["layer"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-        arr2 = a1["row"]
-        i2 = 0
-        a2 = nil
-        while i2 < arr2.length
-          a2 = arr2[i2]
-          v0 = a2
-          yield v0, [i0, i1, i2]
-          i2 += 1
-        end
-        i1 += 1
-      end
-      i0 += 1
-    end
-  end
-
-  def _eval_cell
-    # TODO: Implement materialization for cell
-    __materialize_from_each(:cell)
-  end
-
-  def _each_cell_over_limit
-    # TODO: Implement streaming method for cell_over_limit
-    arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["layer"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-        arr2 = a1["row"]
-        i2 = 0
-        a2 = nil
-        while i2 < arr2.length
-          a2 = arr2[i2]
-    c1 = 100
-    c1 = 100
-          v0 = a2
-          v2 = __call_kernel__("core.gt", v0, c1)
-          yield v2, [i0, i1, i2]
-          i2 += 1
-        end
-        i1 += 1
-      end
-      i0 += 1
-    end
-  end
-
-  def _eval_cell_over_limit
-    # TODO: Implement materialization for cell_over_limit
-    __materialize_from_each(:cell_over_limit)
-  end
-
-  def _each_cell_sum
-    # TODO: Implement streaming method for cell_sum
-        acc_4 = 0
-    arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["layer"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-    c2 = 0
-    c2 = 0
-        yield v4, [i0, i1, i2]
-          v0 = self[:cell_over_limit][i0][i1][i2]
-          v1 = a2
-          v3 = (v0 ? v1 : c2)
-          acc_4 += v3
-        i1 += 1
-      end
-      i0 += 1
-    end
-        v4 = acc_4
-  end
-
-  def _eval_cell_sum
-    # TODO: Implement materialization for cell_sum
-    __materialize_from_each(:cell_sum)
-  end
-
-  def _each_count_over_limit
-    # TODO: Implement streaming method for count_over_limit
-    acc_6 = 0
-      acc_5 = 0
-        acc_4 = 0
-    c1 = 1
-    c2 = 0
-    c1 = 1
-    c2 = 0
-      acc_6 += v5
-        acc_5 += v4
-          v0 = self[:cell_over_limit][i0][i1][i2]
-          v3 = (v0 ? c1 : c2)
-          acc_4 += v3
-    v6 = acc_6
-      v5 = acc_5
-        v4 = acc_4
-    yield v6, [i0, i1, i2]
-  end
-
-  def _eval_count_over_limit
-    # TODO: Implement materialization for count_over_limit
-    __materialize_from_each(:count_over_limit)
-  end
+  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:814a3606eafcc1eb22e2d546e4c408946d684962c609bd8a738d11eeff653527:914b3226894c3a3db36f804b583139ac7fdc6fd9a8284cc9eade5e433d6cfd28
 
   def _each_cube
-    # TODO: Implement streaming method for cube
     arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
+    arr0.each_with_index do |a0, i0|
       v0 = a0
-      yield v0, [i0]
-      i0 += 1
+      yield v0, []
     end
   end
 
   def _eval_cube
-    # TODO: Implement materialization for cube
-    __materialize_from_each(:cube)
+    _each_cube { |value, _| return value }
   end
 
   def _each_layer
-    # TODO: Implement streaming method for layer
     arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["layer"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
+    arr0.each_with_index do |a0, i0|
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
         v0 = a1
-        yield v0, [i0, i1]
-        i1 += 1
+        yield v0, [i0]
       end
-      i0 += 1
     end
   end
 
   def _eval_layer
-    # TODO: Implement materialization for layer
     __materialize_from_each(:layer)
   end
 
   def _each_row
-    # TODO: Implement streaming method for row
     arr0 = @input["cube"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["layer"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-        arr2 = a1["row"]
-        i2 = 0
-        a2 = nil
-        while i2 < arr2.length
-          a2 = arr2[i2]
+    arr0.each_with_index do |a0, i0|
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
+        arr2 = a1
+        arr2.each_with_index do |a2, i2|
           v0 = a2
-          yield v0, [i0, i1, i2]
-          i2 += 1
+          yield v0, [i0, i1]
         end
-        i1 += 1
       end
-      i0 += 1
     end
   end
 
   def _eval_row
-    # TODO: Implement materialization for row
     __materialize_from_each(:row)
+  end
+
+  def _each_cell
+    arr0 = @input["cube"]
+    arr0.each_with_index do |a0, i0|
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
+        arr2 = a1
+        arr2.each_with_index do |a2, i2|
+          v0 = a2
+          yield v0, [i0, i1, i2]
+        end
+      end
+    end
+  end
+
+  def _eval_cell
+    __materialize_from_each(:cell)
+  end
+
+  def _each_cell_over_limit
+    arr0 = @input["cube"]
+    arr0.each_with_index do |a0, i0|
+      c1 = 100
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
+        arr2 = a1
+        arr2.each_with_index do |a2, i2|
+          v0 = a2
+          v2 = __call_kernel__("core.gt", v0, c1)
+          yield v2, [i0, i1, i2]
+        end
+      end
+    end
+  end
+
+  def _eval_cell_over_limit
+    __materialize_from_each(:cell_over_limit)
+  end
+
+  def _each_cell_sum
+    arr0 = @input["cube"]
+    arr0.each_with_index do |a0, i0|
+      c2 = 0
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
+        arr2 = a1
+        arr2.each_with_index do |a2, i2|
+          acc_4 = 0
+          v1 = a2
+          ccell_over_limit_1 = 100
+          v0_cell_over_limit = a2
+          v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
+          v3 = (v0_cell_over_limit ? ccell_over_limit_1 : c2)
+          acc_4 += v3
+          v4 = acc_4
+          yield v4, [i0, i1]
+        end
+      end
+    end
+  end
+
+  def _eval_cell_sum
+    __materialize_from_each(:cell_sum)
+  end
+
+  def _each_count_over_limit
+    arr0 = @input["cube"]
+    arr0.each_with_index do |a0, i0|
+      acc_6 = 0
+      c1 = 1
+      c2 = 0
+      arr1 = a0
+      arr1.each_with_index do |a1, i1|
+        acc_5 = 0
+        arr2 = a1
+        arr2.each_with_index do |a2, i2|
+          acc_4 = 0
+          ccell_over_limit_1 = 100
+          v0_cell_over_limit = a2
+          v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
+          v3 = (v0_cell_over_limit ? c1 : c2)
+          acc_4 += v3
+          v4 = acc_4
+          acc_5 += v4
+          v5 = acc_5
+        end
+        acc_6 += v5
+        v6 = acc_6
+      end
+      yield v6, []
+    end
+  end
+
+  def _eval_count_over_limit
+    _each_count_over_limit { |value, _| return value }
   end
 
   def [](name)
     case name
+    when :cube then _eval_cube
+    when :layer then _eval_layer
+    when :row then _eval_row
     when :cell then _eval_cell
     when :cell_over_limit then _eval_cell_over_limit
     when :cell_sum then _eval_cell_sum
     when :count_over_limit then _eval_count_over_limit
-    when :cube then _eval_cube
-    when :layer then _eval_layer
-    when :row then _eval_row
     else raise KeyError, "Unknown declaration: #{name}"
     end
   end
@@ -223,7 +165,6 @@ module SchemaModule
   private
 
   def __materialize_from_each(name)
-    # TODO: Implement streaming to nested array conversion
     result = []
     send("_each_#{name}") do |value, indices|
       __nest_value(result, indices, value)

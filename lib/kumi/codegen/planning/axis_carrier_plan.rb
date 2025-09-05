@@ -6,53 +6,55 @@ module Kumi
       # AxisCarrierPlan picks ONE authoritative input path as the "carrier"
       # of length for each declaration axis (bounds only; NOT used for reads).
       #
+      # Uses axis_loops directly (each loop has :axis, :path, :loop_idx, ...).
+      #
       # Interface:
       #   .build(decl_axes:, access_plan:) -> AxisCarrierPlan
       #   #carrier_for(axis) -> InputSpec
       class AxisCarrierPlan
         def self.build(decl_axes:, access_plan:, required_prefix: [])
           mapping = {}
+
           decl_axes.each do |axis|
-            candidates = access_plan.carriers_for_axis(axis)
+            ax = axis.to_sym
+
+            # 1) candidates: inputs that carry this axis
+            candidates = access_plan.inputs_by_path.values.select do |spec|
+              spec.axis_loops.any? { |lp| (lp[:axis] || lp["axis"]).to_sym == ax }
+            end
             raise "No input path carries axis #{axis.inspect}" if candidates.empty?
 
-            # Calculate required prefix for this axis at this declaration site
-            axis_required_prefix = required_prefix + decl_axes.take_while { |ax| ax != axis }
-            
-            # Filter candidates that have compatible prefix
-            compatible_candidates = candidates.select do |spec|
-              consumed_axes = access_plan.consumes_axes(spec.path)
-              axis_index = consumed_axes.index(axis.to_sym)
-              
-              if axis_index.nil?
-                false # doesn't actually consume this axis
-              else
-                # Check if prefix before this axis matches required prefix
-                actual_prefix = consumed_axes.take(axis_index)
-                actual_prefix == axis_required_prefix
-              end
+            # 2) required prefix at this site
+            req_prefix = (required_prefix + decl_axes.take_while { |a| a != axis }).map!(&:to_sym)
+
+            # 3) filter by prefix-compatibility
+            compatible = candidates.select do |spec|
+              loops = spec.axis_loops
+              loop_for_ax = loops.find { |lp| (lp[:axis] || lp["axis"]).to_sym == ax }
+              depth = loops.index(loop_for_ax) || 0
+              actual_prefix = loops.take(depth).map { |lp| (lp[:axis] || lp["axis"]).to_sym }
+              actual_prefix == req_prefix
             end
 
-            if compatible_candidates.empty?
-              candidate_info = candidates.map { |s| 
-                consumed = access_plan.consumes_axes(s.path)
-                axis_idx = consumed.index(axis.to_sym)
-                prefix = axis_idx ? consumed.take(axis_idx) : consumed
-                "#{s.path.join('.')} (prefix: #{prefix.inspect})"
-              }.join(", ")
-              
+            if compatible.empty?
+              details = candidates.map do |s|
+                carried = s.axis_loops.map { |lp| (lp[:axis] || lp["axis"]).to_sym }
+                idx = carried.index(ax)
+                prefix = idx ? carried.take(idx) : carried
+                "#{Array(s.path).join('.')} (prefix: #{prefix.inspect})"
+              end.join(", ")
               raise "No prefix-compatible carrier for axis #{axis.inspect}. " \
-                    "Required prefix: #{axis_required_prefix.inspect}. " \
-                    "Candidates: #{candidate_info}"
+                    "Required: #{req_prefix.inspect}. Candidates: #{details}"
             end
 
-            # Deterministic choice among compatible candidates
-            chosen = compatible_candidates.find { |s| s.path.map(&:to_s) == [axis.to_s] } ||
-                     compatible_candidates.min_by { |s| s.chain.length } ||
-                     compatible_candidates.sort_by { |s| s.path.map(&:to_s).join("/") }.first
+            # 4) deterministic pick
+            chosen = compatible.find { |s| Array(s.path).map(&:to_s) == [ax.to_s] } ||
+                     compatible.min_by { |s| s.axis_loops.length } ||
+                     compatible.min_by { |s| Array(s.path).map(&:to_s).join("/") }
 
-            mapping[axis.to_sym] = chosen
+            mapping[ax] = chosen
           end
+
           new(mapping, access_plan)
         end
 
@@ -61,21 +63,16 @@ module Kumi
           @access  = access_plan
         end
 
-        def carrier_for(axis_sym)
-          @mapping.fetch(axis_sym.to_sym)
-        end
+        def carrier_for(axis_sym) = @mapping.fetch(axis_sym.to_sym)
 
-        # Backend-agnostic entry for one axis
         def entry_for(axis_sym)
           spec = carrier_for(axis_sym)
           { axis: axis_sym.to_sym, via_path: Array(spec.path).map(&:to_s) }
         end
 
-        # Array of {axis, via_path} for all outer decl axes
         def to_entries
-          @mapping.map { |axis, _| entry_for(axis) }
+          @mapping.keys.sort_by(&:to_s).map { |axis| entry_for(axis) }
         end
-
       end
     end
   end

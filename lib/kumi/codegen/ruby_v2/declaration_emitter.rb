@@ -14,10 +14,10 @@ module Kumi
           # With merged format, planning data is in decl_spec itself
           axes         = decl_spec.fetch("axes")
           reduce_plans = decl_spec.fetch("reduce_plans", [])
-          hoisted_ids  = decl_spec.dig("site_schedule","hoisted_scalars")&.map { |h| h.fetch("id") } || []
+          hoisted_ids  = decl_spec.dig("site_schedule", "hoisted_scalars")&.map { |h| h.fetch("id") } || []
 
           ops = OpsEmitter.new(
-            plan_decl_by_name: ops_by_decl,  # Now contains merged data
+            plan_decl_by_name: ops_by_decl, # Now contains merged data
             chain_const_by_input_name: chain_map,
             ops_by_decl: ops_by_decl
           )
@@ -45,9 +45,9 @@ module Kumi
         def render_pure_reduce_chain(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans)
           rheader, rfooter, cursors_line, axis_vars = LoopBuilder.build_reduce_chain(reduce_plans)
           hoisted_lines = ops.emit_ops_subset(decl_name, decl_spec, only_ids: hoisted_ids, reduce_chain: false)
-          
+
           # Use site-scalar emission for the inner body
-          scope_axes = axis_vars.map { |v| v.sub(/^a_/, '') }
+          scope_axes = axis_vars.map { |v| v.sub(/^a_/, "") }
           site_lines, site_val = ops.emit_site_scalar_for_decl(
             prod_name: decl_name,
             prod_spec: decl_spec,
@@ -63,26 +63,26 @@ module Kumi
           inner << "\n" << ("  " * axis_vars.length) << "#{acc_var} += #{site_val}\n"
 
           <<~RUBY
-            def #{mname}
-              input = @input
-        #{indent(hoisted_lines.join("\n"), 2)}
-              #{acc_var} = 0
-              #{rheader}#{inner}#{rfooter}
-              #{acc_var}
-            end
+                def #{mname}
+                  input = @input
+            #{indent(hoisted_lines.join("\n"), 2)}
+                  #{acc_var} = 0
+                  #{rheader}#{inner}#{rfooter}
+                  #{acc_var}
+                end
           RUBY
         end
 
         def render_site_plus_reduce(decl_name, mname, decl_spec, ops, hoisted_ids, reduce_plans, axes)
           # Build site loops first
-          site_header, _, site_cursors_line, out_var, row_vars = LoopBuilder.build_nested_loops(axes)
+          site_header, _, _, out_var, row_vars = LoopBuilder.build_nested_loops(axes)
           hoisted_lines = ops.emit_ops_subset(decl_name, decl_spec, only_ids: hoisted_ids, reduce_chain: false)
-          
+
           # Build reduce chain to nest inside site loops with scope_axes support
           reduce_header, reduce_footer, combined_cursors, reduce_axis_vars = LoopBuilder.build_reduce_chain(reduce_plans, scope_axes: axes)
-          
+
           # Build the inner reduce body using site-scalar emission
-          scope_axes = axes + reduce_axis_vars.map { |v| v.sub(/^a_/, '') }
+          scope_axes = axes + reduce_axis_vars.map { |v| v.sub(/^a_/, "") }
           site_lines, site_val = ops.emit_site_scalar_for_decl(
             prod_name: decl_name,
             prod_spec: decl_spec,
@@ -92,7 +92,7 @@ module Kumi
           )
 
           acc_var = "acc"
-          
+
           # Build the nested structure: site loops -> reduce loops -> body
           inner_depth = axes.length + reduce_axis_vars.length
           inner = +""
@@ -102,23 +102,22 @@ module Kumi
 
           # Build the complete method with site loops containing reduce loops
           site_footer = build_site_footer(axes, row_vars, acc_var)
-          
+
           # Build the method - accumulator should be reset at the right level
           # Use the explicit result_depth from planning instead of inferring from axes.length
           result_depth = reduce_plans.first["result_depth"]
           site_with_acc = insert_acc_reset(site_header, result_depth, acc_var)
-          
+
           <<~RUBY
-            def #{mname}
-              input = @input
-        #{indent(hoisted_lines.join("\n"), 2)}
-              #{site_with_acc}#{indent("#{reduce_header}#{inner}#{reduce_footer}", axes.length + 1)}
-#{site_footer}
-              #{out_var}
-            end
+                        def #{mname}
+                          input = @input
+                    #{indent(hoisted_lines.join("\n"), 2)}
+                          #{site_with_acc}#{indent("#{reduce_header}#{inner}#{reduce_footer}", axes.length + 1)}
+            #{site_footer}
+                          #{out_var}
+                        end
           RUBY
         end
-
 
         def insert_acc_reset(site_header, axes_length, acc_var)
           # Insert the accumulator reset at the innermost site loop level
@@ -131,22 +130,20 @@ module Kumi
           (axes.length - 1).downto(0) do |i|
             if i == axes.length - 1
               # Append the accumulated result at the innermost site loop level (where acc is scoped)
-              target = row_vars[i - 1] if i > 0
-              target ||= "out"  
+              target = row_vars[i - 1] if i.positive?
+              target ||= "out"
               footer << ("  " * (i + 1)) << "#{target} << #{acc_var}\n"
-            elsif i < axes.length - 1 && i > 0
+            elsif i < axes.length - 1 && i.positive?
               footer << ("  " * (i + 1)) << "#{row_vars[i - 1]} << #{row_vars[i]}\n"
             end
-            
+
             # Before closing this loop level, append row to out if this is where the row is declared
-            if i == 0 && row_vars[0]  # At the outermost level (where row_0 is declared)
-              footer << "  out << #{row_vars[0]}\n"
-            end
-            
+            footer << "  out << #{row_vars[0]}\n" if i.zero? && row_vars[0] # At the outermost level (where row_0 is declared)
+
             # Close the current loop
             footer << ("  " * i) << "end\n"
           end
-          
+
           footer
         end
 
@@ -157,33 +154,33 @@ module Kumi
 
           if header.empty?
             <<~RUBY
-              def #{mname}
-                input = @input
-                cursors = {}
-          #{indent(hoisted_lines.join("\n"), 2)}
-          #{indent(body_lines.join("\n"), 2)}
-                #{result_var}
-              end
+                  def #{mname}
+                    input = @input
+                    cursors = {}
+              #{indent(hoisted_lines.join("\n"), 2)}
+              #{indent(body_lines.join("\n"), 2)}
+                    #{result_var}
+                  end
             RUBY
           else
             inner = +""
             inner << ("  " * axes.length) << "#{cursors_line}\n"
             inner << indent(body_lines.join("\n"), axes.length + 1) << "\n"
-            
+
             # Add result appending and build footer
             target = row_vars.last || out_var
             inner << ("  " * axes.length) << "#{target} << #{result_var}\n"
-            
+
             footer = build_footer(axes, row_vars)
 
             <<~RUBY
-              def #{mname}
-                input = @input
-          #{indent(hoisted_lines.join("\n"), 2)}
-                #{header}#{indent(inner, 1)}
-#{indent(footer, 1)}
-                #{out_var}
-              end
+                            def #{mname}
+                              input = @input
+                        #{indent(hoisted_lines.join("\n"), 2)}
+                              #{header}#{indent(inner, 1)}
+              #{indent(footer, 1)}
+                              #{out_var}
+                            end
             RUBY
           end
         end
@@ -200,7 +197,6 @@ module Kumi
           end
           footer
         end
-
 
         def indent(str, n)
           pref = "  " * n

@@ -5,7 +5,19 @@ require "set"
 module Kumi
   module Core
     module IRV2
-      InputPlan = Struct.new(:source_path, :axes, :dtype, :key_policy, :missing_policy, :access_chain, keyword_init: true)
+      InputPlan = Struct.new(
+        :source_path,     # Array<Symbol>
+        :axes,            # Array<Symbol> (logical site axes)
+        :dtype,           # Symbol/String
+        :key_policy,      # Symbol
+        :missing_policy,  # Symbol
+        :axis_loops,      # Array<Hash>   [{axis:, kind:, key:, alias:, loop_idx:, ...}]
+        :leaf_nav,        # Array<Hash>   [{kind: :field_leaf, key: "..."}, ...]
+        :terminal,        # Hash          {kind: :element_leaf|:field_leaf|:none, ...}
+        :path_fqn,        # String        "a.b.c"
+        keyword_init: true
+      )
+
 
       class Builder
         attr_reader :values, :exports

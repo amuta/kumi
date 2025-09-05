@@ -33,12 +33,10 @@ module Kumi
 
         def emit_site_scalar_for_decl(prod_name:, prod_spec:, chain_map:, scope_axes:, ns:, skip_reduce_ops: true)
           lines = []
-          
+
           # Filter out Reduce operations if requested
           ops_to_process = prod_spec["operations"]
-          if skip_reduce_ops
-            ops_to_process = ops_to_process.reject { |op| op["op"] == "Reduce" }
-          end
+          ops_to_process = ops_to_process.reject { |op| op["op"] == "Reduce" } if skip_reduce_ops
 
           ops_to_process.each do |op|
             id = NameMangler.tmp_for_op(op["id"], ns: ns)
@@ -50,9 +48,7 @@ module Kumi
             when "Const"
               # Skip if this constant is used directly in a Select
               select_op = ops_to_process.find { |o| o["op"] == "Select" && Array(o["args"]).include?(op["id"]) }
-              unless select_op
-                lines << "#{id} = #{JSON.generate(Array(op["args"]).first)}"
-              end
+              lines << "#{id} = #{JSON.generate(Array(op['args']).first)}" unless select_op
             when "Map"
               fn = op["attrs"]["fn"]
               args = Array(op["args"]).map { |ref| NameMangler.tmp_for_op(ref, ns: ns) }.join(", ")
@@ -89,16 +85,17 @@ module Kumi
                 @inline_substitutions[op["id"]] = sub_val
               else
                 t_plan = @plans.fetch(target)
-                if Array(t_plan["axes"]).empty? && Array(t_plan["reduce_plans"]).empty?
-                  lines << "#{id} = #{NameMangler.eval_method_for(target)}"
-                else
+                unless Array(t_plan["axes"]).empty? && Array(t_plan["reduce_plans"]).empty?
                   raise "non-inline dependency #{target} requires loops; planner must inline"
                 end
+
+                lines << "#{id} = #{NameMangler.eval_method_for(target)}"
+
               end
             when "Reduce"
               raise "Reduce in site-scalar body"
             else
-              raise "op #{op["op"]} not supported in site-scalar"
+              raise "op #{op['op']} not supported in site-scalar"
             end
           end
 
@@ -116,7 +113,7 @@ module Kumi
 
         private
 
-        def emit_one_op(decl_name, decl_spec, op, reduce_chain: false)
+        def emit_one_op(decl_name, _decl_spec, op, reduce_chain: false)
           id = NameMangler.tmp_for_op(op.fetch("id"))
           case op.fetch("op")
           when "LoadInput"
@@ -124,13 +121,13 @@ module Kumi
             const = @chains.fetch(path)
             ["#{id} = __walk__(#{const}, input, cursors)"]
           when "Const"
-            lit  = Array(op["args"]).first
+            lit = Array(op["args"]).first
             ["#{id} = #{JSON.generate(lit)}"]
           when "LoadDeclaration"
             target = Array(op["args"]).first.to_s
             if inline?(decl_name, op.fetch("id"))
               # TODO: extend site-scalar inlining to work here too
-              ["#{id} = #{NameMangler.eval_method_for(target)}"]  # temporary fallback
+              ["#{id} = #{NameMangler.eval_method_for(target)}"] # temporary fallback
             else
               ["#{id} = self[:#{target}]"]
             end
@@ -150,17 +147,14 @@ module Kumi
             # TODO: This should be in fused chains, but temporarily allow for compatibility
             ["#{id} = (raise NotImplementedError, \"Standalone reduce not implemented\")"]
           else
-            ["#{id} = (raise NotImplementedError, #{op["op"].inspect})"]
+            ["#{id} = (raise NotImplementedError, #{op['op'].inspect})"]
           end
         end
-
 
         def inline?(decl_name, op_id, decl_spec = @plans.fetch(decl_name))
           decs = decl_spec.fetch("inlining_decisions", {})
           decs.dig("op_#{op_id}", "decision") == "inline"
         end
-
-
       end
     end
   end

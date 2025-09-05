@@ -67,19 +67,19 @@ module Kumi
           decl.ops.select { |op| op.kind == :loaddeclaration }.each do |op|
             dep_name = op.args.first
             dep_decl = bundle.by_decl[dep_name.to_sym]&.decl
-            if dep_decl
-              # Use the specific use site axes of this LoadDeclaration op
-              decision = bundle.inlining_policy.decision(
-                producer_decl: dep_decl, 
-                consumer_use_site_axes: op.stamp_axes
-              )
-              # Store decision per operation ID for precise codegen control
-              output["declarations"][decl_name.to_s]["inlining_decisions"]["op_#{op.id}"] = {
-                "producer" => dep_name.to_s,
-                "decision" => decision.to_s,
-                "use_site_axes" => op.stamp_axes.map(&:to_s)
-              }
-            end
+            next unless dep_decl
+
+            # Use the specific use site axes of this LoadDeclaration op
+            decision = bundle.inlining_policy.decision(
+              producer_decl: dep_decl,
+              consumer_use_site_axes: op.stamp_axes
+            )
+            # Store decision per operation ID for precise codegen control
+            output["declarations"][decl_name.to_s]["inlining_decisions"]["op_#{op.id}"] = {
+              "producer" => dep_name.to_s,
+              "decision" => decision.to_s,
+              "use_site_axes" => op.stamp_axes.map(&:to_s)
+            }
           end
         end
 

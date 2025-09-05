@@ -1,161 +1,117 @@
 module SchemaModule
-  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:4acfcf93dbb084853037804511a2041f2c6dd4dd4184b1428f98a09a843ccadd:9d85bf516b106dd0565ab16047155264e04cbd968f14abf38d5740091915f835
-
-  def _each_batch_bias
-    # TODO: Implement streaming method for batch_bias
-    arr0 = @input["batch"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-    v1 = self[:global_offset_plus]
-      v0 = a0["mean"]
-      v2 = __call_kernel__("core.add", v0, v1)
-      yield v2, []
-      i0 += 1
-    end
-  end
-
-  def _eval_batch_bias
-    # TODO: Implement materialization for batch_bias
-    _each_batch_bias { |value, _| return value }
-  end
-
-  def _each_batch_total_affine
-    # TODO: Implement streaming method for batch_total_affine
-      acc_1 = 0.0
-    arr0 = @input["batch"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      yield v1, [i0, i1]
-        v0 = self[:row_sum_affine][i0][i1]
-        acc_1 += v0
-      i0 += 1
-    end
-      v1 = acc_1
-  end
-
-  def _eval_batch_total_affine
-    # TODO: Implement materialization for batch_total_affine
-    __materialize_from_each(:batch_total_affine)
-  end
-
-  def _each_elem_affine
-    # TODO: Implement streaming method for elem_affine
-    arr0 = @input["batch"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
-      arr1 = a0["row"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-        arr2 = a1["col"]
-        i2 = 0
-        a2 = nil
-        while i2 < arr2.length
-          a2 = arr2[i2]
-      v3 = self[:batch_bias][i0]
-        v1 = self[:row_scale2][i0][i1]
-          v0 = a2["val"]
-          v2 = __call_kernel__("core.mul", v0, v1)
-          v4 = __call_kernel__("core.add", v2, v3)
-          yield v4, [i0, i1]
-          i2 += 1
-        end
-        i1 += 1
-      end
-      i0 += 1
-    end
-  end
-
-  def _eval_elem_affine
-    # TODO: Implement materialization for elem_affine
-    __materialize_from_each(:elem_affine)
-  end
+  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:417f573f8845c655e31454a5abf3fe4df95325b50360e6a1cb076911a1760002:9d85bf516b106dd0565ab16047155264e04cbd968f14abf38d5740091915f835
 
   def _each_global_offset_plus
-    # TODO: Implement streaming method for global_offset_plus
     c1 = 1.0
     v0 = @input["global_offset"]
-    c1 = 1.0
     v2 = __call_kernel__("core.add", v0, c1)
     yield v2, []
   end
 
   def _eval_global_offset_plus
-    # TODO: Implement materialization for global_offset_plus
     _each_global_offset_plus { |value, _| return value }
   end
 
-  def _each_row_scale2
-    # TODO: Implement streaming method for row_scale2
+  def _each_batch_bias
+  v0_global_offset_plus = @input["global_offset"]
+  cglobal_offset_plus_1 = 1.0
+  v1 = __call_kernel__("core.add", v0_global_offset_plus, cglobal_offset_plus_1)
     arr0 = @input["batch"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
+    arr0.each_with_index do |a0, i0|
+      v0 = a0["mean"]
+      v2 = __call_kernel__("core.add", v0_global_offset_plus, cglobal_offset_plus_1)
+      yield v2, [i0]
+    end
+  end
+
+  def _eval_batch_bias
+    __materialize_from_each(:batch_bias)
+  end
+
+  def _each_row_scale2
+    arr0 = @input["batch"]
+    arr0.each_with_index do |a0, i0|
+    c1 = 2.0
       arr1 = a0["row"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-    c1 = 2.0
-    c1 = 2.0
+      arr1.each_with_index do |a1, i1|
         v0 = a1["scale"]
         v2 = __call_kernel__("core.mul", v0, c1)
         yield v2, [i0, i1]
-        i1 += 1
       end
-      i0 += 1
     end
   end
 
   def _eval_row_scale2
-    # TODO: Implement materialization for row_scale2
     __materialize_from_each(:row_scale2)
   end
 
-  def _each_row_sum_affine
-    # TODO: Implement streaming method for row_sum_affine
-        acc_1 = 0.0
+  def _each_elem_affine
     arr0 = @input["batch"]
-    i0 = 0
-    a0 = nil
-    while i0 < arr0.length
-      a0 = arr0[i0]
+    arr0.each_with_index do |a0, i0|
+    v0_batch_bias = a0["mean"]
+    v3 = __call_kernel__("core.add", v0_batch_bias, v1_batch_bias)
       arr1 = a0["row"]
-      i1 = 0
-      a1 = nil
-      while i1 < arr1.length
-        a1 = arr1[i1]
-        yield v1, [i0, i1, i2]
-          v0 = self[:elem_affine][i0][i1][i2]
-          acc_1 += v0
-        i1 += 1
+      arr1.each_with_index do |a1, i1|
+      crow_scale2_1 = 2.0
+      v0_row_scale2 = a1["scale"]
+      v1 = __call_kernel__("core.mul", v0_row_scale2, crow_scale2_1)
+        arr2 = a1["col"]
+        arr2.each_with_index do |a2, i2|
+          v0 = a2["val"]
+          v2 = __call_kernel__("core.mul", v0_row_scale2, crow_scale2_1)
+          v4 = __call_kernel__("core.add", v1, v3)
+          yield v4, [i0, i1, i2]
+        end
       end
-      i0 += 1
     end
+  end
+
+  def _eval_elem_affine
+    __materialize_from_each(:elem_affine)
+  end
+
+  def _each_row_sum_affine
+    arr0 = @input["batch"]
+    arr0.each_with_index do |a0, i0|
+      arr1 = a0["row"]
+      arr1.each_with_index do |a1, i1|
+        acc_1 = 0.0
+        v0_elem_affine = a2["val"]
+        v2_elem_affine = __call_kernel__("core.mul", v0_elem_affine, v1_elem_affine)
+        v0 = __call_kernel__("core.add", v2_elem_affine, v3_elem_affine)
+          acc_1 += v0
         v1 = acc_1
+        yield v1, [i0, i1]
+      end
+    end
   end
 
   def _eval_row_sum_affine
-    # TODO: Implement materialization for row_sum_affine
     __materialize_from_each(:row_sum_affine)
+  end
+
+  def _each_batch_total_affine
+    arr0 = @input["batch"]
+    arr0.each_with_index do |a0, i0|
+      acc_1 = 0.0
+        acc_1 += v0
+      v1 = acc_1
+      yield v1, [i0]
+    end
+  end
+
+  def _eval_batch_total_affine
+    __materialize_from_each(:batch_total_affine)
   end
 
   def [](name)
     case name
-    when :batch_bias then _eval_batch_bias
-    when :batch_total_affine then _eval_batch_total_affine
-    when :elem_affine then _eval_elem_affine
     when :global_offset_plus then _eval_global_offset_plus
+    when :batch_bias then _eval_batch_bias
     when :row_scale2 then _eval_row_scale2
+    when :elem_affine then _eval_elem_affine
     when :row_sum_affine then _eval_row_sum_affine
+    when :batch_total_affine then _eval_batch_total_affine
     else raise KeyError, "Unknown declaration: #{name}"
     end
   end
@@ -170,7 +126,6 @@ module SchemaModule
   private
 
   def __materialize_from_each(name)
-    # TODO: Implement streaming to nested array conversion
     result = []
     send("_each_#{name}") do |value, indices|
       __nest_value(result, indices, value)

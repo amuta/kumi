@@ -21,7 +21,7 @@ module Kumi
           declarations_array = @pack.fetch("declarations")
           decl_order = declarations_array.map { |d| d.fetch("name") }
           declarations = declarations_array.to_h { |d| [d.fetch("name"), d] }
-          bindings_ruby = (@pack.dig("bindings","ruby") || {})
+          bindings_ruby = @pack.dig("bindings", "ruby") || {}
 
           chains_src, chain_map = ChainsEmitter.render(inputs: @pack.fetch("inputs"))
 
@@ -46,8 +46,8 @@ module Kumi
           pack_hash = %w[declarations inputs bindings].map { |k| @pack.fetch("hashes").fetch(k) }.join(":")
 
           <<~RUBY
-            # AUTOGEN: from kumi pack v#{@pack.fetch("pack_version")} — DO NOT EDIT
-            
+            # AUTOGEN: from kumi pack v#{@pack.fetch('pack_version')} — DO NOT EDIT
+
             module #{@module_name}
               PACK_HASH = #{pack_hash.inspect}.freeze
 

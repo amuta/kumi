@@ -16,7 +16,7 @@ module Kumi
           <<~RUBY
             def [](name)
               case name
-                #{arms.map { |a| a.prepend(" " * 14) }.join("\n")}
+                #{arms.map { |a| a.prepend(' ' * 14) }.join("\n")}
               else
                 raise ArgumentError, "unknown declaration: \#{name}"
               end

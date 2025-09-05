@@ -14,7 +14,7 @@ module Kumi
 
           Array(inputs).each do |inp|
             name = inp.fetch("name")
-            
+
             # Use the chain from the input spec (already computed by access planner)
             steps = Array(inp.fetch("chain"))
 

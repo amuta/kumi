@@ -2,16 +2,13 @@ module SchemaModule
   # Generated code with pack hash: 58f3a405781061c82f6e1656b83a759c7118b6b89d41c231d22f18aa1e7e8af4:6ec2da57b6781ac2d994432609b60356af2bfbd52c362b2f8983c8723ed9d3e3:ceadd786494ca24eba7e856ae169b3f9a404987ad08ce9ea0e41bc8ed0400239
 
   def _each_double
-    # TODO: Implement streaming method for double
     c1 = 2
     v0 = @input["x"]["y"]["z"]
-    c1 = 2
     v2 = __call_kernel__("core.mul", v0, c1)
     yield v2, []
   end
 
   def _eval_double
-    # TODO: Implement materialization for double
     _each_double { |value, _| return value }
   end
 
@@ -32,7 +29,6 @@ module SchemaModule
   private
 
   def __materialize_from_each(name)
-    # TODO: Implement streaming to nested array conversion
     result = []
     send("_each_#{name}") do |value, indices|
       __nest_value(result, indices, value)

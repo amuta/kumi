@@ -18,13 +18,21 @@ module Kumi
         def self.from_op(op:, access_plan:)
           raise "not a reduce op" unless op.kind == :reduce
 
-          axis_sym = (op.attrs[:axis] || op.attrs["axis"]) or raise "Reduce op #{op.id} missing :axis attribute"
-          reducer_fn = (op.attrs[:fn] || op.attrs["fn"]) or raise "Reduce op #{op.id} missing :fn attribute"
+          axis_raw = op.attrs[:axis] || op.attrs["axis"]
+          reducer_fn = op.attrs[:fn] || op.attrs["fn"] or raise "Reduce op #{op.id} missing :fn attribute"
+
+          puts "DEBUG: ReducePlan.from_op - op.id=#{op.id}, axis_raw=#{axis_raw.inspect}"
           
-          axis_sym = axis_sym.to_sym
+          # Handle empty/missing axis
+          axis_str = String(axis_raw).strip
+          raise "Reduce op #{op.id} missing or empty :axis attribute (got #{axis_raw.inspect})" if axis_str.empty?
+
+          axis_sym = axis_str.to_sym
           arg_axes = Array(op.stamp_axes) + [axis_sym] # arg stamp includes axis by IR convention
           result_depth = arg_axes.length - 1
           reducer_fn = reducer_fn.to_s # e.g. "agg.sum"
+
+          puts "DEBUG: ReducePlan.from_op - normalized axis_sym=#{axis_sym.inspect}, required_prefix=#{Array(op.stamp_axes).map(&:to_sym).inspect}"
 
           # Select carrier with proper site prefix (result site = op.stamp_axes)
           required_prefix = Array(op.stamp_axes).map(&:to_sym)
@@ -69,18 +77,28 @@ module Kumi
           }
         end
 
-
-        private
-
         def self.choose_reduce_carrier(axis, required_prefix, access_plan)
-          candidates = access_plan.carriers_for_axis(axis)
-          raise "No input path carries reduce axis #{axis.inspect}" if candidates.empty?
+          axis_sym = axis.to_sym
+          puts "DEBUG: choose_reduce_carrier - axis_sym=#{axis_sym.inspect}, required_prefix=#{required_prefix.inspect}"
+          
+          # Validate axis is not empty
+          raise "blank reduce axis" if axis_sym == :""
+          
+          # Find all inputs that have this axis in their axis_loops
+          candidates = access_plan.inputs_by_path.values.select do |input_spec|
+            has_axis = input_spec.axis_loops.any? { |loop| (loop[:axis] || loop["axis"]).to_sym == axis_sym }
+            puts "DEBUG: checking input #{input_spec.path.join('.')} - has axis #{axis_sym}: #{has_axis}"
+            has_axis
+          end
+          
+          puts "DEBUG: found #{candidates.length} candidates: #{candidates.map { |s| s.path.join('.') }.inspect}"
+          raise "No input path carries reduce axis #{axis_sym.inspect}" if candidates.empty?
 
           # Filter candidates that have compatible prefix for the reduce site
           compatible_candidates = candidates.select do |spec|
             consumed_axes = access_plan.consumes_axes(spec.path)
             axis_index = consumed_axes.index(axis.to_sym)
-            
+
             if axis_index.nil?
               false # doesn't actually consume this axis
             else
@@ -91,13 +109,13 @@ module Kumi
           end
 
           if compatible_candidates.empty?
-            candidate_info = candidates.map { |s| 
+            candidate_info = candidates.map do |s|
               consumed = access_plan.consumes_axes(s.path)
               axis_idx = consumed.index(axis.to_sym)
               prefix = axis_idx ? consumed.take(axis_idx) : consumed
               "#{s.path.join('.')} (prefix: #{prefix.inspect})"
-            }.join(", ")
-            
+            end.join(", ")
+
             raise "No prefix-compatible carrier for reduce axis #{axis.inspect}. " \
                   "Required prefix: #{required_prefix.inspect}. " \
                   "Candidates: #{candidate_info}"
@@ -105,8 +123,8 @@ module Kumi
 
           # Deterministic choice among compatible candidates
           compatible_candidates.find { |s| s.path.map(&:to_s) == [axis.to_s] } ||
-          compatible_candidates.min_by { |s| s.chain.length } ||
-          compatible_candidates.sort_by { |s| s.path.map(&:to_s).join("/") }.first
+            compatible_candidates.min_by { |s| s.axis_loops.length } ||
+            compatible_candidates.min_by { |s| s.path.map(&:to_s).join("/") }
         end
       end
     end

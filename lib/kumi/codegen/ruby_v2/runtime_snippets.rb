@@ -10,7 +10,7 @@ module Kumi
           <<~RUBY
             # === PRIVATE RUNTIME HELPERS (cursor-based, strict) ===
             MISSING_POLICY = #{policy_map.inspect}.freeze
-            
+
             private
 
             def __fetch_key__(obj, key)

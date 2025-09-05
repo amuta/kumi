@@ -54,7 +54,7 @@ module Kumi
         planning = Kumi::Codegen::Planning.to_json(plan_bundle)
 
         bindings = stringify_keys(res.state[:binding_manifest] || {})
-        inputs = stringify_keys(res.state.dig(:irv2, "analysis", "inputs") || [])
+        inputs = stringify_keys(res.state[:input_table] || {})
 
         [irv2, planning, bindings, inputs, module_id]
       end
@@ -78,7 +78,7 @@ module Kumi
 
       def extract_ops_by_decl_with_planning(ir, plan_declarations)
         declarations = ir["declarations"] || {}
-        declarations.keys.sort.map do |name|
+        declarations.keys.map do |name|
           d = declarations[name]
           ops = (d["operations"] || []).map do |op|
             {
@@ -124,15 +124,21 @@ module Kumi
         end
       end
 
-      def extract_inputs(inputs)
-        Array(inputs).map do |inp|
-          name = inp["name"] || Array(inp["path"]).join(".")
+      def extract_inputs(input_table)
+        # input_table is already in the new format with axis_loops  
+        input_table.map do |path_key, entry|
+          path_fqn = entry["path_fqn"]
+          axis_loops = entry["axis_loops"] || []
+          
           {
-            "name" => name,
-            "axes" => inp["axes"] || [],
-            "dtype" => inp["dtype"] || "unknown",
-            "accessor_name" => accessor_name_for(name),
-            "chain" => Array(inp["chain"])
+            "name" => path_fqn,
+            "path_fqn" => path_fqn,
+            "axes" => axis_loops.map { |loop| loop["axis"].to_s },
+            "dtype" => entry["dtype"].to_s,
+            "accessor_name" => accessor_name_for(path_fqn),
+            "axis_loops" => axis_loops,
+            "leaf_nav" => entry["leaf_nav"] || [],
+            "terminal" => entry["terminal"] || {}
           }
         end
       end

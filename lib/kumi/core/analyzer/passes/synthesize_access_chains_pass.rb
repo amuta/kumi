@@ -4,98 +4,83 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # Creates canonical input plans (one per unique input path).
+        # Builds canonical IR input plans directly from input_table (chain-free).
         #
-        # Input:
-        #   - state[:access_plans] : { "a.b.c" => [AccessPlan, ...] }  (your new planner should emit exactly 1 per path)
-        #   - state[:input_table]  : { [:a,:b,:c] => { dtype:, key_policy:, on_missing: } }
+        # Input (state[:input_table]):
+        #   {
+        #     [:a, :b] => {
+        #       axes:       ["a"],                 # optional; if missing we derive from axis_loops
+        #       dtype:      :array|:integer|...,
+        #       key_policy: :indifferent,          # optional (falls back to terminal.key_policy or default)
+        #       on_missing: :error,                # optional (falls back to terminal.on_missing or default)
+        #       axis_loops: [                      # authoritative physical loop steps
+        #         { axis: :a, path: [:a], loop_idx: 0, kind: "array_field", key: "a" }, ...
+        #       ],
+        #       leaf_nav:   [ { "kind" => "field_leaf", "key" => "price" } ],
+        #       terminal:   { "dtype" => "integer", "key_policy" => "indifferent", "on_missing" => "error" },
+        #       path_fqn:   "a.b"
+        #     },
+        #     ...
+        #   }
         #
-        # Output:
-        #   - state[:ir_input_plans] : [ Core::IRV2::InputPlan ]
-        #
-        # Invariants enforced here:
-        #   - Exactly one plan is selected per path (if more are present, prefer :read; otherwise raise).
-        #   - The chain must end in a leaf: "field_leaf" or "element_leaf".
-        #   - Axis count must match the number of array hops in the chain (array_field + array_element).
+        # Output (state[:ir_input_plans]):
+        #   [ Core::IRV2::InputPlan.new(...) ]   # embeds axis_loops & leaf_nav; no chains anywhere
         class SynthesizeAccessChainsPass < PassBase
-          def run(errors)
-            access_plans = get_state(:access_plans_v2, required: true)
-            input_table  = get_state(:input_table, required: true)
+          def run(_errors)
+            input_table = get_state(:input_table, required: true)
 
-            input_plans = build_input_plans(access_plans, input_table, errors)
-            debug "Generated #{input_plans.size} canonical input plans"
+            plans = input_table
+              .sort_by { |(path, _)| path.map(&:to_s).join(".") } # deterministic
+              .map { |path, info| build_input_plan(path, info) }
 
-            state.with(:ir_input_plans, input_plans.freeze)
+            debug "Generated #{plans.size} input plans (chain-free)"
+            state.with(:ir_input_plans, plans.freeze)
           end
 
           private
 
-          def build_input_plans(access_plans, input_table, errors)
-            input_plans = []
+          def build_input_plan(source_path, info)
+            # Normalize hashes coming from earlier passes (may be string-keyed)
+            axis_loops = Array(info[:axis_loops] || info["axis_loops"]).map { |h| symdeep(h) }
+            leaf_nav   = Array(info[:leaf_nav]   || info["leaf_nav"]).map   { |h| symdeep(h) }
+            terminal   = symdeep(info[:terminal] || info["terminal"] || { kind: :none })
 
-            access_plans.each do |path_string, plan_list|
-              next if plan_list.nil? || plan_list.empty?
+            # Axes: prefer explicit, else derive from axis_loops
+            explicit_axes = info[:axes] || info["axes"]
+            axes = (explicit_axes ? Array(explicit_axes) : axis_loops.map { |l| l[:axis] }).map(&:to_sym)
 
-              selected = select_preferred_plan(plan_list)
-              next unless selected
+            dtype = (info[:dtype] || info["dtype"])
+            key_policy = (info[:key_policy] || info["key_policy"] ||
+                          terminal[:key_policy] || :indifferent).to_sym
+            missing_policy = (info[:on_missing] || info["on_missing"] ||
+                              terminal[:on_missing] || :error).to_sym
+            path_fqn = (info[:path_fqn] || info["path_fqn"] ||
+                        source_path.map(&:to_s).join(".")).to_s
 
-              source_path = path_string.split(".").map(&:to_sym)
-              input_info = input_table[source_path]
-              unless input_info
-                add_error(errors, nil, "No input table entry for path: #{source_path.inspect}")
-                next
-              end
-
-              # NEW: validate with dtype awareness
-              # validate_chain!(path_string, selected)
-
-              input_plans << build_input_plan(source_path, selected, input_info)
-              debug "Synthesized canonical plan for #{path_string}: #{source_path.join('.')} (mode: #{selected.mode})"
-            end
-
-            input_plans
-          end
-
-          def build_input_plan(source_path, selected, info)
             Core::IRV2::InputPlan.new(
-              source_path: source_path,
-              axes: selected.containers, # axis lineage from planner
-              dtype: info[:dtype], # authoritative dtype
-              key_policy: info[:key_policy] || selected.key_policy || "indifferent",
-              missing_policy: info[:on_missing] || selected.on_missing || "error",
-              access_chain: selected.chain # canonical chain: array_field/array_element/field_leaf/element_leaf
+              source_path: source_path,     # Array<Symbol>
+              axes: axes,                   # Array<Symbol>
+              dtype: dtype,                 # Symbol or String (kept as provided)
+              key_policy: key_policy,       # Symbol
+              missing_policy: missing_policy, # Symbol
+              axis_loops: axis_loops,       # Array<Hash>
+              leaf_nav: leaf_nav,           # Array<Hash>
+              terminal: terminal,           # Hash
+              path_fqn: path_fqn            # String
             )
           end
 
-          def select_preferred_plan(plan_list)
-            read = plan_list.find { |p| p.mode == :read }
-            return read if read
-
-            ei = plan_list.find { |p| p.mode == :each_indexed }
-            return ei if ei
-
-            raise "No usable plan (:read or :each_indexed) found for path"
-          end
-
-          def validate_chain!(path_string, plan)
-            chain = plan.chain || []
-            raise "Invalid chain for #{path_string}: empty" if chain.empty?
-
-            last_kind = chain.last["kind"]
-            allowed_last = %w[field_leaf element_leaf array_field array_element]
-            unless allowed_last.include?(last_kind)
-              msg = "Invalid chain for #{path_string}: terminal kind must be one of " \
-                    "#{allowed_last.join(', ')}, got #{last_kind.inspect}\n  " \
-                    "Full chain:\n" + chain.map { |x| "    " + x.inspect }.join("\n")
-              raise msg
+          def symdeep(obj)
+            case obj
+            when Hash
+              obj.each_with_object({}) do |(k, v), h|
+                h[k.to_sym] = symdeep(v)
+              end
+            when Array
+              obj.map { |v| symdeep(v) }
+            else
+              obj
             end
-
-            # Hop count must match axis lineage count.
-            axis_hops = chain.count { |s| %w[array_field array_element].include?(s["kind"]) }
-            return if axis_hops == plan.containers.length
-
-            raise "Axis mismatch for #{path_string}: chain hops=#{axis_hops} vs " \
-                  "axes=#{plan.containers.length} (#{plan.containers.map(&:to_s).join(',')})"
           end
         end
       end
