@@ -71,23 +71,17 @@ module Kumi
           path_fqn = path_segs.join(".")
           dtype    = extract_dtype(@meta, path_sym)
 
-          puts "[DEBUG] AccessPlannerV2.emit_entry: path=#{path_fqn}"
-          puts "[DEBUG] AccessPlannerV2.emit_entry: dtype=#{dtype}"
 
           loops, kinds, last_node = compute_axis_loops_and_step_kinds(path_segs)
 
-          puts "[DEBUG] AccessPlannerV2.emit_entry: kinds=#{kinds.inspect}"
-          puts "[DEBUG] AccessPlannerV2.emit_entry: last_node.container=#{last_node&.container}, last_node.enter_via=#{last_node&.enter_via}, last_node.consume_alias=#{last_node&.consume_alias}"
 
           # leaf_nav = trailing field reads only (never element_leaf)
           last_loop_idx = kinds.rindex { |sk| sk == :array_field || sk == :array_element } || -1
           leaf_nav = []
           (last_loop_idx + 1).upto(path_segs.length - 1) do |i|
             if kinds[i] == :field_leaf
-              puts "[DEBUG] AccessPlannerV2.emit_entry: adding field_leaf for segment #{path_segs[i]}"
               leaf_nav << { "kind" => "field_leaf", "key" => path_segs[i].to_s }
             elsif kinds[i] == :element_leaf
-              puts "[DEBUG] AccessPlannerV2.emit_entry: skipping element_leaf for segment #{path_segs[i]} (direct element access)"
               # Don't add to leaf_nav - this is direct element access
             end
           end
@@ -95,17 +89,13 @@ module Kumi
           # terminal.kind
           terminal_kind =
             if kinds.last == :element_leaf
-              puts "[DEBUG] AccessPlannerV2.emit_entry: terminal_kind=element_leaf (arrays-of-scalars from kinds)"
               "element_leaf" # arrays-of-scalars → take the element
             elsif last_node && last_node.container == :scalar && kinds.last != :field_leaf
-              puts "[DEBUG] AccessPlannerV2.emit_entry: terminal_kind=element_leaf (arrays-of-scalars from container)"
               "element_leaf" # arrays-of-scalars → take the element
             else
-              puts "[DEBUG] AccessPlannerV2.emit_entry: terminal_kind=none"
               "none"
             end
 
-          puts "[DEBUG] AccessPlannerV2.emit_entry: leaf_nav=#{leaf_nav.inspect}, terminal_kind=#{terminal_kind}"
 
           entry = {
             axis_loops: loops,
@@ -145,9 +135,6 @@ module Kumi
             child_container  = node.container or raise_contract!(":container", seg, path_segs)
             enter_via        = (idx.zero? ? :hash : (node.enter_via or raise_contract!(":enter_via", seg, path_segs)))
 
-            puts "[DEBUG] AccessPlannerV2.compute_step_kinds: seg=#{seg}, idx=#{idx}"
-            puts "[DEBUG] AccessPlannerV2.compute_step_kinds: parent_container=#{parent_container}, child_container=#{child_container}"
-            puts "[DEBUG] AccessPlannerV2.compute_step_kinds: enter_via=#{enter_via}, consume_alias=#{node.consume_alias}"
 
             case parent_container
             when :object, :hash, :read, nil
@@ -168,7 +155,6 @@ module Kumi
             when :array
               if child_container == :array
                 if alias_step?(node)
-                  puts "[DEBUG] AccessPlannerV2.compute_step_kinds: array->array with alias_step"
                   loops << {
                     axes:     seg.to_sym,
                     path:     path_segs[0..idx].map(&:to_sym),
@@ -179,7 +165,6 @@ module Kumi
                   kinds << :array_element
                   axes_i += 1
                 else
-                  puts "[DEBUG] AccessPlannerV2.compute_step_kinds: array->array without alias_step"
                   loops << {
                     axes:     seg.to_sym,
                     path:     path_segs[0..idx].map(&:to_sym),
@@ -193,15 +178,12 @@ module Kumi
               elsif child_container == :scalar
                 # scalar under array: either alias-to-scalar (arrays-of-scalars) or a field on the element
                 if enter_via == :array || node.consume_alias
-                  puts "[DEBUG] AccessPlannerV2.compute_step_kinds: array->scalar, arrays-of-scalars case (enter_via=#{enter_via}, consume_alias=#{node.consume_alias})"
                   # arrays-of-scalars case → no field read; terminal.kind will be "element_leaf"
                   kinds << :element_leaf # direct element access, not field access
                 else
-                  puts "[DEBUG] AccessPlannerV2.compute_step_kinds: array->scalar, field access case"
                   kinds << :field_leaf
                 end
               else
-                puts "[DEBUG] AccessPlannerV2.compute_step_kinds: array->other (#{child_container})"
                 kinds << :field_leaf
               end
 

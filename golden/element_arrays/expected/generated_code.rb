@@ -90,14 +90,14 @@ module SchemaModule
       c2 = 0
       arr1 = a0
       arr1.each_with_index do |a1, i1|
+        acc_4 = 0
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          acc_4 = 0
           v1 = a2
           ccell_over_limit_1 = 100
           v0_cell_over_limit = a2
           v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
-          v3 = (v0_cell_over_limit ? ccell_over_limit_1 : c2)
+          v3 = (v0 ? v1 : c2)
           acc_4 += v3
           v4 = acc_4
           yield v4, [i0, i1]
@@ -111,25 +111,25 @@ module SchemaModule
   end
 
   def _each_count_over_limit
+    acc_6 = 0
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
-      acc_6 = 0
+      acc_5 = 0
       c1 = 1
       c2 = 0
       arr1 = a0
       arr1.each_with_index do |a1, i1|
-        acc_5 = 0
+        acc_4 = 0
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          acc_4 = 0
           ccell_over_limit_1 = 100
           v0_cell_over_limit = a2
           v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
-          v3 = (v0_cell_over_limit ? c1 : c2)
+          v3 = (v0 ? c1 : c2)
           acc_4 += v3
-          v4 = acc_4
-          acc_5 += v4
         end
+        v4 = acc_4
+        acc_5 += v4
         v5 = acc_5
         acc_6 += v5
       end

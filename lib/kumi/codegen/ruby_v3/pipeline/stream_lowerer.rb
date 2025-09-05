@@ -35,11 +35,23 @@ module Kumi
               ))
             end
 
-            # AccReset for reductions at result depth
+            # AccReset at the parent of the INPUT contribution site (group boundary)
             ctx[:reduce_plans].each do |rp|
               red_id = rp.fetch("op_id")
               init   = identities.fetch(rp.fetch("reducer_fn"))
-              push!(ops, CGIR::Op.acc_reset(name: acc(red_id), depth: clamp.call(rp.fetch("result_depth")), init: init, phase: :pre))
+              arg_id = rp.fetch("arg_id")
+
+              if (child = ctx[:reduce_plans].find { |r| r["op_id"] == arg_id })
+                # NESTED: reset one level above THIS reduction's result group.
+                # Allow -1 so outermost global reductions reset before any loop opens.
+                result_d    = rp.fetch("result_depth")      # logical (not clamped)
+                group_depth = result_d - 1                  # may be -1
+              else
+                # DIRECT: reset one level above the arg op's clamped site.
+                arg_d       = clamp.call(depth_of.fetch(arg_id))
+                group_depth = [arg_d - 1, 0].max
+              end
+              push!(ops, CGIR::Op.acc_reset(name: acc(red_id), depth: group_depth, init: init, phase: :pre))
             end
 
             # Prelude consts at scheduled depth (:pre)
@@ -66,19 +78,21 @@ module Kumi
                 when "const"
                   next if consts[:inline_ids].include?(ir["id"]) || hoisted_const_ids.include?(ir["id"])
                   val = ir.fetch("args").first
-                  push!(ops, emit(code: "c#{ir['id']} = #{literal(val)}", depth: d, defines: [c(ir["id"])], uses: []))
+                  # Namespace constants by declaration name to prevent collisions
+                  const_name = "c#{ctx[:name]}_#{ir['id']}"
+                  push!(ops, emit(code: "#{const_name} = #{literal(val)}", depth: d, defines: [const_name], uses: []))
 
                 when "map"
                   inline_needed_before!(ops, ir.fetch("args"), d, ctx:, view:, consts:, deps:, producer_cache:, axis_steps:)
-                  args_syms = uses_for_args(ir["args"], consts, deps)
+                  args_syms = uses_for_args(ir["args"], consts, deps, ctx: ctx)
                   fn = ir.fetch("attrs").fetch("fn")
-                  push!(ops, emit(code: "v#{ir['id']} = __call_kernel__(#{fn.inspect}, #{ir['args'].map { |a| ref(a, consts, deps) }.join(', ')})",
+                  push!(ops, emit(code: "v#{ir['id']} = __call_kernel__(#{fn.inspect}, #{ir['args'].map { |a| ref(a, consts, deps, ctx: ctx) }.join(', ')})",
                                   depth: d, defines: [v(ir["id"])], uses: args_syms))
 
                 when "select"
                   inline_needed_before!(ops, ir.fetch("args"), d, ctx:, view:, consts:, deps:, producer_cache:, axis_steps:)
-                  args_syms = uses_for_args(ir["args"], consts, deps)
-                  a, b, c = ir["args"].map { |a| ref(a, consts, deps) }
+                  args_syms = uses_for_args(ir["args"], consts, deps, ctx: ctx)
+                  a, b, c = ir["args"].map { |a| ref(a, consts, deps, ctx: ctx) }
                   push!(ops, emit(code: "v#{ir['id']} = (#{a} ? #{b} : #{c})", depth: d, defines: [v(ir["id"])], uses: args_syms))
 
                 when "loaddeclaration"
@@ -91,8 +105,8 @@ module Kumi
                   end
 
                 when "constructtuple"
-                  args_syms = uses_for_args(ir["args"], consts, deps)
-                  push!(ops, emit(code: "v#{ir['id']} = [#{ir['args'].map { |a| ref(a, consts, deps) }.join(', ')}]",
+                  args_syms = uses_for_args(ir["args"], consts, deps, ctx: ctx)
+                  push!(ops, emit(code: "v#{ir['id']} = [#{ir['args'].map { |a| ref(a, consts, deps, ctx: ctx) }.join(', ')}]",
                                   depth: d, defines: [v(ir["id"])], uses: args_syms))
 
                 when "reduce"
@@ -101,16 +115,23 @@ module Kumi
 
                   val_id = rp.fetch("arg_id"); red_id = rp.fetch("op_id"); result_depth = rp.fetch("result_depth")
                   input_is_reduction = ctx[:reduce_plans].any? { |r| r["op_id"] == val_id }
+                  consumed_by_parent = ctx[:reduce_plans].any? { |r| r["arg_id"] == red_id }  # NEW
 
                   if input_is_reduction
                     child_rp = ctx[:reduce_plans].find { |r| r["op_id"] == val_id }
-                    push!(ops, acc_add(name: acc(red_id), expr: v(val_id), depth: clamp.call(child_rp.fetch("result_depth")), phase: :post))
+                    parent_d = clamp.call(child_rp.fetch("result_depth") - 1)  # move up one level
+                    push!(ops, acc_add(name: acc(red_id), expr: v(val_id), depth: parent_d, phase: :post))
+
+                    bind_d = clamp.call(result_depth)
                   else
                     input_depth = clamp.call(depth_of.fetch(val_id))
                     push!(ops, acc_add(name: acc(red_id), expr: v(val_id), depth: input_depth, phase: :body))
+
+                    # bind inner (direct) reductions at the group boundary only if a parent consumes them
+                    bind_d = consumed_by_parent ? [input_depth - 1, 0].max : clamp.call(result_depth)
                   end
 
-                  push!(ops, emit(code: "v#{red_id} = #{acc(red_id)}", depth: clamp.call(result_depth), phase: :post,
+                  push!(ops, emit(code: "v#{red_id} = #{acc(red_id)}", depth: bind_d, phase: :post,
                                   defines: [v(red_id)], uses: [acc(red_id)], op_type: :result_processing))
                 end
               end
@@ -154,16 +175,11 @@ module Kumi
           def c(id)   = "c#{id}"
           def acc(id) = "acc_#{id}"
 
-          def uses_for_args(args, consts, deps)
+          def uses_for_args(args, consts, deps, ctx: nil)
             args.filter_map do |a|
               next unless a.is_a?(Integer)
-              if deps[:inlined_vars]&.key?(a)
-                deps[:inlined_vars][a]
-              elsif consts[:prelude].any? { |c| c[:name] == "c#{a}" }
-                "c#{a}"
-              else
-                "v#{a}"
-              end
+              # Use the same logic as ref() function for consistency
+              ref(a, consts, deps, ctx: ctx)
             end
           end
 
@@ -183,10 +199,32 @@ module Kumi
 
           def literal(x) = x.is_a?(String) ? x.inspect : x
 
-          def ref(arg, consts, deps)
-            return "c#{arg}" if arg.is_a?(Integer) && consts[:prelude].any? { |c| c[:name] == "c#{arg}" }
-            return deps[:inlined_vars][arg] if deps[:inlined_vars]&.key?(arg)
-            arg.is_a?(Integer) ? "v#{arg}" : arg
+          def ref(arg, consts, deps, ctx: nil)
+            if arg.is_a?(Integer)
+              # 1) If inside producer inline, prefer producer-scoped mapping
+              if (producer_name = deps[:inline_scope]&.last)
+                if (var = deps[:inline_map]&.dig(producer_name, arg))
+                  return var
+                end
+              end
+              
+              # 2) Consumer-level rebinds (e.g., LoadDeclaration -> inlined result)  
+              if (var = deps[:rebind]&.[](arg))
+                return var
+              end
+              
+              # 3) Constants - check if constant exists in prelude
+              const_name = "c#{arg}"
+              if consts[:prelude].any? { |c| c[:name] == const_name }
+                return const_name
+              end
+              
+              # 4) Fallback to raw SSA var
+              return "v#{arg}"
+            end
+            
+            # Non-integer arguments pass through
+            arg
           end
 
           # NEW: build Ruby read expr relative to opened loops (not input spec's total loops)
@@ -220,7 +258,15 @@ module Kumi
             deps[:inlined_producers] ||= {}
             return if deps[:inlined_producers][key]
 
-            deps[:inlined_vars] ||= {}
+            # Initialize scoped maps  
+            deps[:inline_scope] ||= []
+            deps[:inline_map]   ||= {}
+            deps[:rebind]       ||= {}
+            
+            # Push producer scope
+            deps[:inline_scope].push(producer_name)
+            deps[:inline_map][producer_name] ||= {}
+            
             pctx = producer_info[:ctx]
             result = pctx[:result_id]
             emitted_pconst = Set.new
@@ -231,41 +277,81 @@ module Kumi
                 case sched["kind"]
                 when "const"
                   next unless emitted_pconst.add?(pop["id"])
-                  var = "c#{producer_name}_#{pop['id']}"
-                  deps[:inlined_vars][pop["id"]] = var
-                  push!(ops, emit(code: "#{var} = #{literal(pop['args'].first)}", depth: consumer_depth, defines: [var], uses: []))
+                  
+                  # Try to find an existing constant with the same value
+                  producer_value = pop['args'].first
+                  existing_const = consts[:prelude].find { |c| c[:value] == producer_value }
+                  
+                  if existing_const
+                    # Reuse existing constant with same value
+                    var = existing_const[:name]
+                  else
+                    # Need to generate new producer-scoped constant  
+                    var = "c#{producer_name}_#{pop['id']}"
+                    push!(ops, emit(code: "#{var} = #{literal(producer_value)}", depth: consumer_depth, defines: [var], uses: []))
+                  end
+                  
+                  # Record in producer-scoped mapping
+                  deps[:inline_map][producer_name][pop["id"]] = var
 
                 when "loadinput"
                   # For inline producers, use the axis_steps to determine loops opened
                   expr = input_expr_for_path(view, pop["args"].first, axis_steps.length)
                   var  = pop["id"] == result ? v(load_decl_id) : "v#{pop['id']}_#{producer_name}"
-                  deps[:inlined_vars][pop["id"]] = var
+                  
+                  # Emit the operation first
                   push!(ops, emit(code: "#{var} = #{expr}", depth: consumer_depth, defines: [var], uses: []))
+                  
+                  # Record in producer-scoped mapping
+                  deps[:inline_map][producer_name][pop["id"]] = var
 
                 when "map"
                   args_syms = pop["args"].filter_map do |a|
-                    if a.is_a?(Integer) && deps[:inlined_vars]&.key?(a)
-                      deps[:inlined_vars][a]
-                    elsif a.is_a?(Integer)
-                      a == result ? v(load_decl_id) : "v#{a}_#{producer_name}"
-                    end
+                    next unless a.is_a?(Integer)
+                    # Use the new ref function which will resolve producer-scoped variables
+                    ref(a, consts, deps, ctx: pctx)
                   end
                   var = pop["id"] == result ? v(load_decl_id) : "v#{pop['id']}_#{producer_name}"
-                  deps[:inlined_vars][pop["id"]] = var
+                  
+                  # Generate the map operation
                   fn = pop["attrs"]["fn"]
-                  push!(ops, emit(code: "#{var} = __call_kernel__(#{fn.inspect}, #{pop['args'].map { |a| ref(a, { prelude: [], inline_ids: Set.new }, deps) }.join(', ')})",
+                  push!(ops, emit(code: "#{var} = __call_kernel__(#{fn.inspect}, #{pop['args'].map { |a| ref(a, consts, deps, ctx: pctx) }.join(', ')})",
                                   depth: consumer_depth, defines: [var], uses: args_syms.compact))
+                  
+                  # Record in producer-scoped mapping
+                  deps[:inline_map][producer_name][pop["id"]] = var
+                  
+                  # If this is the result operation, rebind the consumer LoadDeclaration to this result variable
+                  if pop["id"] == result
+                    deps[:rebind][load_decl_id] = var
+                  end
 
                 when "select"
-                  a, b, c = pop["args"].map { |a| ref(a, { prelude: [], inline_ids: Set.new }, deps) }
+                  # Use the new ref function which will resolve producer-scoped variables
+                  a, b, c = pop["args"].map { |arg_id| ref(arg_id, consts, deps, ctx: pctx) }
                   var = pop["id"] == result ? v(load_decl_id) : "v#{pop['id']}_#{producer_name}"
-                  deps[:inlined_vars][pop["id"]] = var
-                  args_syms = pop["args"].filter_map { |a| a.is_a?(Integer) ? (deps[:inlined_vars][a] || (a == result ? v(load_decl_id) : "v#{a}_#{producer_name}")) : nil }
-                  push!(ops, emit(code: "#{var} = (#{a} ? #{b} : #{c})", depth: consumer_depth, defines: [var], uses: args_syms))
+                  args_syms = pop["args"].filter_map do |arg_id|
+                    next unless arg_id.is_a?(Integer)
+                    ref(arg_id, consts, deps, ctx: pctx)
+                  end
+                  
+                  # Emit the operation first
+                  push!(ops, emit(code: "#{var} = (#{a} ? #{b} : #{c})", depth: consumer_depth, defines: [var], uses: args_syms.compact))
+                  
+                  # Record in producer-scoped mapping
+                  deps[:inline_map][producer_name][pop["id"]] = var
+                  
+                  # If this is the result operation, rebind the consumer LoadDeclaration to this result variable
+                  if pop["id"] == result
+                    deps[:rebind][load_decl_id] = var
+                  end
                 end
               end
             end
 
+            # Pop producer scope
+            deps[:inline_scope].pop
+            
             deps[:inlined_producers][key] = true
           end
 

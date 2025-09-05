@@ -29,9 +29,7 @@ module Kumi
         # @return [Array<Symbol>] axis tokens from axis_loops
         def consumes_axes(path_array)
           s = for_path(path_array) or return []
-          puts "[DEBUG] AccessPlan.consumes_axes: path=#{path_array.inspect}, axis_loops=#{s.axis_loops.inspect}"
           result = s.axis_loops.map { |loop| (loop[:axis] || loop["axis"]).to_s.to_sym }
-          puts "[DEBUG] AccessPlan.consumes_axes: result=#{result.inspect}"
           result
         end
 

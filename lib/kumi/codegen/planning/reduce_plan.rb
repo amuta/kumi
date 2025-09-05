@@ -16,12 +16,12 @@ module Kumi
         attr_reader :op_id, :axis, :result_depth, :arg_id, :reducer_fn, :kernel_id_hint, :carrier_spec
 
         def self.from_op(op:, access_plan:)
+
           raise "not a reduce op" unless op.kind == :reduce
 
           axis_raw = op.attrs[:axis] || op.attrs["axis"]
           reducer_fn = op.attrs[:fn] || op.attrs["fn"] or raise "Reduce op #{op.id} missing :fn attribute"
 
-          puts "DEBUG: ReducePlan.from_op - op.id=#{op.id}, axis_raw=#{axis_raw.inspect}"
           
           # Handle empty/missing axis
           axis_str = String(axis_raw).strip
@@ -32,7 +32,6 @@ module Kumi
           result_depth = arg_axes.length - 1
           reducer_fn = reducer_fn.to_s # e.g. "agg.sum"
 
-          puts "DEBUG: ReducePlan.from_op - normalized axis_sym=#{axis_sym.inspect}, required_prefix=#{Array(op.stamp_axes).map(&:to_sym).inspect}"
 
           # Select carrier with proper site prefix (result site = op.stamp_axes)
           required_prefix = Array(op.stamp_axes).map(&:to_sym)
@@ -79,7 +78,6 @@ module Kumi
 
         def self.choose_reduce_carrier(axis, required_prefix, access_plan)
           axis_sym = axis.to_sym
-          puts "DEBUG: choose_reduce_carrier - axis_sym=#{axis_sym.inspect}, required_prefix=#{required_prefix.inspect}"
           
           # Validate axis is not empty
           raise "blank reduce axis" if axis_sym == :""
@@ -87,11 +85,9 @@ module Kumi
           # Find all inputs that have this axis in their axis_loops
           candidates = access_plan.inputs_by_path.values.select do |input_spec|
             has_axis = input_spec.axis_loops.any? { |loop| (loop[:axis] || loop["axis"]).to_sym == axis_sym }
-            puts "DEBUG: checking input #{input_spec.path.join('.')} - has axis #{axis_sym}: #{has_axis}"
             has_axis
           end
           
-          puts "DEBUG: found #{candidates.length} candidates: #{candidates.map { |s| s.path.join('.') }.inspect}"
           raise "No input path carries reduce axis #{axis_sym.inspect}" if candidates.empty?
 
           # Filter candidates that have compatible prefix for the reduce site

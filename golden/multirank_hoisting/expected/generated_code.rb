@@ -4,7 +4,7 @@ module SchemaModule
   def _each_global_offset_plus
     c1 = 1.0
     v0 = @input["global_offset"]
-    v2 = __call_kernel__("core.add", v0, c1)
+    v2 = __call_kernel__("core.add", v0, v1)
     yield v2, []
   end
 
@@ -19,7 +19,7 @@ module SchemaModule
       v0_global_offset_plus = a0["global_offset"]
       cglobal_offset_plus_1 = 1.0
       v1 = __call_kernel__("core.add", v0_global_offset_plus, cglobal_offset_plus_1)
-      v2 = __call_kernel__("core.add", v0_global_offset_plus, cglobal_offset_plus_1)
+      v2 = __call_kernel__("core.add", v0, v1)
       yield v2, [i0]
     end
   end
@@ -35,7 +35,7 @@ module SchemaModule
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
         v0 = a1["scale"]
-        v2 = __call_kernel__("core.mul", v0, c1)
+        v2 = __call_kernel__("core.mul", v0, v1)
         yield v2, [i0, i1]
       end
     end
@@ -56,10 +56,10 @@ module SchemaModule
           crow_scale2_1 = 2.0
           v0_row_scale2 = a2["scale"]
           v1 = __call_kernel__("core.mul", v0_row_scale2, crow_scale2_1)
-          v2 = __call_kernel__("core.mul", v0_row_scale2, crow_scale2_1)
+          v2 = __call_kernel__("core.mul", v0, v1)
           v0_batch_bias = a2["mean"]
-          v3 = __call_kernel__("core.add", v0_batch_bias, crow_scale2_1)
-          v4 = __call_kernel__("core.add", v3, v3)
+          v3 = __call_kernel__("core.add", v0_batch_bias, v1)
+          v4 = __call_kernel__("core.add", v2, v3)
           yield v4, [i0, i1, i2]
         end
       end

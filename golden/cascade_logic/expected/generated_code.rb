@@ -4,7 +4,7 @@ module SchemaModule
   def _each_y_positive
     c1 = 0
     v0 = @input["y"]
-    v2 = __call_kernel__("core.gt", v0, c1)
+    v2 = __call_kernel__("core.gt", v0, v1)
     yield v2, []
   end
 
@@ -15,7 +15,7 @@ module SchemaModule
   def _each_x_positive
     c1 = 0
     v0 = @input["x"]
-    v2 = __call_kernel__("core.gt", v0, c1)
+    v2 = __call_kernel__("core.gt", v0, v1)
     yield v2, []
   end
 
@@ -34,10 +34,10 @@ module SchemaModule
     v0_x_positive = @input["x"]
     cx_positive_1 = 0
     v1 = __call_kernel__("core.gt", v0_x_positive, cx_positive_1)
-    v2 = __call_kernel__("core.and", v0_x_positive, cx_positive_1)
-    v9 = (v0_x_positive ? c7 : c8)
-    v10 = (cx_positive_1 ? c5 : v9)
-    v11 = (v1 ? c3 : v10)
+    v2 = __call_kernel__("core.and", v0, v1)
+    v9 = (v0 ? v7 : v8)
+    v10 = (v1 ? v5 : v9)
+    v11 = (v2 ? v3 : v10)
     yield v11, []
   end
 

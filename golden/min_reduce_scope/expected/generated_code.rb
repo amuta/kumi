@@ -47,7 +47,7 @@ module SchemaModule
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
         v0 = a1["headcount"]
-        v2 = __call_kernel__("core.gt", v0, c1)
+        v2 = __call_kernel__("core.gt", v0, v1)
         yield v2, [i0, i1]
       end
     end
@@ -68,7 +68,7 @@ module SchemaModule
         cbig_team_1 = 10
         v0_big_team = a1["headcount"]
         v0 = __call_kernel__("core.gt", v0_big_team, cbig_team_1)
-        v3 = (v0_big_team ? cbig_team_1 : c2)
+        v3 = (v0 ? v1 : v2)
         acc_4 += v3
         v4 = acc_4
         yield v4, [i0]

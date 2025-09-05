@@ -74,9 +74,7 @@ module Kumi
           # --- IR parsing into typed structs (minimal, straight from your schema) ---
 
           def parse_module(ir)
-            puts "[DEBUG] Planner.parse_module: processing inputs from new IR format"
             inputs_array = ir.dig("analysis", "inputs") || []
-            puts "[DEBUG] Planner.parse_module: found #{inputs_array.length} inputs"
             inputs = inputs_array.map { |h| parse_input(h) }
             decls  = {}
             (ir["declarations"] || {}).each do |name, d|
@@ -92,16 +90,13 @@ module Kumi
           end
 
           def parse_input(h)
-            puts "[DEBUG] Planner.parse_input: processing input #{h["path_fqn"] || h["path"]}"
             loops = Array(h["axis_loops"]).map do |l|
-              puts "[DEBUG] Planner.parse_input: axis_loop #{l.inspect}"
               {
                 axis:     (l["axes"] || l[:axes]).to_s.to_sym,
                 path:     Array(l["path"] || l[:path]).map(&:to_s),
                 loop_idx: (l["loop_idx"] || l[:loop_idx]).to_i
               }
             end
-            puts "[DEBUG] Planner.parse_input: created #{loops.length} axis loops"
             
             Kumi::Codegen::Planning::InputSpec.new(
               path:       Array(h["path"] || h["path_fqn"]).map(&:to_s),

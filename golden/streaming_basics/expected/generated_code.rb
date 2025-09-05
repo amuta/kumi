@@ -20,7 +20,7 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       c1 = 1.0
       v2 = a0["discount"]
-      v3 = __call_kernel__("core.sub", c1, v2)
+      v3 = __call_kernel__("core.sub", v1, v2)
       v0 = a0["price"]
       v4 = __call_kernel__("core.mul", v0, v3)
       yield v4, [i0]
@@ -36,7 +36,7 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       c1 = 100.0
       v0 = a0["price"]
-      v2 = __call_kernel__("core.gt", v0, c1)
+      v2 = __call_kernel__("core.gt", v0, v1)
       yield v2, [i0]
     end
   end
@@ -52,11 +52,11 @@ module SchemaModule
       v0_items_subtotal = a0["price"]
       v1_items_subtotal = a0["qty"]
       v1 = __call_kernel__("core.mul", v0_items_subtotal, v1_items_subtotal)
-      v3 = __call_kernel__("core.mul", v1_items_subtotal, c2)
+      v3 = __call_kernel__("core.mul", v1, v2)
       citems_is_big_1 = 100.0
       v0_items_is_big = a0["price"]
       v0 = __call_kernel__("core.gt", v0_items_is_big, citems_is_big_1)
-      v5 = (v0_items_is_big ? v3 : citems_is_big_1)
+      v5 = (v0 ? v3 : v1)
       yield v5, [i0]
     end
   end

@@ -98,9 +98,7 @@ module Kumi
           end
 
           def build_canonical_inputs(input_plans)
-            puts "[DEBUG] AssembleIRV2Pass: building canonical inputs from #{input_plans.size} plans"
             input_plans.map do |plan|
-              puts "[DEBUG] AssembleIRV2Pass: processing plan path=#{plan.source_path.inspect}"
               result = {
                 "path"         => Array(plan.source_path).map(&:to_s),
                 "axes"         => Array(plan.axes).map(&:to_s),
@@ -112,8 +110,6 @@ module Kumi
                 "terminal"     => stringify_deep(plan.terminal || { kind: :none }),
                 "path_fqn"     => (plan.path_fqn || Array(plan.source_path).map(&:to_s).join("."))
               }
-              puts "[DEBUG] AssembleIRV2Pass: axis_loops=#{result["axis_loops"].inspect}"
-              puts "[DEBUG] AssembleIRV2Pass: leaf_nav=#{result["leaf_nav"].inspect}"
               result
             end
           end
