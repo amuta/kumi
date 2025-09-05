@@ -1,0 +1,4 @@
+kernels:
+  - id: core.concat:ruby:v1
+    fn: core.concat
+    impl: "->(a, b) { a.to_s + b.to_s }"

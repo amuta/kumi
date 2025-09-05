@@ -1,0 +1,14 @@
+{
+  "ir_ref": "sha256:81e3ddeee93fd25a535418c35cbe0b9dcebbbeaf6b72e2cdb3cf4ad6ee71d163",
+  "target": "ruby",
+  "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
+  "bindings": [
+    {"decl":"y_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"x_positive","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"status","op":2,"fn":"core.and","kernel_id":"core.and:ruby:v1"}
+  ],
+  "kernels": [
+    {"kernel_id":"core.gt:ruby:v1","impl":"(a, b)\n  a > b","attrs":{}},
+    {"kernel_id":"core.and:ruby:v1","impl":"(a, b)\n  a && b","attrs":{}}
+  ]
+}

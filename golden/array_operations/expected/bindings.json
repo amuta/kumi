@@ -1,0 +1,54 @@
+{
+  "ir_ref": "sha256:13b2c0e7f2cc194fef132db85af5620efb8b162ceae46cead85d22b8e9a12d42",
+  "target": "ruby",
+  "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
+  "bindings": [
+    {
+      "decl": "subtotals",
+      "op": 2,
+      "fn": "core.mul",
+      "kernel_id": "core.mul:ruby:v1"
+    },
+    {
+      "decl": "discounted_price",
+      "op": 2,
+      "fn": "core.mul",
+      "kernel_id": "core.mul:ruby:v1"
+    },
+    {
+      "decl": "is_valid_quantity",
+      "op": 2,
+      "fn": "core.gt",
+      "kernel_id": "core.gt:ruby:v1"
+    },
+    {
+      "decl": "expensive_items",
+      "op": 2,
+      "fn": "core.gt",
+      "kernel_id": "core.gt:ruby:v1"
+    },
+    {
+      "decl": "electronics",
+      "op": 2,
+      "fn": "core.eq",
+      "kernel_id": "core.eq:ruby:v1"
+    }
+  ],
+  "kernels": [
+    {
+      "kernel_id": "core.mul:ruby:v1",
+      "impl": "(a, b)\n  a * b",
+      "attrs": {}
+    },
+    {
+      "kernel_id": "core.gt:ruby:v1",
+      "impl": "(a, b)\n  a > b",
+      "attrs": {}
+    },
+    {
+      "kernel_id": "core.eq:ruby:v1",
+      "impl": "(a, b)\n  a == b",
+      "attrs": {}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "big_team": [
+    [true, false, true],
+    [false, true, false]
+  ],
+  "dept_total": [35, 32],
+  "company_total": 67,
+  "dept_total_masked": [27, 20]
+}

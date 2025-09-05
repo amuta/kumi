@@ -1,0 +1,21 @@
+schema do
+  input do
+    array :depts do
+      array :teams do
+        integer :headcount
+      end
+    end
+  end
+
+  # elementwise check stays at team scope
+  trait :big_team, input.depts.teams.headcount > 10
+
+  # 1) department totals: must drop :teams only
+  value :dept_total, fn(:sum, input.depts.teams.headcount)
+
+  # 2) company total: must drop :teams then :depts  
+  value :company_total, fn(:sum, fn(:sum, input.depts.teams.headcount))
+
+  # 3) masked reduction: sum only headcount from big teams  
+  value :dept_total_masked, fn(:sum_if, input.depts.teams.headcount, big_team)
+end

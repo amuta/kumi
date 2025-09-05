@@ -8,7 +8,7 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select].freeze
 
         def initialize(context)
           @context = context
@@ -53,6 +53,14 @@ module Kumi
           update_location
           expr_args = args.map { |a| ensure_syntax(a) }
           Kumi::Syntax::CallExpression.new(fn_name, expr_args, loc: @context.current_location)
+        end
+
+        def select(condition, value_when_true, value_when_false)
+          update_location
+          condition_expr = ensure_syntax(condition)
+          true_expr = ensure_syntax(value_when_true)
+          false_expr = ensure_syntax(value_when_false)
+          Kumi::Syntax::CallExpression.new(:__select__, [condition_expr, true_expr, false_expr], loc: @context.current_location)
         end
 
         def method_missing(method_name, *args, &block)

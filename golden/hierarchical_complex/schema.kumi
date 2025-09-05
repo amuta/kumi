@@ -1,0 +1,30 @@
+schema do
+  input do
+    array :regions do
+      array :offices do
+        array :teams do
+          float :performance_score
+          array :employees do
+            float :salary
+            float :rating
+            string :level
+          end
+        end
+      end
+    end
+  end
+
+  # Employee-level traits
+  trait :high_performer, input.regions.offices.teams.employees.rating >= 4.5
+  trait :senior_level, input.regions.offices.teams.employees.level == "senior"
+
+  # Team-level trait (parent dimension)
+  trait :top_team, input.regions.offices.teams.performance_score >= 0.9
+
+  # This should work: team-level condition broadcasts to employee-level
+  value :employee_bonus do
+    on high_performer, senior_level, top_team, input.regions.offices.teams.employees.salary * 0.30
+    on high_performer, top_team, input.regions.offices.teams.employees.salary * 0.20
+    base input.regions.offices.teams.employees.salary * 0.05
+  end
+end

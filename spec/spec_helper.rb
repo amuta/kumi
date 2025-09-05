@@ -4,22 +4,22 @@ require "bundler/setup"
 require "kumi"
 require "open3"
 
-require "simplecov"
-SimpleCov.start do
-  add_filter "/spec/"
-  add_filter "/vendor/"
+# require "simplecov"
+# SimpleCov.start do
+#   add_filter "/spec/"
+#   add_filter "/vendor/"
 
-  add_group "AnalyzerDebug", ["lib/kumi/core/analyzer/debug/*.rb", "lib/kumi/core/analyzer/debug.rb"]
-  add_group "Analyzer", ["lib/kumi/core/analyzer/", "lib/kumi/analyzer.rb"]
-  add_group "Runtime", ["lib/kumi/runtime/"]
-  add_group "Interpreter", ["lib/kumi/core/ir"]
-  add_group "Syntax", ["lib/kumi/syntax"]
-  add_group "Frontends", ["lib/kumi/frontends"]
-  add_group "Kernels", ["lib/kumi/kernels"]
+#   add_group "AnalyzerDebug", ["lib/kumi/core/analyzer/debug/*.rb", "lib/kumi/core/analyzer/debug.rb"]
+#   add_group "Analyzer", ["lib/kumi/core/analyzer/", "lib/kumi/analyzer.rb"]
+#   add_group "Runtime", ["lib/kumi/runtime/"]
+#   add_group "Interpreter", ["lib/kumi/core/ir"]
+#   add_group "Syntax", ["lib/kumi/syntax"]
+#   add_group "Frontends", ["lib/kumi/frontends"]
+#   add_group "Kernels", ["lib/kumi/kernels"]
 
-  minimum_coverage 0
-  track_files "lib/**/*.rb"
-end
+#   minimum_coverage 0
+#   track_files "lib/**/*.rb"
+# end
 
 Dir[File.join(__dir__, "support/**/*.rb")].each { |f| require f }
 

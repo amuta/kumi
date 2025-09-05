@@ -1,0 +1,221 @@
+(SNAST
+  (VALUE global_offset_plus
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v4"
+      topo_index: 4
+      target_name: :global_offset_plus
+    }
+    (Call :"core.add"
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v3"
+      topo_index: 3
+      plan: {
+        kind: elementwise
+        target_axes_tokens: []
+        needs_expand_flags: [false, false]
+      }
+    }
+    args:
+      (InputRef [:global_offset]
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v1"
+          topo_index: 1
+        }
+      )
+      (Const 1.0
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v2"
+          topo_index: 2
+        }
+      )
+  )
+  )
+  (VALUE batch_bias
+    meta: {
+      stamp: {axes_tokens: [:batch], dtype: float}
+      value_id: "v8"
+      topo_index: 8
+      target_name: :batch_bias
+    }
+    (Call :"core.add"
+    meta: {
+      stamp: {axes_tokens: [:batch], dtype: float}
+      value_id: "v7"
+      topo_index: 7
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:batch]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (InputRef [:batch, :mean]
+        meta: {
+          stamp: {axes_tokens: [:batch], dtype: float}
+          value_id: "v5"
+          topo_index: 5
+        }
+      )
+      (Ref global_offset_plus
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v6"
+          topo_index: 6
+          referenced_name: :global_offset_plus
+        }
+      )
+  )
+  )
+  (VALUE row_scale2
+    meta: {
+      stamp: {axes_tokens: [:batch, :row], dtype: float}
+      value_id: "v12"
+      topo_index: 12
+      target_name: :row_scale2
+    }
+    (Call :"core.mul"
+    meta: {
+      stamp: {axes_tokens: [:batch, :row], dtype: float}
+      value_id: "v11"
+      topo_index: 11
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:batch, :row]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (InputRef [:batch, :row, :scale]
+        meta: {
+          stamp: {axes_tokens: [:batch, :row], dtype: float}
+          value_id: "v9"
+          topo_index: 9
+        }
+      )
+      (Const 2.0
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v10"
+          topo_index: 10
+        }
+      )
+  )
+  )
+  (VALUE elem_affine
+    meta: {
+      stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+      value_id: "v18"
+      topo_index: 18
+      target_name: :elem_affine
+    }
+    (Call :"core.add"
+    meta: {
+      stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+      value_id: "v17"
+      topo_index: 17
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:batch, :row, :col]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (Call :"core.mul"
+        meta: {
+          stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+          value_id: "v15"
+          topo_index: 15
+          plan: {
+            kind: elementwise
+            target_axes_tokens: [:batch, :row, :col]
+            needs_expand_flags: [false, true]
+          }
+        }
+        args:
+          (InputRef [:batch, :row, :col, :val]
+            meta: {
+              stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+              value_id: "v13"
+              topo_index: 13
+            }
+          )
+          (Ref row_scale2
+            meta: {
+              stamp: {axes_tokens: [:batch, :row], dtype: float}
+              value_id: "v14"
+              topo_index: 14
+              referenced_name: :row_scale2
+            }
+          )
+      )
+      (Ref batch_bias
+        meta: {
+          stamp: {axes_tokens: [:batch], dtype: float}
+          value_id: "v16"
+          topo_index: 16
+          referenced_name: :batch_bias
+        }
+      )
+  )
+  )
+  (VALUE row_sum_affine
+    meta: {
+      stamp: {axes_tokens: [:batch, :row], dtype: float}
+      value_id: "v21"
+      topo_index: 21
+      target_name: :row_sum_affine
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [:batch, :row], dtype: float}
+      value_id: "v20"
+      topo_index: 20
+      plan: {
+        kind: reduce
+        last_axis_token: :col
+      }
+    }
+    args:
+      (Ref elem_affine
+        meta: {
+          stamp: {axes_tokens: [:batch, :row, :col], dtype: float}
+          value_id: "v19"
+          topo_index: 19
+          referenced_name: :elem_affine
+        }
+      )
+  )
+  )
+  (VALUE batch_total_affine
+    meta: {
+      stamp: {axes_tokens: [:batch], dtype: float}
+      value_id: "v24"
+      topo_index: 24
+      target_name: :batch_total_affine
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [:batch], dtype: float}
+      value_id: "v23"
+      topo_index: 23
+      plan: {
+        kind: reduce
+        last_axis_token: :row
+      }
+    }
+    args:
+      (Ref row_sum_affine
+        meta: {
+          stamp: {axes_tokens: [:batch, :row], dtype: float}
+          value_id: "v22"
+          topo_index: 22
+          referenced_name: :row_sum_affine
+        }
+      )
+  )
+  )
+)

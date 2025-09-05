@@ -205,6 +205,17 @@ module Kumi
               param_types: [:boolean],
               return_type: :boolean,
               description: "Element-wise AND for arrays with same nested structure"
+            ),
+
+            # Conditional selection (ternary operator)
+            select: FunctionBuilder::Entry.new(
+              fn: lambda do |condition, value_when_true, value_when_false|
+                condition ? value_when_true : value_when_false
+              end,
+              arity: 3,
+              param_types: %i[boolean any any],
+              return_type: :any,
+              description: "Select value based on condition (ternary operator)"
             )
           }
         end

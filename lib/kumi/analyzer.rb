@@ -8,28 +8,45 @@ module Kumi
     DEFAULT_PASSES = [
       Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
       Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Core::Analyzer::Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
-      Core::Analyzer::Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
-      Core::Analyzer::Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
-      Core::Analyzer::Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Core::Analyzer::Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeChecker,                     # 11. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 12. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 13. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 14. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass,                   # 15. Lowers the schema to IR (Generates IR Structs)
-      Core::Analyzer::Passes::LoadInputCSE,                    # 16. Eliminates redundant load_input operations
-      Core::Analyzer::Passes::IRDependencyPass,                # 17. Extracts IR-level dependencies for VM execution optimization
-      Core::Analyzer::Passes::IRExecutionSchedulePass          # 18. Builds a precomputed execution schedule.
+      Core::Analyzer::Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
+      Core::Analyzer::Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+      Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+      Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      Core::Analyzer::Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
+      Core::Analyzer::Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
+      Core::Analyzer::Passes::TypeChecker,                     # 10. Validates types using inferred information.
+      Core::Analyzer::Passes::InputAccessPlannerPass,          # 11. Plans access strategies for input fields.
+      Core::Analyzer::Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
+      Core::Analyzer::Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
+      Core::Analyzer::Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
+      Core::Analyzer::Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
+      Core::Analyzer::Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
+      Core::Analyzer::Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, **opts)
+    # Parallel pipeline passes for NAST->HIR->IR approach
+    # These run independently to build side tables for deterministic HIR generation
+    SIDE_TABLE_PASSES = [
+      Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
+      Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
+      Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
+      Core::Analyzer::Passes::SynthesizeAccessChainsPass,      # Creates canonical input plans from input_table
+      Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
+      Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
+      Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
+    ].freeze
+
+    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
       state = Core::Analyzer::AnalysisState.new(opts)
       errors = []
 
       state = run_analysis_passes(schema, passes, state, errors)
+
+      # Run side table passes for NAST->HIR->IR pipeline
+      state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors) if side_tables
+
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)
     end
@@ -44,9 +61,9 @@ module Kumi
       skipping   = !!resume_at
 
       passes.each_with_index do |pass_class, idx|
-        raise handle_analysis_errors(errors) if (ERROR_THRESHOLD_PASS == pass_class) && !errors.empty?
+        raise handle_analysis_errors(errors) if !errors.empty? && # (ERROR_THRESHOLD_PASS == pass_class)
 
-        pass_name = pass_class.name.split("::").last
+                                                pass_name = pass_class.name.split("::").last
 
         if skipping
           skipping = false if pass_name == resume_at
@@ -62,7 +79,7 @@ module Kumi
         pass_instance = pass_class.new(schema, state)
         begin
           state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
-            pass_instance.run(errors)
+            pass_state = pass_instance.run(errors)
           end
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
@@ -84,6 +101,10 @@ module Kumi
 
           raise
         end
+        unless state.is_a? Kumi::Core::Analyzer::AnalysisState
+          raise "Pass #{pass_name} returned a '#{state.class}', expected 'AnalysisState'"
+        end
+
         elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
 
         if debug_on
@@ -118,7 +139,11 @@ module Kumi
     end
 
     def self.handle_analysis_errors(errors)
-      type_errors = errors.select { |e| e.type == :type }
+      if errors.first.is_a? String
+        raise Kumi::Errors::AnalysisError, "\n" + errors.join("\n")
+      end
+
+      type_errors = errors.select { |e| e.type == :type } 
       first_error_location = errors.first.location
 
       raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?

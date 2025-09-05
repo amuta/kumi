@@ -1,0 +1,22 @@
+{
+  "numbers": [
+    {"value": 10},
+    {"value": 20},
+    {"value": 30}
+  ],
+  "scalar_val": 100,
+  "matrix": [
+    {
+      "row": [
+        {"cell": 1.5},
+        {"cell": 2.5}
+      ]
+    },
+    {
+      "row": [
+        {"cell": 3.5},
+        {"cell": 4.5}
+      ]
+    }
+  ]
+}

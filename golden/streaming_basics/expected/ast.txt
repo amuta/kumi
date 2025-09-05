@@ -1,0 +1,60 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array access_mode: :field
+      [
+        (InputDeclaration :price :float)
+        (InputDeclaration :qty :integer)
+      ]
+    )
+    (InputDeclaration :discount :float)
+  ]
+  values: [
+    (ValueDeclaration :items_subtotal
+      (CallExpression :multiply
+        (InputElementReference items.price)
+        (InputElementReference items.qty)
+      )
+    )
+    (ValueDeclaration :items_discounted
+      (CallExpression :multiply
+        (InputElementReference items.price)
+        (CallExpression :subtract
+          (Literal 1.0)
+          (InputReference :discount)
+        )
+      )
+    )
+    (ValueDeclaration :items_is_big
+      (CallExpression :>
+        (InputElementReference items.price)
+        (Literal 100.0)
+      )
+    )
+    (ValueDeclaration :items_effective
+      (CallExpression :select
+        (DeclarationReference :items_is_big)
+        (CallExpression :multiply
+          (DeclarationReference :items_subtotal)
+          (Literal 0.9)
+        )
+        (DeclarationReference :items_subtotal)
+      )
+    )
+    (ValueDeclaration :total_qty
+      (CallExpression :sum
+        (InputElementReference items.qty)
+      )
+    )
+    (ValueDeclaration :cart_total
+      (CallExpression :sum
+        (DeclarationReference :items_subtotal)
+      )
+    )
+    (ValueDeclaration :cart_total_effective
+      (CallExpression :sum
+        (DeclarationReference :items_effective)
+      )
+    )
+  ]
+  traits: []
+)

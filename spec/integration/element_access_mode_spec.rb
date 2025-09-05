@@ -5,11 +5,12 @@ RSpec.describe "Element Access Mode Integration (simplified)" do
   describe "3D Arrays (cube)" do
     module CubeSchema
       extend Kumi::Schema
+
       schema do
         input do
           array :cube do
             element :array, :layer do
-              element :array, :matrix do
+              element :array, :row do
                 element :integer, :cell
               end
             end
@@ -18,22 +19,22 @@ RSpec.describe "Element Access Mode Integration (simplified)" do
 
         value :cube,  input.cube
         value :layer, input.cube.layer
-        value :matrix, input.cube.layer.matrix
-        value :cell,   input.cube.layer.matrix.cell
+        value :row, input.cube.layer.row
+        value :cell, input.cube.layer.row.cell
       end
     end
 
     let(:cube_data) do
       { cube: [ # cube
         [ # layer 1
-          [ # matrix 1
+          [ # row 1
             [1, 2], # cell 1
             [3, 4]  # cell 2
           ],
-          [[5, 6, 7]] # matrix 2
+          [[5, 6, 7]] # row 2
         ],
         [ # layer 2
-          [ # matrix 2
+          [ # row 2
             [8, 9], # cell 3
             [10, 11], # cell 4
             [12, 13] # cell 52
@@ -46,7 +47,7 @@ RSpec.describe "Element Access Mode Integration (simplified)" do
       r = CubeSchema.from(cube_data)
       expect(r[:cube]).to   eq(cube_data[:cube])
       expect(r[:layer]).to  eq(cube_data[:cube])
-      expect(r[:matrix]).to eq(cube_data[:cube])
+      expect(r[:row]).to eq(cube_data[:cube])
     end
   end
 

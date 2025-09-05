@@ -1,0 +1,26 @@
+{
+  "regions": [
+    {
+      "offices": [
+        {
+          "teams": [
+            {
+              "performance_score": 0.95,
+              "employees": [
+                {"salary": 120000.0, "rating": 4.8, "level": "senior"},
+                {"salary": 85000.0, "rating": 4.2, "level": "mid"}
+              ]
+            },
+            {
+              "performance_score": 0.75,
+              "employees": [
+                {"salary": 95000.0, "rating": 4.6, "level": "senior"},
+                {"salary": 70000.0, "rating": 3.9, "level": "junior"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

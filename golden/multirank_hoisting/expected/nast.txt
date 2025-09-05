@@ -1,0 +1,39 @@
+(NAST
+  (VALUE global_offset_plus
+    (Call :"core.add"
+    (InputRef [:global_offset])
+    (Const 1.0)
+  )
+  )
+  (VALUE batch_bias
+    (Call :"core.add"
+    (InputRef [:batch, :mean])
+    (Ref global_offset_plus)
+  )
+  )
+  (VALUE row_scale2
+    (Call :"core.mul"
+    (InputRef [:batch, :row, :scale])
+    (Const 2.0)
+  )
+  )
+  (VALUE elem_affine
+    (Call :"core.add"
+    (Call :"core.mul"
+      (InputRef [:batch, :row, :col, :val])
+      (Ref row_scale2)
+    )
+    (Ref batch_bias)
+  )
+  )
+  (VALUE row_sum_affine
+    (Call :"agg.sum"
+    (Ref elem_affine)
+  )
+  )
+  (VALUE batch_total_affine
+    (Call :"agg.sum"
+    (Ref row_sum_affine)
+  )
+  )
+)

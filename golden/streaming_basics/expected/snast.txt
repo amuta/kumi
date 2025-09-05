@@ -1,0 +1,275 @@
+(SNAST
+  (VALUE items_subtotal
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v4"
+      topo_index: 4
+      target_name: :items_subtotal
+    }
+    (Call :"core.mul"
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v3"
+      topo_index: 3
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, false]
+      }
+    }
+    args:
+      (InputRef [:items, :price]
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v1"
+          topo_index: 1
+        }
+      )
+      (InputRef [:items, :qty]
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: integer}
+          value_id: "v2"
+          topo_index: 2
+        }
+      )
+  )
+  )
+  (VALUE items_discounted
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v10"
+      topo_index: 10
+      target_name: :items_discounted
+    }
+    (Call :"core.mul"
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v9"
+      topo_index: 9
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (InputRef [:items, :price]
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v5"
+          topo_index: 5
+        }
+      )
+      (Call :"core.sub"
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v8"
+          topo_index: 8
+          plan: {
+            kind: elementwise
+            target_axes_tokens: []
+            needs_expand_flags: [false, false]
+          }
+        }
+        args:
+          (Const 1.0
+            meta: {
+              stamp: {axes_tokens: [], dtype: float}
+              value_id: "v6"
+              topo_index: 6
+            }
+          )
+          (InputRef [:discount]
+            meta: {
+              stamp: {axes_tokens: [], dtype: float}
+              value_id: "v7"
+              topo_index: 7
+            }
+          )
+      )
+  )
+  )
+  (VALUE items_is_big
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: boolean}
+      value_id: "v14"
+      topo_index: 14
+      target_name: :items_is_big
+    }
+    (Call :"core.gt"
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: boolean}
+      value_id: "v13"
+      topo_index: 13
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, true]
+      }
+    }
+    args:
+      (InputRef [:items, :price]
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v11"
+          topo_index: 11
+        }
+      )
+      (Const 100.0
+        meta: {
+          stamp: {axes_tokens: [], dtype: float}
+          value_id: "v12"
+          topo_index: 12
+        }
+      )
+  )
+  )
+  (VALUE items_effective
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v21"
+      topo_index: 21
+      target_name: :items_effective
+    }
+    (Call :__select__
+    meta: {
+      stamp: {axes_tokens: [:items], dtype: float}
+      value_id: "v20"
+      topo_index: 20
+      plan: {
+        kind: elementwise
+        target_axes_tokens: [:items]
+        needs_expand_flags: [false, false, false]
+      }
+    }
+    args:
+      (Ref items_is_big
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: boolean}
+          value_id: "v15"
+          topo_index: 15
+          referenced_name: :items_is_big
+        }
+      )
+      (Call :"core.mul"
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v18"
+          topo_index: 18
+          plan: {
+            kind: elementwise
+            target_axes_tokens: [:items]
+            needs_expand_flags: [false, true]
+          }
+        }
+        args:
+          (Ref items_subtotal
+            meta: {
+              stamp: {axes_tokens: [:items], dtype: float}
+              value_id: "v16"
+              topo_index: 16
+              referenced_name: :items_subtotal
+            }
+          )
+          (Const 0.9
+            meta: {
+              stamp: {axes_tokens: [], dtype: float}
+              value_id: "v17"
+              topo_index: 17
+            }
+          )
+      )
+      (Ref items_subtotal
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v19"
+          topo_index: 19
+          referenced_name: :items_subtotal
+        }
+      )
+  )
+  )
+  (VALUE total_qty
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v24"
+      topo_index: 24
+      target_name: :total_qty
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [], dtype: integer}
+      value_id: "v23"
+      topo_index: 23
+      plan: {
+        kind: reduce
+        last_axis_token: :items
+      }
+    }
+    args:
+      (InputRef [:items, :qty]
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: integer}
+          value_id: "v22"
+          topo_index: 22
+        }
+      )
+  )
+  )
+  (VALUE cart_total
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v27"
+      topo_index: 27
+      target_name: :cart_total
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v26"
+      topo_index: 26
+      plan: {
+        kind: reduce
+        last_axis_token: :items
+      }
+    }
+    args:
+      (Ref items_subtotal
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v25"
+          topo_index: 25
+          referenced_name: :items_subtotal
+        }
+      )
+  )
+  )
+  (VALUE cart_total_effective
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v30"
+      topo_index: 30
+      target_name: :cart_total_effective
+    }
+    (Call :"agg.sum"
+    meta: {
+      stamp: {axes_tokens: [], dtype: float}
+      value_id: "v29"
+      topo_index: 29
+      plan: {
+        kind: reduce
+        last_axis_token: :items
+      }
+    }
+    args:
+      (Ref items_effective
+        meta: {
+          stamp: {axes_tokens: [:items], dtype: float}
+          value_id: "v28"
+          topo_index: 28
+          referenced_name: :items_effective
+        }
+      )
+  )
+  )
+)

@@ -9,9 +9,7 @@ This document provides a comprehensive comparison of Kumi's DSL syntax showing b
 - [Value Declarations](#value-declarations)
 - [Trait Declarations](#trait-declarations)
 - [Expressions](#expressions)
-- [Functions](#functions)
 - [Array Broadcasting](#array-broadcasting)
-- [Cascade Logic](#cascade-logic)
 - [References](#references)
 
 ## Schema Structure
@@ -19,7 +17,6 @@ This document provides a comprehensive comparison of Kumi's DSL syntax showing b
 ### Basic Schema Template
 
 ```ruby
-# With Sugar (Recommended)
 module MySchema
   extend Kumi::Schema
 
@@ -29,19 +26,6 @@ module MySchema
     end
 
     # Traits and values using sugar syntax
-  end
-end
-
-# Sugar-Free (Explicit)
-module MySchema
-  extend Kumi::Schema
-
-  schema do
-    input do
-      # Input field declarations (same)
-    end
-
-    # Traits and values using explicit function calls
   end
 end
 ```
@@ -69,17 +53,10 @@ end
 ### Arithmetic Operations
 
 ```ruby
-# With Sugar
 value :total_score, input.math_score + input.verbal_score + input.writing_score
 value :average_score, total_score / 3
 value :scaled_score, average_score * 1.5
 value :final_score, scaled_score - input.penalty_points
-
-# Sugar-Free
-value :total_score, fn(:add, fn(:add, input.math_score, input.verbal_score), input.writing_score)
-value :average_score, fn(:divide, total_score, 3)
-value :scaled_score, fn(:multiply, average_score, 1.5)
-value :final_score, fn(:subtract, scaled_score, input.penalty_points)
 ```
 
 ### Mathematical Functions
@@ -142,68 +119,17 @@ trait :contains_space, fn(:contains?, input.name, " ")
 ### Complex Expressions
 
 ```ruby
-# With Sugar
 value :weighted_score, (input.math_score * 0.4) + (input.verbal_score * 0.3) + (input.writing_score * 0.3)
 value :percentile_rank, ((scored_better_than / total_students) * 100).round(2)
-
-# Sugar-Free
-value :weighted_score, fn(:add, 
-  fn(:add, 
-    fn(:multiply, input.math_score, 0.4), 
-    fn(:multiply, input.verbal_score, 0.3)
-  ), 
-  fn(:multiply, input.writing_score, 0.3)
-)
-value :percentile_rank, fn(:round, 
-  fn(:multiply, 
-    fn(:divide, scored_better_than, total_students), 
-    100
-  ), 
-  2
-)
 ```
 
 ### Collection Operations
 
 ```ruby
-# With Sugar
 value :total_scores, input.score_array.sum
 value :score_count, input.score_array.size
 value :unique_scores, input.score_array.uniq.size
 value :sorted_scores, input.score_array.sort
-
-# Sugar-Free
-value :total_scores, fn(:sum, input.score_array)
-value :score_count, fn(:size, input.score_array)
-value :unique_scores, fn(:size, fn(:unique, input.score_array))
-value :sorted_scores, fn(:sort, input.score_array)
-```
-
-## Functions
-
-### Built-in Functions Available
-
-See [FUNCTIONS.md](FUNCTIONS.md)
-
-| Category | Sugar | Sugar-Free |
-|----------|-------|------------|
-| **Arithmetic** | `+`, `-`, `*`, `/`, `**` | `fn(:add, a, b)`, `fn(:subtract, a, b)`, etc. |
-| **Comparison** | `>`, `<`, `>=`, `<=`, `==`, `!=` | `fn(:>, a, b)`, `fn(:<, a, b)`, etc. |
-| **Logical** | `&` `|` | `fn(:and, a, b)`, `fn(:or, a, b)`, `fn(:not, a)` |
-| **Math** | `abs`, `round`, `ceil`, `floor` | `fn(:abs, x)`, `fn(:round, x)`, etc. |
-| **String** | `.length`, `.upcase`, `.downcase` | `fn(:string_length, s)`, `fn(:upcase, s)`, etc. |
-| **Collection** | `.sum`, `.size`, `.max`, `.min` | `fn(:sum, arr)`, `fn(:size, arr)`, etc. |
-
-### Custom Function Calls
-
-```ruby
-# With Sugar (when available)
-value :clamped_score, input.raw_score.clamp(0, 1600)
-value :formatted_name, input.first_name + " " + input.last_name
-
-# Sugar-Free (always available)
-value :clamped_score, fn(:clamp, input.raw_score, 0, 1600)
-value :formatted_name, fn(:add, fn(:add, input.first_name, " "), input.last_name)
 ```
 
 ## Array Broadcasting
@@ -246,27 +172,14 @@ end
 ### Element-wise Operations
 
 ```ruby
-# With Sugar - Automatic Broadcasting
 value :subtotals, input.line_items.price * input.line_items.quantity
 trait :is_taxable, (input.line_items.category != "digital")
 value :discounted_prices, input.line_items.price * 0.9
-
-# Sugar-Free - Explicit Broadcasting  
-value :subtotals, fn(:multiply, input.line_items.price, input.line_items.quantity)
-trait :is_taxable, fn(:!=, input.line_items.category, "digital")
-value :discounted_prices, fn(:multiply, input.line_items.price, 0.9)
 ```
 
 ### Aggregation Operations
 
 ```ruby
-# With Sugar - Automatic Aggregation Detection
-value :total_subtotal, fn(:sum, subtotals)
-value :avg_price, fn(:avg, input.line_items.price)
-value :max_quantity, fn(:max, input.line_items.quantity)
-value :item_count, fn(:size, input.line_items)
-
-# Sugar-Free - Same Syntax
 value :total_subtotal, fn(:sum, subtotals)
 value :avg_price, fn(:avg, input.line_items.price)
 value :max_quantity, fn(:max, input.line_items.quantity)
@@ -279,103 +192,16 @@ value :item_count, fn(:size, input.line_items)
 # With Sugar - Deep Field Access
 value :all_product_names, input.orders.items.product.name
 value :total_values, input.orders.items.product.base_price * input.orders.items.quantity
-
-# Sugar-Free - Same Deep Access
-value :all_product_names, input.orders.items.product.name
-value :total_values, fn(:multiply, input.orders.items.product.base_price, input.orders.items.quantity)
 ```
 
 ### Mixed Operations
 
 ```ruby
-# With Sugar - Element-wise then Aggregation
 value :line_totals, input.items.price * input.items.quantity
 value :order_total, fn(:sum, line_totals)
 value :avg_line_total, fn(:avg, line_totals)
 trait :has_expensive, fn(:any?, expensive_items)
-
-# Sugar-Free - Same Pattern
-value :line_totals, fn(:multiply, input.items.price, input.items.quantity)
-value :order_total, fn(:sum, line_totals)
-value :avg_line_total, fn(:avg, line_totals)
-trait :has_expensive, fn(:any?, expensive_items)
 ```
-
-### Dynamic Hash Elements with `element :any`
-
-For arrays containing hash data with unknown or flexible structure, use `element :any` instead of defining explicit hash objects:
-
-```ruby
-input do
-  array :api_responses do
-    element :any, :response_data
-  end
-  
-  array :user_profiles do
-    element :any, :profile_info
-  end
-end
-
-# Access hash data using fn(:fetch)
-value :response_codes, fn(:fetch, input.api_responses.response_data, "status")
-value :user_names, fn(:fetch, input.user_profiles.profile_info, "name")
-value :user_ages, fn(:fetch, input.user_profiles.profile_info, "age")
-
-# Mathematical operations on extracted values
-value :avg_response_time, fn(:mean, fn(:fetch, input.api_responses.response_data, "response_time"))
-value :total_users, fn(:size, input.user_profiles.profile_info)
-
-# Traits using dynamic data
-trait :success_responses, fn(:any?, fn(:fetch, input.api_responses.response_data, "status") == 200)
-trait :adult_users, fn(:any?, fn(:fetch, input.user_profiles.profile_info, "age") >= 18)
-```
-
-**Use Cases for `element :any`:**
-- API responses with varying schemas
-- Configuration data with flexible structure  
-- Dynamic hash structures (unknown keys at schema definition time)
-- Legacy data where hash structure may vary
-- When you need maximum flexibility without type constraints
-
-**Comparison: `element :any` vs Hash Objects**
-
-```ruby
-# element :any approach (flexible, dynamic)
-array :users do
-  element :any, :data
-end
-value :names, fn(:fetch, input.users.data, "name")
-
-# hash object approach (typed, structured)  
-array :users do
-  hash :data do
-    string :name
-    integer :age
-  end
-end
-value :names, input.users.data.name
-```
-
-### Broadcasting Type Inference
-
-The type system automatically infers appropriate types:
-- `input.items.price` (float array) → inferred as `:float` per element
-- `input.items.price * input.items.quantity` → element-wise `:float` result
-- `fn(:sum, input.items.price)` → scalar `:float` result
-
-## Cascade Logic
-
-Cascades are similar to Ruby when case, where each case is one of more trait reference and finally the value if that branch is true.
-```ruby
-value :grade_letter do
-  on excellent_student, "A+"       
-  on high_scorer, "A"              
-  on above_average, "B"            
-  on needs_improvement, "C"        
-  base "F"
-end
-```
-
 
 ## References
 
@@ -396,8 +222,7 @@ value :bonus_points, ref(:qualified_senior) ? 100 : 0
 ```ruby
 # Both syntaxes (same)
 input.field_name          # Access input field
-input.field_name.method   # Call method on input field (sugar)
-fn(:method, input.field_name)  # Call method on input field (sugar-free)
+fn(:method, input.field_name)  # Call method on input field
 ```
 
 ## Complete Example Comparison
@@ -438,74 +263,3 @@ module StudentEvaluation
   end
 end
 ```
-
-### Sugar-Free (Explicit)
-
-```ruby
-module StudentEvaluation
-  extend Kumi::Schema
-
-  schema do
-    input do
-      integer :math_score, domain: 0..800
-      integer :verbal_score, domain: 0..800
-      integer :writing_score, domain: 0..800
-      integer :age, domain: 16..25
-      string :status, domain: %w[active inactive]
-    end
-
-    # Calculated values without sugar
-    value :total_score, fn(:add, fn(:add, input.math_score, input.verbal_score), input.writing_score)
-    value :average_score, fn(:divide, total_score, 3)
-    value :scaled_average, fn(:round, fn(:multiply, average_score, 1.2), 2)
-
-    # Traits without sugar
-    trait :high_performer, fn(:>=, total_score, 2100)
-    trait :math_excellence, fn(:>=, input.math_score, 750)
-    trait :eligible_student, fn(:and, fn(:>=, input.age, 18), fn(:==, input.status, "active"))
-    trait :scholarship_candidate, fn(:and, fn(:and, high_performer, math_excellence), eligible_student)
-
-    # Cascade with sugar-free defined traits
-    value :scholarship_amount do
-      on scholarship_candidate, 10000
-      on high_performer, 5000
-      on math_excellence, 2500
-      base 0
-    end
-  end
-end
-```
-
-## When to Use Each Syntax
-
-### Use Sugar Syntax When:
-- ✅ Writing schemas by hand
-- ✅ Readability is important
-- ✅ Working with simple to moderate complexity
-- ✅ You want concise, Ruby-like expressions
-
-### Use Sugar-Free Syntax When:
-- ✅ Generating schemas programmatically
-- ✅ Building dynamic schemas in loops/methods
-- ✅ You need explicit control over function calls
-- ✅ Working with complex nested expressions
-- ✅ Debugging expression evaluation issues
-
-## Syntax Limitations
-
-### Sugar Syntax Limitations:
-- Supports `&` for logical AND (no `&&` due to Ruby precedence)
-- Supports `|` for logical OR
-- Limited operator precedence control
-- Some Ruby methods not available as sugar
-- **Refinement scope**: Array methods like `.max` on syntax expressions may not work in certain contexts (e.g., test helpers, Ruby < 3.0). Use `fn(:max, array)` instead.
-
-### Sugar-Free Advantages:
-- Full access to all registered functions
-- Clear operator precedence through explicit nesting
-- Works in all contexts (including programmatic generation)
-- More explicit about what operations are being performed
-
-## Performance Notes
-
-Both syntaxes compile to identical internal representations, so there is **no performance difference** between sugar and sugar-free syntax. Choose based on readability and maintenance needs.

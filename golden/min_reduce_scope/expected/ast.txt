@@ -1,0 +1,41 @@
+(Root
+  inputs: [
+    (InputDeclaration :depts :array access_mode: :field
+      [
+        (InputDeclaration :teams :array access_mode: :field
+          [
+            (InputDeclaration :headcount :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :dept_total
+      (CallExpression :sum
+        (InputElementReference depts.teams.headcount)
+      )
+    )
+    (ValueDeclaration :company_total
+      (CallExpression :sum
+        (CallExpression :sum
+          (InputElementReference depts.teams.headcount)
+        )
+      )
+    )
+    (ValueDeclaration :dept_total_masked
+      (CallExpression :sum_if
+        (InputElementReference depts.teams.headcount)
+        (DeclarationReference :big_team)
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :big_team
+      (CallExpression :>
+        (InputElementReference depts.teams.headcount)
+        (Literal 10)
+      )
+    )
+  ]
+)

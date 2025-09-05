@@ -1,0 +1,114 @@
+{
+  "version": "0.1",
+  "module": "schema_module",
+  "declarations": {
+    "items_subtotal": {
+      "name": "items_subtotal",
+      "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["items","qty"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"LoadInput","args":[["items","qty"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 2
+    },
+    "items_discounted": {
+      "name": "items_discounted",
+      "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["discount"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Const","args":[1.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"LoadInput","args":[["discount"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":3,"op":"Map","args":[1,2],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.sub"}},
+        {"id":4,"op":"Map","args":[0,3],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+      ],
+      "result": 4
+    },
+    "items_is_big": {
+      "name": "items_is_big",
+      "parameters": [{"kind":"input","path":["items","price"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+      ],
+      "result": 2
+    },
+    "items_effective": {
+      "name": "items_effective",
+      "parameters": [{"kind":"dependency","source":"items_is_big"},{"kind":"dependency","source":"items_subtotal"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["items_is_big"],"stamp":{"dtype":"boolean","axes":["items"]}},
+        {"id":1,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":2,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
+        {"id":3,"op":"Map","args":[1,2],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}},
+        {"id":5,"op":"Select","args":[0,3,1],"stamp":{"dtype":"float","axes":["items"]}}
+      ],
+      "result": 5
+    },
+    "total_qty": {
+      "name": "total_qty",
+      "parameters": [{"kind":"input","path":["items","qty"]}],
+      "operations": [
+        {"id":0,"op":"LoadInput","args":[["items","qty"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+      ],
+      "result": 1
+    },
+    "cart_total": {
+      "name": "cart_total",
+      "parameters": [{"kind":"dependency","source":"items_subtotal"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+      ],
+      "result": 1
+    },
+    "cart_total_effective": {
+      "name": "cart_total_effective",
+      "parameters": [{"kind":"dependency","source":"items_effective"}],
+      "operations": [
+        {"id":0,"op":"LoadDeclaration","args":["items_effective"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+      ],
+      "result": 1
+    }
+  },
+  "analysis": {
+    "defaults": {"key_policy":"indifferent","on_missing":"error"},
+    "inputs": [
+      {
+        "path": ["items"],
+        "axes": ["items"],
+        "dtype": "array",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"}]
+      },
+      {
+        "path": ["items","price"],
+        "axes": ["items"],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"price"}]
+      },
+      {
+        "path": ["items","qty"],
+        "axes": ["items"],
+        "dtype": "integer",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"array_field","key":"items","axis":"items"},{"kind":"field_leaf","key":"qty"}]
+      },
+      {
+        "path": ["discount"],
+        "axes": [],
+        "dtype": "float",
+        "key_policy": "indifferent",
+        "on_missing": "error",
+        "chain": [{"kind":"field_leaf","key":"discount"}]
+      }
+    ]
+  }
+}

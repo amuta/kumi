@@ -1,0 +1,6 @@
+functions:
+# length is probably in the wrong place 
+  - id: core.length
+    kind: elementwise
+    params: [{ name: collection }]
+    dtype: "integer"

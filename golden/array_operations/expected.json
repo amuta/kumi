@@ -1,0 +1,27 @@
+{
+  "subtotals": [
+    300.0,
+    75.0,
+    600.0
+  ],
+  "expensive_items": [
+    true,
+    false,
+    true
+  ],
+  "electronics": [
+    true,
+    false,
+    true
+  ],
+  "discounted_price": [
+    135.0,
+    67.5,
+    180.0
+  ],
+  "is_valid_quantity": [
+    true,
+    true,
+    true
+  ]
+}

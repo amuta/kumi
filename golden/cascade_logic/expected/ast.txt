@@ -1,0 +1,37 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+    (InputDeclaration :y :integer)
+  ]
+  values: [
+    (ValueDeclaration :status
+      (CascadeExpression
+        ((CallExpression :cascade_and
+        (DeclarationReference :y_positive)
+        (DeclarationReference :x_positive)
+      ) (Literal "both positive"))
+        ((CallExpression :cascade_and
+        (DeclarationReference :x_positive)
+      ) (Literal "x positive"))
+        ((CallExpression :cascade_and
+        (DeclarationReference :y_positive)
+      ) (Literal "y positive"))
+        ((Literal true) (Literal "neither positive"))
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :x_positive
+      (CallExpression :>
+        (InputReference :x)
+        (Literal 0)
+      )
+    )
+    (TraitDeclaration :y_positive
+      (CallExpression :>
+        (InputReference :y)
+        (Literal 0)
+      )
+    )
+  ]
+)

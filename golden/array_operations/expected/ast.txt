@@ -1,0 +1,46 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array access_mode: :field
+      [
+        (InputDeclaration :price :float)
+        (InputDeclaration :quantity :integer)
+        (InputDeclaration :category :string)
+      ]
+    )
+    (InputDeclaration :tax_rate :float)
+  ]
+  values: [
+    (ValueDeclaration :subtotals
+      (CallExpression :multiply
+        (InputElementReference items.price)
+        (InputElementReference items.quantity)
+      )
+    )
+    (ValueDeclaration :discounted_price
+      (CallExpression :multiply
+        (InputElementReference items.price)
+        (Literal 0.9)
+      )
+    )
+    (ValueDeclaration :is_valid_quantity
+      (CallExpression :>
+        (InputElementReference items.quantity)
+        (Literal 0)
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :expensive_items
+      (CallExpression :>
+        (InputElementReference items.price)
+        (Literal 100.0)
+      )
+    )
+    (TraitDeclaration :electronics
+      (CallExpression :==
+        (InputElementReference items.category)
+        (Literal "electronics")
+      )
+    )
+  ]
+)

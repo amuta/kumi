@@ -1,0 +1,8 @@
+(NAST
+  (VALUE double
+    (Call :"core.mul"
+    (InputRef [:x, :y, :z])
+    (Const 2)
+  )
+  )
+)

@@ -1,0 +1,42 @@
+(NAST
+  (VALUE cube
+    (InputRef [:cube])
+  )
+  (VALUE layer
+    (InputRef [:cube, :layer])
+  )
+  (VALUE row
+    (InputRef [:cube, :layer, :row])
+  )
+  (VALUE cell
+    (InputRef [:cube, :layer, :row, :cell])
+  )
+  (TRAIT cell_over_limit
+    (Call :"core.gt"
+    (InputRef [:cube, :layer, :row, :cell])
+    (Const 100)
+  )
+  )
+  (VALUE cell_sum
+    (Call :"agg.sum"
+    (Call :__select__
+      (Ref cell_over_limit)
+      (InputRef [:cube, :layer, :row, :cell])
+      (Const 0)
+    )
+  )
+  )
+  (VALUE count_over_limit
+    (Call :"agg.sum"
+    (Call :"agg.sum"
+      (Call :"agg.sum"
+        (Call :__select__
+          (Ref cell_over_limit)
+          (Const 1)
+          (Const 0)
+        )
+      )
+    )
+  )
+  )
+)

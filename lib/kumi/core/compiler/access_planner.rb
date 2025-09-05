@@ -71,7 +71,7 @@ module Kumi
 
           list = (@plans[base[:path]] ||= [])
           modes.each do |mode|
-            operations = build_operations(path, mode)
+            operations = build_operations(path, mode, base[:containers])
 
             list << Kumi::Core::Analyzer::Structs::AccessPlan.new(
               path: base[:path],
@@ -82,7 +82,8 @@ module Kumi
               mode: mode, # :read | :each_indexed | :materialize | :ravel
               on_missing: base[:on_missing],
               key_policy: base[:key_policy],
-              operations: operations
+              operations: operations[:operations],
+              chain: operations[:chain]
             )
           end
         end
@@ -105,10 +106,12 @@ module Kumi
         end
 
         # Core op builder: apply the parent→child edge rule per segment.
-        def build_operations(path, mode)
+        def build_operations(path, mode, containers)
           ops = []
+          chain = []
           parent_meta = nil
           cur = @meta
+          container_index = 0
 
           puts "\n🔨 Building operations for path: #{path.join('.')}:#{mode}" if ENV["DEBUG_ACCESSOR_OPS"]
 
@@ -133,10 +136,26 @@ module Kumi
               ops << enter_array
               puts "      Added: enter_array" if ENV["DEBUG_ACCESSOR_OPS"]
 
-              # Then either inline (no hash) or field hop to named member
+              # Then either inline (no hash) or field hop to named member  
               if enter_via == :hash
                 ops << enter_hash(seg)
                 puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
+                
+                # Add to chain: subsequent array accesses are array_element
+                if container_index < containers.size
+                  chain << {
+                    "kind" => "array_element",
+                    "alias" => seg,
+                    "axis" => containers[container_index].to_s
+                  }
+                  container_index += 1
+                else
+                  # This is the final scalar
+                  chain << {
+                    "kind" => "scalar_leaf",
+                    "key" => seg
+                  }
+                end
               elsif enter_via == :array
                 # Inline alias, no hash operation needed
                 puts "      Skipped enter_hash (inline alias)" if ENV["DEBUG_ACCESSOR_OPS"]
@@ -147,6 +166,24 @@ module Kumi
               # Root, object, or hash parent - always emit enter_hash
               ops << enter_hash(seg)
               puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
+              
+              # Add to chain: check if this segment corresponds to an array container
+              node_container = node[:container]
+              if node_container == :array && container_index < containers.size
+                # This is array_field (named field containing array)
+                chain << {
+                  "kind" => "array_field",
+                  "key" => seg,
+                  "axis" => containers[container_index].to_s
+                }
+                container_index += 1
+              else
+                # This is scalar_leaf (final scalar)
+                chain << {
+                  "kind" => "scalar_leaf", 
+                  "key" => seg
+                }
+              end
             else
               raise ArgumentError,
                     "Invalid parent :container '#{container}' for segment '#{seg}'. Expected :array, :object, :hash, or nil (root)"
@@ -165,8 +202,9 @@ module Kumi
 
           # # If we land on an array and this mode iterates elements, step into it.
           puts "  Final operations: #{ops.inspect}" if ENV["DEBUG_ACCESSOR_OPS"]
+          puts "  Final chain: #{chain.inspect}" if ENV["DEBUG_ACCESSOR_OPS"]
 
-          ops
+          { operations: ops, chain: chain }
         end
 
         def container_lineage(path)
@@ -201,6 +239,7 @@ module Kumi
         def ig(h, k)
           h[k.to_sym] or raise ArgumentError, "Missing required field '#{k}' in metadata. Available keys: #{h.keys.inspect}"
         end
+
 
         def enter_hash(key)
           { type: :enter_hash, key: key.to_s,

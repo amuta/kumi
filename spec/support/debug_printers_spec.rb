@@ -70,7 +70,8 @@ RSpec.describe DebugPrinters do
       object_inspections = debug_output.scan(/#<[^>]+>/)
 
       if object_inspections.any?
-        warn "DebugPrinters: Found #{object_inspections.size} unhandled object inspections in debug output"
+        # TODO: Decide when activate this.
+        # warn "DebugPrinters: Found #{object_inspections.size} unhandled object inspections in debug output"
       end
 
       # Always pass - this is just informational

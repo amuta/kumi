@@ -88,7 +88,9 @@ module Kumi
             # Skip validation if Kumi::Registry.is being mocked for testing
             return if function_registry_mocked?
 
-            return if Kumi::Registry.supported?(fn_name)
+            return if Kumi::Registry.supported?(fn_name.to_sym)
+
+            binding.pry
 
             report_error(
               errors,

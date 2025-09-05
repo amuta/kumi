@@ -1,0 +1,29 @@
+schema do
+  input do
+    array :numbers do
+      integer :value
+    end
+    integer :scalar_val
+    array :matrix do
+      array :row do
+        float :cell
+      end
+    end
+  end
+
+  # Scalar (rank 0)
+  value :constant, 42
+
+  # 1D array (rank 1) 
+  value :sum_numbers, fn(:sum, input.numbers.value)
+
+  # 2D operation (rank 2)
+  value :matrix_sums, fn(:sum, input.matrix.row.cell)
+
+  # Mixed array with different dimensional elements
+  value :mixed_array, [
+    input.scalar_val,           # scalar (rank 0)
+    sum_numbers,               # scalar result from 1D reduction (rank 0) 
+    input.matrix.row.cell      # 2D array (rank 2)
+  ]
+end

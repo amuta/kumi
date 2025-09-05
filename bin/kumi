@@ -3,9 +3,9 @@
 
 require "bundler/setup"
 require "optparse"
-require "kumi"
+require_relative "../lib/kumi"
 
-cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen|pack> ..."
 
 case cmd
 when "parse"
@@ -27,6 +27,8 @@ when "parse"
 when "analyze"
   path = ARGV.shift or abort "kumi analyze <schema-path>"
   opts = {}
+  dump_key = nil
+  side_tables = false
   OptionParser.new do |o|
     o.on("--trace") { opts[:trace] = true }
     o.on("--snap PHASES") { |v| opts[:checkpoints] ||= {}; opts[:checkpoints][:phase] = v }
@@ -35,42 +37,46 @@ when "analyze"
     o.on("--resume-at NAME") { |v| opts[:resume_at] = v }
     o.on("--stop-after NAME"){ |v| opts[:stop_after] = v }
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
+    o.on("--side-tables", "Enable side table passes (NAST/IRV2 pipeline)") { side_tables = true }
+    o.on("--dump STATE_KEY", "Dump and inspect specific analyzer state key") { |v| dump_key = v.to_sym }
   end.parse!(ARGV)
 
   schema, _ = Kumi::Frontends.load(path: path)
-  res = Kumi::Pipeline::AnalyzerRunner.run(schema, opts)
-  abort("Analysis errors:\n#{res.errors.inspect}") unless res.ok?
-  puts "OK (#{res.stats[:total_ms]}ms)"
-
-when "pp"
-  kind = ARGV.shift or abort "kumi pp <ast|ir> <schema-path>"
-  path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
-  schema, _ = Kumi::Frontends.load(path: path)
-
-  if kind == "ast"
-    puts Kumi::Support::SExpressionPrinter.print(schema)
-  elsif kind == "ir"
-    res = Kumi::Pipeline::AnalyzerRunner.run(schema, {})
-    abort "No IR" unless res.ir
-    puts Kumi::Support::IRRender.to_text(res.ir, analysis_state: res.state)
+  res = Kumi::Analyzer.analyze!(schema, side_tables: true, **opts)
+  
+  if dump_key
+    if res.state.key?(dump_key)
+      puts "=== #{dump_key.upcase} ==="
+      puts res.state[dump_key].inspect
+    else
+      puts "State key '#{dump_key}' not found. Available keys: #{res.state.keys.inspect}"
+    end
   else
-    abort "unknown: #{kind}"
+    puts "Analysis finished without errors."
   end
+when "pp"
+  kind = ARGV.shift or abort "kumi pp <ast|ir|nast|snast|> <schema-path>"
+  path = ARGV.shift or abort "kumi pp #{kind} <schema-path>"
+  Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  sub = ARGV.shift or abort "kumi golden <init|record|verify|diff> ..."
-  name = ARGV.shift if %w[init record verify].include?(sub)
+  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> ..."
+  name = ARGV.shift if %w[update verify diff test].include?(sub)
   opts = {}
   OptionParser.new do |o|
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
   end.parse!(ARGV)
   
   case sub
-  when "init"   then Kumi::Tools::Golden::Service.init!(name)
-  when "record" then Kumi::Tools::Golden::Service.record!(name, **opts)
-  when "verify" then exit(Kumi::Tools::Golden::Service.verify!(name, **opts) ? 0 : 1)
+  when "list"   then Kumi::Dev::Golden.list
+  when "update" then Kumi::Dev::Golden.update!(name)
+  when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
+  when "diff"   then Kumi::Dev::Golden.diff!(name)
+  when "test"
+    Kumi::Dev::Golden.update!(name) 
+    exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
   else
-    abort "kumi golden <init|record|verify>"
+    abort "kumi golden <list|update|verify|diff|test>"
   end
 
 when "diff"
@@ -119,6 +125,54 @@ when "profile"
   success = Kumi::Dev::ProfileRunner.run(script, opts)
   exit(success ? 0 : 1)
 
+when "codegen"
+  sub = ARGV.shift or abort "kumi codegen <list|build|test|verify> ..."
+  opts = { targets: %w[ruby] }
+  
+  OptionParser.new do |o|
+    o.on("--targets LIST") { |v| opts[:targets] = v.split(",").map(&:strip) }
+    o.on("--output-dir DIR") { |v| opts[:output_dir] = v }
+  end.parse!(ARGV)
+  
+  case sub
+  when "list"   then Kumi::Dev::Codegen.list
+  when "build" 
+    name = ARGV.shift or abort "kumi codegen build <schema_name>"
+    Kumi::Dev::Codegen.build!(name, targets: opts[:targets], output_dir: opts[:output_dir])
+  when "test"   
+    names = ARGV.empty? ? nil : ARGV
+    exit(Kumi::Dev::Codegen.test!(*names) ? 0 : 1)
+  when "verify" 
+    name = ARGV.shift or abort "kumi codegen verify <schema_name>"
+    exit(Kumi::Dev::Codegen.verify!(name) ? 0 : 1)
+  else
+    abort "kumi codegen <list|build|test|verify>"
+  end
+
+when "pack"
+  sub = ARGV.shift or abort "kumi pack <build|print> ..."
+  opts = { targets: %w[ruby], include_ir: false }
+  
+  OptionParser.new do |o|
+    o.on("--schema PATH") { |v| opts[:schema] = v }
+    o.on("--out-dir DIR") { |v| opts[:out_dir] = v }
+    o.on("--targets LIST"){ |v| opts[:targets] = v.split(",").map(&:strip) }
+    o.on("--include-ir")  { opts[:include_ir] = true }
+  end.parse!
+  
+  case sub
+  when "build"
+    abort "missing --schema" unless opts[:schema]
+    abort "missing --out-dir" unless opts[:out_dir]
+    puts Kumi::Pack.build(schema: opts[:schema], out_dir: opts[:out_dir],
+                          targets: opts[:targets], include_ir: opts[:include_ir])
+  when "print"
+    abort "missing --schema" unless opts[:schema]
+    puts Kumi::Pack.print(schema: opts[:schema], targets: opts[:targets], include_ir: opts[:include_ir])
+  else
+    abort "kumi pack <build|print>"
+  end
+
 else
-  abort "usage: kumi <parse|analyze|pp|golden|diff|profile> ..."
+  abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen|pack> ..."
 end

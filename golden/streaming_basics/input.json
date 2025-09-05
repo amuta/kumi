@@ -1,0 +1,8 @@
+{
+    "items": [
+        { "price": 120.0, "qty": 2 },
+        { "price": 80.0,  "qty": 1 },
+        { "price": 200.0, "qty": 3 }
+    ],
+    "discount": 0.10
+}

@@ -1,0 +1,55 @@
+(Root
+  inputs: [
+    (InputDeclaration :cube :array access_mode: :element
+      [
+        (InputDeclaration :layer :array access_mode: :element
+          [
+            (InputDeclaration :row :array access_mode: :element
+              [
+                (InputDeclaration :cell :integer)
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :cube
+      (InputReference :cube)
+    )
+    (ValueDeclaration :layer
+      (InputElementReference cube.layer)
+    )
+    (ValueDeclaration :row
+      (InputElementReference cube.layer.row)
+    )
+    (ValueDeclaration :cell
+      (InputElementReference cube.layer.row.cell)
+    )
+    (ValueDeclaration :cell_sum
+      (CallExpression :sum_if
+        (InputElementReference cube.layer.row.cell)
+        (DeclarationReference :cell_over_limit)
+      )
+    )
+    (ValueDeclaration :count_over_limit
+      (CallExpression :sum
+        (CallExpression :sum
+          (CallExpression :sum_if
+            (Literal 1)
+            (DeclarationReference :cell_over_limit)
+          )
+        )
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :cell_over_limit
+      (CallExpression :>
+        (InputElementReference cube.layer.row.cell)
+        (Literal 100)
+      )
+    )
+  ]
+)

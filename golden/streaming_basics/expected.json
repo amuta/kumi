@@ -1,0 +1,10 @@
+{
+    "items_subtotal":        [240.0, 80.0, 600.0],
+    "items_discounted":      [108.0, 72.0, 180.0],
+    "items_is_big":          [true, false, true],
+    "items_effective":       [216.0, 80.0, 540.0],
+    "total_qty":             6,
+    "cart_total":            920.0,
+    "cart_total_effective":  836.0
+  }
+  

@@ -1,0 +1,116 @@
+{
+  "[:items]": {
+    "axis": [],
+    "dtype": "array",
+    "axis_loops": [
+      {
+        "step_idx": 0,
+        "axis": "items",
+        "kind": "array_field",
+        "key": "items",
+        "alias": null,
+        "nav": [],
+        "loop_idx": 0
+      }
+    ],
+    "leaf_nav": [],
+    "terminal": {
+      "kind": "none"
+    },
+    "path_fqn": "items"
+  },
+  "[:items, :price]": {
+    "axis": [],
+    "dtype": "float",
+    "axis_loops": [
+      {
+        "step_idx": 0,
+        "axis": "items",
+        "kind": "array_field",
+        "key": "items",
+        "alias": null,
+        "nav": [],
+        "loop_idx": 0
+      }
+    ],
+    "leaf_nav": [
+      {
+        "kind": "field_leaf",
+        "key": "price"
+      }
+    ],
+    "terminal": {
+      "kind": "field_leaf",
+      "key": "price"
+    },
+    "path_fqn": "items.price"
+  },
+  "[:items, :quantity]": {
+    "axis": [],
+    "dtype": "integer",
+    "axis_loops": [
+      {
+        "step_idx": 0,
+        "axis": "items",
+        "kind": "array_field",
+        "key": "items",
+        "alias": null,
+        "nav": [],
+        "loop_idx": 0
+      }
+    ],
+    "leaf_nav": [
+      {
+        "kind": "field_leaf",
+        "key": "quantity"
+      }
+    ],
+    "terminal": {
+      "kind": "field_leaf",
+      "key": "quantity"
+    },
+    "path_fqn": "items.quantity"
+  },
+  "[:items, :category]": {
+    "axis": [],
+    "dtype": "string",
+    "axis_loops": [
+      {
+        "step_idx": 0,
+        "axis": "items",
+        "kind": "array_field",
+        "key": "items",
+        "alias": null,
+        "nav": [],
+        "loop_idx": 0
+      }
+    ],
+    "leaf_nav": [
+      {
+        "kind": "field_leaf",
+        "key": "category"
+      }
+    ],
+    "terminal": {
+      "kind": "field_leaf",
+      "key": "category"
+    },
+    "path_fqn": "items.category"
+  },
+  "[:tax_rate]": {
+    "axis": [],
+    "dtype": "float",
+    "axis_loops": [],
+    "leaf_nav": [
+      {
+        "kind": "field_leaf",
+        "key": "tax_rate"
+      }
+    ],
+    "terminal": {
+      "kind": "field_leaf",
+      "key": "tax_rate"
+    },
+    "path_fqn": "tax_rate"
+  }
+}
