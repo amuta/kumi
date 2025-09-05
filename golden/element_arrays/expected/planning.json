@@ -97,7 +97,20 @@
         ]
       },
       "axis_carriers": [{"axis":"cube","via_path":["cube"]},{"axis":"layer","via_path":["cube","layer"]}],
-      "reduce_plans": [{"op_id":4,"axis":"row","result_depth":2,"arg_id":3,"reducer_fn":"agg.sum","via_path":["cube","layer","row"]}],
+      "reduce_plans": [
+        {
+          "op_id": 4,
+          "axis": "row",
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "result_depth": 2,
+          "reset_depth": 1,
+          "contrib_depth": 3,
+          "bind_depth": 1,
+          "nested": false,
+          "via_path": ["cube","layer","row"]
+        }
+      ],
       "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     },
     "count_over_limit": {
@@ -116,9 +129,42 @@
       },
       "axis_carriers": [],
       "reduce_plans": [
-        {"op_id":4,"axis":"row","result_depth":2,"arg_id":3,"reducer_fn":"agg.sum","via_path":["cube","layer","row"]},
-        {"op_id":5,"axis":"layer","result_depth":1,"arg_id":4,"reducer_fn":"agg.sum","via_path":["cube","layer"]},
-        {"op_id":6,"axis":"cube","result_depth":0,"arg_id":5,"reducer_fn":"agg.sum","via_path":["cube"]}
+        {
+          "op_id": 4,
+          "axis": "row",
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "result_depth": 2,
+          "reset_depth": 1,
+          "contrib_depth": 3,
+          "bind_depth": 1,
+          "nested": false,
+          "via_path": ["cube","layer","row"]
+        },
+        {
+          "op_id": 5,
+          "axis": "layer",
+          "arg_id": 4,
+          "reducer_fn": "agg.sum",
+          "result_depth": 1,
+          "reset_depth": 0,
+          "contrib_depth": 1,
+          "bind_depth": 0,
+          "nested": true,
+          "via_path": ["cube","layer"]
+        },
+        {
+          "op_id": 6,
+          "axis": "cube",
+          "arg_id": 5,
+          "reducer_fn": "agg.sum",
+          "result_depth": 0,
+          "reset_depth": -1,
+          "contrib_depth": 0,
+          "bind_depth": -1,
+          "nested": true,
+          "via_path": ["cube"]
+        }
       ],
       "inlining_decisions": {"op_0":{"producer":"cell_over_limit","decision":"inline","use_site_axes":["cube","layer","row"]}}
     }

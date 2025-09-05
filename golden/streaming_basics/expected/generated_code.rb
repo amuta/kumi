@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: 296637f7392a2d64b6e45cd73dc400e92cd93080023d5b1719bbd5225a52fabd:ae595c9e79348d4e6b1775c779651b3bbbe3aa9cd532ccfc63f685678fa22fa5:1f5efccd8b84b9f6d92fe394203a09051c2104ebeb731420e12495eb44129801
+  # Generated code with pack hash: 296637f7392a2d64b6e45cd73dc400e92cd93080023d5b1719bbd5225a52fabd:8f52953b311f232f6c29cbd0261a2caaf1b5abe15928653d97e5540939a7a7de:1f5efccd8b84b9f6d92fe394203a09051c2104ebeb731420e12495eb44129801
 
   def _each_items_subtotal
     arr0 = @input["items"]
@@ -20,7 +20,7 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       c1 = 1.0
       v2 = a0["discount"]
-      v3 = __call_kernel__("core.sub", v1, v2)
+      v3 = __call_kernel__("core.sub", c1, v2)
       v0 = a0["price"]
       v4 = __call_kernel__("core.mul", v0, v3)
       yield v4, [i0]
@@ -36,7 +36,7 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       c1 = 100.0
       v0 = a0["price"]
-      v2 = __call_kernel__("core.gt", v0, v1)
+      v2 = __call_kernel__("core.gt", v0, c1)
       yield v2, [i0]
     end
   end
@@ -52,7 +52,7 @@ module SchemaModule
       v0_items_subtotal = a0["price"]
       v1_items_subtotal = a0["qty"]
       v1 = __call_kernel__("core.mul", v0_items_subtotal, v1_items_subtotal)
-      v3 = __call_kernel__("core.mul", v1, v2)
+      v3 = __call_kernel__("core.mul", v1, c2)
       citems_is_big_1 = 100.0
       v0_items_is_big = a0["price"]
       v0 = __call_kernel__("core.gt", v0_items_is_big, citems_is_big_1)
@@ -66,14 +66,14 @@ module SchemaModule
   end
 
   def _each_total_qty
+    acc_1 = 0.0
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0.0
       v0 = a0["qty"]
-      acc_1 += v0
-      v1 = acc_1
-      yield v1, []
+      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
     end
+    v1 = acc_1
+    yield v1, []
   end
 
   def _eval_total_qty
@@ -81,13 +81,13 @@ module SchemaModule
   end
 
   def _each_cart_total
+    acc_1 = 0.0
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0.0
-      acc_1 += v0
-      v1 = acc_1
-      yield v1, []
+      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
     end
+    v1 = acc_1
+    yield v1, []
   end
 
   def _eval_cart_total
@@ -95,13 +95,13 @@ module SchemaModule
   end
 
   def _each_cart_total_effective
+    acc_1 = 0.0
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0.0
-      acc_1 += v0
-      v1 = acc_1
-      yield v1, []
+      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
     end
+    v1 = acc_1
+    yield v1, []
   end
 
   def _eval_cart_total_effective

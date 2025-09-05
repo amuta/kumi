@@ -1,17 +1,17 @@
 module SchemaModule
-  # Generated code with pack hash: afe16a37162e4b64766c1e62c9335166e1ff9d711f3380ef32a06de5d4da1ae4:23781ff3829e35eb8ee89552414d3e9a68e95d4dacfe5edbe6752e04984e4e46:ff798621f7e88e6ce6be894738c2ab8c5f41eefa845dd338db08039804654799
+  # Generated code with pack hash: afe16a37162e4b64766c1e62c9335166e1ff9d711f3380ef32a06de5d4da1ae4:a780a6bcb51c15e97e75a99d752a8cc7f7c9ec4e05fca25cf3b93cfb37d37dbf:ff798621f7e88e6ce6be894738c2ab8c5f41eefa845dd338db08039804654799
 
   def _each_dept_total
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
+      acc_1 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        acc_1 = 0
         v0 = a1["headcount"]
-        acc_1 += v0
-        v1 = acc_1
-        yield v1, [i0]
+        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
       end
+      v1 = acc_1
+      yield v1, [i0]
     end
   end
 
@@ -20,20 +20,20 @@ module SchemaModule
   end
 
   def _each_company_total
+    acc_2 = 0
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
-      acc_2 = 0
+      acc_1 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        acc_1 = 0
         v0 = a1["headcount"]
-        acc_1 += v0
-        v1 = acc_1
-        acc_2 += v1
+        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
       end
-      v2 = acc_2
-      yield v2, []
+      v1 = acc_1
+      acc_2 = __call_kernel__("agg.sum", acc_2, v1)
     end
+    v2 = acc_2
+    yield v2, []
   end
 
   def _eval_company_total
@@ -47,7 +47,7 @@ module SchemaModule
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
         v0 = a1["headcount"]
-        v2 = __call_kernel__("core.gt", v0, v1)
+        v2 = __call_kernel__("core.gt", v0, c1)
         yield v2, [i0, i1]
       end
     end
@@ -60,19 +60,19 @@ module SchemaModule
   def _each_dept_total_masked
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
+      acc_4 = 0
       c2 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        acc_4 = 0
         v1 = a1["headcount"]
         cbig_team_1 = 10
         v0_big_team = a1["headcount"]
         v0 = __call_kernel__("core.gt", v0_big_team, cbig_team_1)
-        v3 = (v0 ? v1 : v2)
-        acc_4 += v3
-        v4 = acc_4
-        yield v4, [i0]
+        v3 = (v0 ? v1 : c2)
+        acc_4 = __call_kernel__("agg.sum", acc_4, v3)
       end
+      v4 = acc_4
+      yield v4, [i0]
     end
   end
 

@@ -90,7 +90,20 @@
         ]
       },
       "axis_carriers": [{"axis":"batch","via_path":["batch"]},{"axis":"row","via_path":["batch","row"]}],
-      "reduce_plans": [{"op_id":1,"axis":"col","result_depth":2,"arg_id":0,"reducer_fn":"agg.sum","via_path":["batch","row","col"]}],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "col",
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "result_depth": 2,
+          "reset_depth": 1,
+          "contrib_depth": 3,
+          "bind_depth": 1,
+          "nested": false,
+          "via_path": ["batch","row","col"]
+        }
+      ],
       "inlining_decisions": {"op_0":{"producer":"elem_affine","decision":"inline","use_site_axes":["batch","row","col"]}}
     },
     "batch_total_affine": {
@@ -107,7 +120,20 @@
         ]
       },
       "axis_carriers": [{"axis":"batch","via_path":["batch"]}],
-      "reduce_plans": [{"op_id":1,"axis":"row","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["batch","row"]}],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "row",
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "result_depth": 1,
+          "reset_depth": 0,
+          "contrib_depth": 2,
+          "bind_depth": 0,
+          "nested": false,
+          "via_path": ["batch","row"]
+        }
+      ],
       "inlining_decisions": {"op_0":{"producer":"row_sum_affine","decision":"inline","use_site_axes":["batch","row"]}}
     }
   }

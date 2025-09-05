@@ -12,7 +12,7 @@ module SchemaModule
           arr3 = a2["employees"]
           arr3.each_with_index do |a3, i3|
             v0 = a3["rating"]
-            v2 = __call_kernel__("core.gte", v0, v1)
+            v2 = __call_kernel__("core.gte", v0, c1)
             yield v2, [i0, i1, i2, i3]
           end
         end
@@ -35,7 +35,7 @@ module SchemaModule
           arr3 = a2["employees"]
           arr3.each_with_index do |a3, i3|
             v0 = a3["level"]
-            v2 = __call_kernel__("core.eq", v0, v1)
+            v2 = __call_kernel__("core.eq", v0, c1)
             yield v2, [i0, i1, i2, i3]
           end
         end
@@ -56,7 +56,7 @@ module SchemaModule
         arr2 = a1["teams"]
         arr2.each_with_index do |a2, i2|
           v0 = a2["performance_score"]
-          v2 = __call_kernel__("core.gte", v0, v1)
+          v2 = __call_kernel__("core.gte", v0, c1)
           yield v2, [i0, i1, i2]
         end
       end
@@ -91,10 +91,10 @@ module SchemaModule
             v0 = __call_kernel__("core.gte", v0_high_performer, chigh_performer_1)
             v4 = __call_kernel__("core.and", v0, v3)
             v5 = a3["salary"]
-            v7 = __call_kernel__("core.mul", v5, v6)
+            v7 = __call_kernel__("core.mul", v5, c6)
             v10 = __call_kernel__("core.and", v0, v2)
-            v12 = __call_kernel__("core.mul", v5, v11)
-            v14 = __call_kernel__("core.mul", v5, v13)
+            v12 = __call_kernel__("core.mul", v5, c11)
+            v14 = __call_kernel__("core.mul", v5, c13)
             v15 = (v10 ? v12 : v14)
             v16 = (v4 ? v7 : v15)
             yield v16, [i0, i1, i2, i3]

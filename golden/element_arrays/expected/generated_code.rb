@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:7458170444209c5feaf8f4015285302330f721b69a04d59f40f20cf24eb26ea2:53c42da2bb59fc06d6f8f30f5150a97e636552f1be351a98d718fbb8456a61e4
+  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:465e26ebe4200381ac7e87ba2e3aeaafa4d1344e413a15b7258d5d61afc99356:53c42da2bb59fc06d6f8f30f5150a97e636552f1be351a98d718fbb8456a61e4
 
   def _each_cube
     arr0 = @input["cube"]
@@ -98,10 +98,10 @@ module SchemaModule
           v0_cell_over_limit = a2
           v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
           v3 = (v0 ? v1 : c2)
-          acc_4 += v3
-          v4 = acc_4
-          yield v4, [i0, i1]
+          acc_4 = __call_kernel__("agg.sum", acc_4, v3)
         end
+        v4 = acc_4
+        yield v4, [i0, i1]
       end
     end
   end
@@ -126,16 +126,16 @@ module SchemaModule
           v0_cell_over_limit = a2
           v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
           v3 = (v0 ? c1 : c2)
-          acc_4 += v3
+          acc_4 = __call_kernel__("agg.sum", acc_4, v3)
         end
         v4 = acc_4
-        acc_5 += v4
-        v5 = acc_5
-        acc_6 += v5
+        acc_5 = __call_kernel__("agg.sum", acc_5, v4)
       end
-      v6 = acc_6
-      yield v6, []
+      v5 = acc_5
+      acc_6 = __call_kernel__("agg.sum", acc_6, v5)
     end
+    v6 = acc_6
+    yield v6, []
   end
 
   def _eval_count_over_limit

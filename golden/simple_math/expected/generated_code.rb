@@ -39,10 +39,10 @@ module SchemaModule
     c2 = 10
     c5 = 2
     v1 = @input["x"]
-    v3 = __call_kernel__("core.add", v1, v2)
+    v3 = __call_kernel__("core.add", v1, c2)
     v4 = @input["y"]
-    v6 = __call_kernel__("core.mul", v4, v5)
-    v7 = [v0, v3, v6]
+    v6 = __call_kernel__("core.mul", v4, c5)
+    v7 = [c0, v3, v6]
     yield v7, []
   end
 

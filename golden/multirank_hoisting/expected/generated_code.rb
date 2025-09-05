@@ -1,10 +1,10 @@
 module SchemaModule
-  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:8c31af6862e402367dbec7748cf5cd572702826526f41779c3ba768739cf4bd1:f997f41b53434964d0cbe4ee0e0d0452a2fa227a8fb1a60a8d38bc44e417b689
+  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:858277d4d5cba997a5ab4341ce392811f25743e156b719337ae0f3dd5961cbcf:f997f41b53434964d0cbe4ee0e0d0452a2fa227a8fb1a60a8d38bc44e417b689
 
   def _each_global_offset_plus
     c1 = 1.0
     v0 = @input["global_offset"]
-    v2 = __call_kernel__("core.add", v0, v1)
+    v2 = __call_kernel__("core.add", v0, c1)
     yield v2, []
   end
 
@@ -35,7 +35,7 @@ module SchemaModule
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
         v0 = a1["scale"]
-        v2 = __call_kernel__("core.mul", v0, v1)
+        v2 = __call_kernel__("core.mul", v0, c1)
         yield v2, [i0, i1]
       end
     end
@@ -76,7 +76,7 @@ module SchemaModule
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
         acc_1 = 0.0
-        acc_1 += v0
+        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
         v1 = acc_1
         yield v1, [i0, i1]
       end
@@ -91,7 +91,7 @@ module SchemaModule
     arr0 = @input["batch"]
     arr0.each_with_index do |a0, i0|
       acc_1 = 0.0
-      acc_1 += v0
+      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
       v1 = acc_1
       yield v1, [i0]
     end

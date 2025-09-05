@@ -10,7 +10,20 @@
         "by_depth": [{"depth":0,"ops":[]},{"depth":1,"ops":[{"id":1,"kind":"reduce"}]},{"depth":2,"ops":[{"id":0,"kind":"loadinput"}]}]
       },
       "axis_carriers": [{"axis":"depts","via_path":["depts"]}],
-      "reduce_plans": [{"op_id":1,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
+      "reduce_plans": [
+        {
+          "op_id": 1,
+          "axis": "teams",
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "result_depth": 1,
+          "reset_depth": 0,
+          "contrib_depth": 2,
+          "bind_depth": 0,
+          "nested": false,
+          "via_path": ["depts","teams"]
+        }
+      ],
       "inlining_decisions": {}
     },
     "company_total": {
@@ -28,8 +41,30 @@
       },
       "axis_carriers": [],
       "reduce_plans": [
-        {"op_id":1,"axis":"teams","result_depth":1,"arg_id":0,"reducer_fn":"agg.sum","via_path":["depts","teams"]},
-        {"op_id":2,"axis":"depts","result_depth":0,"arg_id":1,"reducer_fn":"agg.sum","via_path":["depts"]}
+        {
+          "op_id": 1,
+          "axis": "teams",
+          "arg_id": 0,
+          "reducer_fn": "agg.sum",
+          "result_depth": 1,
+          "reset_depth": 0,
+          "contrib_depth": 2,
+          "bind_depth": 0,
+          "nested": false,
+          "via_path": ["depts","teams"]
+        },
+        {
+          "op_id": 2,
+          "axis": "depts",
+          "arg_id": 1,
+          "reducer_fn": "agg.sum",
+          "result_depth": 0,
+          "reset_depth": -1,
+          "contrib_depth": 0,
+          "bind_depth": -1,
+          "nested": true,
+          "via_path": ["depts"]
+        }
       ],
       "inlining_decisions": {}
     },
@@ -64,7 +99,20 @@
         ]
       },
       "axis_carriers": [{"axis":"depts","via_path":["depts"]}],
-      "reduce_plans": [{"op_id":4,"axis":"teams","result_depth":1,"arg_id":3,"reducer_fn":"agg.sum","via_path":["depts","teams"]}],
+      "reduce_plans": [
+        {
+          "op_id": 4,
+          "axis": "teams",
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "result_depth": 1,
+          "reset_depth": 0,
+          "contrib_depth": 2,
+          "bind_depth": 0,
+          "nested": false,
+          "via_path": ["depts","teams"]
+        }
+      ],
       "inlining_decisions": {"op_0":{"producer":"big_team","decision":"inline","use_site_axes":["depts","teams"]}}
     }
   }

@@ -4,7 +4,7 @@ module SchemaModule
   def _each_double
     c1 = 2
     v0 = @input["x"]["y"]["z"]
-    v2 = __call_kernel__("core.mul", v0, v1)
+    v2 = __call_kernel__("core.mul", v0, c1)
     yield v2, []
   end
 

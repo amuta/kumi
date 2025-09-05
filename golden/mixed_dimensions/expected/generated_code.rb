@@ -1,15 +1,15 @@
 module SchemaModule
-  # Generated code with pack hash: af979b2df7c43ac3d200cf659d69e1cad807ccea8c10586e3b9678176ede1570:9fbed8645daf7197b2aef75a78aae1b9ed4a6300c020df7adfe9af51c07406fd:23c781957560f94848c3da53598d334cef855744d1a39393729391e849ca9288
+  # Generated code with pack hash: af979b2df7c43ac3d200cf659d69e1cad807ccea8c10586e3b9678176ede1570:ea8b9c20f2543cc93117938b7b118592502262d5d8e19a3eeed0bd5692703383:23c781957560f94848c3da53598d334cef855744d1a39393729391e849ca9288
 
   def _each_sum_numbers
+    acc_1 = 0.0
     arr0 = @input["numbers"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0.0
       v0 = a0["value"]
-      acc_1 += v0
-      v1 = acc_1
-      yield v1, []
+      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
     end
+    v1 = acc_1
+    yield v1, []
   end
 
   def _eval_sum_numbers
@@ -19,14 +19,14 @@ module SchemaModule
   def _each_matrix_sums
     arr0 = @input["matrix"]
     arr0.each_with_index do |a0, i0|
+      acc_1 = 0.0
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
-        acc_1 = 0.0
         v0 = a1["cell"]
-        acc_1 += v0
-        v1 = acc_1
-        yield v1, [i0]
+        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
       end
+      v1 = acc_1
+      yield v1, [i0]
     end
   end
 
@@ -46,8 +46,8 @@ module SchemaModule
   end
 
   def _each_constant
-    c0 = 42
     yield v0, []
+    c0 = 42
   end
 
   def _eval_constant
