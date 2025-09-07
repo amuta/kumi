@@ -1,19 +1,19 @@
 (SNAST
   (VALUE sum_numbers
     (Call :agg.sum
-      (InputRef [:numbers, :value]) :: [numbers] -> integer
+      (InputRef numbers.value) :: [numbers] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE matrix_sums
     (Call :agg.sum
-      (InputRef [:matrix, :row, :cell]) :: [matrix, row] -> float
+      (InputRef matrix.row.cell) :: [matrix, row] -> float
     ) :: [matrix] -> float
   ) :: [matrix] -> float
   (VALUE mixed_array
     (Tuple
-      (InputRef [:scalar_val]) :: [] -> integer
+      (InputRef scalar_val) :: [] -> integer
       (Ref sum_numbers) :: [] -> integer
-      (InputRef [:matrix, :row, :cell]) :: [matrix, row] -> float
+      (InputRef matrix.row.cell) :: [matrix, row] -> float
     ) :: [matrix, row] -> tuple<integer, integer, float>
   ) :: [matrix, row] -> tuple<integer, integer, float>
   (VALUE constant

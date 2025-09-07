@@ -1,19 +1,19 @@
 (SNAST
   (TRAIT high_performer
     (Call :core.gte
-      (InputRef [:regions, :offices, :teams, :employees, :rating]) :: [regions, offices, teams, employees] -> float
+      (InputRef regions.offices.teams.employees.rating) :: [regions, offices, teams, employees] -> float
       (Const 4.5) :: [] -> float
     ) :: [regions, offices, teams, employees] -> boolean
   ) :: [regions, offices, teams, employees] -> boolean
   (TRAIT senior_level
     (Call :core.eq
-      (InputRef [:regions, :offices, :teams, :employees, :level]) :: [regions, offices, teams, employees] -> string
+      (InputRef regions.offices.teams.employees.level) :: [regions, offices, teams, employees] -> string
       (Const "senior") :: [] -> string
     ) :: [regions, offices, teams, employees] -> boolean
   ) :: [regions, offices, teams, employees] -> boolean
   (TRAIT top_team
     (Call :core.gte
-      (InputRef [:regions, :offices, :teams, :performance_score]) :: [regions, offices, teams] -> float
+      (InputRef regions.offices.teams.performance_score) :: [regions, offices, teams] -> float
       (Const 0.9) :: [] -> float
     ) :: [regions, offices, teams] -> boolean
   ) :: [regions, offices, teams] -> boolean
@@ -27,7 +27,7 @@
         ) :: [regions, offices, teams, employees] -> boolean
       ) :: [regions, offices, teams, employees] -> boolean
       (Call :core.mul
-        (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+        (InputRef regions.offices.teams.employees.salary) :: [regions, offices, teams, employees] -> float
         (Const 0.3) :: [] -> float
       ) :: [regions, offices, teams, employees] -> float
       (Call :__select__
@@ -36,11 +36,11 @@
           (Ref top_team) :: [regions, offices, teams] -> boolean
         ) :: [regions, offices, teams, employees] -> boolean
         (Call :core.mul
-          (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+          (InputRef regions.offices.teams.employees.salary) :: [regions, offices, teams, employees] -> float
           (Const 0.2) :: [] -> float
         ) :: [regions, offices, teams, employees] -> float
         (Call :core.mul
-          (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+          (InputRef regions.offices.teams.employees.salary) :: [regions, offices, teams, employees] -> float
           (Const 0.05) :: [] -> float
         ) :: [regions, offices, teams, employees] -> float
       ) :: [regions, offices, teams, employees] -> float

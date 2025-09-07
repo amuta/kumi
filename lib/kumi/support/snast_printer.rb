@@ -54,7 +54,7 @@ module Kumi
           "#{indent}(Const #{node.value.inspect}) #{stamp_str}"
         when Kumi::Core::NAST::InputRef
           stamp_str = format_stamp(node.meta[:stamp])
-          "#{indent}(InputRef [:#{node.path.join(', :')}]) #{stamp_str}"
+          "#{indent}(InputRef #{node.path_fqn}) #{stamp_str}"
         when Kumi::Core::NAST::Ref
           stamp_str = format_stamp(node.meta[:stamp])
           "#{indent}(Ref #{node.name}) #{stamp_str}"

@@ -1,7 +1,7 @@
 (SNAST
   (VALUE double
     (Call :core.mul
-      (InputRef [:x, :y, :z]) :: [] -> integer
+      (InputRef x.y.z) :: [] -> integer
       (Const 2) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer

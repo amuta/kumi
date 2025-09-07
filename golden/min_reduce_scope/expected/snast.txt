@@ -1,19 +1,19 @@
 (SNAST
   (VALUE dept_total
     (Call :agg.sum
-      (InputRef [:depts, :teams, :headcount]) :: [depts, teams] -> integer
+      (InputRef depts.teams.headcount) :: [depts, teams] -> integer
     ) :: [depts] -> integer
   ) :: [depts] -> integer
   (VALUE company_total
     (Call :agg.sum
       (Call :agg.sum
-        (InputRef [:depts, :teams, :headcount]) :: [depts, teams] -> integer
+        (InputRef depts.teams.headcount) :: [depts, teams] -> integer
       ) :: [depts] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (TRAIT big_team
     (Call :core.gt
-      (InputRef [:depts, :teams, :headcount]) :: [depts, teams] -> integer
+      (InputRef depts.teams.headcount) :: [depts, teams] -> integer
       (Const 10) :: [] -> integer
     ) :: [depts, teams] -> boolean
   ) :: [depts, teams] -> boolean
@@ -21,7 +21,7 @@
     (Call :agg.sum
       (Call :__select__
         (Ref big_team) :: [depts, teams] -> boolean
-        (InputRef [:depts, :teams, :headcount]) :: [depts, teams] -> integer
+        (InputRef depts.teams.headcount) :: [depts, teams] -> integer
         (Const 0) :: [] -> integer
       ) :: [depts, teams] -> integer
     ) :: [depts] -> integer

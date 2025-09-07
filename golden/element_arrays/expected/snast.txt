@@ -1,19 +1,19 @@
 (SNAST
   (VALUE cube
-    (InputRef [:cube]) :: [] -> array
+    (InputRef cube) :: [] -> array
   ) :: [] -> array
   (VALUE layer
-    (InputRef [:cube, :layer]) :: [cube] -> array
+    (InputRef cube.layer) :: [cube] -> array
   ) :: [cube] -> array
   (VALUE row
-    (InputRef [:cube, :layer, :row]) :: [cube, layer] -> array
+    (InputRef cube.layer.row) :: [cube, layer] -> array
   ) :: [cube, layer] -> array
   (VALUE cell
-    (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+    (InputRef cube.layer.row.cell) :: [cube, layer, row] -> integer
   ) :: [cube, layer, row] -> integer
   (TRAIT cell_over_limit
     (Call :core.gt
-      (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+      (InputRef cube.layer.row.cell) :: [cube, layer, row] -> integer
       (Const 100) :: [] -> integer
     ) :: [cube, layer, row] -> boolean
   ) :: [cube, layer, row] -> boolean
@@ -21,7 +21,7 @@
     (Call :agg.sum
       (Call :__select__
         (Ref cell_over_limit) :: [cube, layer, row] -> boolean
-        (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+        (InputRef cube.layer.row.cell) :: [cube, layer, row] -> integer
         (Const 0) :: [] -> integer
       ) :: [cube, layer, row] -> integer
     ) :: [cube, layer] -> integer

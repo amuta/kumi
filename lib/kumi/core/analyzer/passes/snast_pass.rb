@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+# TODO(LIR) -> its probably possible to get rid of tables 
 module Kumi
   module Core
     module Analyzer
@@ -205,7 +205,7 @@ module Kumi
             
             # Add execution plan (from pre-calculated analysis)
             new_tuple.meta[:plan] = {
-              kind: :constructor,
+              kind: :constructor, # Contruct an Struct/Tuple fn(...) -> "Typed Object" (Hash/Tuple)
               arity: annotated_args.length,
               target_axes: tuple_meta[:result_scope],
               needs_expand_flags: tuple_meta[:needs_expand_flags]
@@ -233,8 +233,6 @@ module Kumi
                 last_axis_token: call_meta[:last_axis_token]
               }
               
-            when :constructor
-              # Constructor operations create new data structures
               {
                 kind: :constructor,
                 arity: annotated_args.length,
