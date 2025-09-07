@@ -53,7 +53,7 @@ module Kumi
           def analyze_expression(expr, errors)
             case expr
             when Kumi::Core::NAST::Call         then analyze_call_expression(expr, errors)
-            when Kumi::Core::NAST::Tuple then analyze_tuple_literal(expr, errors)
+            when Kumi::Core::NAST::Tuple        then analyze_tuple_literal(expr, errors)
             when Kumi::Core::NAST::InputRef     then analyze_input_ref(expr)
             when Kumi::Core::NAST::Const        then analyze_const(expr)
             when Kumi::Core::NAST::Ref          then analyze_declaration_ref(expr)

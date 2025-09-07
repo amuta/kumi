@@ -6,16 +6,17 @@ require "pry" # COMMENT AFTER DEBUGGING
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
+  "lir" => "LIR",
   "lower_to_ir_pass" => "LowerToIRPass",
   "lower_to_irv2_pass" => "LowerToIRV2Pass",
   "load_input_cse" => "LoadInputCSE",
   "ir_dependency_pass" => "IRDependencyPass",
-  "vm" => "VM",
   "ir" => "IR",
-  "irv2" => "IRV2",
   "ir_dump" => "IRDump",
   "ir_render" => "IRRender",
   "ir_execution_schedule_pass" => "IRExecutionSchedulePass",
+  "irv2" => "IRV2",
+  "irv2_formatter" => "IRV2Formatter",
   "nast" => "NAST",
   "normalize_to_nast_pass" => "NormalizeToNASTPass",
   "nast_dimensional_analyzer_pass" => "NASTDimensionalAnalyzerPass",
@@ -23,8 +24,8 @@ loader.inflector.inflect(
   "nast_printer" => "NASTPrinter",
   "snast_printer" => "SNASTPrinter",
   "assemble_irv2_pass" => "AssembleIRV2Pass",
-  "irv2_formatter" => "IRV2Formatter",
   "cgir" => "CGIR"
+  "vm" => "VM",
 )
 loader.setup
 

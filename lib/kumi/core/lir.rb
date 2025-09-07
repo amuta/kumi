@@ -2,6 +2,21 @@
 module Kumi
   module Core
     module LIR
+      OPCODES = %i[
+        Constant
+        LoadInput
+        LoadDeclaration
+        LoadField
+        LoopStart
+        LoopEnd
+        KernelCall
+        Select
+        DeclareAccumulator
+        Accumulate
+        LoadAccumulator
+        Yield
+      ].freeze
+      
       # Re-exports for stable API
       Stamp       = Structs::Stamp
       Literal     = Structs::Literal

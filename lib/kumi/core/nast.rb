@@ -116,6 +116,35 @@ module Kumi
         end
       end
 
+      # Control: ternary select (pure, eager)
+      class Select < Node
+        attr_reader :cond, :on_true, :on_false
+        def initialize(cond:, on_true:, on_false:, **k)
+          super(**k)
+          @cond, @on_true, @on_false = cond, on_true, on_false
+        end
+
+        def accept(visitor)
+          visitor.respond_to?(:visit_select) ? visitor.visit_select(self) : super
+        end
+      end
+
+      # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
+      class Reduce < Node
+        attr_reader :op_id, :over, :arg
+        def initialize(op_id:, over:, arg:, **k)
+          super(**k)
+          @op_id = op_id.to_sym
+          @over  = Array(over).map!(&:to_sym)
+          @arg   = arg
+        end
+
+        def accept(visitor)
+          visitor.respond_to?(:visit_reduce) ? visitor.visit_reduce(self) : super
+        end
+      end
+
+
       class Declaration < Node
         attr_reader :name, :body
         def initialize(name:, body:, **k)
