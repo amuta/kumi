@@ -127,6 +127,10 @@ module Kumi
         def accept(visitor)
           visitor.visit_declaration(self)
         end
+
+        def kind
+          meta[:kind]
+        end
       end
 
       Module = Struct.new(:decls, keyword_init: true) do

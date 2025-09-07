@@ -62,9 +62,9 @@ module Kumi
             new_decl = decl.class.new(
               id: decl.id,
               name: name,
-              kind: decl.kind, 
               body: annotated_body,
-              loc: decl.loc
+              loc: decl.loc,
+              meta: {kind: decl.kind, }
             )
             
             # Add declaration-level metadata
@@ -83,7 +83,7 @@ module Kumi
             case expr
             when Core::NAST::Call
               annotate_call_expression(expr)
-            when Core::NAST::TupleLiteral
+            when Core::NAST::Tuple
               annotate_tuple_literal(expr)
             when Core::NAST::InputRef
               annotate_input_ref(expr)
@@ -189,11 +189,11 @@ module Kumi
             # Find tuple metadata
             tuple_meta = @metadata_table.fetch(node_id(tuple_literal))
             
-            # Annotate elements 
-            annotated_elements = tuple_literal.elements.map { |elem| annotate_expression(elem) }
+            # Annotate args 
+            annotated_args = tuple_literal.args.map { |elem| annotate_expression(elem) }
             
-            # Create new tuple literal with annotated elements
-            new_tuple = tuple_literal.class.new(id: tuple_literal.id, elements: annotated_elements, loc: tuple_literal.loc)
+            # Create new tuple literal with annotated args
+            new_tuple = tuple_literal.class.new(id: tuple_literal.id, args: annotated_args, loc: tuple_literal.loc)
             
             # Add stamp metadata (from pre-calculated analysis)
             new_tuple.meta[:stamp] = {
@@ -206,12 +206,12 @@ module Kumi
             # Add execution plan (from pre-calculated analysis)
             new_tuple.meta[:plan] = {
               kind: :constructor,
-              arity: annotated_elements.length,
+              arity: annotated_args.length,
               target_axes: tuple_meta[:result_scope],
               needs_expand_flags: tuple_meta[:needs_expand_flags]
             }.freeze
             
-            debug "    TupleLiteral: #{tuple_meta[:arg_scopes]} -> #{tuple_meta[:result_scope]} (#{tuple_meta[:result_type]})"
+            debug "    Tuple: #{tuple_meta[:arg_scopes]} -> #{tuple_meta[:result_scope]} (#{tuple_meta[:result_type]})"
             
             new_tuple
           end

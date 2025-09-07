@@ -10,7 +10,7 @@
     ) :: [matrix] -> float
   ) :: [matrix] -> float
   (VALUE mixed_array
-    (TupleLiteral
+    (Tuple
       (InputRef [:scalar_val]) :: [] -> integer
       (Ref sum_numbers) :: [] -> integer
       (InputRef [:matrix, :row, :cell]) :: [matrix, row] -> float

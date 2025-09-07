@@ -84,8 +84,8 @@ module Kumi
                 stamp = ser_stamp(@current_decls[dep_name].meta[:stamp])
                 @b.load_declaration(dep_name.to_s, stamp: stamp)
 
-              when Kumi::Core::NAST::TupleLiteral
-                plan = node.meta[:plan] or (errors << "Missing plan on TupleLiteral"; return @b.const(nil))
+              when Kumi::Core::NAST::Tuple
+                plan = node.meta[:plan] or (errors << "Missing plan on Tuple"; return @b.const(nil))
 
                 stamp = ser_stamp(node.meta[:stamp])
                 lowered = node.elements.map { |e| lower_expr(e, errors) }

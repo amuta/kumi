@@ -59,7 +59,7 @@ module Kumi
               validate_input_ref(decl_name, node, errors)
             when Kumi::Core::NAST::Ref
               validate_declaration_ref(decl_name, node, errors)
-            when Kumi::Core::NAST::TupleLiteral
+            when Kumi::Core::NAST::Tuple
               validate_tuple_literal(decl_name, node, errors)
             when Kumi::Core::NAST::Call
               validate_call_node(decl_name, node, errors)
@@ -89,12 +89,12 @@ module Kumi
 
           def validate_tuple_literal(decl_name, node, errors)
             unless node.respond_to?(:elements)
-              errors << "Declaration #{decl_name} TupleLiteral missing elements"
+              errors << "Declaration #{decl_name} Tuple missing elements"
               return
             end
 
             unless node.elements.is_a?(Array)
-              errors << "Declaration #{decl_name} TupleLiteral elements must be Array"
+              errors << "Declaration #{decl_name} Tuple elements must be Array"
               return
             end
 
@@ -171,7 +171,7 @@ module Kumi
             case node
             when Kumi::Core::NAST::InputRef
               references.add(node.path) if node.respond_to?(:path)
-            when Kumi::Core::NAST::TupleLiteral
+            when Kumi::Core::NAST::Tuple
               node.elements.each { |elem| collect_input_refs_from_node(elem, references) } if node.respond_to?(:elements)
             when Kumi::Core::NAST::Call
               node.args.each { |arg| collect_input_refs_from_node(arg, references) } if node.respond_to?(:args)
@@ -205,8 +205,8 @@ module Kumi
             return unless node
 
             case node
-            when Kumi::Core::NAST::TupleLiteral
-              errors << "Declaration #{decl_name} TupleLiteral missing required plan metadata" unless node.meta&.[](:plan)
+            when Kumi::Core::NAST::Tuple
+              errors << "Declaration #{decl_name} Tuple missing required plan metadata" unless node.meta&.[](:plan)
               node.elements.each { |elem| validate_node_metadata_requirements(decl_name, elem, errors) } if node.respond_to?(:elements)
 
             when Kumi::Core::NAST::Call

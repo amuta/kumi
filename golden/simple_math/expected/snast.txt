@@ -18,7 +18,7 @@
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE results_array
-    (TupleLiteral
+    (Tuple
       (Const 1) :: [] -> integer
       (Call :core.add
         (InputRef [:x]) :: [] -> integer

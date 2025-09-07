@@ -37,7 +37,6 @@ module Kumi
             debug "Analyzing #{name}"
             result_metadata = analyze_expression(decl.body, errors)
 
-            binding.pry
             decl_metadata = {
               kind:         decl.kind,
               result_type:  result_metadata[:type],
@@ -106,7 +105,7 @@ module Kumi
           end
 
           def analyze_tuple_literal(tuple_literal, errors)
-            elems           = tuple_literal.elements.map { |e| analyze_expression(e, errors) }
+            elems           = tuple_literal.args.map { |e| analyze_expression(e, errors) }
             element_types   = elems.map { |m| m[:type] }
             element_scopes  = elems.map { |m| m[:scope] }
             result_scope    = lub_by_prefix(element_scopes)
@@ -125,7 +124,7 @@ module Kumi
               last_axis_token:    nil
             }.freeze
 
-            debug "    TupleLiteral: (#{element_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
+            debug "    Tuple: (#{element_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
             { type: result_type, scope: result_scope }
           end
 
