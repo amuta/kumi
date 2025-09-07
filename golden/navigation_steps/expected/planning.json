@@ -1,0 +1,78 @@
+{
+  "declarations": {
+    "numbers_mult_10": {
+      "axes": ["array_of_arrays","array_of_objects_with_array_field","array_field","array_field_two"],
+      "parameters": [
+        {
+          "kind": "input",
+          "path": ["array_of_arrays","array_of_objects_with_array_field","array_field","hash_inside_array","array_field_two","number"]
+        }
+      ],
+      "site_schedule": {
+        "max_depth": 4,
+        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "root_reduces": [],
+        "by_depth": [
+          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[]},
+          {"depth":4,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"array_field","via_path":["array_of_arrays","array_of_objects_with_array_field","array_field"]},
+        {
+          "axis": "array_field_two",
+          "via_path": ["array_of_arrays","array_of_objects_with_array_field","array_field","hash_inside_array","array_field_two"]
+        },
+        {"axis":"array_of_arrays","via_path":["array_of_arrays"]},
+        {"axis":"array_of_objects_with_array_field","via_path":["array_of_arrays","array_of_objects_with_array_field"]}
+      ],
+      "reduce_plans": [],
+      "inlining_decisions": {}
+    },
+    "sum_of_nums": {
+      "axes": ["array_of_arrays","array_of_objects_with_array_field","array_field"],
+      "parameters": [{"kind":"dependency","source":"numbers_mult_10"}],
+      "site_schedule": {
+        "max_depth": 4,
+        "hoisted_scalars": [],
+        "root_reduces": [],
+        "by_depth": [
+          {"depth":0,"ops":[]},
+          {"depth":1,"ops":[]},
+          {"depth":2,"ops":[]},
+          {"depth":3,"ops":[{"id":4,"kind":"reduce"}]},
+          {"depth":4,"ops":[{"id":3,"kind":"loaddeclaration"}]}
+        ]
+      },
+      "axis_carriers": [
+        {"axis":"array_field","via_path":["array_of_arrays","array_of_objects_with_array_field","array_field"]},
+        {"axis":"array_of_arrays","via_path":["array_of_arrays"]},
+        {"axis":"array_of_objects_with_array_field","via_path":["array_of_arrays","array_of_objects_with_array_field"]}
+      ],
+      "reduce_plans": [
+        {
+          "op_id": 4,
+          "axis": "array_field_two",
+          "arg_id": 3,
+          "reducer_fn": "agg.sum",
+          "result_depth": 3,
+          "reset_depth": 3,
+          "contrib_depth": 4,
+          "bind_depth": 3,
+          "nested": false,
+          "via_path": ["array_of_arrays","array_of_objects_with_array_field","array_field","hash_inside_array","array_field_two"]
+        }
+      ],
+      "inlining_decisions": {
+        "op_3": {
+          "producer": "numbers_mult_10",
+          "decision": "inline",
+          "use_site_axes": ["array_of_arrays","array_of_objects_with_array_field","array_field","array_field_two"]
+        }
+      }
+    }
+  }
+}

@@ -122,32 +122,27 @@ module Kumi
           end
 
           def validate_input_table(input_table, errors)
-            unless input_table.is_a?(Hash)
-              errors << "Input table must be a Hash"
+            unless input_table.is_a?(Array)
+              errors << "Input table must be an Array"
               return
             end
 
-            input_table.each do |path, info|
-              validate_input_table_entry(path, info, errors)
+            input_table.each do |plan|
+              validate_input_table_plans(plan, errors)
             end
           end
 
-          def validate_input_table_entry(path, info, errors)
-            errors << "Input table path must be Array, got: #{path.class}" unless path.is_a?(Array)
-
-            unless info.is_a?(Hash)
-              errors << "Input table info must be Hash for path #{path.inspect}"
-              return
-            end
+          def validate_input_table_plans(plan, errors)
+            errors << "Input table path must be Array, got: #{plan.class}" unless plan.is_a?(Kumi::Core::IRV2::InputPlan)
 
             required_keys = %i[axes dtype]
             required_keys.each do |key|
-              errors << "Input table entry #{path.inspect} missing key: #{key}" unless info.key?(key)
+              errors << "Input table entry #{plan.inspect} missing key: #{key}" unless plan.respond_to? key
             end
 
-            return unless info[:axes] && !info[:axes].is_a?(Array)
+            return if plan.axes.is_a? Array
 
-            errors << "Input table entry #{path.inspect} axis must be Array"
+            errors << "Input table entry #{plan.inspect} axis must be Array"
           end
 
           def validate_snast_consistency(snast_module, input_table, errors)
@@ -156,14 +151,7 @@ module Kumi
 
             # Check that all referenced paths exist in input table
             referenced_paths.each do |path|
-              errors << "SNAST references undefined input path: #{path.inspect}" unless input_table.key?(path)
-            end
-
-            # Check for unused input table entries (optional warning)
-            input_table.keys.each do |path|
-              unless referenced_paths.include?(path)
-                # This is just a warning, not an error
-              end
+              errors << "SNAST references undefined input path: #{path.inspect}" unless input_table.find{|imp| imp.path_fqn == path.join(".")}
             end
           end
 
@@ -224,44 +212,10 @@ module Kumi
             when Kumi::Core::NAST::Call
               errors << "Declaration #{decl_name} Call #{node.fn} missing required plan metadata" unless node.meta&.[](:plan)
 
-              # Validate plan structure
-              if node.meta&.[](:plan)
-                plan = node.meta[:plan]
-                validate_plan_structure(decl_name, node, plan, errors)
-              end
-
               node.args.each { |arg| validate_node_metadata_requirements(decl_name, arg, errors) } if node.respond_to?(:args)
             end
           end
 
-          def validate_plan_structure(decl_name, node, plan, errors)
-            unless plan.is_a?(Hash)
-              errors << "Declaration #{decl_name} node plan must be a Hash"
-              return
-            end
-
-            unless plan.key?(:kind)
-              errors << "Declaration #{decl_name} node plan missing :kind"
-              return
-            end
-
-            case plan[:kind]
-            when :reduce
-              errors << "Declaration #{decl_name} reduce plan missing :last_axis_token" unless plan.key?(:last_axis_token)
-
-              if node.respond_to?(:args) && node.args.size != 1
-                errors << "Declaration #{decl_name} reduce operation must have exactly 1 argument"
-              end
-
-            when :elementwise
-              if plan[:needs_expand_flags] && plan[:target_axes_tokens].nil?
-                errors << "Declaration #{decl_name} elementwise plan with expand flags missing target_axes_tokens"
-              end
-
-            else
-              errors << "Declaration #{decl_name} plan has unknown kind: #{plan[:kind]}"
-            end
-          end
         end
       end
     end

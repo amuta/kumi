@@ -19,9 +19,8 @@ module Kumi
               name = op["args"].first.to_s
               if ctx[:inline].dig("op_#{id}", "decision") == "inline"
                 inline_ids << id
-              else
-                indexed[id] = { name:, rank: view.producer_axes(name).length }
               end
+              indexed[id] = { name:, rank: view.producer_axes(name).length }
             end
             { inline_ids:, indexed:, inlined_vars: {} }
           end

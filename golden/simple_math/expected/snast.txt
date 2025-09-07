@@ -1,190 +1,33 @@
 (SNAST
   (VALUE sum
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v4"
-      topo_index: 4
-      target_name: :sum
-    }
-    (Call :"core.add"
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v3"
-      topo_index: 3
-      plan: {
-        kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
-      }
-    }
-    args:
-      (InputRef [:x]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v1"
-          topo_index: 1
-        }
-      )
-      (InputRef [:y]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v2"
-          topo_index: 2
-        }
-      )
-  )
-  )
+    (Call :core.add
+      (InputRef [:x]) :: [] -> integer
+      (InputRef [:y]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
   (VALUE product
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v8"
-      topo_index: 8
-      target_name: :product
-    }
-    (Call :"core.mul"
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v7"
-      topo_index: 7
-      plan: {
-        kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
-      }
-    }
-    args:
-      (InputRef [:x]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v5"
-          topo_index: 5
-        }
-      )
-      (InputRef [:y]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v6"
-          topo_index: 6
-        }
-      )
-  )
-  )
+    (Call :core.mul
+      (InputRef [:x]) :: [] -> integer
+      (InputRef [:y]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
   (VALUE difference
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v12"
-      topo_index: 12
-      target_name: :difference
-    }
-    (Call :"core.sub"
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v11"
-      topo_index: 11
-      plan: {
-        kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
-      }
-    }
-    args:
-      (InputRef [:x]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v9"
-          topo_index: 9
-        }
-      )
-      (InputRef [:y]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v10"
-          topo_index: 10
-        }
-      )
-  )
-  )
+    (Call :core.sub
+      (InputRef [:x]) :: [] -> integer
+      (InputRef [:y]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
   (VALUE results_array
-    meta: {
-      stamp: {axes_tokens: [], dtype: tuple<integer, integer, integer>}
-      value_id: "v21"
-      topo_index: 21
-      target_name: :results_array
-    }
     (TupleLiteral
-    meta: {
-      stamp: {axes_tokens: [], dtype: tuple<integer, integer, integer>}
-      value_id: "v20"
-      topo_index: 20
-      plan: {
-        kind: constructor
-        arity: 3
-        target_axes_tokens: []
-        needs_expand_flags: [false, false, false]
-      }
-    }
-    elements:
-      (Const 1
-        meta: {
-          stamp: {axes_tokens: [], dtype: integer}
-          value_id: "v13"
-          topo_index: 13
-        }
-      )
-      (Call :"core.add"
-        meta: {
-          stamp: {axes_tokens: [], dtype: integer}
-          value_id: "v16"
-          topo_index: 16
-          plan: {
-            kind: elementwise
-            target_axes_tokens: []
-            needs_expand_flags: [false, false]
-          }
-        }
-        args:
-          (InputRef [:x]
-            meta: {
-              stamp: {axes_tokens: nil, dtype: integer}
-              value_id: "v14"
-              topo_index: 14
-            }
-          )
-          (Const 10
-            meta: {
-              stamp: {axes_tokens: [], dtype: integer}
-              value_id: "v15"
-              topo_index: 15
-            }
-          )
-      )
-      (Call :"core.mul"
-        meta: {
-          stamp: {axes_tokens: [], dtype: integer}
-          value_id: "v19"
-          topo_index: 19
-          plan: {
-            kind: elementwise
-            target_axes_tokens: []
-            needs_expand_flags: [false, false]
-          }
-        }
-        args:
-          (InputRef [:y]
-            meta: {
-              stamp: {axes_tokens: nil, dtype: integer}
-              value_id: "v17"
-              topo_index: 17
-            }
-          )
-          (Const 2
-            meta: {
-              stamp: {axes_tokens: [], dtype: integer}
-              value_id: "v18"
-              topo_index: 18
-            }
-          )
-      )
-  )
-  )
+      (Const 1) :: [] -> integer
+      (Call :core.add
+        (InputRef [:x]) :: [] -> integer
+        (Const 10) :: [] -> integer
+      ) :: [] -> integer
+      (Call :core.mul
+        (InputRef [:y]) :: [] -> integer
+        (Const 2) :: [] -> integer
+      ) :: [] -> integer
+    ) :: [] -> tuple<integer, integer, integer>
+  ) :: [] -> tuple<integer, integer, integer>
 )

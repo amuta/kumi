@@ -1,11 +1,11 @@
 module SchemaModule
-  # Generated code with pack hash: e82ce420cfa0ce124f4aaac6453a303dd0c4c1ac814c8325b4d046c89fead22d:9a9b1f0ef0fbe709b79cd778cd1e138f216c0b9c5781a129b15d91931656d11b:e796fed854d71d3f76f81b3813070d7fb1be2701639fa247cc5cb234ebb20648
+  # Generated code with pack hash: e82ce420cfa0ce124f4aaac6453a303dd0c4c1ac814c8325b4d046c89fead22d:30de2c4af6ef7a11d77747b70053e8a11cf817e2733402f6649d7cdff096800d:e796fed854d71d3f76f81b3813070d7fb1be2701639fa247cc5cb234ebb20648
 
   def _each_sum
-    v0 = @input["x"]
-    v1 = @input["y"]
-    v2 = __call_kernel__("core.add", v0, v1)
-    yield v2, []
+    op0 = @input["x"]
+    op1 = @input["y"]
+    op2 = __call_kernel__("core.add", op0, op1)
+    yield op2, []
   end
 
   def _eval_sum
@@ -13,10 +13,10 @@ module SchemaModule
   end
 
   def _each_product
-    v0 = @input["x"]
-    v1 = @input["y"]
-    v2 = __call_kernel__("core.mul", v0, v1)
-    yield v2, []
+    op3 = @input["x"]
+    op4 = @input["y"]
+    op5 = __call_kernel__("core.mul", op3, op4)
+    yield op5, []
   end
 
   def _eval_product
@@ -24,10 +24,10 @@ module SchemaModule
   end
 
   def _each_difference
-    v0 = @input["x"]
-    v1 = @input["y"]
-    v2 = __call_kernel__("core.sub", v0, v1)
-    yield v2, []
+    op6 = @input["x"]
+    op7 = @input["y"]
+    op8 = __call_kernel__("core.sub", op6, op7)
+    yield op8, []
   end
 
   def _eval_difference
@@ -35,15 +35,15 @@ module SchemaModule
   end
 
   def _each_results_array
-    c0 = 1
-    c2 = 10
-    c5 = 2
-    v1 = @input["x"]
-    v3 = __call_kernel__("core.add", v1, c2)
-    v4 = @input["y"]
-    v6 = __call_kernel__("core.mul", v4, c5)
-    v7 = [c0, v3, v6]
-    yield v7, []
+    op9 = 1
+    op10 = @input["x"]
+    op11 = 10
+    op12 = __call_kernel__("core.add", op10, 10)
+    op13 = @input["y"]
+    op14 = 2
+    op15 = __call_kernel__("core.mul", op13, 2)
+    op16 = [1, op12, op15]
+    yield op16, []
   end
 
   def _eval_results_array

@@ -1,0 +1,13 @@
+{
+  "ir_ref": "sha256:747df3058964d1c8faff83dbd5a72aba0b3525572b34672bd14148bffc237da5",
+  "target": "ruby",
+  "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
+  "bindings": [
+    {"decl":"numbers_mult_10","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"sum_of_nums","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+  ],
+  "kernels": [
+    {"kernel_id":"core.mul:ruby:v1","impl":"(a, b)\n  a * b","attrs":{}},
+    {"kernel_id":"agg.sum:ruby:v1","impl":"(a,b)\n  a + b","attrs":{"identity":0}}
+  ]
+}

@@ -1,16 +1,16 @@
 {
-  "ir_ref": "sha256:e1ee88447ea209cf8592e1abb880224a9b5d4180b2e4f534e87c7c453a5fef92",
+  "ir_ref": "sha256:11120437199acd140b1d755ed264fc8acbf025cd66e060aed5b2599e74d79d31",
   "target": "ruby",
   "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
   "bindings": [
     {"decl":"items_subtotal","op":2,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"items_discounted","op":3,"fn":"core.sub","kernel_id":"core.sub:ruby:v1"},
-    {"decl":"items_discounted","op":4,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"items_is_big","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
-    {"decl":"items_effective","op":3,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
-    {"decl":"total_qty","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
-    {"decl":"cart_total","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
-    {"decl":"cart_total_effective","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+    {"decl":"items_discounted","op":6,"fn":"core.sub","kernel_id":"core.sub:ruby:v1"},
+    {"decl":"items_discounted","op":7,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"items_is_big","op":10,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"items_effective","op":14,"fn":"core.mul","kernel_id":"core.mul:ruby:v1"},
+    {"decl":"total_qty","op":18,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
+    {"decl":"cart_total","op":20,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
+    {"decl":"cart_total_effective","op":22,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
   ],
   "kernels": [
     {"kernel_id":"core.mul:ruby:v1","impl":"(a, b)\n  a * b","attrs":{}},

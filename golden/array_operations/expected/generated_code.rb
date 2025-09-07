@@ -1,13 +1,13 @@
 module SchemaModule
-  # Generated code with pack hash: 4d099f0fb984b4068ae7d12c14f5913a796f2076a0bb52660683ecad6e8d87c2:c6eb5872b5d0aea843a34fecdb44d6540146120dcfad74cd8ccfc3982ebcaaaa:25fcdd78f0cd510aa903ac37b8f88f81bbc89041aac6d73d9b45eec88aa0486a
+  # Generated code with pack hash: 4d099f0fb984b4068ae7d12c14f5913a796f2076a0bb52660683ecad6e8d87c2:b143648a2296cb555bd68af6157921bc3401f71d7300245515fa471033e547e1:e168264803527e92f7692acfe6bcdbc5a3c154ceaba6ba95b7a74ba6faf5c5ca
 
   def _each_subtotals
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      v0 = a0["price"]
-      v1 = a0["quantity"]
-      v2 = __call_kernel__("core.mul", v0, v1)
-      yield v2, [i0]
+      op0 = a0["price"]
+      op1 = a0["quantity"]
+      op2 = __call_kernel__("core.mul", op0, op1)
+      yield op2, [i0]
     end
   end
 
@@ -18,10 +18,9 @@ module SchemaModule
   def _each_discounted_price
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      c1 = 0.9
-      v0 = a0["price"]
-      v2 = __call_kernel__("core.mul", v0, c1)
-      yield v2, [i0]
+      op3 = a0["price"]
+      op5 = __call_kernel__("core.mul", op3, 0.9)
+      yield op5, [i0]
     end
   end
 
@@ -32,10 +31,9 @@ module SchemaModule
   def _each_is_valid_quantity
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      c1 = 0
-      v0 = a0["quantity"]
-      v2 = __call_kernel__("core.gt", v0, c1)
-      yield v2, [i0]
+      op6 = a0["quantity"]
+      op8 = __call_kernel__("core.gt", op6, 0)
+      yield op8, [i0]
     end
   end
 
@@ -46,10 +44,9 @@ module SchemaModule
   def _each_expensive_items
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      c1 = 100.0
-      v0 = a0["price"]
-      v2 = __call_kernel__("core.gt", v0, c1)
-      yield v2, [i0]
+      op9 = a0["price"]
+      op11 = __call_kernel__("core.gt", op9, 100.0)
+      yield op11, [i0]
     end
   end
 
@@ -60,10 +57,9 @@ module SchemaModule
   def _each_electronics
     arr0 = @input["items"]
     arr0.each_with_index do |a0, i0|
-      c1 = "electronics"
-      v0 = a0["category"]
-      v2 = __call_kernel__("core.eq", v0, c1)
-      yield v2, [i0]
+      op12 = a0["category"]
+      op14 = __call_kernel__("core.eq", op12, "electronics")
+      yield op14, [i0]
     end
   end
 

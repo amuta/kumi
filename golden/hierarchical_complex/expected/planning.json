@@ -29,14 +29,14 @@
       "parameters": [{"kind":"input","path":["regions","offices","teams","employees","level"]}],
       "site_schedule": {
         "max_depth": 4,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":4,"kind":"const"}],
         "root_reduces": [],
         "by_depth": [
-          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":0,"ops":[{"id":4,"kind":"const"}]},
           {"depth":1,"ops":[]},
           {"depth":2,"ops":[]},
           {"depth":3,"ops":[]},
-          {"depth":4,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+          {"depth":4,"ops":[{"id":3,"kind":"loadinput"},{"id":5,"kind":"map"}]}
         ]
       },
       "axis_carriers": [
@@ -53,13 +53,13 @@
       "parameters": [{"kind":"input","path":["regions","offices","teams","performance_score"]}],
       "site_schedule": {
         "max_depth": 3,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":7,"kind":"const"}],
         "root_reduces": [],
         "by_depth": [
-          {"depth":0,"ops":[{"id":1,"kind":"const"}]},
+          {"depth":0,"ops":[{"id":7,"kind":"const"}]},
           {"depth":1,"ops":[]},
           {"depth":2,"ops":[]},
-          {"depth":3,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}
+          {"depth":3,"ops":[{"id":6,"kind":"loadinput"},{"id":8,"kind":"map"}]}
         ]
       },
       "axis_carriers": [
@@ -80,27 +80,28 @@
       ],
       "site_schedule": {
         "max_depth": 4,
-        "hoisted_scalars": [{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}],
+        "hoisted_scalars": [{"id":15,"kind":"const"},{"id":20,"kind":"const"},{"id":22,"kind":"const"}],
         "root_reduces": [],
         "by_depth": [
-          {"depth":0,"ops":[{"id":6,"kind":"const"},{"id":11,"kind":"const"},{"id":13,"kind":"const"}]},
+          {"depth":0,"ops":[{"id":15,"kind":"const"},{"id":20,"kind":"const"},{"id":22,"kind":"const"}]},
           {"depth":1,"ops":[]},
           {"depth":2,"ops":[]},
-          {"depth":3,"ops":[{"id":2,"kind":"loaddeclaration"}]},
+          {"depth":3,"ops":[{"id":11,"kind":"loaddeclaration"},{"id":18,"kind":"loaddeclaration"}]},
           {
             "depth": 4,
             "ops": [
-              {"id":0,"kind":"loaddeclaration"},
-              {"id":1,"kind":"loaddeclaration"},
-              {"id":3,"kind":"map"},
-              {"id":4,"kind":"map"},
-              {"id":5,"kind":"loadinput"},
-              {"id":7,"kind":"map"},
-              {"id":10,"kind":"map"},
+              {"id":9,"kind":"loaddeclaration"},
+              {"id":10,"kind":"loaddeclaration"},
               {"id":12,"kind":"map"},
-              {"id":14,"kind":"map"},
-              {"id":15,"kind":"select"},
-              {"id":16,"kind":"select"}
+              {"id":13,"kind":"map"},
+              {"id":14,"kind":"loadinput"},
+              {"id":16,"kind":"map"},
+              {"id":17,"kind":"loaddeclaration"},
+              {"id":19,"kind":"map"},
+              {"id":21,"kind":"map"},
+              {"id":23,"kind":"map"},
+              {"id":24,"kind":"select"},
+              {"id":25,"kind":"select"}
             ]
           }
         ]
@@ -113,9 +114,11 @@
       ],
       "reduce_plans": [],
       "inlining_decisions": {
-        "op_0": {"producer":"high_performer","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
-        "op_1": {"producer":"senior_level","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
-        "op_2": {"producer":"top_team","decision":"inline","use_site_axes":["regions","offices","teams"]}
+        "op_9": {"producer":"high_performer","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
+        "op_10": {"producer":"senior_level","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
+        "op_11": {"producer":"top_team","decision":"inline","use_site_axes":["regions","offices","teams"]},
+        "op_17": {"producer":"high_performer","decision":"inline","use_site_axes":["regions","offices","teams","employees"]},
+        "op_18": {"producer":"top_team","decision":"inline","use_site_axes":["regions","offices","teams"]}
       }
     }
   }

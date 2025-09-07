@@ -1,11 +1,11 @@
 module SchemaModule
-  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:465e26ebe4200381ac7e87ba2e3aeaafa4d1344e413a15b7258d5d61afc99356:53c42da2bb59fc06d6f8f30f5150a97e636552f1be351a98d718fbb8456a61e4
+  # Generated code with pack hash: 7b0c3825a5325b3606a4a4a0cfd529e4c603cda03c1c5bbc473d8eef8c055597:ec0d980a55483df151a319632a2667a11be2c976c03ec78a79f178a9fc529957:9229a92c0194d2e87b299873465851c4f35e447fcae59c33cbe09653deec14ee
 
   def _each_cube
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
-      v0 = a0
-      yield v0, [i0]
+      op0 = a0
+      yield op0, [i0]
     end
   end
 
@@ -18,8 +18,8 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       arr1 = a0
       arr1.each_with_index do |a1, i1|
-        v0 = a1
-        yield v0, [i0, i1]
+        op1 = a1
+        yield op1, [i0, i1]
       end
     end
   end
@@ -35,8 +35,8 @@ module SchemaModule
       arr1.each_with_index do |a1, i1|
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          v0 = a2
-          yield v0, [i0, i1, i2]
+          op2 = a2
+          yield op2, [i0, i1, i2]
         end
       end
     end
@@ -53,8 +53,8 @@ module SchemaModule
       arr1.each_with_index do |a1, i1|
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          v0 = a2
-          yield v0, [i0, i1, i2]
+          op3 = a2
+          yield op3, [i0, i1, i2]
         end
       end
     end
@@ -65,16 +65,16 @@ module SchemaModule
   end
 
   def _each_cell_over_limit
+    op5 = 100
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
-      c1 = 100
       arr1 = a0
       arr1.each_with_index do |a1, i1|
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          v0 = a2
-          v2 = __call_kernel__("core.gt", v0, c1)
-          yield v2, [i0, i1, i2]
+          op4 = a2
+          op6 = __call_kernel__("core.gt", op4, 100)
+          yield op6, [i0, i1, i2]
         end
       end
     end
@@ -85,23 +85,21 @@ module SchemaModule
   end
 
   def _each_cell_sum
+    op9 = 0
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
-      c2 = 0
       arr1 = a0
       arr1.each_with_index do |a1, i1|
-        acc_4 = 0
+        acc_11 = 0
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          v1 = a2
-          ccell_over_limit_1 = 100
-          v0_cell_over_limit = a2
-          v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
-          v3 = (v0 ? v1 : c2)
-          acc_4 = __call_kernel__("agg.sum", acc_4, v3)
+          op7 = self[:cell_over_limit][i0][i1][i2]
+          op8 = a2
+          op10 = (op7 ? op8 : 0)
+          acc_11 = __call_kernel__("agg.sum", acc_11, op10)
         end
-        v4 = acc_4
-        yield v4, [i0, i1]
+        op11 = acc_11
+        yield op11, [i0, i1]
       end
     end
   end
@@ -111,31 +109,29 @@ module SchemaModule
   end
 
   def _each_count_over_limit
-    acc_6 = 0
+    acc_18 = 0
+    op13 = 1
+    op14 = 0
     arr0 = @input["cube"]
     arr0.each_with_index do |a0, i0|
-      acc_5 = 0
-      c1 = 1
-      c2 = 0
+      acc_17 = 0
       arr1 = a0
       arr1.each_with_index do |a1, i1|
-        acc_4 = 0
+        acc_16 = 0
         arr2 = a1
         arr2.each_with_index do |a2, i2|
-          ccell_over_limit_1 = 100
-          v0_cell_over_limit = a2
-          v0 = __call_kernel__("core.gt", v0_cell_over_limit, ccell_over_limit_1)
-          v3 = (v0 ? c1 : c2)
-          acc_4 = __call_kernel__("agg.sum", acc_4, v3)
+          op12 = self[:cell_over_limit][i0][i1][i2]
+          op15 = (op12 ? 1 : 0)
+          acc_16 = __call_kernel__("agg.sum", acc_16, op15)
         end
-        v4 = acc_4
-        acc_5 = __call_kernel__("agg.sum", acc_5, v4)
+        op16 = acc_16
+        acc_17 = __call_kernel__("agg.sum", acc_17, op16)
       end
-      v5 = acc_5
-      acc_6 = __call_kernel__("agg.sum", acc_6, v5)
+      op17 = acc_17
+      acc_18 = __call_kernel__("agg.sum", acc_18, op17)
     end
-    v6 = acc_6
-    yield v6, []
+    op18 = acc_18
+    yield op18, []
   end
 
   def _eval_count_over_limit

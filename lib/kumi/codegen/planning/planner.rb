@@ -36,24 +36,22 @@ module Kumi
             per_decl = {}
             mod.decls.each_value do |decl|
               schedule = SiteSchedule.build(decl: decl)
-              reduces  = build_reduce_plans(decl, access) # { id => ReducePlan } (no placement yet)
+              reduce_plans = build_reduce_plans(decl, schedule, access)
 
-              # Include one reduce axis for scalar decls so we can open a loop
               reduce_axes_needed = []
-              if decl.axes.empty? && !reduces.empty?
-                unique_reduce_axes = reduces.values.map(&:axis).uniq
+              if decl.axes.empty? && !reduce_plans.empty?
+                unique_reduce_axes = reduce_plans.values.map(&:axis).uniq
                 reduce_axes_needed = unique_reduce_axes if unique_reduce_axes.size == 1
               end
               all_computation_axes = (decl.axes + reduce_axes_needed).uniq
               carriers = AxisCarrierPlan.build(decl_axes: all_computation_axes, access_plan: access)
 
-              finalized = finalize_reduce_plans(schedule, reduces) # { id => ReducePlan } (with placement)
 
               per_decl[decl.name] = PerDecl.new(
                 decl: decl,
                 axis_carriers: carriers,
                 site_schedule: schedule,
-                reduce_plans_by_id: finalized
+                reduce_plans_by_id: reduce_plans
               )
             end
 
@@ -86,19 +84,17 @@ module Kumi
           end
 
           def parse_input(h)
-            loops = Array(h["axis_loops"]).map do |l|
+            loops = h["navigation_steps"].map do |l|
               {
-                axis:     (l["axes"] || l[:axes]).to_s.to_sym,
-                path:     Array(l["path"] || l[:path]).map(&:to_s),
-                loop_idx: (l["loop_idx"] || l[:loop_idx]).to_i
+                path_fqn:     l["path_fqn"],
+                loop_idx: l["loop_idx"],
+                key: l["key"]
               }
             end
 
             Kumi::Codegen::Planning::InputSpec.new(
-              path:       Array(h["path"] || h["path_fqn"]).map(&:to_s),
-              axis_loops: loops,
-              leaf_nav:   (h["leaf_nav"] || {}),
-              terminal:   (h["terminal"] || {})
+              path_fqn:       h["path_fqn"],
+              navigation_steps: loops,
             )
           end
 
@@ -126,22 +122,7 @@ module Kumi
             kind  = o["op"].to_s.downcase.to_sym
             attrs = (o["attrs"] || {}).dup
 
-            if kind == :constructtuple
-              elem_stamps = Array(o["elem_stamps"]).map { |st| Array(st["axes"]).map(&:to_sym) }
-              meet_axes   = meet_axes_of(elem_stamps)
-
-              tuple_args = elem_stamps.each_with_index.map do |axes, idx|
-                k = 0
-                k += 1 while k < meet_axes.length && k < axes.length && meet_axes[k] == axes[k]
-                { arg_index: idx, suffix_axes: axes[k..] || [], materialize_full: (axes.length > meet_axes.length) }
-              end
-
-              attrs["elem_stamps"] = elem_stamps
-              attrs["tuple_args"]  = tuple_args
-              axes_for_op = meet_axes
-            else
-              axes_for_op = Array(o.dig("stamp", "axes")).map(&:to_sym)
-            end
+            axes_for_op = Array(o.dig("stamp", "axes")).map(&:to_sym)
 
             Kumi::Codegen::Planning::OpSpec.new(
               id:         o["id"],
@@ -155,66 +136,56 @@ module Kumi
 
           def meet_axes_of(list_of_axes)
             return [] if list_of_axes.empty?
-            list_of_axes.reduce do |acc, axes|
-              i = 0
-              i += 1 while i < acc.length && i < axes.length && acc[i] == axes[i]
-              acc.take(i)
-            end
+            list_of_axes.max_by(&:length) || []
           end
 
-          # Build vanilla ReducePlan objects (no placement yet)
-          def build_reduce_plans(decl, access)
-            decl.ops
-                .select { |op| op.kind == :reduce }
-                .to_h { |op| [op.id, ReducePlan.from_op(op: op, access_plan: access)] }
-          end
+          private
 
-          def finalize_reduce_plans(schedule, reduces)
-            return {} if reduces.empty?
-          
+          def build_reduce_plans(decl, schedule, access)
+            reduce_ops = decl.ops.select { |op| op.kind == :reduce }
+            return {} if reduce_ops.empty?
+
+            # Build the op_id -> depth map once.
             depth_of = {}
             schedule.instance_variable_get(:@by_depth).each do |d, ops|
               ops.each { |op| depth_of[op.id] = d }
             end
-          
-            consumed_by_parent = {}
-            reduces.each_key { |rid| consumed_by_parent[rid] = false }
-            reduces.each_value { |rp| reduces.each_value { |x| consumed_by_parent[rp.op_id] ||= (x.arg_id == rp.op_id) } }
-            
-            reduces.transform_values do |rp|
-              rid   = rp.op_id
-              arg   = rp.arg_id
-              res_d = rp.result_depth
-              nested = reduces.key?(arg)
-            
-              arg_d  = depth_of.fetch(arg)
-              child_res_d = nested ? reduces[arg].result_depth : nil
-            
-              if nested
-                # We contribute at that same depth
-                contrib = res_d
-                
-                reset = res_d -1 
-                bind = res_d -1
-              else
-                # Contribute inside the loop at arg's depth
-                contrib = arg_d
-                
-                reset = res_d -1
-                bind = res_d -1
-              end
+
+            # Build a map of all reduce op IDs for the 'nested' check.
+            reduce_op_ids = Set.new(reduce_ops.map(&:id))
+
+            # Create the final ReducePlan objects in a single pass.
+            reduce_ops.to_h do |op|
+              # Part 1: Logic from the old `ReducePlan.from_op` and `build_reduce_plans`
+              plan = ReducePlan.from_op(op: op, access_plan: access)
+
+              # Part 2: Logic from the old `finalize_reduce_plans`
+              arg = plan.arg_id
+              res_d = plan.result_depth
+              nested = reduce_op_ids.include?(arg)
+              arg_d = depth_of.fetch(arg)
               
-              # Special case: if this is the final reduce with no consumer
-              if !consumed_by_parent[rid] && res_d == 0
+              contrib, reset, bind = if nested
+                [res_d, res_d, res_d]
+              else
+                [arg_d, res_d, res_d]
+              end
+
+              # The `consumed_by_parent` check can be simplified and done here.
+              # If this op is NOT the final result of the whole declaration, it has a consumer.
+              is_final_result = (op.id == decl.result_id)
+              if is_final_result && res_d == 0
                 bind = -1
               end
-            
-              rp.with_placement(
+              
+              final_plan = plan.with_placement(
                 contrib_depth: contrib,
                 reset_depth:   reset,
                 bind_depth:    bind,
                 nested:        nested
               )
+
+              [op.id, final_plan]
             end
           end
         end

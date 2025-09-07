@@ -22,7 +22,7 @@
         "dtype": "hash",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"x"}],
         "terminal": {"kind":"none","dtype":"hash","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "x"
@@ -33,7 +33,7 @@
         "dtype": "hash",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"x"},{"kind":"field_leaf","key":"y"}],
         "terminal": {"kind":"none","dtype":"hash","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "x.y"
@@ -44,7 +44,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"x"},{"kind":"field_leaf","key":"y"},{"kind":"field_leaf","key":"z"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "x.y.z"

@@ -3,178 +3,75 @@
 module Kumi
   module Support
     class SNASTPrinter
-      def self.print(snast_module)
-        new.print(snast_module)
+      def self.print(snast_module, verbosity: :default)
+        new(verbosity: verbosity).print(snast_module)
       end
 
-      def initialize(indent: 0)
-        @indent = indent
+      def initialize(verbosity: :default)
+        @verbosity = verbosity
       end
 
       def print(snast_module)
         return "nil" unless snast_module
 
-        lines = []
-        lines << "(SNAST"
-        
+        output = ["(SNAST"]
         snast_module.decls.each do |name, decl|
-          lines << indent("(#{decl.kind.upcase} #{name}")
-          lines << print_declaration_meta(decl, 2)
-          lines << indent(print_node(decl.body), 2)
-          lines << indent(")")
+          output << format_node(decl, 1)
         end
-        
-        lines << ")"
-        lines.join("\n")
+        output << ")"
+        output.join("\n")
       end
 
       private
 
-      def print_declaration_meta(decl, depth)
-        meta = decl.meta
-        stamp = meta[:stamp]
-        
-        lines = []
-        lines << indent("meta: {", depth)
-        lines << indent("stamp: {axes_tokens: #{stamp[:axes_tokens].inspect}, dtype: #{stamp[:dtype]}}", depth + 1)
-        lines << indent("value_id: #{meta[:value_id].inspect}", depth + 1)
-        lines << indent("topo_index: #{meta[:topo_index]}", depth + 1)
-        lines << indent("target_name: #{meta[:target_name].inspect}", depth + 1)
-        lines << indent("}", depth)
-        
-        lines.join("\n")
-      end
-
-      def print_node(node, depth = 1)
-        case node
-        when Kumi::Core::NAST::Const
-          lines = ["(Const #{node.value.inspect}"]
-          lines << print_node_meta(node, depth + 1)
-          lines << indent(")", depth)
-          lines.join("\n")
-          
-        when Kumi::Core::NAST::InputRef
-          lines = ["(InputRef #{node.path.inspect}"]
-          lines << print_node_meta(node, depth + 1)
-          lines << indent(")", depth)
-          lines.join("\n")
-          
-        when Kumi::Core::NAST::Ref
-          lines = ["(Ref #{node.name}"]
-          lines << print_node_meta(node, depth + 1)
-          lines << indent(")", depth)
-          lines.join("\n")
-          
-        when Kumi::Core::NAST::Call
-          lines = ["(Call #{node.fn.inspect}"]
-          lines << print_call_meta(node, depth + 1)
-          
-          unless node.args.empty?
-            lines << indent("args:", depth + 1)
-            node.args.each do |arg|
-              lines << indent(print_node(arg, depth + 2), depth + 2)
-            end
-          end
-          
-          lines << indent(")", depth)
-          lines.join("\n")
-          
-        when Kumi::Core::NAST::TupleLiteral
-          lines = ["(TupleLiteral"]
-          lines << print_tuple_meta(node, depth + 1)
-          
-          unless node.elements.empty?
-            lines << indent("elements:", depth + 1)
-            node.elements.each do |elem|
-              lines << indent(print_node(elem, depth + 2), depth + 2)
-            end
-          end
-          
-          lines << indent(")", depth)
-          lines.join("\n")
-          
+      def format_node(node, indent_level)
+        indent = "  " * indent_level
+        case @verbosity
+        when :full
+          "#{indent}#{node.pretty_inspect.gsub("\n", "\n#{indent}")}"
         else
-          node.inspect
+          format_concise(node, indent_level)
         end
       end
 
-      def print_node_meta(node, depth)
-        meta = node.meta
-        stamp = meta[:stamp]
+      def format_concise(node, indent_level)
+        indent = "  " * indent_level
         
-        lines = []
-        lines << indent("meta: {", depth)
-        lines << indent("stamp: {axes_tokens: #{stamp[:axes_tokens].inspect}, dtype: #{stamp[:dtype]}}", depth + 1)
-        lines << indent("value_id: #{meta[:value_id].inspect}", depth + 1)  
-        lines << indent("topo_index: #{meta[:topo_index]}", depth + 1)
-        
-        # Add specific metadata for Refs
-        if meta[:referenced_name]
-          lines << indent("referenced_name: #{meta[:referenced_name].inspect}", depth + 1)
+        case node
+        when Kumi::Core::NAST::Declaration
+          stamp_str = format_stamp(node.meta[:stamp])
+          kind = node.meta.dig(:stamp, :dtype) == :boolean ? "TRAIT" : "VALUE"
+          header = "(#{kind} #{node.name}"
+          body = format_concise(node.body, indent_level + 1)
+          "#{indent}#{header}\n#{body}\n#{indent}) #{stamp_str}"
+        when Kumi::Core::NAST::Call
+          stamp_str = format_stamp(node.meta[:stamp])
+          header = "(Call :#{node.fn}"
+          args = node.args.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
+          "#{indent}#{header}\n#{args}\n#{indent}) #{stamp_str}"
+        when Kumi::Core::NAST::Const
+          stamp_str = format_stamp(node.meta[:stamp])
+          "#{indent}(Const #{node.value.inspect}) #{stamp_str}"
+        when Kumi::Core::NAST::InputRef
+          stamp_str = format_stamp(node.meta[:stamp])
+          "#{indent}(InputRef [:#{node.path.join(', :')}]) #{stamp_str}"
+        when Kumi::Core::NAST::Ref
+          stamp_str = format_stamp(node.meta[:stamp])
+          "#{indent}(Ref #{node.name}) #{stamp_str}"
+        when Kumi::Core::NAST::Tuple
+          stamp_str = format_stamp(node.meta[:stamp])
+          header = "(Tuple"
+          args = node.args.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
+          "#{indent}#{header}\n#{args}\n#{indent}) #{stamp_str}"
+        else
+          "#{indent}(UnknownNode: #{node.class})"
         end
-        
-        lines << indent("}", depth)
-        lines.join("\n")
       end
 
-      def print_call_meta(call_node, depth)
-        meta = call_node.meta
-        stamp = meta[:stamp]
-        plan = meta[:plan]
-        
-        lines = []
-        lines << indent("meta: {", depth)
-        lines << indent("stamp: {axes_tokens: #{stamp[:axes_tokens].inspect}, dtype: #{stamp[:dtype]}}", depth + 1)
-        lines << indent("value_id: #{meta[:value_id].inspect}", depth + 1)
-        lines << indent("topo_index: #{meta[:topo_index]}", depth + 1)
-        
-        # Print execution plan
-        lines << indent("plan: {", depth + 1)
-        lines << indent("kind: #{plan[:kind]}", depth + 2)
-        
-        case plan[:kind]
-        when :elementwise
-          lines << indent("target_axes_tokens: #{plan[:target_axes_tokens].inspect}", depth + 2)
-          lines << indent("needs_expand_flags: #{plan[:needs_expand_flags].inspect}", depth + 2)
-        when :reduce  
-          lines << indent("last_axis_token: #{plan[:last_axis_token].inspect}", depth + 2)
-        when :constructor
-          lines << indent("arity: #{plan[:arity]}", depth + 2)
-          lines << indent("target_axes_tokens: #{plan[:target_axes_tokens].inspect}", depth + 2)
-          lines << indent("needs_expand_flags: #{plan[:needs_expand_flags].inspect}", depth + 2)
-        end
-        
-        lines << indent("}", depth + 1)
-        lines << indent("}", depth)
-        
-        lines.join("\n")
-      end
-
-      def print_tuple_meta(tuple_node, depth)
-        meta = tuple_node.meta
-        stamp = meta[:stamp]
-        plan = meta[:plan]
-        
-        lines = []
-        lines << indent("meta: {", depth)
-        lines << indent("stamp: {axes_tokens: #{stamp[:axes_tokens].inspect}, dtype: #{stamp[:dtype]}}", depth + 1)
-        lines << indent("value_id: #{meta[:value_id].inspect}", depth + 1)
-        lines << indent("topo_index: #{meta[:topo_index]}", depth + 1)
-        
-        # Print execution plan
-        lines << indent("plan: {", depth + 1)
-        lines << indent("kind: #{plan[:kind]}", depth + 2)
-        lines << indent("arity: #{plan[:arity]}", depth + 2)
-        lines << indent("target_axes_tokens: #{plan[:target_axes_tokens].inspect}", depth + 2)
-        lines << indent("needs_expand_flags: #{plan[:needs_expand_flags].inspect}", depth + 2)
-        lines << indent("}", depth + 1)
-        lines << indent("}", depth)
-        
-        lines.join("\n")
-      end
-
-      def indent(text, level = 1)
-        "  " * level + text
+      def format_stamp(stamp)
+        return "" unless stamp
+        axes = Array(stamp[:axes]).map(&:to_s).join(", ")
+        ":: [#{axes}] -> #{stamp[:dtype]}"
       end
     end
   end

@@ -77,7 +77,7 @@ module Kumi
             end
 
             # 2) Reduction discipline: reset → adds → bind
-            resets = nodes.select { |_, op| op[:code]&.start_with?("acc_") && op[:depth].negative? }
+            resets = nodes.select { |_, op| (op[:defines] || []).any? { |d| d.to_s.start_with?("acc_") } && op[:op_type].nil? }
             adds   = nodes.select { |_, op| op[:op_type] == :acc_apply }
 
             resets.each do |reset_i, reset_op|

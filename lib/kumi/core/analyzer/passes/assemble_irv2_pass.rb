@@ -100,17 +100,14 @@ module Kumi
           def build_canonical_inputs(input_plans)
             input_plans.map do |plan|
               result = {
-                "path"         => Array(plan.source_path).map(&:to_s),
-                "axes"         => Array(plan.axes).map(&:to_s),
+                "path_fqn"     => plan.path_fqn,
+                "axes"         => plan.axes.map(&:to_s),
                 "dtype"        => plan.dtype.to_s,
+                "navigation_steps" => plan.navigation_steps,
                 "key_policy"   => plan.key_policy.to_s,
                 "on_missing"   => plan.missing_policy.to_s,
-                "axis_loops"   => Array(plan.axis_loops).map { |x| stringify_deep(x) },
-                "leaf_nav"     => Array(plan.leaf_nav).map   { |x| stringify_deep(x) },
-                "terminal"     => stringify_deep(plan.terminal || { kind: :none }),
-                "path_fqn"     => (plan.path_fqn || Array(plan.source_path).map(&:to_s).join("."))
               }
-              result
+              stringify_deep(result)
             end
           end
 

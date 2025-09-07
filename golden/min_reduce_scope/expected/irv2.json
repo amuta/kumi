@@ -15,33 +15,33 @@
       "name": "company_total",
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}},
-        {"id":2,"op":"Reduce","args":[1],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"depts"}}
+        {"id":2,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":3,"op":"Reduce","args":[2],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}},
+        {"id":4,"op":"Reduce","args":[3],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"depts"}}
       ],
-      "result": 2
+      "result": 4
     },
     "big_team": {
       "name": "big_team",
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
-        {"id":1,"op":"Const","args":[10],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["depts","teams"]},"attrs":{"fn":"core.gt"}}
+        {"id":5,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":6,"op":"Const","args":[10],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":7,"op":"Map","args":[5,6],"stamp":{"dtype":"boolean","axes":["depts","teams"]},"attrs":{"fn":"core.gt"}}
       ],
-      "result": 2
+      "result": 7
     },
     "dept_total_masked": {
       "name": "dept_total_masked",
       "parameters": [{"kind":"input","path":["depts","teams","headcount"]},{"kind":"dependency","source":"big_team"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["big_team"],"stamp":{"dtype":"boolean","axes":["depts","teams"]}},
-        {"id":1,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
-        {"id":2,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":3,"op":"Select","args":[0,1,2],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
-        {"id":4,"op":"Reduce","args":[3],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}}
+        {"id":8,"op":"LoadDeclaration","args":["big_team"],"stamp":{"dtype":"boolean","axes":["depts","teams"]}},
+        {"id":9,"op":"LoadInput","args":[["depts","teams","headcount"]],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":10,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":11,"op":"Select","args":[8,9,10],"stamp":{"dtype":"integer","axes":["depts","teams"]}},
+        {"id":12,"op":"Reduce","args":[11],"stamp":{"dtype":"integer","axes":["depts"]},"attrs":{"fn":"agg.sum","axis":"teams"}}
       ],
-      "result": 4
+      "result": 12
     }
   },
   "analysis": {
@@ -53,7 +53,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"}],
+        "navigation_steps": [{"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "depts"
@@ -64,7 +64,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"},
           {"axes":"teams","path":["depts","teams"],"loop_idx":1,"kind":"array_field","key":"teams"}
         ],
@@ -78,7 +78,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"depts","path":["depts"],"loop_idx":0,"kind":"array_field","key":"depts"},
           {"axes":"teams","path":["depts","teams"],"loop_idx":1,"kind":"array_field","key":"teams"}
         ],

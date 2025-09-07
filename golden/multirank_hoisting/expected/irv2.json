@@ -16,21 +16,21 @@
       "name": "batch_bias",
       "parameters": [{"kind":"input","path":["batch","mean"]},{"kind":"dependency","source":"global_offset_plus"}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["batch","mean"]],"stamp":{"dtype":"float","axes":["batch"]}},
-        {"id":1,"op":"LoadDeclaration","args":["global_offset_plus"],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"core.add"}}
+        {"id":3,"op":"LoadInput","args":[["batch","mean"]],"stamp":{"dtype":"float","axes":["batch"]}},
+        {"id":4,"op":"LoadDeclaration","args":["global_offset_plus"],"stamp":{"dtype":"float","axes":[]}},
+        {"id":5,"op":"Map","args":[3,4],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"core.add"}}
       ],
-      "result": 2
+      "result": 5
     },
     "row_scale2": {
       "name": "row_scale2",
       "parameters": [{"kind":"input","path":["batch","row","scale"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["batch","row","scale"]],"stamp":{"dtype":"float","axes":["batch","row"]}},
-        {"id":1,"op":"Const","args":[2.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch","row"]},"attrs":{"fn":"core.mul"}}
+        {"id":6,"op":"LoadInput","args":[["batch","row","scale"]],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":7,"op":"Const","args":[2.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":8,"op":"Map","args":[6,7],"stamp":{"dtype":"float","axes":["batch","row"]},"attrs":{"fn":"core.mul"}}
       ],
-      "result": 2
+      "result": 8
     },
     "elem_affine": {
       "name": "elem_affine",
@@ -40,31 +40,37 @@
         {"kind":"dependency","source":"batch_bias"}
       ],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["batch","row","col","val"]],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
-        {"id":1,"op":"LoadDeclaration","args":["row_scale2"],"stamp":{"dtype":"float","axes":["batch","row"]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.mul"}},
-        {"id":3,"op":"LoadDeclaration","args":["batch_bias"],"stamp":{"dtype":"float","axes":["batch"]}},
-        {"id":4,"op":"Map","args":[2,3],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.add"}}
+        {"id":9,"op":"LoadInput","args":[["batch","row","col","val"]],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
+        {"id":10,"op":"LoadDeclaration","args":["row_scale2"],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":11,"op":"Map","args":[9,10],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.mul"}},
+        {"id":12,"op":"LoadDeclaration","args":["batch_bias"],"stamp":{"dtype":"float","axes":["batch"]}},
+        {"id":13,"op":"Map","args":[11,12],"stamp":{"dtype":"float","axes":["batch","row","col"]},"attrs":{"fn":"core.add"}}
       ],
-      "result": 4
+      "result": 13
     },
     "row_sum_affine": {
       "name": "row_sum_affine",
       "parameters": [{"kind":"dependency","source":"elem_affine"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["elem_affine"],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["batch","row"]},"attrs":{"fn":"agg.sum","axis":"col"}}
+        {"id":14,"op":"LoadDeclaration","args":["elem_affine"],"stamp":{"dtype":"float","axes":["batch","row","col"]}},
+        {
+          "id": 15,
+          "op": "Reduce",
+          "args": [14],
+          "stamp": {"dtype":"float","axes":["batch","row"]},
+          "attrs": {"fn":"agg.sum","axis":"col"}
+        }
       ],
-      "result": 1
+      "result": 15
     },
     "batch_total_affine": {
       "name": "batch_total_affine",
       "parameters": [{"kind":"dependency","source":"row_sum_affine"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["row_sum_affine"],"stamp":{"dtype":"float","axes":["batch","row"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"agg.sum","axis":"row"}}
+        {"id":16,"op":"LoadDeclaration","args":["row_sum_affine"],"stamp":{"dtype":"float","axes":["batch","row"]}},
+        {"id":17,"op":"Reduce","args":[16],"stamp":{"dtype":"float","axes":["batch"]},"attrs":{"fn":"agg.sum","axis":"row"}}
       ],
-      "result": 1
+      "result": 17
     }
   },
   "analysis": {
@@ -76,7 +82,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
+        "navigation_steps": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "batch"
@@ -87,7 +93,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
+        "navigation_steps": [{"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"}],
         "leaf_nav": [{"kind":"field_leaf","key":"mean"}],
         "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "batch.mean"
@@ -98,7 +104,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
           {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"}
         ],
@@ -112,7 +118,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
           {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"},
           {"axes":"col","path":["batch","row","col"],"loop_idx":2,"kind":"array_field","key":"col"}
@@ -127,7 +133,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
           {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"},
           {"axes":"col","path":["batch","row","col"],"loop_idx":2,"kind":"array_field","key":"col"}
@@ -142,7 +148,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"batch","path":["batch"],"loop_idx":0,"kind":"array_field","key":"batch"},
           {"axes":"row","path":["batch","row"],"loop_idx":1,"kind":"array_field","key":"row"}
         ],
@@ -156,7 +162,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"global_offset"}],
         "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "global_offset"

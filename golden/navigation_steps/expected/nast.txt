@@ -1,0 +1,13 @@
+(NAST
+  (VALUE numbers_mult_10
+    (Call :"core.mul"
+    (InputRef [:array_of_arrays, :array_of_objects_with_array_field, :array_field, :hash_inside_array, :array_field_two, :number])
+    (Const 10)
+  )
+  )
+  (VALUE sum_of_nums
+    (Call :"agg.sum"
+    (Ref numbers_mult_10)
+  )
+  )
+)

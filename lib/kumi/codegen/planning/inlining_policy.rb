@@ -26,6 +26,11 @@ module Kumi
         def decision(producer_decl:, consumer_use_site_axes:)
           producer_axes = Array(producer_decl.axes).map(&:to_sym)
           use_site_axes = Array(consumer_use_site_axes).map(&:to_sym)
+
+          # Never inline a producer that contains a reduction; they are better as calls.
+          return :call if producer_decl.ops.any? { |op| op.kind == :reduce }
+
+          # Original rule: inline if axes match.
           producer_axes == use_site_axes ? :inline : :call
         end
       end

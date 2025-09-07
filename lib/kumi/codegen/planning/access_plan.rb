@@ -3,58 +3,52 @@
 module Kumi
   module Codegen
     module Planning
-      # AccessPlan is a thin index over analysis.inputs.
-      # Responsibilities:
-      #  - Normalize InputSpec instances
-      #  - Answer: which axis tokens does a path CONSUME?
-      #  - Provide deterministic method names for accessors (codegen)
+      # AccessPlan provides an indexed view over the `analysis.inputs` array,
+      # facilitating the calculation of navigation paths between different
+      # dimensional contexts (axes).
       class AccessPlan
-        attr_reader :inputs_by_path
+        attr_reader :inputs_by_fqn
+        attr_reader :specs_by_axes
 
         def initialize(input_specs)
-          # key = path array joined by '/'
-          @inputs_by_path = {}
-          input_specs.each do |s|
-            validate_input_spec(s)
-            key = path_key(s.path)
-            @inputs_by_path[key] = s
+          @inputs_by_fqn = input_specs.each_with_object({}) do |spec, memo|
+            memo[spec['path_fqn']] = spec
+          end.freeze
+
+          @specs_by_axes = input_specs.each_with_object({}) do |spec, memo|
+            axes = spec['axes']
+            memo[axes] ||= spec
+          end.freeze
+        end
+
+        def spec_for_path(path)
+          key = path.is_a?(Array) ? path.join('.') : path
+          @inputs_by_fqn[key]
+        end
+
+        def steps_for(from_axes, to_axes)
+          return { exits: 0, entries: [] } if from_axes == to_axes
+
+          common_len = 0
+          while common_len < from_axes.size && common_len < to_axes.size && from_axes[common_len] == to_axes[common_len]
+            common_len += 1
           end
-        end
 
-        # @return [InputSpec, nil]
-        def for_path(path_array)
-          @inputs_by_path[path_key(path_array)]
-        end
+          exits = from_axes.size - common_len
+          target_spec = @specs_by_axes[to_axes]
+          raise "Cannot find a navigation plan for target axes: #{to_axes.inspect}" unless target_spec
 
-        # @return [Array<Symbol>] axis tokens from axis_loops
-        def consumes_axes(path_array)
-          s = for_path(path_array) or return []
-          result = s.axis_loops.map { |loop| (loop[:axis] || loop["axis"]).to_s.to_sym }
-          result
-        end
+          # --- Start of corrected logic ---
+          all_steps = target_spec['navigation_steps']
+          loop_indices = all_steps.each_index.select { |i| all_steps[i]['kind'] == 'array_loop' }
 
-        # Deterministic helper names for codegen
-        def scalar_accessor_name(path_array)
-          "at_#{Array(path_array).map { |s| safe_ident(s) }.join('_')}"
-        end
+          start_index = common_len.zero? ? 0 : loop_indices[common_len - 1] + 1
+          end_index = loop_indices[to_axes.size - 1]
+          
+          entries = all_steps.slice(start_index, end_index - start_index + 1)
+          # --- End of corrected logic ---
 
-        private
-
-        def validate_input_spec(spec)
-          # Validate that axis_loops contain valid axis information
-          spec.axis_loops.each do |loop|
-            unless loop[:axis]
-              raise "Missing axis in loop for path #{spec.path.join('.')}: #{loop.inspect}"
-            end
-          end
-        end
-
-        def safe_ident(s)
-          s.to_s.gsub(/[^a-zA-Z0-9_]/, "_")
-        end
-
-        def path_key(path_array)
-          Array(path_array).map(&:to_s).join("/")
+          { exits: exits, entries: entries }
         end
       end
     end

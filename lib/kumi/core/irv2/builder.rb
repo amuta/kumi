@@ -5,20 +5,6 @@ require "set"
 module Kumi
   module Core
     module IRV2
-      InputPlan = Struct.new(
-        :source_path,     # Array<Symbol>
-        :axes,            # Array<Symbol> (logical site axes)
-        :dtype,           # Symbol/String
-        :key_policy,      # Symbol
-        :missing_policy,  # Symbol
-        :axis_loops,      # Array<Hash>   [{axis:, kind:, key:, alias:, loop_idx:, ...}]
-        :leaf_nav,        # Array<Hash>   [{kind: :field_leaf, key: "..."}, ...]
-        :terminal,        # Hash          {kind: :element_leaf|:field_leaf|:none, ...}
-        :path_fqn,        # String        "a.b.c"
-        keyword_init: true
-      )
-
-
       class Builder
         attr_reader :values, :exports
 
@@ -36,7 +22,7 @@ module Kumi
         def select(cond, then_v, else_v, stamp: nil) = emit(:Select, [cond, then_v, else_v], {}, stamp: stamp)
         def map(func, *values, stamp: nil)       = emit(:Map, values, { fn: func }, stamp: stamp)
         def reduce(func, val, axis, stamp: nil)  = emit(:Reduce, [val], { fn: func, axis: axis.to_s }, stamp: stamp)
-        def construct_tuple(*vs, elem_stamps: nil) = emit(:ConstructTuple, vs, {}, elem_stamps: elem_stamps)
+        def construct_tuple(*vs, stamp: nil) = emit(:ConstructTuple, vs, {}, stamp: stamp)
         def tuple_get(v, index, stamp: nil) = emit(:TupleGet, [v], { index: index }, stamp: stamp)
 
         def store(name, v)

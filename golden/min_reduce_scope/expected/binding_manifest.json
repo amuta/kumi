@@ -1,13 +1,13 @@
 {
-  "ir_ref": "sha256:c28eedc6221a44480dc651a17fe21d1d46a5d5a705ed8d7fac8af135160c7d47",
+  "ir_ref": "sha256:2cb6a5c13e8e888c83e6e6763ad47b789c07c7c9aea64a6e781aa1bf3c86f6bf",
   "target": "ruby",
   "registry_ref": "sha256:0b931ed89d7a72f64a7c2b0d9fd72f1fc63b1360a62e67e507e2a3a95e381bd5",
   "bindings": [
     {"decl":"dept_total","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
-    {"decl":"company_total","op":1,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
-    {"decl":"company_total","op":2,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
-    {"decl":"big_team","op":2,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
-    {"decl":"dept_total_masked","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
+    {"decl":"company_total","op":3,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
+    {"decl":"company_total","op":4,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"},
+    {"decl":"big_team","op":7,"fn":"core.gt","kernel_id":"core.gt:ruby:v1"},
+    {"decl":"dept_total_masked","op":12,"fn":"agg.sum","kernel_id":"agg.sum:ruby:v1"}
   ],
   "kernels": [
     {"kernel_id":"agg.sum:ruby:v1","impl":"(a,b)\n  a + b","attrs":{"identity":0}},

@@ -15,10 +15,10 @@
       "name": "matrix_sums",
       "parameters": [{"kind":"input","path":["matrix","row","cell"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":["matrix"]},"attrs":{"fn":"agg.sum","axis":"row"}}
+        {"id":2,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
+        {"id":3,"op":"Reduce","args":[2],"stamp":{"dtype":"float","axes":["matrix"]},"attrs":{"fn":"agg.sum","axis":"row"}}
       ],
-      "result": 1
+      "result": 3
     },
     "mixed_array": {
       "name": "mixed_array",
@@ -28,23 +28,18 @@
         {"kind":"dependency","source":"sum_numbers"}
       ],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["scalar_val"]],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":1,"op":"LoadDeclaration","args":["sum_numbers"],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
-        {
-          "id": 3,
-          "op": "ConstructTuple",
-          "args": [0,1,2],
-          "elem_stamps": [{"dtype":"integer","axes":[]},{"dtype":"integer","axes":[]},{"dtype":"float","axes":[]}]
-        }
+        {"id":4,"op":"LoadInput","args":[["scalar_val"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":5,"op":"LoadDeclaration","args":["sum_numbers"],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":6,"op":"LoadInput","args":[["matrix","row","cell"]],"stamp":{"dtype":"float","axes":["matrix","row"]}},
+        {"id":7,"op":"ConstructTuple","args":[4,5,6],"stamp":{"dtype":"tuple<integer, integer, float>","axes":["matrix","row"]}}
       ],
-      "result": 3
+      "result": 7
     },
     "constant": {
       "name": "constant",
       "parameters": [],
-      "operations": [{"id":0,"op":"Const","args":[42],"stamp":{"dtype":"integer","axes":[]}}],
-      "result": 0
+      "operations": [{"id":8,"op":"Const","args":[42],"stamp":{"dtype":"integer","axes":[]}}],
+      "result": 8
     }
   },
   "analysis": {
@@ -56,7 +51,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"}],
+        "navigation_steps": [{"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "matrix"
@@ -67,7 +62,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"},
           {"axes":"row","path":["matrix","row"],"loop_idx":1,"kind":"array_field","key":"row"}
         ],
@@ -81,7 +76,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"matrix","path":["matrix"],"loop_idx":0,"kind":"array_field","key":"matrix"},
           {"axes":"row","path":["matrix","row"],"loop_idx":1,"kind":"array_field","key":"row"}
         ],
@@ -95,7 +90,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
+        "navigation_steps": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "numbers"
@@ -106,7 +101,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
+        "navigation_steps": [{"axes":"numbers","path":["numbers"],"loop_idx":0,"kind":"array_field","key":"numbers"}],
         "leaf_nav": [{"kind":"field_leaf","key":"value"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "numbers.value"
@@ -117,7 +112,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"scalar_val"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "scalar_val"

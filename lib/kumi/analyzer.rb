@@ -31,11 +31,10 @@ module Kumi
       Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
-      Core::Analyzer::Passes::SynthesizeAccessChainsPass,      # Creates canonical input plans from input_table
-      Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
-      Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
-      Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
+      # Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
+      # Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
+      # Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
+      # Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)

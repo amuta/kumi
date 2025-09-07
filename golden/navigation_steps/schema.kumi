@@ -1,0 +1,20 @@
+schema do
+
+    input do
+        array :array_of_arrays do
+            element :array, :array_of_objects_with_array_field do
+                array :array_field do
+                    hash :hash_inside_array do 
+                        array :array_field_two do
+                            element :integer, :number
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    value :numbers_mult_10, input.array_of_arrays.array_of_objects_with_array_field.array_field.hash_inside_array.array_field_two.number * 10
+
+    value :sum_of_nums, fn(:sum, numbers_mult_10)
+end

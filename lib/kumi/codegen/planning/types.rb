@@ -9,10 +9,9 @@ module Kumi
 
       # One input path from analysis.input_table
       InputSpec = Struct.new(
-        :path,        # Array<String|Symbol>   e.g. ["cube","layer"]
-        :axis_loops,  # Array<Hash>           e.g. [{axis: :cube, path: ["cube"], loop_idx: 0}]
-        :leaf_nav,    # Hash                  e.g. {chain: [{"kind" => "field_leaf", "key" => "layer"}]}
-        :terminal,    # Hash                  e.g. {dtype: "float", key_policy: "indifferent", on_missing: "error"}
+        :path_fqn,        # Array<String|Symbol>   e.g. ["cube","layer"]
+        :navigation_steps,  # Array<Hash>           e.g. [{axis: :cube, path: ["cube"], loop_idx: 0}]
+        :axes,
         keyword_init: true
       )
 

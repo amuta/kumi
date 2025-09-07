@@ -1,5 +1,5 @@
 module SchemaModule
-  # Generated code with pack hash: afe16a37162e4b64766c1e62c9335166e1ff9d711f3380ef32a06de5d4da1ae4:a780a6bcb51c15e97e75a99d752a8cc7f7c9ec4e05fca25cf3b93cfb37d37dbf:ff798621f7e88e6ce6be894738c2ab8c5f41eefa845dd338db08039804654799
+  # Generated code with pack hash: afe16a37162e4b64766c1e62c9335166e1ff9d711f3380ef32a06de5d4da1ae4:02d5f9ffea6d56c4575867638cb059ae97a5f9bcbbd590a5ede0a1cba1de59f2:5c5fc55e99e9d032f2b6aa2724bfb55b8e404b9268fd1e9c12abf8fd1a00e104
 
   def _each_dept_total
     arr0 = @input["depts"]
@@ -7,11 +7,11 @@ module SchemaModule
       acc_1 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        v0 = a1["headcount"]
-        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
+        op0 = a1["headcount"]
+        acc_1 = __call_kernel__("agg.sum", acc_1, op0)
       end
-      v1 = acc_1
-      yield v1, [i0]
+      op1 = acc_1
+      yield op1, [i0]
     end
   end
 
@@ -20,20 +20,20 @@ module SchemaModule
   end
 
   def _each_company_total
-    acc_2 = 0
+    acc_4 = 0
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0
+      acc_3 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        v0 = a1["headcount"]
-        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
+        op2 = a1["headcount"]
+        acc_3 = __call_kernel__("agg.sum", acc_3, op2)
       end
-      v1 = acc_1
-      acc_2 = __call_kernel__("agg.sum", acc_2, v1)
+      op3 = acc_3
+      acc_4 = __call_kernel__("agg.sum", acc_4, op3)
     end
-    v2 = acc_2
-    yield v2, []
+    op4 = acc_4
+    yield op4, []
   end
 
   def _eval_company_total
@@ -41,14 +41,14 @@ module SchemaModule
   end
 
   def _each_big_team
+    op6 = 10
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
-      c1 = 10
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        v0 = a1["headcount"]
-        v2 = __call_kernel__("core.gt", v0, c1)
-        yield v2, [i0, i1]
+        op5 = a1["headcount"]
+        op7 = __call_kernel__("core.gt", op5, 10)
+        yield op7, [i0, i1]
       end
     end
   end
@@ -58,21 +58,19 @@ module SchemaModule
   end
 
   def _each_dept_total_masked
+    op10 = 0
     arr0 = @input["depts"]
     arr0.each_with_index do |a0, i0|
-      acc_4 = 0
-      c2 = 0
+      acc_12 = 0
       arr1 = a0["teams"]
       arr1.each_with_index do |a1, i1|
-        v1 = a1["headcount"]
-        cbig_team_1 = 10
-        v0_big_team = a1["headcount"]
-        v0 = __call_kernel__("core.gt", v0_big_team, cbig_team_1)
-        v3 = (v0 ? v1 : c2)
-        acc_4 = __call_kernel__("agg.sum", acc_4, v3)
+        op8 = self[:big_team][i0][i1]
+        op9 = a1["headcount"]
+        op11 = (op8 ? op9 : 0)
+        acc_12 = __call_kernel__("agg.sum", acc_12, op11)
       end
-      v4 = acc_4
-      yield v4, [i0]
+      op12 = acc_12
+      yield op12, [i0]
     end
   end
 

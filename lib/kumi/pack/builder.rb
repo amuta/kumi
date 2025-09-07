@@ -125,20 +125,18 @@ module Kumi
       end
 
       def extract_inputs(input_table)
-        # input_table is already in the new format with axis_loops  
-        input_table.map do |path_key, entry|
-          path_fqn = entry["path_fqn"]
-          axis_loops = entry["axis_loops"] || []
+        # input_table is already in the new format with navigation_steps  
+        input_table.map do |entry|
+          path_fqn = entry.path_fqn
+          navigation_steps = stringify_keys(entry.navigation_steps)
           
           {
             "name" => path_fqn,
             "path_fqn" => path_fqn,
-            "axes" => axis_loops.map { |loop| loop["axis"].to_s },
-            "dtype" => entry["dtype"].to_s,
+            "axes" => entry.axes.map(&:to_s),
+            "dtype" => entry.dtype.to_s,
             "accessor_name" => accessor_name_for(path_fqn),
-            "axis_loops" => axis_loops,
-            "leaf_nav" => entry["leaf_nav"] || [],
-            "terminal" => entry["terminal"] || {}
+            "navigation_steps" => navigation_steps,
           }
         end
       end

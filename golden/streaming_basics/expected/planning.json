@@ -18,11 +18,11 @@
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["discount"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"},{"id":2,"kind":"loadinput"},{"id":3,"kind":"map"}],
+        "hoisted_scalars": [{"id":4,"kind":"const"},{"id":5,"kind":"loadinput"},{"id":6,"kind":"map"}],
         "root_reduces": [],
         "by_depth": [
-          {"depth":0,"ops":[{"id":1,"kind":"const"},{"id":2,"kind":"loadinput"},{"id":3,"kind":"map"}]},
-          {"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":4,"kind":"map"}]}
+          {"depth":0,"ops":[{"id":4,"kind":"const"},{"id":5,"kind":"loadinput"},{"id":6,"kind":"map"}]},
+          {"depth":1,"ops":[{"id":3,"kind":"loadinput"},{"id":7,"kind":"map"}]}
         ]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
@@ -34,9 +34,9 @@
       "parameters": [{"kind":"input","path":["items","price"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":9,"kind":"const"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":9,"kind":"const"}]},{"depth":1,"ops":[{"id":8,"kind":"loadinput"},{"id":10,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
@@ -47,21 +47,28 @@
       "parameters": [{"kind":"dependency","source":"items_is_big"},{"kind":"dependency","source":"items_subtotal"}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":2,"kind":"const"}],
+        "hoisted_scalars": [{"id":13,"kind":"const"}],
         "root_reduces": [],
         "by_depth": [
-          {"depth":0,"ops":[{"id":2,"kind":"const"}]},
+          {"depth":0,"ops":[{"id":13,"kind":"const"}]},
           {
             "depth": 1,
-            "ops": [{"id":0,"kind":"loaddeclaration"},{"id":1,"kind":"loaddeclaration"},{"id":3,"kind":"map"},{"id":5,"kind":"select"}]
+            "ops": [
+              {"id":11,"kind":"loaddeclaration"},
+              {"id":12,"kind":"loaddeclaration"},
+              {"id":14,"kind":"map"},
+              {"id":15,"kind":"loaddeclaration"},
+              {"id":16,"kind":"select"}
+            ]
           }
         ]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
       "inlining_decisions": {
-        "op_0": {"producer":"items_is_big","decision":"inline","use_site_axes":["items"]},
-        "op_1": {"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}
+        "op_11": {"producer":"items_is_big","decision":"inline","use_site_axes":["items"]},
+        "op_12": {"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]},
+        "op_15": {"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}
       }
     },
     "total_qty": {
@@ -70,15 +77,15 @@
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [],
-        "root_reduces": [{"id":1,"kind":"reduce"}],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"}]}]
+        "root_reduces": [{"id":18,"kind":"reduce"}],
+        "by_depth": [{"depth":0,"ops":[{"id":18,"kind":"reduce"}]},{"depth":1,"ops":[{"id":17,"kind":"loadinput"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [
         {
-          "op_id": 1,
+          "op_id": 18,
           "axis": "items",
-          "arg_id": 0,
+          "arg_id": 17,
           "reducer_fn": "agg.sum",
           "result_depth": 0,
           "reset_depth": -1,
@@ -96,15 +103,15 @@
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [],
-        "root_reduces": [{"id":1,"kind":"reduce"}],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loaddeclaration"}]}]
+        "root_reduces": [{"id":20,"kind":"reduce"}],
+        "by_depth": [{"depth":0,"ops":[{"id":20,"kind":"reduce"}]},{"depth":1,"ops":[{"id":19,"kind":"loaddeclaration"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [
         {
-          "op_id": 1,
+          "op_id": 20,
           "axis": "items",
-          "arg_id": 0,
+          "arg_id": 19,
           "reducer_fn": "agg.sum",
           "result_depth": 0,
           "reset_depth": -1,
@@ -114,7 +121,7 @@
           "via_path": ["items"]
         }
       ],
-      "inlining_decisions": {"op_0":{"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}}
+      "inlining_decisions": {"op_19":{"producer":"items_subtotal","decision":"inline","use_site_axes":["items"]}}
     },
     "cart_total_effective": {
       "axes": [],
@@ -122,15 +129,15 @@
       "site_schedule": {
         "max_depth": 1,
         "hoisted_scalars": [],
-        "root_reduces": [{"id":1,"kind":"reduce"}],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"reduce"}]},{"depth":1,"ops":[{"id":0,"kind":"loaddeclaration"}]}]
+        "root_reduces": [{"id":22,"kind":"reduce"}],
+        "by_depth": [{"depth":0,"ops":[{"id":22,"kind":"reduce"}]},{"depth":1,"ops":[{"id":21,"kind":"loaddeclaration"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [
         {
-          "op_id": 1,
+          "op_id": 22,
           "axis": "items",
-          "arg_id": 0,
+          "arg_id": 21,
           "reducer_fn": "agg.sum",
           "result_depth": 0,
           "reset_depth": -1,
@@ -140,7 +147,7 @@
           "via_path": ["items"]
         }
       ],
-      "inlining_decisions": {"op_0":{"producer":"items_effective","decision":"inline","use_site_axes":["items"]}}
+      "inlining_decisions": {"op_21":{"producer":"items_effective","decision":"inline","use_site_axes":["items"]}}
     }
   }
 }

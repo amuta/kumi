@@ -1,37 +1,8 @@
 (SNAST
   (VALUE double
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v4"
-      topo_index: 4
-      target_name: :double
-    }
-    (Call :"core.mul"
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v3"
-      topo_index: 3
-      plan: {
-        kind: elementwise
-        target_axes_tokens: []
-        needs_expand_flags: [false, false]
-      }
-    }
-    args:
-      (InputRef [:x, :y, :z]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v1"
-          topo_index: 1
-        }
-      )
-      (Const 2
-        meta: {
-          stamp: {axes_tokens: [], dtype: integer}
-          value_id: "v2"
-          topo_index: 2
-        }
-      )
-  )
-  )
+    (Call :core.mul
+      (InputRef [:x, :y, :z]) :: [] -> integer
+      (Const 2) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
 )

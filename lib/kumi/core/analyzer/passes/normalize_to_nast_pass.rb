@@ -5,6 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         class NormalizeToNASTPass < PassBase
+          NAST = Kumi::Core::NAST
 
           def run(errors)
             decls = get_state(:declarations, required: true)
@@ -13,12 +14,11 @@ module Kumi
             nast_decls = {}
             order.each do |name|
               ast = decls[name] or next
-              kind = ast.is_a?(Kumi::Syntax::TraitDeclaration) ? :trait : :value
               body = normalize_expr(ast.expression, errors)
-              nast_decls[name] = Kumi::Core::NAST::Decl.new(name: name, kind: kind, body: body, loc: ast.loc)
+              nast_decls[name] = NAST::Declaration.new(name: name, body: body, loc: ast.loc, meta: {kind: ast.kind})
             end
 
-            nast = Kumi::Core::NAST::Module.new(decls: nast_decls)
+            nast = NAST::Module.new(decls: nast_decls)
             debug "NAST decl keys: #{nast.decls.keys.inspect}"
             state.with(:nast_module, nast)
           end
@@ -28,16 +28,16 @@ module Kumi
           def normalize_expr(node, errors)
             case node
             when Kumi::Syntax::Literal
-              Kumi::Core::NAST::Const.new(value: node.value, loc: node.loc)
+              NAST::Const.new(value: node.value, loc: node.loc)
 
             when Kumi::Syntax::InputReference
-              Kumi::Core::NAST::InputRef.new(path: [node.name], loc: node.loc)
+              NAST::InputRef.new(path: [node.name], loc: node.loc)
 
             when Kumi::Syntax::InputElementReference
-              Kumi::Core::NAST::InputRef.new(path: node.path, loc: node.loc)
+              NAST::InputRef.new(path: node.path, loc: node.loc)
 
             when Kumi::Syntax::DeclarationReference
-              Kumi::Core::NAST::Ref.new(name: node.name, loc: node.loc)
+              NAST::Ref.new(name: node.name, loc: node.loc)
 
             when Kumi::Syntax::CallExpression
               # Special handling section - very clear what's happening
@@ -52,16 +52,16 @@ module Kumi
                 # Regular function call
                 fn = Kumi::Core::Analyzer::FnAliases.canonical(node.fn_name)
                 args = node.args.map { |a| normalize_expr(a, errors) }
-                Kumi::Core::NAST::Call.new(fn: fn, args: args, loc: node.loc)
+                NAST::Call.new(fn: fn, args: args, loc: node.loc)
               end
             when Kumi::Syntax::CascadeExpression
               normalize_cascade(node, errors)
             when Kumi::Syntax::ArrayExpression
-              elements = node.elements.map { |a| normalize_expr(a, errors) }
-              Kumi::Core::NAST::TupleLiteral.new(elements: elements, loc: node.loc)
+              args = node.elements.map { |a| normalize_expr(a, errors) }
+              NAST::Tuple.new(args: args, loc: node.loc)
             else
               add_error(errors, node&.loc, "Unsupported AST node: #{node&.class}")
-              Kumi::Core::NAST::Const.new(value: nil, loc: node&.loc)
+              NAST::Const.new(value: nil, loc: node&.loc)
             end
           end
 
@@ -78,7 +78,7 @@ module Kumi
             branches.reverse_each do |br|
               cond = normalize_expr(br.condition, errors)
               val = normalize_expr(br.result, errors)
-              else_n = Kumi::Core::NAST::Call.new(fn: BUILTIN_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
+              else_n = NAST::Call.new(fn: BUILTIN_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
             end
             else_n
           end
@@ -89,7 +89,7 @@ module Kumi
             when 0
               # Edge case: no arguments - should probably be an error
               add_error(errors, loc, "cascade_and requires at least one argument")
-              Kumi::Core::NAST::Const.new(value: true, loc: loc)
+              NAST::Const.new(value: true, loc: loc)
             when 1
               # Single argument: no 'and' needed, just normalize the argument
               normalize_expr(args[0], errors)
@@ -104,7 +104,7 @@ module Kumi
           def build_right_associative_and(normalized_args, loc)
             # Build: and(first, and(second, and(third, ...)))
             normalized_args.reverse.reduce do |right, left|
-              Kumi::Core::NAST::Call.new(fn: :'core.and', args: [left, right], loc: loc)
+              NAST::Call.new(fn: :'core.and', args: [left, right], loc: loc)
             end
           end
 
@@ -114,22 +114,22 @@ module Kumi
             
             if node.args.size != 2
               add_error(errors, node.loc, "#{node.fn_name} expects exactly 2 arguments: values and condition")
-              return Kumi::Core::NAST::Const.new(value: nil, loc: node.loc)
+              return NAST::Const.new(value: nil, loc: node.loc)
             end
             
             values, condition = node.args
             neutral = neutral_value_for(base_fn)
             
             # Expand to: sum(select(condition, values, neutral))
-            select_call = Kumi::Core::NAST::Call.new(
+            select_call = NAST::Call.new(
               fn: BUILTIN_SELECT,
               args: [normalize_expr(condition, errors), 
                      normalize_expr(values, errors),
-                     Kumi::Core::NAST::Const.new(value: neutral, loc: node.loc)],
+                     NAST::Const.new(value: neutral, loc: node.loc)],
               loc: node.loc
             )
             
-            Kumi::Core::NAST::Call.new(
+            NAST::Call.new(
               fn: "agg.#{base_fn}".to_sym,
               args: [select_call],
               loc: node.loc

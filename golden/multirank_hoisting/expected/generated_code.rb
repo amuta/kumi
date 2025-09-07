@@ -1,11 +1,10 @@
 module SchemaModule
-  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:858277d4d5cba997a5ab4341ce392811f25743e156b719337ae0f3dd5961cbcf:f997f41b53434964d0cbe4ee0e0d0452a2fa227a8fb1a60a8d38bc44e417b689
+  # Generated code with pack hash: 3348fb476948c6dbfbe8fb9cbb7885960f977aa579780d139c16a92351c2d49f:c70bbd4a656eddc8b941749de0127730b4752836473e40504ab492c67fb7b826:dc52d1036aaceb1197706f9d0209700eb1b0a4cacb7264f6e541fb66fc603f7e
 
   def _each_global_offset_plus
-    c1 = 1.0
-    v0 = @input["global_offset"]
-    v2 = __call_kernel__("core.add", v0, c1)
-    yield v2, []
+    op0 = @input["global_offset"]
+    op2 = __call_kernel__("core.add", op0, 1.0)
+    yield op2, []
   end
 
   def _eval_global_offset_plus
@@ -13,14 +12,12 @@ module SchemaModule
   end
 
   def _each_batch_bias
+    op4 = self[:global_offset_plus]
     arr0 = @input["batch"]
     arr0.each_with_index do |a0, i0|
-      v0 = a0["mean"]
-      v0_global_offset_plus = a0["global_offset"]
-      cglobal_offset_plus_1 = 1.0
-      v1 = __call_kernel__("core.add", v0_global_offset_plus, cglobal_offset_plus_1)
-      v2 = __call_kernel__("core.add", v0, v1)
-      yield v2, [i0]
+      op3 = a0["mean"]
+      op5 = __call_kernel__("core.add", op3, op4)
+      yield op5, [i0]
     end
   end
 
@@ -31,12 +28,11 @@ module SchemaModule
   def _each_row_scale2
     arr0 = @input["batch"]
     arr0.each_with_index do |a0, i0|
-      c1 = 2.0
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
-        v0 = a1["scale"]
-        v2 = __call_kernel__("core.mul", v0, c1)
-        yield v2, [i0, i1]
+        op6 = a1["scale"]
+        op8 = __call_kernel__("core.mul", op6, 2.0)
+        yield op8, [i0, i1]
       end
     end
   end
@@ -50,17 +46,14 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
+        op12 = self[:batch_bias][i0]
         arr2 = a1["col"]
         arr2.each_with_index do |a2, i2|
-          v0 = a2["val"]
-          crow_scale2_1 = 2.0
-          v0_row_scale2 = a2["scale"]
-          v1 = __call_kernel__("core.mul", v0_row_scale2, crow_scale2_1)
-          v2 = __call_kernel__("core.mul", v0, v1)
-          v0_batch_bias = a2["mean"]
-          v3 = __call_kernel__("core.add", v0_batch_bias, v1)
-          v4 = __call_kernel__("core.add", v2, v3)
-          yield v4, [i0, i1, i2]
+          op10 = self[:row_scale2][i0][i1]
+          op9 = a2["val"]
+          op11 = __call_kernel__("core.mul", op9, op10)
+          op13 = __call_kernel__("core.add", op11, op12)
+          yield op13, [i0, i1, i2]
         end
       end
     end
@@ -75,10 +68,14 @@ module SchemaModule
     arr0.each_with_index do |a0, i0|
       arr1 = a0["row"]
       arr1.each_with_index do |a1, i1|
-        acc_1 = 0.0
-        acc_1 = __call_kernel__("agg.sum", acc_1, v0)
-        v1 = acc_1
-        yield v1, [i0, i1]
+        arr2 = a1["col"]
+        arr2.each_with_index do |a2, i2|
+          acc_15 = 0.0
+          op14 = self[:elem_affine][i0][i1][i2]
+          acc_15 = __call_kernel__("agg.sum", acc_15, op14)
+          op15 = acc_15
+          yield op15, [i0, i1]
+        end
       end
     end
   end
@@ -90,10 +87,11 @@ module SchemaModule
   def _each_batch_total_affine
     arr0 = @input["batch"]
     arr0.each_with_index do |a0, i0|
-      acc_1 = 0.0
-      acc_1 = __call_kernel__("agg.sum", acc_1, v0)
-      v1 = acc_1
-      yield v1, [i0]
+      op16 = self[:row_sum_affine][i0][i1]
+      acc_17 = 0.0
+      acc_17 = __call_kernel__("agg.sum", acc_17, op16)
+      op17 = acc_17
+      yield op17, [i0]
     end
   end
 

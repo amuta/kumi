@@ -1,301 +1,49 @@
 (SNAST
   (TRAIT high_performer
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-      value_id: "v4"
-      topo_index: 4
-      target_name: :high_performer
-    }
-    (Call :"core.gte"
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-      value_id: "v3"
-      topo_index: 3
-      plan: {
-        kind: elementwise
-        target_axes_tokens: [:regions, :offices, :teams, :employees]
-        needs_expand_flags: [false, true]
-      }
-    }
-    args:
-      (InputRef [:regions, :offices, :teams, :employees, :rating]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: float}
-          value_id: "v1"
-          topo_index: 1
-        }
-      )
-      (Const 4.5
-        meta: {
-          stamp: {axes_tokens: [], dtype: float}
-          value_id: "v2"
-          topo_index: 2
-        }
-      )
-  )
-  )
+    (Call :core.gte
+      (InputRef [:regions, :offices, :teams, :employees, :rating]) :: [regions, offices, teams, employees] -> float
+      (Const 4.5) :: [] -> float
+    ) :: [regions, offices, teams, employees] -> boolean
+  ) :: [regions, offices, teams, employees] -> boolean
   (TRAIT senior_level
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-      value_id: "v8"
-      topo_index: 8
-      target_name: :senior_level
-    }
-    (Call :"core.eq"
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-      value_id: "v7"
-      topo_index: 7
-      plan: {
-        kind: elementwise
-        target_axes_tokens: [:regions, :offices, :teams, :employees]
-        needs_expand_flags: [false, true]
-      }
-    }
-    args:
-      (InputRef [:regions, :offices, :teams, :employees, :level]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: string}
-          value_id: "v5"
-          topo_index: 5
-        }
-      )
-      (Const "senior"
-        meta: {
-          stamp: {axes_tokens: [], dtype: string}
-          value_id: "v6"
-          topo_index: 6
-        }
-      )
-  )
-  )
+    (Call :core.eq
+      (InputRef [:regions, :offices, :teams, :employees, :level]) :: [regions, offices, teams, employees] -> string
+      (Const "senior") :: [] -> string
+    ) :: [regions, offices, teams, employees] -> boolean
+  ) :: [regions, offices, teams, employees] -> boolean
   (TRAIT top_team
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams], dtype: boolean}
-      value_id: "v12"
-      topo_index: 12
-      target_name: :top_team
-    }
-    (Call :"core.gte"
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams], dtype: boolean}
-      value_id: "v11"
-      topo_index: 11
-      plan: {
-        kind: elementwise
-        target_axes_tokens: [:regions, :offices, :teams]
-        needs_expand_flags: [false, true]
-      }
-    }
-    args:
-      (InputRef [:regions, :offices, :teams, :performance_score]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: float}
-          value_id: "v9"
-          topo_index: 9
-        }
-      )
-      (Const 0.9
-        meta: {
-          stamp: {axes_tokens: [], dtype: float}
-          value_id: "v10"
-          topo_index: 10
-        }
-      )
-  )
-  )
+    (Call :core.gte
+      (InputRef [:regions, :offices, :teams, :performance_score]) :: [regions, offices, teams] -> float
+      (Const 0.9) :: [] -> float
+    ) :: [regions, offices, teams] -> boolean
+  ) :: [regions, offices, teams] -> boolean
   (VALUE employee_bonus
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-      value_id: "v32"
-      topo_index: 32
-      target_name: :employee_bonus
-    }
     (Call :__select__
-    meta: {
-      stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-      value_id: "v31"
-      topo_index: 31
-      plan: {
-        kind: elementwise
-        target_axes_tokens: [:regions, :offices, :teams, :employees]
-        needs_expand_flags: [false, false, false]
-      }
-    }
-    args:
-      (Call :"core.and"
-        meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-          value_id: "v17"
-          topo_index: 17
-          plan: {
-            kind: elementwise
-            target_axes_tokens: [:regions, :offices, :teams, :employees]
-            needs_expand_flags: [false, false]
-          }
-        }
-        args:
-          (Ref high_performer
-            meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-              value_id: "v13"
-              topo_index: 13
-              referenced_name: :high_performer
-            }
-          )
-          (Call :"core.and"
-            meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-              value_id: "v16"
-              topo_index: 16
-              plan: {
-                kind: elementwise
-                target_axes_tokens: [:regions, :offices, :teams, :employees]
-                needs_expand_flags: [false, true]
-              }
-            }
-            args:
-              (Ref senior_level
-                meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-                  value_id: "v14"
-                  topo_index: 14
-                  referenced_name: :senior_level
-                }
-              )
-              (Ref top_team
-                meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams], dtype: boolean}
-                  value_id: "v15"
-                  topo_index: 15
-                  referenced_name: :top_team
-                }
-              )
-          )
-      )
-      (Call :"core.mul"
-        meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-          value_id: "v20"
-          topo_index: 20
-          plan: {
-            kind: elementwise
-            target_axes_tokens: [:regions, :offices, :teams, :employees]
-            needs_expand_flags: [false, true]
-          }
-        }
-        args:
-          (InputRef [:regions, :offices, :teams, :employees, :salary]
-            meta: {
-              stamp: {axes_tokens: nil, dtype: float}
-              value_id: "v18"
-              topo_index: 18
-            }
-          )
-          (Const 0.3
-            meta: {
-              stamp: {axes_tokens: [], dtype: float}
-              value_id: "v19"
-              topo_index: 19
-            }
-          )
-      )
+      (Call :core.and
+        (Ref high_performer) :: [regions, offices, teams, employees] -> boolean
+        (Call :core.and
+          (Ref senior_level) :: [regions, offices, teams, employees] -> boolean
+          (Ref top_team) :: [regions, offices, teams] -> boolean
+        ) :: [regions, offices, teams, employees] -> boolean
+      ) :: [regions, offices, teams, employees] -> boolean
+      (Call :core.mul
+        (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+        (Const 0.3) :: [] -> float
+      ) :: [regions, offices, teams, employees] -> float
       (Call :__select__
-        meta: {
-          stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-          value_id: "v30"
-          topo_index: 30
-          plan: {
-            kind: elementwise
-            target_axes_tokens: [:regions, :offices, :teams, :employees]
-            needs_expand_flags: [false, false, false]
-          }
-        }
-        args:
-          (Call :"core.and"
-            meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-              value_id: "v23"
-              topo_index: 23
-              plan: {
-                kind: elementwise
-                target_axes_tokens: [:regions, :offices, :teams, :employees]
-                needs_expand_flags: [false, true]
-              }
-            }
-            args:
-              (Ref high_performer
-                meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: boolean}
-                  value_id: "v21"
-                  topo_index: 21
-                  referenced_name: :high_performer
-                }
-              )
-              (Ref top_team
-                meta: {
-                  stamp: {axes_tokens: [:regions, :offices, :teams], dtype: boolean}
-                  value_id: "v22"
-                  topo_index: 22
-                  referenced_name: :top_team
-                }
-              )
-          )
-          (Call :"core.mul"
-            meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-              value_id: "v26"
-              topo_index: 26
-              plan: {
-                kind: elementwise
-                target_axes_tokens: [:regions, :offices, :teams, :employees]
-                needs_expand_flags: [false, true]
-              }
-            }
-            args:
-              (InputRef [:regions, :offices, :teams, :employees, :salary]
-                meta: {
-                  stamp: {axes_tokens: nil, dtype: float}
-                  value_id: "v24"
-                  topo_index: 24
-                }
-              )
-              (Const 0.2
-                meta: {
-                  stamp: {axes_tokens: [], dtype: float}
-                  value_id: "v25"
-                  topo_index: 25
-                }
-              )
-          )
-          (Call :"core.mul"
-            meta: {
-              stamp: {axes_tokens: [:regions, :offices, :teams, :employees], dtype: float}
-              value_id: "v29"
-              topo_index: 29
-              plan: {
-                kind: elementwise
-                target_axes_tokens: [:regions, :offices, :teams, :employees]
-                needs_expand_flags: [false, true]
-              }
-            }
-            args:
-              (InputRef [:regions, :offices, :teams, :employees, :salary]
-                meta: {
-                  stamp: {axes_tokens: nil, dtype: float}
-                  value_id: "v27"
-                  topo_index: 27
-                }
-              )
-              (Const 0.05
-                meta: {
-                  stamp: {axes_tokens: [], dtype: float}
-                  value_id: "v28"
-                  topo_index: 28
-                }
-              )
-          )
-      )
-  )
-  )
+        (Call :core.and
+          (Ref high_performer) :: [regions, offices, teams, employees] -> boolean
+          (Ref top_team) :: [regions, offices, teams] -> boolean
+        ) :: [regions, offices, teams, employees] -> boolean
+        (Call :core.mul
+          (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+          (Const 0.2) :: [] -> float
+        ) :: [regions, offices, teams, employees] -> float
+        (Call :core.mul
+          (InputRef [:regions, :offices, :teams, :employees, :salary]) :: [regions, offices, teams, employees] -> float
+          (Const 0.05) :: [] -> float
+        ) :: [regions, offices, teams, employees] -> float
+      ) :: [regions, offices, teams, employees] -> float
+    ) :: [regions, offices, teams, employees] -> float
+  ) :: [regions, offices, teams, employees] -> float
 )

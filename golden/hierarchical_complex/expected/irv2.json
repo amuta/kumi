@@ -28,42 +28,42 @@
       "parameters": [{"kind":"input","path":["regions","offices","teams","employees","level"]}],
       "operations": [
         {
-          "id": 0,
+          "id": 3,
           "op": "LoadInput",
           "args": [["regions","offices","teams","employees","level"]],
           "stamp": {"dtype":"string","axes":["regions","offices","teams","employees"]}
         },
-        {"id":1,"op":"Const","args":["senior"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":4,"op":"Const","args":["senior"],"stamp":{"dtype":"string","axes":[]}},
         {
-          "id": 2,
+          "id": 5,
           "op": "Map",
-          "args": [0,1],
+          "args": [3,4],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.eq"}
         }
       ],
-      "result": 2
+      "result": 5
     },
     "top_team": {
       "name": "top_team",
       "parameters": [{"kind":"input","path":["regions","offices","teams","performance_score"]}],
       "operations": [
         {
-          "id": 0,
+          "id": 6,
           "op": "LoadInput",
           "args": [["regions","offices","teams","performance_score"]],
           "stamp": {"dtype":"float","axes":["regions","offices","teams"]}
         },
-        {"id":1,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
+        {"id":7,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 2,
+          "id": 8,
           "op": "Map",
-          "args": [0,1],
+          "args": [6,7],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams"]},
           "attrs": {"fn":"core.gte"}
         }
       ],
-      "result": 2
+      "result": 8
     },
     "employee_bonus": {
       "name": "employee_bonus",
@@ -75,73 +75,80 @@
       ],
       "operations": [
         {
-          "id": 0,
+          "id": 9,
           "op": "LoadDeclaration",
           "args": ["high_performer"],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]}
         },
         {
-          "id": 1,
+          "id": 10,
           "op": "LoadDeclaration",
           "args": ["senior_level"],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]}
         },
-        {"id":2,"op":"LoadDeclaration","args":["top_team"],"stamp":{"dtype":"boolean","axes":["regions","offices","teams"]}},
+        {"id":11,"op":"LoadDeclaration","args":["top_team"],"stamp":{"dtype":"boolean","axes":["regions","offices","teams"]}},
         {
-          "id": 3,
+          "id": 12,
           "op": "Map",
-          "args": [1,2],
+          "args": [10,11],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.and"}
         },
         {
-          "id": 4,
+          "id": 13,
           "op": "Map",
-          "args": [0,3],
+          "args": [9,12],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.and"}
         },
         {
-          "id": 5,
+          "id": 14,
           "op": "LoadInput",
           "args": [["regions","offices","teams","employees","salary"]],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]}
         },
-        {"id":6,"op":"Const","args":[0.3],"stamp":{"dtype":"float","axes":[]}},
+        {"id":15,"op":"Const","args":[0.3],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 7,
+          "id": 16,
           "op": "Map",
-          "args": [5,6],
+          "args": [14,15],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
         {
-          "id": 10,
+          "id": 17,
+          "op": "LoadDeclaration",
+          "args": ["high_performer"],
+          "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]}
+        },
+        {"id":18,"op":"LoadDeclaration","args":["top_team"],"stamp":{"dtype":"boolean","axes":["regions","offices","teams"]}},
+        {
+          "id": 19,
           "op": "Map",
-          "args": [0,2],
+          "args": [17,18],
           "stamp": {"dtype":"boolean","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.and"}
         },
-        {"id":11,"op":"Const","args":[0.2],"stamp":{"dtype":"float","axes":[]}},
+        {"id":20,"op":"Const","args":[0.2],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 12,
+          "id": 21,
           "op": "Map",
-          "args": [5,11],
+          "args": [14,20],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
-        {"id":13,"op":"Const","args":[0.05],"stamp":{"dtype":"float","axes":[]}},
+        {"id":22,"op":"Const","args":[0.05],"stamp":{"dtype":"float","axes":[]}},
         {
-          "id": 14,
+          "id": 23,
           "op": "Map",
-          "args": [5,13],
+          "args": [14,22],
           "stamp": {"dtype":"float","axes":["regions","offices","teams","employees"]},
           "attrs": {"fn":"core.mul"}
         },
-        {"id":15,"op":"Select","args":[10,12,14],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}},
-        {"id":16,"op":"Select","args":[4,7,15],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}}
+        {"id":24,"op":"Select","args":[19,21,23],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}},
+        {"id":25,"op":"Select","args":[13,16,24],"stamp":{"dtype":"float","axes":["regions","offices","teams","employees"]}}
       ],
-      "result": 16
+      "result": 25
     }
   },
   "analysis": {
@@ -153,7 +160,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"}],
+        "navigation_steps": [{"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "regions"
@@ -164,7 +171,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"}
         ],
@@ -178,7 +185,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"}
@@ -193,7 +200,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
@@ -215,7 +222,7 @@
         "dtype": "string",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
@@ -237,7 +244,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
@@ -259,7 +266,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"},
@@ -281,7 +288,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [
+        "navigation_steps": [
           {"axes":"regions","path":["regions"],"loop_idx":0,"kind":"array_field","key":"regions"},
           {"axes":"offices","path":["regions","offices"],"loop_idx":1,"kind":"array_field","key":"offices"},
           {"axes":"teams","path":["regions","offices","teams"],"loop_idx":2,"kind":"array_field","key":"teams"}

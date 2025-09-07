@@ -1,11 +1,10 @@
 module SchemaModule
-  # Generated code with pack hash: c406bb9647341a983c42cbeeb22c96ef2e2074a5643637f120bf644d89a1b8ee:69bcee137c17ba3ef86a34a9954ffab24d48e6c84189bfe9f1e024ea4a9c1c22:e796fed854d71d3f76f81b3813070d7fb1be2701639fa247cc5cb234ebb20648
+  # Generated code with pack hash: c406bb9647341a983c42cbeeb22c96ef2e2074a5643637f120bf644d89a1b8ee:46020f905d6533b2ca10164444dcfd6aba1d9157ec57511e75edc8c99a23e0e8:e796fed854d71d3f76f81b3813070d7fb1be2701639fa247cc5cb234ebb20648
 
   def _each_y_positive
-    c1 = 0
-    v0 = @input["y"]
-    v2 = __call_kernel__("core.gt", v0, c1)
-    yield v2, []
+    op0 = @input["y"]
+    op2 = __call_kernel__("core.gt", op0, 0)
+    yield op2, []
   end
 
   def _eval_y_positive
@@ -13,10 +12,9 @@ module SchemaModule
   end
 
   def _each_x_positive
-    c1 = 0
-    v0 = @input["x"]
-    v2 = __call_kernel__("core.gt", v0, c1)
-    yield v2, []
+    op3 = @input["x"]
+    op5 = __call_kernel__("core.gt", op3, 0)
+    yield op5, []
   end
 
   def _eval_x_positive
@@ -24,21 +22,15 @@ module SchemaModule
   end
 
   def _each_status
-    c3 = "both positive"
-    c5 = "x positive"
-    c7 = "y positive"
-    c8 = "neither positive"
-    v0_y_positive = @input["y"]
-    cy_positive_1 = 0
-    v0 = __call_kernel__("core.gt", v0_y_positive, cy_positive_1)
-    v0_x_positive = @input["x"]
-    cx_positive_1 = 0
-    v1 = __call_kernel__("core.gt", v0_x_positive, cx_positive_1)
-    v2 = __call_kernel__("core.and", v0, v1)
-    v9 = (v0 ? c7 : c8)
-    v10 = (v1 ? c5 : v9)
-    v11 = (v2 ? c3 : v10)
-    yield v11, []
+    op6 = self[:y_positive]
+    op7 = self[:x_positive]
+    op8 = __call_kernel__("core.and", op6, op7)
+    op10 = self[:x_positive]
+    op12 = self[:y_positive]
+    op15 = (op12 ? "y positive" : "neither positive")
+    op16 = (op10 ? "x positive" : op15)
+    op17 = (op8 ? "both positive" : op16)
+    yield op17, []
   end
 
   def _eval_status

@@ -1,231 +1,42 @@
 (SNAST
   (VALUE cube
-    meta: {
-      stamp: {axes_tokens: [:cube], dtype: array}
-      value_id: "v2"
-      topo_index: 2
-      target_name: :cube
-    }
-    (InputRef [:cube]
-    meta: {
-      stamp: {axes_tokens: nil, dtype: array}
-      value_id: "v1"
-      topo_index: 1
-    }
-  )
-  )
+    (InputRef [:cube]) :: [] -> array
+  ) :: [] -> array
   (VALUE layer
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer], dtype: array}
-      value_id: "v4"
-      topo_index: 4
-      target_name: :layer
-    }
-    (InputRef [:cube, :layer]
-    meta: {
-      stamp: {axes_tokens: nil, dtype: array}
-      value_id: "v3"
-      topo_index: 3
-    }
-  )
-  )
+    (InputRef [:cube, :layer]) :: [cube] -> array
+  ) :: [cube] -> array
   (VALUE row
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer, :row], dtype: array}
-      value_id: "v6"
-      topo_index: 6
-      target_name: :row
-    }
-    (InputRef [:cube, :layer, :row]
-    meta: {
-      stamp: {axes_tokens: nil, dtype: array}
-      value_id: "v5"
-      topo_index: 5
-    }
-  )
-  )
+    (InputRef [:cube, :layer, :row]) :: [cube, layer] -> array
+  ) :: [cube, layer] -> array
   (VALUE cell
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
-      value_id: "v8"
-      topo_index: 8
-      target_name: :cell
-    }
-    (InputRef [:cube, :layer, :row, :cell]
-    meta: {
-      stamp: {axes_tokens: nil, dtype: integer}
-      value_id: "v7"
-      topo_index: 7
-    }
-  )
-  )
+    (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+  ) :: [cube, layer, row] -> integer
   (TRAIT cell_over_limit
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
-      value_id: "v12"
-      topo_index: 12
-      target_name: :cell_over_limit
-    }
-    (Call :"core.gt"
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
-      value_id: "v11"
-      topo_index: 11
-      plan: {
-        kind: elementwise
-        target_axes_tokens: [:cube, :layer, :row]
-        needs_expand_flags: [false, true]
-      }
-    }
-    args:
-      (InputRef [:cube, :layer, :row, :cell]
-        meta: {
-          stamp: {axes_tokens: nil, dtype: integer}
-          value_id: "v9"
-          topo_index: 9
-        }
-      )
-      (Const 100
-        meta: {
-          stamp: {axes_tokens: [], dtype: integer}
-          value_id: "v10"
-          topo_index: 10
-        }
-      )
-  )
-  )
+    (Call :core.gt
+      (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+      (Const 100) :: [] -> integer
+    ) :: [cube, layer, row] -> boolean
+  ) :: [cube, layer, row] -> boolean
   (VALUE cell_sum
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer], dtype: integer}
-      value_id: "v18"
-      topo_index: 18
-      target_name: :cell_sum
-    }
-    (Call :"agg.sum"
-    meta: {
-      stamp: {axes_tokens: [:cube, :layer], dtype: integer}
-      value_id: "v17"
-      topo_index: 17
-      plan: {
-        kind: reduce
-        last_axis_token: :row
-      }
-    }
-    args:
+    (Call :agg.sum
       (Call :__select__
-        meta: {
-          stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
-          value_id: "v16"
-          topo_index: 16
-          plan: {
-            kind: elementwise
-            target_axes_tokens: [:cube, :layer, :row]
-            needs_expand_flags: [false, true, true]
-          }
-        }
-        args:
-          (Ref cell_over_limit
-            meta: {
-              stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
-              value_id: "v13"
-              topo_index: 13
-              referenced_name: :cell_over_limit
-            }
-          )
-          (InputRef [:cube, :layer, :row, :cell]
-            meta: {
-              stamp: {axes_tokens: nil, dtype: integer}
-              value_id: "v14"
-              topo_index: 14
-            }
-          )
-          (Const 0
-            meta: {
-              stamp: {axes_tokens: [], dtype: integer}
-              value_id: "v15"
-              topo_index: 15
-            }
-          )
-      )
-  )
-  )
+        (Ref cell_over_limit) :: [cube, layer, row] -> boolean
+        (InputRef [:cube, :layer, :row, :cell]) :: [cube, layer, row] -> integer
+        (Const 0) :: [] -> integer
+      ) :: [cube, layer, row] -> integer
+    ) :: [cube, layer] -> integer
+  ) :: [cube, layer] -> integer
   (VALUE count_over_limit
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v26"
-      topo_index: 26
-      target_name: :count_over_limit
-    }
-    (Call :"agg.sum"
-    meta: {
-      stamp: {axes_tokens: [], dtype: integer}
-      value_id: "v25"
-      topo_index: 25
-      plan: {
-        kind: reduce
-        last_axis_token: :cube
-      }
-    }
-    args:
-      (Call :"agg.sum"
-        meta: {
-          stamp: {axes_tokens: [:cube], dtype: integer}
-          value_id: "v24"
-          topo_index: 24
-          plan: {
-            kind: reduce
-            last_axis_token: :layer
-          }
-        }
-        args:
-          (Call :"agg.sum"
-            meta: {
-              stamp: {axes_tokens: [:cube, :layer], dtype: integer}
-              value_id: "v23"
-              topo_index: 23
-              plan: {
-                kind: reduce
-                last_axis_token: :row
-              }
-            }
-            args:
-              (Call :__select__
-                meta: {
-                  stamp: {axes_tokens: [:cube, :layer, :row], dtype: integer}
-                  value_id: "v22"
-                  topo_index: 22
-                  plan: {
-                    kind: elementwise
-                    target_axes_tokens: [:cube, :layer, :row]
-                    needs_expand_flags: [false, true, true]
-                  }
-                }
-                args:
-                  (Ref cell_over_limit
-                    meta: {
-                      stamp: {axes_tokens: [:cube, :layer, :row], dtype: boolean}
-                      value_id: "v19"
-                      topo_index: 19
-                      referenced_name: :cell_over_limit
-                    }
-                  )
-                  (Const 1
-                    meta: {
-                      stamp: {axes_tokens: [], dtype: integer}
-                      value_id: "v20"
-                      topo_index: 20
-                    }
-                  )
-                  (Const 0
-                    meta: {
-                      stamp: {axes_tokens: [], dtype: integer}
-                      value_id: "v21"
-                      topo_index: 21
-                    }
-                  )
-              )
-          )
-      )
-  )
-  )
+    (Call :agg.sum
+      (Call :agg.sum
+        (Call :agg.sum
+          (Call :__select__
+            (Ref cell_over_limit) :: [cube, layer, row] -> boolean
+            (Const 1) :: [] -> integer
+            (Const 0) :: [] -> integer
+          ) :: [cube, layer, row] -> integer
+        ) :: [cube, layer] -> integer
+      ) :: [cube] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
 )

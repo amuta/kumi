@@ -8,7 +8,7 @@ module Kumi
         # 
         # Takes NAST + dimensional analyzer metadata and creates a Semantic NAST (SNAST)
         # where every node is annotated with:
-        # - meta[:stamp] = {axes_tokens, dtype} 
+        # - meta[:stamp] = {axes, dtype} 
         # - meta[:plan] = execution plan for Call nodes
         # - meta[:value_id] = stable lowering identifier
         # - meta[:topo_index] = topological ordering
@@ -60,6 +60,7 @@ module Kumi
             
             # Create new declaration with same structure
             new_decl = decl.class.new(
+              id: decl.id,
               name: name,
               kind: decl.kind, 
               body: annotated_body,
@@ -68,7 +69,7 @@ module Kumi
             
             # Add declaration-level metadata
             new_decl.meta[:stamp] = {
-              axes_tokens: decl_meta[:result_scope],
+              axes: decl_meta[:result_scope],
               dtype: decl_meta[:result_type]
             }.freeze
             new_decl.meta[:value_id] = next_value_id
@@ -103,11 +104,11 @@ module Kumi
             annotated_args = call.args.map { |arg| annotate_expression(arg) }
             
             # Create new call with annotated arguments
-            new_call = call.class.new(fn: call.fn, args: annotated_args, loc: call.loc)
+            new_call = call.class.new(id: call.id, fn: call.fn, args: annotated_args, loc: call.loc)
             
             # Add stamp metadata
             new_call.meta[:stamp] = {
-              axes_tokens: call_meta[:result_scope],
+              axes: call_meta[:result_scope],
               dtype: call_meta[:result_type]
             }.freeze
             new_call.meta[:value_id] = next_value_id
@@ -125,15 +126,14 @@ module Kumi
           end
           
           def annotate_input_ref(input_ref)
-            # Get input metadata
-            input_meta = @input_table.fetch(input_ref.path)
+            input_meta = @input_table.find{|imp| imp.path_fqn == input_ref.path_fqn}
             
             # Create new input ref
-            new_input_ref = input_ref.class.new(path: input_ref.path, loc: input_ref.loc)
+            new_input_ref = input_ref.class.new(id: input_ref.id, path: input_ref.path, loc: input_ref.loc)
             
             # Add stamp metadata
             new_input_ref.meta[:stamp] = {
-              axes_tokens: input_meta[:axis],
+              axes: input_meta[:axes],
               dtype: input_meta[:dtype]
             }.freeze
             new_input_ref.meta[:value_id] = next_value_id
@@ -153,11 +153,11 @@ module Kumi
                     end
             
             # Create new constant
-            new_const = const.class.new(value: const.value, loc: const.loc)
+            new_const = const.class.new(id: const.id, value: const.value, loc: const.loc)
             
             # Add stamp metadata (constants are scalar)
             new_const.meta[:stamp] = {
-              axes_tokens: [],
+              axes: [],
               dtype: dtype
             }.freeze
             new_const.meta[:value_id] = next_value_id
@@ -171,11 +171,11 @@ module Kumi
             ref_meta = @metadata_table.fetch(node_id(ref))
             
             # Create new ref
-            new_ref = ref.class.new(name: ref.name, loc: ref.loc)
+            new_ref = ref.class.new(id: ref.id, name: ref.name, loc: ref.loc)
             
             # Copy stamp from stored metadata
             new_ref.meta[:stamp] = {
-              axes_tokens: ref_meta[:result_scope],
+              axes: ref_meta[:result_scope],
               dtype: ref_meta[:result_type]
             }.freeze
             new_ref.meta[:value_id] = next_value_id
@@ -189,15 +189,15 @@ module Kumi
             # Find tuple metadata
             tuple_meta = @metadata_table.fetch(node_id(tuple_literal))
             
-            # Annotate elements first
+            # Annotate elements 
             annotated_elements = tuple_literal.elements.map { |elem| annotate_expression(elem) }
             
             # Create new tuple literal with annotated elements
-            new_tuple = tuple_literal.class.new(elements: annotated_elements, loc: tuple_literal.loc)
+            new_tuple = tuple_literal.class.new(id: tuple_literal.id, elements: annotated_elements, loc: tuple_literal.loc)
             
             # Add stamp metadata (from pre-calculated analysis)
             new_tuple.meta[:stamp] = {
-              axes_tokens: tuple_meta[:result_scope],
+              axes: tuple_meta[:result_scope],
               dtype: tuple_meta[:result_type]
             }.freeze
             new_tuple.meta[:value_id] = next_value_id
@@ -207,7 +207,7 @@ module Kumi
             new_tuple.meta[:plan] = {
               kind: :constructor,
               arity: annotated_elements.length,
-              target_axes_tokens: tuple_meta[:result_scope],
+              target_axes: tuple_meta[:result_scope],
               needs_expand_flags: tuple_meta[:needs_expand_flags]
             }.freeze
             
@@ -222,7 +222,7 @@ module Kumi
               # Elementwise operations broadcast to target scope
               {
                 kind: :elementwise,
-                target_axes_tokens: call_meta[:result_scope],
+                target_axes: call_meta[:result_scope],
                 needs_expand_flags: call_meta[:needs_expand_flags]
               }
               
@@ -238,7 +238,7 @@ module Kumi
               {
                 kind: :constructor,
                 arity: annotated_args.length,
-                target_axes_tokens: call_meta[:result_scope],
+                target_axes: call_meta[:result_scope],
                 needs_expand_flags: call_meta[:needs_expand_flags]
               }
               
@@ -256,9 +256,9 @@ module Kumi
           
           def canonicalize_select!(call)
             cond, then_v, else_v = call.args
-            c_axes = Array(cond.meta[:stamp][:axes_tokens])
-            t_axes = Array(then_v.meta[:stamp][:axes_tokens])
-            e_axes = Array(else_v.meta[:stamp][:axes_tokens])
+            c_axes = Array(cond.meta[:stamp][:axes])
+            t_axes = Array(then_v.meta[:stamp][:axes])
+            e_axes = Array(else_v.meta[:stamp][:axes])
           
             # LUB by prefix for data branches
             candidate = lub_by_prefix([t_axes, e_axes])
@@ -276,13 +276,13 @@ module Kumi
             result_dtype = then_v.meta[:stamp][:dtype]
           
             call.meta[:stamp] = {
-              axes_tokens: target_axes,
+              axes: target_axes,
               dtype: result_dtype
             }.freeze
           
             call.meta[:plan] = {
               kind: :elementwise,
-              target_axes_tokens: target_axes,
+              target_axes: target_axes,
               needs_expand_flags: [
                 c_axes != target_axes,  # broadcast mask across trailing dims
                 t_axes != target_axes,  # broadcast then-branch (e.g., scalar 1)
@@ -300,7 +300,7 @@ module Kumi
           end
           
           def node_id(node)
-            "#{node.class}_#{node.object_id}"
+            "#{node.class}_#{node.id}"
           end
 
           def lub_by_prefix(list_of_axes_arrays)

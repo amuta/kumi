@@ -12,32 +12,13 @@ module Kumi
           def run(errors)
             snast = get_state(:snast_module, required: true)
             order = get_state(:evaluation_order, required: true)
-            input_table = get_state(:input_table, required: true)
+            @input_table = get_state(:input_table, required: true)
 
+            builder = Kumi::Core::IRV2::Builder.new
             declarations = {}
 
             order.each do |decl_name|
-              decl = snast.decls[decl_name]
-
-              @current_decl_name = decl_name
-              @b = Kumi::Core::IRV2::Builder.new
-              @input_cache = {}
-
-              @current_input_table = input_table
-              @current_decls = snast.decls
-
-              ir_val = lower_expr(decl.body, errors)
-
-              optimize_declaration(@b)
-
-              parameters = collect_declaration_parameters(@b.values, input_table, snast.decls)
-
-              declarations[decl_name] = IRV2::Declaration.new(
-                decl_name,
-                @b.values,
-                ir_val,
-                parameters
-              )
+              declarations[decl_name] = lower_one_declaration(decl_name, snast, @input_table, builder, errors)
             end
 
             irv2_module = IRV2::Module.new(declarations, {})
@@ -46,14 +27,38 @@ module Kumi
 
           private
 
+          def lower_one_declaration(decl_name, snast, input_table, builder, errors)
+            decl = snast.decls.fetch(decl_name)
+            
+            # Temporarily set instance variables for the context of this declaration.
+            @current_decl_name = decl_name
+            @b = builder # Use the shared builder
+            @input_cache = {}
+            @current_input_table = @input_table
+            @current_decls = snast.decls
+
+            start_op_count = builder.values.length
+            ir_val = lower_expr(decl.body, errors)
+            
+            # Note: The optimizer and parameter collection now need to operate on a slice of the builder's operations.
+            new_ops = builder.values.slice(start_op_count..-1)
+            parameters = collect_declaration_parameters(new_ops, snast.decls)
+
+            # The declaration now just stores references to the globally unique operations.
+            IRV2::Declaration.new(decl_name, new_ops, ir_val, parameters)
+          ensure
+            # Clean up instance variables
+            @current_decl_name = @b = @input_cache = @current_input_table = @current_decls = nil
+          end
+
           def fqid(val)
             "#{@current_decl_name}/#{val.id}"
           end
 
           def ser_stamp(snast_stamp)
             {
-              "dtype" => snast_stamp[:dtype].to_s,
-              "axes"  => Array(snast_stamp[:axes_tokens]).map(&:to_s)
+              "dtype" => (snast_stamp["dtype"] || snast_stamp[:dtype]).to_s,
+              "axes"  => Array(snast_stamp["axes"] || snast_stamp[:axes]).map(&:to_s)
             }
           end
 
@@ -65,17 +70,14 @@ module Kumi
                 @b.const(node.value, stamp: stamp)
 
               when Kumi::Core::NAST::InputRef
-                path = node.path
-                unless @input_cache[path]
-                  info = @current_input_table.fetch(path) do
-                    raise "LowerToIRV2Pass: no input_table entry for #{path.inspect}"
-                  end
-                  axes  = Array(info[:axes]) # STRICT: no fallback to :axis
-                  dtype = info[:dtype]
+                plan = @input_table.find{|i| i.path_fqn == node.path_fqn}
+                unless @input_cache[node.path_fqn]
+                  axes  = plan.axes
+                  dtype = plan.dtype
                   stamp = { "dtype" => dtype.to_s, "axes" => axes.map(&:to_s) }
-                  @input_cache[path] = @b.load_input(path, stamp: stamp)
+                  @input_cache[node.path_fqn] = @b.load_input(node.path_fqn, stamp: stamp)
                 end
-                @input_cache[path]
+                @input_cache[node.path_fqn]
 
               when Kumi::Core::NAST::Ref
                 dep_name = node.name
@@ -84,9 +86,12 @@ module Kumi
 
               when Kumi::Core::NAST::TupleLiteral
                 plan = node.meta[:plan] or (errors << "Missing plan on TupleLiteral"; return @b.const(nil))
+
+                stamp = ser_stamp(node.meta[:stamp])
                 lowered = node.elements.map { |e| lower_expr(e, errors) }
                 elem_stamps = node.elements.map { |elem| ser_stamp(elem.meta[:stamp]) }
-                @b.construct_tuple(*lowered, elem_stamps: elem_stamps)
+
+                @b.construct_tuple(*lowered, stamp: stamp)
 
               when Kumi::Core::NAST::Call
                 plan = node.meta[:plan] or (errors << "Missing plan on Call #{node.fn}"; return @b.const(nil))
@@ -123,7 +128,7 @@ module Kumi
             ir_val or (errors << "Missing IR value from lowering"; @b.const(nil))
           end
 
-          def collect_declaration_parameters(operations, _input_table, _decls)
+          def collect_declaration_parameters(operations, _decls)
             parameters = []
 
             operations.select { |op| op.op == :LoadInput }.each do |op|

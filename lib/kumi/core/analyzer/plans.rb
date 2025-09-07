@@ -46,6 +46,17 @@ module Kumi
             !total_reduction?
           end
         end
+
+        InputPlan = Struct.new(
+          :source_path,     # Array<Symbol>
+          :axes,            # Array<Symbol> (logical site axes)
+          :dtype,           # Symbol/String
+          :key_policy,      # Symbol
+          :missing_policy,  # Symbol
+          :navigation_steps,      # Array<Hash>   [{axis:, kind:, key:, alias:, loop_idx:, ...}]
+          :path_fqn,        # String        "a.b.c"
+          keyword_init: true
+        )
       end
     end
   end

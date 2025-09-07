@@ -16,62 +16,63 @@
       "name": "items_discounted",
       "parameters": [{"kind":"input","path":["items","price"]},{"kind":"input","path":["discount"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":1,"op":"Const","args":[1.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"LoadInput","args":[["discount"]],"stamp":{"dtype":"float","axes":[]}},
-        {"id":3,"op":"Map","args":[1,2],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.sub"}},
-        {"id":4,"op":"Map","args":[0,3],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
+        {"id":3,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":4,"op":"Const","args":[1.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":5,"op":"LoadInput","args":[["discount"]],"stamp":{"dtype":"float","axes":[]}},
+        {"id":6,"op":"Map","args":[4,5],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"core.sub"}},
+        {"id":7,"op":"Map","args":[3,6],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}}
       ],
-      "result": 4
+      "result": 7
     },
     "items_is_big": {
       "name": "items_is_big",
       "parameters": [{"kind":"input","path":["items","price"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":1,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
+        {"id":8,"op":"LoadInput","args":[["items","price"]],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":9,"op":"Const","args":[100.0],"stamp":{"dtype":"float","axes":[]}},
+        {"id":10,"op":"Map","args":[8,9],"stamp":{"dtype":"boolean","axes":["items"]},"attrs":{"fn":"core.gt"}}
       ],
-      "result": 2
+      "result": 10
     },
     "items_effective": {
       "name": "items_effective",
       "parameters": [{"kind":"dependency","source":"items_is_big"},{"kind":"dependency","source":"items_subtotal"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["items_is_big"],"stamp":{"dtype":"boolean","axes":["items"]}},
-        {"id":1,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":2,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
-        {"id":3,"op":"Map","args":[1,2],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}},
-        {"id":5,"op":"Select","args":[0,3,1],"stamp":{"dtype":"float","axes":["items"]}}
+        {"id":11,"op":"LoadDeclaration","args":["items_is_big"],"stamp":{"dtype":"boolean","axes":["items"]}},
+        {"id":12,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":13,"op":"Const","args":[0.9],"stamp":{"dtype":"float","axes":[]}},
+        {"id":14,"op":"Map","args":[12,13],"stamp":{"dtype":"float","axes":["items"]},"attrs":{"fn":"core.mul"}},
+        {"id":15,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":16,"op":"Select","args":[11,14,15],"stamp":{"dtype":"float","axes":["items"]}}
       ],
-      "result": 5
+      "result": 16
     },
     "total_qty": {
       "name": "total_qty",
       "parameters": [{"kind":"input","path":["items","qty"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["items","qty"]],"stamp":{"dtype":"integer","axes":["items"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+        {"id":17,"op":"LoadInput","args":[["items","qty"]],"stamp":{"dtype":"integer","axes":["items"]}},
+        {"id":18,"op":"Reduce","args":[17],"stamp":{"dtype":"integer","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
       ],
-      "result": 1
+      "result": 18
     },
     "cart_total": {
       "name": "cart_total",
       "parameters": [{"kind":"dependency","source":"items_subtotal"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+        {"id":19,"op":"LoadDeclaration","args":["items_subtotal"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":20,"op":"Reduce","args":[19],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
       ],
-      "result": 1
+      "result": 20
     },
     "cart_total_effective": {
       "name": "cart_total_effective",
       "parameters": [{"kind":"dependency","source":"items_effective"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["items_effective"],"stamp":{"dtype":"float","axes":["items"]}},
-        {"id":1,"op":"Reduce","args":[0],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
+        {"id":21,"op":"LoadDeclaration","args":["items_effective"],"stamp":{"dtype":"float","axes":["items"]}},
+        {"id":22,"op":"Reduce","args":[21],"stamp":{"dtype":"float","axes":[]},"attrs":{"fn":"agg.sum","axis":"items"}}
       ],
-      "result": 1
+      "result": 22
     }
   },
   "analysis": {
@@ -83,7 +84,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"discount"}],
         "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "discount"
@@ -94,7 +95,7 @@
         "dtype": "array",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "navigation_steps": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
         "leaf_nav": [],
         "terminal": {"kind":"none","dtype":"array","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "items"
@@ -105,7 +106,7 @@
         "dtype": "float",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "navigation_steps": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
         "leaf_nav": [{"kind":"field_leaf","key":"price"}],
         "terminal": {"kind":"none","dtype":"float","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "items.price"
@@ -116,7 +117,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
+        "navigation_steps": [{"axes":"items","path":["items"],"loop_idx":0,"kind":"array_field","key":"items"}],
         "leaf_nav": [{"kind":"field_leaf","key":"qty"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "items.qty"

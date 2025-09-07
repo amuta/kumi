@@ -34,9 +34,10 @@ module Kumi
           private
 
           def analyze_declaration(name, decl, errors)
-            debug "Analyzing #{decl.kind} #{name}"
+            debug "Analyzing #{name}"
             result_metadata = analyze_expression(decl.body, errors)
 
+            binding.pry
             decl_metadata = {
               kind:         decl.kind,
               result_type:  result_metadata[:type],
@@ -53,7 +54,7 @@ module Kumi
           def analyze_expression(expr, errors)
             case expr
             when Kumi::Core::NAST::Call         then analyze_call_expression(expr, errors)
-            when Kumi::Core::NAST::TupleLiteral then analyze_tuple_literal(expr, errors)
+            when Kumi::Core::NAST::Tuple then analyze_tuple_literal(expr, errors)
             when Kumi::Core::NAST::InputRef     then analyze_input_ref(expr)
             when Kumi::Core::NAST::Const        then analyze_const(expr)
             when Kumi::Core::NAST::Ref          then analyze_declaration_ref(expr)
@@ -130,14 +131,11 @@ module Kumi
 
           # STRICT: requires entry with :axes and :dtype (no fallbacks)
           def analyze_input_ref(input_ref)
-            path_key = input_ref.path # Array<Symbol>
-            entry = @input_table.fetch(path_key) do
-              raise KeyError, "Input path not found in input_table: #{path_key.inspect}"
-            end
+            entry = @input_table.find{|imp| imp[:path_fqn] == input_ref.path_fqn}
+            entry or raise KeyError, "Input path not found in input_table: #{input_ref.path_fqn}"
 
-            axes  = Array(entry.fetch(:axes)).map(&:to_sym)
-            dtype = entry.fetch(:dtype)
-            dtype = dtype.is_a?(String) ? dtype.to_sym : dtype
+            axes  = entry.axes
+            dtype = entry.dtype
 
             { type: dtype, scope: axes }
           end
@@ -188,7 +186,7 @@ module Kumi
             candidate
           end
 
-          def node_id(node) = "#{node.class}_#{node.object_id}"
+          def node_id(node) = "#{node.class}_#{node.id}"
         end
       end
     end

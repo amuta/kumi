@@ -21,8 +21,6 @@ module Kumi
 
           producer_cache = {}
 
-          binding.pry
-
           fns = view.declarations_in_order.map do |name|
             ctx     = Kumi::Codegen::RubyV3::Pipeline::DeclContext.run(view, name)
             consts  = Kumi::Codegen::RubyV3::Pipeline::ConstPlan.run(ctx)

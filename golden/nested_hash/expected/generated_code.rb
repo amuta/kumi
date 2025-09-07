@@ -2,10 +2,10 @@ module SchemaModule
   # Generated code with pack hash: 58f3a405781061c82f6e1656b83a759c7118b6b89d41c231d22f18aa1e7e8af4:6ec2da57b6781ac2d994432609b60356af2bfbd52c362b2f8983c8723ed9d3e3:a87798a2ee644810a4f8c1505da8cf9840c003591cda95659e09c3f536463c57
 
   def _each_double
-    c1 = 2
-    v0 = @input["x"]["y"]["z"]
-    v2 = __call_kernel__("core.mul", v0, c1)
-    yield v2, []
+    op0 = @input["x"]["y"]["z"]
+    op1 = 2
+    op2 = __call_kernel__("core.mul", op0, 2)
+    yield op2, []
   end
 
   def _eval_double

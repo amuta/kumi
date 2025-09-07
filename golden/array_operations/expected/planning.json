@@ -18,9 +18,9 @@
       "parameters": [{"kind":"input","path":["items","price"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":4,"kind":"const"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":4,"kind":"const"}]},{"depth":1,"ops":[{"id":3,"kind":"loadinput"},{"id":5,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
@@ -31,9 +31,9 @@
       "parameters": [{"kind":"input","path":["items","quantity"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":7,"kind":"const"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":7,"kind":"const"}]},{"depth":1,"ops":[{"id":6,"kind":"loadinput"},{"id":8,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
@@ -44,9 +44,9 @@
       "parameters": [{"kind":"input","path":["items","price"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":10,"kind":"const"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":10,"kind":"const"}]},{"depth":1,"ops":[{"id":9,"kind":"loadinput"},{"id":11,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],
@@ -57,9 +57,9 @@
       "parameters": [{"kind":"input","path":["items","category"]}],
       "site_schedule": {
         "max_depth": 1,
-        "hoisted_scalars": [{"id":1,"kind":"const"}],
+        "hoisted_scalars": [{"id":13,"kind":"const"}],
         "root_reduces": [],
-        "by_depth": [{"depth":0,"ops":[{"id":1,"kind":"const"}]},{"depth":1,"ops":[{"id":0,"kind":"loadinput"},{"id":2,"kind":"map"}]}]
+        "by_depth": [{"depth":0,"ops":[{"id":13,"kind":"const"}]},{"depth":1,"ops":[{"id":12,"kind":"loadinput"},{"id":14,"kind":"map"}]}]
       },
       "axis_carriers": [{"axis":"items","via_path":["items"]}],
       "reduce_plans": [],

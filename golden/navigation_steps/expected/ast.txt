@@ -1,0 +1,39 @@
+(Root
+  inputs: [
+    (InputDeclaration :array_of_arrays :array access_mode: :element
+      [
+        (InputDeclaration :array_of_objects_with_array_field :array access_mode: :field
+          [
+            (InputDeclaration :array_field :array access_mode: :field
+              [
+                (InputDeclaration :hash_inside_array :hash access_mode: :field
+                  [
+                    (InputDeclaration :array_field_two :array access_mode: :element
+                      [
+                        (InputDeclaration :number :integer)
+                      ]
+                    )
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :numbers_mult_10
+      (CallExpression :multiply
+        (InputElementReference array_of_arrays.array_of_objects_with_array_field.array_field.hash_inside_array.array_field_two.number)
+        (Literal 10)
+      )
+    )
+    (ValueDeclaration :sum_of_nums
+      (CallExpression :sum
+        (DeclarationReference :numbers_mult_10)
+      )
+    )
+  ]
+  traits: []
+)

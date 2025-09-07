@@ -51,19 +51,28 @@ module Kumi
           end
 
           # Authoritative axis loops for a declaration (used by StreamLowerer to open loops)
-          def axis_loops_for_decl(name, producer_cache: {})
+          def navigation_steps_for_decl(name, producer_cache: {})
             ctx = decl_plan(name)
             ops = decl_spec(name)[:operations]
 
+            axes_candidates = Set.new([])
             # 1) Direct LoadInput
-            if (li = ops.find { |o| o["op"] == "LoadInput" })
-              return Array(input_spec_for_path(li["args"].first)["axis_loops"])
+            ops.each do |op|
+              next unless op["op"] == "LoadInput"
+              ispec = input_spec_for_path(op["args"].first)
+              depth = ispec["axes"].length
+              navigation_steps = ispec["navigation_steps"]
+
+              axes_candidates << [depth,navigation_steps]
             end
 
             # 2) Via axis carriers (choose last for deepest required loops)
             if ctx[:axis_carriers].any?
               path = ctx[:axis_carriers].last.fetch("via_path")
-              return Array(input_spec_for_path(path)["axis_loops"])
+              ispec = input_spec_for_path(path)
+              depth = ispec["axes"].length
+              navigation_steps = ispec["navigation_steps"]
+              axes_candidates << [depth,navigation_steps]
             end
 
             # 3) Inline producer (use producer's LoadInput path)
@@ -77,13 +86,21 @@ module Kumi
                 pctx = pc[:ctx]
                 pli = pctx[:ops].find { |o| o["op"] == "LoadInput" }
                 if pli
-                  return Array(input_spec_for_path(pli["args"].first)["axis_loops"])
+
+                  ispec = input_spec_for_path(pli["args"].first)
+                  depth = ispec["axes"].length
+                  navigation_steps = ispec["navigation_steps"]
+                  axes_candidates << [depth,navigation_steps]
                 end
               end
             end
 
             # 4) Scalar / rank-0 fallback
-            []
+            selected = axes_candidates.max_by{|d,_|d}
+
+            return [] unless selected
+
+            selected[1]
           end
         end
       end

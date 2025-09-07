@@ -106,8 +106,8 @@ module Kumi
           axis_sym = axis.to_sym
           raise "blank reduce axis" if axis_sym == :""
 
-          candidates = access_plan.inputs_by_path.values.select do |input_spec|
-            input_spec.axis_loops.any? { |loop| (loop[:axis] || loop["axis"]).to_sym == axis_sym }
+          candidates = access_plan.inputs_by_fqn.values.select do |input_spec|
+            input_spec.navigation_steps.any? { |loop| (loop[:axis] || loop["axis"]).to_sym == axis_sym }
           end
           raise "No input path carries reduce axis #{axis_sym.inspect}" if candidates.empty?
 
@@ -131,7 +131,7 @@ module Kumi
           end
 
           compatible.find { |s| s.path.map(&:to_s) == [axis.to_s] } ||
-            compatible.min_by { |s| s.axis_loops.length } ||
+            compatible.min_by { |s| s.navigation_steps.length } ||
             compatible.min_by { |s| s.path.map(&:to_s).join("/") }
         end
       end

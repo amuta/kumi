@@ -3,10 +3,26 @@
 module Kumi
   module Core
     module NAST
-      Node = Struct.new(:loc, :meta, keyword_init: true) do
+      @next_id_mutex = Mutex.new
+      @next_id = 1
+      
+      def self.next_id
+        @next_id_mutex.synchronize { @next_id += 1 }
+      end
+      
+      def self.reset_id_counter!
+        @next_id_mutex.synchronize { @next_id = 1 }
+      end
+      
+      Node = Struct.new(:id, :loc, :meta, keyword_init: true) do
         def initialize(**args)
           super
+          self.id ||= NAST.next_id
           self.meta ||= {}
+        end
+
+        def accept(visitor)
+          visitor.visit_node(self)
         end
       end
 
@@ -16,6 +32,10 @@ module Kumi
           super(**k)
           @value = value
         end
+
+        def accept(visitor)
+          visitor.visit_const(self)
+        end
       end
 
       class InputRef < Node
@@ -24,6 +44,14 @@ module Kumi
           super(**k)
           @path = Array(path).map(&:to_sym)
         end
+
+        def path_fqn
+          @path.join('.')
+        end
+
+        def accept(visitor)
+          visitor.visit_input_ref(self)
+        end
       end
 
       class Ref < Node
@@ -31,6 +59,10 @@ module Kumi
         def initialize(name:, **k)
           super(**k)
           @name = name.to_sym
+        end
+
+        def accept(visitor)
+          visitor.visit_ref(self)
         end
       end
 
@@ -41,23 +73,67 @@ module Kumi
           @fn = fn.to_sym
           @args = args
         end
+
+        def accept(visitor)
+          visitor.visit_call(self)
+        end
       end
 
-      class TupleLiteral < Node
-        attr_reader :elements
-        def initialize(elements:, **k)
+      class Tuple < Node
+        attr_reader :args
+        def initialize(args:, **k)
           super(**k)
-          @elements = elements
+          @args = args
+        end
+
+        def accept(visitor)
+          visitor.visit_tuple(self)
         end
       end
 
-      Decl = Struct.new(:name, :kind, :body, :loc, :meta, keyword_init: true) do
-        def initialize(**args)
-          super
-          self.meta ||= {}
+      class Field < Node
+        attr_reader :key, :value
+        def initialize(key:, value:, **k)
+          super(**k)
+          @key = key.to_sym
+          @value = value
+        end
+
+        def accept(visitor)
+          visitor.visit_field(self)
         end
       end
-      Module = Struct.new(:decls, keyword_init: true)
+
+      class Hash < Node
+        attr_reader :fields
+        def initialize(fields:, **k)
+          super(**k)
+          @fields = fields
+        end
+
+        def accept(visitor)
+          visitor.visit_hash(self)
+        end
+      end
+
+      class Declaration < Node
+        attr_reader :name, :body
+        def initialize(name:, body:, **k)
+          super(**k)
+          @name = name.to_sym
+          @body = body
+        end
+
+        def accept(visitor)
+          visitor.visit_declaration(self)
+        end
+      end
+
+      Module = Struct.new(:decls, keyword_init: true) do
+        def accept(visitor)
+          visitor.visit_module(self)
+        end
+      end
     end
   end
 end

@@ -22,7 +22,7 @@ module Kumi
             validate_plans!(plans, errors)
 
             # Create new state with access plans
-            state.with(:access_plans, plans.freeze).with(:input_table, plans_v2.freeze)
+            state.with(:access_plans, plans.freeze).with(:input_table, plans_v2.freeze).with(:ir_input_plans, plans_v2.freeze)
           end
 
           private

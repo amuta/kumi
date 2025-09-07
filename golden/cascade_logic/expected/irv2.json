@@ -16,28 +16,30 @@
       "name": "x_positive",
       "parameters": [{"kind":"input","path":["x"]}],
       "operations": [
-        {"id":0,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":1,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
+        {"id":3,"op":"LoadInput","args":[["x"]],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":4,"op":"Const","args":[0],"stamp":{"dtype":"integer","axes":[]}},
+        {"id":5,"op":"Map","args":[3,4],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.gt"}}
       ],
-      "result": 2
+      "result": 5
     },
     "status": {
       "name": "status",
       "parameters": [{"kind":"dependency","source":"y_positive"},{"kind":"dependency","source":"x_positive"}],
       "operations": [
-        {"id":0,"op":"LoadDeclaration","args":["y_positive"],"stamp":{"dtype":"boolean","axes":[]}},
-        {"id":1,"op":"LoadDeclaration","args":["x_positive"],"stamp":{"dtype":"boolean","axes":[]}},
-        {"id":2,"op":"Map","args":[0,1],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.and"}},
-        {"id":3,"op":"Const","args":["both positive"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":5,"op":"Const","args":["x positive"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":7,"op":"Const","args":["y positive"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":8,"op":"Const","args":["neither positive"],"stamp":{"dtype":"string","axes":[]}},
-        {"id":9,"op":"Select","args":[0,7,8],"stamp":{"dtype":"string","axes":[]}},
-        {"id":10,"op":"Select","args":[1,5,9],"stamp":{"dtype":"string","axes":[]}},
-        {"id":11,"op":"Select","args":[2,3,10],"stamp":{"dtype":"string","axes":[]}}
+        {"id":6,"op":"LoadDeclaration","args":["y_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":7,"op":"LoadDeclaration","args":["x_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":8,"op":"Map","args":[6,7],"stamp":{"dtype":"boolean","axes":[]},"attrs":{"fn":"core.and"}},
+        {"id":9,"op":"Const","args":["both positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":10,"op":"LoadDeclaration","args":["x_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":11,"op":"Const","args":["x positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":12,"op":"LoadDeclaration","args":["y_positive"],"stamp":{"dtype":"boolean","axes":[]}},
+        {"id":13,"op":"Const","args":["y positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":14,"op":"Const","args":["neither positive"],"stamp":{"dtype":"string","axes":[]}},
+        {"id":15,"op":"Select","args":[12,13,14],"stamp":{"dtype":"string","axes":[]}},
+        {"id":16,"op":"Select","args":[10,11,15],"stamp":{"dtype":"string","axes":[]}},
+        {"id":17,"op":"Select","args":[8,9,16],"stamp":{"dtype":"string","axes":[]}}
       ],
-      "result": 11
+      "result": 17
     }
   },
   "analysis": {
@@ -49,7 +51,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"x"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "x"
@@ -60,7 +62,7 @@
         "dtype": "integer",
         "key_policy": "indifferent",
         "on_missing": "error",
-        "axis_loops": [],
+        "navigation_steps": [],
         "leaf_nav": [{"kind":"field_leaf","key":"y"}],
         "terminal": {"kind":"none","dtype":"integer","key_policy":"indifferent","on_missing":"error"},
         "path_fqn": "y"

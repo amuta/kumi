@@ -2,7 +2,7 @@
   "[:items]": {
     "axis": [],
     "dtype": "array",
-    "axis_loops": [
+    "navigation_steps": [
       {
         "step_idx": 0,
         "axis": "items",
@@ -22,7 +22,7 @@
   "[:items, :price]": {
     "axis": [],
     "dtype": "float",
-    "axis_loops": [
+    "navigation_steps": [
       {
         "step_idx": 0,
         "axis": "items",
@@ -48,7 +48,7 @@
   "[:items, :quantity]": {
     "axis": [],
     "dtype": "integer",
-    "axis_loops": [
+    "navigation_steps": [
       {
         "step_idx": 0,
         "axis": "items",
@@ -74,7 +74,7 @@
   "[:items, :category]": {
     "axis": [],
     "dtype": "string",
-    "axis_loops": [
+    "navigation_steps": [
       {
         "step_idx": 0,
         "axis": "items",
@@ -100,7 +100,7 @@
   "[:tax_rate]": {
     "axis": [],
     "dtype": "float",
-    "axis_loops": [],
+    "navigation_steps": [],
     "leaf_nav": [
       {
         "kind": "field_leaf",

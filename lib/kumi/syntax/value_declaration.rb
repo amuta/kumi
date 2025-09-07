@@ -6,6 +6,7 @@ module Kumi
       include Node
 
       def children = [expression]
+      def kind = :value
     end
   end
 end
