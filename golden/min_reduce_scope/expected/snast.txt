@@ -1,12 +1,12 @@
 (SNAST
   (VALUE dept_total
-    (Call :agg.sum
+    (Reduce :agg.sum over [teams]
       (InputRef depts.teams.headcount) :: [depts, teams] -> integer
     ) :: [depts] -> integer
   ) :: [depts] -> integer
   (VALUE company_total
-    (Call :agg.sum
-      (Call :agg.sum
+    (Reduce :agg.sum over [depts]
+      (Reduce :agg.sum over [teams]
         (InputRef depts.teams.headcount) :: [depts, teams] -> integer
       ) :: [depts] -> integer
     ) :: [] -> integer
@@ -18,8 +18,8 @@
     ) :: [depts, teams] -> boolean
   ) :: [depts, teams] -> boolean
   (VALUE dept_total_masked
-    (Call :agg.sum
-      (Call :__select__
+    (Reduce :agg.sum over [teams]
+      (Select
         (Ref big_team) :: [depts, teams] -> boolean
         (InputRef depts.teams.headcount) :: [depts, teams] -> integer
         (Const 0) :: [] -> integer

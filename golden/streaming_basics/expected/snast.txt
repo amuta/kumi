@@ -21,7 +21,7 @@
     ) :: [items] -> boolean
   ) :: [items] -> boolean
   (VALUE items_effective
-    (Call :__select__
+    (Select
       (Ref items_is_big) :: [items] -> boolean
       (Call :core.mul
         (Ref items_subtotal) :: [items] -> float
@@ -31,17 +31,17 @@
     ) :: [items] -> float
   ) :: [items] -> float
   (VALUE total_qty
-    (Call :agg.sum
+    (Reduce :agg.sum over [items]
       (InputRef items.qty) :: [items] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE cart_total
-    (Call :agg.sum
+    (Reduce :agg.sum over [items]
       (Ref items_subtotal) :: [items] -> float
     ) :: [] -> float
   ) :: [] -> float
   (VALUE cart_total_effective
-    (Call :agg.sum
+    (Reduce :agg.sum over [items]
       (Ref items_effective) :: [items] -> float
     ) :: [] -> float
   ) :: [] -> float

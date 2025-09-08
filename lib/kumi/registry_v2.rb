@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 require "json"
 require "digest"
-require_relative "registry_v2/loader"
 
 module Kumi
   module RegistryV2
+    DEFAULT_FUNCTIONS_DIR = "data/functions"
+    DEFAULT_KERNELS_DIR = "data/kernels"
+    SELECT_ID = "__select__"
+    
     Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, keyword_init: true)
 
     class Instance
@@ -25,8 +28,8 @@ module Kumi
 
       def function_kind(id)        = meta(resolve_function(id))[:kind]
       def function_reduce?(id)     = function_kind(id) == :reduce
-      def function_elementwise?(i) = function_kind(i) == :elementwise
-      def function_select?(id)     = resolve_function(id) == "__select__" # add alias in data if needed
+      def function_elementwise?(id) = function_kind(id) == :elementwise
+      def function_select?(id)     = resolve_function(id) == SELECT_ID
 
       # -------- kernels --------
       def kernel_id_for(id, target:)
@@ -69,7 +72,7 @@ module Kumi
 
     module_function
 
-    def load(functions_dir:, kernels_root:)
+    def load(functions_dir: DEFAULT_FUNCTIONS_DIR, kernels_root: DEFAULT_KERNELS_DIR)
       fn_meta = Loader.load_functions(functions_dir)
       kn_map  = Loader.load_kernels(kernels_root, Kernel)
       Instance.new(fn_meta, kn_map)

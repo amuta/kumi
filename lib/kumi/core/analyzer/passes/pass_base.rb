@@ -9,9 +9,6 @@ module Kumi
           include Kumi::Syntax
           include Kumi::Core::ErrorReporting
 
-          # Core builtin operation names
-          BUILTIN_SELECT = :__select__
-
           # @param schema [Syntax::Root] The schema to analyze
           # @param state [AnalysisState] Current analysis state
           def initialize(schema, state)
@@ -42,6 +39,10 @@ module Kumi
             raise StandardError, "Required state key '#{key}' not found" if required && !state.key?(key)
 
             state[key]
+          end
+
+          def registry
+            get_state(:registry)
           end
 
           # Add error to the error list

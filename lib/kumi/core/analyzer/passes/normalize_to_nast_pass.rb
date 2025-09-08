@@ -6,6 +6,7 @@ module Kumi
       module Passes
         class NormalizeToNASTPass < PassBase
           NAST = Kumi::Core::NAST
+          SELECT_ID = Kumi::RegistryV2::SELECT_ID
 
           def run(errors)
             decls = get_state(:declarations, required: true)
@@ -78,7 +79,7 @@ module Kumi
             branches.reverse_each do |br|
               cond = normalize_expr(br.condition, errors)
               val = normalize_expr(br.result, errors)
-              else_n = NAST::Call.new(fn: BUILTIN_SELECT, args: [cond, val, else_n], loc: br.condition.loc)
+              else_n = NAST::Call.new(fn: SELECT_ID, args: [cond, val, else_n], loc: br.condition.loc)
             end
             else_n
           end
@@ -122,7 +123,7 @@ module Kumi
             
             # Expand to: sum(select(condition, values, neutral))
             select_call = NAST::Call.new(
-              fn: BUILTIN_SELECT,
+              fn: SELECT_ID,
               args: [normalize_expr(condition, errors), 
                      normalize_expr(values, errors),
                      NAST::Const.new(value: neutral, loc: node.loc)],
@@ -137,6 +138,9 @@ module Kumi
           end
 
           def neutral_value_for(base_fn)
+            # TODO: this should be a policy probably, and this is not the identity.
+            #        also it should follow the type, this will break for most things 
+            #        not ruby
             # Return appropriate neutral values for different aggregation functions
             case base_fn
             when 'sum'   then 0

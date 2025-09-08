@@ -37,13 +37,13 @@ module Kumi
       # Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, **opts)
-      state = Core::Analyzer::AnalysisState.new(opts)
+    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, registry: nil, **opts)
       errors = []
-
+      
+      registry ||= Kumi::RegistryV2.load
+      state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry)
       state = run_analysis_passes(schema, passes, state, errors)
-
-      # Run side table passes for NAST->HIR->IR pipeline
+      # Run side table passes for SNAST->LIR
       state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors) if side_tables
 
       handle_analysis_errors(errors) unless errors.empty?

@@ -18,7 +18,7 @@
     ) :: [regions, offices, teams] -> boolean
   ) :: [regions, offices, teams] -> boolean
   (VALUE employee_bonus
-    (Call :__select__
+    (Select
       (Call :core.and
         (Ref high_performer) :: [regions, offices, teams, employees] -> boolean
         (Call :core.and
@@ -30,7 +30,7 @@
         (InputRef regions.offices.teams.employees.salary) :: [regions, offices, teams, employees] -> float
         (Const 0.3) :: [] -> float
       ) :: [regions, offices, teams, employees] -> float
-      (Call :__select__
+      (Select
         (Call :core.and
           (Ref high_performer) :: [regions, offices, teams, employees] -> boolean
           (Ref top_team) :: [regions, offices, teams] -> boolean

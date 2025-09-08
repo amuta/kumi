@@ -1,11 +1,11 @@
 (SNAST
   (VALUE sum_numbers
-    (Call :agg.sum
+    (Reduce :agg.sum over [numbers]
       (InputRef numbers.value) :: [numbers] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE matrix_sums
-    (Call :agg.sum
+    (Reduce :agg.sum over [row]
       (InputRef matrix.row.cell) :: [matrix, row] -> float
     ) :: [matrix] -> float
   ) :: [matrix] -> float

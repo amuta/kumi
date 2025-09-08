@@ -27,12 +27,12 @@
     ) :: [batch, row, col] -> float
   ) :: [batch, row, col] -> float
   (VALUE row_sum_affine
-    (Call :agg.sum
+    (Reduce :agg.sum over [col]
       (Ref elem_affine) :: [batch, row, col] -> float
     ) :: [batch, row] -> float
   ) :: [batch, row] -> float
   (VALUE batch_total_affine
-    (Call :agg.sum
+    (Reduce :agg.sum over [row]
       (Ref row_sum_affine) :: [batch, row] -> float
     ) :: [batch] -> float
   ) :: [batch] -> float

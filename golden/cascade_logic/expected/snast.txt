@@ -12,16 +12,16 @@
     ) :: [] -> boolean
   ) :: [] -> boolean
   (VALUE status
-    (Call :__select__
+    (Select
       (Call :core.and
         (Ref y_positive) :: [] -> boolean
         (Ref x_positive) :: [] -> boolean
       ) :: [] -> boolean
       (Const "both positive") :: [] -> string
-      (Call :__select__
+      (Select
         (Ref x_positive) :: [] -> boolean
         (Const "x positive") :: [] -> string
-        (Call :__select__
+        (Select
           (Ref y_positive) :: [] -> boolean
           (Const "y positive") :: [] -> string
           (Const "neither positive") :: [] -> string

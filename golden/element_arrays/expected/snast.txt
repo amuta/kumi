@@ -18,8 +18,8 @@
     ) :: [cube, layer, row] -> boolean
   ) :: [cube, layer, row] -> boolean
   (VALUE cell_sum
-    (Call :agg.sum
-      (Call :__select__
+    (Reduce :agg.sum over [row]
+      (Select
         (Ref cell_over_limit) :: [cube, layer, row] -> boolean
         (InputRef cube.layer.row.cell) :: [cube, layer, row] -> integer
         (Const 0) :: [] -> integer
@@ -27,10 +27,10 @@
     ) :: [cube, layer] -> integer
   ) :: [cube, layer] -> integer
   (VALUE count_over_limit
-    (Call :agg.sum
-      (Call :agg.sum
-        (Call :agg.sum
-          (Call :__select__
+    (Reduce :agg.sum over [cube]
+      (Reduce :agg.sum over [layer]
+        (Reduce :agg.sum over [row]
+          (Select
             (Ref cell_over_limit) :: [cube, layer, row] -> boolean
             (Const 1) :: [] -> integer
             (Const 0) :: [] -> integer
