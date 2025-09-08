@@ -14,6 +14,9 @@ module Kumi
         DeclareAccumulator
         Accumulate
         LoadAccumulator
+        MakeTuple
+        MakeObject
+        TupleGet
         Yield
       ].freeze
       

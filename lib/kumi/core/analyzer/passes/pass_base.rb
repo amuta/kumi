@@ -14,10 +14,9 @@ module Kumi
 
           # @param schema [Syntax::Root] The schema to analyze
           # @param state [AnalysisState] Current analysis state
-          def initialize(schema, state, registry: KernelRegistry.new)
+          def initialize(schema, state)
             @schema = schema
             @state = state
-            @registry = registry
           end
 
           # Main pass execution - subclasses implement this
