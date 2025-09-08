@@ -83,7 +83,8 @@ module Kumi
               ensure_context_for!(wanted, anchor:)
             end
           
-            _reg = lower_expr(decl.body)
+            res = lower_expr(decl.body)
+            @ops << Build.yield(result_register: res)
           ensure
             close_loops_to_depth(0)
           end
@@ -110,7 +111,7 @@ module Kumi
           end
 
           def emit_ref(n)
-            ins = Build.load_declaration(name: n.name, dtype: dtype_of(n), ids: @ids)
+            ins = Build.load_declaration(name: n.name, dtype: dtype_of(n), axes: axes_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
@@ -245,20 +246,31 @@ module Kumi
           # @param anchor [NAST::Node,nil]
           # @raise [KeyError,RuntimeError] if carrier selection fails
           def open_suffix_loops!(over_axes:, anchor:)
-            debug "open_suffix_loops!: over_axes=#{over_axes.inspect}, anchor=#{anchor&.class&.name || 'nil'}"
             return if over_axes.empty?
           
             target       = @env.axes + over_axes
             local_tokens = anchor_path(anchor) if anchor
             tokens       = choose_carrier_for_axes(target_axes: target, local_tokens:)
+            base         = @env.axes.length
           
-            chain = build_chain_to_axes(tokens, target)
-            base  = @env.axes.length  # <-- snapshot once
+            need = base + over_axes.length + 1
+            raise "carrier tokens too short for #{target.inspect}" if tokens.length < need
           
             over_axes.each_with_index do |ax, i|
-              coll = chain[base + i] or raise "carrier chain too short for #{target.inspect}"
-              el   = @ids.generate_temp(prefix: :"#{ax}_el_")
-              ix   = @ids.generate_temp(prefix: :"#{ax}_i_")
+              open_depth = base + i
+          
+              coll =
+                if open_depth.zero?
+                  Build.load_input(key: tokens.first, dtype: :array).tap { @ops << _1 }.result_register
+                else
+                  prev_axis = target[open_depth - 1]
+                  src_el    = @env.element_reg_for(prev_axis) || raise("no element for #{prev_axis}")
+                  key_tok   = tokens[open_depth]
+                  Build.load_field(object_register: src_el, key: key_tok, dtype: :array).tap { @ops << _1 }.result_register
+                end
+          
+              el     = @ids.generate_temp(prefix: :"#{ax}_el_")
+              ix     = @ids.generate_temp(prefix: :"#{ax}_i_")
               loop_id = @ids.generate_loop_id
               @ops << Build.loop_start(collection_register: coll, axis: ax, as_element: el, as_index: ix, id: loop_id)
               @env.push(axis: ax, as_element: el, as_index: ix, id: loop_id)

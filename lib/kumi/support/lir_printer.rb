@@ -61,7 +61,9 @@ module Kumi
           "#{res}load_input #{fmt_key(key)}#{stamp(ins)}"
         when :LoadDeclaration
           name = ins.immediates&.first&.value
-          "#{res}load_decl #{name}#{stamp(ins)}"
+          axes = ins.attributes[:axes] || []
+          axes_str = axes.empty? ? "" : " axes=[#{axes.join(', ')}]"
+          "#{res}load_decl #{name}#{axes_str}#{stamp(ins)}"
         when :LoadField
           key = ins.immediates&.first&.value
           "#{res}load_field #{only(ins.inputs)}[#{fmt_key(key)}]#{stamp(ins)}"

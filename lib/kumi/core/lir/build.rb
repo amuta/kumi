@@ -50,10 +50,11 @@ module Kumi
         # Params:
         #   name:      declaration name
         #   dtype:     dtype of referenced declaration result
+        #   axes:      axes of referenced declaration
         #   as:        result register
         #   location:  optional Location
         # Result: produces
-        def load_declaration(name:, dtype:, as: nil, ids: nil, location: nil)
+        def load_declaration(name:, dtype:, axes:, as: nil, ids: nil, location: nil)
           as ||= (ids || Ids.new).generate_temp
           Instruction.new(
             opcode: :LoadDeclaration,
@@ -61,7 +62,7 @@ module Kumi
             stamp: Stamp.new(dtype: dtype),
             inputs: [],
             immediates: [Literal.new(value: name.to_s, dtype: :string)],
-            attributes: {},
+            attributes: { axes: Array(axes).map!(&:to_sym) },
             location:
           )
         end
@@ -280,6 +281,17 @@ module Kumi
 
 
         # Yield
+        # Opcode: Yield
+        # Semantics:
+        # - Exactly one per declaration.
+        # - Must be the last instruction in the declaration.
+        # - The declaration's result axes are Γ, the active loop stack at the Yield site
+        #   (i.e., the sequence of surrounding LoopStart frames).
+        # - The yielded register's stamp.dtype is the declaration's result dtype.
+        # Codegen rule:
+        # - If Γ == [], return the yielded scalar.
+        # - If Γ != [], materialize a container shaped by Γ and write the yielded value
+        #   at each iteration of the surrounding loops.
         # Params:
         #   result_register: register that holds the final value
         #   location:        optional Location

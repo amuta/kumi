@@ -1,40 +1,56 @@
 # lib/kumi/core/lir/validate.rb
-# Program-level structural checks. Assigns loop ids if absent.
+# Per-declaration and program-level structural checks.
 module Kumi
   module Core
     module LIR
       module Validate
         module_function
 
-        def program!(instructions, ids: nil)
+        # Validate one declaration's instruction list
+        def declaration!(instructions)
           ensure_opcodes!(instructions)
-          definitions = {}
-          loop_stack = []
 
-          instructions.each_with_index do |instruction, i|
-            if instruction.produces?
-              raise Error, "missing stamp at #{i}" unless instruction.stamp.is_a?(Stamp)
-              reg = instruction.result_register
-              raise Error, "redefinition of #{reg} at #{i}" if definitions.key?(reg)
-              definitions[reg] = i
+          defs = {}
+          depth = 0
+          yield_seen = false
+
+          instructions.each_with_index do |ins, i|
+            # producer stamps
+            if ins.result_register
+              raise Error, "missing stamp at #{i}" unless ins.stamp.is_a?(Stamp)
+              r = ins.result_register
+              raise Error, "redefinition of #{r} at #{i}" if defs.key?(r)
+              defs[r] = i
             end
 
-            case instruction.opcode
+            case ins.opcode
             when :LoopStart
-              attrs = instruction.attributes || {}
+              attrs = ins.attributes || {}
               raise Error, "LoopStart missing :axis at #{i}" unless attrs[:axis]
-              instruction.attributes[:id] ||= (ids || Ids.new).generate_loop_id
-              loop_stack << instruction.attributes[:id]
+              depth += 1
             when :LoopEnd
-              raise Error, "LoopEnd without LoopStart at #{i}" if loop_stack.empty?
-              loop_stack.pop
-            when :Select
-              # Optionally enforce stamp unification if stamps are present
-              # (Leave as a no-op if you unify earlier.)
+              raise Error, "LoopEnd without LoopStart at #{i}" if depth.zero?
+              depth -= 1
+            when :LoadDeclaration
+              raise Error, "LoadDeclaration missing :axes at #{i}" unless Array(ins.attributes[:axes]).is_a?(Array)
+              raise Error, "LoadDeclaration missing stamp at #{i}" unless ins.stamp.is_a?(Stamp)
+            when :Yield
+              raise Error, "multiple Yield (at #{i})" if yield_seen
+              yield_seen = true
+              raise Error, "instructions after Yield (at #{i})" unless i == instructions.length - 1
             end
           end
 
-          raise Error, "unclosed loops: #{loop_stack}" unless loop_stack.empty?
+          raise Error, "unclosed loops" unless depth.zero?
+          raise Error, "missing Yield" unless yield_seen
+          true
+        end
+
+        # Validate whole program: { name => { operations: [...] } }
+        def program!(ops_by_decl)
+          ops_by_decl.each do |name, h|
+            declaration!(Array(h[:operations]))
+          end
           true
         end
 
