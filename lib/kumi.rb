@@ -8,6 +8,7 @@ loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
   "lir" => "LIR",
   "lower_to_ir_pass" => "LowerToIRPass",
+  "lower_to_lir_pass" => "LowerToLIRPass",
   "lower_to_irv2_pass" => "LowerToIRV2Pass",
   "load_input_cse" => "LoadInputCSE",
   "ir_dependency_pass" => "IRDependencyPass",
@@ -23,6 +24,7 @@ loader.inflector.inflect(
   "snast_pass" => "SNASTPass",
   "nast_printer" => "NASTPrinter",
   "snast_printer" => "SNASTPrinter",
+  "lir_printer" => "LIRPrinter",
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "cgir" => "CGIR",
   "vm" => "VM",

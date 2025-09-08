@@ -9,7 +9,7 @@ module Kumi
       module_function
 
       # REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning pack].freeze
-      REPRESENTATIONS = %w[ast nast snast].freeze
+      REPRESENTATIONS = %w[ast nast snast lir].freeze
       JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning pack].freeze
       RUBY_REPRESENTATIONS = %w[generated_code].freeze
 

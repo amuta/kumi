@@ -1,7 +1,9 @@
 module Kumi
   module Core
     module LIR
-      class Error < StandardError; end
+      module Support
+        class Error < StandardError; end
+      end
     end
   end
 end

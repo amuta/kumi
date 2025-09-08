@@ -81,6 +81,14 @@ module Kumi
         Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
 
+      def generate_lir(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema)
+        return nil unless res.state[:lir_ops_by_decl]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_ops_by_decl])
+      end
+
       def generate_snast(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema)

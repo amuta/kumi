@@ -31,6 +31,7 @@ module Kumi
       Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Core::Analyzer::Passes::LowerToLIRPass,                   # Lowers the schema to LIR (LIR Structs)
       # Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
       # Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
       # Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure

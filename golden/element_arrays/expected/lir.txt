@@ -1,0 +1,102 @@
+(LIR
+  (Declaration cube
+  %t1 = load_input cube :: array
+  )
+  (Declaration layer
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  loop cube id=L1 in %t1 as el=%cube_el_1, idx=%cube_i_2
+    %t1 = load_field cube_el_1[layer] :: array
+  end_loop
+  )
+  (Declaration row
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  %t1 = load_field t1[row] :: array
+  loop cube id=L2 in %t1 as el=%cube_el_3, idx=%cube_i_4
+    loop layer id=L3 in nil as el=%layer_el_5, idx=%layer_i_6
+      %t1 = load_field layer_el_5[row] :: array
+    end_loop
+  end_loop
+  )
+  (Declaration cell
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  %t1 = load_field t1[row] :: array
+  %t1 = load_field t1[cell] :: array
+  loop cube id=L4 in %t1 as el=%cube_el_7, idx=%cube_i_8
+    loop layer id=L5 in %t1 as el=%layer_el_9, idx=%layer_i_10
+      loop row id=L6 in nil as el=%row_el_11, idx=%row_i_12
+        %t1 = load_field row_el_11[cell] :: array
+      end_loop
+    end_loop
+  end_loop
+  )
+  (Declaration cell_over_limit
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  %t1 = load_field t1[row] :: array
+  %t1 = load_field t1[cell] :: array
+  loop cube id=L7 in %t1 as el=%cube_el_13, idx=%cube_i_14
+    loop layer id=L8 in %t1 as el=%layer_el_15, idx=%layer_i_16
+      loop row id=L9 in nil as el=%row_el_17, idx=%row_i_18
+        %t1 = load_field row_el_17[cell] :: array
+        %t1 = const 100 :: integer
+        %t1 = call core.gt(%t1, %t1) :: boolean
+      end_loop
+    end_loop
+  end_loop
+  )
+  (Declaration cell_sum
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  %t1 = load_field t1[row] :: array
+  loop cube id=L10 in %t1 as el=%cube_el_19, idx=%cube_i_20
+    loop layer id=L11 in nil as el=%layer_el_21, idx=%layer_i_22
+      %t1 = load_input cube :: array
+      %t1 = load_field t1[layer] :: array
+      %t1 = load_field t1[row] :: array
+      %t1 = load_field t1[cell] :: array
+      loop row id=L12 in %t1 as el=%row_el_23, idx=%row_i_24
+        acc.declare acc_25=0
+        %t1 = load_decl cell_over_limit :: boolean
+        %t1 = load_field row_el_23[cell] :: array
+        %t1 = const 0 :: integer
+        %t1 = select %t1, %t1, %t1 :: integer
+        acc.add acc_25 using agg.sum <- %t1
+      end_loop
+      %t1 = acc.load acc_25 :: integer
+    end_loop
+  end_loop
+  )
+  (Declaration count_over_limit
+  %t1 = load_input cube :: array
+  %t1 = load_field t1[layer] :: array
+  loop cube id=L13 in %t1 as el=%cube_el_26, idx=%cube_i_27
+    acc.declare acc_28=0
+    %t1 = load_input cube :: array
+    %t1 = load_field t1[layer] :: array
+    %t1 = load_field t1[row] :: array
+    loop layer id=L14 in %t1 as el=%layer_el_29, idx=%layer_i_30
+      acc.declare acc_31=0
+      %t1 = load_input cube :: array
+      %t1 = load_field t1[layer] :: array
+      %t1 = load_field t1[row] :: array
+      %t1 = load_field t1[cell] :: array
+      loop row id=L15 in %t1 as el=%row_el_32, idx=%row_i_33
+        acc.declare acc_34=0
+        %t1 = load_decl cell_over_limit :: boolean
+        %t1 = const 1 :: integer
+        %t1 = const 0 :: integer
+        %t1 = select %t1, %t1, %t1 :: integer
+        acc.add acc_34 using agg.sum <- %t1
+      end_loop
+      %t1 = acc.load acc_34 :: integer
+      acc.add acc_31 using agg.sum <- %t1
+    end_loop
+    %t1 = acc.load acc_31 :: integer
+    acc.add acc_28 using agg.sum <- %t1
+  end_loop
+  %t1 = acc.load acc_28 :: integer
+  )
+)
