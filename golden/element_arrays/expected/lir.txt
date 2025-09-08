@@ -4,92 +4,92 @@
   yield %t1
   )
   (Declaration layer
-  %t1 = load_input "cube" :: array
-  loop cube id=L1 in %t1 as el=%cube_el_2, idx=%cube_i_3
-    %t4 = load_field cube_el_2["layer"] :: array
-    yield %t4
+  %t2 = load_input "cube" :: array
+  loop cube id=L1 in %t2 as el=%cube_el_3, idx=%cube_i_4
+    %t5 = load_field cube_el_3["layer"] :: array
+    yield %t5
   end_loop
   )
   (Declaration row
-  %t1 = load_input "cube" :: array
-  loop cube id=L2 in %t1 as el=%cube_el_5, idx=%cube_i_6
-    %t1 = load_field cube_el_5["layer"] :: array
-    loop layer id=L3 in %t1 as el=%layer_el_7, idx=%layer_i_8
-      %t9 = load_field layer_el_7["row"] :: array
-      yield %t9
+  %t6 = load_input "cube" :: array
+  loop cube id=L2 in %t6 as el=%cube_el_7, idx=%cube_i_8
+    %t9 = load_field cube_el_7["layer"] :: array
+    loop layer id=L3 in %t9 as el=%layer_el_10, idx=%layer_i_11
+      %t12 = load_field layer_el_10["row"] :: array
+      yield %t12
     end_loop
   end_loop
   )
   (Declaration cell
-  %t1 = load_input "cube" :: array
-  loop cube id=L4 in %t1 as el=%cube_el_10, idx=%cube_i_11
-    %t1 = load_field cube_el_10["layer"] :: array
-    loop layer id=L5 in %t1 as el=%layer_el_12, idx=%layer_i_13
-      %t1 = load_field layer_el_12["row"] :: array
-      loop row id=L6 in %t1 as el=%row_el_14, idx=%row_i_15
-        %t16 = load_field row_el_14["cell"] :: integer
-        yield %t16
+  %t13 = load_input "cube" :: array
+  loop cube id=L4 in %t13 as el=%cube_el_14, idx=%cube_i_15
+    %t16 = load_field cube_el_14["layer"] :: array
+    loop layer id=L5 in %t16 as el=%layer_el_17, idx=%layer_i_18
+      %t19 = load_field layer_el_17["row"] :: array
+      loop row id=L6 in %t19 as el=%row_el_20, idx=%row_i_21
+        %t22 = load_field row_el_20["cell"] :: integer
+        yield %t22
       end_loop
     end_loop
   end_loop
   )
   (Declaration cell_over_limit
-  %t1 = load_input "cube" :: array
-  loop cube id=L7 in %t1 as el=%cube_el_17, idx=%cube_i_18
-    %t1 = load_field cube_el_17["layer"] :: array
-    loop layer id=L8 in %t1 as el=%layer_el_19, idx=%layer_i_20
-      %t1 = load_field layer_el_19["row"] :: array
-      loop row id=L9 in %t1 as el=%row_el_21, idx=%row_i_22
-        %t23 = load_field row_el_21["cell"] :: integer
-        %t24 = const 100 :: integer
-        %t25 = call core.gt(%t23, %t24) :: boolean
-        yield %t25
+  %t23 = load_input "cube" :: array
+  loop cube id=L7 in %t23 as el=%cube_el_24, idx=%cube_i_25
+    %t26 = load_field cube_el_24["layer"] :: array
+    loop layer id=L8 in %t26 as el=%layer_el_27, idx=%layer_i_28
+      %t29 = load_field layer_el_27["row"] :: array
+      loop row id=L9 in %t29 as el=%row_el_30, idx=%row_i_31
+        %t32 = load_field row_el_30["cell"] :: integer
+        %t33 = const 100 :: integer
+        %t34 = call core.gt(%t32, %t33) :: boolean
+        yield %t34
       end_loop
     end_loop
   end_loop
   )
   (Declaration cell_sum
-  %t1 = load_input "cube" :: array
-  loop cube id=L10 in %t1 as el=%cube_el_26, idx=%cube_i_27
-    %t1 = load_field cube_el_26["layer"] :: array
-    loop layer id=L11 in %t1 as el=%layer_el_28, idx=%layer_i_29
-      %t1 = load_field layer_el_28["row"] :: array
-      loop row id=L12 in %t1 as el=%row_el_30, idx=%row_i_31
-        acc.declare acc_32=0
-        %t33 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
-        %t34 = load_field row_el_30["cell"] :: integer
-        %t35 = const 0 :: integer
-        %t36 = select %t33, %t34, %t35 :: integer
-        acc.add acc_32 using agg.sum <- %t36
+  %t35 = load_input "cube" :: array
+  loop cube id=L10 in %t35 as el=%cube_el_36, idx=%cube_i_37
+    %t38 = load_field cube_el_36["layer"] :: array
+    loop layer id=L11 in %t38 as el=%layer_el_39, idx=%layer_i_40
+      acc.declare acc_41=0
+      %t42 = load_field layer_el_39["row"] :: array
+      loop row id=L12 in %t42 as el=%row_el_43, idx=%row_i_44
+        %t45 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
+        %t46 = load_field row_el_43["cell"] :: integer
+        %t47 = const 0 :: integer
+        %t48 = select %t45, %t46, %t47 :: integer
+        acc.add acc_41 using agg.sum <- %t48
       end_loop
-      %t37 = acc.load acc_32 :: integer
-      yield %t37
+      %t49 = acc.load acc_41 :: integer
+      yield %t49
     end_loop
   end_loop
   )
   (Declaration count_over_limit
-  %t1 = load_input "cube" :: array
-  loop cube id=L13 in %t1 as el=%cube_el_38, idx=%cube_i_39
-    acc.declare acc_40=0
-    %t1 = load_field cube_el_38["layer"] :: array
-    loop layer id=L14 in %t1 as el=%layer_el_41, idx=%layer_i_42
-      acc.declare acc_43=0
-      %t1 = load_field layer_el_41["row"] :: array
-      loop row id=L15 in %t1 as el=%row_el_44, idx=%row_i_45
-        acc.declare acc_46=0
-        %t47 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
-        %t48 = const 1 :: integer
-        %t49 = const 0 :: integer
-        %t50 = select %t47, %t48, %t49 :: integer
-        acc.add acc_46 using agg.sum <- %t50
+  acc.declare acc_50=0
+  %t51 = load_input "cube" :: array
+  loop cube id=L13 in %t51 as el=%cube_el_52, idx=%cube_i_53
+    acc.declare acc_54=0
+    %t55 = load_field cube_el_52["layer"] :: array
+    loop layer id=L14 in %t55 as el=%layer_el_56, idx=%layer_i_57
+      acc.declare acc_58=0
+      %t59 = load_field layer_el_56["row"] :: array
+      loop row id=L15 in %t59 as el=%row_el_60, idx=%row_i_61
+        %t62 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
+        %t63 = const 1 :: integer
+        %t64 = const 0 :: integer
+        %t65 = select %t62, %t63, %t64 :: integer
+        acc.add acc_58 using agg.sum <- %t65
       end_loop
-      %t51 = acc.load acc_46 :: integer
-      acc.add acc_43 using agg.sum <- %t51
+      %t66 = acc.load acc_58 :: integer
+      acc.add acc_54 using agg.sum <- %t66
     end_loop
-    %t52 = acc.load acc_43 :: integer
-    acc.add acc_40 using agg.sum <- %t52
+    %t67 = acc.load acc_54 :: integer
+    acc.add acc_50 using agg.sum <- %t67
   end_loop
-  %t53 = acc.load acc_40 :: integer
-  yield %t53
+  %t68 = acc.load acc_50 :: integer
+  yield %t68
   )
 )

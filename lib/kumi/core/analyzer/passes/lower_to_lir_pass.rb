@@ -164,23 +164,26 @@ module Kumi
             raise "reduce: scalar input" if in_axes.empty?
             raise "reduce: axes(arg)=#{in_axes} must equal out+over" unless in_axes == out_axes + Array(n.over)
 
-            # open prefix (Γ := out_axes)
+            # 1) Align to Γ
             ensure_context_for!(out_axes, anchor: n.arg)
 
-            # open suffix (over)
-            open_suffix_loops!(over_axes: Array(n.over), anchor: n.arg)
-
-            # accumulator
-            dtype = dtype_of(n)
+            # 2) Declare accumulator at Γ
+            dtype    = dtype_of(n)
             acc_name = @ids.generate_temp(prefix: :acc_)
-            init = identity_literal(n.op_id, dtype)
+            init     = identity_literal(n.op_id, dtype)
             @ops << Build.declare_accumulator(name: acc_name, initial: init)
 
+            # 3) Open `over` loops and accumulate inside
+            open_suffix_loops!(over_axes: Array(n.over), anchor: n.arg)
             val = lower_expr(n.arg)
-            @ops << Build.accumulate(accumulator: acc_name, function: @registry.resolve_function(n.op_id), value_register: val)
+            @ops << Build.accumulate(
+              accumulator: acc_name,
+              function:    @registry.resolve_function(n.op_id),
+              value_register: val
+            )
 
+            # 4) Close `over` and load at Γ
             close_loops_to_depth(out_axes.length)
-
             ins = Build.load_accumulator(name: acc_name, dtype: dtype, ids: @ids)
             @ops << ins
             ins.result_register
@@ -261,12 +264,12 @@ module Kumi
           
               coll =
                 if open_depth.zero?
-                  Build.load_input(key: tokens.first, dtype: :array).tap { @ops << _1 }.result_register
+                  Build.load_input(key: tokens.first, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
                 else
                   prev_axis = target[open_depth - 1]
                   src_el    = @env.element_reg_for(prev_axis) || raise("no element for #{prev_axis}")
                   key_tok   = tokens[open_depth]
-                  Build.load_field(object_register: src_el, key: key_tok, dtype: :array).tap { @ops << _1 }.result_register
+                  Build.load_field(object_register: src_el, key: key_tok, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
                 end
           
               el     = @ids.generate_temp(prefix: :"#{ax}_el_")
