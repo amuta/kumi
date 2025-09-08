@@ -104,20 +104,20 @@ module Kumi
           end
 
           def emit_const(n)
-            ins = Build.constant(value: n.value, dtype: dtype_of(n))
+            ins = Build.constant(value: n.value, dtype: dtype_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
 
           def emit_ref(n)
-            ins = Build.load_declaration(name: n.name, dtype: dtype_of(n))
+            ins = Build.load_declaration(name: n.name, dtype: dtype_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
 
           def emit_tuple(n)
             regs = n.args.map { lower_expr(_1) }
-            ins = Build.make_tuple(elements: regs, out_dtype: dtype_of(n))
+            ins = Build.make_tuple(elements: regs, out_dtype: dtype_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
@@ -132,7 +132,7 @@ module Kumi
               return emit_reduce(red)
             end
             regs = n.args.map { lower_expr(_1) }
-            ins  = Build.kernel_call(function: @registry.resolve_function(n.fn), args: regs, out_dtype: dtype_of(n))
+            ins  = Build.kernel_call(function: @registry.resolve_function(n.fn), args: regs, out_dtype: dtype_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
@@ -143,7 +143,7 @@ module Kumi
             c = lower_expr(n.cond)
             t = lower_expr(n.on_true)
             f = lower_expr(n.on_false)
-            ins = Build.select(cond: c, on_true: t, on_false: f, out_dtype: dtype_of(n))
+            ins = Build.select(cond: c, on_true: t, on_false: f, out_dtype: dtype_of(n), ids: @ids)
             @ops << ins
             ins.result_register
           end
@@ -180,7 +180,7 @@ module Kumi
 
             close_loops_to_depth(out_axes.length)
 
-            ins = Build.load_accumulator(name: acc_name, dtype: dtype)
+            ins = Build.load_accumulator(name: acc_name, dtype: dtype, ids: @ids)
             @ops << ins
             ins.result_register
           end
@@ -194,22 +194,24 @@ module Kumi
           # @param n [NAST::InputRef]
           # @return [Symbol] register containing the addressed value/collection
           def emit_input_ref(n)
-            toks = n.path # [:cube, :layer, ...]
-            # choose base: deepest open axis token present in path
+            toks = n.path
             base_ix = deepest_open_axis_index_in_path(toks)
             if base_ix
               cur = @env.element_reg_for(toks[base_ix])
               i = base_ix + 1
             else
-              cur = Build.load_input(key: toks.first, dtype: :array).tap { @ops << _1 }.result_register
+              cur = Build.load_input(key: toks.first, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
               i = 1
             end
+
             while i < toks.length
               tok = toks[i]
               if @env.axes.include?(tok)
                 cur = @env.element_reg_for(tok)
               else
-                cur = Build.load_field(object_register: cur, key: tok, dtype: :array).tap { @ops << _1 }.result_register
+                is_last = (i == toks.length - 1)
+                field_dtype = is_last ? dtype_of(n) : :array
+                cur = Build.load_field(object_register: cur, key: tok, dtype: field_dtype, ids: @ids).tap { @ops << _1 }.result_register
               end
               i += 1
             end
@@ -245,14 +247,16 @@ module Kumi
           def open_suffix_loops!(over_axes:, anchor:)
             debug "open_suffix_loops!: over_axes=#{over_axes.inspect}, anchor=#{anchor&.class&.name || 'nil'}"
             return if over_axes.empty?
-
-            target = @env.axes + over_axes
+          
+            target       = @env.axes + over_axes
             local_tokens = anchor_path(anchor) if anchor
-            tokens = choose_carrier_for_axes(target_axes: target, local_tokens:)
-
+            tokens       = choose_carrier_for_axes(target_axes: target, local_tokens:)
+          
             chain = build_chain_to_axes(tokens, target)
+            base  = @env.axes.length  # <-- snapshot once
+          
             over_axes.each_with_index do |ax, i|
-              coll = chain[@env.axes.length + i]
+              coll = chain[base + i] or raise "carrier chain too short for #{target.inspect}"
               el   = @ids.generate_temp(prefix: :"#{ax}_el_")
               ix   = @ids.generate_temp(prefix: :"#{ax}_i_")
               loop_id = @ids.generate_loop_id
@@ -260,7 +264,7 @@ module Kumi
               @env.push(axis: ax, as_element: el, as_index: ix, id: loop_id)
             end
           end
-
+          
           def close_loops_to_depth(depth)
             while @env.depth > depth
               @env.pop
@@ -281,17 +285,17 @@ module Kumi
           def build_chain_to_axes(path_tokens, axes_prefix)
             debug "build_chain_to_axes: path_tokens=#{path_tokens.inspect}, axes_prefix=#{axes_prefix.inspect}"
             raise "build_chain_to_axes: path_tokens is nil" if path_tokens.nil?
-            # Assumes path order respects axes prefix order.
             regs = []
-            cur = Build.load_input(key: path_tokens.first, dtype: :array).tap { @ops << _1 }.result_register
-            axes_prefix.each_with_index do |_, idx|
-              tok = path_tokens[idx + 1] # next collection field
-              cur = Build.load_field(object_register: cur, key: tok, dtype: :array).tap { @ops << _1 }.result_register
+            cur = Build.load_input(key: path_tokens.first, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+            regs << cur
+            (1...axes_prefix.length).each do |idx|
+              tok = path_tokens[idx]
+              cur = Build.load_field(object_register: cur, key: tok, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
               regs << cur
             end
             regs
           end
-
+            
           # Find a local InputRef carrier in a subtree.
           # Order: Select(on_true before on_false), Reduce(arg), Call/Tuple(args).
           # Returns tokens or nil when absent.

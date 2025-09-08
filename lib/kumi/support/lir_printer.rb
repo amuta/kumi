@@ -125,7 +125,7 @@ module Kumi
       end
 
       def fmt_reg(r) = r.is_a?(Symbol) ? "%#{r}" : r.inspect
-      def fmt_key(k) = k.is_a?(String) ? k : k.to_s
+      def fmt_key(k) = k.inspect
       def fmt_lit(l) = l ? l.value.inspect : "nil"
       def list(arr)  = Array(arr).map { fmt_reg(_1) }.join(", ")
       def only(arr)  = Array(arr).first
