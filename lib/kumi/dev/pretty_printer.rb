@@ -83,16 +83,32 @@ module Kumi
 
       def generate_lir(path)
         schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema)
-        return nil unless res.state[:lir_ops_by_decl]
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_ops_by_decl]
 
         Kumi::Support::LIRPrinter.print(res.state[:lir_ops_by_decl])
+      end
+
+      def generate_lir_fused(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_fused_ops_by_decl]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_fused_ops_by_decl])
+      end
+
+      def generate_lir_optimized(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_optimized_ops_by_decl]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_optimized_ops_by_decl])
       end
 
       def generate_snast(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema)
-        return nil unless res.state[:snast_module]
+        raise "Error Generating #{path}" unless res.state[:snast_module]
 
         Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
       end

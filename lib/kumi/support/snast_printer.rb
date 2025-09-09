@@ -74,7 +74,8 @@ module Kumi
 
         when NAST::InputRef
           stamp_str = format_stamp(node.meta[:stamp])
-          "#{indent}(InputRef #{node.path_fqn}) #{stamp_str}"
+          key_chain_str = " key_chain=[#{node.key_chain.join(", ")}]"
+          "#{indent}(InputRef #{node.path_fqn}#{key_chain_str}) #{stamp_str}"
 
         when NAST::Ref
           stamp_str = format_stamp(node.meta[:stamp])

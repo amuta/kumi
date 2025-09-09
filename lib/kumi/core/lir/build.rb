@@ -231,7 +231,8 @@ module Kumi
         #   out_dtype: tuple dtype
         #   as: result register
         # Result: produces tuple
-        def make_tuple(elements:, out_dtype:, as: Ids.generate_temp, location: nil)
+        def make_tuple(elements:, out_dtype:, as:nil, ids: nil, location: nil)
+          as ||= (ids || Ids.new).generate_temp
           Instruction.new(
             opcode: :MakeTuple,
             result_register: as,
@@ -249,7 +250,8 @@ module Kumi
         #   values: Array of registers
         #   out_dtype: object dtype (or :object)
         #   as: result
-        def make_object(keys:, values:, out_dtype:, as: Ids.generate_temp, location: nil)
+        def make_object(keys:, values:, out_dtype:, as: nil, ids: nil, location: nil)
+          as ||= (ids || Ids.new).generate_temp
           Instruction.new(
             opcode: :MakeObject,
             result_register: as,

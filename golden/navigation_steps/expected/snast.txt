@@ -1,13 +1,13 @@
 (SNAST
   (VALUE numbers_mult_10
     (Call :core.mul
-      (InputRef array_of_arrays.array_of_objects_with_array_field.array_field.hash_inside_array.array_field_two.number) :: [array_of_arrays, array_of_objects_with_array_field, array_field, array_field_two] -> integer
+      (InputRef a1.ea1.a2.h1.ea2.number key_chain=[]) :: [a1, ea1, a2, ea2] -> integer
       (Const 10) :: [] -> integer
-    ) :: [array_of_arrays, array_of_objects_with_array_field, array_field, array_field_two] -> integer
-  ) :: [array_of_arrays, array_of_objects_with_array_field, array_field, array_field_two] -> integer
+    ) :: [a1, ea1, a2, ea2] -> integer
+  ) :: [a1, ea1, a2, ea2] -> integer
   (VALUE sum_of_nums
-    (Reduce :agg.sum over [array_field_two]
-      (Ref numbers_mult_10) :: [array_of_arrays, array_of_objects_with_array_field, array_field, array_field_two] -> integer
-    ) :: [array_of_arrays, array_of_objects_with_array_field, array_field] -> integer
-  ) :: [array_of_arrays, array_of_objects_with_array_field, array_field] -> integer
+    (Reduce :agg.sum over [ea2]
+      (Ref numbers_mult_10) :: [a1, ea1, a2, ea2] -> integer
+    ) :: [a1, ea1, a2] -> integer
+  ) :: [a1, ea1, a2] -> integer
 )

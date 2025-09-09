@@ -39,15 +39,16 @@ module Kumi
       end
 
       class InputRef < Node
-        attr_reader :path
-        def initialize(path:, **k)
+        attr_reader :path, :fqn, :key_chain, :element_terminal
+        def initialize(path:, fqn: nil, key_chain: [], element_terminal: false, **k)
           super(**k)
-          @path = Array(path).map(&:to_sym)
+          @path = Array(path).map!(&:to_sym)
+          @fqn  = (fqn || @path.join("."))
+          @key_chain = Array(key_chain).map!(&:to_sym)
+          @element_terminal = !!element_terminal
         end
 
-        def path_fqn
-          @path.join('.')
-        end
+        def path_fqn = @fqn
 
         def accept(visitor)
           visitor.visit_input_ref(self)

@@ -1,16 +1,25 @@
 (Root
   inputs: [
-    (InputDeclaration :array_of_arrays :array access_mode: :element
+    (InputDeclaration :a1 :array access_mode: :element
       [
-        (InputDeclaration :array_of_objects_with_array_field :array access_mode: :field
+        (InputDeclaration :ea1 :array access_mode: :field
           [
-            (InputDeclaration :array_field :array access_mode: :field
+            (InputDeclaration :a2 :array access_mode: :field
               [
-                (InputDeclaration :hash_inside_array :hash access_mode: :field
+                (InputDeclaration :h1 :hash access_mode: :field
                   [
-                    (InputDeclaration :array_field_two :array access_mode: :element
+                    (InputDeclaration :ea2 :array access_mode: :element
                       [
                         (InputDeclaration :number :integer)
+                      ]
+                    )
+                    (InputDeclaration :h2 :hash access_mode: :field
+                      [
+                        (InputDeclaration :h3 :hash access_mode: :field
+                          [
+                            (InputDeclaration :name :string)
+                          ]
+                        )
                       ]
                     )
                   ]
@@ -25,7 +34,7 @@
   values: [
     (ValueDeclaration :numbers_mult_10
       (CallExpression :multiply
-        (InputElementReference array_of_arrays.array_of_objects_with_array_field.array_field.hash_inside_array.array_field_two.number)
+        (InputElementReference a1.ea1.a2.h1.ea2.number)
         (Literal 10)
       )
     )

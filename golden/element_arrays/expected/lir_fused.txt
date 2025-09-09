@@ -45,9 +45,10 @@
     loop layer id=L11 in %cube_el_27 as el=%layer_el_29, idx=%layer_i_30
       acc.declare acc_31=0
       loop row id=L12 in %layer_el_29 as el=%row_el_32, idx=%row_i_33
-        %t34 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
+        %t1 = const 100 :: integer
+        %t2 = call core.gt(%row_el_32, %t1) :: boolean
         %t35 = const 0 :: integer
-        %t36 = select %t34, %row_el_32, %t35 :: integer
+        %t36 = select %t2, %row_el_32, %t35 :: integer
         acc.add acc_31 using agg.sum <- %t36
       end_loop
       %t37 = acc.load acc_31 :: integer
@@ -63,10 +64,11 @@
     loop layer id=L14 in %cube_el_40 as el=%layer_el_43, idx=%layer_i_44
       acc.declare acc_45=0
       loop row id=L15 in %layer_el_43 as el=%row_el_46, idx=%row_i_47
-        %t48 = load_decl cell_over_limit axes=[cube, layer, row] :: boolean
+        %t3 = const 100 :: integer
+        %t4 = call core.gt(%row_el_46, %t3) :: boolean
         %t49 = const 1 :: integer
         %t50 = const 0 :: integer
-        %t51 = select %t48, %t49, %t50 :: integer
+        %t51 = select %t4, %t49, %t50 :: integer
         acc.add acc_45 using agg.sum <- %t51
       end_loop
       %t52 = acc.load acc_45 :: integer

@@ -9,7 +9,7 @@ module Kumi
       module_function
 
       # REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning pack].freeze
-      REPRESENTATIONS = %w[ast nast snast lir].freeze
+      REPRESENTATIONS = %w[ast nast snast lir lir_fused lir_optimized].freeze
       JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning pack].freeze
       RUBY_REPRESENTATIONS = %w[generated_code].freeze
 
@@ -68,6 +68,7 @@ module Kumi
             end
 
             current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
+            puts "generating #{repr}"
             next unless current_output
 
             extension = if JSON_REPRESENTATIONS.include?(repr)

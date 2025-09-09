@@ -1,0 +1,62 @@
+(LIR
+  (Declaration dept_total
+  %t1 = load_input "depts" :: array
+  loop depts id=L1 in %t1 as el=%depts_el_2, idx=%depts_i_3
+    acc.declare acc_4=0
+    %t5 = load_field depts_el_2["teams"] :: array
+    loop teams id=L2 in %t5 as el=%teams_el_6, idx=%teams_i_7
+      %t8 = load_field teams_el_6["headcount"] :: integer
+      acc.add acc_4 using agg.sum <- %t8
+    end_loop
+    %t9 = acc.load acc_4 :: integer
+    yield %t9
+  end_loop
+  )
+  (Declaration company_total
+  acc.declare acc_10=0
+  %t11 = load_input "depts" :: array
+  loop depts id=L3 in %t11 as el=%depts_el_12, idx=%depts_i_13
+    acc.declare acc_14=0
+    %t15 = load_field depts_el_12["teams"] :: array
+    loop teams id=L4 in %t15 as el=%teams_el_16, idx=%teams_i_17
+      %t18 = load_field teams_el_16["headcount"] :: integer
+      acc.add acc_14 using agg.sum <- %t18
+    end_loop
+    %t19 = acc.load acc_14 :: integer
+    acc.add acc_10 using agg.sum <- %t19
+  end_loop
+  %t20 = acc.load acc_10 :: integer
+  yield %t20
+  )
+  (Declaration big_team
+  %t21 = load_input "depts" :: array
+  loop depts id=L5 in %t21 as el=%depts_el_22, idx=%depts_i_23
+    %t24 = load_field depts_el_22["teams"] :: array
+    loop teams id=L6 in %t24 as el=%teams_el_25, idx=%teams_i_26
+      %t27 = load_field teams_el_25["headcount"] :: integer
+      %t28 = const 10 :: integer
+      %t29 = call core.gt(%t27, %t28) :: boolean
+      yield %t29
+    end_loop
+  end_loop
+  )
+  (Declaration dept_total_masked
+  %t30 = load_input "depts" :: array
+  loop depts id=L7 in %t30 as el=%depts_el_31, idx=%depts_i_32
+    acc.declare acc_33=0
+    %t34 = load_field depts_el_31["teams"] :: array
+    loop teams id=L8 in %t34 as el=%teams_el_35, idx=%teams_i_36
+      %t1 = load_field depts_el_31["teams"] :: array
+      %t2 = load_field teams_el_35["headcount"] :: integer
+      %t3 = const 10 :: integer
+      %t4 = call core.gt(%t2, %t3) :: boolean
+      %t38 = load_field teams_el_35["headcount"] :: integer
+      %t39 = const 0 :: integer
+      %t40 = select %t4, %t38, %t39 :: integer
+      acc.add acc_33 using agg.sum <- %t40
+    end_loop
+    %t41 = acc.load acc_33 :: integer
+    yield %t41
+  end_loop
+  )
+)

@@ -1,22 +1,22 @@
 (SNAST
   (VALUE items_subtotal
     (Call :core.mul
-      (InputRef items.price) :: [items] -> float
-      (InputRef items.qty) :: [items] -> integer
+      (InputRef items.price key_chain=[price]) :: [items] -> float
+      (InputRef items.qty key_chain=[qty]) :: [items] -> integer
     ) :: [items] -> float
   ) :: [items] -> float
   (VALUE items_discounted
     (Call :core.mul
-      (InputRef items.price) :: [items] -> float
+      (InputRef items.price key_chain=[price]) :: [items] -> float
       (Call :core.sub
         (Const 1.0) :: [] -> float
-        (InputRef discount) :: [] -> float
+        (InputRef discount key_chain=[discount]) :: [] -> float
       ) :: [] -> float
     ) :: [items] -> float
   ) :: [items] -> float
   (TRAIT items_is_big
     (Call :core.gt
-      (InputRef items.price) :: [items] -> float
+      (InputRef items.price key_chain=[price]) :: [items] -> float
       (Const 100.0) :: [] -> float
     ) :: [items] -> boolean
   ) :: [items] -> boolean
@@ -32,7 +32,7 @@
   ) :: [items] -> float
   (VALUE total_qty
     (Reduce :agg.sum over [items]
-      (InputRef items.qty) :: [items] -> integer
+      (InputRef items.qty key_chain=[qty]) :: [items] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE cart_total

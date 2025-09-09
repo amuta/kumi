@@ -1,0 +1,73 @@
+(LIR
+  (Declaration items_subtotal
+  %t1 = load_input "items" :: array
+  loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
+    %t4 = load_field items_el_2["price"] :: float
+    %t5 = load_field items_el_2["qty"] :: integer
+    %t6 = call core.mul(%t4, %t5) :: float
+    yield %t6
+  end_loop
+  )
+  (Declaration items_discounted
+  %t7 = load_input "items" :: array
+  loop items id=L2 in %t7 as el=%items_el_8, idx=%items_i_9
+    %t10 = load_field items_el_8["price"] :: float
+    %t11 = const 1.0 :: float
+    %t12 = load_input "discount" :: float
+    %t13 = call core.sub(%t11, %t12) :: float
+    %t14 = call core.mul(%t10, %t13) :: float
+    yield %t14
+  end_loop
+  )
+  (Declaration items_is_big
+  %t15 = load_input "items" :: array
+  loop items id=L3 in %t15 as el=%items_el_16, idx=%items_i_17
+    %t18 = load_field items_el_16["price"] :: float
+    %t19 = const 100.0 :: float
+    %t20 = call core.gt(%t18, %t19) :: boolean
+    yield %t20
+  end_loop
+  )
+  (Declaration items_effective
+  %t21 = load_input "items" :: array
+  loop items id=L4 in %t21 as el=%items_el_22, idx=%items_i_23
+    %t24 = load_decl items_is_big axes=[items] :: boolean
+    %t25 = load_decl items_subtotal axes=[items] :: float
+    %t26 = const 0.9 :: float
+    %t27 = call core.mul(%t25, %t26) :: float
+    %t28 = load_decl items_subtotal axes=[items] :: float
+    %t29 = select %t24, %t27, %t28 :: float
+    yield %t29
+  end_loop
+  )
+  (Declaration total_qty
+  acc.declare acc_30=0
+  %t31 = load_input "items" :: array
+  loop items id=L5 in %t31 as el=%items_el_32, idx=%items_i_33
+    %t34 = load_field items_el_32["qty"] :: integer
+    acc.add acc_30 using agg.sum <- %t34
+  end_loop
+  %t35 = acc.load acc_30 :: integer
+  yield %t35
+  )
+  (Declaration cart_total
+  acc.declare acc_36=0.0
+  %t37 = load_input "items" :: array
+  loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
+    %t40 = load_decl items_subtotal axes=[items] :: float
+    acc.add acc_36 using agg.sum <- %t40
+  end_loop
+  %t41 = acc.load acc_36 :: float
+  yield %t41
+  )
+  (Declaration cart_total_effective
+  acc.declare acc_42=0.0
+  %t43 = load_input "items" :: array
+  loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
+    %t46 = load_decl items_effective axes=[items] :: float
+    acc.add acc_42 using agg.sum <- %t46
+  end_loop
+  %t47 = acc.load acc_42 :: float
+  yield %t47
+  )
+)

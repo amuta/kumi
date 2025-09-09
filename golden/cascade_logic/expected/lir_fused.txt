@@ -1,0 +1,37 @@
+(LIR
+  (Declaration y_positive
+  %t1 = load_input "y" :: integer
+  %t2 = const 0 :: integer
+  %t3 = call core.gt(%t1, %t2) :: boolean
+  yield %t3
+  )
+  (Declaration x_positive
+  %t4 = load_input "x" :: integer
+  %t5 = const 0 :: integer
+  %t6 = call core.gt(%t4, %t5) :: boolean
+  yield %t6
+  )
+  (Declaration status
+  %t1 = load_input "y" :: integer
+  %t2 = const 0 :: integer
+  %t3 = call core.gt(%t1, %t2) :: boolean
+  %t4 = load_input "x" :: integer
+  %t5 = const 0 :: integer
+  %t6 = call core.gt(%t4, %t5) :: boolean
+  %t9 = call core.and(%t3, %t6) :: boolean
+  %t10 = const "both positive" :: string
+  %t7 = load_input "x" :: integer
+  %t8 = const 0 :: integer
+  %t9 = call core.gt(%t7, %t8) :: boolean
+  %t12 = const "x positive" :: string
+  %t10 = load_input "y" :: integer
+  %t11 = const 0 :: integer
+  %t12 = call core.gt(%t10, %t11) :: boolean
+  %t14 = const "y positive" :: string
+  %t15 = const "neither positive" :: string
+  %t16 = select %t12, %t14, %t15 :: string
+  %t17 = select %t9, %t12, %t16 :: string
+  %t18 = select %t9, %t10, %t17 :: string
+  yield %t18
+  )
+)

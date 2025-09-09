@@ -1,19 +1,19 @@
 (SNAST
   (VALUE sum_numbers
     (Reduce :agg.sum over [numbers]
-      (InputRef numbers.value) :: [numbers] -> integer
+      (InputRef numbers.value key_chain=[value]) :: [numbers] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE matrix_sums
     (Reduce :agg.sum over [row]
-      (InputRef matrix.row.cell) :: [matrix, row] -> float
+      (InputRef matrix.row.cell key_chain=[cell]) :: [matrix, row] -> float
     ) :: [matrix] -> float
   ) :: [matrix] -> float
   (VALUE mixed_array
     (Tuple
-      (InputRef scalar_val) :: [] -> integer
+      (InputRef scalar_val key_chain=[scalar_val]) :: [] -> integer
       (Ref sum_numbers) :: [] -> integer
-      (InputRef matrix.row.cell) :: [matrix, row] -> float
+      (InputRef matrix.row.cell key_chain=[cell]) :: [matrix, row] -> float
     ) :: [matrix, row] -> tuple<integer, integer, float>
   ) :: [matrix, row] -> tuple<integer, integer, float>
   (VALUE constant
