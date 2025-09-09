@@ -294,7 +294,7 @@ module Kumi
             end
           end
 
-          def lower_declaration(name, decl, access_plans, join_reduce_plans, scope_plan)
+          def lower_declaration(name, decl, access_plans, _join_reduce_plans, scope_plan)
             ops = []
 
             plan = @join_reduce_plans[name]
@@ -310,7 +310,7 @@ module Kumi
               end
 
             last_slot = lower_expression(decl.expression, ops, access_plans, scope_plan,
-                                         need_indices = true, req_scope)
+                                         true, req_scope)
 
             # Apply broadcasting for scalar-to-vector join plans
             if plan && plan.respond_to?(:policy) && plan.policy == :broadcast

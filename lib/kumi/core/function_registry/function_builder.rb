@@ -95,14 +95,14 @@ module Kumi
             end
           end
 
-          def normalize_param_modes(pm, arity)
+          def normalize_param_modes(pm, _arity)
             return pm if pm
 
             # Default: everything element-wise/broadcastable
             ->(argc) { Array.new(argc, :elem) }
           end
 
-          def normalize_param_info(info, arity, types)
+          def normalize_param_info(info, _arity, _types)
             return info if info
 
             # Default: synthesize from types/modes at call time

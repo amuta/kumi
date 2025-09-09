@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Kumi
   module Core
     module Analyzer
@@ -6,11 +7,9 @@ module Kumi
         class LIRValidationPass < PassBase
           LIR = Kumi::Core::LIR
 
-          def run(errors)
+          def run(_errors)
             ops_by_decl =
-              get_state(:lir_optimized_ops_by_decl) ||
-              get_state(:lir_fused_ops_by_decl) ||
-              get_state(:lir_ops_by_decl, required: true)
+              get_state(:lir_optimized_ops_by_decl)
 
             ops_by_decl.each do |decl, payload|
               validate_local_defs!(Array(payload[:operations]), decl)
@@ -26,7 +25,7 @@ module Kumi
             defs = Set.new
             loop_depth = 0
 
-            ops.each_with_index do |ins, idx|
+            ops.each_with_index do |ins, _idx|
               # 1) check all inputs are defined
               Array(ins.inputs).each do |r|
                 next if r.nil?
@@ -66,16 +65,15 @@ module Kumi
           def validate_single_yield!(ops, decl_name)
             yi = ops.index { _1.opcode == :Yield }
             raise "no Yield in #{decl_name}" unless yi
-          
+
             # exactly one Yield
             raise "multiple Yields in #{decl_name}" if ops.each_with_index.any? { |ins, i| ins.opcode == :Yield && i != yi }
-          
+
             # after Yield, only structural LoopEnd is allowed
             trailing = ops[(yi + 1)..] || []
             bad = trailing.reject { _1.opcode == :LoopEnd }
             raise "instructions after Yield in #{decl_name}" unless bad.empty?
           end
-          
         end
       end
     end

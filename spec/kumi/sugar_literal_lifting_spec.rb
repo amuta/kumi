@@ -2,7 +2,7 @@
 
 module LiteralLiftingSugar
   extend Kumi::Schema
-  
+
   schema do
     input do
       float :value

@@ -16,7 +16,7 @@ module Kumi
             order.each do |name|
               ast = decls[name] or next
               body = normalize_expr(ast.expression, errors)
-              nast_decls[name] = NAST::Declaration.new(name: name, body: body, loc: ast.loc, meta: {kind: ast.kind})
+              nast_decls[name] = NAST::Declaration.new(name: name, body: body, loc: ast.loc, meta: { kind: ast.kind })
             end
 
             nast = NAST::Module.new(decls: nast_decls)
@@ -68,9 +68,9 @@ module Kumi
 
           def normalize_cascade(cas, errors)
             # Find the base case (condition = true)
-            base = cas.cases.find { |c|
+            base = cas.cases.find do |c|
               c.condition.is_a?(Kumi::Syntax::Literal) && c.condition.value == true
-            }
+            end
             default_expr = base ? base.result : Kumi::Syntax::Literal.new(nil, loc: cas.loc)
             branches = cas.cases.reject { |c| c.equal?(base) }
 
@@ -105,33 +105,33 @@ module Kumi
           def build_right_associative_and(normalized_args, loc)
             # Build: and(first, and(second, and(third, ...)))
             normalized_args.reverse.reduce do |right, left|
-              NAST::Call.new(fn: :'core.and', args: [left, right], loc: loc)
+              NAST::Call.new(fn: :"core.and", args: [left, right], loc: loc)
             end
           end
 
           def normalize_agg_if_macro(node, errors)
             # Very clear: sum_if(values, condition) → sum(select(condition, values, neutral))
-            base_fn = node.fn_name.to_s.sub('_if', '')  # sum_if → sum
-            
+            base_fn = node.fn_name.to_s.sub("_if", "") # sum_if → sum
+
             if node.args.size != 2
               add_error(errors, node.loc, "#{node.fn_name} expects exactly 2 arguments: values and condition")
               return NAST::Const.new(value: nil, loc: node.loc)
             end
-            
+
             values, condition = node.args
             neutral = neutral_value_for(base_fn)
-            
+
             # Expand to: sum(select(condition, values, neutral))
             select_call = NAST::Call.new(
               fn: SELECT_ID,
-              args: [normalize_expr(condition, errors), 
+              args: [normalize_expr(condition, errors),
                      normalize_expr(values, errors),
                      NAST::Const.new(value: neutral, loc: node.loc)],
               loc: node.loc
             )
-            
+
             NAST::Call.new(
-              fn: "agg.#{base_fn}".to_sym,
+              fn: :"agg.#{base_fn}",
               args: [select_call],
               loc: node.loc
             )
@@ -139,16 +139,16 @@ module Kumi
 
           def neutral_value_for(base_fn)
             # TODO: this should be a policy probably, and this is not the identity.
-            #        also it should follow the type, this will break for most things 
+            #        also it should follow the type, this will break for most things
             #        not ruby
             # Return appropriate neutral values for different aggregation functions
             case base_fn
-            when 'sum'   then 0
-            when 'count' then 0  # For count, we'll filter out rather than use neutral
-            when 'max'   then Float::INFINITY * -1  # -∞
-            when 'avg'   then 0  # For average, this is more complex but start with 0
+            when "sum"   then 0
+            when "count" then 0 # For count, we'll filter out rather than use neutral
+            when "max"   then Float::INFINITY * -1 # -∞
+            when "avg"   then 0 # For average, this is more complex but start with 0
             else
-              0  # Default neutral value
+              0 # Default neutral value
             end
           end
         end

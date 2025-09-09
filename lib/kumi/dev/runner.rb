@@ -23,19 +23,19 @@ module Kumi
             Kumi::Analyzer.run_analysis_passes(schema, Kumi::Analyzer::DEFAULT_PASSES, state, errors)
           end
           ir = final_state[:ir_module]
-          
+
           result = Result.new(
             state: final_state,
             ir: ir,
             errors: errors
           )
-          
+
           # Report trace file if enabled
           if opts[:trace] && defined?(@trace_file) && @trace_file
             trace_file_path = @trace_file
             result.define_singleton_method(:trace_file) { trace_file_path }
           end
-          
+
           result
         rescue StandardError => e
           # Convert exception to error if not already captured
@@ -48,37 +48,27 @@ module Kumi
         end
       end
 
-      private
-
       def self.setup_env_vars(opts)
         if opts[:trace]
           ENV["KUMI_DEBUG_STATE"] = "1"
           trace_file = ENV["KUMI_DEBUG_FILE"] || "tmp/state_trace.jsonl"
           ENV["KUMI_DEBUG_FILE"] = trace_file
-          
+
           # Store for later reporting
           @trace_file = trace_file
         end
 
-        if opts[:snap]
-          ENV["KUMI_CHECKPOINT_PHASES"] = opts[:snap]
-        end
+        ENV["KUMI_CHECKPOINT_PHASES"] = opts[:snap] if opts[:snap]
 
-        if opts[:snap_dir]
-          ENV["KUMI_CHECKPOINT_DIR"] = opts[:snap_dir]
-        end
+        ENV["KUMI_CHECKPOINT_DIR"] = opts[:snap_dir] if opts[:snap_dir]
 
-        if opts[:resume_from]
-          ENV["KUMI_CHECKPOINT_RESUME_FROM"] = opts[:resume_from]
-        end
+        ENV["KUMI_CHECKPOINT_RESUME_FROM"] = opts[:resume_from] if opts[:resume_from]
 
-        if opts[:resume_at]
-          ENV["KUMI_CHECKPOINT_RESUME_AT"] = opts[:resume_at]
-        end
+        ENV["KUMI_CHECKPOINT_RESUME_AT"] = opts[:resume_at] if opts[:resume_at]
 
-        if opts[:stop_after]
-          ENV["KUMI_CHECKPOINT_STOP_AFTER"] = opts[:stop_after]
-        end
+        return unless opts[:stop_after]
+
+        ENV["KUMI_CHECKPOINT_STOP_AFTER"] = opts[:stop_after]
       end
     end
   end

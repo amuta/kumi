@@ -150,8 +150,8 @@ RSpec.describe "Mixed Access Modes Integration" do
 
       # matrix_has_high_sesh should be per-matrix: [[false, true], [false]]
       expect(result[:matrix_has_high_sesh]).to eq([[false, true], [false]])
-      
-      # matrix_sum_ge_1500 should be per-matrix: [[true, true], [true]]  
+
+      # matrix_sum_ge_1500 should be per-matrix: [[true, true], [true]]
       expect(result[:matrix_sum_ge_1500]).to eq([[true, true], [true]])
     end
 
@@ -162,14 +162,14 @@ RSpec.describe "Mixed Access Modes Integration" do
       expect(result[:matrix_label_cascade]).to eq([["Solid", "Hot Matrix"], ["Solid"]])
     end
 
-    it "handles cross-scope references correctly" do  
+    it "handles cross-scope references correctly" do
       result = GameAnalytics.from(game_data)
 
       # Player-level traits should remain per-player
-      expect(result[:player_has_high_sesh]).to eq([true, false])  # Alice has, Bob doesn't
-      expect(result[:player_total_ge_3500]).to eq([true, false])   # Alice: 4000≥3500, Bob: 2100<3500
-      
-      # Matrix-level should be per-matrix  
+      expect(result[:player_has_high_sesh]).to eq([true, false]) # Alice has, Bob doesn't
+      expect(result[:player_total_ge_3500]).to eq([true, false]) # Alice: 4000≥3500, Bob: 2100<3500
+
+      # Matrix-level should be per-matrix
       expect(result[:matrix_has_high_sesh]).to eq([[false, true], [false]])
     end
 
@@ -179,17 +179,17 @@ RSpec.describe "Mixed Access Modes Integration" do
       # The key insight: matrix_labels_zip forces matrix_label_cascade to have [:players, :score_matrices] scope
       # which then propagates to matrix_has_high_sesh and matrix_sum_ge_1500
       matrices = result[:matrix_labels_zip]
-      
+
       # Alice has 2 matrices, Bob has 1 matrix
       expect(matrices.length).to eq(2)
       expect(matrices[0].length).to eq(2)  # Alice: 2 matrices
       expect(matrices[1].length).to eq(1)  # Bob: 1 matrix
-      
+
       # Each element is [matrix_data, label]
-      alice_matrix_1 = matrices[0][0] 
+      alice_matrix_1 = matrices[0][0]
       alice_matrix_2 = matrices[0][1]
       bob_matrix_1 = matrices[1][0]
-      
+
       expect(alice_matrix_1).to eq([[800, 900], "Solid"])
       expect(alice_matrix_2).to eq([[1200, 1100], "Hot Matrix"])
       expect(bob_matrix_1).to eq([[600, 700, 800], "Solid"])

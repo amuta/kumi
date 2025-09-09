@@ -13,10 +13,10 @@ module Kumi
         lines = []
         lines << "IR Module"
         lines << "decls: #{ir_module.decls.size}"
-        
+
         ir_module.decls.each_with_index do |decl, i|
           lines << "decl[#{i}] #{decl.kind}:#{decl.name} shape=#{decl.shape} ops=#{decl.ops.size}"
-          
+
           decl.ops.each_with_index do |op, j|
             # Sort attribute keys for deterministic output
             sorted_attrs = op.attrs.keys.sort.map { |k| "#{k}=#{format_value(op.attrs[k])}" }.join(" ")
@@ -24,7 +24,7 @@ module Kumi
             lines << "  #{j}: #{op.tag} #{sorted_attrs} #{args_str}".rstrip
           end
         end
-        
+
         lines.join("\n") + "\n"
       end
 

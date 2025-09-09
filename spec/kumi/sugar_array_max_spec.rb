@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-
 module ArrayMaxSugar
   extend Kumi::Schema
-  schema do 
+
+  schema do
     input do
       float :income
       float :std_deduction
     end
-  
+
     value :taxable_income, fn(:max, [input.income - input.std_deduction, 0])
   end
 end

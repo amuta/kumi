@@ -23,9 +23,9 @@ module Kumi
           end
         end
 
-        def array(name_or_elem_type, **kwargs, &block)
+        def array(name_or_elem_type, **kwargs, &)
           if block_given?
-            create_array_field_with_block(name_or_elem_type, kwargs, &block)
+            create_array_field_with_block(name_or_elem_type, kwargs, &)
           elsif kwargs.any?
             create_array_field(name_or_elem_type, kwargs)
           else
@@ -33,9 +33,9 @@ module Kumi
           end
         end
 
-        def hash(name_or_key_type, val_type = nil, **kwargs, &block)
+        def hash(name_or_key_type, val_type = nil, **kwargs, &)
           if block_given?
-            create_hash_field_with_block(name_or_key_type, kwargs, &block)
+            create_hash_field_with_block(name_or_key_type, kwargs, &)
           elsif val_type.nil?
             create_hash_field(name_or_key_type, kwargs)
           else
@@ -98,11 +98,11 @@ module Kumi
           raise_syntax_error("Invalid types for hash `#{field_name}`: #{e.message}", location: @context.current_location)
         end
 
-        def create_array_field_with_block(field_name, options, &block)
+        def create_array_field_with_block(field_name, options, &)
           domain = options[:domain]
 
           # Collect children by creating a nested context
-          children, _, using_elements = collect_array_children(&block)
+          children, _, using_elements = collect_array_children(&)
 
           # Create the InputDeclaration with children and access_mode
           access_mode = using_elements ? :element : :field
@@ -116,14 +116,14 @@ module Kumi
           )
         end
 
-        def collect_array_children(&block)
+        def collect_array_children(&)
           # Create a temporary nested context to collect children
           nested_inputs = []
           nested_context = NestedInput.new(nested_inputs, @context.current_location)
           nested_builder = InputBuilder.new(nested_context)
 
           # Execute the block in the nested context
-          nested_builder.instance_eval(&block)
+          nested_builder.instance_eval(&)
 
           # Determine element type based on what was declared
           elem_type = determine_element_type(nested_builder, nested_inputs)
@@ -151,17 +151,17 @@ module Kumi
         end
 
         # New method: element() declaration - always requires a name
-        def element(type_spec, name, &block)
+        def element(type_spec, name, &)
           @using_elements = true
           if block_given?
             # Named element with nested structure: element(:array, :rows) do ... end
             # These DO set @using_elements to enable element access mode for multi-dimensional arrays
             case type_spec
             when :array
-              create_array_field_with_block(name, {}, &block)
+              create_array_field_with_block(name, {}, &)
             when :field
               # Create nested object structure
-              create_object_element(name, &block)
+              create_object_element(name, &)
             else
               raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :field types",
                                  location: @context.current_location)
@@ -173,17 +173,17 @@ module Kumi
           end
         end
 
-        def create_object_element(name, &block)
+        def create_object_element(name, &)
           # Similar to create_array_field_with_block but for objects
-          children, = collect_array_children(&block)
+          children, = collect_array_children(&)
           @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :field, children, nil, loc: @context.current_location)
         end
 
-        def create_hash_field_with_block(field_name, options, &block)
+        def create_hash_field_with_block(field_name, options, &)
           domain = options[:domain]
 
           # Collect children by creating a nested context (reuse array logic)
-          children, = collect_array_children(&block)
+          children, = collect_array_children(&)
 
           # Create the InputDeclaration with children and :field access_mode for hash objects
           @context.inputs << Kumi::Syntax::InputDeclaration.new(

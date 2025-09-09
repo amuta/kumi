@@ -136,11 +136,11 @@ module Kumi
               ops << enter_array
               puts "      Added: enter_array" if ENV["DEBUG_ACCESSOR_OPS"]
 
-              # Then either inline (no hash) or field hop to named member  
+              # Then either inline (no hash) or field hop to named member
               if enter_via == :hash
                 ops << enter_hash(seg)
                 puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
-                
+
                 # Add to chain: subsequent array accesses are array_element
                 if container_index < containers.size
                   chain << {
@@ -166,7 +166,7 @@ module Kumi
               # Root, object, or hash parent - always emit enter_hash
               ops << enter_hash(seg)
               puts "      Added: enter_hash('#{seg}')" if ENV["DEBUG_ACCESSOR_OPS"]
-              
+
               # Add to chain: check if this segment corresponds to an array container
               node_container = node[:container]
               if node_container == :array && container_index < containers.size
@@ -180,7 +180,7 @@ module Kumi
               else
                 # This is scalar_leaf (final scalar)
                 chain << {
-                  "kind" => "scalar_leaf", 
+                  "kind" => "scalar_leaf",
                   "key" => seg
                 }
               end
@@ -239,7 +239,6 @@ module Kumi
         def ig(h, k)
           h[k.to_sym] or raise ArgumentError, "Missing required field '#{k}' in metadata. Available keys: #{h.keys.inspect}"
         end
-
 
         def enter_hash(key)
           { type: :enter_hash, key: key.to_s,

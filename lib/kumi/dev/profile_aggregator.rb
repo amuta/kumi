@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'json'
+require "json"
 
 module Kumi
   module Dev
@@ -167,18 +167,18 @@ module Kumi
         puts "Total events: #{events.length}"
         puts "VM operations: #{total_ops}"
         puts "VM executions: #{vm_execution_count}"
-        
+
         # Schema differentiation
         schema_stats = schema_breakdown
         if schema_stats.any? && schema_stats.keys.first != "Unknown"
-          puts "Schemas analyzed: #{schema_stats.keys.join(", ")}"
+          puts "Schemas analyzed: #{schema_stats.keys.join(', ')}"
           schema_stats.each do |schema, stats|
             puts "  #{schema}: #{stats[:operations]} operations, #{stats[:time]}ms"
           end
         else
           puts "Schema runs: #{runs_analyzed.length} (runs: #{runs_analyzed.join(', ')})"
         end
-        
+
         puts "Total VM time: #{total_vm_time.round(4)}ms"
         puts "Average per VM execution: #{vm_execution_count > 0 ? (total_vm_time / vm_execution_count).round(4) : 0}ms"
         puts
@@ -191,13 +191,13 @@ module Kumi
         end
 
         mem = memory_analysis
-        if mem
-          puts
-          puts "Memory Growth:"
-          puts "  Heap: +#{mem[:growth][:heap_objects]} objects (#{mem[:growth][:heap_growth_pct]}%)"
-          puts "  RSS: +#{mem[:growth][:rss_mb]}MB (#{mem[:growth][:rss_growth_pct]}%)"
-          puts "  GC: #{mem[:growth][:minor_gcs]} minor, #{mem[:growth][:major_gcs]} major"
-        end
+        return unless mem
+
+        puts
+        puts "Memory Growth:"
+        puts "  Heap: +#{mem[:growth][:heap_objects]} objects (#{mem[:growth][:heap_growth_pct]}%)"
+        puts "  RSS: +#{mem[:growth][:rss_mb]}MB (#{mem[:growth][:rss_growth_pct]}%)"
+        puts "  GC: #{mem[:growth][:minor_gcs]} minor, #{mem[:growth][:major_gcs]} major"
       end
 
       def detailed_report(limit: 15)
@@ -206,7 +206,7 @@ module Kumi
         puts "=== TOP #{limit} HOTSPOTS ==="
         hotspots = hotspot_analysis(limit: limit)
         hotspots.each_with_index do |(key, stats), i|
-          puts "#{(i+1).to_s.rjust(2)}. #{key.ljust(40)} #{stats[:total_ms].to_s.rjust(10)}ms (#{stats[:count]} calls, #{stats[:avg_ms]}ms avg)"
+          puts "#{(i + 1).to_s.rjust(2)}. #{key.ljust(40)} #{stats[:total_ms].to_s.rjust(10)}ms (#{stats[:count]} calls, #{stats[:avg_ms]}ms avg)"
         end
 
         # Schema breakdown if available
@@ -218,7 +218,7 @@ module Kumi
             puts "#{schema}:"
             puts "  Operations: #{stats[:operations]}"
             puts "  Total time: #{stats[:time]}ms"
-            puts "  Declarations: #{stats[:declarations].join(", ")}"
+            puts "  Declarations: #{stats[:declarations].join(', ')}"
             puts
           end
         end
@@ -268,32 +268,30 @@ module Kumi
         return unless File.exist?(@jsonl_file)
 
         File.readlines(@jsonl_file).each do |line|
-          begin
-            event = JSON.parse(line.strip)
-            next unless event && event.is_a?(Hash)
+          event = JSON.parse(line.strip)
+          next unless event && event.is_a?(Hash)
 
-            @events << event
+          @events << event
 
-            case event["kind"]
-            when "phase"
-              @phases << event
-            when "mem"
-              @memory_snapshots << event
-            when "final_summary"
-              @final_summary = event
-            else
-              # VM operations don't have a "kind" field - they have ts, run, decl, i, tag, wall_ms, cpu_ms, etc.
-              # According to profiler.rb line 118-130, VM operations are identified by having decl + tag but no kind
-              if event["decl"] && event["tag"] && !event["kind"]
-                @operations << event
-              elsif event["kind"] && !["summary", "cache_analysis"].include?(event["kind"])
-                # Handle any future event types that have a kind but aren't known
-                @operations << event
-              end
+          case event["kind"]
+          when "phase"
+            @phases << event
+          when "mem"
+            @memory_snapshots << event
+          when "final_summary"
+            @final_summary = event
+          else
+            # VM operations don't have a "kind" field - they have ts, run, decl, i, tag, wall_ms, cpu_ms, etc.
+            # According to profiler.rb line 118-130, VM operations are identified by having decl + tag but no kind
+            if event["decl"] && event["tag"] && !event["kind"]
+              @operations << event
+            elsif event["kind"] && !%w[summary cache_analysis].include?(event["kind"])
+              # Handle any future event types that have a kind but aren't known
+              @operations << event
             end
-          rescue JSON::ParserError
-            # Skip malformed JSON lines
           end
+        rescue JSON::ParserError
+          # Skip malformed JSON lines
         end
       end
     end

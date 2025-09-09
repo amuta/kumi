@@ -1,8 +1,11 @@
 # frozen_string_literal: true
+
 module Kumi::Core::Compiler::AccessEmit
   module EachIndexed
     extend Base
+
     module_function
+
     def build(plan)
       policy     = plan.on_missing || :error
       key_policy = plan.key_policy || :indifferent
@@ -13,7 +16,9 @@ module Kumi::Core::Compiler::AccessEmit
       code << "  out = []\n"
       code << "  node0 = data\n"
       code << "  idx_vec = []\n"
-      nodev, depth, loop_depth = "node0", 0, 0
+      nodev = "node0"
+      depth = 0
+      loop_depth = 0
 
       segs.each do |seg|
         if seg == :array
@@ -25,7 +30,9 @@ module Kumi::Core::Compiler::AccessEmit
           code << "    idx_vec[#{loop_depth}] = i#{loop_depth}\n"
           child = "node#{depth + 1}"
           code << "    #{child} = ary#{loop_depth}[i#{loop_depth}]\n"
-          nodev = child; depth += 1; loop_depth += 1
+          nodev = child
+          depth += 1
+          loop_depth += 1
         else
           seg.each do |(_, key, preview)|
             code << fetch_hash_code(node_var: nodev, key: key, key_policy: key_policy,

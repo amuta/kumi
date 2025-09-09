@@ -11,6 +11,5 @@ module Kumi
     def print(schema:, targets: %w[ruby], include_ir: false)
       Builder.print(schema: schema, targets: targets, include_ir: include_ir)
     end
-
   end
 end

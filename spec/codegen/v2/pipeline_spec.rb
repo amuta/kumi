@@ -12,7 +12,7 @@ RSpec.describe "Codegen V2 Pipeline" do
         input do
           integer :x
         end
-        
+      #{'  '}
         value :result, input.x + 1
       end
     SCHEMA

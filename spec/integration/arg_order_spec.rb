@@ -16,6 +16,7 @@ end
 
 module TestSchema
   extend Kumi::Schema
+
   schema do
     input do
       array :items do
@@ -79,19 +80,19 @@ RSpec.describe "VM argument order and if semantics" do
     ir = Kumi::Analyzer.analyze!(schema.__syntax_tree__).state[:ir_module]
     decl = ir.decls.find { |d| d.name == :if1 }
     map  = decl.ops.find { |o| o.tag == :map && o.attrs[:fn] == :if }
-    
+
     # assert the three inputs are in cond, then, else slot order
     expect(map.args.size).to eq(3)
-    
+
     # Verify the slots contain the expected operations
     cond_slot, then_slot, else_slot = map.args
     expect(decl.ops[cond_slot].tag).to eq(:ref)  # condition: gt100__vec reference (optimized)
     expect(decl.ops[cond_slot].attrs[:name]).to eq(:gt100__vec)
-    
+
     expect(decl.ops[then_slot].tag).to eq(:map)  # then: p * 0.8 calculation
     expect(decl.ops[then_slot].attrs[:fn]).to eq(:multiply)
-    
-    expect(decl.ops[else_slot].tag).to eq(:const)  # else: constant 999.0
+
+    expect(decl.ops[else_slot].tag).to eq(:const) # else: constant 999.0
     expect(decl.ops[else_slot].attrs[:value]).to eq(999.0)
   end
 end

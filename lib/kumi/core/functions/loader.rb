@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "yaml"
 require_relative "model"
 require_relative "type_rules"
@@ -12,13 +13,13 @@ module Kumi
         def load_minimal_functions
           functions_root = File.expand_path("../../../../data/functions", __dir__)
           yaml_files = Dir.glob(File.join(functions_root, "**/*.yaml"))
-          
+
           function_specs = {}
           yaml_files.each do |file|
             specs = load_file(file)
             specs.each { |spec| function_specs[spec.id] = spec }
           end
-          
+
           function_specs
         end
 

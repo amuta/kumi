@@ -8,7 +8,7 @@ module PackTestHelper
     Tempfile.create(["test_schema", ".kumi"]) do |file|
       file.write(schema_txt)
       file.flush
-      
+
       pack_json = Kumi::Pack.print(schema: file.path, targets: targets, include_ir: false)
       JSON.parse(pack_json)
     end

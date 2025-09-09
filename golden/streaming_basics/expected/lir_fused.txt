@@ -39,10 +39,10 @@
     %t6 = call core.mul(%t4, %t5) :: float
     %t26 = const 0.9 :: float
     %t27 = call core.mul(%t6, %t26) :: float
-    %t7 = load_field items_el_22["price"] :: float
-    %t8 = load_field items_el_22["qty"] :: integer
-    %t9 = call core.mul(%t7, %t8) :: float
-    %t29 = select %t3, %t27, %t9 :: float
+    %t4 = load_field items_el_22["price"] :: float
+    %t5 = load_field items_el_22["qty"] :: integer
+    %t6 = call core.mul(%t4, %t5) :: float
+    %t29 = select %t3, %t27, %t6 :: float
     yield %t29
   end_loop
   )
@@ -60,10 +60,10 @@
   acc.declare acc_36=0.0
   %t37 = load_input "items" :: array
   loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
-    %t10 = load_field items_el_38["price"] :: float
-    %t11 = load_field items_el_38["qty"] :: integer
-    %t12 = call core.mul(%t10, %t11) :: float
-    acc.add acc_36 using agg.sum <- %t12
+    %t7 = load_field items_el_38["price"] :: float
+    %t8 = load_field items_el_38["qty"] :: integer
+    %t9 = call core.mul(%t7, %t8) :: float
+    acc.add acc_36 using agg.sum <- %t9
   end_loop
   %t41 = acc.load acc_36 :: float
   yield %t41
@@ -72,13 +72,19 @@
   acc.declare acc_42=0.0
   %t43 = load_input "items" :: array
   loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
-    %t13 = load_decl items_is_big axes=[items] :: boolean
-    %t14 = load_decl items_subtotal axes=[items] :: float
-    %t15 = const 0.9 :: float
-    %t16 = call core.mul(%t14, %t15) :: float
-    %t17 = load_decl items_subtotal axes=[items] :: float
-    %t18 = select %t13, %t16, %t17 :: float
-    acc.add acc_42 using agg.sum <- %t18
+    %t16 = load_field items_el_44["price"] :: float
+    %t17 = const 100.0 :: float
+    %t18 = call core.gt(%t16, %t17) :: boolean
+    %t19 = load_field items_el_44["price"] :: float
+    %t20 = load_field items_el_44["qty"] :: integer
+    %t21 = call core.mul(%t19, %t20) :: float
+    %t12 = const 0.9 :: float
+    %t13 = call core.mul(%t21, %t12) :: float
+    %t19 = load_field items_el_44["price"] :: float
+    %t20 = load_field items_el_44["qty"] :: integer
+    %t21 = call core.mul(%t19, %t20) :: float
+    %t15 = select %t18, %t13, %t21 :: float
+    acc.add acc_42 using agg.sum <- %t15
   end_loop
   %t47 = acc.load acc_42 :: float
   yield %t47

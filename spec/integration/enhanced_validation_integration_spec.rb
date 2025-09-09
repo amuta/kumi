@@ -286,7 +286,7 @@ RSpec.describe "Enhanced Validation Integration" do
       let(:proc_schema) do
         create_schema do
           input do
-            string :email, domain: ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) }
+            string :email, domain: ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i) }
             string :password, domain: ->(v) { v.length >= 8 && v.match?(/[A-Z]/) && v.match?(/[0-9]/) }
           end
 

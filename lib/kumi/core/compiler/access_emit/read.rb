@@ -1,8 +1,11 @@
 # frozen_string_literal: true
+
 module Kumi::Core::Compiler::AccessEmit
   module Read
     extend Base
+
     module_function
+
     def build(plan)
       policy     = plan.on_missing || :error
       key_policy = plan.key_policy || :indifferent

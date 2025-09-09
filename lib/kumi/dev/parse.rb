@@ -11,7 +11,7 @@ module Kumi
         # Load schema via text frontend
         begin
           schema, _inputs = Kumi::Frontends::Text.load(path: schema_path)
-        rescue LoadError => e
+        rescue LoadError
           puts "Error: kumi-parser gem not available. Install: gem install kumi-parser"
           return false
         rescue StandardError => e

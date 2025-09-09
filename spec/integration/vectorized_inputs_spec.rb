@@ -5,6 +5,7 @@ RSpec.describe "Vectorized Inputs Integration" do
   def analyze_and_compile(&schema_block)
     test_schema = Module.new do
       extend Kumi::Schema
+
       schema(&schema_block)
     end
     test_schema.__executable__

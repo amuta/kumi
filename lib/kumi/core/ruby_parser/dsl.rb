@@ -4,9 +4,9 @@ module Kumi
   module Core
     module RubyParser
       module Dsl
-        def self.build_syntax_tree(&rule_block)
+        def self.build_syntax_tree(&)
           parser = Parser.new
-          parser.parse(&rule_block)
+          parser.parse(&)
         end
       end
     end

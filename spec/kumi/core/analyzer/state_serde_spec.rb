@@ -6,7 +6,7 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
       test: "data",
       count: 42,
       enabled: true,
-      tags: Set.new([:a, :b, :c]),
+      tags: Set.new(%i[a b c]),
       metadata: { key: :value }
     )
   end
@@ -15,7 +15,7 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
     it "preserves exact state data" do
       marshaled = described_class.dump_marshal(simple_state)
       restored = described_class.load_marshal(marshaled)
-      
+
       expect(restored.to_h).to eq(simple_state.to_h)
       expect(restored).to be_a(Kumi::Core::Analyzer::AnalysisState)
     end
@@ -23,7 +23,7 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
     it "includes version information" do
       marshaled = described_class.dump_marshal(simple_state)
       payload = Marshal.load(marshaled)
-      
+
       expect(payload).to be_a(Hash)
       expect(payload[:v]).to eq(1)
       expect(payload[:data]).to eq(simple_state.to_h)
@@ -34,13 +34,13 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
         nested: {
           arrays: [[1, 2], [3, 4]],
           sets: Set.new([Set.new([:x]), Set.new([:y])]),
-          symbols: [:a, :b, :c]
+          symbols: %i[a b c]
         }
       )
-      
+
       marshaled = described_class.dump_marshal(complex_state)
       restored = described_class.load_marshal(marshaled)
-      
+
       expect(restored.to_h).to eq(complex_state.to_h)
     end
   end
@@ -58,7 +58,7 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
     end
 
     it "encodes nested sets and symbols" do
-      nested_set = Set.new([:a, :b])
+      nested_set = Set.new(%i[a b])
       result = described_class.encode_json_safe(nested_set)
       expect(result).to eq({ "$set" => [{ "$sym" => "a" }, { "$sym" => "b" }] })
     end
@@ -73,10 +73,10 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
       array = [:symbol, Set.new([1, 2]), { nested: :value }]
       result = described_class.encode_json_safe(array)
       expect(result).to eq([
-        { "$sym" => "symbol" },
-        { "$set" => [1, 2] },
-        { "nested" => { "$sym" => "value" } }
-      ])
+                             { "$sym" => "symbol" },
+                             { "$set" => [1, 2] },
+                             { "nested" => { "$sym" => "value" } }
+                           ])
     end
   end
 
@@ -106,9 +106,9 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
       }
       result = described_class.decode_json_safe(encoded)
       expect(result).to eq({
-        data: Set.new([:a, :b]),
-        meta: { nested: :value }
-      })
+                             data: Set.new(%i[a b]),
+                             meta: { nested: :value }
+                           })
     end
   end
 
@@ -116,30 +116,30 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
     it "preserves basic state data" do
       json_str = described_class.dump_json(simple_state)
       restored = described_class.load_json(json_str)
-      
+
       expect(restored.to_h).to eq(simple_state.to_h)
       expect(restored).to be_a(Kumi::Core::Analyzer::AnalysisState)
     end
 
     it "preserves sets and symbols" do
       state_with_sets = Kumi::Core::Analyzer::AnalysisState.new(
-        tags: Set.new([:important, :verified]),
-        config: { mode: :development, flags: Set.new([:debug, :verbose]) }
+        tags: Set.new(%i[important verified]),
+        config: { mode: :development, flags: Set.new(%i[debug verbose]) }
       )
-      
+
       json_str = described_class.dump_json(state_with_sets)
       restored = described_class.load_json(json_str)
-      
+
       expect(restored.to_h).to eq(state_with_sets.to_h)
     end
 
     it "produces readable json with pretty formatting" do
       json_str = described_class.dump_json(simple_state, pretty: true)
-      
-      expect(json_str).to include("\n")  # Pretty-formatted
+
+      expect(json_str).to include("\n") # Pretty-formatted
       expect(json_str).to include('"test": "data"')
       expect(json_str).to include('"count": 42')
-      
+
       # Should be parseable back
       restored = described_class.load_json(json_str)
       expect(restored.to_h).to eq(simple_state.to_h)
@@ -147,9 +147,9 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
 
     it "produces compact json without pretty formatting" do
       json_str = described_class.dump_json(simple_state, pretty: false)
-      
-      expect(json_str).not_to include("\n")  # Compact
-      
+
+      expect(json_str).not_to include("\n") # Compact
+
       # Should still be parseable
       restored = described_class.load_json(json_str)
       expect(restored.to_h).to eq(simple_state.to_h)
@@ -159,7 +159,7 @@ RSpec.describe Kumi::Core::Analyzer::StateSerde do
   describe "IR object handling" do
     # These tests would require actual IR objects to be meaningful
     # For now, we'll test the structure exists
-    
+
     it "has IR encoding capability" do
       # Test that the encode method handles IR objects without crashing
       # when they don't exist in current test state

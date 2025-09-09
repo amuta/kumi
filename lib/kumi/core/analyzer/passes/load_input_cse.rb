@@ -10,11 +10,11 @@ module Kumi
         # were already stored by earlier declarations.
         #
         # OPTIMIZATION STRATEGY:
-        # - Cross-declaration load reuse: If a load_input with the same 
-        #   (plan_id, scope, is_scalar, has_idx) was already stored by an 
-        #   earlier declaration, rewrite later identical loads to ref the 
+        # - Cross-declaration load reuse: If a load_input with the same
+        #   (plan_id, scope, is_scalar, has_idx) was already stored by an
+        #   earlier declaration, rewrite later identical loads to ref the
         #   stored value instead of re-loading.
-        # - Only reuses producers that appear earlier in module order 
+        # - Only reuses producers that appear earlier in module order
         #   (no reordering/hoisting).
         # - Safe because interpreter's outputs persist across declarations
         #   and ref operations resolve previously stored values.
@@ -26,11 +26,11 @@ module Kumi
         # DEBUG:
         # - Set DEBUG_LOAD_CSE=1 to see optimization decisions
         class LoadInputCSE < PassBase
-          def run(errors)
+          def run(_errors)
             ir = get_state(:ir_module, required: true)
             return state unless ir&.decls
 
-            debug = ENV["DEBUG_LOAD_CSE"]
+            debug = ENV.fetch("DEBUG_LOAD_CSE", nil)
 
             # Map: key -> { name:, decl_index: }
             producers = {}
@@ -41,14 +41,14 @@ module Kumi
             ir.decls.each_with_index do |decl, di|
               decl.ops.each_with_index do |op, oi|
                 next unless op.tag == :load_input
-                
+
                 key = load_key(op)
                 # Does this decl store that slot under a name?
                 store_name = name_storing_slot(decl.ops, oi)
                 next unless store_name
-                
+
                 # Keep earliest producer only
-                if !producers.key?(key)
+                unless producers.key?(key)
                   producers[key] = { name: store_name, decl_index: di }
                   puts "LOAD_CSE: Found producer #{store_name} in decl #{di} for key #{key.inspect}" if debug
                 end
@@ -62,10 +62,10 @@ module Kumi
             new_decls = ir.decls.each_with_index.map do |decl, di|
               new_ops = decl.ops.each_with_index.map do |op, oi|
                 next op unless op.tag == :load_input
-                
+
                 key = load_key(op)
                 prod = producers[key]
-                
+
                 # Only rewrite if producer is in an earlier decl
                 if prod && prod[:decl_index] < di
                   optimizations += 1
@@ -75,11 +75,11 @@ module Kumi
                   op
                 end
               end
-              
+
               Kumi::Core::IR::Decl.new(
-                name: decl.name, 
-                kind: decl.kind, 
-                shape: decl.shape, 
+                name: decl.name,
+                kind: decl.kind,
+                shape: decl.shape,
                 ops: new_ops
               )
             end
@@ -108,6 +108,7 @@ module Kumi
           def name_storing_slot(ops, slot_id)
             ops.each do |op|
               next unless op.tag == :store
+
               src = op.args && op.args[0]
               return op.attrs[:name] if src == slot_id
             end

@@ -4,7 +4,6 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-
         # LIRLocalCSEPass
         # ---------------
         # Tiny, safe, per-declaration CSE:
@@ -17,10 +16,10 @@ module Kumi
         class LIRLocalCSEPass < PassBase
           LIR = Kumi::Core::LIR
 
-          PURE        = %i[Constant LoadInput LoadField LoadDeclaration KernelCall Select MakeTuple MakeObject TupleGet].freeze
-          SIDE_EFFECT = %i[LoopStart LoopEnd DeclareAccumulator Accumulate LoadAccumulator Yield].freeze
+          PURE        = %i[Constant LoadInput LoadField LoadDeclaration KernelCall MakeTuple MakeObject TupleGet].freeze
+          SIDE_EFFECT = %i[LoopStart LoopEnd DeclareAccumulator Accumulate LoadAccumulator Yield Select].freeze
 
-          def run(errors)
+          def run(_errors)
             ops_by_decl = get_state(:lir_fused_ops_by_decl, required: true)
             out = {}
 
@@ -29,6 +28,7 @@ module Kumi
             end
 
             state.with(:lir_optimized_ops_by_decl, out.freeze)
+            # state.with(:lir_optimized_ops_by_decl, ops_by_decl)
           end
 
           private
@@ -59,14 +59,15 @@ module Kumi
 
           def rewrite_inputs(ins, rename)
             return ins if ins.inputs.nil? || ins.inputs.empty?
+
             LIR::Instruction.new(
-              opcode:          ins.opcode,
+              opcode: ins.opcode,
               result_register: ins.result_register,
-              stamp:           ins.stamp,
-              inputs:          ins.inputs.map { |r| rename.fetch(r, r) },
-              immediates:      ins.immediates,
-              attributes:      ins.attributes,
-              location:        ins.location
+              stamp: ins.stamp,
+              inputs: ins.inputs.map { |r| rename.fetch(r, r) },
+              immediates: ins.immediates,
+              attributes: ins.attributes,
+              location: ins.location
             )
           end
 
@@ -74,7 +75,7 @@ module Kumi
             case ins.opcode
             when :Constant
               lit = ins.immediates&.first
-              [:Constant, lit&.value, (lit&.dtype || ins.stamp&.dtype)]
+              [:Constant, lit&.value, lit&.dtype || ins.stamp&.dtype]
             when :LoadInput
               key = ins.immediates&.first&.value
               [:LoadInput, key, ins.stamp&.dtype]                         # include dtype
@@ -107,6 +108,7 @@ module Kumi
 
           def filtered_attrs(attrs)
             return nil unless attrs
+
             attrs.reject { |k, _| k == :id } # drop volatile loop ids if ever present
           end
         end

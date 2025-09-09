@@ -130,17 +130,11 @@ module Kumi
       end
 
       def generate_generated_code(path)
-        require_relative "../pack/builder"
-        require_relative "../codegen/ruby_v3/generator"
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:ruby_codegen_files]
 
-        # Generate pack using same approach as golden pack generation
-        pack_json = Kumi::Pack::Builder.print(schema: path, targets: %w[ruby], include_ir: false)
-        pack = JSON.parse(pack_json)
-        
-        # Generate code using Ruby V3 generator
-        module_name = pack["module_id"].split('_').map(&:capitalize).join
-        generator = Kumi::Codegen::RubyV3::Generator.new(pack, module_name: module_name)
-        generator.render
+        res.state[:ruby_codegen_files]["codegen.rb"]
       end
 
       def generate_planning(path)
@@ -157,7 +151,7 @@ module Kumi
 
       def generate_pack(path)
         require_relative "../pack"
-        
+
         Kumi::Pack.print(schema: path, targets: %w[ruby])
       end
     end

@@ -36,15 +36,15 @@ module Kumi
       Core::Analyzer::Passes::LIRInlineDeclarationsPass,       # Inlines LoadDeclaration when site axes == decl axes
       Core::Analyzer::Passes::LIRLocalCSEPass,                 # Local CSE optimization for pure LIR operations
       Core::Analyzer::Passes::LIRValidationPass,               # Validates LIR structural and contextual correctness
+      Core::Analyzer::Passes::LIRRubyCodegenPass # Generates ruby code from LIR
       # Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
       # Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
       # Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
-      # Core::Analyzer::Passes::KernelBindingPass                # Generates kernel binding manifest for target backend
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, registry: nil, **opts)
       errors = []
-      
+
       registry ||= Kumi::RegistryV2.load
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry)
       state = run_analysis_passes(schema, passes, state, errors)
@@ -83,7 +83,7 @@ module Kumi
         pass_instance = pass_class.new(schema, state)
         begin
           state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
-            pass_state = pass_instance.run(errors)
+            pass_instance.run(errors)
           end
         rescue StandardError => e
           # TODO: - GREATLY improve this, need to capture the context of the error
@@ -143,11 +143,9 @@ module Kumi
     end
 
     def self.handle_analysis_errors(errors)
-      if errors.first.is_a? String
-        raise Kumi::Errors::AnalysisError, "\n" + errors.join("\n")
-      end
+      raise Kumi::Errors::AnalysisError, "\n" + errors.join("\n") if errors.first.is_a? String
 
-      type_errors = errors.select { |e| e.type == :type } 
+      type_errors = errors.select { |e| e.type == :type }
       first_error_location = errors.first.location
 
       raise Errors::TypeError.new(format_errors(errors), first_error_location) if type_errors.any?

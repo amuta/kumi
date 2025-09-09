@@ -26,7 +26,7 @@ module Kumi
           LIR   = Kumi::Core::LIR
           Build = Kumi::Core::LIR::Build
 
-          def run(errors)
+          def run(_errors)
             @snast    = get_state(:snast_module, required: true)
             @registry = get_state(:registry,     required: true)
             @ids      = LIR::Ids.new
@@ -52,7 +52,7 @@ module Kumi
           Env = Struct.new(:frames, keyword_init: true) do
             def initialize(**) = super(frames: [])
             def axes      = frames.map { _1[:axis] }
-            def loop_ids  = frames.map { _1[:id]  }
+            def loop_ids  = frames.map { _1[:id] }
             def element_reg_for(axis) = frames.reverse.find { _1[:axis] == axis }&.dig(:as_element)
             def index_reg_for(axis)   = frames.reverse.find { _1[:axis] == axis }&.dig(:as_index)
             def push(frame) = frames << frame
@@ -113,15 +113,14 @@ module Kumi
           def emit_call(n)
             regs = n.args.map { lower_expr(_1) }
             ins  = Build.kernel_call(
-                    function:  @registry.resolve_function(n.fn),
-                    args:      regs,
-                    out_dtype: dtype_of(n),
-                    ids:       @ids
-                  )
+              function: @registry.resolve_function(n.fn),
+              args: regs,
+              out_dtype: dtype_of(n),
+              ids: @ids
+            )
             @ops << ins
             ins.result_register
           end
-          
 
           def emit_select(n)
             ensure_context_for!(axes_of(n), anchor: n)
@@ -161,7 +160,7 @@ module Kumi
           def emit_input_ref(n)
             axes = axes_of(n)
             keys = ir_key_chain(n)
-          
+
             if axes.empty?
               # Root-scoped access (no open loops).
               if keys.empty?
@@ -169,18 +168,20 @@ module Kumi
                 head = plan_for_fqn(ir_fqn(n)).source_path.first.to_sym
                 return Build.load_input(key: head, dtype: dtype_of(n), ids: @ids).tap { @ops << _1 }.result_register
               end
-          
+
               head_dtype = (keys.length == 1 ? dtype_of(n) : :hash)
               cur = Build.load_input(key: keys.first.to_sym, dtype: head_dtype, ids: @ids).tap { @ops << _1 }.result_register
-          
+
               keys.drop(1).each_with_index do |k, i|
                 last = (i == keys.length - 2)
                 field_dtype = last ? dtype_of(n) : :hash
-                cur = Build.load_field(object_register: cur, key: k.to_sym, dtype: field_dtype, ids: @ids).tap { @ops << _1 }.result_register
+                cur = Build.load_field(object_register: cur, key: k.to_sym, dtype: field_dtype, ids: @ids).tap do
+                  @ops << _1
+                end.result_register
               end
               return cur
             end
-          
+
             # Inside loops: start from the current element of the deepest axis.
             cur = @env.element_reg_for(axes.last) or raise "no open element for axis #{axes.last.inspect}"
             keys.each_with_index do |k, i|
@@ -190,7 +191,6 @@ module Kumi
             end
             cur
           end
-          
 
           # ---------- context management ----------
 
@@ -200,32 +200,33 @@ module Kumi
             missing = target_axes[l..] || []
             return if missing.empty?
             raise "need anchor InputRef to open loops for #{missing.inspect}" unless anchor
+
             open_suffix_loops!(over_axes: missing, anchor:)
           end
 
           # Open missing suffix loops using the anchor's InputPlan.navigation_steps.
           def open_suffix_loops!(over_axes:, anchor:)
             return if over_axes.empty?
-          
+
             target_axes = @env.axes + over_axes
             anchor_ir   = find_anchor_inputref(anchor, need_prefix: target_axes)
             plan        = plan_for_fqn(ir_fqn(anchor_ir))
-          
+
             steps    = Array(plan.navigation_steps).map { |h| h.transform_keys(&:to_sym) }
             loop_ix  = steps.each_index.select { |i| steps[i][:kind].to_s == "array_loop" }
             loop_axes = loop_ix.map { |i| steps[i][:axis].to_sym }
-          
+
             idxs = target_axes.map do |ax|
               j = loop_axes.index(ax) or raise "anchor plan #{plan.path_fqn} lacks axis #{ax.inspect}"
               loop_ix[j]
             end
-          
+
             base = @env.axes.length
             (base...target_axes.length).each do |i|
               cur_axis   = target_axes[i]
               cur_loopi  = idxs[i]
               prev_loopi = (i == 0 ? -1 : idxs[i - 1])
-          
+
               coll =
                 if i == 0 && base == 0
                   # First axis overall: load from root (prefer explicit key, else source_path head).
@@ -236,14 +237,15 @@ module Kumi
                   # Walk any property_access between previous loop and current loop.
                   prev_axis = target_axes[i - 1]
                   reg = @env.element_reg_for(prev_axis) or raise "no element for #{prev_axis}"
-          
+
                   ((prev_loopi + 1)...cur_loopi).each do |k|
                     st = steps[k]
                     next unless st[:kind].to_s == "property_access"
+
                     reg = Build.load_field(object_register: reg, key: st[:key].to_sym,
                                            dtype: :hash, ids: @ids).tap { @ops << _1 }.result_register
                   end
-          
+
                   key = steps[cur_loopi][:key]
                   if key
                     Build.load_field(object_register: reg, key: key.to_sym, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
@@ -252,7 +254,7 @@ module Kumi
                     reg
                   end
                 end
-          
+
               el  = @ids.generate_temp(prefix: :"#{cur_axis}_el_")
               ix  = @ids.generate_temp(prefix: :"#{cur_axis}_i_")
               lid = @ids.generate_loop_id
@@ -260,7 +262,6 @@ module Kumi
               @env.push(axis: cur_axis, as_element: el, as_index: ix, id: lid)
             end
           end
-          
 
           def close_loops_to_depth(depth)
             while @env.depth > depth
@@ -285,17 +286,15 @@ module Kumi
           end
 
           def identity_literal(op_id, dtype)
-            begin
-              v = @registry.kernel_identity_for(op_id, dtype: dtype, target: :ruby)
-              LIR::Literal.new(value: v, dtype: dtype)
-            rescue
-              zero = case dtype
-                     when :integer then 0
-                     when :float   then 0.0
-                     else 0
-                     end
-              LIR::Literal.new(value: zero, dtype: dtype)
-            end
+            v = @registry.kernel_identity_for(op_id, dtype: dtype, target: :ruby)
+            LIR::Literal.new(value: v, dtype: dtype)
+          rescue StandardError
+            zero = case dtype
+                   when :integer then 0
+                   when :float   then 0.0
+                   else 0
+                   end
+            LIR::Literal.new(value: zero, dtype: dtype)
           end
 
           # ---- InputRef annotations & plans ----
@@ -306,29 +305,31 @@ module Kumi
 
           def find_anchor_inputref(node, need_prefix:)
             found = nil
-          
+
             walk = lambda do |x|
               case x
               when NAST::InputRef
                 ax = axes_of(x)
                 found ||= x if prefix?(need_prefix, ax)
-          
+
               when NAST::Ref
                 # Follow the reference into its declaration body
                 decl = @snast.decls.fetch(x.name) { raise "unknown declaration #{x.name}" }
                 walk.call(decl.body)
-          
+
               when NAST::Select
-                walk.call(x.cond); walk.call(x.on_true); walk.call(x.on_false)
-          
+                walk.call(x.cond)
+                walk.call(x.on_true)
+                walk.call(x.on_false)
+
               when NAST::Reduce
                 walk.call(x.arg)
-          
+
               when NAST::Call, NAST::Tuple
                 x.args.each { walk.call(_1) }
               end
             end
-          
+
             walk.call(node)
             found or raise "no anchor InputRef covering axes #{need_prefix.inspect}"
           end

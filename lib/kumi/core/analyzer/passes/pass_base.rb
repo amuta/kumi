@@ -29,9 +29,9 @@ module Kumi
 
           # Iterate over all declarations (values and traits) in the schema
           # @yield [Syntax::Attribute|Syntax::Trait] Each declaration
-          def each_decl(&block)
-            schema.values.each(&block)
-            schema.traits.each(&block)
+          def each_decl(&)
+            schema.values.each(&)
+            schema.traits.each(&)
           end
 
           # Get state value - compatible with old interface
@@ -54,13 +54,13 @@ module Kumi
           # InputIndexTablePass -> DEBUG_INPUT_INDEX_TABLE=1
           # ScopeResolutionPass -> DEBUG_SCOPE_RESOLUTION=1
           def debug_enabled?
-            class_name = self.class.name.split('::').last
+            class_name = self.class.name.split("::").last
             env_name = "DEBUG_#{to_underscore(class_name.gsub(/Pass$/, '')).upcase}"
-            ENV[env_name] == '1'
+            ENV[env_name] == "1"
           end
-          
+
           def debug(message)
-            class_name = self.class.name.split('::').last.gsub(/Pass$/, '')
+            class_name = self.class.name.split("::").last.gsub(/Pass$/, "")
             puts "[#{class_name}] #{message}" if debug_enabled?
           end
 

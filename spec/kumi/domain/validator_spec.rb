@@ -50,12 +50,12 @@ RSpec.describe Kumi::Core::Domain::Validator do
 
     context "with Proc domains" do
       it "accepts values that satisfy the proc" do
-        email_validator = ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) }
+        email_validator = ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i) }
         expect(described_class.validate_field(:email, "test@example.com", email_validator)).to be true
       end
 
       it "rejects values that don't satisfy the proc" do
-        email_validator = ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) }
+        email_validator = ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i) }
         expect(described_class.validate_field(:email, "invalid-email", email_validator)).to be false
       end
     end

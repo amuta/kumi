@@ -9,7 +9,7 @@ module Kumi
       module_function
 
       # REPRESENTATIONS = %w[ast nast snast irv2 binding_manifest generated_code planning pack].freeze
-      REPRESENTATIONS = %w[ast nast snast lir lir_fused lir_optimized].freeze
+      REPRESENTATIONS = %w[ast nast snast lir lir_fused lir_optimized generated_code].freeze
       JSON_REPRESENTATIONS = %w[irv2 binding_manifest planning pack].freeze
       RUBY_REPRESENTATIONS = %w[generated_code].freeze
 
@@ -43,7 +43,7 @@ module Kumi
                 ir, planning, bindings, inputs, module_id = Kumi::Pack::Builder.generate_artifacts(schema_path)
                 pack = Kumi::Pack::Builder.assemble_pack(module_id, ir, planning, bindings, inputs, %w[ruby], false)
                 current_output = Kumi::Pack::Builder.canonical_json(pack)
-                
+
                 pack_file = File.join(expected_dir, "pack.json")
                 if File.exist?(pack_file)
                   expected_content = File.read(pack_file)
@@ -68,7 +68,7 @@ module Kumi
             end
 
             current_output = PrettyPrinter.send("generate_#{repr}", schema_path)
-            puts "generating #{repr}"
+            # puts "generating #{repr}"
             next unless current_output
 
             extension = if JSON_REPRESENTATIONS.include?(repr)
@@ -141,7 +141,7 @@ module Kumi
                 require_relative "../pack/builder"
                 current_pack_output = Kumi::Pack::Builder.print(schema: schema_path, targets: %w[ruby])
                 File.write(File.join(tmp_dir, "pack.json"), current_pack_output)
-                
+
                 expected_content = File.read(expected_pack_file)
                 unless current_pack_output.strip == expected_content.strip
                   failed_reprs << "pack.json"
@@ -219,48 +219,48 @@ module Kumi
           representations = repr ? [repr] : REPRESENTATIONS
 
           representations.each do |r|
-          if r == "pack"
-            # Handle pack diffing specially
-            expected_file = File.join(expected_dir, "pack.json")
-            tmp_file = File.join(tmp_dir, "pack.json")
-            
+            if r == "pack"
+              # Handle pack diffing specially
+              expected_file = File.join(expected_dir, "pack.json")
+              tmp_file = File.join(tmp_dir, "pack.json")
+
+              if File.exist?(expected_file) && File.exist?(tmp_file)
+                # Check if files actually differ before showing diff
+                expected_content = File.read(expected_file)
+                tmp_content = File.read(tmp_file)
+                if expected_content.strip != tmp_content.strip
+                  puts "=== #{schema_name}/pack.json ==="
+                  json_diff(expected_file, tmp_file)
+                  puts
+                end
+              elsif File.exist?(expected_file) || File.exist?(tmp_file)
+                puts "Cannot diff #{schema_name}/pack.json: missing files"
+              end
+              next
+            end
+
+            extension = JSON_REPRESENTATIONS.include?(r) ? "json" : "txt"
+            expected_file = File.join(expected_dir, "#{r}.#{extension}")
+            tmp_file = File.join(tmp_dir, "#{r}.#{extension}")
+            filename = "#{r}.#{extension}"
+
             if File.exist?(expected_file) && File.exist?(tmp_file)
               # Check if files actually differ before showing diff
               expected_content = File.read(expected_file)
               tmp_content = File.read(tmp_file)
               if expected_content.strip != tmp_content.strip
-                puts "=== #{schema_name}/pack.json ==="
-                json_diff(expected_file, tmp_file)
+                puts "=== #{schema_name}/#{filename} ==="
+                if JSON_REPRESENTATIONS.include?(r)
+                  json_diff(expected_file, tmp_file)
+                else
+                  system("diff -u #{expected_file} #{tmp_file}")
+                end
                 puts
               end
             elsif File.exist?(expected_file) || File.exist?(tmp_file)
-              puts "Cannot diff #{schema_name}/pack.json: missing files"
+              puts "Cannot diff #{schema_name}/#{filename}: missing files"
             end
-            next
           end
-
-          extension = JSON_REPRESENTATIONS.include?(r) ? "json" : "txt"
-          expected_file = File.join(expected_dir, "#{r}.#{extension}")
-          tmp_file = File.join(tmp_dir, "#{r}.#{extension}")
-          filename = "#{r}.#{extension}"
-
-          if File.exist?(expected_file) && File.exist?(tmp_file)
-            # Check if files actually differ before showing diff
-            expected_content = File.read(expected_file)
-            tmp_content = File.read(tmp_file)
-            if expected_content.strip != tmp_content.strip
-              puts "=== #{schema_name}/#{filename} ==="
-              if JSON_REPRESENTATIONS.include?(r)
-                json_diff(expected_file, tmp_file)
-              else
-                system("diff -u #{expected_file} #{tmp_file}")
-              end
-              puts
-            end
-          elsif File.exist?(expected_file) || File.exist?(tmp_file)
-            puts "Cannot diff #{schema_name}/#{filename}: missing files"
-          end
-        end
         end
       end
 
@@ -297,15 +297,15 @@ module Kumi
             code = File.read(generated_code_file)
             input_data = JSON.parse(File.read(input_file))
             expected_outputs = JSON.parse(File.read(expected_file))
-            
+
             # Load pack.json to get module name
             pack_file = golden_path(schema_name, "expected/pack.json")
             module_name = if File.exist?(pack_file)
-              pack_data = JSON.parse(File.read(pack_file))
-              pack_data["module_id"]
-            else
-              "schema_module" # default fallback
-            end
+                            pack_data = JSON.parse(File.read(pack_file))
+                            pack_data["module_id"]
+                          else
+                            "schema_module" # default fallback
+                          end
 
             # Create a temporary file in the golden tmp directory and load it
             tmp_dir = golden_path(schema_name, "tmp")
@@ -317,8 +317,8 @@ module Kumi
             load temp_file
 
             # Create runtime using the dynamically determined module
-            registry = Kumi::KernelRegistry.load_ruby
-            module_const = Object.const_get(module_name.split('_').map(&:capitalize).join)
+            Kumi::KernelRegistry.load_ruby
+            module_const = Object.const_get(module_name.split("_").map(&:capitalize).join)
             bound = module_const.from(input_data)
 
             # NOTE: We keep test_generated_code.rb for debugging - it's in tmp/ which is ignored
@@ -342,7 +342,7 @@ module Kumi
                   schema_passed = false
                   success = false
                 end
-              rescue StandardError => e
+              rescue StandardError
                 # puts "  ✗ #{decl_name}: ERROR - #{e.message}"
                 # puts "    Backtrace:"
                 # e.backtrace.first(10).each_with_index do |line, i|
@@ -359,7 +359,7 @@ module Kumi
             else
               puts "  ⚠️  #{schema_name}: #{schema_correct}/#{schema_total} outputs correct"
             end
-          rescue StandardError => e
+          rescue StandardError
             # puts "  ✗ #{schema_name}: SYSTEM ERROR - #{e.message}"
             # puts "    System backtrace:"
             # e.backtrace.first(10).each_with_index do |line, i|
@@ -424,7 +424,7 @@ module Kumi
         # Create pretty-printed temporary files
         expected_pretty = "#{expected_file}.pretty"
         tmp_pretty = "#{tmp_file}.pretty"
-        
+
         begin
           system("jq . #{expected_file} > #{expected_pretty}")
           system("jq . #{tmp_file} > #{tmp_pretty}")
@@ -433,6 +433,65 @@ module Kumi
           File.unlink(expected_pretty) if File.exist?(expected_pretty)
           File.unlink(tmp_pretty) if File.exist?(tmp_pretty)
         end
+      end
+
+      def test_lir_codegen!(name = nil)
+        require "json"
+
+        names = name ? [name] : golden_dirs_with_codegen
+        success = true
+
+        names.each do |schema_name|
+          puts "Testing LIR codegen for #{schema_name}..."
+
+          begin
+            # Required files
+            generated_code_file = golden_path(schema_name, "expected/generated_code.rb")
+            input_file = golden_path(schema_name, "input.json")
+            expected_file = golden_path(schema_name, "expected.json")
+
+            unless File.exist?(generated_code_file) && File.exist?(input_file) && File.exist?(expected_file)
+              puts "  ✗ Missing required files"
+              success = false
+              next
+            end
+
+            # Load files
+            code = File.read(generated_code_file)
+            input_data = JSON.parse(File.read(input_file))
+            expected_outputs = JSON.parse(File.read(expected_file))
+
+            # Load the generated code
+            eval(code)
+
+            # Create an instance of the program
+            program_instance = KumiProgram.from(input_data)
+
+            # Run the generated program and collect all results
+            result = {}
+            expected_outputs.each_key do |decl_name|
+              result[decl_name] = program_instance[decl_name.to_sym]
+            end
+
+            # Assert that the result matches the expected output
+            if result.to_json == expected_outputs.to_json
+              puts "  ✓ #{schema_name}: PASSED"
+            else
+              puts "  ✗ #{schema_name}: FAILED"
+              puts "    Expected: #{expected_outputs.to_json}"
+              puts "    Actual:   #{result.to_json}"
+              puts "    Raw Expected: #{expected_outputs.inspect}"
+              puts "    Raw Actual:   #{result.inspect}"
+              success = false
+            end
+          rescue StandardError => e
+            puts "  ✗ #{schema_name}: ERROR - #{e.message}"
+            e.backtrace.first(5).each { |line| puts "    #{line}" }
+            success = false
+          end
+        end
+
+        success
       end
     end
   end

@@ -7,25 +7,25 @@ RSpec.describe Kumi::Analyzer do
     let(:initial_state) { Kumi::Core::Analyzer::AnalysisState.new({}) }
 
     class NoopPass
-      def initialize(_, state); @state = state; end
-      def run(_errors); @state end
+      def initialize(_, state) = @state = state
+      def run(_errors) = @state
     end
 
     class WriterPass
-      def initialize(_, state); @state = state; end
-      def run(_errors); @state.with(:x, 1) end
+      def initialize(_, state) = @state = state
+      def run(_errors) = @state.with(:x, 1)
     end
 
     class ErrorPass
-      def initialize(_, state); @state = state; end
-      def run(_errors); raise "boom" end
+      def initialize(_, state) = @state = state
+      def run(_errors) = raise("boom")
     end
 
     module Nested
       module Module
         class BazPass
-          def initialize(_, state); @state = state; end
-          def run(_errors); @state end
+          def initialize(_, state) = @state = state
+          def run(_errors) = @state
         end
       end
     end
@@ -88,26 +88,26 @@ RSpec.describe Kumi::Analyzer do
 
       it "drains a fresh buffer per pass" do
         allow(Kumi::Core::Analyzer::Debug).to receive(:drain_log).and_return(
-          [{level: :info, id: :a}, {level: :info, id: :b}],
-          [{level: :info, id: :c}]
+          [{ level: :info, id: :a }, { level: :info, id: :b }],
+          [{ level: :info, id: :c }]
         )
-        
+
         emits = []
         allow(Kumi::Core::Analyzer::Debug).to receive(:emit) { |h| emits << h }
 
         described_class.run_analysis_passes(schema, [NoopPass, NoopPass], initial_state, errors)
-        
+
         expect(emits[0][:logs].size).to eq(2)
         expect(emits[1][:logs].size).to eq(1)
         expect(Kumi::Core::Analyzer::Debug).to have_received(:reset_log).twice
       end
 
       it "flushes logs and emits error payload on exception" do
-        allow(Kumi::Core::Analyzer::Debug).to receive(:drain_log).and_return([{level: :info, id: :pre_error}])
+        allow(Kumi::Core::Analyzer::Debug).to receive(:drain_log).and_return([{ level: :info, id: :pre_error }])
 
-        expect {
+        expect do
           described_class.run_analysis_passes(schema, [ErrorPass], initial_state, errors)
-        }.to raise_error(RuntimeError, /boom/)
+        end.to raise_error(RuntimeError, /boom/)
 
         expect(Kumi::Core::Analyzer::Debug).to have_received(:emit).with(
           hash_including(
@@ -123,7 +123,7 @@ RSpec.describe Kumi::Analyzer do
 
       context "with immutability guard enabled" do
         around do |example|
-          original = ENV["KUMI_DEBUG_REQUIRE_FROZEN"]
+          original = ENV.fetch("KUMI_DEBUG_REQUIRE_FROZEN", nil)
           ENV["KUMI_DEBUG_REQUIRE_FROZEN"] = "1"
           example.run
           ENV["KUMI_DEBUG_REQUIRE_FROZEN"] = original
@@ -131,40 +131,41 @@ RSpec.describe Kumi::Analyzer do
 
         it "raises if state contains unfrozen objects" do
           mutable_pass = Class.new do
-            def self.name; "MutablePass"; end
-            def initialize(_, state); @state = state; end
-            def run(_errors); @state.with(:mutable, [1, 2, 3]) end  # Array is mutable
+            def self.name = "MutablePass"
+            def initialize(_, state) = @state = state
+            def run(_errors) = @state.with(:mutable, [1, 2, 3]) # Array is mutable
           end
 
-          expect {
+          expect do
             described_class.run_analysis_passes(schema, [mutable_pass], initial_state, errors)
-          }.to raise_error(/State\[mutable\] not frozen/)
+          end.to raise_error(/State\[mutable\] not frozen/)
         end
 
         it "allows frozen values" do
           frozen_pass = Class.new do
-            def self.name; "FrozenPass"; end
-            def initialize(_, state); @state = state; end
-            def run(_errors); @state.with(:frozen, [1, 2, 3].freeze) end
+            def self.name = "FrozenPass"
+            def initialize(_, state) = @state = state
+            def run(_errors) = @state.with(:frozen, [1, 2, 3].freeze)
           end
 
-          expect {
+          expect do
             described_class.run_analysis_passes(schema, [frozen_pass], initial_state, errors)
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it "allows primitives (numbers, symbols, booleans)" do
           primitive_pass = Class.new do
-            def self.name; "PrimitivePass"; end
-            def initialize(_, state); @state = state; end
-            def run(_errors) 
+            def self.name = "PrimitivePass"
+            def initialize(_, state) = @state = state
+
+            def run(_errors)
               @state.with(:num, 42).with(:sym, :test).with(:bool, true).with(:nil_val, nil)
             end
           end
 
-          expect {
+          expect do
             described_class.run_analysis_passes(schema, [primitive_pass], initial_state, errors)
-          }.not_to raise_error
+          end.not_to raise_error
         end
       end
     end

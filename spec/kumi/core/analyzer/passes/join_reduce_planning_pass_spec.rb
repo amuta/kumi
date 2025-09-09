@@ -38,8 +38,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             total: value_decl(:total,
-              call_expr(:sum, input_element_ref([:items, :price]))
-            )
+                              call_expr(:sum, input_element_ref(%i[items price])))
           },
           input_metadata: {
             items: {
@@ -53,7 +52,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             reduction_operations: {
               total: {
                 function: :sum,
-                argument: input_element_ref([:items, :price])
+                argument: input_element_ref(%i[items price])
               }
             }
           },
@@ -80,8 +79,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             regional_totals: value_decl(:regional_totals,
-              call_expr(:sum, input_element_ref([:regions, :offices, :revenue]))
-            )
+                                        call_expr(:sum, input_element_ref(%i[regions offices revenue])))
           },
           input_metadata: {
             regions: {
@@ -100,7 +98,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             reduction_operations: {
               regional_totals: {
                 function: :sum,
-                argument: input_element_ref([:regions, :offices, :revenue])
+                argument: input_element_ref(%i[regions offices revenue])
               }
             }
           },
@@ -115,9 +113,9 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
 
         plan = result[:join_reduce_plans][:regional_totals]
         expect(plan).to be_a(Kumi::Core::Analyzer::Plans::Reduce)
-        expect(plan.axis).to eq([:offices])  # Reduces innermost
-        expect(plan.source_scope).to eq([:regions, :offices])
-        expect(plan.result_scope).to eq([:regions])  # Keeps outer dimension
+        expect(plan.axis).to eq([:offices]) # Reduces innermost
+        expect(plan.source_scope).to eq(%i[regions offices])
+        expect(plan.result_scope).to eq([:regions]) # Keeps outer dimension
       end
     end
 
@@ -126,8 +124,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             total: value_decl(:total,
-              call_expr(:sum, input_element_ref([:matrix, :rows, :values]))
-            )
+                              call_expr(:sum, input_element_ref(%i[matrix rows values])))
           },
           input_metadata: {
             matrix: {
@@ -146,13 +143,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             reduction_operations: {
               total: {
                 function: :sum,
-                argument: input_element_ref([:matrix, :rows, :values]),
-                axis: :all  # Reduce all dimensions
+                argument: input_element_ref(%i[matrix rows values]),
+                axis: :all # Reduce all dimensions
               }
             }
           },
           scope_plans: {
-            total: Kumi::Core::Analyzer::Plans::Scope.new(scope: [:matrix, :rows])
+            total: Kumi::Core::Analyzer::Plans::Scope.new(scope: %i[matrix rows])
           }
         }
       end
@@ -163,7 +160,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         plan = result[:join_reduce_plans][:total]
         expect(plan).to be_a(Kumi::Core::Analyzer::Plans::Reduce)
         expect(plan.axis).to eq(:all)
-        expect(plan.result_scope).to eq([])  # All dimensions reduced
+        expect(plan.result_scope).to eq([]) # All dimensions reduced
       end
     end
 
@@ -172,8 +169,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             flat_sum: value_decl(:flat_sum,
-              call_expr(:sum, input_element_ref([:nested, :items]))
-            )
+                                 call_expr(:sum, input_element_ref(%i[nested items])))
           },
           input_metadata: {
             nested: {
@@ -187,7 +183,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             reduction_operations: {
               flat_sum: {
                 function: :sum,
-                argument: input_element_ref([:nested, :items]),
+                argument: input_element_ref(%i[nested items]),
                 flatten_argument_indices: [0]
               }
             }
@@ -214,11 +210,9 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             products: value_decl(:products,
-              call_expr(:multiply,
-                input_element_ref([:items, :price]),
-                input_element_ref([:items, :quantity])
-              )
-            )
+                                 call_expr(:multiply,
+                                           input_element_ref(%i[items price]),
+                                           input_element_ref(%i[items quantity])))
           },
           input_metadata: {
             items: {
@@ -233,7 +227,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             vectorized_operations: {
               products: {
                 source: :nested_array_access,
-                path: [:items, :price]
+                path: %i[items price]
               }
             }
           },
@@ -258,11 +252,9 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             doubled: value_decl(:doubled,
-              call_expr(:multiply,
-                input_element_ref([:items, :value]),
-                literal(2)
-              )
-            )
+                                call_expr(:multiply,
+                                          input_element_ref(%i[items value]),
+                                          literal(2)))
           },
           input_metadata: {
             items: {
@@ -276,7 +268,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             vectorized_operations: {
               doubled: {
                 source: :nested_array_access,
-                path: [:items, :value]
+                path: %i[items value]
               }
             }
           },
@@ -302,8 +294,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
         {
           declarations: {
             total: value_decl(:total,
-              call_expr(:sum, input_element_ref([:data, :values]))
-            )
+                              call_expr(:sum, input_element_ref(%i[data values])))
           },
           input_metadata: {
             data: {
@@ -317,11 +308,11 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
             reduction_operations: {
               total: {
                 function: :sum,
-                argument: input_element_ref([:data, :values])
+                argument: input_element_ref(%i[data values])
               }
             }
           },
-          scope_plans: {}  # No scope plans available
+          scope_plans: {} # No scope plans available
         }
       end
 
@@ -339,7 +330,7 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
       let(:initial_state) do
         {
           declarations: {
-            values: value_decl(:values, input_element_ref([:items, :value])),
+            values: value_decl(:values, input_element_ref(%i[items value])),
             total: value_decl(:total, call_expr(:sum, declaration_ref(:values)))
           },
           input_metadata: {
@@ -402,23 +393,23 @@ RSpec.describe Kumi::Core::Analyzer::Passes::JoinReducePlanningPass do
   describe "error handling" do
     it "handles missing broadcasts gracefully" do
       result = run_pass({
-        declarations: {},
-        input_metadata: {}
-      })
+                          declarations: {},
+                          input_metadata: {}
+                        })
 
       expect(result[:join_reduce_plans]).to eq({})
     end
 
     it "requires declarations" do
-      expect {
+      expect do
         run_pass({ input_metadata: {} })
-      }.to raise_error(StandardError, /Required state key 'declarations' not found/)
+      end.to raise_error(StandardError, /Required state key 'declarations' not found/)
     end
 
     it "requires input_metadata" do
-      expect {
+      expect do
         run_pass({ declarations: {} })
-      }.to raise_error(StandardError, /Required state key 'input_metadata' not found/)
+      end.to raise_error(StandardError, /Required state key 'input_metadata' not found/)
     end
   end
 end

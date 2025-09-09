@@ -23,10 +23,10 @@ module Kumi
 
           def build_irv2_structure(irv2_module, input_plans, _errors)
             {
-              "version"      => IR_SCHEMA_VERSION,
-              "module"       => determine_module_name(irv2_module),
+              "version" => IR_SCHEMA_VERSION,
+              "module" => determine_module_name(irv2_module),
               "declarations" => build_declarations(irv2_module.declarations),
-              "analysis"     => build_analysis_section(input_plans, irv2_module.metadata)
+              "analysis" => build_analysis_section(input_plans, irv2_module.metadata)
             }
           end
 
@@ -44,10 +44,10 @@ module Kumi
 
           def build_declaration_structure(declaration)
             {
-              "name"        => declaration.name.to_s,
-              "parameters"  => build_parameters(declaration.parameters),
-              "operations"  => build_operations(declaration.operations, declaration.name),
-              "result"      => declaration.result.id
+              "name" => declaration.name.to_s,
+              "parameters" => build_parameters(declaration.parameters),
+              "operations" => build_operations(declaration.operations, declaration.name),
+              "result" => declaration.result.id
             }
           end
 
@@ -67,8 +67,8 @@ module Kumi
           def build_operations(operations, _current_decl_name)
             operations.map do |op|
               h = {
-                "id"   => op.id,
-                "op"   => op.op.to_s,
+                "id" => op.id,
+                "op" => op.op.to_s,
                 "args" => build_operation_args(op.args)
               }
               h["stamp"]       = op.stamp if op.stamp
@@ -100,12 +100,12 @@ module Kumi
           def build_canonical_inputs(input_plans)
             input_plans.map do |plan|
               result = {
-                "path_fqn"     => plan.path_fqn,
-                "axes"         => plan.axes.map(&:to_s),
-                "dtype"        => plan.dtype.to_s,
+                "path_fqn" => plan.path_fqn,
+                "axes" => plan.axes.map(&:to_s),
+                "dtype" => plan.dtype.to_s,
                 "navigation_steps" => plan.navigation_steps,
-                "key_policy"   => plan.key_policy.to_s,
-                "on_missing"   => plan.missing_policy.to_s,
+                "key_policy" => plan.key_policy.to_s,
+                "on_missing" => plan.missing_policy.to_s
               }
               stringify_deep(result)
             end

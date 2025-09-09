@@ -50,8 +50,8 @@ module SchemaGenerator
   end
 
   # Helper to create a schema with proper analysis and compilation
-  def create_schema(&block)
-    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
+  def create_schema(&)
+    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
     analyzer = Kumi::Analyzer.analyze!(syntax_tree)
     compiled = Kumi::Compiler.compile(syntax_tree, analyzer: analyzer)
 

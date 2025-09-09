@@ -92,30 +92,30 @@ module Kumi
             scope_plans.each do |name, scope_plan|
               # Skip if already processed
               next if plans.key?(name)
-              
+
               # Skip if no vectorized target scope
               next unless scope_plan.scope && !scope_plan.scope.empty?
-              
+
               # Skip if already vectorized (handled above)
               next if vectorized_ops.key?(name)
-              
+
               # Check if this scalar declaration needs broadcasting
-              if needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
-                debug_scalar_broadcast(name, scope_plan) if ENV["DEBUG_JOIN_REDUCE"]
-                
-                plan = Join.new(
-                  policy: :broadcast, # Use broadcast policy for scalar-to-vector
-                  target_scope: scope_plan.scope
-                )
+              next unless needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
 
-                plans[name] = plan
+              debug_scalar_broadcast(name, scope_plan) if ENV["DEBUG_JOIN_REDUCE"]
 
-                debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
-              end
+              plan = Join.new(
+                policy: :broadcast, # Use broadcast policy for scalar-to-vector
+                target_scope: scope_plan.scope
+              )
+
+              plans[name] = plan
+
+              debug_join_plan(name, plan) if ENV["DEBUG_JOIN_REDUCE"]
             end
           end
 
-          def get_source_scope(name, reduction_info, scope_plans, declarations, input_metadata)
+          def get_source_scope(_name, reduction_info, _scope_plans, declarations, input_metadata)
             # Always infer from the reduction argument - this is the full dimensional scope
             infer_scope_from_argument(reduction_info[:argument], declarations, input_metadata)
           end
@@ -221,21 +221,19 @@ module Kumi
             dims
           end
 
-          def needs_scalar_to_vector_broadcast?(name, scope_plan, declarations, vectorized_ops)
+          def needs_scalar_to_vector_broadcast?(name, _scope_plan, declarations, vectorized_ops)
             # Check if this scalar declaration is referenced by any vectorized operation
             # that requires it to be broadcast to a vectorized scope
-            
+
             # Look for vectorized operations that reference this declaration
-            vectorized_ops.each do |vec_name, vec_info|
+            vectorized_ops.each do |vec_name, _vec_info|
               vec_decl = declarations[vec_name]
               next unless vec_decl
-              
+
               # Check if this vectorized operation references our scalar declaration
-              if declaration_references?(vec_decl.expression, name)
-                return true
-              end
+              return true if declaration_references?(vec_decl.expression, name)
             end
-            
+
             false
           end
 
@@ -248,7 +246,7 @@ module Kumi
             when Kumi::Syntax::CascadeExpression
               expr.cases.any? do |case_expr|
                 declaration_references?(case_expr.condition, target_name) ||
-                declaration_references?(case_expr.result, target_name)
+                  declaration_references?(case_expr.result, target_name)
               end
             when Kumi::Syntax::ArrayExpression
               expr.elements.any? { |elem| declaration_references?(elem, target_name) }

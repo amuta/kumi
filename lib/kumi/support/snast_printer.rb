@@ -56,7 +56,7 @@ module Kumi
         when NAST::Select
           stamp_str = format_stamp(node.meta[:stamp])
           header = "(Select"
-          cond  = format_concise(node.cond,     indent_level + 1)
+          cond = format_concise(node.cond, indent_level + 1)
           tbranch = format_concise(node.on_true,  indent_level + 1)
           fbranch = format_concise(node.on_false, indent_level + 1)
           "#{indent}#{header}\n#{cond}\n#{tbranch}\n#{fbranch}\n#{indent}) #{stamp_str}"
@@ -74,7 +74,7 @@ module Kumi
 
         when NAST::InputRef
           stamp_str = format_stamp(node.meta[:stamp])
-          key_chain_str = " key_chain=[#{node.key_chain.join(", ")}]"
+          key_chain_str = " key_chain=[#{node.key_chain.join(', ')}]"
           "#{indent}(InputRef #{node.path_fqn}#{key_chain_str}) #{stamp_str}"
 
         when NAST::Ref
@@ -94,6 +94,7 @@ module Kumi
 
       def format_stamp(stamp)
         return "" unless stamp
+
         axes = Array(stamp[:axes]).map(&:to_s).join(", ")
         ":: [#{axes}] -> #{stamp[:dtype]}"
       end

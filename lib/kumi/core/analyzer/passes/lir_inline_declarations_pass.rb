@@ -16,28 +16,52 @@ module Kumi
         # Input : state[:lir_ops_by_decl]
         # Output: state.with(:lir_fused_ops_by_decl, fused_ops)
         class LIRInlineDeclarationsPass < PassBase
-          LIR   = Kumi::Core::LIR
+          LIR        = Kumi::Core::LIR
+          MAX_PASSES = 30
 
-          def run(errors)
-            @ops_by_decl = get_state(:lir_ops_by_decl, required: true)
-            @ids         = LIR::Ids.new
+          def run(_errors)
+            current_ops = get_state(:lir_ops_by_decl)
+            @ids        = LIR::Ids.new # Use a single ID generator for the entire process.
 
-            # Pre-scan each decl to capture Γ info (start index, axes, and axis regs).
-            @gamma = {}
-            @ops_by_decl.each do |name, payload|
-              ops = Array(payload[:operations])
-              @gamma[name] = detect_gamma(ops)
+            MAX_PASSES.times do
+              new_ops, changed = run_one_pass(current_ops)
+
+              unless changed
+                # Success: converged.
+                return state.with(:lir_fused_ops_by_decl, new_ops.freeze)
+              end
+
+              current_ops = new_ops
             end
 
-            fused = {}
-            @ops_by_decl.each do |name, payload|
-              fused[name] = { operations: inline_decl(name, Array(payload[:operations])) }
-            end
-
-            state.with(:lir_fused_ops_by_decl, fused.freeze)
+            raise "LIR inlining did not converge after #{MAX_PASSES} passes."
           end
 
           private
+
+          # Performs a single pass of inlining over all declarations.
+          # Returns [new_ops_by_decl, changed_flag]
+          def run_one_pass(ops_by_decl)
+            @ops_by_decl = ops_by_decl # Set instance var for helpers to use
+            @gamma       = detect_all_gammas(@ops_by_decl)
+
+            changed = false
+            fused = {}
+            @ops_by_decl.each do |name, payload|
+              original_ops = Array(payload[:operations])
+              inlined_ops = inline_decl(name, original_ops)
+              fused[name] = { operations: inlined_ops }
+              changed ||= (inlined_ops != original_ops)
+            end
+
+            [fused, changed]
+          end
+
+          def detect_all_gammas(ops_by_decl)
+            ops_by_decl.transform_values do |payload|
+              detect_gamma(Array(payload[:operations]))
+            end
+          end
 
           GammaInfo = Struct.new(:start_idx, :axes, :axis_regs, keyword_init: true)
 
@@ -53,8 +77,8 @@ module Kumi
               when :LoopStart
                 frames << {
                   axis: ins.attributes[:axis],
-                  el:   ins.attributes[:as_element],
-                  idx:  ins.attributes[:as_index]
+                  el: ins.attributes[:as_element],
+                  idx: ins.attributes[:as_index]
                 }
               when :LoopEnd
                 frames.pop
@@ -87,6 +111,7 @@ module Kumi
                 end
               end
               raise "callee #{callee_name} has no Yield" unless yielded
+
               return [inner, yielded, []]
             end
 
@@ -122,42 +147,45 @@ module Kumi
                 # drop the yield itself
 
               else
-                # Keep instructions only if we are inside some loop (i.e., inside Γ region).
-                # This skips prologue before the first Γ open.
+                # Only keep instructions if we are inside a non-stripped, inner loop.
                 inner << ins unless kind_stack.empty?
               end
             end
 
             raise "callee #{callee_name} has no Yield" unless yielded
+
             [inner, yielded, info.axis_regs]
           end
-
 
           # Per-caller environment: track current loop stack with axis + element/index regs
           class Env
             def initialize
               @frames = []
             end
+
             def axes = @frames.map { _1[:axis] }
+
             def push(loop_ins)
               @frames << {
                 axis: loop_ins.attributes[:axis],
-                el:   loop_ins.attributes[:as_element],
-                idx:  loop_ins.attributes[:as_index]
+                el: loop_ins.attributes[:as_element],
+                idx: loop_ins.attributes[:as_index]
               }
             end
+
             def pop = @frames.pop
+
             def reg_for_axis(axis)
               @frames.reverse.find { _1[:axis] == axis } ||
                 raise("no element for #{axis}")
             end
           end
 
-          # Inline every eligible LoadDeclaration inside a single declaration body.
           def inline_decl(_decl_name, ops)
-            out    = []
-            env    = Env.new
-            rename = {} # reg -> reg
+            out      = []
+            env      = Env.new
+            reg_map  = {} # Master map for all freshened registers in this scope.
+            rename   = {} # Maps LoadDeclaration result to inlined result.
             i = 0
 
             while i < ops.length
@@ -165,18 +193,17 @@ module Kumi
               case ins.opcode
               when :LoopStart
                 env.push(ins)
-                out << rewrite(ins, rename)
+                out << rewrite(ins, reg_map, rename)
               when :LoopEnd
                 env.pop
-                out << rewrite(ins, rename)
+                out << rewrite(ins, reg_map, rename)
               when :LoadDeclaration
-                callee = (ins.immediates&.first&.value).to_sym
+                callee = ins.immediates&.first&.value&.to_sym
                 decl_axes = ins.attributes&.fetch(:axes) { raise "LoadDeclaration #{callee} missing :axes" }
                 site_axes = env.axes
-                if site_axes == Array(decl_axes)
+                if prefix?(Array(decl_axes), site_axes)
                   body_ops, yielded_reg, callee_axis_regs = inline_callee_core(callee)
 
-                  # Map callee loop regs → caller loop regs by axis
                   axis_remap = {}
                   callee_axis_regs.each do |r|
                     caller = env.reg_for_axis(r[:axis])
@@ -184,21 +211,20 @@ module Kumi
                     axis_remap[r[:idx]] = caller[:idx]
                   end
 
-                  # Freshen internal regs/accs; apply axis pre-map first
-                  reg_map, _acc_map, fresh_ops = freshen(body_ops, pre_map: axis_remap)
+                  # Pass the master reg_map to be updated.
+                  _acc_map, fresh_ops = freshen(body_ops, reg_map, pre_map: axis_remap)
 
                   out.concat(fresh_ops)
 
-                  # The LoadDeclaration's result becomes the inlined yielded reg
                   if ins.result_register
                     mapped = reg_map.fetch(yielded_reg, axis_remap.fetch(yielded_reg, yielded_reg))
                     rename[ins.result_register] = mapped
                   end
                 else
-                  out << rewrite(ins, rename)
+                  out << rewrite(ins, reg_map, rename)
                 end
               else
-                out << rewrite(ins, rename)
+                out << rewrite(ins, reg_map, rename)
               end
               i += 1
             end
@@ -208,67 +234,65 @@ module Kumi
 
           # Freshen registers and accumulator names in a block.
           # pre_map: reg -> reg (applied to inputs before fresh mapping)
-          # Returns [reg_map, acc_map, new_ops]
-          def freshen(block_ops, pre_map: {})
-            reg_map = {}
+          # reg_map: The master register map to update.
+          # Returns [acc_map, new_ops]
+          def freshen(block_ops, reg_map, pre_map: {})
             acc_map = {}
 
             new_ops = block_ops.map do |ins|
-              # result register freshening
               res = ins.result_register
+              # Use and update the shared reg_map.
               reg_map[res] ||= @ids.generate_temp if res
 
-              # inputs: first apply pre_map (axis-reg remap), then new reg_map
               new_inputs = Array(ins.inputs).map do |r|
                 r1 = pre_map.fetch(r, r)
                 reg_map.fetch(r1, r1)
               end
 
-              # attributes (accumulators, loop ids, etc.)
               attrs = (ins.attributes || {}).dup
               case ins.opcode
-              when :DeclareAccumulator
-                name = attrs[:name]
+              when :DeclareAccumulator, :Accumulate, :LoadAccumulator
+                name_key = ins.opcode == :Accumulate ? :accumulator : :name
+                name = attrs[name_key]
                 acc_map[name] ||= :"#{name}_#{@ids.generate_temp.to_s.sub(/^t/, '')}"
-                attrs[:name] = acc_map[name]
-              when :Accumulate
-                name = attrs[:accumulator]
-                acc_map[name] ||= :"#{name}_#{@ids.generate_temp.to_s.sub(/^t/, '')}"
-                attrs[:accumulator] = acc_map[name]
-              when :LoadAccumulator
-                name = attrs[:name]
-                acc_map[name] ||= :"#{name}_#{@ids.generate_temp.to_s.sub(/^t/, '')}"
-                attrs[:name] = acc_map[name]
+                attrs[name_key] = acc_map[name]
               when :LoopStart
                 attrs[:id] = @ids.generate_loop_id
               end
 
               LIR::Instruction.new(
-                opcode:          ins.opcode,
+                opcode: ins.opcode,
                 result_register: res ? reg_map[res] : nil,
-                stamp:           ins.stamp,
-                inputs:          new_inputs,
-                immediates:      ins.immediates,
-                attributes:      attrs,
-                location:        ins.location
+                stamp: ins.stamp,
+                inputs: new_inputs,
+                immediates: ins.immediates,
+                attributes: attrs,
+                location: ins.location
               )
             end
 
-            [reg_map, acc_map, new_ops]
+            [acc_map, new_ops]
           end
 
           # Apply simple register renames to a single instruction
-          def rewrite(ins, rename)
+          def rewrite(ins, _reg_map, rename) # reg_map is unused here for now, but signature matches
+            # Only use the `rename` map, which maps caller-scope registers
+            # (%t7) to their final inlined values.
             new_inputs = Array(ins.inputs).map { |r| rename.fetch(r, r) }
             LIR::Instruction.new(
-              opcode:          ins.opcode,
-              result_register: rename.fetch(ins.result_register, ins.result_register),
-              stamp:           ins.stamp,
-              inputs:          new_inputs,
-              immediates:      ins.immediates,
-              attributes:      ins.attributes,
-              location:        ins.location
+              opcode: ins.opcode,
+              # A result register of a non-inlined instruction should not be renamed.
+              result_register: ins.result_register,
+              stamp: ins.stamp,
+              inputs: new_inputs,
+              immediates: ins.immediates,
+              attributes: ins.attributes,
+              location: ins.location
             )
+          end
+
+          def prefix?(pre, full)
+            pre.each_with_index.all? { |tok, i| full[i] == tok }
           end
         end
       end

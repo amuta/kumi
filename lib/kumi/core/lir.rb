@@ -19,12 +19,12 @@ module Kumi
         TupleGet
         Yield
       ].freeze
-      
+
       # Re-exports for stable API
       Stamp       = Structs::Stamp
       Literal     = Structs::Literal
       Instruction = Structs::Instruction
-      
+
       # Re-export support classes
       Ids   = Support::Ids
       Error = Support::Error

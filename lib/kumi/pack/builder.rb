@@ -59,7 +59,7 @@ module Kumi
         [irv2, planning, bindings, inputs, module_id]
       end
 
-      def assemble_pack(module_id, ir, planning, bindings, inputs, targets, include_ir)
+      def assemble_pack(module_id, ir, planning, bindings, inputs, _targets, include_ir)
         plan_obj = planning["plan"] || planning
         plan_declarations = plan_obj["declarations"] || {}
 
@@ -125,18 +125,18 @@ module Kumi
       end
 
       def extract_inputs(input_table)
-        # input_table is already in the new format with navigation_steps  
+        # input_table is already in the new format with navigation_steps
         input_table.map do |entry|
           path_fqn = entry.path_fqn
           navigation_steps = stringify_keys(entry.navigation_steps)
-          
+
           {
             "name" => path_fqn,
             "path_fqn" => path_fqn,
             "axes" => entry.axes.map(&:to_s),
             "dtype" => entry.dtype.to_s,
             "accessor_name" => accessor_name_for(path_fqn),
-            "navigation_steps" => navigation_steps,
+            "navigation_steps" => navigation_steps
           }
         end
       end
@@ -156,7 +156,7 @@ module Kumi
           # Format the implementation as proper Ruby lambda
           ruby_impl = format_ruby_lambda(impl)
 
-          result = {
+          {
             "kernel_id" => fn_name,
             "impl" => ruby_impl,
             "attrs" => attrs

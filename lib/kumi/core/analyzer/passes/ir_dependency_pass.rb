@@ -13,7 +13,7 @@ module Kumi
         # NOTE: This pass extracts actual IR-level dependencies by analyzing :ref operations
         # in the generated IR, providing the dependency information needed for optimized VM scheduling.
         class IRDependencyPass < PassBase
-          def run(errors)
+          def run(_errors)
             ir_module = get_state(:ir_module, required: true)
 
             ir_dependencies = build_ir_dependency_map(ir_module)

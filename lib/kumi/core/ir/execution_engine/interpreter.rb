@@ -218,7 +218,7 @@ module Kumi
 
                   src = slots[op.args[0]]
                   result_scope = op.attrs[:result_scope]
-                  axis         = op.attrs[:axis]
+                  op.attrs[:axis]
 
                   if result_scope.empty?
                     # === GLOBAL REDUCE ===

@@ -75,6 +75,9 @@ when "golden"
   when "test"
     Kumi::Dev::Golden.update!(name) 
     exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
+  when "test_lir"
+    Kumi::Dev::Golden.update!(name)
+    exit(Kumi::Dev::Golden.test_lir_codegen!(name) ? 0 : 1)
   else
     abort "kumi golden <list|update|verify|diff|test>"
   end

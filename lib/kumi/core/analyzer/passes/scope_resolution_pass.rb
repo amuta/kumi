@@ -18,7 +18,7 @@ module Kumi
             input_metadata = get_state(:input_metadata, required: true)
             broadcasts = get_state(:broadcasts) || {}
             dependencies = get_state(:dependencies) || {}
-            
+
             puts "Available dependencies: #{dependencies.keys.inspect}" if ENV["DEBUG_SCOPE_RESOLUTION"]
 
             scope_plans = {}
@@ -82,55 +82,57 @@ module Kumi
               end
             end
 
-            if anchor_scope && !anchor_scope.empty?
-              declaration_refs.each do |ref_name|
-                current_scope = scopes[ref_name] || []
-                if anchor_scope.length > current_scope.length
-                  puts "Propagating scope #{anchor_scope} to #{ref_name} (was #{current_scope})" if ENV["DEBUG_SCOPE_RESOLUTION"]
-                  scopes[ref_name] = anchor_scope
-                  propagate_to_dependencies(ref_name, anchor_scope, scopes, declarations, input_metadata)
-                end
-              end
+            return unless anchor_scope && !anchor_scope.empty?
+
+            declaration_refs.each do |ref_name|
+              current_scope = scopes[ref_name] || []
+              next unless anchor_scope.length > current_scope.length
+
+              puts "Propagating scope #{anchor_scope} to #{ref_name} (was #{current_scope})" if ENV["DEBUG_SCOPE_RESOLUTION"]
+              scopes[ref_name] = anchor_scope
+              propagate_to_dependencies(ref_name, anchor_scope, scopes, declarations, input_metadata)
             end
           end
 
           def propagate_from_cascade_expression(name, cascade_expr, scopes, declarations, input_metadata)
             puts "Analyzing cascade expression in #{name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
-            
+
             # Cascade should propagate its own scope to condition dependencies
             cascade_scope = scopes[name] || []
             return if cascade_scope.empty?
-            
+
             puts "Propagating cascade scope #{cascade_scope} to condition dependencies" if ENV["DEBUG_SCOPE_RESOLUTION"]
-            
+
             cascade_expr.cases.each do |case_expr|
               find_declaration_references(case_expr.condition).each do |ref_name|
                 current_scope = scopes[ref_name] || []
-                if cascade_scope.length > current_scope.length
-                  puts "Propagating scope #{cascade_scope} to cascade condition #{ref_name} (was #{current_scope})" if ENV["DEBUG_SCOPE_RESOLUTION"]
-                  scopes[ref_name] = cascade_scope
-                  propagate_to_dependencies(ref_name, cascade_scope, scopes, declarations, input_metadata)
+                next unless cascade_scope.length > current_scope.length
+
+                if ENV["DEBUG_SCOPE_RESOLUTION"]
+                  puts "Propagating scope #{cascade_scope} to cascade condition #{ref_name} (was #{current_scope})"
                 end
+                scopes[ref_name] = cascade_scope
+                propagate_to_dependencies(ref_name, cascade_scope, scopes, declarations, input_metadata)
               end
             end
           end
 
           def propagate_to_dependencies(decl_name, required_scope, scopes, declarations, input_metadata)
             return unless declarations[decl_name]
-            
+
             decl = declarations[decl_name]
             puts "Propagating #{required_scope} into dependencies of #{decl_name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
-            
+
             case decl.expression
             when Kumi::Syntax::CascadeExpression
               decl.expression.cases.each do |case_expr|
                 find_declaration_references(case_expr.condition).each do |ref_name|
                   current_scope = scopes[ref_name] || []
-                  if required_scope.length > current_scope.length
-                    puts "Propagating scope #{required_scope} to trait dependency #{ref_name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
-                    scopes[ref_name] = required_scope
-                    update_reduction_scope_if_needed(ref_name, required_scope, declarations, input_metadata)
-                  end
+                  next unless required_scope.length > current_scope.length
+
+                  puts "Propagating scope #{required_scope} to trait dependency #{ref_name}" if ENV["DEBUG_SCOPE_RESOLUTION"]
+                  scopes[ref_name] = required_scope
+                  update_reduction_scope_if_needed(ref_name, required_scope, declarations, input_metadata)
                 end
               end
             end
@@ -149,9 +151,10 @@ module Kumi
             refs
           end
 
-          def update_reduction_scope_if_needed(decl_name, required_scope, declarations, input_metadata)
+          def update_reduction_scope_if_needed(decl_name, required_scope, declarations, _input_metadata)
             decl = declarations[decl_name]
             return unless decl
+
             puts "Checking if #{decl_name} needs reduction scope update for #{required_scope}" if ENV["DEBUG_SCOPE_RESOLUTION"]
           end
 
@@ -206,7 +209,7 @@ module Kumi
             red = broadcasts.dig(:reduction_operations, name)
             if red
               puts "Reduction info: #{red.inspect}" if ENV["DEBUG_SCOPE_RESOLUTION"]
-              
+
               # Infer the natural scope for this reduction
               # For expressions like fn(:any?, input.players.score_matrices.session.points > 1000)
               # we want to reduce over session dimension but preserve the players dimension
@@ -215,7 +218,7 @@ module Kumi
               return scope
             end
 
-            return []
+            []
           end
 
           def infer_reduction_target_scope(expr, input_metadata)
@@ -229,11 +232,11 @@ module Kumi
                 if arg
                   # Get the full scope from the argument
                   full_scope = infer_scope_from_argument(arg, input_metadata)
-                  
+
                   # For array reductions, we typically want to preserve
                   # the outermost dimension (e.g., keep :players, reduce :score_matrices/:session)
                   if full_scope.length > 1
-                    return full_scope[0..0]  # Keep only the first dimension
+                    return full_scope[0..0] # Keep only the first dimension
                   end
                 end
               else
@@ -241,7 +244,7 @@ module Kumi
                 # This handles cases like (fn(:sum, ...) >= 3500)
                 expr.args.each do |arg|
                   nested_scope = infer_reduction_target_scope(arg, input_metadata)
-                  return nested_scope if !nested_scope.empty?
+                  return nested_scope unless nested_scope.empty?
                 end
               end
             end

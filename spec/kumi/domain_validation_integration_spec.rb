@@ -135,7 +135,7 @@ RSpec.describe "Domain Validation Integration" do
       let(:email_schema) do
         create_schema do
           input do
-            key :email, type: :string, domain: ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i) }
+            key :email, type: :string, domain: ->(v) { v.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i) }
           end
 
           trait :valid_email, input.email, :!=, ""

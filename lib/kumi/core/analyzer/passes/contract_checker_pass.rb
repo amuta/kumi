@@ -151,7 +151,9 @@ module Kumi
 
             # Check that all referenced paths exist in input table
             referenced_paths.each do |path|
-              errors << "SNAST references undefined input path: #{path.inspect}" unless input_table.find{|imp| imp.path_fqn == path.join(".")}
+              errors << "SNAST references undefined input path: #{path.inspect}" unless input_table.find do |imp|
+                imp.path_fqn == path.join(".")
+              end
             end
           end
 
@@ -181,16 +183,12 @@ module Kumi
           def validate_evaluation_order_consistency(snast_module, evaluation_order, errors)
             # Ensure all declarations in evaluation order exist in SNAST module
             evaluation_order.each do |decl_name|
-              unless snast_module.decls.key?(decl_name)
-                errors << "Declaration #{decl_name} from evaluation order not found in SNAST module"
-              end
+              errors << "Declaration #{decl_name} from evaluation order not found in SNAST module" unless snast_module.decls.key?(decl_name)
             end
 
             # Ensure all SNAST declarations are included in evaluation order
             snast_module.decls.keys.each do |decl_name|
-              unless evaluation_order.include?(decl_name)
-                errors << "Declaration #{decl_name} in SNAST module not found in evaluation order"
-              end
+              errors << "Declaration #{decl_name} in SNAST module not found in evaluation order" unless evaluation_order.include?(decl_name)
             end
           end
 
@@ -215,7 +213,6 @@ module Kumi
               node.args.each { |arg| validate_node_metadata_requirements(decl_name, arg, errors) } if node.respond_to?(:args)
             end
           end
-
         end
       end
     end

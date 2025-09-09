@@ -2,7 +2,7 @@
 
 module ComparisonSugar
   extend Kumi::Schema
-  
+
   schema do
     input do
       integer :age

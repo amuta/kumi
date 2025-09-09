@@ -53,7 +53,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
 
       it "executes load_input for scalar" do
         accessors = {
-          "x:read" => ->(ctx) { 5 }
+          "x:read" => ->(_ctx) { 5 }
         }
 
         ir =
@@ -74,7 +74,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
     context "with vector operations" do
       it "executes load_input for vector with indices" do
         accessors = {
-          "items:each_indexed" => ->(ctx) { [[10, [0]], [20, [1]], [30, [2]]] }
+          "items:each_indexed" => ->(_ctx) { [[10, [0]], [20, [1]], [30, [2]]] }
         }
 
         ir =
@@ -97,7 +97,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
 
       it "executes vector map operation" do
         accessors = {
-          "items:each_indexed" => ->(ctx) { [[2, [0]], [3, [1]]] }
+          "items:each_indexed" => ->(_ctx) { [[2, [0]], [3, [1]]] }
         }
 
         ir =
@@ -116,8 +116,8 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
 
       it "broadcasts scalar over vector in map" do
         accessors = {
-          "items.price:each_indexed" => ->(ctx) { [[100.0, [0]], [200.0, [1]]] },
-          "tax_rate:read" => ->(ctx) { 1.1 }
+          "items.price:each_indexed" => ->(_ctx) { [[100.0, [0]], [200.0, [1]]] },
+          "tax_rate:read" => ->(_ctx) { 1.1 }
         }
 
         ir =
@@ -141,7 +141,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
     context "with reduce operations" do
       it "reduces vector to scalar" do
         accessors = {
-          "items:ravel" => ->(ctx) { [10, 20, 30] }
+          "items:ravel" => ->(_ctx) { [10, 20, 30] }
         }
 
         ir =
@@ -161,7 +161,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
     context "with lift operations" do
       it "lifts vector to nested structure" do
         accessors = {
-          "matrix:each_indexed" => lambda { |ctx|
+          "matrix:each_indexed" => lambda { |_ctx|
             [[1, [0, 0]], [2, [0, 1]], [3, [1, 0]], [4, [1, 1]]]
           }
         }
@@ -202,7 +202,7 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
 
       it "creates vector array from mixed scalar and vector" do
         accessors = {
-          "items:each_indexed" => ->(ctx) { [[10, [0]], [20, [1]]] }
+          "items:each_indexed" => ->(_ctx) { [[10, [0]], [20, [1]]] }
         }
 
         ir =
@@ -276,10 +276,10 @@ RSpec.describe Kumi::Core::IR::ExecutionEngine::Interpreter do
     context "with align_to operations" do
       it "aligns vectors by prefix" do
         accessors = {
-          "matrix:each_indexed" => lambda { |ctx|
+          "matrix:each_indexed" => lambda { |_ctx|
             [[nil, [0, 0]], [nil, [0, 1]], [nil, [1, 0]]]
           },
-          "row_sums:each_indexed" => lambda { |ctx|
+          "row_sums:each_indexed" => lambda { |_ctx|
             [[10, [0]], [20, [1]]]
           }
         }

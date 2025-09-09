@@ -33,15 +33,15 @@ module Kumi
         instructions.each do |ins|
           case ins.opcode
           when :LoopStart
-            out << "  " * indent
+            out << ("  " * indent)
             out << loop_start_line(ins) << nl(ins)
             indent += 1
           when :LoopEnd
             indent -= 1
-            out << "  " * indent
+            out << ("  " * indent)
             out << "end_loop" << nl(ins)
           else
-            out << "  " * indent
+            out << ("  " * indent)
             out << instr_line(ins) << nl(ins)
           end
         end
@@ -71,7 +71,7 @@ module Kumi
           fn = ins.attributes[:fn]
           "#{res}call #{fn}(#{list(ins.inputs)})#{stamp(ins)}"
         when :Select
-          c,t,f = ins.inputs
+          c, t, f = ins.inputs
           "#{res}select #{fmt_reg(c)}, #{fmt_reg(t)}, #{fmt_reg(f)}#{stamp(ins)}"
         when :DeclareAccumulator
           name = ins.attributes[:name]
@@ -89,7 +89,7 @@ module Kumi
           "#{res}make_tuple(#{list(ins.inputs)})#{stamp(ins)}"
         when :MakeObject
           keys = (ins.immediates || []).map { |l| l.value }
-          pairs = keys.zip(ins.inputs || []).map { |k,r| "#{k}: #{fmt_reg(r)}" }.join(", ")
+          pairs = keys.zip(ins.inputs || []).map { |k, r| "#{k}: #{fmt_reg(r)}" }.join(", ")
           "#{res}make_object{#{pairs}}#{stamp(ins)}"
         when :TupleGet
           idx = ins.immediates&.first&.value
@@ -117,11 +117,13 @@ module Kumi
 
       def stamp(ins)
         return "" unless @show_stamps && ins.stamp
+
         " :: #{ins.stamp.dtype}"
       end
 
       def nl(ins)
         return "\n" unless @show_locations && ins.location
+
         loc = ins.location
         "  ; #{loc.file}:#{loc.line}:#{loc.column}\n"
       end
@@ -131,7 +133,7 @@ module Kumi
       def fmt_lit(l) = l ? l.value.inspect : "nil"
       def list(arr)  = Array(arr).map { fmt_reg(_1) }.join(", ")
       def only(arr)  = Array(arr).first
-      def fmt_attrs(h) = h && !h.empty? ? " #{h.map { |k,v| "#{k}=#{v.inspect}" }.join(' ')}" : ""
+      def fmt_attrs(h) = h && !h.empty? ? " #{h.map { |k, v| "#{k}=#{v.inspect}" }.join(' ')}" : ""
       def fmt_imms(imm) = imm && !imm.empty? ? " [#{imm.map { |l| fmt_lit(l) }.join(', ')}]" : ""
 
       def self.indent(str, n)

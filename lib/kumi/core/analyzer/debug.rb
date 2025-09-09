@@ -8,14 +8,14 @@ module Kumi
     module Analyzer
       module Debug
         KEY = :kumi_debug_log
-        
+
         class << self
           def enabled?
             ENV["KUMI_DEBUG_STATE"] == "1"
           end
 
           def output_path
-            ENV["KUMI_DEBUG_OUTPUT_PATH"]
+            ENV.fetch("KUMI_DEBUG_OUTPUT_PATH", nil)
           end
 
           def max_depth
@@ -65,21 +65,20 @@ module Kumi
 
           def trace(id, **start_fields)
             t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-            info("#{id}_start".to_sym, **start_fields)
-            yield.tap do |ret|
+            info(:"#{id}_start", **start_fields)
+            yield.tap do |_ret|
               dt = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
-              info("#{id}_finish".to_sym, ms: dt)
-              ret
+              info(:"#{id}_finish", ms: dt)
             end
-          rescue => e
-            log(level: :error, id: "#{id}_error".to_sym, error: e.class.name, message: e.message)
+          rescue StandardError => e
+            log(level: :error, id: :"#{id}_error", error: e.class.name, message: e.message)
             raise
           end
 
           # State diffing
           def diff_state(before, after)
             changes = {}
-            
+
             all_keys = (before.keys + after.keys).uniq
             all_keys.each do |key|
               if !before.key?(key)
@@ -94,7 +93,7 @@ module Kumi
                 }
               end
             end
-            
+
             changes
           end
 
@@ -107,7 +106,7 @@ module Kumi
               diff: diff,
               logs: logs
             }
-            
+
             if output_path && !output_path.empty?
               File.open(output_path, "a") { |f| f.puts(JSON.dump(payload)) }
             else
@@ -120,7 +119,7 @@ module Kumi
 
           def truncate(value, depth = max_depth)
             return value if depth <= 0
-            
+
             case value
             when Hash
               if value.size > max_items
@@ -144,7 +143,6 @@ module Kumi
               value
             end
           end
-
         end
 
         # Mixin for passes
@@ -157,8 +155,8 @@ module Kumi
             Debug.debug(id, method: __method__, **fields)
           end
 
-          def trace(id, **fields, &block)
-            Debug.trace(id, **fields, &block)
+          def trace(id, **fields, &)
+            Debug.trace(id, **fields, &)
           end
         end
       end

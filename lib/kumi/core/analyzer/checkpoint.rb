@@ -17,26 +17,32 @@ module Kumi
           def dir         = ENV["KUMI_CHECKPOINT_DIR"]    || "tmp/analysis_snapshots"
           def phases      = (ENV["KUMI_CHECKPOINT_PHASE"] || "before,after").split(",").map! { _1.strip.downcase.to_sym }
           def formats     = (ENV["KUMI_CHECKPOINT_FORMAT"] || "marshal").split(",").map! { _1.strip.downcase } # marshal|json|both
-          def resume_from = ENV["KUMI_RESUME_FROM"] # file path (.msh or .json)
-          def resume_at   = ENV["KUMI_RESUME_AT"]   # pass short name
-          def stop_after  = ENV["KUMI_STOP_AFTER"]  # pass short name
+          def resume_from = ENV.fetch("KUMI_RESUME_FROM", nil) # file path (.msh or .json)
+          def resume_at   = ENV.fetch("KUMI_RESUME_AT", nil)   # pass short name
+          def stop_after  = ENV.fetch("KUMI_STOP_AFTER", nil)  # pass short name
 
           # ===== Lifecycle (called by analyzer) =====
           def load_initial_state(default_state)
             path = resume_from
             return default_state unless path && File.exist?(path)
+
             data = File.binread(path)
-            path.end_with?(".msh") ? StateSerde.load_marshal(data)
-                                   : StateSerde.load_json(data)
+            if path.end_with?(".msh")
+              StateSerde.load_marshal(data)
+            else
+              StateSerde.load_json(data)
+            end
           end
 
           def entering(pass_name:, idx:, state:)
             return unless enabled?
+
             snapshot(pass_name:, idx:, phase: :before, state:) if phases.include?(:before)
           end
 
           def leaving(pass_name:, idx:, state:)
             return unless enabled?
+
             snapshot(pass_name:, idx:, phase: :after, state:) if phases.include?(:after)
           end
 
@@ -59,9 +65,7 @@ module Kumi
             end
 
             # Fold checkpoint info into the same per-pass logs the Debugger uses.
-            if Core::Analyzer::Debug.enabled?
-              Core::Analyzer::Debug.info(:checkpoint, phase:, idx:, files:)
-            end
+            Core::Analyzer::Debug.info(:checkpoint, phase:, idx:, files:) if Core::Analyzer::Debug.enabled?
 
             files
           end

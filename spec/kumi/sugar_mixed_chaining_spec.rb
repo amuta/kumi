@@ -2,7 +2,7 @@
 
 module MixedChainingSugar
   extend Kumi::Schema
-  
+
   schema do
     input do
       float :base_salary

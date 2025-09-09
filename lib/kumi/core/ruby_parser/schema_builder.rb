@@ -28,7 +28,7 @@ module Kumi
           build_positional_trait(args)
         end
 
-        def input(&blk)
+        def input(&)
           return InputProxy.new(@context) unless block_given?
 
           raise_syntax_error("input block already defined", location: @context.current_location) if @context.input_block_defined?
@@ -36,7 +36,7 @@ module Kumi
 
           update_location
           input_builder = InputBuilder.new(@context)
-          input_builder.instance_eval(&blk)
+          input_builder.instance_eval(&)
         end
 
         def ref(name)
@@ -63,7 +63,7 @@ module Kumi
           Kumi::Syntax::CallExpression.new(:__select__, [condition_expr, true_expr, false_expr], loc: @context.current_location)
         end
 
-        def method_missing(method_name, *args, &block)
+        def method_missing(method_name, *args, &)
           if args.empty? && !block_given?
             update_location
             # Create proxy for declaration references (traits/values)
@@ -167,10 +167,10 @@ module Kumi
           raise_syntax_error("unsupported operator `#{operator}`", location: @context.current_location)
         end
 
-        def build_cascade(&blk)
+        def build_cascade(&)
           expression_converter = ExpressionConverter.new(@context)
           cascade_builder = DslCascadeBuilder.new(expression_converter, @context.current_location)
-          cascade_builder.instance_eval(&blk)
+          cascade_builder.instance_eval(&)
           Kumi::Syntax::CascadeExpression.new(cascade_builder.cases, loc: @context.current_location)
         end
 

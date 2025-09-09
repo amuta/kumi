@@ -23,8 +23,8 @@
   %t14 = const "y positive" :: string
   %t15 = const "neither positive" :: string
   %t16 = select %t3, %t14, %t15 :: string
-  %t17 = select %t6, %t3, %t16 :: string
-  %t18 = select %t6, %t1, %t17 :: string
+  %t17 = select %t6, %t12, %t16 :: string
+  %t18 = select %t9, %t10, %t17 :: string
   yield %t18
   )
 )

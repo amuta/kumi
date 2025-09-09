@@ -5,6 +5,7 @@ RSpec.describe "Type System Integration" do
     it "infers types for literal values" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :int_val, 42
           value :float_val, 3.14
@@ -24,6 +25,7 @@ RSpec.describe "Type System Integration" do
     it "uses annotated field types" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           input do
             key :age, type: Kumi::Core::Types::INT
@@ -40,6 +42,7 @@ RSpec.describe "Type System Integration" do
     it "infers function return types" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :sum, fn(:add, 10, 20)
           value :comparison, fn(:>, 5, 3)
@@ -57,6 +60,7 @@ RSpec.describe "Type System Integration" do
     it "infers array types" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :numbers, [1, 2, 3]
           value :strings, %w[a b c]
@@ -74,6 +78,7 @@ RSpec.describe "Type System Integration" do
     it "propagates types through references" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :base_amount, 1000
           value :tax_rate, 0.08
@@ -131,6 +136,7 @@ RSpec.describe "Type System Integration" do
     it "handles nested function calls" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :nested, fn(:add, fn(:multiply, 2, 3), fn(:subtract, 10, 5))
         end
@@ -143,6 +149,7 @@ RSpec.describe "Type System Integration" do
     it "handles list operations" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :numbers, [1, 2, 3, 4, 5]
           value :sum_total, fn(:sum, numbers)
@@ -178,6 +185,7 @@ RSpec.describe "Type System Integration" do
     it "stores type information in analysis state" do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           value :test_val, 42
         end

@@ -67,8 +67,6 @@ module Kumi
           output.join("\n")
         end
 
-        private
-
         def format_operation(val)
           case val.op
           when :LoadInput

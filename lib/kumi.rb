@@ -7,6 +7,7 @@ loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/kumi-cli")
 loader.inflector.inflect(
   "lir" => "LIR",
+  "lir_ruby_codegen_pass" => "LIRRubyCodegenPass",
   "lower_to_ir_pass" => "LowerToIRPass",
   "lower_to_lir_pass" => "LowerToLIRPass",
   "lower_to_irv2_pass" => "LowerToIRV2Pass",
@@ -32,7 +33,7 @@ loader.inflector.inflect(
   "lir_hois_constants_pass" => "LIRHoistConstantsPass",
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "cgir" => "CGIR",
-  "vm" => "VM",
+  "vm" => "VM"
 )
 loader.setup
 

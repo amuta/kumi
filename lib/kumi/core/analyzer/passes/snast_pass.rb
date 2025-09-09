@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-#
+
 module Kumi
   module Core
     module Analyzer
@@ -93,14 +93,20 @@ module Kumi
               f = n.args[2].accept(self)
               target_axes = lub_by_prefix([axes_of(t), axes_of(f)])
               target_axes = axes_of(c) if target_axes.empty?
-              raise Kumi::Core::Errors::SemanticError, "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect}" unless prefix?(axes_of(c), target_axes)
+              unless prefix?(
+                axes_of(c), target_axes
+              )
+                raise Kumi::Core::Errors::SemanticError,
+                      "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect}"
+              end
+
               out = NAST::Select.new(id: n.id, cond: c, on_true: t, on_false: f, loc: n.loc, meta: n.meta.dup)
               return stamp!(out, target_axes, dtype_of(t))
             end
 
             if registry.function_reduce?(n.fn)
               arg = n.args.first.accept(self)
-              in_axes  = axes_of(arg)
+              in_axes = axes_of(arg)
               raise Kumi::Core::Errors::SemanticError, "reduce: scalar input" if in_axes.empty?
 
               m        = meta_for(n) # has result_scope/result_type for the call
@@ -109,11 +115,11 @@ module Kumi
 
               over_axes = in_axes.drop(out_axes.length) # derived, non-empty given guard above
               red = NAST::Reduce.new(
-                id:   n.id,
+                id: n.id,
                 op_id: registry.resolve_function(n.fn),
                 over: over_axes,
-                arg:  arg,
-                loc:  n.loc,
+                arg: arg,
+                loc: n.loc,
                 meta: n.meta.dup
               )
               return stamp!(red, out_axes, m[:result_type])
@@ -140,6 +146,7 @@ module Kumi
           # Least upper bound by prefix. All entries must be a prefix of the longest.
           def lub_by_prefix(list)
             return [] if list.empty?
+
             cand = list.max_by(&:length) || []
             list.each do |ax|
               raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{ax.inspect} vs #{cand.inspect}" unless prefix?(ax, cand)
@@ -155,9 +162,8 @@ module Kumi
           # Returns { over:, out_axes: }.
           def reduce_last_axis(args_axes_list)
             a = lub_by_prefix(args_axes_list)
-            if a.empty?
-              raise Kumi::Core::Errors::SemanticError, "cannot reduce scalar"
-            end
+            raise Kumi::Core::Errors::SemanticError, "cannot reduce scalar" if a.empty?
+
             { over: [a.last], out_axes: a[0...-1] }
           end
 

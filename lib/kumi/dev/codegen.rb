@@ -41,7 +41,7 @@ module Kumi
 
         names.each do |name|
           puts "Testing #{name}..."
-          
+
           begin
             schema_success, schema_total, schema_passed = test_schema!(name)
             success &&= schema_success
@@ -70,7 +70,7 @@ module Kumi
 
         output_dir = "codegen/#{schema_name}"
         expected_file = "#{output_dir}/expected.json"
-        
+
         unless File.exist?(expected_file)
           puts "No expected outputs for #{schema_name}"
           return false
@@ -102,7 +102,7 @@ module Kumi
           "schemas/#{name}.kumi",
           name.end_with?(".kumi") ? name : "#{name}.kumi"
         ]
-        
+
         candidates.find { |path| File.exist?(path) }
       end
 
@@ -112,15 +112,15 @@ module Kumi
 
         schema, = Kumi::Frontends.load(path: schema_path)
         result = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        
+
         ir = result.state[:irv2]
         binding_manifest = result.state[:binding_manifest] || {}
-        
+
         ruby_code = Kumi::Codegen::Ruby.generate_from_data(ir, binding_manifest)
-        
+
         File.write("#{output_dir}/generated_code.rb", ruby_code)
         puts "  ✓ Ruby code generated"
-        
+
         ruby_code
       end
 
@@ -141,7 +141,7 @@ module Kumi
         end
 
         unless expected_file && File.exist?(expected_file)
-          puts "  ✗ No expected output found"  
+          puts "  ✗ No expected output found"
           return [false, 0, 0]
         end
 
@@ -151,10 +151,10 @@ module Kumi
 
         temp_file = "#{output_dir}/test_runner.rb"
         File.write(temp_file, code)
-        
+
         begin
           load temp_file
-          
+
           registry = Kumi::KernelRegistry.load_ruby
           program = Generated::Program.new(registry: registry)
           bound = program.from(input_data)
@@ -189,7 +189,7 @@ module Kumi
 
       def find_expected_output(schema_name)
         candidates = [
-          "golden/#{schema_name}/expected.json", 
+          "golden/#{schema_name}/expected.json",
           "codegen/#{schema_name}/expected.json",
           "test/outputs/#{schema_name}.json"
         ]

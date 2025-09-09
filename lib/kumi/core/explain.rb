@@ -122,10 +122,11 @@ module Kumi
         end
 
         def chain_of_same_op?(expr, fn) = expr.args.any? { |a| a.is_a?(Kumi::Syntax::CallExpression) && a.fn_name == fn }
+
         def flatten_chain(expr, fn)
-          expr.args.flat_map { |a|
+          expr.args.flat_map do |a|
             a.is_a?(Kumi::Syntax::CallExpression) && a.fn_name == fn ? flatten_chain(a, fn) : [a]
-          }
+          end
         end
 
         def op_symbol(fn)
@@ -153,6 +154,7 @@ module Kumi
 
         def eval_arg_for_display(arg)
           return format_expression(arg, indent_context: 0, nested: true) if literalish?(arg)
+
           val = evaluate(arg)
           if arg.is_a?(Kumi::Syntax::DeclarationReference)
             "(#{format_expression(arg, indent_context: 0, nested: true)} = #{format_value(val)})"
@@ -165,16 +167,21 @@ module Kumi
           case v
           when Float, Integer then format_number(v)
           when String         then "\"#{v}\""
-          when Array          then v.length <= 4 ? "[#{v.map { |x| format_value(x) }.join(', ')}]" :
-                                                  "[#{v.take(4).map { |x| format_value(x) }.join(', ')}, …]"
+          when Array          then if v.length <= 4
+                                     "[#{v.map { |x| format_value(x) }.join(', ')}]"
+                                   else
+                                     "[#{v.take(4).map { |x| format_value(x) }.join(', ')}, …]"
+                                   end
           else v.to_s
           end
         end
 
         def format_number(n)
           return n.to_s unless n.is_a?(Numeric)
-          i = (n.is_a?(Integer) || n == n.to_i) ? n.to_i : nil
+
+          i = n.is_a?(Integer) || n == n.to_i ? n.to_i : nil
           return n.to_s unless i
+
           i.abs >= 1000 ? i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1 ').reverse : i.to_s
         end
 
@@ -222,12 +229,12 @@ module Kumi
         def dig_path(h, path)
           node = h
           path.each do |seg|
-            if node.is_a?(Hash)
-              node = fetch_indifferent(node, seg)
-            else
-              # if arrays are in path, interpret seg as index when Integer-like
-              node = seg.is_a?(Integer) ? node[seg] : nil
-            end
+            node = if node.is_a?(Hash)
+                     fetch_indifferent(node, seg)
+                   else
+                     # if arrays are in path, interpret seg as index when Integer-like
+                     seg.is_a?(Integer) ? node[seg] : nil
+                   end
           end
           node
         end

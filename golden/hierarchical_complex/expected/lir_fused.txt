@@ -71,20 +71,28 @@
           %t10 = load_field employees_el_53["level"] :: string
           %t11 = const "senior" :: string
           %t12 = call core.eq(%t10, %t11) :: boolean
-          %t57 = load_decl top_team axes=[regions, offices, teams] :: boolean
-          %t58 = call core.and(%t12, %t57) :: boolean
+          %t13 = load_field regions_el_44["offices"] :: array
+          %t14 = load_field offices_el_47["teams"] :: array
+          %t15 = load_field teams_el_50["performance_score"] :: float
+          %t16 = const 0.9 :: float
+          %t17 = call core.gte(%t15, %t16) :: boolean
+          %t58 = call core.and(%t12, %t17) :: boolean
           %t59 = call core.and(%t6, %t58) :: boolean
           %t60 = load_field employees_el_53["salary"] :: float
           %t61 = const 0.3 :: float
           %t62 = call core.mul(%t60, %t61) :: float
+          %t1 = load_field regions_el_44["offices"] :: array
+          %t2 = load_field offices_el_47["teams"] :: array
+          %t3 = load_field teams_el_50["employees"] :: array
+          %t4 = load_field employees_el_53["rating"] :: float
+          %t5 = const 4.5 :: float
+          %t6 = call core.gte(%t4, %t5) :: boolean
           %t13 = load_field regions_el_44["offices"] :: array
           %t14 = load_field offices_el_47["teams"] :: array
-          %t15 = load_field teams_el_50["employees"] :: array
-          %t16 = load_field employees_el_53["rating"] :: float
-          %t17 = const 4.5 :: float
-          %t18 = call core.gte(%t16, %t17) :: boolean
-          %t64 = load_decl top_team axes=[regions, offices, teams] :: boolean
-          %t65 = call core.and(%t18, %t64) :: boolean
+          %t15 = load_field teams_el_50["performance_score"] :: float
+          %t16 = const 0.9 :: float
+          %t17 = call core.gte(%t15, %t16) :: boolean
+          %t65 = call core.and(%t6, %t17) :: boolean
           %t66 = load_field employees_el_53["salary"] :: float
           %t67 = const 0.2 :: float
           %t68 = call core.mul(%t66, %t67) :: float

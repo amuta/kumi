@@ -6,7 +6,7 @@ module Kumi
       module Passes
         # PRODUCES: :execution_schedules => { store_name(Symbol) => [Decl, ...] }
         class IRExecutionSchedulePass < PassBase
-          def run(errors)
+          def run(_errors)
             ir          = get_state(:ir_module, required: true)
             deps        = get_state(:ir_dependencies, required: true)    # decl_name => [binding_name, ...]
             name_index  = get_state(:ir_name_index, required: true)      # binding_name => Decl  (← use IR-specific index)

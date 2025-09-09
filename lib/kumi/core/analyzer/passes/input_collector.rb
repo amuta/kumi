@@ -89,7 +89,7 @@ module Kumi
               kids.each_value do |child|
                 child.enter_via = :hash
                 child.consume_alias = false
-                child.access_mode ||= :field  # Only set if not explicitly specified
+                child.access_mode ||= :field # Only set if not explicitly specified
               end
 
             when :array
@@ -138,12 +138,10 @@ module Kumi
                   unless single && %i[scalar array].include?(child.container)
                     report_error(errors, "access_mode :element only valid for single scalar/array element (at :#{kname})", location: nil)
                   end
-                else
+                elsif child.container == :scalar
                   # Only scalar children under non-array parents are invalid with :element mode
                   # Arrays under hash/object parents can have :element mode (for arrays of scalars)
-                  if child.container == :scalar
-                    report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
-                  end
+                  report_error(errors, "access_mode :element only valid under array parent (at :#{kname})", location: nil)
                 end
               end
             end

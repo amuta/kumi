@@ -59,7 +59,7 @@ module Kumi
       end
 
       def update(**changes)
-        affected_declarations = Set.new
+        Set.new
 
         changes.each do |field, value|
           raise ArgumentError, "unknown input field: #{field}" unless input_field_exists?(field)

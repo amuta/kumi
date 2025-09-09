@@ -2,7 +2,7 @@
 
 module BareIdentifiersSugar
   extend Kumi::Schema
-  
+
   schema do
     input do
       float :income

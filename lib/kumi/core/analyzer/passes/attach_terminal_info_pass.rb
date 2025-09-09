@@ -15,7 +15,7 @@ module Kumi
         class AttachTerminalInfoPass < PassBase
           NAST = Kumi::Core::NAST
 
-          def run(errors)
+          def run(_errors)
             plans = get_state(:ir_input_plans, required: true)
             by_fqn = plans.each_with_object({}) { |p, h| h[p.path_fqn.to_s] = p }
 
@@ -50,9 +50,7 @@ module Kumi
               element = tail.any? { |s| s[:kind].to_s == "element_access" }
 
               # sanity: no property access after element access
-              if element && keys.any?
-                raise "invalid plan: property_access after element_access for #{plan.path_fqn}"
-              end
+              raise "invalid plan: property_access after element_access for #{plan.path_fqn}" if element && keys.any?
 
               node.instance_variable_set(:@fqn, plan.path_fqn.to_s)
               node.instance_variable_set(:@key_chain, keys)

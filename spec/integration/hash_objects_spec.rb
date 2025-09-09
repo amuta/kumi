@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe "Hash Objects Integration" do
   describe "hash objects with children" do
     it "validates and accesses basic hash object fields" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :user_profile do
@@ -16,13 +16,13 @@ RSpec.describe "Hash Objects Integration" do
               float :rating
             end
           end
-          
+
           value :profile_name, input.user_profile.name
           value :profile_age, input.user_profile.age
           value :profile_rating, input.user_profile.rating
         end
       end
-      
+
       test_data = {
         user_profile: {
           name: "Alice",
@@ -30,9 +30,9 @@ RSpec.describe "Hash Objects Integration" do
           rating: 4.5
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:profile_name]).to eq("Alice")
       expect(runner[:profile_age]).to eq(30)
       expect(runner[:profile_rating]).to eq(4.5)
@@ -41,7 +41,7 @@ RSpec.describe "Hash Objects Integration" do
     it "supports operations on hash object fields" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :product do
@@ -50,11 +50,11 @@ RSpec.describe "Hash Objects Integration" do
               string :category
             end
           end
-          
+
           value :subtotal, input.product.price * input.product.quantity
           trait :is_expensive, input.product.price > 100.0
           trait :is_electronics, input.product.category == "electronics"
-          
+
           value :description do
             on is_expensive, "Expensive item"
             on is_electronics, "Electronics"
@@ -62,7 +62,7 @@ RSpec.describe "Hash Objects Integration" do
           end
         end
       end
-      
+
       test_data = {
         product: {
           price: 150.0,
@@ -70,9 +70,9 @@ RSpec.describe "Hash Objects Integration" do
           category: "electronics"
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:subtotal]).to eq(300.0)
       expect(runner[:description]).to eq("Expensive item")
     end
@@ -80,7 +80,7 @@ RSpec.describe "Hash Objects Integration" do
     it "supports nested hash objects" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :order do
@@ -95,12 +95,12 @@ RSpec.describe "Hash Objects Integration" do
               end
             end
           end
-          
+
           value :order_summary, fn(:concat, input.order.id, " for ", input.order.customer.name)
           value :shipping_info, fn(:concat, input.order.shipping.city, " - ", input.order.shipping.address)
         end
       end
-      
+
       test_data = {
         order: {
           id: "ORD-123",
@@ -114,9 +114,9 @@ RSpec.describe "Hash Objects Integration" do
           }
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:order_summary]).to eq("ORD-123 for Bob Smith")
       expect(runner[:shipping_info]).to eq("New York - 123 Main St")
     end
@@ -124,7 +124,7 @@ RSpec.describe "Hash Objects Integration" do
     it "supports mathematical operations on hash object fields" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :product do
@@ -138,7 +138,7 @@ RSpec.describe "Hash Objects Integration" do
               float :weight
             end
           end
-          
+
           value :subtotal, input.product.price * input.product.quantity
           value :tax_amount, ref(:subtotal) * input.product.tax_rate
           value :shipping_cost, input.shipping.base_cost + (input.shipping.weight * input.shipping.weight_multiplier)
@@ -146,7 +146,7 @@ RSpec.describe "Hash Objects Integration" do
           value :price_per_unit_with_tax, (input.product.price * input.product.tax_rate) + input.product.price
         end
       end
-      
+
       test_data = {
         product: {
           price: 50.0,
@@ -159,20 +159,20 @@ RSpec.describe "Hash Objects Integration" do
           weight: 1.5
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:subtotal]).to eq(150.0)
       expect(runner[:tax_amount]).to eq(15.0)
-      expect(runner[:shipping_cost]).to eq(8.0)  # 5.0 + (1.5 * 2.0)
-      expect(runner[:total]).to eq(173.0)  # 150.0 + 15.0 + 8.0
-      expect(runner[:price_per_unit_with_tax]).to eq(55.0)  # (50.0 * 0.1) + 50.0
+      expect(runner[:shipping_cost]).to eq(8.0) # 5.0 + (1.5 * 2.0)
+      expect(runner[:total]).to eq(173.0) # 150.0 + 15.0 + 8.0
+      expect(runner[:price_per_unit_with_tax]).to eq(55.0) # (50.0 * 0.1) + 50.0
     end
 
     it "supports complex calculations across nested hash objects" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :order do
@@ -190,15 +190,16 @@ RSpec.describe "Hash Objects Integration" do
               end
             end
           end
-          
+
           value :base_amount, input.order.line_item.unit_price * input.order.line_item.quantity
-          value :total_discount_rate, input.order.line_item.discounts.bulk_discount + input.order.line_item.discounts.seasonal_discount + input.order.customer.discount_rate
+          value :total_discount_rate,
+                input.order.line_item.discounts.bulk_discount + input.order.line_item.discounts.seasonal_discount + input.order.customer.discount_rate
           value :discount_amount, ref(:base_amount) * ref(:total_discount_rate)
           value :points_value, input.order.customer.loyalty_points * 0.01
           value :final_amount, ref(:base_amount) - ref(:discount_amount) - ref(:points_value)
         end
       end
-      
+
       test_data = {
         order: {
           customer: {
@@ -215,20 +216,20 @@ RSpec.describe "Hash Objects Integration" do
           }
         }
       }
-      
+
       runner = schema.from(test_data)
-      
-      expect(runner[:base_amount]).to eq(100.0)  # 25.0 * 4
-      expect(runner[:total_discount_rate]).to eq(0.18)  # 0.10 + 0.03 + 0.05
-      expect(runner[:discount_amount]).to eq(18.0)  # 100.0 * 0.18
-      expect(runner[:points_value]).to eq(2.0)  # 200 * 0.01
-      expect(runner[:final_amount]).to eq(80.0)  # 100.0 - 18.0 - 2.0
+
+      expect(runner[:base_amount]).to eq(100.0) # 25.0 * 4
+      expect(runner[:total_discount_rate]).to eq(0.18) # 0.10 + 0.03 + 0.05
+      expect(runner[:discount_amount]).to eq(18.0) # 100.0 * 0.18
+      expect(runner[:points_value]).to eq(2.0) # 200 * 0.01
+      expect(runner[:final_amount]).to eq(80.0) # 100.0 - 18.0 - 2.0
     end
 
     it "handles mathematical operations with hash arrays" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             array :orders do
@@ -242,7 +243,7 @@ RSpec.describe "Hash Objects Integration" do
               end
             end
           end
-          
+
           value :item_totals, input.orders.item.price * input.orders.item.quantity
           value :total_fees, input.orders.fees.processing_fee + input.orders.fees.service_fee
           value :order_totals, ref(:item_totals) + ref(:total_fees)
@@ -250,7 +251,7 @@ RSpec.describe "Hash Objects Integration" do
           value :average_order_value, fn(:mean, ref(:order_totals))
         end
       end
-      
+
       test_data = {
         orders: [
           {
@@ -263,20 +264,20 @@ RSpec.describe "Hash Objects Integration" do
           }
         ]
       }
-      
+
       runner = schema.from(test_data)
-      
-      expect(runner[:item_totals]).to eq([40.0, 45.0])  # [20*2, 15*3]
-      expect(runner[:total_fees]).to eq([3.5, 2.5])  # [1.5+2.0, 1.0+1.5]
-      expect(runner[:order_totals]).to eq([43.5, 47.5])  # [40+3.5, 45+2.5]
-      expect(runner[:grand_total]).to eq(91.0)  # 43.5 + 47.5
-      expect(runner[:average_order_value]).to eq(45.5)  # (43.5 + 47.5) / 2
+
+      expect(runner[:item_totals]).to eq([40.0, 45.0]) # [20*2, 15*3]
+      expect(runner[:total_fees]).to eq([3.5, 2.5]) # [1.5+2.0, 1.0+1.5]
+      expect(runner[:order_totals]).to eq([43.5, 47.5]) # [40+3.5, 45+2.5]
+      expect(runner[:grand_total]).to eq(91.0) # 43.5 + 47.5
+      expect(runner[:average_order_value]).to eq(45.5) # (43.5 + 47.5) / 2
     end
 
     it "supports hash objects containing arrays" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :config do
@@ -290,7 +291,7 @@ RSpec.describe "Hash Objects Integration" do
               end
             end
           end
-          
+
           value :app_name, input.config.app_name
           value :all_flags, input.config.feature_flags
           value :server_hostnames, input.config.servers.hostname
@@ -298,11 +299,11 @@ RSpec.describe "Hash Objects Integration" do
           value :total_ports, fn(:sum, input.config.servers.port)
         end
       end
-      
+
       test_data = {
         config: {
           app_name: "MyApp",
-          feature_flags: ["dark_mode", "beta_features", "analytics"],
+          feature_flags: %w[dark_mode beta_features analytics],
           servers: [
             { hostname: "web-01", port: 8080 },
             { hostname: "web-02", port: 8081 },
@@ -310,20 +311,20 @@ RSpec.describe "Hash Objects Integration" do
           ]
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:app_name]).to eq("MyApp")
-      expect(runner[:all_flags]).to eq(["dark_mode", "beta_features", "analytics"])
-      expect(runner[:server_hostnames]).to eq(["web-01", "web-02", "api-01"])
+      expect(runner[:all_flags]).to eq(%w[dark_mode beta_features analytics])
+      expect(runner[:server_hostnames]).to eq(%w[web-01 web-02 api-01])
       expect(runner[:server_count]).to eq(3)
-      expect(runner[:total_ports]).to eq(19161)
+      expect(runner[:total_ports]).to eq(19_161)
     end
 
     it "supports arrays containing hash objects" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             array :users do
@@ -338,7 +339,7 @@ RSpec.describe "Hash Objects Integration" do
               string :email
             end
           end
-          
+
           value :user_names, input.users.profile.name
           value :user_ages, input.users.profile.age
           value :user_themes, input.users.settings.theme
@@ -347,7 +348,7 @@ RSpec.describe "Hash Objects Integration" do
           value :average_age, fn(:mean, input.users.profile.age)
         end
       end
-      
+
       test_data = {
         users: [
           {
@@ -367,12 +368,12 @@ RSpec.describe "Hash Objects Integration" do
           }
         ]
       }
-      
+
       runner = schema.from(test_data)
-      
-      expect(runner[:user_names]).to eq(["Alice", "Bob", "Charlie"])
+
+      expect(runner[:user_names]).to eq(%w[Alice Bob Charlie])
       expect(runner[:user_ages]).to eq([28, 35, 22])
-      expect(runner[:user_themes]).to eq(["dark", "light", "dark"])
+      expect(runner[:user_themes]).to eq(%w[dark light dark])
       expect(runner[:notification_enabled_users]).to eq([true, false, true])
       expect(runner[:all_emails]).to eq(["alice@example.com", "bob@example.com", "charlie@example.com"])
       expect(runner[:average_age]).to eq(28.333333333333332)
@@ -381,7 +382,7 @@ RSpec.describe "Hash Objects Integration" do
     it "supports deeply nested mixed hash-array combinations" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             hash :company do
@@ -405,7 +406,7 @@ RSpec.describe "Hash Objects Integration" do
               end
             end
           end
-          
+
           value :company_name, input.company.name
           value :dept_names, input.company.departments.dept_name
           value :manager_names, input.company.departments.manager.name
@@ -417,7 +418,7 @@ RSpec.describe "Hash Objects Integration" do
           value :manager_count, fn(:size, input.company.departments.manager.name)
         end
       end
-      
+
       test_data = {
         company: {
           name: "TechCorp",
@@ -429,12 +430,12 @@ RSpec.describe "Hash Objects Integration" do
                 {
                   name: "Alice Smith",
                   contact: { email: "alice@techcorp.com", phone: "555-0101" },
-                  skills: ["Ruby", "JavaScript", "SQL"]
+                  skills: %w[Ruby JavaScript SQL]
                 },
                 {
                   name: "Bob Wilson",
                   contact: { email: "bob@techcorp.com", phone: "555-0102" },
-                  skills: ["Python", "Docker", "AWS"]
+                  skills: %w[Python Docker AWS]
                 }
               ]
             },
@@ -445,22 +446,22 @@ RSpec.describe "Hash Objects Integration" do
                 {
                   name: "Carol Davis",
                   contact: { email: "carol@techcorp.com", phone: "555-0201" },
-                  skills: ["SEO", "Analytics", "Content"]
+                  skills: %w[SEO Analytics Content]
                 }
               ]
             }
           ]
         }
       }
-      
+
       runner = schema.from(test_data)
-      
+
       expect(runner[:company_name]).to eq("TechCorp")
-      expect(runner[:dept_names]).to eq(["Engineering", "Marketing"])
+      expect(runner[:dept_names]).to eq(%w[Engineering Marketing])
       expect(runner[:manager_names]).to eq(["Sarah Johnson", "Mike Chen"])
       expect(runner[:all_employee_names]).to eq([["Alice Smith", "Bob Wilson"], ["Carol Davis"]])
       expect(runner[:all_employee_emails]).to eq([["alice@techcorp.com", "bob@techcorp.com"], ["carol@techcorp.com"]])
-      expect(runner[:all_skills]).to eq([[["Ruby", "JavaScript", "SQL"], ["Python", "Docker", "AWS"]], [["SEO", "Analytics", "Content"]]])
+      expect(runner[:all_skills]).to eq([[%w[Ruby JavaScript SQL], %w[Python Docker AWS]], [%w[SEO Analytics Content]]])
       expect(runner[:employee_counts]).to eq([2, 1])
       expect(runner[:total_employees]).to eq(3)
       expect(runner[:manager_count]).to eq(2)
@@ -469,7 +470,7 @@ RSpec.describe "Hash Objects Integration" do
     it "works with mixed array and hash objects" do
       schema = Module.new do
         extend Kumi::Schema
-        
+
         schema do
           input do
             array :orders do
@@ -481,13 +482,13 @@ RSpec.describe "Hash Objects Integration" do
               float :total
             end
           end
-          
+
           value :customer_names, input.orders.customer.name
           value :order_totals, input.orders.total
           value :total_revenue, fn(:sum, input.orders.total)
         end
       end
-      
+
       test_data = {
         orders: [
           {
@@ -496,16 +497,16 @@ RSpec.describe "Hash Objects Integration" do
             total: 100.0
           },
           {
-            id: "ORD-2", 
+            id: "ORD-2",
             customer: { name: "Bob", age: 30 },
             total: 200.0
           }
         ]
       }
-      
+
       runner = schema.from(test_data)
-      
-      expect(runner[:customer_names]).to eq(["Alice", "Bob"])
+
+      expect(runner[:customer_names]).to eq(%w[Alice Bob])
       expect(runner[:order_totals]).to eq([100.0, 200.0])
       expect(runner[:total_revenue]).to eq(300.0)
     end
@@ -514,22 +515,22 @@ RSpec.describe "Hash Objects Integration" do
       it "skips type validation for hash objects with children" do
         schema = Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               hash :config do
                 string :env
                 integer :port
               end
-              string :simple_field  # For comparison
+              string :simple_field # For comparison
             end
-            
+
             value :env_name, input.config.env
             value :port_number, input.config.port
             value :simple_value, input.simple_field
           end
         end
-        
+
         test_data = {
           config: {
             env: "production",
@@ -537,9 +538,9 @@ RSpec.describe "Hash Objects Integration" do
           },
           simple_field: "test"
         }
-        
+
         runner = schema.from(test_data)
-        
+
         expect(runner[:env_name]).to eq("production")
         expect(runner[:port_number]).to eq(8080)
         expect(runner[:simple_value]).to eq("test")
@@ -549,7 +550,7 @@ RSpec.describe "Hash Objects Integration" do
         # TODO: Implement child validation as documented in VALIDATIONS_MISSING.md
         schema = Module.new do
           extend Kumi::Schema
-          
+
           schema do
             input do
               hash :settings do
@@ -557,22 +558,22 @@ RSpec.describe "Hash Objects Integration" do
                 integer :count
               end
             end
-            
+
             value :setting_name, input.settings.name
           end
         end
-        
+
         # Invalid child field type currently does NOT fail (limitation)
         invalid_data = {
           settings: {
-            name: 123,  # Should be string but validation is not implemented
+            name: 123, # Should be string but validation is not implemented
             count: 10
           }
         }
-        
+
         # Currently this does not raise an error (known limitation)
         runner = schema.from(invalid_data)
-        expect(runner[:setting_name]).to eq(123)  # Returns the invalid value
+        expect(runner[:setting_name]).to eq(123) # Returns the invalid value
       end
     end
   end

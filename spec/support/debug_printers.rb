@@ -4,10 +4,8 @@ module DebugPrinters
   class << self
     def print(obj)
       # Handle direct object instances first
-      if obj.is_a?(Class)
-        return print_class(obj)
-      end
-      
+      return print_class(obj) if obj.is_a?(Class)
+
       case obj
       # Kumi syntax nodes
       when Kumi::Syntax::Root then print_root(obj)
@@ -21,7 +19,7 @@ module DebugPrinters
       when Kumi::Syntax::InputElementReference then print_input_element_reference(obj)
       when Kumi::Syntax::DeclarationReference then print_declaration_reference(obj)
       when Kumi::Syntax::Literal then print_literal(obj)
-      
+
       # Analyzer objects and structs
       when Kumi::Core::Analyzer::Passes::NameIndexer then "NameIndexer"
       when Kumi::Core::Analyzer::Passes::TypeChecker then "TypeChecker"
@@ -32,23 +30,23 @@ module DebugPrinters
       when Kumi::Core::Analyzer::Plans::Reduce then print_reduce_plan(obj)
       when Kumi::Core::Analyzer::Plans::Join then print_join_plan(obj)
       when Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge then print_dependency_edge(obj)
-      
+
       # IR objects
       when Kumi::Core::IR::Module then print_ir_module(obj)
       when Kumi::Core::IR::Decl then print_ir_decl(obj)
       when Kumi::Core::IR::Op then print_ir_op(obj)
-      
+
       # Collections
       when Set then print_set(obj)
       when Array then print_array(obj)
       when Hash then print_hash(obj)
-      
+
       # Strings (including object inspections)
       when String then print_string(obj)
-      
+
       # Basic Ruby types
       when Integer, Float, TrueClass, FalseClass, NilClass, Symbol then obj.inspect
-      
+
       # Explicitly fail for unhandled types
       else raise "No printer defined for #{obj.class}: #{obj.inspect}"
       end
@@ -149,7 +147,7 @@ module DebugPrinters
     def print_array(obj)
       return "[]" if obj.empty?
       return "Array[#{obj.size}]" if obj.size > 5
-      
+
       items = obj.first(3).map { |item| print(item) }
       suffix = obj.size > 3 ? ", +#{obj.size - 3}" : ""
       "[#{items.join(', ')}#{suffix}]"
@@ -158,7 +156,7 @@ module DebugPrinters
     def print_hash(obj)
       return "{}" if obj.empty?
       return "Hash{#{obj.size}}" if obj.size > 3
-      
+
       pairs = obj.first(2).map { |k, v| "#{print(k)}: #{print(v)}" }
       suffix = obj.size > 2 ? ", +#{obj.size - 2}" : ""
       "{#{pairs.join(', ')}#{suffix}}"
@@ -168,7 +166,7 @@ module DebugPrinters
       # Handle object inspection strings
       case obj
       when /^#<struct Kumi::Syntax::(\w+)/
-        type = $1
+        type = ::Regexp.last_match(1)
         if obj.include?("name=:")
           name = obj[/name=:(\w+)/, 1]
           "#{type}(#{name})"
@@ -178,9 +176,9 @@ module DebugPrinters
       when /^#<Kumi::Core::Analyzer::/
         obj[/::(\w+)/, 1] || "AnalyzerObject"
       when /^#<Set: \{(.*)\}>/
-        items_str = $1
+        items_str = ::Regexp.last_match(1)
         items = items_str.split(", ").first(3)
-        "Set[#{items.join(', ')}#{items_str.split(", ").size > 3 ? '...' : ''}]"
+        "Set[#{items.join(', ')}#{'...' if items_str.split(', ').size > 3}]"
       else
         truncate_string(obj)
       end
@@ -191,10 +189,10 @@ module DebugPrinters
       "Class(#{class_name})"
     end
 
-
     def truncate_string(str, max_length = 50)
       return str if str.length <= max_length
-      "#{str[0..max_length-3]}..."
+
+      "#{str[0..max_length - 3]}..."
     end
   end
 end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "json"
 require "digest"
 
@@ -7,7 +8,7 @@ module Kumi
     DEFAULT_FUNCTIONS_DIR = "data/functions"
     DEFAULT_KERNELS_DIR = "data/kernels"
     SELECT_ID = "__select__"
-    
+
     Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, keyword_init: true)
 
     class Instance
@@ -23,13 +24,14 @@ module Kumi
       def resolve_function(id)
         s = id.to_s
         return s if @fn_meta.key?(s)
+
         @alias.fetch(s) { raise "unknown function #{id}" }
       end
 
       def function_kind(id)        = meta(resolve_function(id))[:kind]
       def function_reduce?(id)     = function_kind(id) == :reduce
       def function_elementwise?(id) = function_kind(id) == :elementwise
-      def function_select?(id)     = resolve_function(id) == SELECT_ID
+      def function_select?(id) = resolve_function(id) == SELECT_ID
 
       # -------- kernels --------
       def kernel_id_for(id, target:)
@@ -51,9 +53,9 @@ module Kumi
 
       def registry_ref
         stable = {
-          kernels: @by_id.values.map { |k|
+          kernels: @by_id.values.map do |k|
             { "id" => k.id, "fn" => k.fn_id, "target" => k.target.to_s, "impl" => k.impl }
-          }.sort_by { _1["id"] },
+          end.sort_by { _1["id"] },
           functions: @fn_meta.transform_values { |m| { "kind" => m[:kind].to_s, "aliases" => m[:aliases] } }
         }
         "sha256:#{Digest::SHA256.hexdigest(JSON.generate(stable))}"

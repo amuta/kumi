@@ -9,8 +9,10 @@
   %t4 = load_input "batch" :: array
   loop batch id=L1 in %t4 as el=%batch_el_5, idx=%batch_i_6
     %t7 = load_field batch_el_5["mean"] :: float
-    %t8 = load_decl global_offset_plus :: float
-    %t9 = call core.add(%t7, %t8) :: float
+    %t1 = load_input "global_offset" :: float
+    %t2 = const 1.0 :: float
+    %t3 = call core.add(%t1, %t2) :: float
+    %t9 = call core.add(%t7, %t3) :: float
     yield %t9
   end_loop
   )
@@ -34,10 +36,16 @@
       %t25 = load_field row_el_23["col"] :: array
       loop col id=L6 in %t25 as el=%col_el_26, idx=%col_i_27
         %t28 = load_field col_el_26["val"] :: float
-        %t29 = load_decl row_scale2 axes=[batch, row] :: float
-        %t30 = call core.mul(%t28, %t29) :: float
-        %t31 = load_decl batch_bias axes=[batch] :: float
-        %t32 = call core.add(%t30, %t31) :: float
+        %t5 = load_field row_el_23["scale"] :: float
+        %t6 = const 2.0 :: float
+        %t7 = call core.mul(%t5, %t6) :: float
+        %t30 = call core.mul(%t28, %t7) :: float
+        %t8 = load_field batch_el_20["mean"] :: float
+        %t23 = load_input "global_offset" :: float
+        %t24 = const 1.0 :: float
+        %t25 = call core.add(%t23, %t24) :: float
+        %t10 = call core.add(%t8, %t25) :: float
+        %t32 = call core.add(%t30, %t10) :: float
         yield %t32
       end_loop
     end_loop
@@ -51,12 +59,18 @@
       acc.declare acc_39=0.0
       %t40 = load_field row_el_37["col"] :: array
       loop col id=L9 in %t40 as el=%col_el_41, idx=%col_i_42
-        %t3 = load_field col_el_41["val"] :: float
-        %t4 = load_decl row_scale2 axes=[batch, row] :: float
-        %t5 = call core.mul(%t3, %t4) :: float
-        %t6 = load_decl batch_bias axes=[batch] :: float
-        %t7 = call core.add(%t5, %t6) :: float
-        acc.add acc_39 using agg.sum <- %t7
+        %t13 = load_field col_el_41["val"] :: float
+        %t27 = load_field row_el_37["scale"] :: float
+        %t28 = const 2.0 :: float
+        %t29 = call core.mul(%t27, %t28) :: float
+        %t15 = call core.mul(%t13, %t29) :: float
+        %t30 = load_field batch_el_34["mean"] :: float
+        %t31 = load_input "global_offset" :: float
+        %t32 = const 1.0 :: float
+        %t33 = call core.add(%t31, %t32) :: float
+        %t34 = call core.add(%t30, %t33) :: float
+        %t17 = call core.add(%t15, %t34) :: float
+        acc.add acc_39 using agg.sum <- %t17
       end_loop
       %t44 = acc.load acc_39 :: float
       yield %t44
@@ -69,14 +83,24 @@
     acc.declare acc_48=0.0
     %t49 = load_field batch_el_46["row"] :: array
     loop row id=L11 in %t49 as el=%row_el_50, idx=%row_i_51
-      acc.declare acc_39_9=0.0
-      %t10 = load_field row_el_50["col"] :: array
-      loop col id=L1 in %t10 as el=%col_el_41, idx=%col_i_42
-        %t11 = load_decl elem_affine axes=[batch, row, col] :: float
-        acc.add acc_39_9 using agg.sum <- %t11
+      acc.declare acc_39_19=0.0
+      %t20 = load_field row_el_50["col"] :: array
+      loop col id=L1 in %t20 as el=%col_el_41, idx=%col_i_42
+        %t37 = load_field col_el_41["val"] :: float
+        %t39 = load_field row_el_50["scale"] :: float
+        %t40 = const 2.0 :: float
+        %t41 = call core.mul(%t39, %t40) :: float
+        %t42 = call core.mul(%t37, %t41) :: float
+        %t43 = load_field batch_el_46["mean"] :: float
+        %t47 = load_input "global_offset" :: float
+        %t48 = const 1.0 :: float
+        %t49 = call core.add(%t47, %t48) :: float
+        %t45 = call core.add(%t43, %t49) :: float
+        %t46 = call core.add(%t42, %t45) :: float
+        acc.add acc_39_19 using agg.sum <- %t46
       end_loop
-      %t12 = acc.load acc_39_9 :: float
-      acc.add acc_48 using agg.sum <- %t12
+      %t22 = acc.load acc_39_19 :: float
+      acc.add acc_48 using agg.sum <- %t22
     end_loop
     %t53 = acc.load acc_48 :: float
     yield %t53

@@ -27,9 +27,9 @@ module Kumi
 
           private
 
-          def lower_one_declaration(decl_name, snast, input_table, builder, errors)
+          def lower_one_declaration(decl_name, snast, _input_table, builder, errors)
             decl = snast.decls.fetch(decl_name)
-            
+
             # Temporarily set instance variables for the context of this declaration.
             @current_decl_name = decl_name
             @b = builder # Use the shared builder
@@ -39,8 +39,8 @@ module Kumi
 
             start_op_count = builder.values.length
             ir_val = lower_expr(decl.body, errors)
-            
-            # Note: The optimizer and parameter collection now need to operate on a slice of the builder's operations.
+
+            # NOTE: The optimizer and parameter collection now need to operate on a slice of the builder's operations.
             new_ops = builder.values.slice(start_op_count..-1)
             parameters = collect_declaration_parameters(new_ops, snast.decls)
 
@@ -58,7 +58,7 @@ module Kumi
           def ser_stamp(snast_stamp)
             {
               "dtype" => (snast_stamp["dtype"] || snast_stamp[:dtype]).to_s,
-              "axes"  => Array(snast_stamp["axes"] || snast_stamp[:axes]).map(&:to_s)
+              "axes" => Array(snast_stamp["axes"] || snast_stamp[:axes]).map(&:to_s)
             }
           end
 
@@ -70,7 +70,7 @@ module Kumi
                 @b.const(node.value, stamp: stamp)
 
               when Kumi::Core::NAST::InputRef
-                plan = @input_table.find{|i| i.path_fqn == node.path_fqn}
+                plan = @input_table.find { |i| i.path_fqn == node.path_fqn }
                 unless @input_cache[node.path_fqn]
                   axes  = plan.axes
                   dtype = plan.dtype
@@ -85,16 +85,18 @@ module Kumi
                 @b.load_declaration(dep_name.to_s, stamp: stamp)
 
               when Kumi::Core::NAST::Tuple
-                plan = node.meta[:plan] or (errors << "Missing plan on Tuple"; return @b.const(nil))
+                node.meta[:plan] or (errors << "Missing plan on Tuple"
+                                     return @b.const(nil))
 
                 stamp = ser_stamp(node.meta[:stamp])
                 lowered = node.elements.map { |e| lower_expr(e, errors) }
-                elem_stamps = node.elements.map { |elem| ser_stamp(elem.meta[:stamp]) }
+                node.elements.map { |elem| ser_stamp(elem.meta[:stamp]) }
 
                 @b.construct_tuple(*lowered, stamp: stamp)
 
               when Kumi::Core::NAST::Call
-                plan = node.meta[:plan] or (errors << "Missing plan on Call #{node.fn}"; return @b.const(nil))
+                plan = node.meta[:plan] or (errors << "Missing plan on Call #{node.fn}"
+                                            return @b.const(nil))
 
                 case plan[:kind]
                 when :elementwise
@@ -125,7 +127,8 @@ module Kumi
                 return @b.const(nil)
               end
 
-            ir_val or (errors << "Missing IR value from lowering"; @b.const(nil))
+            ir_val or (errors << "Missing IR value from lowering"
+                       @b.const(nil))
           end
 
           def collect_declaration_parameters(operations, _decls)
@@ -134,12 +137,14 @@ module Kumi
             operations.select { |op| op.op == :LoadInput }.each do |op|
               path = op.args.first
               next if parameters.any? { |p| p[:type] == :input && p[:source] == path }
+
               parameters << { type: :input, source: path }
             end
 
             operations.select { |op| op.op == :LoadDeclaration }.each do |op|
               dep_name = op.args.first
               next if parameters.any? { |p| p[:type] == :dependency && p[:source] == dep_name }
+
               parameters << { type: :dependency, source: dep_name }
             end
 

@@ -2,7 +2,7 @@
 
 RSpec.describe "Sugar syntax string operations" do
   include SchemaFixtureHelper
-  
+
   let(:schema) do
     require_schema("string_ops_sugar")
     StringOpsSugar

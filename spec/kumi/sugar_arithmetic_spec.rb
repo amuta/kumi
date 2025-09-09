@@ -2,7 +2,7 @@
 
 module ArithmeticSugar
   extend Kumi::Schema
-  
+
   schema do
     input do
       float :a

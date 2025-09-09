@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../../functions/loader"
 
 module Kumi
@@ -38,10 +39,10 @@ module Kumi
             result_metadata = analyze_expression(decl.body, errors)
 
             decl_metadata = {
-              kind:         decl.kind,
-              result_type:  result_metadata[:type],
+              kind: decl.kind,
+              result_type: result_metadata[:type],
               result_scope: result_metadata[:scope],
-              target_name:  name
+              target_name: name
             }.freeze
 
             @metadata_table[node_id(decl)] = decl_metadata
@@ -69,7 +70,7 @@ module Kumi
             arg_types    = arg_metadata.map { |m| m[:type] }
             arg_scopes   = arg_metadata.map { |m| m[:scope] }
 
-            if ENV['DEBUG_NAST_DIMENSIONAL_ANALYZER'] == '1' && function_spec.parameter_names.size != arg_types.size
+            if ENV["DEBUG_NAST_DIMENSIONAL_ANALYZER"] == "1" && function_spec.parameter_names.size != arg_types.size
               puts "[NASTDimensionalAnalyzer] WARNING: #{call.fn} expects #{function_spec.parameter_names.size} args, got #{arg_types.size}"
             end
 
@@ -84,20 +85,18 @@ module Kumi
             result_scope = compute_result_scope(function_spec, arg_scopes)
 
             needs_expand_flags =
-              if [:elementwise, :constructor].include?(function_spec.kind)
-                arg_scopes.map { |axes| axes != result_scope }
-              end
+              (arg_scopes.map { |axes| axes != result_scope } if %i[elementwise constructor].include?(function_spec.kind))
 
             @metadata_table[node_id(call)] = {
-              function:           function_spec.id,
-              kind:               function_spec.kind,
-              parameter_names:    function_spec.parameter_names,
-              result_type:        result_type,
-              result_scope:       result_scope,
-              arg_types:          arg_types,
-              arg_scopes:         arg_scopes,
+              function: function_spec.id,
+              kind: function_spec.kind,
+              parameter_names: function_spec.parameter_names,
+              result_type: result_type,
+              result_scope: result_scope,
+              arg_types: arg_types,
+              arg_scopes: arg_scopes,
               needs_expand_flags: needs_expand_flags,
-              last_axis_token:    (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil)
+              last_axis_token: (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil)
             }.freeze
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
@@ -113,15 +112,15 @@ module Kumi
             expand_flags    = element_scopes.map { |s| s != result_scope }
 
             @metadata_table[node_id(tuple_literal)] = {
-              function:           :tuple_literal,
-              kind:               :constructor,
-              parameter_names:    [],
-              result_type:        result_type,
-              result_scope:       result_scope,
-              arg_types:          element_types,
-              arg_scopes:         element_scopes,
+              function: :tuple_literal,
+              kind: :constructor,
+              parameter_names: [],
+              result_type: result_type,
+              result_scope: result_scope,
+              arg_types: element_types,
+              arg_scopes: element_scopes,
               needs_expand_flags: expand_flags,
-              last_axis_token:    nil
+              last_axis_token: nil
             }.freeze
 
             debug "    Tuple: (#{element_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
@@ -130,7 +129,7 @@ module Kumi
 
           # STRICT: requires entry with :axes and :dtype (no fallbacks)
           def analyze_input_ref(input_ref)
-            entry = @input_table.find{|imp| imp[:path_fqn] == input_ref.path_fqn}
+            entry = @input_table.find { |imp| imp[:path_fqn] == input_ref.path_fqn }
             entry or raise KeyError, "Input path not found in input_table: #{input_ref.path_fqn}"
 
             axes  = entry.axes
@@ -154,9 +153,9 @@ module Kumi
           def analyze_declaration_ref(ref)
             meta = @declaration_table.fetch(ref.name)
             @metadata_table[node_id(ref)] = {
-              kind:            :ref,
-              result_type:     meta[:result_type],
-              result_scope:    meta[:result_scope],
+              kind: :ref,
+              result_type: meta[:result_type],
+              result_scope: meta[:result_scope],
               referenced_name: ref.name
             }.freeze
             { type: meta[:result_type], scope: meta[:result_scope] }
@@ -176,6 +175,7 @@ module Kumi
 
           def lub_by_prefix(list)
             return [] if list.empty?
+
             candidate = list.max_by(&:length)
             list.each do |axes|
               unless axes.each_with_index.all? { |tok, i| candidate[i] == tok }

@@ -1,8 +1,11 @@
 # frozen_string_literal: true
+
 module Kumi::Core::Compiler::AccessEmit
   module Materialize
     extend Base
+
     module_function
+
     def build(plan)
       policy     = plan.on_missing || :error
       key_policy = plan.key_policy || :indifferent
@@ -10,7 +13,9 @@ module Kumi::Core::Compiler::AccessEmit
       segs       = segment_ops(plan.operations)
 
       code = +"lambda do |data|\n"
-      nodev, depth, map_depth = "node0", 0, 0
+      nodev = "node0"
+      depth = 0
+      map_depth = 0
       code << "  #{nodev} = data\n"
 
       segs.each do |seg|
@@ -19,7 +24,9 @@ module Kumi::Core::Compiler::AccessEmit
           child = "node#{depth + 1}"
           code << "  #{nodev} = #{nodev}.map do |__e#{depth}|\n"
           code << "    #{child} = __e#{depth}\n"
-          nodev = child; depth += 1; map_depth += 1
+          nodev = child
+          depth += 1
+          map_depth += 1
         else
           seg.each do |(_, key, preview)|
             code << "  "
@@ -32,8 +39,8 @@ module Kumi::Core::Compiler::AccessEmit
       end
 
       while map_depth.positive?
-        code << "  " * map_depth + "#{nodev}\n"
-        code << "  " * (map_depth - 1) + "end\n"
+        code << (("  " * map_depth) + "#{nodev}\n")
+        code << (("  " * (map_depth - 1)) + "end\n")
         nodev = "node#{depth - 1}"
         depth -= 1
         map_depth -= 1

@@ -42,7 +42,7 @@ module Kumi
 
         if defined?(Kumi::Support::IRDump)
           # Convert AnalysisState to hash if needed
-          state_hash = analysis_state.to_h
+          analysis_state.to_h
         else
           # Fallback: simple text representation
           lines = []

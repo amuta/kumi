@@ -32,14 +32,13 @@ module Kumi
         #   node.children.each_key { |k| walk(path_segs + [k.to_s]) }
         # end
 
-
-  
         def walk(path_segs)
           path_sym = path_segs.map(&:to_sym)
           @table[path_sym] = create_input_plan(path_segs)
 
           node = meta_node_for(path_segs)
           return unless node && node.children
+
           node.children.each_key { |k| walk(path_segs + [k.to_s]) }
         end
 
@@ -48,23 +47,23 @@ module Kumi
           path_sym = path_segs.map(&:to_sym)
           node = meta_node_for(path_segs)
           dtype = node.type
-          
+
           # A path's logical axes are determined by the loops needed to reach its PARENT.
           parent_path_sym = path_sym[0...-1]
           parent_plan = @table.fetch(parent_path_sym, nil)
-          axes = !parent_plan ? [] : parent_plan.navigation_steps.filter_map { |step| step[:axis].to_sym if step[:kind] == "array_loop" } 
-          
+          axes = parent_plan ? parent_plan.navigation_steps.filter_map { |step| step[:axis].to_sym if step[:kind] == "array_loop" } : []
+
           navigation_steps = compute_navigation_steps(path_segs)
 
           # If the path is an array, describe the axis of its elements.
           Core::Analyzer::Plans::InputPlan.new(
             source_path: path_sym,
-            axes:       axes,
-            dtype:      dtype,
+            axes: axes,
+            dtype: dtype,
             key_policy: @defaults[:key_policy],
             missing_policy: @defaults[:on_missing],
             navigation_steps: navigation_steps,
-            path_fqn:   path_segs.join(".")
+            path_fqn: path_segs.join(".")
           )
         end
 
@@ -78,7 +77,7 @@ module Kumi
 
           path_segs.each_with_index do |seg, idx|
             node = fetch_node!(cur, seg, path_segs)
-            parent_container = (parent&.container || :object)
+            parent_container = parent&.container || :object
             child_container  = node.container or raise_contract!(":container", seg, path_segs)
             enter_via        = (idx.zero? ? :hash : (node.enter_via or raise_contract!(":enter_via", seg, path_segs)))
 
@@ -110,13 +109,13 @@ module Kumi
                 }
                 loop_idx_counter += 1
               elsif child_container == :scalar
-                if enter_via == :array || node.consume_alias
-                  # Array of scalars: the value is the element itself.
-                  steps << { kind: "element_access" }
-                else
-                  # Array of objects: access a property on the element.
-                  steps << { kind: "property_access", key: seg.to_s }
-                end
+                steps << if enter_via == :array || node.consume_alias
+                           # Array of scalars: the value is the element itself.
+                           { kind: "element_access" }
+                         else
+                           # Array of objects: access a property on the element.
+                           { kind: "property_access", key: seg.to_s }
+                         end
               else
                 steps << { kind: "property_access", key: seg.to_s }
               end
@@ -130,7 +129,6 @@ module Kumi
 
           steps
         end
-
 
         # alias step if child is array and declared to be entered via array (or forced)
         def alias_step?(node)
@@ -150,12 +148,13 @@ module Kumi
 
         def fetch_node!(cur, seg, full_path)
           cur[seg.to_sym] or raise ArgumentError,
-            "Missing metadata for '#{seg}' in #{full_path.join('.')}. Available: #{cur.keys.inspect}"
+                                   "Missing metadata for '#{seg}' in #{full_path.join('.')}. Available: #{cur.keys.inspect}"
         end
 
-        def extract_dtype(root_meta, path_sym)
+        def extract_dtype(_root_meta, path_sym)
           node = meta_node_for(path_sym)
           raise "No type for path #{path_sym.inspect}" unless node && node.respond_to?(:type)
+
           node.type
         end
 

@@ -5,6 +5,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
   def analyze_and_compile(&schema_block)
     test_schema = Module.new do
       extend Kumi::Schema
+
       schema(&schema_block)
     end
     test_schema.__executable__
@@ -251,6 +252,7 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
     let(:analyzer_result) do
       test_schema = Module.new do
         extend Kumi::Schema
+
         schema do
           input do
             array :numbers do

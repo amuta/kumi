@@ -104,7 +104,7 @@ module Kumi
             stamp: nil,
             inputs: [collection_register],
             immediates: [],
-            attributes: { axis: axis.to_sym, as_element:, as_index:, id: (id || (ids || Ids.new).generate_loop_id) },
+            attributes: { axis: axis.to_sym, as_element:, as_index:, id: id || (ids || Ids.new).generate_loop_id },
             location:
           )
         end
@@ -231,7 +231,7 @@ module Kumi
         #   out_dtype: tuple dtype
         #   as: result register
         # Result: produces tuple
-        def make_tuple(elements:, out_dtype:, as:nil, ids: nil, location: nil)
+        def make_tuple(elements:, out_dtype:, as: nil, ids: nil, location: nil)
           as ||= (ids || Ids.new).generate_temp
           Instruction.new(
             opcode: :MakeTuple,
@@ -280,7 +280,6 @@ module Kumi
             location: location
           )
         end
-
 
         # Yield
         # Opcode: Yield

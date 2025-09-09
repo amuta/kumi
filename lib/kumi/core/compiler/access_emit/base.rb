@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Kumi
   module Core
     module Compiler
@@ -8,7 +9,8 @@ module Kumi
 
           # ---------- IR segmentation ----------
           def segment_ops(ops)
-            segs, cur = [], []
+            segs = []
+            cur = []
             i = 0
             while i < ops.length
               case ops[i][:type]
@@ -107,15 +109,17 @@ module Kumi
                 end
               else # :materialize, :read
                 # Important: for :materialize this is ALWAYS nil (never [])
-                return_val = 'nil'
+                return_val = "nil"
                 map_depth.positive? ? "next #{return_val}" : "return #{return_val}"
               end
             when :skip
               if mode == :materialize
-                return_val = preview_array ? '[]' : 'nil'
+                return_val = preview_array ? "[]" : "nil"
                 map_depth.positive? ? "next #{return_val}" : "return #{return_val}"
+              elsif map_depth.positive?
+                "next"
               else
-                map_depth.positive? ? "next" : (mode == :each_indexed ? "if block; return nil; else; return out; end" : "return out")
+                (mode == :each_indexed ? "if block; return nil; else; return out; end" : "return out")
               end
             else # :error
               %(raise KeyError, "Missing key '#{key}' at '#{path_key}' (#{mode})")

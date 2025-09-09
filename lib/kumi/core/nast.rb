@@ -5,15 +5,15 @@ module Kumi
     module NAST
       @next_id_mutex = Mutex.new
       @next_id = 1
-      
+
       def self.next_id
         @next_id_mutex.synchronize { @next_id += 1 }
       end
-      
+
       def self.reset_id_counter!
         @next_id_mutex.synchronize { @next_id = 1 }
       end
-      
+
       Node = Struct.new(:id, :loc, :meta, keyword_init: true) do
         def initialize(**args)
           super
@@ -28,6 +28,7 @@ module Kumi
 
       class Const < Node
         attr_reader :value
+
         def initialize(value:, **k)
           super(**k)
           @value = value
@@ -40,10 +41,11 @@ module Kumi
 
       class InputRef < Node
         attr_reader :path, :fqn, :key_chain, :element_terminal
+
         def initialize(path:, fqn: nil, key_chain: [], element_terminal: false, **k)
           super(**k)
           @path = Array(path).map!(&:to_sym)
-          @fqn  = (fqn || @path.join("."))
+          @fqn  = fqn || @path.join(".")
           @key_chain = Array(key_chain).map!(&:to_sym)
           @element_terminal = !!element_terminal
         end
@@ -57,6 +59,7 @@ module Kumi
 
       class Ref < Node
         attr_reader :name
+
         def initialize(name:, **k)
           super(**k)
           @name = name.to_sym
@@ -69,6 +72,7 @@ module Kumi
 
       class Call < Node
         attr_reader :fn, :args
+
         def initialize(fn:, args:, **k)
           super(**k)
           @fn = fn.to_sym
@@ -82,6 +86,7 @@ module Kumi
 
       class Tuple < Node
         attr_reader :args
+
         def initialize(args:, **k)
           super(**k)
           @args = args
@@ -94,6 +99,7 @@ module Kumi
 
       class Field < Node
         attr_reader :key, :value
+
         def initialize(key:, value:, **k)
           super(**k)
           @key = key.to_sym
@@ -107,6 +113,7 @@ module Kumi
 
       class Hash < Node
         attr_reader :fields
+
         def initialize(fields:, **k)
           super(**k)
           @fields = fields
@@ -120,9 +127,12 @@ module Kumi
       # Control: ternary select (pure, eager)
       class Select < Node
         attr_reader :cond, :on_true, :on_false
+
         def initialize(cond:, on_true:, on_false:, **k)
           super(**k)
-          @cond, @on_true, @on_false = cond, on_true, on_false
+          @cond = cond
+          @on_true = on_true
+          @on_false = on_false
         end
 
         def accept(visitor)
@@ -133,6 +143,7 @@ module Kumi
       # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
       class Reduce < Node
         attr_reader :op_id, :over, :arg
+
         def initialize(op_id:, over:, arg:, **k)
           super(**k)
           @op_id = op_id.to_sym
@@ -145,9 +156,9 @@ module Kumi
         end
       end
 
-
       class Declaration < Node
         attr_reader :name, :body
+
         def initialize(name:, body:, **k)
           super(**k)
           @name = name.to_sym
