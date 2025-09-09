@@ -27,10 +27,7 @@ loader.inflector.inflect(
   "nast_printer" => "NASTPrinter",
   "snast_printer" => "SNASTPrinter",
   "lir_printer" => "LIRPrinter",
-  "lir_validation_pass" => "LIRValidationPass",
-  "lir_inline_declarations_pass" => "LIRInlineDeclarationsPass",
-  "lir_local_cse_pass" => "LIRLocalCSEPass",
-  "lir_hois_constants_pass" => "LIRHoistConstantsPass",
+  "local_cse_pass" => "LocalCSEPass",
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "cgir" => "CGIR",
   "vm" => "VM"

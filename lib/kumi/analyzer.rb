@@ -3,43 +3,44 @@
 module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
-    ERROR_THRESHOLD_PASS = Core::Analyzer::Passes::LowerToIRPass
+    Passes = Core::Analyzer::Passes
+    ERROR_THRESHOLD_PASS = Passes::LowerToIRPass
 
     DEFAULT_PASSES = [
-      Core::Analyzer::Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
-      Core::Analyzer::Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Core::Analyzer::Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
-      Core::Analyzer::Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
-      Core::Analyzer::Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
-      Core::Analyzer::Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Core::Analyzer::Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      Core::Analyzer::Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
-      Core::Analyzer::Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
-      Core::Analyzer::Passes::TypeChecker,                     # 10. Validates types using inferred information.
-      Core::Analyzer::Passes::InputAccessPlannerPass,          # 11. Plans access strategies for input fields.
-      Core::Analyzer::Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
-      Core::Analyzer::Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
-      Core::Analyzer::Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
-      Core::Analyzer::Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
-      Core::Analyzer::Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
-      Core::Analyzer::Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
+      Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
+      Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
+      Passes::DeclarationValidator,            # 3. Checks the basic structure of each rule.
+      Passes::SemanticConstraintValidator,     # 4. Validates DSL semantic constraints at AST level.
+      Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
+      Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
+      Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
+      Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
+      Passes::TypeChecker,                     # 10. Validates types using inferred information.
+      Passes::InputAccessPlannerPass,          # 11. Plans access strategies for input fields.
+      Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
+      Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
+      Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
+      Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
+      Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
+      Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
     ].freeze
 
-    # Parallel pipeline passes for NAST->HIR->IR approach
-    # These run independently to build side tables for deterministic HIR generation
+    # Pipeline passes for the determinisitic NAST->LIR approach
     SIDE_TABLE_PASSES = [
-      Core::Analyzer::Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
-      Core::Analyzer::Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
-      Core::Analyzer::Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Core::Analyzer::Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
-      Core::Analyzer::Passes::LowerToLIRPass,                  # Lowers the schema to LIR (LIR Structs)
-      Core::Analyzer::Passes::LIRInlineDeclarationsPass,       # Inlines LoadDeclaration when site axes == decl axes
-      Core::Analyzer::Passes::LIRLocalCSEPass,                 # Local CSE optimization for pure LIR operations
-      Core::Analyzer::Passes::LIRValidationPass,               # Validates LIR structural and contextual correctness
-      Core::Analyzer::Passes::LIRRubyCodegenPass # Generates ruby code from LIR
-      # Core::Analyzer::Passes::ContractCheckerPass,             # Validates contracts and structural invariants
-      # Core::Analyzer::Passes::LowerToIRV2Pass,                 # Lowers SNAST to backend-agnostic IRV2 representation
-      # Core::Analyzer::Passes::AssembleIRV2Pass,                # Assembles final IRV2 JSON structure
+      Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
+      Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
+      Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
+      Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
+      Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
+      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
+      Passes::LIR::ValidationPass,             # Validates LIR structural and contextual correctness
+      Passes::LIR::DeadCodeEliminationPass,    # Validates LIR structural and contextual correctness
+      Passes::Codegen::RubyPass                # Generates ruby code from LIR
+      # Passes::ContractCheckerPass,           # Validates contracts and structural invariants
+      # Passes::LowerToIRV2Pass,               # Lowers SNAST to backend-agnostic IRV2 representation
+      # Passes::AssembleIRV2Pass,              # Assembles final IRV2 JSON structure
     ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, registry: nil, **opts)

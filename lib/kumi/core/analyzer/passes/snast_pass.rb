@@ -31,6 +31,7 @@ module Kumi
             @metadata_table    = get_state(:metadata_table,    required: true)
             @declaration_table = get_state(:declaration_table, required: true)
             @input_table       = get_state(:input_table,       required: true)
+            @registry          = get_state(:registry,          required: true)
             @errors = errors
 
             debug "Building SNAST from #{@nast_module.decls.size} declarations"
@@ -87,7 +88,7 @@ module Kumi
           end
 
           def visit_call(n)
-            if registry.function_select?(n.fn)
+            if @registry.function_select?(n.fn)
               c = n.args[0].accept(self)
               t = n.args[1].accept(self)
               f = n.args[2].accept(self)
@@ -104,7 +105,7 @@ module Kumi
               return stamp!(out, target_axes, dtype_of(t))
             end
 
-            if registry.function_reduce?(n.fn)
+            if @registry.function_reduce?(n.fn)
               arg = n.args.first.accept(self)
               in_axes = axes_of(arg)
               raise Kumi::Core::Errors::SemanticError, "reduce: scalar input" if in_axes.empty?
@@ -116,7 +117,7 @@ module Kumi
               over_axes = in_axes.drop(out_axes.length) # derived, non-empty given guard above
               red = NAST::Reduce.new(
                 id: n.id,
-                op_id: registry.resolve_function(n.fn),
+                op_id: @registry.resolve_function(n.fn),
                 over: over_axes,
                 arg: arg,
                 loc: n.loc,
@@ -128,7 +129,7 @@ module Kumi
             # regular elementwise
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
-            out  = n.class.new(id: n.id, fn: registry.resolve_function(n.fn), args:, loc: n.loc)
+            out  = n.class.new(id: n.id, fn: @registry.resolve_function(n.fn), args:, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end
 

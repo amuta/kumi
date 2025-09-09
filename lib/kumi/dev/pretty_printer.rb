@@ -81,28 +81,28 @@ module Kumi
         Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
 
-      def generate_lir(path)
+      def generate_lir_01_unoptimized(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_ops_by_decl]
+        raise "Error Generating #{path}" unless res.state[:lir_01_unoptimized]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_ops_by_decl])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_01_unoptimized])
       end
 
-      def generate_lir_fused(path)
+      def generate_lir_02_inlined(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_fused_ops_by_decl]
+        raise "Error Generating #{path}" unless res.state[:lir_02_inlined_ops_by_decl]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_fused_ops_by_decl])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_02_inlined_ops_by_decl])
       end
 
       def generate_lir_optimized(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_optimized_ops_by_decl]
+        raise "Error Generating #{path}" unless res.state[:lir_03_cse]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_optimized_ops_by_decl])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_03_cse])
       end
 
       def generate_snast(path)

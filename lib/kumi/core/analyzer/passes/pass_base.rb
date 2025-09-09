@@ -41,10 +41,6 @@ module Kumi
             state[key]
           end
 
-          def registry
-            get_state(:registry)
-          end
-
           # Add error to the error list
           def add_error(errors, location, message)
             errors << ErrorReporter.create_error(message, location: location, type: :semantic)

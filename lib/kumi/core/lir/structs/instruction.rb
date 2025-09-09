@@ -9,7 +9,23 @@ module Kumi
           :opcode, :result_register, :stamp, :inputs, :immediates, :attributes, :location,
           keyword_init: true
         ) do
+          SIDE_EFFECT_OPCODES = Set.new(%i[
+                                          LoopStart
+                                          LoopEnd
+                                          DeclareAccumulator
+                                          Accumulate LoadAccumulator
+                                          Yield
+                                        ]).freeze
+
           def produces? = !result_register.nil?
+
+          def side_effect?
+            SIDE_EFFECT_OPCODES.include?(opcode)
+          end
+
+          def pure?
+            !side_effect?
+          end
 
           def to_h
             h = { op: opcode }
