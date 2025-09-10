@@ -18,3 +18,7 @@ kernels:
   - id: core.or:ruby:v1
     fn: core.or
     impl: "(a, b)\n  a || b"
+  
+  - id: core.neq:ruby:v1
+    fn: core.neq
+    impl: "(a, b)\n  a != b"
