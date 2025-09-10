@@ -35,9 +35,10 @@ module Kumi
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
       Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::ValidationPass,             # Validates LIR structural and contextual correctness
-      Passes::LIR::DeadCodeEliminationPass,    # Validates LIR structural and contextual correctness
-      Passes::Codegen::RubyPass                # Generates ruby code from LIR
+      Passes::LIR::DeadCodeEliminationPass, # Validates LIR structural and contextual correctness
+      Passes::LIR::ValidationPass, # Validates LIR structural and contextual correctness
+      Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
+      Passes::Codegen::RubyPass # Generates ruby code from LIR
       # Passes::ContractCheckerPass,           # Validates contracts and structural invariants
       # Passes::LowerToIRV2Pass,               # Lowers SNAST to backend-agnostic IRV2 representation
       # Passes::AssembleIRV2Pass,              # Assembles final IRV2 JSON structure

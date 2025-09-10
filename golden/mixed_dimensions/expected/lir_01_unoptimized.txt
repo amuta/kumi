@@ -1,42 +1,42 @@
 (LIR
   (Declaration sum_numbers
-  acc.declare acc_1=0
-  %t2 = load_input "numbers" :: array
-  loop numbers id=L1 in %t2 as el=%numbers_el_3, idx=%numbers_i_4
-    %t5 = load_field numbers_el_3["value"] :: integer
-    acc.add acc_1 using agg.sum <- %t5
-  end_loop
-  %t6 = acc.load acc_1 :: integer
-  yield %t6
+    %acc_1 = decl_acc 0 :: integer
+    %t2 = load_input "numbers" :: array
+    loop numbers id=L1 in %t2 as el=%numbers_el_3, idx=%numbers_i_4
+      %t5 = load_field numbers_el_3["value"] :: integer
+      %acc_1 = acc_add agg.sum(%acc_1, %t5) :: integer
+    end_loop
+    %t6 = acc_load %acc_1 :: integer
+    yield %t6
   )
   (Declaration matrix_sums
-  %t7 = load_input "matrix" :: array
-  loop matrix id=L2 in %t7 as el=%matrix_el_8, idx=%matrix_i_9
-    acc.declare acc_10=0.0
-    %t11 = load_field matrix_el_8["row"] :: array
-    loop row id=L3 in %t11 as el=%row_el_12, idx=%row_i_13
-      %t14 = load_field row_el_12["cell"] :: float
-      acc.add acc_10 using agg.sum <- %t14
+    %t7 = load_input "matrix" :: array
+    loop matrix id=L2 in %t7 as el=%matrix_el_8, idx=%matrix_i_9
+      %acc_10 = decl_acc 0.0 :: float
+      %t11 = load_field matrix_el_8["row"] :: array
+      loop row id=L3 in %t11 as el=%row_el_12, idx=%row_i_13
+        %t14 = load_field row_el_12["cell"] :: float
+        %acc_10 = acc_add agg.sum(%acc_10, %t14) :: float
+      end_loop
+      %t15 = acc_load %acc_10 :: float
+      yield %t15
     end_loop
-    %t15 = acc.load acc_10 :: float
-    yield %t15
-  end_loop
   )
   (Declaration mixed_array
-  %t16 = load_input "matrix" :: array
-  loop matrix id=L4 in %t16 as el=%matrix_el_17, idx=%matrix_i_18
-    %t19 = load_field matrix_el_17["row"] :: array
-    loop row id=L5 in %t19 as el=%row_el_20, idx=%row_i_21
-      %t22 = load_input "scalar_val" :: integer
-      %t23 = load_decl sum_numbers :: integer
-      %t24 = load_field row_el_20["cell"] :: float
-      %t25 = make_tuple(%t22, %t23, %t24) :: tuple<integer, integer, float>
-      yield %t25
+    %t16 = load_input "matrix" :: array
+    loop matrix id=L4 in %t16 as el=%matrix_el_17, idx=%matrix_i_18
+      %t19 = load_field matrix_el_17["row"] :: array
+      loop row id=L5 in %t19 as el=%row_el_20, idx=%row_i_21
+        %t22 = load_input "scalar_val" :: integer
+        %t23 = load_decl sum_numbers :: integer
+        %t24 = load_field row_el_20["cell"] :: float
+        %t25 = make_tuple(%t22, %t23, %t24) :: tuple<integer, integer, float>
+        yield %t25
+      end_loop
     end_loop
-  end_loop
   )
   (Declaration constant
-  %t26 = const 42 :: integer
-  yield %t26
+    %t26 = const 42 :: integer
+    yield %t26
   )
 )

@@ -22,7 +22,7 @@ module Kumi
 
             def run(_errors)
               current_ops = get_state(:lir_module)
-              @ids        = LIR::Ids.new # Use a single ID generator for the entire process.
+              @ids        = get_state(:id_generator)
 
               MAX_PASSES.times do
                 new_ops, changed = run_one_pass(current_ops)

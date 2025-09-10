@@ -48,7 +48,9 @@ module Kumi
               end
 
               ops_by_decl.freeze
-              state.with(:lir_module, ops_by_decl).with(:lir_01_unoptimized, ops_by_decl)
+              state.with(:lir_module, ops_by_decl)
+                   .with(:lir_01_unoptimized, ops_by_decl)
+                   .with(:id_generator, @ids)
             end
 
             private
@@ -151,10 +153,11 @@ module Kumi
 
               open_suffix_loops!(over_axes: Array(n.over), anchor: n.arg)
               val = lower_expr(n.arg)
-              @ops << Build.accumulate(accumulator: acc_name, function: @registry.resolve_function(n.op_id), value_register: val)
+              @ops << Build.accumulate(accumulator: acc_name, dtype: dtype, function: @registry.resolve_function(n.op_id),
+                                       value_register: val)
 
               close_loops_to_depth(out_axes.length)
-              ins = Build.load_accumulator(name: acc_name, dtype: dtype, ids: @ids)
+              ins = Build.load_accumulator(accumulator: acc_name, dtype: dtype, ids: @ids)
               @ops << ins
               ins.result_register
             end

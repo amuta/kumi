@@ -97,7 +97,7 @@ module Kumi
         Kumi::Support::LIRPrinter.print(res.state[:lir_02_inlined_ops_by_decl])
       end
 
-      def generate_lir_optimized(path)
+      def generate_lir_03_optimized(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
         raise "Error Generating #{path}" unless res.state[:lir_03_cse]

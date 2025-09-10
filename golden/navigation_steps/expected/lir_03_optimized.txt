@@ -26,8 +26,9 @@
           %t24 = load_field a2_el_21["h1"] :: hash
           %t25 = load_field t24["ea2"] :: array
           loop ea2 id=L8 in %t25 as el=%ea2_el_26, idx=%ea2_i_27
-            %t28 = load_decl numbers_mult_10 axes=[a1, ea1, a2, ea2] :: integer
-            %acc_23 = acc_add agg.sum(%acc_23, %t28) :: integer
+            %t33 = const 10 :: integer
+            %t34 = call core.mul(%ea2_el_26, %t33) :: integer
+            %acc_23 = acc_add agg.sum(%acc_23, %t34) :: integer
           end_loop
           %t29 = acc_load %acc_23 :: integer
           yield %t29

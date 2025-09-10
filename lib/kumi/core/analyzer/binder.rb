@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 require "digest"
 
@@ -5,37 +7,45 @@ module Kumi
   module Core
     module Analyzer
       module Binder
+        OPS_WITH_KERNELS = %i[KernelCall Accumulate].freeze
+
         module_function
 
-        def bind(irv2_module, registry, target:)
+        def bind(lir_decls, registry, target:)
           bindings = []
+          target_sym = target.to_sym
 
-          # Find Map and Reduce operations that need kernel binding
-          irv2_module.declarations.each do |decl_name, decl|
-            decl.operations.each do |op|
-              next unless %i[Map Reduce].include?(op.op)
+          lir_decls.each do |decl_name, decl|
+            Array(decl[:operations]).each do |op|
+              next unless OPS_WITH_KERNELS.include?(op.opcode)
 
-              fn = op.attrs[:fn]
-              next unless fn
+              fn_name = op.attributes[:fn]
+              raise "KernelCall at #{op.location} is missing :fn attribute" unless fn_name
 
-              kernel_id = registry.pick(fn)
-              impl = registry.impl_for(kernel_id)
-
-              # Extract dtype from operation stamp and get identity if available
-              dtype = op.stamp["dtype"]
+              fn_id = registry.resolve_function(fn_name)
+              id = registry.kernel_id_for(fn_id, target: target_sym)
+              impl = registry.impl_for(id)
+              dtype = op.stamp&.dig("dtype")
               attrs = {}
-              begin
-                identity = registry.identity(kernel_id, dtype)
-                attrs["identity"] = identity if identity
-              rescue StandardError
-                # Not all kernels have identity values (only reductions do)
+
+              if registry.function_reduce?(fn_id) && dtype
+                begin
+                  identity = registry.identity_for(fn_id, dtype: dtype, target: target_sym)
+                  attrs["identity"] = identity if identity
+                rescue StandardError
+                  # Not all reduction kernels have identity values for all types
+                end
               end
+
+              fname = fn_id.split(".").join("_")
 
               bindings << {
                 "decl" => decl_name.to_s,
-                "op" => op.id,
-                "fn" => fn,
-                "kernel_id" => kernel_id,
+                "op_result_reg" => op.result_register,
+                "fn" => fn_name, # Original function name/alias
+                "fn_id" => fn_id, # Resolved canonical function ID
+                "fname" => fname, # Sanitized function name for use in Ruby method names
+                "id" => id,
                 "impl" => impl,
                 "attrs" => attrs
               }
@@ -45,7 +55,7 @@ module Kumi
           deduplicated = deduplicate_kernel_impls(bindings)
 
           {
-            "ir_ref" => sha256_ir_ref(irv2_module),
+            "lir_ref" => sha256_lir_ref(lir_decls),
             "target" => target.to_s,
             "registry_ref" => registry.registry_ref,
             "bindings" => deduplicated[:bindings],
@@ -53,30 +63,28 @@ module Kumi
           }
         end
 
-        # Separate kernel implementations from operation bindings
-        # Returns { bindings: [...], kernels: {...} } where:
-        # - bindings: operation-level mappings without duplicate impl strings
-        # - kernels: unique kernel_id => {impl, attrs} mappings
         def deduplicate_kernel_impls(bindings)
           kernels = {}
           deduplicated_bindings = []
 
           bindings.each do |binding|
-            kernel_id = binding["kernel_id"]
+            id = binding["id"]
             impl = binding["impl"]
             attrs = binding["attrs"]
 
-            # Store unique kernel implementation and attributes
-            if kernels.key?(kernel_id)
-              raise "Inconsistent impl for #{kernel_id}: #{impl} vs #{kernels[kernel_id]['impl']}" unless kernels[kernel_id]["impl"] == impl
+            if kernels.key?(id)
+              raise "Inconsistent impl for #{id}" unless kernels[id]["impl"] == impl
 
-              # Merge attrs if present
-              kernels[kernel_id]["attrs"] = (kernels[kernel_id]["attrs"] || {}).merge(attrs) if attrs
+              kernels[id]["attrs"].merge!(attrs)
             else
-              kernels[kernel_id] = { "kernel_id" => kernel_id, "impl" => impl, "attrs" => attrs || {} }
+              kernels[id] = {
+                "id" => id,
+                "fn_id" => binding["fn_id"],
+                "impl" => impl,
+                "attrs" => attrs
+              }
             end
 
-            # Store operation binding without impl and attrs duplication
             deduplicated_bindings << binding.reject { |k, _| %w[impl attrs].include?(k) }
           end
 
@@ -86,41 +94,13 @@ module Kumi
           }
         end
 
-        def sha256_ir_ref(irv2_module)
-          # Create canonical representation of the IR for stable hashing
-          canonical = {
-            "declarations" => irv2_module.declarations.transform_values do |decl|
-              {
-                "operations" => decl.operations.map do |op|
-                  {
-                    "id" => op.id,
-                    "op" => op.op.to_s,
-                    "args" => serialize_args(op),
-                    "attrs" => op.attrs
-                  }
-                end,
-                "result" => decl.result.id,
-                "parameters" => decl.parameters
-              }
-            end,
-            "metadata" => irv2_module.metadata
-          }
-
-          # Generate stable SHA256 hash
-          json = JSON.generate(canonical, { ascii_only: true, array_nl: "", object_nl: "", indent: "", space: "", space_before: "" })
-          "sha256:#{Digest::SHA256.hexdigest(json)}"
-        end
-
-        def serialize_args(op)
-          # Handle mixed args (Values and literals) based on operation type
-          case op.op
-          when :LoadInput, :LoadDeclaration, :LoadDecl, :Const
-            # These operations have literals/strings in args
-            op.args
-          else
-            # These operations should have Value objects in args
-            op.args.map { |arg| arg.respond_to?(:id) ? arg.id : arg }
+        def sha256_lir_ref(lir_decls)
+          canonical_decls = lir_decls.transform_values do |decl|
+            decl[:operations].map(&:to_h)
           end
+
+          json = JSON.generate(canonical_decls, { ascii_only: true, array_nl: "", object_nl: "", indent: "", space: "", space_before: "" })
+          "sha256:#{Digest::SHA256.hexdigest(json)}"
         end
       end
     end

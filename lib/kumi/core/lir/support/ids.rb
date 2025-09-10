@@ -19,6 +19,10 @@ module Kumi
             :"#{prefix}#{@t}"
           end
 
+          def generate_acc
+            generate_temp(prefix: :acc)
+          end
+
           def generate_loop_id
             @l += 1
             :"L#{@l}"

@@ -59,20 +59,12 @@
         loop teams id=L14 in %t49 as el=%teams_el_50, idx=%teams_i_51
           %t52 = load_field teams_el_50["employees"] :: array
           loop employees id=L15 in %t52 as el=%employees_el_53, idx=%employees_i_54
-            %t74 = load_field regions_el_44["offices"] :: array
-            %t75 = load_field offices_el_47["teams"] :: array
-            %t76 = load_field teams_el_50["employees"] :: array
             %t77 = load_field employees_el_53["rating"] :: float
             %t78 = const 4.5 :: float
             %t79 = call core.gte(%t77, %t78) :: boolean
-            %t80 = load_field regions_el_44["offices"] :: array
-            %t81 = load_field offices_el_47["teams"] :: array
-            %t82 = load_field teams_el_50["employees"] :: array
             %t83 = load_field employees_el_53["level"] :: string
             %t84 = const "senior" :: string
             %t85 = call core.eq(%t83, %t84) :: boolean
-            %t86 = load_field regions_el_44["offices"] :: array
-            %t87 = load_field offices_el_47["teams"] :: array
             %t88 = load_field teams_el_50["performance_score"] :: float
             %t89 = const 0.9 :: float
             %t90 = call core.gte(%t88, %t89) :: boolean
@@ -81,24 +73,11 @@
             %t60 = load_field employees_el_53["salary"] :: float
             %t61 = const 0.3 :: float
             %t62 = call core.mul(%t60, %t61) :: float
-            %t74 = load_field regions_el_44["offices"] :: array
-            %t75 = load_field offices_el_47["teams"] :: array
-            %t76 = load_field teams_el_50["employees"] :: array
-            %t77 = load_field employees_el_53["rating"] :: float
-            %t78 = const 4.5 :: float
-            %t79 = call core.gte(%t77, %t78) :: boolean
-            %t86 = load_field regions_el_44["offices"] :: array
-            %t87 = load_field offices_el_47["teams"] :: array
-            %t88 = load_field teams_el_50["performance_score"] :: float
-            %t89 = const 0.9 :: float
-            %t90 = call core.gte(%t88, %t89) :: boolean
             %t65 = call core.and(%t79, %t90) :: boolean
-            %t66 = load_field employees_el_53["salary"] :: float
             %t67 = const 0.2 :: float
-            %t68 = call core.mul(%t66, %t67) :: float
-            %t69 = load_field employees_el_53["salary"] :: float
+            %t68 = call core.mul(%t60, %t67) :: float
             %t70 = const 0.05 :: float
-            %t71 = call core.mul(%t69, %t70) :: float
+            %t71 = call core.mul(%t60, %t70) :: float
             %t72 = select %t65, %t68, %t71 :: float
             %t73 = select %t59, %t62, %t72 :: float
             yield %t73

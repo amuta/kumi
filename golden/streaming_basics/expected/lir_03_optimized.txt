@@ -34,14 +34,10 @@
       %t48 = load_field items_el_22["price"] :: float
       %t49 = const 100.0 :: float
       %t50 = call core.gt(%t48, %t49) :: boolean
-      %t51 = load_field items_el_22["price"] :: float
       %t52 = load_field items_el_22["qty"] :: integer
-      %t53 = call core.mul(%t51, %t52) :: float
+      %t53 = call core.mul(%t48, %t52) :: float
       %t26 = const 0.9 :: float
       %t27 = call core.mul(%t53, %t26) :: float
-      %t51 = load_field items_el_22["price"] :: float
-      %t52 = load_field items_el_22["qty"] :: integer
-      %t53 = call core.mul(%t51, %t52) :: float
       %t29 = select %t50, %t27, %t53 :: float
       yield %t29
     end_loop
@@ -75,14 +71,10 @@
       %t63 = load_field items_el_44["price"] :: float
       %t64 = const 100.0 :: float
       %t65 = call core.gt(%t63, %t64) :: boolean
-      %t66 = load_field items_el_44["price"] :: float
       %t67 = load_field items_el_44["qty"] :: integer
-      %t68 = call core.mul(%t66, %t67) :: float
+      %t68 = call core.mul(%t63, %t67) :: float
       %t59 = const 0.9 :: float
       %t60 = call core.mul(%t68, %t59) :: float
-      %t66 = load_field items_el_44["price"] :: float
-      %t67 = load_field items_el_44["qty"] :: integer
-      %t68 = call core.mul(%t66, %t67) :: float
       %t62 = select %t65, %t60, %t68 :: float
       %acc_42 = acc_add agg.sum(%acc_42, %t62) :: float
     end_loop

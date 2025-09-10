@@ -46,13 +46,11 @@
       %acc_33 = decl_acc 0 :: integer
       %t34 = load_field depts_el_31["teams"] :: array
       loop teams id=L8 in %t34 as el=%teams_el_35, idx=%teams_i_36
-        %t42 = load_field depts_el_31["teams"] :: array
         %t43 = load_field teams_el_35["headcount"] :: integer
         %t44 = const 10 :: integer
         %t45 = call core.gt(%t43, %t44) :: boolean
-        %t38 = load_field teams_el_35["headcount"] :: integer
         %t39 = const 0 :: integer
-        %t40 = select %t45, %t38, %t39 :: integer
+        %t40 = select %t45, %t43, %t39 :: integer
         %acc_33 = acc_add agg.sum(%acc_33, %t40) :: integer
       end_loop
       %t41 = acc_load %acc_33 :: integer

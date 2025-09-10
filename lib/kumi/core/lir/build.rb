@@ -14,7 +14,7 @@ module Kumi
         #   location:  optional Location
         # Result: produces(result_register, stamp(dtype))
         def constant(value:, dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :Constant,
             result_register: as,
@@ -34,7 +34,7 @@ module Kumi
         #   location:  optional Location
         # Result: produces
         def load_input(key:, dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :LoadInput,
             result_register: as,
@@ -55,7 +55,7 @@ module Kumi
         #   location:  optional Location
         # Result: produces
         def load_declaration(name:, dtype:, axes:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :LoadDeclaration,
             result_register: as,
@@ -76,7 +76,7 @@ module Kumi
         #   location:        optional Location
         # Result: produces
         def load_field(object_register:, key:, dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :LoadField,
             result_register: as,
@@ -104,7 +104,7 @@ module Kumi
             stamp: nil,
             inputs: [collection_register],
             immediates: [],
-            attributes: { axis: axis.to_sym, as_element:, as_index:, id: id || (ids || Ids.new).generate_loop_id },
+            attributes: { axis: axis.to_sym, as_element:, as_index:, id: id || ids.generate_loop_id },
             location:
           )
         end
@@ -134,7 +134,7 @@ module Kumi
         #   location:   optional Location
         # Result: produces
         def kernel_call(function:, args:, out_dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :KernelCall,
             result_register: as,
@@ -156,7 +156,7 @@ module Kumi
         #   location:   optional Location
         # Result: produces
         def select(cond:, on_true:, on_false:, out_dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :Select,
             result_register: as,
@@ -174,14 +174,15 @@ module Kumi
         #   initial:  Literal identity value
         #   location: optional Location
         # Result: does not produce
-        def declare_accumulator(name:, initial:, location: nil)
+        def declare_accumulator(initial:, location: nil, ids: nil, name: nil)
+          name ||= ids.generate_acc
           Instruction.new(
             opcode: :DeclareAccumulator,
-            result_register: nil,
-            stamp: nil,
+            result_register: name.to_sym,
+            stamp: Stamp.new(dtype: initial.dtype),
             inputs: [],
             immediates: [initial],
-            attributes: { name: name.to_sym },
+            attributes: {},
             location:
           )
         end
@@ -193,14 +194,14 @@ module Kumi
         #   value_register: register providing the value to accumulate
         #   location:      optional Location
         # Result: does not produce
-        def accumulate(accumulator:, function:, value_register:, location: nil)
+        def accumulate(accumulator:, function:, value_register:, dtype:, location: nil)
           Instruction.new(
             opcode: :Accumulate,
-            result_register: nil,
-            stamp: nil,
+            result_register: accumulator.to_sym,
+            stamp: Stamp.new(dtype: dtype),
             inputs: [value_register],
             immediates: [],
-            attributes: { accumulator: accumulator.to_sym, function: function.to_s },
+            attributes: { fn: function.to_s },
             location:
           )
         end
@@ -212,15 +213,15 @@ module Kumi
         #   as:       result register
         #   location: optional Location
         # Result: produces
-        def load_accumulator(name:, dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+        def load_accumulator(accumulator:, dtype:, ids:, location: nil)
+          as = ids.generate_temp
           Instruction.new(
             opcode: :LoadAccumulator,
             result_register: as,
             stamp: Stamp.new(dtype: dtype),
-            inputs: [],
+            inputs: [accumulator.to_sym],
             immediates: [],
-            attributes: { name: name.to_sym },
+            attributes: {},
             location:
           )
         end
@@ -232,7 +233,7 @@ module Kumi
         #   as: result register
         # Result: produces tuple
         def make_tuple(elements:, out_dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :MakeTuple,
             result_register: as,
@@ -240,7 +241,7 @@ module Kumi
             inputs: elements,
             immediates: [],
             attributes: {},
-            location: location
+            location:
           )
         end
 
@@ -251,7 +252,7 @@ module Kumi
         #   out_dtype: object dtype (or :object)
         #   as: result
         def make_object(keys:, values:, out_dtype:, as: nil, ids: nil, location: nil)
-          as ||= (ids || Ids.new).generate_temp
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :MakeObject,
             result_register: as,

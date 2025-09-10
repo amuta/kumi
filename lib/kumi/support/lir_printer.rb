@@ -11,7 +11,7 @@ module Kumi
         out = +"(LIR\n"
         ops_by_decl.each do |name, h|
           out << "  (Declaration #{name}\n"
-          out << indent(print_instructions(h[:operations], show_stamps:, show_locations:), 2)
+          out << indent(print_instructions(h[:operations], show_stamps:, show_locations:), 4)
           out << "  )\n"
         end
         out << ")\n"
@@ -74,17 +74,16 @@ module Kumi
           c, t, f = ins.inputs
           "#{res}select #{fmt_reg(c)}, #{fmt_reg(t)}, #{fmt_reg(f)}#{stamp(ins)}"
         when :DeclareAccumulator
-          name = ins.attributes[:name]
           init = ins.immediates&.first
-          "acc.declare #{name}=#{fmt_lit(init)}"
+          "#{res}decl_acc #{fmt_lit(init)}#{stamp(ins)}"
         when :Accumulate
-          name = ins.attributes[:accumulator]
-          fn   = ins.attributes[:function]
+          acc = fmt_reg(ins.result_register)
+          fn   = ins.attributes[:fn]
           v    = only(ins.inputs)
-          "acc.add #{name} using #{fn} <- #{fmt_reg(v)}"
+          "#{res}acc_add #{fn}(#{acc}, #{fmt_reg(v)})#{stamp(ins)}"
         when :LoadAccumulator
-          name = ins.attributes[:name]
-          "#{res}acc.load #{name}#{stamp(ins)}"
+          acc = ins.inputs.first or raise "No accumulator bound"
+          "#{res}acc_load #{fmt_reg(acc)}#{stamp(ins)}"
         when :MakeTuple
           "#{res}make_tuple(#{list(ins.inputs)})#{stamp(ins)}"
         when :MakeObject
