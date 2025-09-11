@@ -7,15 +7,29 @@ module Kumi
     module Loader
       module_function
 
-      # { "core.mul" => { kind: :elementwise, aliases: ["..."] }, ... }
-      def load_functions(dir)
+      # { "core.mul" => Function(id: "core.mul", kind: :elementwise, params: [...]) }
+      def load_functions(dir, func_struct)
         files = Dir.glob(File.join(dir, "**", "*.y{a,}ml")).sort
         funcs = files.flat_map { |p| (YAML.load_file(p) || {}).fetch("functions", []) }
+        # funcs.each_with_object({}) do |h, acc|
+        #   acc[h.fetch("id").to_s] = {
+        #     kind: h.fetch("kind").to_s.to_sym,
+        #     aliases: Array(h["aliases"]).map!(&:to_s),
+        #     params: h.fetch("params")
+        #   }
+        # end
         funcs.each_with_object({}) do |h, acc|
-          acc[h.fetch("id").to_s] = {
+          f = func_struct.new(
+            id: h.fetch("id").to_s,
             kind: h.fetch("kind").to_s.to_sym,
-            aliases: Array(h["aliases"]).map!(&:to_s)
-          }
+            aliases: Array(h["aliases"]).map!(&:to_s),
+            params: h.fetch("params"),
+            dtype: h["dtype"],
+            expand: h["expand"]
+          )
+          raise "duplicate function id `#{f.id}`" if acc.key?(f.id)
+
+          acc[f.id] = f
         end
       end
 

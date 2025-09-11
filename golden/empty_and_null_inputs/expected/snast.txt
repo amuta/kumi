@@ -1,0 +1,18 @@
+(SNAST
+  (VALUE regional_sales
+    (Reduce :agg.sum over [sales]
+      (InputRef regions.sales.amount key_chain=[amount]) :: [regions, sales] -> integer
+    ) :: [regions] -> integer
+  ) :: [regions] -> integer
+  (VALUE total_sales
+    (Reduce :agg.sum over [regions]
+      (Ref regional_sales) :: [regions] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE adjusted_total
+    (Call :core.add
+      (Ref total_sales) :: [] -> integer
+      (InputRef adjustment key_chain=[adjustment]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

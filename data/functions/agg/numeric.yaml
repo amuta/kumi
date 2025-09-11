@@ -3,8 +3,70 @@ functions:
     kind: reduce
     params: [{ name: source_value }]
     dtype: "same_as(source_value)"
+    aliases: ["sum"]
     
   - id: agg.count
     kind: reduce
     params: [{ name: source_value }]
     dtype: "integer"
+    aliases: ["count"]
+
+  - id: agg.min
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "element_of(source_value)"
+    aliases: ["min"]
+
+  - id: agg.max
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "element_of(source_value)"
+    aliases: ["max"]
+  
+  - id: agg.mean
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "float"
+    aliases: ["mean", "avg"]
+    expand:
+      fn: div
+      args:
+        - fn: sum
+          args: [ "$1" ] # $1 is source_value
+        - fn: count
+          args: [ "$1" ]
+
+  - id: agg.sum_if
+    kind: reduce
+    params: [{ name: source_value }, { name: condition }]
+    dtype: "same_as(source_value)"
+    aliases: ["sum_if"]
+    expand:
+      fn: sum
+      args:
+        - fn: __select__
+          args: [ "$2", "$1", { const: 0 } ] # $1=source_value, $2=condition
+
+  - id: agg.count_if
+    kind: reduce
+    params: [{ name: source_value }, { name: condition }]
+    dtype: "integer"
+    aliases: ["count_if"]
+    expand:
+      fn: sum # Summing 1s and 0s is equivalent to a conditional count
+      args:
+        - fn: __select__
+          args: [ "$2", { const: 1 }, { const: 0 } ] # $2=condition
+
+  - id: agg.avg_if
+    kind: reduce
+    params: [{ name: source_value }, { name: condition }]
+    dtype: "float"
+    aliases: ["avg_if", "mean_if"]
+    expand:
+      fn: div
+      args:
+        - fn: sum_if
+          args: [ "$1", "$2" ] # Sum the values where the condition is true
+        - fn: count_if
+          args: [ "$1", "$2" ] # Count the values where the condition is true

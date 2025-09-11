@@ -56,7 +56,7 @@
     loop batch id=L7 in %t33 as el=%batch_el_34, idx=%batch_i_35
       %t36 = load_field batch_el_34["row"] :: array
       loop row id=L8 in %t36 as el=%row_el_37, idx=%row_i_38
-        %acc_39 = decl_acc 0.0 :: float
+        %acc_39 = decl_acc :: float
         %t40 = load_field row_el_37["col"] :: array
         loop col id=L9 in %t40 as el=%col_el_41, idx=%col_i_42
           %t66 = load_field col_el_41["val"] :: float
@@ -80,10 +80,10 @@
   (Declaration batch_total_affine
     %t45 = load_input "batch" :: array
     loop batch id=L10 in %t45 as el=%batch_el_46, idx=%batch_i_47
-      %acc_48 = decl_acc 0.0 :: float
+      %acc_48 = decl_acc :: float
       %t49 = load_field batch_el_46["row"] :: array
       loop row id=L11 in %t49 as el=%row_el_50, idx=%row_i_51
-        %t72 = decl_acc 0.0 :: float
+        %t72 = decl_acc :: float
         %t74 = load_field row_el_50["col"] :: array
         loop col id=L12 in %t74 as el=%col_el_41, idx=%col_i_42
           %t91 = load_field col_el_41["val"] :: float

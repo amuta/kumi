@@ -1,0 +1,19 @@
+{
+    "departments": [
+      {
+        "dept_name": "Engineering",
+        "teams": [
+          {"team_name": "Backend", "headcount": 10},
+          {"team_name": "Frontend", "headcount": 15},
+          {"team_name": "Data", "headcount": 5}
+        ]
+      },
+      {
+        "dept_name": "Sales",
+        "teams": [
+          {"team_name": "Enterprise", "headcount": 30},
+          {"team_name": "SMB", "headcount": 10}
+        ]
+      }
+    ]
+  }

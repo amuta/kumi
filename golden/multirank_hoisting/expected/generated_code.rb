@@ -96,7 +96,7 @@ module SchemaModule
       out_1 = []
       t36 = batch_el_34["row"]
       t36.each_with_index do |row_el_37, row_i_38|
-        acc_39 = 0.0
+        # unsupported: DeclareAccumulator
         t40 = row_el_37["col"]
         t40.each_with_index do |col_el_41, col_i_42|
           t66 = col_el_41["val"]
@@ -124,10 +124,10 @@ module SchemaModule
     out = []
     t45 = @input["batch"]
     t45.each_with_index do |batch_el_46, batch_i_47|
-      acc_48 = 0.0
+      # unsupported: DeclareAccumulator
       t49 = batch_el_46["row"]
       t49.each_with_index do |row_el_50, row_i_51|
-        t72 = 0.0
+        # unsupported: DeclareAccumulator
         t74 = row_el_50["col"]
         t74.each_with_index do |col_el_41, col_i_42|
           t91 = col_el_41["val"]
@@ -154,11 +154,11 @@ module SchemaModule
 
   private
 
-  def __agg_sum(a,b)
+  def __core_add(a, b)
     a + b
   end
 
-  def __core_add(a, b)
+  def __agg_sum(a,b)
     a + b
   end
 

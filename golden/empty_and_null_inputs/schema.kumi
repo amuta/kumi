@@ -1,0 +1,26 @@
+schema do
+  input do
+    # This array will be empty in one of the input records.
+    array :regions do
+      string :name
+      array :sales do
+        integer :amount
+      end
+    end
+
+    # This value will be null/omitted for one record.
+    integer :adjustment
+  end
+
+  # 1. Reduction on Empty Array: The `agg.sum` kernel for integers
+  # should use its identity value (0) when the `sales` array is empty.
+  # This should not produce null or an error.
+  value :regional_sales, fn(:sum, input.regions.sales.amount)
+
+  # 2. Total Sales: This will test summing the results from the above,
+  # including the zero from the empty region.
+  value :total_sales, fn(:sum, regional_sales)
+
+  # 3. Arithmetic with Null: How does the system handle `null + 100`?
+  value :adjusted_total, total_sales + input.adjustment
+end

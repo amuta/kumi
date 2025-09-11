@@ -148,8 +148,8 @@ module Kumi
 
               dtype    = dtype_of(n)
               acc_name = @ids.generate_temp(prefix: :acc_)
-              init     = identity_literal(n.op_id, dtype)
-              @ops << Build.declare_accumulator(name: acc_name, initial: init)
+              # init     = identity_literal(n.op_id, dtype)
+              @ops << Build.declare_accumulator(name: acc_name, dtype: dtype, ids: @ids)
 
               open_suffix_loops!(over_axes: Array(n.over), anchor: n.arg)
               val = lower_expr(n.arg)
@@ -292,11 +292,6 @@ module Kumi
 
             def prefix?(pre, full)
               pre.each_with_index.all? { |tok, i| full[i] == tok }
-            end
-
-            def identity_literal(op_id, dtype)
-              v = @registry.kernel_identity_for(op_id, dtype: dtype, target: @target_platform)
-              Literal.new(value: v, dtype: dtype)
             end
 
             # ---- InputRef annotations & plans ----

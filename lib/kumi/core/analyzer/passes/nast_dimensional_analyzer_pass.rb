@@ -15,8 +15,10 @@ module Kumi
           def run(errors)
             nast_module  = get_state(:nast_module, required: true)
             @input_table = get_state(:input_table, required: true)
+            @registry = get_state(:registry, required: true)
 
             @function_specs    = Functions::Loader.load_minimal_functions
+
             @metadata_table    = {}
             @declaration_table = {}
 
@@ -64,7 +66,7 @@ module Kumi
           end
 
           def analyze_call_expression(call, errors)
-            function_spec = @function_specs.fetch(call.fn.to_s)
+            function_spec = @registry.function(call.fn.to_s)
 
             arg_metadata = call.args.map { |arg| analyze_expression(arg, errors) }
             arg_types    = arg_metadata.map { |m| m[:type] }
@@ -75,14 +77,18 @@ module Kumi
             end
 
             named_types =
-              if function_spec.parameter_names.size == arg_types.size
-                Hash[function_spec.parameter_names.zip(arg_types)]
+              if function_spec.params.size == arg_types.size
+                Hash[function_spec.param_names.zip(arg_types)]
               else
-                { function_spec.parameter_names.first => arg_types } # variadic
+                { function_spec.param_names.first => arg_types } # variadic TODO: this is a hack
               end
 
-            result_type  = function_spec.dtype_rule.call(named_types)
-            result_scope = compute_result_scope(function_spec, arg_scopes)
+            begin
+              result_type  = function_spec.dtype_rule.call(named_types)
+              result_scope = compute_result_scope(function_spec, arg_scopes)
+            rescue StandardError => e
+              binding.pry
+            end
 
             needs_expand_flags =
               (arg_scopes.map { |axes| axes != result_scope } if %i[elementwise constructor].include?(function_spec.kind))
@@ -90,7 +96,7 @@ module Kumi
             @metadata_table[node_id(call)] = {
               function: function_spec.id,
               kind: function_spec.kind,
-              parameter_names: function_spec.parameter_names,
+              params: function_spec.params,
               result_type: result_type,
               result_scope: result_scope,
               arg_types: arg_types,

@@ -43,7 +43,7 @@
     end_loop
   )
   (Declaration total_qty
-    %acc_30 = decl_acc 0 :: integer
+    %acc_30 = decl_acc :: integer
     %t31 = load_input "items" :: array
     loop items id=L5 in %t31 as el=%items_el_32, idx=%items_i_33
       %t34 = load_field items_el_32["qty"] :: integer
@@ -53,7 +53,7 @@
     yield %t35
   )
   (Declaration cart_total
-    %acc_36 = decl_acc 0.0 :: float
+    %acc_36 = decl_acc :: float
     %t37 = load_input "items" :: array
     loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
       %t54 = load_field items_el_38["price"] :: float
@@ -65,7 +65,7 @@
     yield %t41
   )
   (Declaration cart_total_effective
-    %acc_42 = decl_acc 0.0 :: float
+    %acc_42 = decl_acc :: float
     %t43 = load_input "items" :: array
     loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
       %t63 = load_field items_el_44["price"] :: float

@@ -3,3 +3,4 @@ functions:
     kind: elementwise
     params: [{ name: condition_mask }, { name: value_when_true }, { name: value_when_false }]
     dtype: "same_as(value_when_true)"
+    aliases: ["select", "if"]

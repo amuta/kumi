@@ -50,7 +50,7 @@ module SchemaModule
         out_2 = []
         t20 = ea1_el_18["a2"]
         t20.each_with_index do |a2_el_21, a2_i_22|
-          acc_23 = 0
+          # unsupported: DeclareAccumulator
           t24 = a2_el_21["h1"]
           t25 = t24["ea2"]
           t25.each_with_index do |ea2_el_26, ea2_i_27|

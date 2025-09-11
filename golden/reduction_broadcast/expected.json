@@ -1,0 +1,25 @@
+{
+    "dept_headcount": [
+      30,
+      40
+    ],
+    "teams_per_dept": [
+      3,
+      2
+    ],
+    "avg_headcount_per_dept": [
+      10.0,
+      20.0
+    ],
+    "is_above_average_team": [
+      [
+        false,
+        true,
+        false
+      ],
+      [
+        true,
+        false
+      ]
+    ]
+}

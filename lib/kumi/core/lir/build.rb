@@ -174,14 +174,14 @@ module Kumi
         #   initial:  Literal identity value
         #   location: optional Location
         # Result: does not produce
-        def declare_accumulator(initial:, location: nil, ids: nil, name: nil)
+        def declare_accumulator(dtype:, location: nil, ids: nil, name: nil)
           name ||= ids.generate_acc
           Instruction.new(
             opcode: :DeclareAccumulator,
             result_register: name.to_sym,
-            stamp: Stamp.new(dtype: initial.dtype),
+            stamp: Stamp.new(dtype: dtype),
             inputs: [],
-            immediates: [initial],
+            immediates: [],
             attributes: {},
             location:
           )

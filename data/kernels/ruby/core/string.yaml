@@ -1,5 +1,5 @@
 kernels:
-  - id: core.concat:ruby:v1
+  - id: concat:ruby:v1
     fn: core.concat
     impl: |
       (a, b)

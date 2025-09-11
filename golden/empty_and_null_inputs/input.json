@@ -1,0 +1,16 @@
+{
+    "regions": [
+      {
+        "name": "North",
+        "sales": [
+          {"amount": 1000},
+          {"amount": 1500}
+        ]
+      },
+      {
+        "name": "South",
+        "sales": []
+      }
+    ],
+    "adjustment": -100
+}

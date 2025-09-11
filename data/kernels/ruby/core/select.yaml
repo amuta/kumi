@@ -1,4 +1,4 @@
 kernels:
-  - id: core.select:ruby:v1
+  - id: select:ruby:v1
     fn: core.select
     impl: "(condition, true_val, false_val)\n  condition ? true_val : false_val"

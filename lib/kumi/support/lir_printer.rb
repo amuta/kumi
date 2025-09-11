@@ -74,8 +74,7 @@ module Kumi
           c, t, f = ins.inputs
           "#{res}select #{fmt_reg(c)}, #{fmt_reg(t)}, #{fmt_reg(f)}#{stamp(ins)}"
         when :DeclareAccumulator
-          init = ins.immediates&.first
-          "#{res}decl_acc #{fmt_lit(init)}#{stamp(ins)}"
+          "#{res}decl_acc#{stamp(ins)}"
         when :Accumulate
           acc = fmt_reg(ins.result_register)
           fn   = ins.attributes[:fn]

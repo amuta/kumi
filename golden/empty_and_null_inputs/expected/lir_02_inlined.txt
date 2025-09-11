@@ -1,0 +1,49 @@
+(LIR
+  (Declaration regional_sales
+    %t1 = load_input "regions" :: array
+    loop regions id=L1 in %t1 as el=%regions_el_2, idx=%regions_i_3
+      %acc_4 = decl_acc :: integer
+      %t5 = load_field regions_el_2["sales"] :: array
+      loop sales id=L2 in %t5 as el=%sales_el_6, idx=%sales_i_7
+        %t8 = load_field sales_el_6["amount"] :: integer
+        %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
+      end_loop
+      %t9 = acc_load %acc_4 :: integer
+      yield %t9
+    end_loop
+  )
+  (Declaration total_sales
+    %acc_10 = decl_acc :: integer
+    %t11 = load_input "regions" :: array
+    loop regions id=L3 in %t11 as el=%regions_el_12, idx=%regions_i_13
+      %t19 = decl_acc :: integer
+      %t21 = load_field regions_el_12["sales"] :: array
+      loop sales id=L4 in %t21 as el=%sales_el_6, idx=%sales_i_7
+        %t22 = load_field sales_el_6["amount"] :: integer
+        %t19 = acc_add agg.sum(%t19, %t22) :: integer
+      end_loop
+      %t23 = acc_load %t19 :: integer
+      %acc_10 = acc_add agg.sum(%acc_10, %t23) :: integer
+    end_loop
+    %t15 = acc_load %acc_10 :: integer
+    yield %t15
+  )
+  (Declaration adjusted_total
+    %t24 = decl_acc :: integer
+    %t26 = load_input "regions" :: array
+    loop regions id=L5 in %t26 as el=%regions_el_12, idx=%regions_i_13
+      %t29 = decl_acc :: integer
+      %t31 = load_field regions_el_12["sales"] :: array
+      loop sales id=L6 in %t31 as el=%sales_el_6, idx=%sales_i_7
+        %t32 = load_field sales_el_6["amount"] :: integer
+        %t29 = acc_add agg.sum(%t29, %t32) :: integer
+      end_loop
+      %t33 = acc_load %t29 :: integer
+      %t24 = acc_add agg.sum(%t24, %t33) :: integer
+    end_loop
+    %t28 = acc_load %t24 :: integer
+    %t17 = load_input "adjustment" :: integer
+    %t18 = call core.add(%t28, %t17) :: integer
+    yield %t18
+  )
+)

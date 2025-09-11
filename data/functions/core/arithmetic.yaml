@@ -3,23 +3,28 @@ functions:
     kind: elementwise  
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "promote(left_operand,right_operand)"
+    aliases: ["add"]
 
   - id: core.sub
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }] 
     dtype: "promote(left_operand,right_operand)"
+    aliases: ["sub", "subtract"]
 
   - id: core.mul
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "promote(left_operand,right_operand)"
+    aliases: ["mul", "multiply"]
 
   - id: core.pow
     kind: elementwise
     params: [{ name: base }, { name: exponent }]
     dtype: "promote(base,exponent)"
+    aliases: ["pow", "power"]
 
   - id: core.div
     kind: elementwise  
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "promote(left_operand,right_operand)"
+    aliases: ["div", "divide"]

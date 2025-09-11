@@ -1,0 +1,18 @@
+(NAST
+  (VALUE regional_sales
+    (Call :"agg.sum"
+    (InputRef [:regions, :sales, :amount])
+  )
+  )
+  (VALUE total_sales
+    (Call :"agg.sum"
+    (Ref regional_sales)
+  )
+  )
+  (VALUE adjusted_total
+    (Call :"core.add"
+    (Ref total_sales)
+    (InputRef [:adjustment])
+  )
+  )
+)

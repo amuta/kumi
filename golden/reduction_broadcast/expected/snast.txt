@@ -1,0 +1,24 @@
+(SNAST
+  (VALUE dept_headcount
+    (Reduce :agg.sum over [teams]
+      (InputRef departments.teams.headcount key_chain=[headcount]) :: [departments, teams] -> integer
+    ) :: [departments] -> integer
+  ) :: [departments] -> integer
+  (VALUE teams_per_dept
+    (Reduce :agg.count over [teams]
+      (InputRef departments.teams.team_name key_chain=[team_name]) :: [departments, teams] -> string
+    ) :: [departments] -> integer
+  ) :: [departments] -> integer
+  (VALUE avg_headcount_per_dept
+    (Call :core.div
+      (Ref dept_headcount) :: [departments] -> integer
+      (Ref teams_per_dept) :: [departments] -> integer
+    ) :: [departments] -> integer
+  ) :: [departments] -> integer
+  (TRAIT is_above_average_team
+    (Call :core.gt
+      (InputRef departments.teams.headcount key_chain=[headcount]) :: [departments, teams] -> integer
+      (Ref avg_headcount_per_dept) :: [departments] -> integer
+    ) :: [departments, teams] -> boolean
+  ) :: [departments, teams] -> boolean
+)

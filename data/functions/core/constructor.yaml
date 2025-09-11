@@ -4,3 +4,12 @@ functions:
     kind: elementwise
     params: [{ name: collection }]
     dtype: "integer"
+    aliases: ["length", "len"]
+
+  - id: core.at
+    kind: elementwise
+    params: 
+      - { name: collection }
+      - { name: index, dtype: integer }
+    dtype: "element_of(collection)"
+    aliases: ["at", "get", "[]"]

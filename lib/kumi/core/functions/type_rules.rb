@@ -41,13 +41,30 @@ module Kumi
           :"tuple<#{element_types.join(', ')}>"
         end
 
+        # Parses a collection type symbol to find its element type.
+        def element_type_of(collection_type)
+          str_type = collection_type.to_s
+          if (m = /\Aarray<(.+)>\z/.match(str_type))
+            return m[1].to_sym
+          end
+
+          # Add more collection types like tuple if needed in the future
+          raise "Cannot determine element type of non-collection type: #{collection_type}"
+        end
+
         # Compile dtype rule string into callable
-        def compile_dtype_rule(rule_string, parameter_names)
+        def compile_dtype_rule(rule_string, _parameter_names)
           rule = rule_string.to_s.strip
 
-          # Handle function-based rules
+          # --- NEW: Handle the "element_of" rule ---
+          if (m = /\Aelement_of\((.+)\)\z/.match(rule))
+            key = m[1].strip.to_sym
+            return ->(named) { element_type_of(named.fetch(key)) }
+          end
+
+          # Handle existing function-based rules
           if (m = /\Apromote\((.+)\)\z/.match(rule))
-            keys = m[1].split(",").map { _1.strip.to_sym }
+            keys = m[1].split(",").map { |s| s.strip.to_sym }
             return ->(named) { promote_types(*keys.map { |k| named.fetch(k) }) }
           end
           if (m = /\Asame_as\((.+)\)\z/.match(rule))
@@ -65,8 +82,7 @@ module Kumi
           end
           if (m = /\Aarray\((.+)\)\z/.match(rule))
             inner_rule = m[1].strip
-            # Recursively compile the inner rule
-            inner_compiled = compile_dtype_rule(inner_rule, parameter_names)
+            inner_compiled = compile_dtype_rule(inner_rule, []) # param_names not needed here
             return ->(named) { array_type(inner_compiled.call(named)) }
           end
           if (m = /\Atuple\(types\((.+)\)\)\z/.match(rule))
@@ -74,7 +90,6 @@ module Kumi
             return ->(named) { tuple_type(*named.fetch(param_name)) }
           end
 
-          # Handle literal types: "boolean", "integer", "float", etc.
           ->(_) { normalize_type_symbol(rule.to_sym) }
         end
       end

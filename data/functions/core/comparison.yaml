@@ -3,28 +3,46 @@ functions:
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["gte", "greater_than_or_equal", ">="]
 
   - id: core.gt
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["gt", "greater_than", ">"]
+
+  - id: core.lte
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+    aliases : ["lte", "less_than_or_equal", "<="]
+
+  - id: core.lt
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+    aliases : ["lt", "less_than", "<"]
 
   - id: core.eq
     kind: elementwise  
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["eq", "equal", "=="]
 
   - id: core.and
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["and", "&"]
 
   - id: core.or
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["or", "|"]
 
   - id: core.neq
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
+    aliases : ["neq", "not_equal", "!="]

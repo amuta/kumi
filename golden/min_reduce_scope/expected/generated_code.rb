@@ -21,7 +21,7 @@ module SchemaModule
     out = []
     t1 = @input["depts"]
     t1.each_with_index do |depts_el_2, depts_i_3|
-      acc_4 = 0
+      # unsupported: DeclareAccumulator
       t5 = depts_el_2["teams"]
       t5.each_with_index do |teams_el_6, teams_i_7|
         t8 = teams_el_6["headcount"]
@@ -35,10 +35,10 @@ module SchemaModule
 
   def _eval_company_total
     out = nil
-    acc_10 = 0
+    # unsupported: DeclareAccumulator
     t11 = @input["depts"]
     t11.each_with_index do |depts_el_12, depts_i_13|
-      acc_14 = 0
+      # unsupported: DeclareAccumulator
       t15 = depts_el_12["teams"]
       t15.each_with_index do |teams_el_16, teams_i_17|
         t18 = teams_el_16["headcount"]
@@ -73,7 +73,7 @@ module SchemaModule
     out = []
     t30 = @input["depts"]
     t30.each_with_index do |depts_el_31, depts_i_32|
-      acc_33 = 0
+      # unsupported: DeclareAccumulator
       t34 = depts_el_31["teams"]
       t34.each_with_index do |teams_el_35, teams_i_36|
         t43 = teams_el_35["headcount"]

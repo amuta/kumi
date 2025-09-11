@@ -18,7 +18,7 @@
   )
   )
   (VALUE cell_sum
-    (Call :"agg.sum"
+    (Call :sum
     (Call :__select__
       (Ref cell_over_limit)
       (InputRef [:cube, :layer, :row, :cell])
@@ -29,7 +29,7 @@
   (VALUE count_over_limit
     (Call :"agg.sum"
     (Call :"agg.sum"
-      (Call :"agg.sum"
+      (Call :sum
         (Call :__select__
           (Ref cell_over_limit)
           (Const 1)

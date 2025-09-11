@@ -63,7 +63,7 @@ module Kumi
 
             max: FunctionBuilder::Entry.new(
               fn: lambda(&:max),
-              arity: 1,
+              arity: -1,
               param_types: [Kumi::Core::Types.array(:float)],
               return_type: :float,
               description: "Find maximum value in numeric collection",

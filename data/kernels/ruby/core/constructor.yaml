@@ -1,4 +1,4 @@
 kernels:
-  - id: core.length:ruby:v1
+  - id: length:ruby:v1
     fn: core.length
     impl: "(collection)\n  collection.size"

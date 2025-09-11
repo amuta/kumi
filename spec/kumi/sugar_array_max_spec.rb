@@ -9,7 +9,7 @@ module ArrayMaxSugar
       float :std_deduction
     end
 
-    value :taxable_income, fn(:max, [input.income - input.std_deduction, 0])
+    value :taxable_income, fn(:max, input.income - input.std_deduction, 0)
   end
 end
 

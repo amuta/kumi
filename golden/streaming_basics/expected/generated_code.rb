@@ -77,7 +77,7 @@ module SchemaModule
 
   def _eval_total_qty
     out = nil
-    acc_30 = 0
+    # unsupported: DeclareAccumulator
     t31 = @input["items"]
     t31.each_with_index do |items_el_32, items_i_33|
       t34 = items_el_32["qty"]
@@ -90,7 +90,7 @@ module SchemaModule
 
   def _eval_cart_total
     out = nil
-    acc_36 = 0.0
+    # unsupported: DeclareAccumulator
     t37 = @input["items"]
     t37.each_with_index do |items_el_38, items_i_39|
       t54 = items_el_38["price"]
@@ -105,7 +105,7 @@ module SchemaModule
 
   def _eval_cart_total_effective
     out = nil
-    acc_42 = 0.0
+    # unsupported: DeclareAccumulator
     t43 = @input["items"]
     t43.each_with_index do |items_el_44, items_i_45|
       t63 = items_el_44["price"]

@@ -11,6 +11,7 @@ module Kumi
         class TypeChecker < VisitorPass
           def run(errors)
             functions_required = Set.new
+            @registry = state[:registry]
 
             visit_nodes_of_type(Kumi::Syntax::CallExpression, errors: errors) do |node, _decl, errs|
               validate_function_call(node, errs)
@@ -31,6 +32,18 @@ module Kumi
           end
 
           def get_function_signature(node, errors)
+            func = begin
+              @registry.function(node.fn_name)
+            rescue StandardError
+              nil
+            end
+            if func
+              return {
+                arity: func.params.size,
+                param_types: func.params.map { |p| p["type"] ? Kumi::Core::Types.parse(p["type"]) : nil }
+              }
+            end
+
             Kumi::Registry.signature(node.fn_name)
           rescue Kumi::Errors::UnknownFunction
             # Use old format for backward compatibility, but node.loc provides better location

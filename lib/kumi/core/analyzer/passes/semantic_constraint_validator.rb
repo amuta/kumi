@@ -17,6 +17,7 @@ module Kumi
         # 4. Expression types are valid for their context
         class SemanticConstraintValidator < VisitorPass
           def run(errors)
+            @registry = state[:registry]
             # Visit value and trait declarations
             each_decl do |decl|
               visit(decl) { |node| validate_semantic_constraints(node, decl, errors) }
@@ -90,7 +91,7 @@ module Kumi
 
             return if Kumi::Registry.supported?(fn_name.to_sym)
 
-            binding.pry
+            return if @registry.resolve_function(fn_name)
 
             report_error(
               errors,

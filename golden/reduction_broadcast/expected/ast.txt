@@ -1,0 +1,41 @@
+(Root
+  inputs: [
+    (InputDeclaration :departments :array access_mode: :field
+      [
+        (InputDeclaration :dept_name :string)
+        (InputDeclaration :teams :array access_mode: :field
+          [
+            (InputDeclaration :team_name :string)
+            (InputDeclaration :headcount :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :dept_headcount
+      (CallExpression :sum
+        (InputElementReference departments.teams.headcount)
+      )
+    )
+    (ValueDeclaration :teams_per_dept
+      (CallExpression :count
+        (InputElementReference departments.teams.team_name)
+      )
+    )
+    (ValueDeclaration :avg_headcount_per_dept
+      (CallExpression :divide
+        (DeclarationReference :dept_headcount)
+        (DeclarationReference :teams_per_dept)
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :is_above_average_team
+      (CallExpression :>
+        (InputElementReference departments.teams.headcount)
+        (DeclarationReference :avg_headcount_per_dept)
+      )
+    )
+  ]
+)

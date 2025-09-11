@@ -91,7 +91,7 @@ module SchemaModule
     t26.each_with_index do |cube_el_27, cube_i_28|
       out_1 = []
       cube_el_27.each_with_index do |layer_el_29, layer_i_30|
-        acc_31 = 0
+        # unsupported: DeclareAccumulator
         layer_el_29.each_with_index do |row_el_32, row_i_33|
           t55 = 100
           t56 = __core_gt(row_el_32, t55)
@@ -109,12 +109,12 @@ module SchemaModule
 
   def _eval_count_over_limit
     out = nil
-    acc_38 = 0
+    # unsupported: DeclareAccumulator
     t39 = @input["cube"]
     t39.each_with_index do |cube_el_40, cube_i_41|
-      acc_42 = 0
+      # unsupported: DeclareAccumulator
       cube_el_40.each_with_index do |layer_el_43, layer_i_44|
-        acc_45 = 0
+        # unsupported: DeclareAccumulator
         layer_el_43.each_with_index do |row_el_46, row_i_47|
           t57 = 100
           t58 = __core_gt(row_el_46, t57)

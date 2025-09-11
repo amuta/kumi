@@ -22,7 +22,7 @@
       loop ea1 id=L6 in %a1_el_16 as el=%ea1_el_18, idx=%ea1_i_19
         %t20 = load_field ea1_el_18["a2"] :: array
         loop a2 id=L7 in %t20 as el=%a2_el_21, idx=%a2_i_22
-          %acc_23 = decl_acc 0 :: integer
+          %acc_23 = decl_acc :: integer
           %t24 = load_field a2_el_21["h1"] :: hash
           %t25 = load_field t24["ea2"] :: array
           loop ea2 id=L8 in %t25 as el=%ea2_el_26, idx=%ea2_i_27

@@ -8,7 +8,43 @@ kernels:
       
   - id: agg.count:ruby:v1
     fn: agg.count
-    impl: "(a,b)\n  a + b"
+    impl: "(a,_b)\n  a + 1"
     identity:
-      integer: 0
       float: 0
+      integer: 0
+
+  - id: agg.min:ruby:v1
+    fn: agg.min
+    impl: "(a, b)\n  a < b ? a : b"
+
+  - id: agg.max:ruby:v1
+    fn: agg.max
+    impl: "(a, b)\n  a > b ? a : b"
+
+
+# ---
+# Note on agg.mean:
+#
+# The `mean` function cannot be implemented with the current simple binary
+# reduction model (`(accumulator, value) -> new_accumulator`). A mean calculation
+# requires tracking two states (sum and count) simultaneously.
+#
+# Proposal 1 (Compiler-level Expansion):
+# The recommended approach is to have the compiler expand `fn(:mean, x)` into
+# the expression `fn(:sum, x) / fn(:count, x)`. This requires no changes to the
+# kernel or runtime system and leverages existing, optimized kernels.
+#
+# Proposal 2 (Extended Kernel Model):
+# An alternative would be to extend the kernel model to support a `finalize` step.
+# This is more powerful but adds complexity. It would look like this:
+#
+# - id: agg.mean:ruby:v1
+#   fn: agg.mean
+#   # The accumulator `a` is now a tuple [sum, count].
+#   impl: "(a, b)\n  [a[0] + b, a[1] + 1]"
+#   identity:
+#     float: [0.0, 0]
+#     integer: [0, 0]
+#   # A new `finalize` block would be run once after the reduction is complete.
+#   finalize: "(result)\n  result[0] / result[1].to_f"
+#

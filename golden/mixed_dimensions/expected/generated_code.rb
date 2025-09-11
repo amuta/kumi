@@ -19,7 +19,7 @@ module SchemaModule
 
   def _eval_sum_numbers
     out = nil
-    acc_1 = 0
+    # unsupported: DeclareAccumulator
     t2 = @input["numbers"]
     t2.each_with_index do |numbers_el_3, numbers_i_4|
       t5 = numbers_el_3["value"]
@@ -34,7 +34,7 @@ module SchemaModule
     out = []
     t7 = @input["matrix"]
     t7.each_with_index do |matrix_el_8, matrix_i_9|
-      acc_10 = 0.0
+      # unsupported: DeclareAccumulator
       t11 = matrix_el_8["row"]
       t11.each_with_index do |row_el_12, row_i_13|
         t14 = row_el_12["cell"]
@@ -54,7 +54,7 @@ module SchemaModule
       t19 = matrix_el_17["row"]
       t19.each_with_index do |row_el_20, row_i_21|
         t22 = @input["scalar_val"]
-        t27 = 0
+        # unsupported: DeclareAccumulator
         t29 = @input["numbers"]
         t29.each_with_index do |numbers_el_3, numbers_i_4|
           t30 = numbers_el_3["value"]
