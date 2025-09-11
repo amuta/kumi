@@ -40,7 +40,7 @@ module Kumi
       e = @by_id[kernel_id] or raise "unknown kernel id #{kernel_id}"
       identity_map = e.identity or raise "no identity map for #{kernel_id}"
 
-      identity_map[dtype.to_s] or raise "no identity with dtype `#{dtype}` for #{kernel_id}"
+      (identity_map[dtype.to_s] || identity_map["any"]) or raise "no identity with dtype `#{dtype}` for #{kernel_id}"
     end
 
     # Late-bind the Ruby implementation
