@@ -44,7 +44,6 @@ module Kumi
     ].freeze
 
     RUBY_TARGET_PASSES = [
-      Passes::LIR::GlobalCSEPass,
       Passes::LIR::ConstantPropagationPass, # Ruby uses this Intra-block constant propagation
       Passes::LIR::DeadCodeEliminationPass, # Removes dead code
       Passes::Codegen::RubyPass # Generates ruby code from LIR
