@@ -1,0 +1,28 @@
+(Root
+  inputs: [
+    (InputDeclaration :income :float)
+    (InputDeclaration :age :integer)
+  ]
+  values: [
+    (ValueDeclaration :scores
+      (ArrayExpression
+        (Literal 100)
+        (Literal 85)
+        (Literal 92)
+      )
+    )
+    (ValueDeclaration :first_score
+      (CallExpression :at
+        (DeclarationReference :scores)
+        (Literal 0)
+      )
+    )
+    (ValueDeclaration :second_score
+      (CallExpression :at
+        (DeclarationReference :scores)
+        (Literal 1)
+      )
+    )
+  ]
+  traits: []
+)

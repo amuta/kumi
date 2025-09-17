@@ -64,7 +64,7 @@ module Kumi
         when NAST::Reduce
           stamp_str = format_stamp(node.meta[:stamp])
           over = "[#{Array(node.over).map(&:to_s).join(', ')}]"
-          header = "(Reduce :#{node.op_id} over #{over}"
+          header = "(Reduce :#{node.fn} over #{over}"
           arg = format_concise(node.arg, indent_level + 1)
           "#{indent}#{header}\n#{arg}\n#{indent}) #{stamp_str}"
 

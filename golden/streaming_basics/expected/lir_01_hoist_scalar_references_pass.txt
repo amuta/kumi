@@ -31,14 +31,12 @@
   (Declaration items_effective
     %t21 = load_input "items" :: array
     loop items id=L4 in %t21 as el=%items_el_22, idx=%items_i_23
-      %t48 = load_field items_el_22["price"] :: float
-      %t49 = const 100.0 :: float
-      %t50 = call core.gt(%t48, %t49) :: boolean
-      %t52 = load_field items_el_22["qty"] :: integer
-      %t53 = call core.mul(%t48, %t52) :: float
+      %t24 = load_decl items_is_big axes=[items] :: boolean
+      %t25 = load_decl items_subtotal axes=[items] :: float
       %t26 = const 0.9 :: float
-      %t27 = call core.mul(%t53, %t26) :: float
-      %t29 = select %t50, %t27, %t53 :: float
+      %t27 = call core.mul(%t25, %t26) :: float
+      %t28 = load_decl items_subtotal axes=[items] :: float
+      %t29 = select %t24, %t27, %t28 :: float
       yield %t29
     end_loop
   )
@@ -56,10 +54,8 @@
     %acc_36 = decl_acc :: float
     %t37 = load_input "items" :: array
     loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
-      %t54 = load_field items_el_38["price"] :: float
-      %t55 = load_field items_el_38["qty"] :: integer
-      %t56 = call core.mul(%t54, %t55) :: float
-      %acc_36 = acc_add agg.sum(%acc_36, %t56) :: float
+      %t40 = load_decl items_subtotal axes=[items] :: float
+      %acc_36 = acc_add agg.sum(%acc_36, %t40) :: float
     end_loop
     %t41 = acc_load %acc_36 :: float
     yield %t41
@@ -68,15 +64,8 @@
     %acc_42 = decl_acc :: float
     %t43 = load_input "items" :: array
     loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
-      %t63 = load_field items_el_44["price"] :: float
-      %t64 = const 100.0 :: float
-      %t65 = call core.gt(%t63, %t64) :: boolean
-      %t67 = load_field items_el_44["qty"] :: integer
-      %t68 = call core.mul(%t63, %t67) :: float
-      %t59 = const 0.9 :: float
-      %t60 = call core.mul(%t68, %t59) :: float
-      %t62 = select %t65, %t60, %t68 :: float
-      %acc_42 = acc_add agg.sum(%acc_42, %t62) :: float
+      %t46 = load_decl items_effective axes=[items] :: float
+      %acc_42 = acc_add agg.sum(%acc_42, %t46) :: float
     end_loop
     %t47 = acc_load %acc_42 :: float
     yield %t47

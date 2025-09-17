@@ -9,23 +9,23 @@ module SchemaModule
 
   def [](name)
     case name
-      when :dept_total then _eval_dept_total
-      when :company_total then _eval_company_total
-      when :big_team then _eval_big_team
-      when :dept_total_masked then _eval_dept_total_masked
-      else raise KeyError, "Unknown declaration"
+    when :dept_total then _dept_total
+    when :company_total then _company_total
+    when :big_team then _big_team
+    when :dept_total_masked then _dept_total_masked
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_dept_total
+  def _dept_total
     out = []
     t1 = @input["depts"]
-    t1.each_with_index do |depts_el_2, depts_i_3|
-      # unsupported: DeclareAccumulator
+    t1.each_with_index do |depts_el_2, _depts_i_3|
+      acc_4 = 0
       t5 = depts_el_2["teams"]
-      t5.each_with_index do |teams_el_6, teams_i_7|
+      t5.each_with_index do |teams_el_6, _teams_i_7|
         t8 = teams_el_6["headcount"]
-        acc_4 = __agg_sum(acc_4, t8)
+        acc_4 += t8
       end
       t9 = acc_4
       out << t9
@@ -33,35 +33,32 @@ module SchemaModule
     out
   end
 
-  def _eval_company_total
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _company_total
+    acc_10 = 0
     t11 = @input["depts"]
-    t11.each_with_index do |depts_el_12, depts_i_13|
-      # unsupported: DeclareAccumulator
+    t11.each_with_index do |depts_el_12, _depts_i_13|
+      acc_14 = 0
       t15 = depts_el_12["teams"]
-      t15.each_with_index do |teams_el_16, teams_i_17|
+      t15.each_with_index do |teams_el_16, _teams_i_17|
         t18 = teams_el_16["headcount"]
-        acc_14 = __agg_sum(acc_14, t18)
+        acc_14 += t18
       end
       t19 = acc_14
-      acc_10 = __agg_sum(acc_10, t19)
+      acc_10 += t19
     end
     t20 = acc_10
-    out = t20
-    out
+    t20
   end
 
-  def _eval_big_team
+  def _big_team
     out = []
     t21 = @input["depts"]
-    t21.each_with_index do |depts_el_22, depts_i_23|
+    t21.each_with_index do |depts_el_22, _depts_i_23|
       out_1 = []
       t24 = depts_el_22["teams"]
-      t24.each_with_index do |teams_el_25, teams_i_26|
+      t24.each_with_index do |teams_el_25, _teams_i_26|
         t27 = teams_el_25["headcount"]
-        t28 = 10
-        t29 = __core_gt(t27, t28)
+        t29 = t27 > 10
         out_1 << t29
       end
       out << out_1
@@ -69,34 +66,21 @@ module SchemaModule
     out
   end
 
-  def _eval_dept_total_masked
+  def _dept_total_masked
     out = []
     t30 = @input["depts"]
-    t30.each_with_index do |depts_el_31, depts_i_32|
-      # unsupported: DeclareAccumulator
+    t30.each_with_index do |depts_el_31, _depts_i_32|
+      acc_33 = 0
       t34 = depts_el_31["teams"]
-      t34.each_with_index do |teams_el_35, teams_i_36|
-        t43 = teams_el_35["headcount"]
-        t44 = 10
-        t45 = __core_gt(t43, t44)
-        t39 = 0
-        t40 = (t45) ? (t43) : (t39)
-        acc_33 = __agg_sum(acc_33, t40)
+      t34.each_with_index do |teams_el_35, _teams_i_36|
+        t44 = teams_el_35["headcount"]
+        t46 = t44 > 10
+        t40 = t46 ? t44 : 0
+        acc_33 += t40
       end
       t41 = acc_33
       out << t41
     end
     out
   end
-
-  private
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
 end

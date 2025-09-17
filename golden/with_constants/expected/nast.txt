@@ -1,0 +1,15 @@
+(NAST
+  (VALUE scores
+    (Tuple
+    (Const 100)
+    (Const 85)
+    (Const 92)
+  )
+  )
+  (VALUE first_score
+    (Const 100)
+  )
+  (VALUE second_score
+    (Const 85)
+  )
+)

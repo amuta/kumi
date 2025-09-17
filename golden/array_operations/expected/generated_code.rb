@@ -9,87 +9,68 @@ module SchemaModule
 
   def [](name)
     case name
-      when :subtotals then _eval_subtotals
-      when :discounted_price then _eval_discounted_price
-      when :is_valid_quantity then _eval_is_valid_quantity
-      when :expensive_items then _eval_expensive_items
-      when :electronics then _eval_electronics
-      else raise KeyError, "Unknown declaration"
+    when :subtotals then _subtotals
+    when :discounted_price then _discounted_price
+    when :is_valid_quantity then _is_valid_quantity
+    when :expensive_items then _expensive_items
+    when :electronics then _electronics
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_subtotals
+  def _subtotals
     out = []
     t1 = @input["items"]
-    t1.each_with_index do |items_el_2, items_i_3|
+    t1.each_with_index do |items_el_2, _items_i_3|
       t4 = items_el_2["price"]
       t5 = items_el_2["quantity"]
-      t6 = __core_mul(t4, t5)
+      t6 = t4 * t5
       out << t6
     end
     out
   end
 
-  def _eval_discounted_price
+  def _discounted_price
     out = []
     t7 = @input["items"]
-    t7.each_with_index do |items_el_8, items_i_9|
+    t7.each_with_index do |items_el_8, _items_i_9|
       t10 = items_el_8["price"]
-      t11 = 0.9
-      t12 = __core_mul(t10, t11)
+      t12 = t10 * 0.9
       out << t12
     end
     out
   end
 
-  def _eval_is_valid_quantity
+  def _is_valid_quantity
     out = []
     t13 = @input["items"]
-    t13.each_with_index do |items_el_14, items_i_15|
+    t13.each_with_index do |items_el_14, _items_i_15|
       t16 = items_el_14["quantity"]
-      t17 = 0
-      t18 = __core_gt(t16, t17)
+      t18 = t16 > 0
       out << t18
     end
     out
   end
 
-  def _eval_expensive_items
+  def _expensive_items
     out = []
     t19 = @input["items"]
-    t19.each_with_index do |items_el_20, items_i_21|
+    t19.each_with_index do |items_el_20, _items_i_21|
       t22 = items_el_20["price"]
-      t23 = 100.0
-      t24 = __core_gt(t22, t23)
+      t24 = t22 > 100.0
       out << t24
     end
     out
   end
 
-  def _eval_electronics
+  def _electronics
     out = []
     t25 = @input["items"]
-    t25.each_with_index do |items_el_26, items_i_27|
+    t25.each_with_index do |items_el_26, _items_i_27|
       t28 = items_el_26["category"]
-      t29 = "electronics"
-      t30 = __core_eq(t28, t29)
+      t30 = t28 == "electronics"
       out << t30
     end
     out
   end
-
-  private
-
-  def __core_eq(a, b)
-    a == b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
 end

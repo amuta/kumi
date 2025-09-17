@@ -22,19 +22,22 @@ module Kumi
               fn_name = op.attributes[:fn]
               raise "KernelCall at #{op.location} is missing :fn attribute" unless fn_name
 
-              fn_id = registry.resolve_function(fn_name)
-              id = registry.kernel_id_for(fn_id, target: target_sym)
-              impl = registry.impl_for(id)
+              function = registry.function(fn_name)
+              fn_id = function.id
+
+              kernel = registry.kernel_for(fn_id, target: target_sym)
+              id = kernel.id
+              impl = kernel.impl
+              inline = kernel.inline
               dtype = op.stamp&.dig("dtype")
+
               attrs = {}
 
+              attrs["inline"] = inline if inline
+
               if registry.function_reduce?(fn_id) && dtype
-                begin
-                  identity = registry.identity_for(fn_id, dtype: dtype, target: target_sym)
-                  attrs["identity"] = identity if identity
-                rescue StandardError
-                  # Not all reduction kernels have identity values for all types
-                end
+                identity = registry.kernel_identity_for(fn_id, dtype: dtype, target: target_sym)
+                attrs["identity"] = identity if identity
               end
 
               fname = fn_id.split(".").join("_")

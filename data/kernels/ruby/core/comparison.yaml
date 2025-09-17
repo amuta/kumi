@@ -1,32 +1,30 @@
 kernels:
   - id: eq:ruby:v1
     fn: core.eq
+    inline: "= $0 == $1"
     impl: "(a, b)\n  a == b"
   
   - id: gt:ruby:v1
     fn: core.gt
+    inline: "= $0 > $1"
     impl: "(a, b)\n  a > b"
 
   - id: lt:ruby:v1
     fn: core.lt
+    inline: "= $0 < $1"
     impl: "(a, b)\n  a < b"
 
   - id: lte:ruby:v1
     fn: core.lte
+    inline: "= $0 <= $1"
     impl: "(a, b)\n  a <= b"
   
   - id: gte:ruby:v1
     fn: core.gte
+    inline: "= $0 >= $1"
     impl: "(a, b)\n  a >= b"
 
-  - id: and:ruby:v1
-    fn: core.and
-    impl: "(a, b)\n  a && b"
-
-  - id: or:ruby:v1
-    fn: core.or
-    impl: "(a, b)\n  a || b"
-  
   - id: neq:ruby:v1
     fn: core.neq
+    inline: "= $0 != $1"
     impl: "(a, b)\n  a != b"

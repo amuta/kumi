@@ -1,20 +1,25 @@
 kernels:
   - id: add:ruby:v1
     fn: core.add
+    inline: "= $0 + $1"
     impl: "(a, b)\n  a + b"
 
   - id: sub:ruby:v1
     fn: core.sub
+    inline: "= $0 - $1"
     impl: "(a, b)\n  a - b"
 
   - id: mul:ruby:v1
     fn: core.mul
+    inline: "= $0 * $1"
     impl: "(a, b)\n  a * b"
 
   - id: pow:ruby:v1
     fn: core.pow
+    inline: "= $0 ** $1"
     impl: "(a, b)\n  a ** b"
 
   - id: div:ruby:v1
     fn: core.div
+    inline: "= $0 / $1"
     impl: "(a, b)\n  a / b"

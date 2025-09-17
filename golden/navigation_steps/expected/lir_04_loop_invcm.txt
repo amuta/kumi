@@ -1,6 +1,7 @@
 (LIR
   (Declaration numbers_mult_10
     %t1 = load_input "a1" :: array
+    %t13 = const 10 :: integer
     loop a1 id=L1 in %t1 as el=%a1_el_2, idx=%a1_i_3
       loop ea1 id=L2 in %a1_el_2 as el=%ea1_el_4, idx=%ea1_i_5
         %t6 = load_field ea1_el_4["a2"] :: array
@@ -8,7 +9,6 @@
           %t9 = load_field a2_el_7["h1"] :: hash
           %t10 = load_field t9["ea2"] :: array
           loop ea2 id=L4 in %t10 as el=%ea2_el_11, idx=%ea2_i_12
-            %t13 = const 10 :: integer
             %t14 = call core.mul(%ea2_el_11, %t13) :: integer
             yield %t14
           end_loop
@@ -18,6 +18,7 @@
   )
   (Declaration sum_of_nums
     %t15 = load_input "a1" :: array
+    %t34 = const 10 :: integer
     loop a1 id=L5 in %t15 as el=%a1_el_16, idx=%a1_i_17
       loop ea1 id=L6 in %a1_el_16 as el=%ea1_el_18, idx=%ea1_i_19
         %t20 = load_field ea1_el_18["a2"] :: array
@@ -26,9 +27,8 @@
           %t24 = load_field a2_el_21["h1"] :: hash
           %t25 = load_field t24["ea2"] :: array
           loop ea2 id=L8 in %t25 as el=%ea2_el_26, idx=%ea2_i_27
-            %t33 = const 10 :: integer
-            %t34 = call core.mul(%ea2_el_26, %t33) :: integer
-            %acc_23 = acc_add agg.sum(%acc_23, %t34) :: integer
+            %t35 = call core.mul(%ea2_el_26, %t34) :: integer
+            %acc_23 = acc_add agg.sum(%acc_23, %t35) :: integer
           end_loop
           %t29 = acc_load %acc_23 :: integer
           yield %t29

@@ -5,6 +5,7 @@ functions:
     params: [{ name: collection }]
     dtype: "integer"
     aliases: ["length", "len"]
+    folding_class_method: length
 
   - id: core.at
     kind: elementwise
@@ -13,3 +14,5 @@ functions:
       - { name: index, dtype: integer }
     dtype: "element_of(collection)"
     aliases: ["at", "get", "[]"]
+    folding_class_method: at
+  

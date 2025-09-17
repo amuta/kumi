@@ -142,11 +142,11 @@ module Kumi
 
       # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
       class Reduce < Node
-        attr_reader :op_id, :over, :arg
+        attr_reader :fn, :over, :arg
 
-        def initialize(op_id:, over:, arg:, **k)
+        def initialize(fn:, over:, arg:, **k)
           super(**k)
-          @op_id = op_id.to_sym
+          @fn = fn.to_sym
           @over  = Array(over).map!(&:to_sym)
           @arg   = arg
         end

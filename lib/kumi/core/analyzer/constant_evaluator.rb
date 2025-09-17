@@ -4,54 +4,49 @@ module Kumi
   module Core
     module Analyzer
       class ConstantEvaluator
-        include Syntax
+        NAST = Kumi::Core::NAST
 
-        def initialize(definitions)
-          @definitions = definitions
-          @memo = {}
+        def self.evaluate(call_node, registry, known_constants = {})
+          new(call_node, registry, known_constants).evaluate
         end
 
-        OPERATORS = {
-          add: :+,
-          subtract: :-,
-          multiply: :*,
-          divide: :/
-        }.freeze
+        def initialize(call_node, registry, known_constants)
+          @node = call_node
+          @registry = registry
+          @known_constants = known_constants
+        end
 
-        def evaluate(node, visited = Set.new)
-          return :unknown unless node
-          return @memo[node] if @memo.key?(node)
-          return node.value if node.is_a?(Literal)
+        def evaluate
+          arg_values = @node.args.map { |arg| resolve_constant_value(arg) }
 
-          result = case node
-                   when DeclarationReference then evaluate_binding(node, visited)
-                   when CallExpression then evaluate_call_expression(node, visited)
-                   else :unknown
-                   end
+          return nil if arg_values.any?(&:nil?)
 
-          @memo[node] = result unless result == :unknown
-          result
+          func = @registry.function(@node.fn)
+
+          return nil unless func.respond_to?(:folding_class_method) && func.folding_class_method
+
+          method_name = func.folding_class_method.to_sym
+
+          ConstantFoldingHelpers.send(method_name, *arg_values)
+        rescue StandardError
+          nil
         end
 
         private
 
-        def evaluate_binding(node, visited)
-          return :unknown if visited.include?(node.name)
-
-          visited << node.name
-          definition = @definitions[node.name]
-          return :unknown unless definition
-
-          evaluate(definition.expression, visited)
-        end
-
-        def evaluate_call_expression(node, visited)
-          return :unknown unless OPERATORS.key?(node.fn_name)
-
-          args = node.args.map { |arg| evaluate(arg, visited) }
-          return :unknown if args.any?(:unknown)
-
-          args.reduce(OPERATORS[node.fn_name])
+        def resolve_constant_value(node)
+          case node
+          when NAST::Const
+            node.value
+          when NAST::Ref
+            const_node = @known_constants[node.name]
+            resolve_constant_value(const_node) if const_node
+          when NAST::Tuple
+            values = node.args.map { |arg| resolve_constant_value(arg) }
+            values.all? ? values : nil
+          else
+            nil
+          end
         end
       end
     end

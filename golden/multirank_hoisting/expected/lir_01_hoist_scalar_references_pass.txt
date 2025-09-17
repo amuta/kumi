@@ -1,0 +1,75 @@
+(LIR
+  (Declaration global_offset_plus
+    %t1 = load_input "global_offset" :: float
+    %t2 = const 1.0 :: float
+    %t3 = call core.add(%t1, %t2) :: float
+    yield %t3
+  )
+  (Declaration batch_bias
+    %t4 = load_input "batch" :: array
+    %t8 = load_decl global_offset_plus :: float
+    loop batch id=L1 in %t4 as el=%batch_el_5, idx=%batch_i_6
+      %t7 = load_field batch_el_5["mean"] :: float
+      %t9 = call core.add(%t7, %t8) :: float
+      yield %t9
+    end_loop
+  )
+  (Declaration row_scale2
+    %t10 = load_input "batch" :: array
+    loop batch id=L2 in %t10 as el=%batch_el_11, idx=%batch_i_12
+      %t13 = load_field batch_el_11["row"] :: array
+      loop row id=L3 in %t13 as el=%row_el_14, idx=%row_i_15
+        %t16 = load_field row_el_14["scale"] :: float
+        %t17 = const 2.0 :: float
+        %t18 = call core.mul(%t16, %t17) :: float
+        yield %t18
+      end_loop
+    end_loop
+  )
+  (Declaration elem_affine
+    %t19 = load_input "batch" :: array
+    loop batch id=L4 in %t19 as el=%batch_el_20, idx=%batch_i_21
+      %t22 = load_field batch_el_20["row"] :: array
+      loop row id=L5 in %t22 as el=%row_el_23, idx=%row_i_24
+        %t25 = load_field row_el_23["col"] :: array
+        loop col id=L6 in %t25 as el=%col_el_26, idx=%col_i_27
+          %t28 = load_field col_el_26["val"] :: float
+          %t29 = load_decl row_scale2 axes=[batch, row] :: float
+          %t30 = call core.mul(%t28, %t29) :: float
+          %t31 = load_decl batch_bias axes=[batch] :: float
+          %t32 = call core.add(%t30, %t31) :: float
+          yield %t32
+        end_loop
+      end_loop
+    end_loop
+  )
+  (Declaration row_sum_affine
+    %t33 = load_input "batch" :: array
+    loop batch id=L7 in %t33 as el=%batch_el_34, idx=%batch_i_35
+      %t36 = load_field batch_el_34["row"] :: array
+      loop row id=L8 in %t36 as el=%row_el_37, idx=%row_i_38
+        %acc_39 = decl_acc :: float
+        %t40 = load_field row_el_37["col"] :: array
+        loop col id=L9 in %t40 as el=%col_el_41, idx=%col_i_42
+          %t43 = load_decl elem_affine axes=[batch, row, col] :: float
+          %acc_39 = acc_add agg.sum(%acc_39, %t43) :: float
+        end_loop
+        %t44 = acc_load %acc_39 :: float
+        yield %t44
+      end_loop
+    end_loop
+  )
+  (Declaration batch_total_affine
+    %t45 = load_input "batch" :: array
+    loop batch id=L10 in %t45 as el=%batch_el_46, idx=%batch_i_47
+      %acc_48 = decl_acc :: float
+      %t49 = load_field batch_el_46["row"] :: array
+      loop row id=L11 in %t49 as el=%row_el_50, idx=%row_i_51
+        %t52 = load_decl row_sum_affine axes=[batch, row] :: float
+        %acc_48 = acc_add agg.sum(%acc_48, %t52) :: float
+      end_loop
+      %t53 = acc_load %acc_48 :: float
+      yield %t53
+    end_loop
+  )
+)

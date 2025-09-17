@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "set"
+
 module Kumi
   module Core
     module Analyzer
@@ -22,50 +24,65 @@ module Kumi
             LIR = Kumi::Core::LIR
 
             def run(_errors)
-              # This pass can run on the output of CSE, fusion, or the initial LIR.
               ops_by_decl =
-                get_state(:lir_03_cse, required: false)
+                get_state(:lir_module, required: false)
 
               out = {}
               ops_by_decl.each do |name, payload|
-                out[name] = { operations: optimize_decl(Array(payload[:operations])) }
+                out[name] = { operations: optimize_decl(Array(payload[:operations]), name) }
               end
 
               out.freeze
 
-              # Overwrite the :lir_03_cse state with the cleaned-up version.
-              state.with(:lir_module, out).with(:lir_03_cse, out)
+              state.with(:lir_module, out)
             end
 
             private
 
-            # This is the core of the DCE algorithm for a single declaration.
-            # It iterates backward from the last instruction to the first.
-            def optimize_decl(ops)
-              # An instruction is considered "live" (i.e., it must be kept) if either:
-              # 1. It has a side effect.
-              # 2. Its result is used by another live instruction down the line.
+            def optimize_decl(ops, decl_name)
+              debug "[DCE] Optimizing declaration: #{decl_name} (#{ops.size} initial instructions)"
+              debug "=================================================="
+
               live = Set.new
               new_ops = []
 
-              ops.reverse_each do |ins|
-                is_live = ins.side_effect? || (ins.result_register && live.include?(ins.result_register))
+              ops.reverse_each.with_index do |ins, i|
+                original_index = ops.size - 1 - i
+                debug "\n[DCE] [#{original_index}] Processing: #{ins.inspect}"
+                debug "[DCE]   Live set before: #{live.to_a.sort.inspect}"
 
-                # If the instruction is live, we must keep it.
-                next unless is_live
+                is_side_effect = ins.side_effect?
+                result_in_live = ins.result_register && live.include?(ins.result_register)
+                is_live = is_side_effect || result_in_live
 
-                new_ops.unshift(ins)
-                # Update the live set based on this instruction's needs:
-                # 1. The register this instruction *defines* is no longer needed
-                #    from any *earlier* instruction, so we remove it from the live set.
-                live.delete(ins.result_register) if ins.result_register
+                if is_live
+                  reason = []
+                  reason << "has side effect" if is_side_effect
+                  reason << "result #{ins.result_register} is live" if result_in_live
+                  debug "[DCE]   -> KEEPING (Reason: #{reason.join('; ')})"
 
-                # 2. The registers this instruction *uses* must have been defined
-                #    by earlier instructions, so we add them to the live set.
-                Array(ins.inputs).each { |input| live.add(input) if input }
-                # If an instruction is not live, we do nothing. It is effectively
-                # dropped from the final list of operations.
+                  new_ops.unshift(ins)
+
+                  if ins.result_register
+                    live.delete(ins.result_register)
+                    debug "[DCE]     - Removing defined reg from live set: #{ins.result_register}"
+                  end
+
+                  Array(ins.inputs).each do |input|
+                    next unless input
+
+                    live.add(input)
+                    debug "[DCE]     + Adding used reg to live set: #{input}"
+                  end
+                  debug "[DCE]   Live set after:  #{live.to_a.sort.inspect}"
+                else
+                  debug "[DCE]   -> DROPPING (Reason: no side effect and result #{ins.result_register || 'n/a'} is not live)"
+                end
               end
+
+              debug "\n[DCE] Finished optimizing #{decl_name}."
+              debug "[DCE] Final instruction count: #{new_ops.size} (removed #{ops.size - new_ops.size})"
+              debug "=================================================="
               new_ops
             end
           end

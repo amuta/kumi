@@ -1,6 +1,7 @@
 kernels:
   - id: agg.sum:ruby:v1
     fn: agg.sum
+    inline: "+= $1"
     impl: "(a,b)\n  a + b"
     identity: 
       float: 0.0
@@ -8,14 +9,17 @@ kernels:
       
   - id: agg.count:ruby:v1
     fn: agg.count
+    inline: "+= 1"
     impl: "(a,_b)\n  a + 1"
     identity:
       any: 0
 
   - id: agg.min:ruby:v1
     fn: agg.min
+    inline: "= $1 if $1 < $0" 
     impl: "(a, b)\n  a < b ? a : b"
 
   - id: agg.max:ruby:v1
     fn: agg.max
+    inline: "= $1 if $1 > $0" 
     impl: "(a, b)\n  a > b ? a : b"

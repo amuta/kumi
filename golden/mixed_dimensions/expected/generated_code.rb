@@ -9,36 +9,34 @@ module SchemaModule
 
   def [](name)
     case name
-      when :sum_numbers then _eval_sum_numbers
-      when :matrix_sums then _eval_matrix_sums
-      when :mixed_array then _eval_mixed_array
-      when :constant then _eval_constant
-      else raise KeyError, "Unknown declaration"
+    when :sum_numbers then _sum_numbers
+    when :matrix_sums then _matrix_sums
+    when :mixed_array then _mixed_array
+    when :constant then _constant
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_sum_numbers
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _sum_numbers
+    acc_1 = 0
     t2 = @input["numbers"]
-    t2.each_with_index do |numbers_el_3, numbers_i_4|
+    t2.each_with_index do |numbers_el_3, _numbers_i_4|
       t5 = numbers_el_3["value"]
-      acc_1 = __agg_sum(acc_1, t5)
+      acc_1 += t5
     end
     t6 = acc_1
-    out = t6
-    out
+    t6
   end
 
-  def _eval_matrix_sums
+  def _matrix_sums
     out = []
     t7 = @input["matrix"]
-    t7.each_with_index do |matrix_el_8, matrix_i_9|
-      # unsupported: DeclareAccumulator
+    t7.each_with_index do |matrix_el_8, _matrix_i_9|
+      acc_10 = 0
       t11 = matrix_el_8["row"]
-      t11.each_with_index do |row_el_12, row_i_13|
+      t11.each_with_index do |row_el_12, _row_i_13|
         t14 = row_el_12["cell"]
-        acc_10 = __agg_sum(acc_10, t14)
+        acc_10 += t14
       end
       t15 = acc_10
       out << t15
@@ -46,21 +44,21 @@ module SchemaModule
     out
   end
 
-  def _eval_mixed_array
+  def _mixed_array
     out = []
     t16 = @input["matrix"]
-    t16.each_with_index do |matrix_el_17, matrix_i_18|
+    t27 = 0
+    t29 = @input["numbers"]
+    t29.each_with_index do |numbers_el_3, _numbers_i_4|
+      t30 = numbers_el_3["value"]
+      t27 += t30
+    end
+    t31 = t27
+    t22 = @input["scalar_val"]
+    t16.each_with_index do |matrix_el_17, _matrix_i_18|
       out_1 = []
       t19 = matrix_el_17["row"]
-      t19.each_with_index do |row_el_20, row_i_21|
-        t22 = @input["scalar_val"]
-        # unsupported: DeclareAccumulator
-        t29 = @input["numbers"]
-        t29.each_with_index do |numbers_el_3, numbers_i_4|
-          t30 = numbers_el_3["value"]
-          t27 = __agg_sum(t27, t30)
-        end
-        t31 = t27
+      t19.each_with_index do |row_el_20, _row_i_21|
         t24 = row_el_20["cell"]
         t25 = [t22, t31, t24]
         out_1 << t25
@@ -70,17 +68,7 @@ module SchemaModule
     out
   end
 
-  def _eval_constant
-    out = nil
-    t26 = 42
-    out = t26
-    out
+  def _constant
+    42
   end
-
-  private
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
 end

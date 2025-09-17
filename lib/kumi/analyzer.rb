@@ -27,31 +27,37 @@ module Kumi
     ].freeze
 
     # Pipeline passes for the determinisitic NAST->LIR approach
-    SIDE_TABLE_PASSES = [
+    HIR_TO_LIR_PASSES = [
       Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
+      Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
+      Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
       Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::DeadCodeEliminationPass, # Validates LIR structural and contextual correctness
-      Passes::LIR::ValidationPass, # Validates LIR structural and contextual correctness
+      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
       Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
-      Passes::Codegen::RubyPass # Generates ruby code from LIR
-      # Passes::ContractCheckerPass,           # Validates contracts and structural invariants
-      # Passes::LowerToIRV2Pass,               # Lowers SNAST to backend-agnostic IRV2 representation
-      # Passes::AssembleIRV2Pass,              # Assembles final IRV2 JSON structure
+      Passes::LIR::LoopInvariantCodeMotionPass,
+      Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
     ].freeze
 
-    def self.analyze!(schema, passes: DEFAULT_PASSES, side_tables: true, registry: nil, **opts)
+    RUBY_TARGET_PASSES = [
+      Passes::LIR::ConstantPropagationPass, # Ruby uses this Intra-block constant propagation
+      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
+      Passes::Codegen::RubyPass # Generates ruby code from LIR
+    ]
+
+    def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
 
       registry ||= Kumi::RegistryV2.load
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry)
       state = run_analysis_passes(schema, passes, state, errors)
-      # Run side table passes for SNAST->LIR
-      state = run_analysis_passes(schema, SIDE_TABLE_PASSES, state, errors) if side_tables
+
+      state = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
+      state = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
 
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)

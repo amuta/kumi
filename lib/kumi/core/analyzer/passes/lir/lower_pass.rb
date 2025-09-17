@@ -49,7 +49,7 @@ module Kumi
 
               ops_by_decl.freeze
               state.with(:lir_module, ops_by_decl)
-                   .with(:lir_01_unoptimized, ops_by_decl)
+                   .with(:lir_00_unoptimized, ops_by_decl)
                    .with(:id_generator, @ids)
             end
 
@@ -141,6 +141,7 @@ module Kumi
             def emit_reduce(n)
               out_axes = axes_of(n)
               in_axes  = axes_of(n.arg)
+              function = @registry.resolve_function(n.fn)
               raise "reduce: scalar input" if in_axes.empty?
               raise "reduce: axes(arg)=#{in_axes} must equal out+over" unless in_axes == out_axes + Array(n.over)
 
@@ -148,12 +149,11 @@ module Kumi
 
               dtype    = dtype_of(n)
               acc_name = @ids.generate_temp(prefix: :acc_)
-              # init     = identity_literal(n.op_id, dtype)
               @ops << Build.declare_accumulator(name: acc_name, dtype: dtype, ids: @ids)
 
               open_suffix_loops!(over_axes: Array(n.over), anchor: n.arg)
               val = lower_expr(n.arg)
-              @ops << Build.accumulate(accumulator: acc_name, dtype: dtype, function: @registry.resolve_function(n.op_id),
+              @ops << Build.accumulate(accumulator: acc_name, dtype: dtype, function: function,
                                        value_register: val)
 
               close_loops_to_depth(out_axes.length)

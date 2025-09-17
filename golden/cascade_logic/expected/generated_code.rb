@@ -9,58 +9,34 @@ module SchemaModule
 
   def [](name)
     case name
-      when :y_positive then _eval_y_positive
-      when :x_positive then _eval_x_positive
-      when :status then _eval_status
-      else raise KeyError, "Unknown declaration"
+    when :y_positive then _y_positive
+    when :x_positive then _x_positive
+    when :status then _status
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_y_positive
-    out = nil
+  def _y_positive
     t1 = @input["y"]
-    t2 = 0
-    t3 = __core_gt(t1, t2)
-    out = t3
-    out
+    t3 = t1 > 0
+    t3
   end
 
-  def _eval_x_positive
-    out = nil
+  def _x_positive
     t4 = @input["x"]
-    t5 = 0
-    t6 = __core_gt(t4, t5)
-    out = t6
-    out
+    t6 = t4 > 0
+    t6
   end
 
-  def _eval_status
-    out = nil
+  def _status
     t19 = @input["y"]
-    t20 = 0
-    t21 = __core_gt(t19, t20)
+    t21 = t19 > 0
     t22 = @input["x"]
-    t24 = __core_gt(t22, t20)
-    t9 = __core_and(t21, t24)
-    t10 = "both positive"
-    t12 = "x positive"
-    t14 = "y positive"
-    t15 = "neither positive"
-    t16 = (t21) ? (t14) : (t15)
-    t17 = (t24) ? (t12) : (t16)
-    t18 = (t9) ? (t10) : (t17)
-    out = t18
-    out
+    t24 = t22 > 0
+    t9 = t21 && t24
+    t16 = t21 ? "y positive" : "neither positive"
+    t17 = t24 ? "x positive" : t16
+    t18 = t9 ? "both positive" : t17
+    t18
   end
-
-  private
-
-  def __core_and(a, b)
-    a && b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
 end

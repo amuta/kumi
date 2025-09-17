@@ -81,12 +81,20 @@ module Kumi
         Kumi::Support::NASTPrinter.print(res.state[:nast_module])
       end
 
-      def generate_lir_01_unoptimized(path)
+      def generate_lir_00_unoptimized(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_01_unoptimized]
+        raise "Error Generating #{path}" unless res.state[:lir_00_unoptimized]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_01_unoptimized])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_00_unoptimized])
+      end
+
+      def generate_lir_01_hoist_scalar_references_pass(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_01_hoist_scalar_references_pass]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_01_hoist_scalar_references_pass])
       end
 
       def generate_lir_02_inlined(path)
@@ -97,12 +105,28 @@ module Kumi
         Kumi::Support::LIRPrinter.print(res.state[:lir_02_inlined_ops_by_decl])
       end
 
-      def generate_lir_03_optimized(path)
+      def generate_lir_03_cse(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
         raise "Error Generating #{path}" unless res.state[:lir_03_cse]
 
         Kumi::Support::LIRPrinter.print(res.state[:lir_03_cse])
+      end
+
+      def generate_lir_04_loop_invcm(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_04_loop_invcm]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_04_loop_invcm])
+      end
+
+      def generate_lir_05_const_prop(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_05_const_prop]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_05_const_prop])
       end
 
       def generate_snast(path)

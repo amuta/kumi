@@ -9,26 +9,16 @@ module SchemaModule
 
   def [](name)
     case name
-      when :double then _eval_double
-      else raise KeyError, "Unknown declaration"
+    when :double then _double
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_double
-    out = nil
+  def _double
     t1 = @input["x"]
     t2 = t1["y"]
     t3 = t2["z"]
-    t4 = 2
-    t5 = __core_mul(t3, t4)
-    out = t5
-    out
+    t5 = t3 * 2
+    t5
   end
-
-  private
-
-  def __core_mul(a, b)
-    a * b
-  end
-
 end

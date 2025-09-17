@@ -9,39 +9,37 @@ module SchemaModule
 
   def [](name)
     case name
-      when :cube then _eval_cube
-      when :layer then _eval_layer
-      when :row then _eval_row
-      when :cell then _eval_cell
-      when :cell_over_limit then _eval_cell_over_limit
-      when :cell_sum then _eval_cell_sum
-      when :count_over_limit then _eval_count_over_limit
-      else raise KeyError, "Unknown declaration"
+    when :cube then _cube
+    when :layer then _layer
+    when :row then _row
+    when :cell then _cell
+    when :cell_over_limit then _cell_over_limit
+    when :cell_sum then _cell_sum
+    when :count_over_limit then _count_over_limit
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_cube
-    out = nil
+  def _cube
     t1 = @input["cube"]
-    out = t1
-    out
+    t1
   end
 
-  def _eval_layer
+  def _layer
     out = []
     t2 = @input["cube"]
-    t2.each_with_index do |cube_el_3, cube_i_4|
+    t2.each_with_index do |cube_el_3, _cube_i_4|
       out << cube_el_3
     end
     out
   end
 
-  def _eval_row
+  def _row
     out = []
     t5 = @input["cube"]
-    t5.each_with_index do |cube_el_6, cube_i_7|
+    t5.each_with_index do |cube_el_6, _cube_i_7|
       out_1 = []
-      cube_el_6.each_with_index do |layer_el_8, layer_i_9|
+      cube_el_6.each_with_index do |layer_el_8, _layer_i_9|
         out_1 << layer_el_8
       end
       out << out_1
@@ -49,14 +47,14 @@ module SchemaModule
     out
   end
 
-  def _eval_cell
+  def _cell
     out = []
     t10 = @input["cube"]
-    t10.each_with_index do |cube_el_11, cube_i_12|
+    t10.each_with_index do |cube_el_11, _cube_i_12|
       out_1 = []
-      cube_el_11.each_with_index do |layer_el_13, layer_i_14|
+      cube_el_11.each_with_index do |layer_el_13, _layer_i_14|
         out_2 = []
-        layer_el_13.each_with_index do |row_el_15, row_i_16|
+        layer_el_13.each_with_index do |row_el_15, _row_i_16|
           out_2 << row_el_15
         end
         out_1 << out_2
@@ -66,16 +64,15 @@ module SchemaModule
     out
   end
 
-  def _eval_cell_over_limit
+  def _cell_over_limit
     out = []
     t17 = @input["cube"]
-    t17.each_with_index do |cube_el_18, cube_i_19|
+    t17.each_with_index do |cube_el_18, _cube_i_19|
       out_1 = []
-      cube_el_18.each_with_index do |layer_el_20, layer_i_21|
+      cube_el_18.each_with_index do |layer_el_20, _layer_i_21|
         out_2 = []
-        layer_el_20.each_with_index do |row_el_22, row_i_23|
-          t24 = 100
-          t25 = __core_gt(row_el_22, t24)
+        layer_el_20.each_with_index do |row_el_22, _row_i_23|
+          t25 = row_el_22 > 100
           out_2 << t25
         end
         out_1 << out_2
@@ -85,19 +82,17 @@ module SchemaModule
     out
   end
 
-  def _eval_cell_sum
+  def _cell_sum
     out = []
     t26 = @input["cube"]
-    t26.each_with_index do |cube_el_27, cube_i_28|
+    t26.each_with_index do |cube_el_27, _cube_i_28|
       out_1 = []
-      cube_el_27.each_with_index do |layer_el_29, layer_i_30|
-        # unsupported: DeclareAccumulator
-        layer_el_29.each_with_index do |row_el_32, row_i_33|
-          t55 = 100
-          t56 = __core_gt(row_el_32, t55)
-          t35 = 0
-          t36 = (t56) ? (row_el_32) : (t35)
-          acc_31 = __agg_sum(acc_31, t36)
+      cube_el_27.each_with_index do |layer_el_29, _layer_i_30|
+        acc_31 = 0
+        layer_el_29.each_with_index do |row_el_32, _row_i_33|
+          t57 = row_el_32 > 100
+          t36 = t57 ? row_el_32 : 0
+          acc_31 += t36
         end
         t37 = acc_31
         out_1 << t37
@@ -107,41 +102,25 @@ module SchemaModule
     out
   end
 
-  def _eval_count_over_limit
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _count_over_limit
+    acc_38 = 0
     t39 = @input["cube"]
-    t39.each_with_index do |cube_el_40, cube_i_41|
-      # unsupported: DeclareAccumulator
-      cube_el_40.each_with_index do |layer_el_43, layer_i_44|
-        # unsupported: DeclareAccumulator
-        layer_el_43.each_with_index do |row_el_46, row_i_47|
-          t57 = 100
-          t58 = __core_gt(row_el_46, t57)
-          t49 = 1
-          t50 = 0
-          t51 = (t58) ? (t49) : (t50)
-          acc_45 = __agg_sum(acc_45, t51)
+    t39.each_with_index do |cube_el_40, _cube_i_41|
+      acc_42 = 0
+      cube_el_40.each_with_index do |layer_el_43, _layer_i_44|
+        acc_45 = 0
+        layer_el_43.each_with_index do |row_el_46, _row_i_47|
+          t60 = row_el_46 > 100
+          t51 = t60 ? 1 : 0
+          acc_45 += t51
         end
         t52 = acc_45
-        acc_42 = __agg_sum(acc_42, t52)
+        acc_42 += t52
       end
       t53 = acc_42
-      acc_38 = __agg_sum(acc_38, t53)
+      acc_38 += t53
     end
     t54 = acc_38
-    out = t54
-    out
+    t54
   end
-
-  private
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
 end

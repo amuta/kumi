@@ -9,67 +9,41 @@ module SchemaModule
 
   def [](name)
     case name
-      when :sum then _eval_sum
-      when :product then _eval_product
-      when :difference then _eval_difference
-      when :results_array then _eval_results_array
-      else raise KeyError, "Unknown declaration"
+    when :sum then _sum
+    when :product then _product
+    when :difference then _difference
+    when :results_array then _results_array
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_sum
-    out = nil
+  def _sum
     t1 = @input["x"]
     t2 = @input["y"]
-    t3 = __core_add(t1, t2)
-    out = t3
-    out
+    t3 = t1 + t2
+    t3
   end
 
-  def _eval_product
-    out = nil
+  def _product
     t4 = @input["x"]
     t5 = @input["y"]
-    t6 = __core_mul(t4, t5)
-    out = t6
-    out
+    t6 = t4 * t5
+    t6
   end
 
-  def _eval_difference
-    out = nil
+  def _difference
     t7 = @input["x"]
     t8 = @input["y"]
-    t9 = __core_sub(t7, t8)
-    out = t9
-    out
+    t9 = t7 - t8
+    t9
   end
 
-  def _eval_results_array
-    out = nil
-    t10 = 1
+  def _results_array
     t11 = @input["x"]
-    t12 = 10
-    t13 = __core_add(t11, t12)
+    t13 = t11 + 10
     t14 = @input["y"]
-    t15 = 2
-    t16 = __core_mul(t14, t15)
-    t17 = [t10, t13, t16]
-    out = t17
-    out
+    t16 = t14 * 2
+    t17 = [1, t13, t16]
+    t17
   end
-
-  private
-
-  def __core_add(a, b)
-    a + b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
-  def __core_sub(a, b)
-    a - b
-  end
-
 end

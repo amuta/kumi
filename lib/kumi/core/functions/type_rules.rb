@@ -48,6 +48,13 @@ module Kumi
             return m[1].to_sym
           end
 
+          if (m = /\Atuple<(.+)>\z/.match(str_type))
+            # The "element type" of a tuple is the common promoted type of its members.
+            # e.g., tuple<integer, float> -> float
+            member_types = m[1].split(",").map { |s| s.strip.to_sym }
+            return promote_types(member_types)
+          end
+
           # Add more collection types like tuple if needed in the future
           raise "Cannot determine element type of non-collection type: #{collection_type}"
         end

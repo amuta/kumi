@@ -17,7 +17,7 @@ module Kumi
             definitions = get_state(:declarations)
             @input_meta = get_state(:input_metadata) || {}
             @definitions = definitions
-            @evaluator = ConstantEvaluator.new(definitions)
+            @evaluator = UnsatConstantEvaluator.new(definitions)
 
             each_decl do |decl|
               if decl.expression.is_a?(CascadeExpression)

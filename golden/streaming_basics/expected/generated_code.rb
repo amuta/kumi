@@ -9,136 +9,105 @@ module SchemaModule
 
   def [](name)
     case name
-      when :items_subtotal then _eval_items_subtotal
-      when :items_discounted then _eval_items_discounted
-      when :items_is_big then _eval_items_is_big
-      when :items_effective then _eval_items_effective
-      when :total_qty then _eval_total_qty
-      when :cart_total then _eval_cart_total
-      when :cart_total_effective then _eval_cart_total_effective
-      else raise KeyError, "Unknown declaration"
+    when :items_subtotal then _items_subtotal
+    when :items_discounted then _items_discounted
+    when :items_is_big then _items_is_big
+    when :items_effective then _items_effective
+    when :total_qty then _total_qty
+    when :cart_total then _cart_total
+    when :cart_total_effective then _cart_total_effective
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_items_subtotal
+  def _items_subtotal
     out = []
     t1 = @input["items"]
-    t1.each_with_index do |items_el_2, items_i_3|
+    t1.each_with_index do |items_el_2, _items_i_3|
       t4 = items_el_2["price"]
       t5 = items_el_2["qty"]
-      t6 = __core_mul(t4, t5)
+      t6 = t4 * t5
       out << t6
     end
     out
   end
 
-  def _eval_items_discounted
+  def _items_discounted
     out = []
     t7 = @input["items"]
-    t7.each_with_index do |items_el_8, items_i_9|
+    t12 = @input["discount"]
+    t13 = 1.0 - t12
+    t7.each_with_index do |items_el_8, _items_i_9|
       t10 = items_el_8["price"]
-      t11 = 1.0
-      t12 = @input["discount"]
-      t13 = __core_sub(t11, t12)
-      t14 = __core_mul(t10, t13)
+      t14 = t10 * t13
       out << t14
     end
     out
   end
 
-  def _eval_items_is_big
+  def _items_is_big
     out = []
     t15 = @input["items"]
-    t15.each_with_index do |items_el_16, items_i_17|
+    t15.each_with_index do |items_el_16, _items_i_17|
       t18 = items_el_16["price"]
-      t19 = 100.0
-      t20 = __core_gt(t18, t19)
+      t20 = t18 > 100.0
       out << t20
     end
     out
   end
 
-  def _eval_items_effective
+  def _items_effective
     out = []
     t21 = @input["items"]
-    t21.each_with_index do |items_el_22, items_i_23|
-      t48 = items_el_22["price"]
-      t49 = 100.0
-      t50 = __core_gt(t48, t49)
-      t52 = items_el_22["qty"]
-      t53 = __core_mul(t48, t52)
-      t26 = 0.9
-      t27 = __core_mul(t53, t26)
-      t29 = (t50) ? (t27) : (t53)
+    t21.each_with_index do |items_el_22, _items_i_23|
+      t49 = items_el_22["price"]
+      t51 = t49 > 100.0
+      t54 = items_el_22["qty"]
+      t55 = t49 * t54
+      t27 = t55 * 0.9
+      t29 = t51 ? t27 : t55
       out << t29
     end
     out
   end
 
-  def _eval_total_qty
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _total_qty
+    acc_30 = 0.0
     t31 = @input["items"]
-    t31.each_with_index do |items_el_32, items_i_33|
+    t31.each_with_index do |items_el_32, _items_i_33|
       t34 = items_el_32["qty"]
-      acc_30 = __agg_sum(acc_30, t34)
+      acc_30 += t34
     end
     t35 = acc_30
-    out = t35
-    out
+    t35
   end
 
-  def _eval_cart_total
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _cart_total
+    acc_36 = 0.0
     t37 = @input["items"]
-    t37.each_with_index do |items_el_38, items_i_39|
-      t54 = items_el_38["price"]
-      t55 = items_el_38["qty"]
-      t56 = __core_mul(t54, t55)
-      acc_36 = __agg_sum(acc_36, t56)
+    t37.each_with_index do |items_el_38, _items_i_39|
+      t57 = items_el_38["price"]
+      t58 = items_el_38["qty"]
+      t59 = t57 * t58
+      acc_36 += t59
     end
     t41 = acc_36
-    out = t41
-    out
+    t41
   end
 
-  def _eval_cart_total_effective
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _cart_total_effective
+    acc_42 = 0.0
     t43 = @input["items"]
-    t43.each_with_index do |items_el_44, items_i_45|
-      t63 = items_el_44["price"]
-      t64 = 100.0
-      t65 = __core_gt(t63, t64)
-      t67 = items_el_44["qty"]
-      t68 = __core_mul(t63, t67)
-      t59 = 0.9
-      t60 = __core_mul(t68, t59)
-      t62 = (t65) ? (t60) : (t68)
-      acc_42 = __agg_sum(acc_42, t62)
+    t43.each_with_index do |items_el_44, _items_i_45|
+      t68 = items_el_44["price"]
+      t70 = t68 > 100.0
+      t73 = items_el_44["qty"]
+      t74 = t68 * t73
+      t64 = t74 * 0.9
+      t66 = t70 ? t64 : t74
+      acc_42 += t66
     end
     t47 = acc_42
-    out = t47
-    out
+    t47
   end
-
-  private
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
-  def __core_sub(a, b)
-    a - b
-  end
-
 end

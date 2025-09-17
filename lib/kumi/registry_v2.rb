@@ -11,7 +11,7 @@ module Kumi
     SELECT_ID = "__select__"
 
     # --- NEW: Define the Function struct ---
-    Function = Struct.new(:id, :kind, :dtype, :aliases, :params, :expand, keyword_init: true) do
+    Function = Struct.new(:id, :kind, :dtype, :aliases, :params, :expand, :folding_class_method, keyword_init: true) do
       def reduce?  = kind == :reduce
       def select?  = id == SELECT_ID
       def elementwise? = kind == :elementwise
@@ -25,7 +25,7 @@ module Kumi
       end
     end
 
-    Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, keyword_init: true)
+    Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, :inline, keyword_init: true)
 
     class Instance
       def initialize(functions_by_id, kernels_by_key)
@@ -55,6 +55,11 @@ module Kumi
       def function_select?(id)      = resolve_function(id) == SELECT_ID
 
       # -------- kernels (no changes here) --------
+      def kernel_for(id, target:)
+        fid = resolve_function(id)
+        @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
+      end
+
       def kernel_id_for(id, target:)
         fid = resolve_function(id)
         k = @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
@@ -64,8 +69,14 @@ module Kumi
       def kernel_identity_for(id, dtype:, target:)
         fid = resolve_function(id)
         k = @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
+
         map = k.identity or raise "no identity for #{fid} on #{target}"
-        map[dtype.to_s] or raise "no identity for dtype #{dtype} on #{fid}"
+
+        identity = map[dtype.to_s] || map["any"]
+
+        return identity if identity
+
+        raise "no identity for dtype #{dtype} on #{fid}"
       end
 
       def impl_for(kernel_id)

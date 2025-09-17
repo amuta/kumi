@@ -31,6 +31,7 @@ module Kumi
 
               def emit_footer
                 dedent!
+                rewrite_last_line("end") if last_line == "end\n"
                 write "end"
               end
 
@@ -47,8 +48,8 @@ module Kumi
                 write "def [](name)"
                 indented do
                   write "case name"
-                  decl_names.each { |name| write "when :#{name} then _eval_#{name}", @indent + 1 }
-                  write "else raise KeyError, \"Unknown declaration\"", @indent + 1
+                  decl_names.each { |name| write "when :#{name} then _#{name}" }
+                  write "else raise KeyError, \"Unknown declaration\""
                   write "end"
                 end
                 write "end\n"
@@ -67,6 +68,18 @@ module Kumi
 
               def write(s, indent = @indent)
                 @out << ("  " * indent) << s << "\n"
+              end
+
+              def last_line
+                @out[-2]
+              end
+
+              # Replaces the last line in the buffer.
+              def rewrite_last_line(new_line_content, _indent = @indent)
+                return if @out.empty?
+
+                # Preserve the indentation of the line being replaced.
+                @out[-2] = new_line_content
               end
             end
           end

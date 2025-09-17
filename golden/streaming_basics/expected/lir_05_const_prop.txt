@@ -1,0 +1,84 @@
+(LIR
+  (Declaration items_subtotal
+    %t1 = load_input "items" :: array
+    loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
+      %t4 = load_field items_el_2["price"] :: float
+      %t5 = load_field items_el_2["qty"] :: integer
+      %t6 = call core.mul(%t4, %t5) :: float
+      yield %t6
+    end_loop
+  )
+  (Declaration items_discounted
+    %t7 = load_input "items" :: array
+    %t11 = const 1.0 :: float
+    %t12 = load_input "discount" :: float
+    %t13 = call core.sub(%__immediate_placeholder__, %t12) :: float
+    loop items id=L2 in %t7 as el=%items_el_8, idx=%items_i_9
+      %t10 = load_field items_el_8["price"] :: float
+      %t14 = call core.mul(%t10, %t13) :: float
+      yield %t14
+    end_loop
+  )
+  (Declaration items_is_big
+    %t15 = load_input "items" :: array
+    %t19 = const 100.0 :: float
+    loop items id=L3 in %t15 as el=%items_el_16, idx=%items_i_17
+      %t18 = load_field items_el_16["price"] :: float
+      %t20 = call core.gt(%t18, %__immediate_placeholder__) :: boolean
+      yield %t20
+    end_loop
+  )
+  (Declaration items_effective
+    %t21 = load_input "items" :: array
+    %t50 = const 100.0 :: float
+    %t26 = const 0.9 :: float
+    loop items id=L4 in %t21 as el=%items_el_22, idx=%items_i_23
+      %t49 = load_field items_el_22["price"] :: float
+      %t51 = call core.gt(%t49, %__immediate_placeholder__) :: boolean
+      %t54 = load_field items_el_22["qty"] :: integer
+      %t55 = call core.mul(%t49, %t54) :: float
+      %t27 = call core.mul(%t55, %__immediate_placeholder__) :: float
+      %t29 = select %t51, %t27, %t55 :: float
+      yield %t29
+    end_loop
+  )
+  (Declaration total_qty
+    %acc_30 = decl_acc :: integer
+    %t31 = load_input "items" :: array
+    loop items id=L5 in %t31 as el=%items_el_32, idx=%items_i_33
+      %t34 = load_field items_el_32["qty"] :: integer
+      %acc_30 = acc_add agg.sum(%acc_30, %t34) :: integer
+    end_loop
+    %t35 = acc_load %acc_30 :: integer
+    yield %t35
+  )
+  (Declaration cart_total
+    %acc_36 = decl_acc :: float
+    %t37 = load_input "items" :: array
+    loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
+      %t57 = load_field items_el_38["price"] :: float
+      %t58 = load_field items_el_38["qty"] :: integer
+      %t59 = call core.mul(%t57, %t58) :: float
+      %acc_36 = acc_add agg.sum(%acc_36, %t59) :: float
+    end_loop
+    %t41 = acc_load %acc_36 :: float
+    yield %t41
+  )
+  (Declaration cart_total_effective
+    %acc_42 = decl_acc :: float
+    %t43 = load_input "items" :: array
+    %t69 = const 100.0 :: float
+    %t63 = const 0.9 :: float
+    loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
+      %t68 = load_field items_el_44["price"] :: float
+      %t70 = call core.gt(%t68, %__immediate_placeholder__) :: boolean
+      %t73 = load_field items_el_44["qty"] :: integer
+      %t74 = call core.mul(%t68, %t73) :: float
+      %t64 = call core.mul(%t74, %__immediate_placeholder__) :: float
+      %t66 = select %t70, %t64, %t74 :: float
+      %acc_42 = acc_add agg.sum(%acc_42, %t66) :: float
+    end_loop
+    %t47 = acc_load %acc_42 :: float
+    yield %t47
+  )
+)

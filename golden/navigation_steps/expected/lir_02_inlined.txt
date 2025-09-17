@@ -26,12 +26,13 @@
           %t24 = load_field a2_el_21["h1"] :: hash
           %t25 = load_field t24["ea2"] :: array
           loop ea2 id=L8 in %t25 as el=%ea2_el_26, idx=%ea2_i_27
-            %t30 = load_field ea1_el_18["a2"] :: array
-            %t31 = load_field a2_el_21["h1"] :: hash
-            %t32 = load_field t31["ea2"] :: array
-            %t33 = const 10 :: integer
-            %t34 = call core.mul(%ea2_el_26, %t33) :: integer
-            %acc_23 = acc_add agg.sum(%acc_23, %t34) :: integer
+            %t30 = load_input "a1" :: array
+            %t31 = load_field ea1_el_18["a2"] :: array
+            %t32 = load_field a2_el_21["h1"] :: hash
+            %t33 = load_field t32["ea2"] :: array
+            %t34 = const 10 :: integer
+            %t35 = call core.mul(%ea2_el_26, %t34) :: integer
+            %acc_23 = acc_add agg.sum(%acc_23, %t35) :: integer
           end_loop
           %t29 = acc_load %acc_23 :: integer
           yield %t29

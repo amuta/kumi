@@ -1,0 +1,14 @@
+functions:
+  - id: agg.any
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "boolean"
+    aliases: ["any", "any?"]
+    folding_class_method: any?
+
+  - id: agg.all
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype: "boolean"
+    aliases: ["all", "all?"]
+    folding_class_method: all?

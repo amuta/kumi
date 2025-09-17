@@ -9,23 +9,23 @@ module SchemaModule
 
   def [](name)
     case name
-      when :dept_headcount then _eval_dept_headcount
-      when :teams_per_dept then _eval_teams_per_dept
-      when :avg_headcount_per_dept then _eval_avg_headcount_per_dept
-      when :is_above_average_team then _eval_is_above_average_team
-      else raise KeyError, "Unknown declaration"
+    when :dept_headcount then _dept_headcount
+    when :teams_per_dept then _teams_per_dept
+    when :avg_headcount_per_dept then _avg_headcount_per_dept
+    when :is_above_average_team then _is_above_average_team
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_dept_headcount
+  def _dept_headcount
     out = []
     t1 = @input["departments"]
-    t1.each_with_index do |departments_el_2, departments_i_3|
-      # unsupported: DeclareAccumulator
+    t1.each_with_index do |departments_el_2, _departments_i_3|
+      acc_4 = 0
       t5 = departments_el_2["teams"]
-      t5.each_with_index do |teams_el_6, teams_i_7|
+      t5.each_with_index do |teams_el_6, _teams_i_7|
         t8 = teams_el_6["headcount"]
-        acc_4 = __agg_sum(acc_4, t8)
+        acc_4 += t8
       end
       t9 = acc_4
       out << t9
@@ -33,15 +33,15 @@ module SchemaModule
     out
   end
 
-  def _eval_teams_per_dept
+  def _teams_per_dept
     out = []
     t10 = @input["departments"]
-    t10.each_with_index do |departments_el_11, departments_i_12|
-      # unsupported: DeclareAccumulator
+    t10.each_with_index do |departments_el_11, _departments_i_12|
+      acc_13 = 0
       t14 = departments_el_11["teams"]
-      t14.each_with_index do |teams_el_15, teams_i_16|
+      t14.each_with_index do |teams_el_15, _teams_i_16|
         t17 = teams_el_15["team_name"]
-        acc_13 = __agg_count(acc_13, t17)
+        acc_13 += 1
       end
       t18 = acc_13
       out << t18
@@ -49,74 +49,55 @@ module SchemaModule
     out
   end
 
-  def _eval_avg_headcount_per_dept
+  def _avg_headcount_per_dept
     out = []
     t19 = @input["departments"]
-    t19.each_with_index do |departments_el_20, departments_i_21|
-      # unsupported: DeclareAccumulator
-      t36 = departments_el_20["teams"]
-      t36.each_with_index do |teams_el_6, teams_i_7|
-        t37 = teams_el_6["headcount"]
-        t34 = __agg_sum(t34, t37)
+    t19.each_with_index do |departments_el_20, _departments_i_21|
+      t35 = 0
+      t37 = departments_el_20["teams"]
+      t37.each_with_index do |teams_el_6, _teams_i_7|
+        t38 = teams_el_6["headcount"]
+        t35 += t38
       end
-      t38 = t34
-      # unsupported: DeclareAccumulator
-      t36.each_with_index do |teams_el_15, teams_i_16|
-        t42 = teams_el_15["team_name"]
-        t39 = __agg_count(t39, t42)
+      t39 = t35
+      t41 = 0
+      t37.each_with_index do |teams_el_15, _teams_i_16|
+        t44 = teams_el_15["team_name"]
+        t41 += 1
       end
-      t43 = t39
-      t24 = __core_div(t38, t43)
+      t45 = t41
+      t24 = t39 / t45
       out << t24
     end
     out
   end
 
-  def _eval_is_above_average_team
+  def _is_above_average_team
     out = []
     t25 = @input["departments"]
-    t25.each_with_index do |departments_el_26, departments_i_27|
+    t25.each_with_index do |departments_el_26, _departments_i_27|
       out_1 = []
       t28 = departments_el_26["teams"]
-      t28.each_with_index do |teams_el_29, teams_i_30|
+      t28.each_with_index do |teams_el_29, _teams_i_30|
         t31 = teams_el_29["headcount"]
-        # unsupported: DeclareAccumulator
-        t28.each_with_index do |teams_el_6, teams_i_7|
-          t50 = teams_el_6["headcount"]
-          t47 = __agg_sum(t47, t50)
+        t51 = 0
+        t28.each_with_index do |teams_el_6, _teams_i_7|
+          t54 = teams_el_6["headcount"]
+          t51 += t54
         end
-        t51 = t47
-        # unsupported: DeclareAccumulator
-        t28.each_with_index do |teams_el_15, teams_i_16|
-          t55 = teams_el_15["team_name"]
-          t52 = __agg_count(t52, t55)
+        t55 = t51
+        t57 = 0
+        t28.each_with_index do |teams_el_15, _teams_i_16|
+          t60 = teams_el_15["team_name"]
+          t57 += 1
         end
-        t56 = t52
-        t46 = __core_div(t51, t56)
-        t33 = __core_gt(t31, t46)
+        t61 = t57
+        t49 = t55 / t61
+        t33 = t31 > t49
         out_1 << t33
       end
       out << out_1
     end
     out
   end
-
-  private
-
-  def __agg_count(a,_b)
-    a + 1
-  end
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_div(a, b)
-    a / b
-  end
-
-  def __core_gt(a, b)
-    a > b
-  end
-
 end

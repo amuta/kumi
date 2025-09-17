@@ -25,7 +25,8 @@ module Kumi
             aliases: Array(h["aliases"]).map!(&:to_s),
             params: h.fetch("params"),
             dtype: h["dtype"],
-            expand: h["expand"]
+            expand: h["expand"],
+            folding_class_method: h["folding_class_method"]
           )
           raise "duplicate function id `#{f.id}`" if acc.key?(f.id)
 
@@ -45,7 +46,8 @@ module Kumi
                 fn_id: h.fetch("fn").to_s,
                 target: t,
                 impl: h["impl"],
-                identity: h["identity"]
+                identity: h["identity"],
+                inline: h["inline"]
               )
               key = [k.fn_id, t]
               raise "duplicate kernel for #{key}" if out.key?(key)

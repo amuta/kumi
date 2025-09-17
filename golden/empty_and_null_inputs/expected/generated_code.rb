@@ -9,22 +9,22 @@ module SchemaModule
 
   def [](name)
     case name
-      when :regional_sales then _eval_regional_sales
-      when :total_sales then _eval_total_sales
-      when :adjusted_total then _eval_adjusted_total
-      else raise KeyError, "Unknown declaration"
+    when :regional_sales then _regional_sales
+    when :total_sales then _total_sales
+    when :adjusted_total then _adjusted_total
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_regional_sales
+  def _regional_sales
     out = []
     t1 = @input["regions"]
-    t1.each_with_index do |regions_el_2, regions_i_3|
-      # unsupported: DeclareAccumulator
+    t1.each_with_index do |regions_el_2, _regions_i_3|
+      acc_4 = 0
       t5 = regions_el_2["sales"]
-      t5.each_with_index do |sales_el_6, sales_i_7|
+      t5.each_with_index do |sales_el_6, _sales_i_7|
         t8 = sales_el_6["amount"]
-        acc_4 = __agg_sum(acc_4, t8)
+        acc_4 += t8
       end
       t9 = acc_4
       out << t9
@@ -32,54 +32,39 @@ module SchemaModule
     out
   end
 
-  def _eval_total_sales
-    out = nil
-    # unsupported: DeclareAccumulator
+  def _total_sales
+    acc_10 = 0
     t11 = @input["regions"]
-    t11.each_with_index do |regions_el_12, regions_i_13|
-      # unsupported: DeclareAccumulator
-      t21 = regions_el_12["sales"]
-      t21.each_with_index do |sales_el_6, sales_i_7|
-        t22 = sales_el_6["amount"]
-        t19 = __agg_sum(t19, t22)
+    t11.each_with_index do |regions_el_12, _regions_i_13|
+      t20 = 0
+      t22 = regions_el_12["sales"]
+      t22.each_with_index do |sales_el_6, _sales_i_7|
+        t23 = sales_el_6["amount"]
+        t20 += t23
       end
-      t23 = t19
-      acc_10 = __agg_sum(acc_10, t23)
+      t24 = t20
+      acc_10 += t24
     end
     t15 = acc_10
-    out = t15
-    out
+    t15
   end
 
-  def _eval_adjusted_total
-    out = nil
-    # unsupported: DeclareAccumulator
-    t26 = @input["regions"]
-    t26.each_with_index do |regions_el_12, regions_i_13|
-      # unsupported: DeclareAccumulator
-      t31 = regions_el_12["sales"]
-      t31.each_with_index do |sales_el_6, sales_i_7|
-        t32 = sales_el_6["amount"]
-        t29 = __agg_sum(t29, t32)
+  def _adjusted_total
+    t25 = 0
+    t27 = @input["regions"]
+    t27.each_with_index do |regions_el_12, _regions_i_13|
+      t31 = 0
+      t33 = regions_el_12["sales"]
+      t33.each_with_index do |sales_el_6, _sales_i_7|
+        t34 = sales_el_6["amount"]
+        t31 += t34
       end
-      t33 = t29
-      t24 = __agg_sum(t24, t33)
+      t35 = t31
+      t25 += t35
     end
-    t28 = t24
+    t29 = t25
     t17 = @input["adjustment"]
-    t18 = __core_add(t28, t17)
-    out = t18
-    out
+    t18 = t29 + t17
+    t18
   end
-
-  private
-
-  def __core_add(a, b)
-    a + b
-  end
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
 end

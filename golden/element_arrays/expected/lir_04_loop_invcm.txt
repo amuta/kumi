@@ -1,0 +1,83 @@
+(LIR
+  (Declaration cube
+    %t1 = load_input "cube" :: array
+    yield %t1
+  )
+  (Declaration layer
+    %t2 = load_input "cube" :: array
+    loop cube id=L1 in %t2 as el=%cube_el_3, idx=%cube_i_4
+      yield %cube_el_3
+    end_loop
+  )
+  (Declaration row
+    %t5 = load_input "cube" :: array
+    loop cube id=L2 in %t5 as el=%cube_el_6, idx=%cube_i_7
+      loop layer id=L3 in %cube_el_6 as el=%layer_el_8, idx=%layer_i_9
+        yield %layer_el_8
+      end_loop
+    end_loop
+  )
+  (Declaration cell
+    %t10 = load_input "cube" :: array
+    loop cube id=L4 in %t10 as el=%cube_el_11, idx=%cube_i_12
+      loop layer id=L5 in %cube_el_11 as el=%layer_el_13, idx=%layer_i_14
+        loop row id=L6 in %layer_el_13 as el=%row_el_15, idx=%row_i_16
+          yield %row_el_15
+        end_loop
+      end_loop
+    end_loop
+  )
+  (Declaration cell_over_limit
+    %t17 = load_input "cube" :: array
+    %t24 = const 100 :: integer
+    loop cube id=L7 in %t17 as el=%cube_el_18, idx=%cube_i_19
+      loop layer id=L8 in %cube_el_18 as el=%layer_el_20, idx=%layer_i_21
+        loop row id=L9 in %layer_el_20 as el=%row_el_22, idx=%row_i_23
+          %t25 = call core.gt(%row_el_22, %t24) :: boolean
+          yield %t25
+        end_loop
+      end_loop
+    end_loop
+  )
+  (Declaration cell_sum
+    %t26 = load_input "cube" :: array
+    %t56 = const 100 :: integer
+    %t35 = const 0 :: integer
+    loop cube id=L10 in %t26 as el=%cube_el_27, idx=%cube_i_28
+      loop layer id=L11 in %cube_el_27 as el=%layer_el_29, idx=%layer_i_30
+        %acc_31 = decl_acc :: integer
+        loop row id=L12 in %layer_el_29 as el=%row_el_32, idx=%row_i_33
+          %t57 = call core.gt(%row_el_32, %t56) :: boolean
+          %t36 = select %t57, %row_el_32, %t35 :: integer
+          %acc_31 = acc_add agg.sum(%acc_31, %t36) :: integer
+        end_loop
+        %t37 = acc_load %acc_31 :: integer
+        yield %t37
+      end_loop
+    end_loop
+  )
+  (Declaration count_over_limit
+    %acc_38 = decl_acc :: integer
+    %t39 = load_input "cube" :: array
+    %t59 = const 100 :: integer
+    %t49 = const 1 :: integer
+    %t50 = const 0 :: integer
+    loop cube id=L13 in %t39 as el=%cube_el_40, idx=%cube_i_41
+      %acc_42 = decl_acc :: integer
+      loop layer id=L14 in %cube_el_40 as el=%layer_el_43, idx=%layer_i_44
+        %acc_45 = decl_acc :: integer
+        loop row id=L15 in %layer_el_43 as el=%row_el_46, idx=%row_i_47
+          %t60 = call core.gt(%row_el_46, %t59) :: boolean
+          %t51 = select %t60, %t49, %t50 :: integer
+          %acc_45 = acc_add agg.sum(%acc_45, %t51) :: integer
+        end_loop
+        %t52 = acc_load %acc_45 :: integer
+        %acc_42 = acc_add agg.sum(%acc_42, %t52) :: integer
+      end_loop
+      %t53 = acc_load %acc_42 :: integer
+      %acc_38 = acc_add agg.sum(%acc_38, %t53) :: integer
+    end_loop
+    %t54 = acc_load %acc_38 :: integer
+    yield %t54
+  )
+)

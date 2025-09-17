@@ -27,6 +27,9 @@ module Kumi
                 # 1) check all inputs are defined
                 Array(ins.inputs).each do |r|
                   next if r.nil?
+                  # --- ADD THIS LINE ---
+                  next if r == :__immediate_placeholder__
+                  # --- END OF FIX ---
                   raise "use-before-def #{r} in #{decl_name}" unless defs.include?(r)
                 end
 

@@ -117,7 +117,7 @@ module Kumi
               over_axes = in_axes.drop(out_axes.length) # derived, non-empty given guard above
               red = NAST::Reduce.new(
                 id: n.id,
-                op_id: @registry.resolve_function(n.fn),
+                fn: @registry.resolve_function(n.fn),
                 over: over_axes,
                 arg: arg,
                 loc: n.loc,

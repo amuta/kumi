@@ -9,27 +9,26 @@ module SchemaModule
 
   def [](name)
     case name
-      when :numbers_mult_10 then _eval_numbers_mult_10
-      when :sum_of_nums then _eval_sum_of_nums
-      else raise KeyError, "Unknown declaration"
+    when :numbers_mult_10 then _numbers_mult_10
+    when :sum_of_nums then _sum_of_nums
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_numbers_mult_10
+  def _numbers_mult_10
     out = []
     t1 = @input["a1"]
-    t1.each_with_index do |a1_el_2, a1_i_3|
+    t1.each_with_index do |a1_el_2, _a1_i_3|
       out_1 = []
-      a1_el_2.each_with_index do |ea1_el_4, ea1_i_5|
+      a1_el_2.each_with_index do |ea1_el_4, _ea1_i_5|
         out_2 = []
         t6 = ea1_el_4["a2"]
-        t6.each_with_index do |a2_el_7, a2_i_8|
+        t6.each_with_index do |a2_el_7, _a2_i_8|
           out_3 = []
           t9 = a2_el_7["h1"]
           t10 = t9["ea2"]
-          t10.each_with_index do |ea2_el_11, ea2_i_12|
-            t13 = 10
-            t14 = __core_mul(ea2_el_11, t13)
+          t10.each_with_index do |ea2_el_11, _ea2_i_12|
+            t14 = ea2_el_11 * 10
             out_3 << t14
           end
           out_2 << out_3
@@ -41,22 +40,21 @@ module SchemaModule
     out
   end
 
-  def _eval_sum_of_nums
+  def _sum_of_nums
     out = []
     t15 = @input["a1"]
-    t15.each_with_index do |a1_el_16, a1_i_17|
+    t15.each_with_index do |a1_el_16, _a1_i_17|
       out_1 = []
-      a1_el_16.each_with_index do |ea1_el_18, ea1_i_19|
+      a1_el_16.each_with_index do |ea1_el_18, _ea1_i_19|
         out_2 = []
         t20 = ea1_el_18["a2"]
-        t20.each_with_index do |a2_el_21, a2_i_22|
-          # unsupported: DeclareAccumulator
+        t20.each_with_index do |a2_el_21, _a2_i_22|
+          acc_23 = 0
           t24 = a2_el_21["h1"]
           t25 = t24["ea2"]
-          t25.each_with_index do |ea2_el_26, ea2_i_27|
-            t33 = 10
-            t34 = __core_mul(ea2_el_26, t33)
-            acc_23 = __agg_sum(acc_23, t34)
+          t25.each_with_index do |ea2_el_26, _ea2_i_27|
+            t35 = ea2_el_26 * 10
+            acc_23 += t35
           end
           t29 = acc_23
           out_2 << t29
@@ -67,15 +65,4 @@ module SchemaModule
     end
     out
   end
-
-  private
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
 end

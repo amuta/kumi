@@ -100,63 +100,53 @@ module Kumi
               axes = info.axes
               k    = axes.length
 
-              # Special case: scalar decl (k == 0) → body is ops before Yield.
-              if k == 0
-                inner = []
-                yielded = nil
-                ops.each do |ins|
-                  if ins.opcode == :Yield
-                    yielded = Array(ins.inputs).first
-                    break
-                  else
-                    inner << ins
-                  end
-                end
-                raise "callee #{callee_name} has no Yield" unless yielded
+              # Find the yield instruction first.
+              yield_index = ops.rindex { |ins| ins.opcode == :Yield }
+              raise "callee #{callee_name} has no Yield" unless yield_index
 
-                return [inner, yielded, []]
-              end
+              yielded_reg = Array(ops[yield_index].inputs).first
 
-              inner      = []
-              yielded    = nil
+              # Find the start of the main "gamma" loops.
+              first_loop_index = ops.index { |ins| ins.opcode == :LoopStart }
+
+              # Case 1: Scalar declaration (no loops at all).
+              # The body is everything before the yield.
+              return [ops[0...yield_index], yielded_reg, []] unless first_loop_index
+
+              # Case 2: Looping declaration.
+              # The prologue is everything before the first loop.
+              prologue = ops[0...first_loop_index]
+
+              # The main part contains the loops and inner logic.
+              main_part = ops[first_loop_index...yield_index]
+
+              inner_body = []
               open_gamma = 0
-              # Stack tracks whether a loop frame is :gamma or :inner
               kind_stack = []
 
-              ops.each do |ins|
+              main_part.each do |ins|
                 case ins.opcode
                 when :LoopStart
+                  # Check if this is one of the `k` outer loops to be stripped.
                   if open_gamma < k && ins.attributes[:axis] == axes[open_gamma]
-                    # This LoopStart is the next Γ loop → strip
                     kind_stack << :gamma
                     open_gamma += 1
-                    # do not emit
-                  else
-                    # Inner loop (not a Γ loop) → keep
+                  else # This is a nested loop that should be kept.
                     kind_stack << :inner
-                    inner << ins
+                    inner_body << ins
                   end
-
                 when :LoopEnd
                   kind = kind_stack.pop or raise "unbalanced loops in #{callee_name}"
-                  inner << ins if kind == :inner
-
-                  # When we have closed all Γ frames and kind_stack empty or only pre-Γ,
-                  # we still continue; any following Γ closes will be classified as :gamma.
-
-                when :Yield
-                  yielded = Array(ins.inputs).first
-                  # drop the yield itself
-
-                else
-                  # Only keep instructions if we are inside a non-stripped, inner loop.
-                  inner << ins unless kind_stack.empty?
+                  inner_body << ins if kind == :inner
+                else # Any other instruction
+                  inner_body << ins
                 end
               end
 
-              raise "callee #{callee_name} has no Yield" unless yielded
+              # The final block to be inlined is the prologue + the extracted inner body.
+              final_body = prologue + inner_body
 
-              [inner, yielded, info.axis_regs]
+              [final_body, yielded_reg, info.axis_regs]
             end
 
             # Per-caller environment: track current loop stack with axis + element/index regs

@@ -9,30 +9,29 @@ module SchemaModule
 
   def [](name)
     case name
-      when :high_performer then _eval_high_performer
-      when :senior_level then _eval_senior_level
-      when :top_team then _eval_top_team
-      when :employee_bonus then _eval_employee_bonus
-      else raise KeyError, "Unknown declaration"
+    when :high_performer then _high_performer
+    when :senior_level then _senior_level
+    when :top_team then _top_team
+    when :employee_bonus then _employee_bonus
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_high_performer
+  def _high_performer
     out = []
     t1 = @input["regions"]
-    t1.each_with_index do |regions_el_2, regions_i_3|
+    t1.each_with_index do |regions_el_2, _regions_i_3|
       out_1 = []
       t4 = regions_el_2["offices"]
-      t4.each_with_index do |offices_el_5, offices_i_6|
+      t4.each_with_index do |offices_el_5, _offices_i_6|
         out_2 = []
         t7 = offices_el_5["teams"]
-        t7.each_with_index do |teams_el_8, teams_i_9|
+        t7.each_with_index do |teams_el_8, _teams_i_9|
           out_3 = []
           t10 = teams_el_8["employees"]
-          t10.each_with_index do |employees_el_11, employees_i_12|
+          t10.each_with_index do |employees_el_11, _employees_i_12|
             t13 = employees_el_11["rating"]
-            t14 = 4.5
-            t15 = __core_gte(t13, t14)
+            t15 = t13 >= 4.5
             out_3 << t15
           end
           out_2 << out_3
@@ -44,22 +43,21 @@ module SchemaModule
     out
   end
 
-  def _eval_senior_level
+  def _senior_level
     out = []
     t16 = @input["regions"]
-    t16.each_with_index do |regions_el_17, regions_i_18|
+    t16.each_with_index do |regions_el_17, _regions_i_18|
       out_1 = []
       t19 = regions_el_17["offices"]
-      t19.each_with_index do |offices_el_20, offices_i_21|
+      t19.each_with_index do |offices_el_20, _offices_i_21|
         out_2 = []
         t22 = offices_el_20["teams"]
-        t22.each_with_index do |teams_el_23, teams_i_24|
+        t22.each_with_index do |teams_el_23, _teams_i_24|
           out_3 = []
           t25 = teams_el_23["employees"]
-          t25.each_with_index do |employees_el_26, employees_i_27|
+          t25.each_with_index do |employees_el_26, _employees_i_27|
             t28 = employees_el_26["level"]
-            t29 = "senior"
-            t30 = __core_eq(t28, t29)
+            t30 = t28 == "senior"
             out_3 << t30
           end
           out_2 << out_3
@@ -71,19 +69,18 @@ module SchemaModule
     out
   end
 
-  def _eval_top_team
+  def _top_team
     out = []
     t31 = @input["regions"]
-    t31.each_with_index do |regions_el_32, regions_i_33|
+    t31.each_with_index do |regions_el_32, _regions_i_33|
       out_1 = []
       t34 = regions_el_32["offices"]
-      t34.each_with_index do |offices_el_35, offices_i_36|
+      t34.each_with_index do |offices_el_35, _offices_i_36|
         out_2 = []
         t37 = offices_el_35["teams"]
-        t37.each_with_index do |teams_el_38, teams_i_39|
+        t37.each_with_index do |teams_el_38, _teams_i_39|
           t40 = teams_el_38["performance_score"]
-          t41 = 0.9
-          t42 = __core_gte(t40, t41)
+          t42 = t40 >= 0.9
           out_2 << t42
         end
         out_1 << out_2
@@ -93,40 +90,34 @@ module SchemaModule
     out
   end
 
-  def _eval_employee_bonus
+  def _employee_bonus
     out = []
     t43 = @input["regions"]
-    t43.each_with_index do |regions_el_44, regions_i_45|
+    t43.each_with_index do |regions_el_44, _regions_i_45|
       out_1 = []
       t46 = regions_el_44["offices"]
-      t46.each_with_index do |offices_el_47, offices_i_48|
+      t46.each_with_index do |offices_el_47, _offices_i_48|
         out_2 = []
         t49 = offices_el_47["teams"]
-        t49.each_with_index do |teams_el_50, teams_i_51|
+        t49.each_with_index do |teams_el_50, _teams_i_51|
           out_3 = []
           t52 = teams_el_50["employees"]
-          t52.each_with_index do |employees_el_53, employees_i_54|
-            t77 = employees_el_53["rating"]
-            t78 = 4.5
-            t79 = __core_gte(t77, t78)
-            t83 = employees_el_53["level"]
-            t84 = "senior"
-            t85 = __core_eq(t83, t84)
-            t88 = teams_el_50["performance_score"]
-            t89 = 0.9
-            t90 = __core_gte(t88, t89)
-            t58 = __core_and(t85, t90)
-            t59 = __core_and(t79, t58)
+          t91 = teams_el_50["performance_score"]
+          t93 = t91 >= 0.9
+          t52.each_with_index do |employees_el_53, _employees_i_54|
+            t78 = employees_el_53["rating"]
+            t80 = t78 >= 4.5
+            t85 = employees_el_53["level"]
+            t87 = t85 == "senior"
+            t58 = t87 && t93
+            t59 = t80 && t58
             t60 = employees_el_53["salary"]
-            t61 = 0.3
-            t62 = __core_mul(t60, t61)
-            t65 = __core_and(t79, t90)
-            t67 = 0.2
-            t68 = __core_mul(t60, t67)
-            t70 = 0.05
-            t71 = __core_mul(t60, t70)
-            t72 = (t65) ? (t68) : (t71)
-            t73 = (t59) ? (t62) : (t72)
+            t62 = t60 * 0.3
+            t65 = t80 && t93
+            t68 = t60 * 0.2
+            t71 = t60 * 0.05
+            t72 = t65 ? t68 : t71
+            t73 = t59 ? t62 : t72
             out_3 << t73
           end
           out_2 << out_3
@@ -137,23 +128,4 @@ module SchemaModule
     end
     out
   end
-
-  private
-
-  def __core_and(a, b)
-    a && b
-  end
-
-  def __core_eq(a, b)
-    a == b
-  end
-
-  def __core_gte(a, b)
-    a >= b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
 end

@@ -1,0 +1,18 @@
+functions:
+  - id: core.and
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+    aliases : ["and", "&"]
+
+  - id: core.or
+    kind: elementwise
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype: "boolean"
+    aliases : ["or", "|"]
+
+  - id: core.not
+    kind: elementwise
+    params: [{ name: operand }]
+    dtype: "boolean"
+    aliases : ["not", "!"]

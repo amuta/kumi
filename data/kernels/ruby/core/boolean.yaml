@@ -1,0 +1,15 @@
+kernels:
+  - id: not:ruby:v1
+    fn: core.not
+    inline: "= !$0"
+    impl: "(a)\n  !a"
+
+  - id: and:ruby:v1
+    fn: core.and
+    inline: "= $0 && $1"
+    impl: "(a, b)\n  a && b"
+
+  - id: or:ruby:v1
+    fn: core.or
+    inline: "= $0 || $1"
+    impl: "(a, b)\n  a || b"

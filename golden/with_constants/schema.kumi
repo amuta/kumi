@@ -1,0 +1,10 @@
+schema do
+  input do
+    float :income
+    integer :age
+  end
+
+  value :scores, [100, 85, 92]
+  value :first_score, scores[0]
+  value :second_score, scores[1]
+end

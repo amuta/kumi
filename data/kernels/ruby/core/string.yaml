@@ -1,6 +1,7 @@
 kernels:
   - id: concat:ruby:v1
     fn: core.concat
+    inline: "= $0.to_s + $1.to_s"
     impl: |
       (a, b)
       a.to_s + b.to_s

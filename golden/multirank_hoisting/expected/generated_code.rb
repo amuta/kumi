@@ -9,49 +9,44 @@ module SchemaModule
 
   def [](name)
     case name
-      when :global_offset_plus then _eval_global_offset_plus
-      when :batch_bias then _eval_batch_bias
-      when :row_scale2 then _eval_row_scale2
-      when :elem_affine then _eval_elem_affine
-      when :row_sum_affine then _eval_row_sum_affine
-      when :batch_total_affine then _eval_batch_total_affine
-      else raise KeyError, "Unknown declaration"
+    when :global_offset_plus then _global_offset_plus
+    when :batch_bias then _batch_bias
+    when :row_scale2 then _row_scale2
+    when :elem_affine then _elem_affine
+    when :row_sum_affine then _row_sum_affine
+    when :batch_total_affine then _batch_total_affine
+    else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _eval_global_offset_plus
-    out = nil
+  def _global_offset_plus
     t1 = @input["global_offset"]
-    t2 = 1.0
-    t3 = __core_add(t1, t2)
-    out = t3
-    out
+    t3 = t1 + 1.0
+    t3
   end
 
-  def _eval_batch_bias
+  def _batch_bias
     out = []
     t4 = @input["batch"]
-    t4.each_with_index do |batch_el_5, batch_i_6|
+    t54 = @input["global_offset"]
+    t56 = t54 + 1.0
+    t4.each_with_index do |batch_el_5, _batch_i_6|
       t7 = batch_el_5["mean"]
-      t54 = @input["global_offset"]
-      t55 = 1.0
-      t56 = __core_add(t54, t55)
-      t9 = __core_add(t7, t56)
+      t9 = t7 + t56
       out << t9
     end
     out
   end
 
-  def _eval_row_scale2
+  def _row_scale2
     out = []
     t10 = @input["batch"]
-    t10.each_with_index do |batch_el_11, batch_i_12|
+    t10.each_with_index do |batch_el_11, _batch_i_12|
       out_1 = []
       t13 = batch_el_11["row"]
-      t13.each_with_index do |row_el_14, row_i_15|
+      t13.each_with_index do |row_el_14, _row_i_15|
         t16 = row_el_14["scale"]
-        t17 = 2.0
-        t18 = __core_mul(t16, t17)
+        t18 = t16 * 2.0
         out_1 << t18
       end
       out << out_1
@@ -59,27 +54,25 @@ module SchemaModule
     out
   end
 
-  def _eval_elem_affine
+  def _elem_affine
     out = []
     t19 = @input["batch"]
-    t19.each_with_index do |batch_el_20, batch_i_21|
+    t81 = @input["global_offset"]
+    t83 = t81 + 1.0
+    t19.each_with_index do |batch_el_20, _batch_i_21|
       out_1 = []
       t22 = batch_el_20["row"]
-      t22.each_with_index do |row_el_23, row_i_24|
+      t64 = batch_el_20["mean"]
+      t65 = t64 + t83
+      t22.each_with_index do |row_el_23, _row_i_24|
         out_2 = []
         t25 = row_el_23["col"]
-        t25.each_with_index do |col_el_26, col_i_27|
+        t59 = row_el_23["scale"]
+        t61 = t59 * 2.0
+        t25.each_with_index do |col_el_26, _col_i_27|
           t28 = col_el_26["val"]
-          t58 = row_el_23["scale"]
-          t59 = 2.0
-          t60 = __core_mul(t58, t59)
-          t30 = __core_mul(t28, t60)
-          t61 = batch_el_20["mean"]
-          t77 = @input["global_offset"]
-          t78 = 1.0
-          t79 = __core_add(t77, t78)
-          t63 = __core_add(t61, t79)
-          t32 = __core_add(t30, t63)
+          t30 = t28 * t61
+          t32 = t30 + t65
           out_2 << t32
         end
         out_1 << out_2
@@ -89,28 +82,26 @@ module SchemaModule
     out
   end
 
-  def _eval_row_sum_affine
+  def _row_sum_affine
     out = []
     t33 = @input["batch"]
-    t33.each_with_index do |batch_el_34, batch_i_35|
+    t90 = @input["global_offset"]
+    t92 = t90 + 1.0
+    t33.each_with_index do |batch_el_34, _batch_i_35|
       out_1 = []
       t36 = batch_el_34["row"]
-      t36.each_with_index do |row_el_37, row_i_38|
-        # unsupported: DeclareAccumulator
+      t93 = batch_el_34["mean"]
+      t94 = t93 + t92
+      t36.each_with_index do |row_el_37, _row_i_38|
+        acc_39 = 0.0
         t40 = row_el_37["col"]
-        t40.each_with_index do |col_el_41, col_i_42|
-          t66 = col_el_41["val"]
-          t81 = row_el_37["scale"]
-          t82 = 2.0
-          t83 = __core_mul(t81, t82)
-          t68 = __core_mul(t66, t83)
-          t84 = batch_el_34["mean"]
-          t85 = @input["global_offset"]
-          t86 = 1.0
-          t87 = __core_add(t85, t86)
-          t88 = __core_add(t84, t87)
-          t70 = __core_add(t68, t88)
-          acc_39 = __agg_sum(acc_39, t70)
+        t86 = row_el_37["scale"]
+        t88 = t86 * 2.0
+        t40.each_with_index do |col_el_41, _col_i_42|
+          t69 = col_el_41["val"]
+          t71 = t69 * t88
+          t73 = t71 + t94
+          acc_39 += t73
         end
         t44 = acc_39
         out_1 << t44
@@ -120,50 +111,33 @@ module SchemaModule
     out
   end
 
-  def _eval_batch_total_affine
+  def _batch_total_affine
     out = []
     t45 = @input["batch"]
-    t45.each_with_index do |batch_el_46, batch_i_47|
-      # unsupported: DeclareAccumulator
+    t110 = @input["global_offset"]
+    t112 = t110 + 1.0
+    t45.each_with_index do |batch_el_46, _batch_i_47|
+      acc_48 = 0.0
       t49 = batch_el_46["row"]
-      t49.each_with_index do |row_el_50, row_i_51|
-        # unsupported: DeclareAccumulator
-        t74 = row_el_50["col"]
-        t74.each_with_index do |col_el_41, col_i_42|
-          t91 = col_el_41["val"]
-          t93 = row_el_50["scale"]
-          t94 = 2.0
-          t95 = __core_mul(t93, t94)
-          t96 = __core_mul(t91, t95)
-          t97 = batch_el_46["mean"]
-          t101 = @input["global_offset"]
-          t102 = 1.0
-          t103 = __core_add(t101, t102)
-          t99 = __core_add(t97, t103)
-          t100 = __core_add(t96, t99)
-          t72 = __agg_sum(t72, t100)
+      t107 = batch_el_46["mean"]
+      t108 = t107 + t112
+      t49.each_with_index do |row_el_50, _row_i_51|
+        t76 = 0.0
+        t78 = row_el_50["col"]
+        t101 = row_el_50["scale"]
+        t103 = t101 * 2.0
+        t78.each_with_index do |col_el_41, _col_i_42|
+          t98 = col_el_41["val"]
+          t104 = t98 * t103
+          t109 = t104 + t108
+          t76 += t109
         end
-        t76 = t72
-        acc_48 = __agg_sum(acc_48, t76)
+        t80 = t76
+        acc_48 += t80
       end
       t53 = acc_48
       out << t53
     end
     out
   end
-
-  private
-
-  def __core_add(a, b)
-    a + b
-  end
-
-  def __agg_sum(a,b)
-    a + b
-  end
-
-  def __core_mul(a, b)
-    a * b
-  end
-
 end

@@ -1,0 +1,15 @@
+(SNAST
+  (VALUE scores
+    (Tuple
+      (Const 100) :: [] -> integer
+      (Const 85) :: [] -> integer
+      (Const 92) :: [] -> integer
+    ) :: [] -> tuple<integer, integer, integer>
+  ) :: [] -> tuple<integer, integer, integer>
+  (VALUE first_score
+    (Const 100) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE second_score
+    (Const 85) :: [] -> integer
+  ) :: [] -> integer
+)
