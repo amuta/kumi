@@ -17,7 +17,7 @@ module Kumi
               MAX_PASSES.times do |pass_num|
                 debug "\n[HOIST] Starting Pass ##{pass_num + 1}"
                 new_ops, changed = run_one_pass(current_ops)
-                return state.with(:lir_module, new_ops.freeze).with(:lir_01_hoist_scalar_references_pass, new_ops) unless changed
+                return state.with(:lir_module, new_ops.freeze).with(:lir_01_hoist_scalar_references, new_ops) unless changed
 
                 current_ops = new_ops
               end

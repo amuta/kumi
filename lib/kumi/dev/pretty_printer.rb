@@ -89,12 +89,12 @@ module Kumi
         Kumi::Support::LIRPrinter.print(res.state[:lir_00_unoptimized])
       end
 
-      def generate_lir_01_hoist_scalar_references_pass(path)
+      def generate_lir_01_hoist_scalar_references(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_01_hoist_scalar_references_pass]
+        raise "Error Generating #{path}" unless res.state[:lir_01_hoist_scalar_references]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_01_hoist_scalar_references_pass])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_01_hoist_scalar_references])
       end
 
       def generate_lir_02_inlined(path)
