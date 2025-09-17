@@ -20,22 +20,19 @@ module SchemaModule
   def _sum
     t1 = @input["x"]
     t2 = @input["y"]
-    t3 = t1 + t2
-    t3
+    t1 + t2
   end
 
   def _product
     t4 = @input["x"]
     t5 = @input["y"]
-    t6 = t4 * t5
-    t6
+    t4 * t5
   end
 
   def _difference
     t7 = @input["x"]
     t8 = @input["y"]
-    t9 = t7 - t8
-    t9
+    t7 - t8
   end
 
   def _results_array
@@ -43,7 +40,6 @@ module SchemaModule
     t13 = t11 + 10
     t14 = @input["y"]
     t16 = t14 * 2
-    t17 = [1, t13, t16]
-    t17
+    [1, t13, t16]
   end
 end

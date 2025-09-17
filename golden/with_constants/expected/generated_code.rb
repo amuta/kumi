@@ -17,8 +17,7 @@ module SchemaModule
   end
 
   def _scores
-    t4 = [100, 85, 92]
-    t4
+    [100, 85, 92]
   end
 
   def _first_score

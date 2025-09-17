@@ -121,12 +121,20 @@ module Kumi
         Kumi::Support::LIRPrinter.print(res.state[:lir_04_loop_invcm])
       end
 
-      def generate_lir_05_const_prop(path)
+      def generate_lir_05_global_cse(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_05_const_prop]
+        raise "Error Generating #{path}" unless res.state[:lir_05_global_cse]
 
-        Kumi::Support::LIRPrinter.print(res.state[:lir_05_const_prop])
+        Kumi::Support::LIRPrinter.print(res.state[:lir_05_global_cse])
+      end
+
+      def generate_lir_06_const_prop(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        raise "Error Generating #{path}" unless res.state[:lir_06_const_prop]
+
+        Kumi::Support::LIRPrinter.print(res.state[:lir_06_const_prop])
       end
 
       def generate_snast(path)

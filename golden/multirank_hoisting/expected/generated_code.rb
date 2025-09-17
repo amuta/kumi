@@ -21,8 +21,7 @@ module SchemaModule
 
   def _global_offset_plus
     t1 = @input["global_offset"]
-    t3 = t1 + 1.0
-    t3
+    t1 + 1.0
   end
 
   def _batch_bias

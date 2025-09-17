@@ -31,7 +31,7 @@ module Kumi
 
               def emit_footer
                 dedent!
-                rewrite_last_line("end") if last_line == "end\n"
+                rewrite_line("end") if last_line == "end\n"
                 write "end"
               end
 
@@ -71,15 +71,19 @@ module Kumi
               end
 
               def last_line
-                @out[-2]
+                line_at(-2)
+              end
+
+              def line_at(idx)
+                @out[idx]
               end
 
               # Replaces the last line in the buffer.
-              def rewrite_last_line(new_line_content, _indent = @indent)
+              def rewrite_line(new_line_content, idx = -2)
                 return if @out.empty?
 
                 # Preserve the indentation of the line being replaced.
-                @out[-2] = new_line_content
+                @out[idx] = new_line_content
               end
             end
           end

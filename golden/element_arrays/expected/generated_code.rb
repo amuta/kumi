@@ -21,8 +21,7 @@ module SchemaModule
   end
 
   def _cube
-    t1 = @input["cube"]
-    t1
+    @input["cube"]
   end
 
   def _layer
@@ -120,7 +119,6 @@ module SchemaModule
       t53 = acc_42
       acc_38 += t53
     end
-    t54 = acc_38
-    t54
+    acc_38
   end
 end

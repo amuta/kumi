@@ -18,7 +18,6 @@ module SchemaModule
     t1 = @input["x"]
     t2 = t1["y"]
     t3 = t2["z"]
-    t5 = t3 * 2
-    t5
+    t3 * 2
   end
 end

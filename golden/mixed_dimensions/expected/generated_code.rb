@@ -24,8 +24,7 @@ module SchemaModule
       t5 = numbers_el_3["value"]
       acc_1 += t5
     end
-    t6 = acc_1
-    t6
+    acc_1
   end
 
   def _matrix_sums

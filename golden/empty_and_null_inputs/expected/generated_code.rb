@@ -45,8 +45,7 @@ module SchemaModule
       t24 = t20
       acc_10 += t24
     end
-    t15 = acc_10
-    t15
+    acc_10
   end
 
   def _adjusted_total
@@ -64,7 +63,6 @@ module SchemaModule
     end
     t29 = t25
     t17 = @input["adjustment"]
-    t18 = t29 + t17
-    t18
+    t29 + t17
   end
 end

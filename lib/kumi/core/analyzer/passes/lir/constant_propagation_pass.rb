@@ -30,7 +30,7 @@ module Kumi
               end
 
               out.freeze
-              state.with(:lir_05_const_prop, out).with(:lir_module, out.freeze)
+              state.with(:lir_06_const_prop, out).with(:lir_module, out.freeze)
             end
 
             private

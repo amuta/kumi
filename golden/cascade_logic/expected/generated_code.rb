@@ -18,14 +18,12 @@ module SchemaModule
 
   def _y_positive
     t1 = @input["y"]
-    t3 = t1 > 0
-    t3
+    t1 > 0
   end
 
   def _x_positive
     t4 = @input["x"]
-    t6 = t4 > 0
-    t6
+    t4 > 0
   end
 
   def _status
@@ -36,7 +34,6 @@ module SchemaModule
     t9 = t21 && t24
     t16 = t21 ? "y positive" : "neither positive"
     t17 = t24 ? "x positive" : t16
-    t18 = t9 ? "both positive" : t17
-    t18
+    t9 ? "both positive" : t17
   end
 end

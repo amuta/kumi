@@ -46,8 +46,7 @@ module SchemaModule
       t19 = acc_14
       acc_10 += t19
     end
-    t20 = acc_10
-    t20
+    acc_10
   end
 
   def _big_team

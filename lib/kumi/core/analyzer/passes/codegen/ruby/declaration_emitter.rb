@@ -11,7 +11,7 @@ module Kumi
             class DeclarationEmitter
               extend Forwardable
 
-              def_delegators :@buffer, :write, :indent!, :dedent!
+              def_delegators :@buffer, :write, :indent!, :dedent!, :last_line, :rewrite_line, :line_at
 
               LIR = Kumi::Core::LIR
               def initialize(buffer, binds, kernels)
@@ -110,7 +110,12 @@ module Kumi
                 end
 
                 if current_depth.zero?
-                  write v.first
+                  if last_line.match?(/^#{v.first} = /)
+                    new_end = last_line.sub("#{v.first} = ", "")
+                    rewrite_line(new_end)
+                  else
+                    write v.first.to_s
+                  end
                 else
                   write "#{@out_containers.last} << #{v.first}"
                 end

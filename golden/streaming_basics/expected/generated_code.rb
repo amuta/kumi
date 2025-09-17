@@ -78,8 +78,7 @@ module SchemaModule
       t34 = items_el_32["qty"]
       acc_30 += t34
     end
-    t35 = acc_30
-    t35
+    acc_30
   end
 
   def _cart_total
@@ -91,8 +90,7 @@ module SchemaModule
       t59 = t57 * t58
       acc_36 += t59
     end
-    t41 = acc_36
-    t41
+    acc_36
   end
 
   def _cart_total_effective
@@ -107,7 +105,6 @@ module SchemaModule
       t66 = t70 ? t64 : t74
       acc_42 += t66
     end
-    t47 = acc_42
-    t47
+    acc_42
   end
 end
