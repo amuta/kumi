@@ -1,0 +1,33 @@
+(Root
+  inputs: [
+    (InputDeclaration :users :array access_mode: :field
+      [
+        (InputDeclaration :name :string)
+        (InputDeclaration :state :string)
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :users
+      (HashExpression
+        ((Literal :name) (InputElementReference users.name))
+        ((Literal :state) (InputElementReference users.state))
+      )
+    )
+    (ValueDeclaration :john_user
+      (CallExpression :select
+        (DeclarationReference :is_john)
+        (DeclarationReference :users)
+        (Literal "NOT_JOHN")
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :is_john
+      (CallExpression :==
+        (InputElementReference users.name)
+        (Literal "John")
+      )
+    )
+  ]
+)

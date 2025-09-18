@@ -1,0 +1,25 @@
+(NAST
+  (VALUE users
+    (Hash
+    (Pair name 
+      (InputRef [:users, :name])
+    )
+    (Pair state 
+      (InputRef [:users, :state])
+    )
+  )
+  )
+  (TRAIT is_john
+    (Call :"core.eq"
+    (InputRef [:users, :name])
+    (Const "John")
+  )
+  )
+  (VALUE john_user
+    (Call :__select__
+    (Ref is_john)
+    (Ref users)
+    (Const "NOT_JOHN")
+  )
+  )
+)

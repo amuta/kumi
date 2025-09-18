@@ -97,26 +97,26 @@ module Kumi
         end
       end
 
-      class Field < Node
+      class Pair < Node
         attr_reader :key, :value
 
         def initialize(key:, value:, **k)
           super(**k)
-          @key = key.to_sym
+          @key = key
           @value = value
         end
 
         def accept(visitor)
-          visitor.visit_field(self)
+          visitor.visit_pair(self)
         end
       end
 
       class Hash < Node
-        attr_reader :fields
+        attr_reader :pairs
 
-        def initialize(fields:, **k)
+        def initialize(pairs:, **k)
           super(**k)
-          @fields = fields
+          @pairs = pairs
         end
 
         def accept(visitor)

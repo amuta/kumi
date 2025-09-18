@@ -1,0 +1,30 @@
+(LIR
+  (Declaration users
+    %t1 = load_input "users" :: array
+    loop users id=L1 in %t1 as el=%users_el_2, idx=%users_i_3
+      %t4 = load_field users_el_2["name"] :: string
+      %t5 = load_field users_el_2["state"] :: string
+      %t6 = make_object{name: %t4, state: %t5} :: object
+      yield %t6
+    end_loop
+  )
+  (Declaration is_john
+    %t7 = load_input "users" :: array
+    loop users id=L2 in %t7 as el=%users_el_8, idx=%users_i_9
+      %t10 = load_field users_el_8["name"] :: string
+      %t11 = const "John" :: string
+      %t12 = call core.eq(%t10, %t11) :: boolean
+      yield %t12
+    end_loop
+  )
+  (Declaration john_user
+    %t13 = load_input "users" :: array
+    loop users id=L3 in %t13 as el=%users_el_14, idx=%users_i_15
+      %t16 = load_decl is_john axes=[users] :: boolean
+      %t17 = load_decl users axes=[users] :: hash
+      %t18 = const "NOT_JOHN" :: string
+      %t19 = select %t16, %t17, %t18 :: hash
+      yield %t19
+    end_loop
+  )
+)

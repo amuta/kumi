@@ -119,8 +119,8 @@ module Kumi
       def visit_hash_expression(node)
         return "(HashExpression)" if node.pairs.empty?
 
-        pairs = node.pairs.map do |pair|
-          "(#{visit(pair.key)} #{visit(pair.value)})"
+        pairs = node.pairs.map do |key, value|
+          "(#{visit(key)} #{visit(value)})"
         end.join("\n#{indent_str(2)}")
 
         "(HashExpression\n#{indent_str(2)}#{pairs}\n#{indent_str})"

@@ -14,6 +14,7 @@ module Kumi
             definitions = get_state(:declarations, required: false) || {}
 
             order = compute_topological_order(dependency_graph, definitions, errors)
+
             state.with(:evaluation_order, order)
           end
 

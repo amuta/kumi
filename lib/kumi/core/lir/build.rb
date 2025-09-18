@@ -251,12 +251,12 @@ module Kumi
         #   values: Array of registers
         #   out_dtype: object dtype (or :object)
         #   as: result
-        def make_object(keys:, values:, out_dtype:, as: nil, ids: nil, location: nil)
+        def make_object(keys:, values:, as: nil, ids: nil, location: nil)
           as ||= ids.generate_temp
           Instruction.new(
             opcode: :MakeObject,
             result_register: as,
-            stamp: Stamp.new(dtype: out_dtype),
+            stamp: Stamp.new(dtype: :object),
             inputs: values,
             immediates: keys.map { |k| Literal.new(value: k.to_s, dtype: :string) },
             attributes: {},

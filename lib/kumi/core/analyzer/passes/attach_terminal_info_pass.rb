@@ -56,17 +56,16 @@ module Kumi
               node.instance_variable_set(:@key_chain, keys)
               node.instance_variable_set(:@element_terminal, element)
 
-            when NAST::Tuple
+            when NAST::Tuple, NAST::Call
               node.args.each { annotate!(_1, by_fqn) }
-
-            when NAST::Call
-              node.args.each { annotate!(_1, by_fqn) }
-
+            when NAST::Hash
+              node.pairs.each { annotate!(_1.value, by_fqn) }
+            when NAST::Pair
+              annotate!(node.value, by_fqn)
             when NAST::Select
               annotate!(node.cond, by_fqn)
               annotate!(node.on_true, by_fqn)
               annotate!(node.on_false, by_fqn)
-
             when NAST::Reduce
               annotate!(node.arg, by_fqn)
             end

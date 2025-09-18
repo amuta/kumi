@@ -1,0 +1,25 @@
+(SNAST
+  (VALUE users
+    (Hash
+      (Pair name
+        (InputRef users.name key_chain=[name]) :: [users] -> string
+      ) :: [users] -> pair
+      (Pair state
+        (InputRef users.state key_chain=[state]) :: [users] -> string
+      ) :: [users] -> pair
+    ) :: [users] -> hash
+  ) :: [users] -> hash
+  (TRAIT is_john
+    (Call :core.eq
+      (InputRef users.name key_chain=[name]) :: [users] -> string
+      (Const "John") :: [] -> string
+    ) :: [users] -> boolean
+  ) :: [users] -> boolean
+  (VALUE john_user
+    (Select
+      (Ref is_john) :: [users] -> boolean
+      (Ref users) :: [users] -> hash
+      (Const "NOT_JOHN") :: [] -> string
+    ) :: [users] -> hash
+  ) :: [users] -> hash
+)

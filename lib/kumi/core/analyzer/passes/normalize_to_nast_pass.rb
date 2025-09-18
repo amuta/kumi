@@ -55,6 +55,15 @@ module Kumi
             when Kumi::Syntax::ArrayExpression
               args = node.elements.map { |a| normalize_expr(a, errors) }
               NAST::Tuple.new(args: args, loc: node.loc)
+            when Kumi::Syntax::HashExpression
+              pairs = node.pairs.map do |k, v|
+                NAST::Pair.new(
+                  key: k.value,
+                  value: normalize_expr(v, errors)
+                )
+              end
+
+              NAST::Hash.new(pairs:, loc: node.loc)
             else
               add_error(errors, node&.loc, "Unsupported AST node: #{node&.class}")
               NAST::Const.new(value: nil, loc: node&.loc)

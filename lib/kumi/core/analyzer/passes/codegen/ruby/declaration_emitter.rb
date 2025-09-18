@@ -199,6 +199,17 @@ module Kumi
                 write "#{vreg(ins)} = [#{elements}]"
               end
 
+              def emit_makeobject(ins, _i)
+                values, keys = operands_for(ins, split: true)
+                write "#{vreg(ins)} = {"
+                indent!
+                keys.each_with_index do |key, idx|
+                  write "#{key} => #{values[idx]},"
+                end
+                dedent!
+                write "}"
+              end
+
               def find_matching_loop_end(start_index)
                 depth = 1; (start_index + 1...@ops.length).each do |i|
                   op = @ops[i].opcode
@@ -237,7 +248,7 @@ module Kumi
               end
 
               # --- Unchanged helpers ---
-              def operands_for(ins)
+              def operands_for(ins, split: false)
                 immediates = Array(ins.immediates).map { |imm| lit(imm) }
                 inputs = Array(ins.inputs).map do |input|
                   if input == :__immediate_placeholder__
@@ -246,6 +257,9 @@ module Kumi
                     areg(input)
                   end
                 end
+
+                return [inputs, immediates] if split
+
                 inputs + immediates
               end
 

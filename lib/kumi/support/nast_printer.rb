@@ -64,6 +64,22 @@ module Kumi
             lines.join("\n")
           end
 
+        when Kumi::Core::NAST::Hash
+          if node.pairs.empty?
+            "(Hash)"
+          else
+            lines = ["(Hash"]
+            node.pairs.each do |pair|
+              lines << indent(print_node(pair, depth + 1), depth + 1)
+            end
+            lines << indent(")", depth)
+            lines.join("\n")
+          end
+        when Kumi::Core::NAST::Pair
+          lines = ["(Pair #{node.key} "]
+          lines << indent(print_node(node.value, depth + 1), depth + 1)
+          lines << indent(")", depth)
+          lines.join("\n")
         else
           node.inspect
         end

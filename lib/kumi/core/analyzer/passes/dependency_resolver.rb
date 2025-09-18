@@ -93,8 +93,7 @@ module Kumi
 
             case node
             when CascadeExpression
-              # Visit condition nodes and result expressions (non-base cases)
-              node.cases[0...-1].each do |when_case|
+              node.cases[0..-1].each do |when_case|
                 if when_case.condition
                   # Visit condition normally
                   visit_with_context(when_case.condition, context, &block)
@@ -105,10 +104,10 @@ module Kumi
               end
 
               # Visit base case with conditional flag
-              if node.cases.last
-                base_context = context.merge(in_cascade_base: true)
-                visit_with_context(node.cases.last.result, base_context, &block)
-              end
+              # if node.cases.last
+              #   base_context = context.merge(in_cascade_base: true)
+              #   visit_with_context(node.cases.last.result, base_context, &block)
+              # end
             when CallExpression
               new_context = context.merge(via: node.fn_name)
               node.children.each { |child| visit_with_context(child, new_context, &block) }

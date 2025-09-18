@@ -56,10 +56,12 @@ module Kumi
           def analyze_expression(expr, errors)
             case expr
             when Kumi::Core::NAST::Call         then analyze_call_expression(expr, errors)
-            when Kumi::Core::NAST::Tuple        then analyze_tuple_literal(expr, errors)
+            when Kumi::Core::NAST::Tuple        then analyze_tuple(expr, errors)
             when Kumi::Core::NAST::InputRef     then analyze_input_ref(expr)
             when Kumi::Core::NAST::Const        then analyze_const(expr)
             when Kumi::Core::NAST::Ref          then analyze_declaration_ref(expr)
+            when Kumi::Core::NAST::Hash         then analyze_hash(expr, errors)
+            when Kumi::Core::NAST::Pair         then analyze_pair(expr, errors)
             else
               raise "Unknown NAST node type: #{expr.class}"
             end
@@ -83,15 +85,8 @@ module Kumi
                 { function_spec.param_names.first => arg_types } # variadic TODO: this is a hack
               end
 
-            begin
-              result_type  = function_spec.dtype_rule.call(named_types)
-              result_scope = compute_result_scope(function_spec, arg_scopes)
-            rescue StandardError => e
-              binding.pry
-            end
-
-            needs_expand_flags =
-              (arg_scopes.map { |axes| axes != result_scope } if %i[elementwise constructor].include?(function_spec.kind))
+            result_type  = function_spec.dtype_rule.call(named_types)
+            result_scope = compute_result_scope(function_spec, arg_scopes)
 
             @metadata_table[node_id(call)] = {
               function: function_spec.id,
@@ -101,7 +96,6 @@ module Kumi
               result_scope: result_scope,
               arg_types: arg_types,
               arg_scopes: arg_scopes,
-              needs_expand_flags: needs_expand_flags,
               last_axis_token: (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil)
             }.freeze
 
@@ -109,28 +103,46 @@ module Kumi
             { type: result_type, scope: result_scope }
           end
 
-          def analyze_tuple_literal(tuple_literal, errors)
-            elems           = tuple_literal.args.map { |e| analyze_expression(e, errors) }
+          def analyze_tuple(node, errors)
+            elems           = node.args.map { |e| analyze_expression(e, errors) }
             element_types   = elems.map { |m| m[:type] }
             element_scopes  = elems.map { |m| m[:scope] }
             result_scope    = lub_by_prefix(element_scopes)
             result_type     = "tuple<#{element_types.join(', ')}>"
-            expand_flags    = element_scopes.map { |s| s != result_scope }
 
-            @metadata_table[node_id(tuple_literal)] = {
-              function: :tuple_literal,
-              kind: :constructor,
+            @metadata_table[node_id(node)] = {
               parameter_names: [],
               result_type: result_type,
               result_scope: result_scope,
               arg_types: element_types,
               arg_scopes: element_scopes,
-              needs_expand_flags: expand_flags,
               last_axis_token: nil
             }.freeze
 
             debug "    Tuple: (#{element_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
             { type: result_type, scope: result_scope }
+          end
+
+          def analyze_hash(node, errors)
+            fields = node.pairs.map { |e| analyze_expression(e, errors) }
+            fields_scopes = fields.map { |m| m[:scope] }
+            scope = lub_by_prefix(fields_scopes)
+            dtype = :hash
+
+            @metadata_table[node_id(node)] = {
+              type: dtype,
+              scope: scope
+            }.freeze
+          end
+
+          def analyze_pair(node, errors)
+            value_node = analyze_expression(node.value, errors)
+            dtype = :pair
+
+            @metadata_table[node_id(node)] = {
+              type: dtype,
+              scope: value_node[:scope]
+            }.freeze
           end
 
           # STRICT: requires entry with :axes and :dtype (no fallbacks)

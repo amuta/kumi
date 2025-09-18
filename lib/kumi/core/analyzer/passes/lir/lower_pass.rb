@@ -93,6 +93,7 @@ module Kumi
               when NAST::Select   then emit_select(node)
               when NAST::Reduce   then emit_reduce(node)
               when NAST::Call     then emit_call(node)
+              when NAST::Hash     then emit_hash(node)
               else raise "unknown node #{node.class}"
               end
             end
@@ -113,6 +114,20 @@ module Kumi
               regs = n.args.map { lower_expr(_1) }
               ins  = Build.make_tuple(elements: regs, out_dtype: dtype_of(n), ids: @ids)
               @ops << ins
+              ins.result_register
+            end
+
+            def emit_hash(n)
+              values = []
+              keys = []
+              n.pairs.each do |pair|
+                keys << pair.key
+                values << lower_expr(pair.value)
+              end
+
+              ins = Build.make_object(keys:, values:, ids: @ids)
+              @ops << ins
+
               ins.result_register
             end
 
@@ -324,6 +339,11 @@ module Kumi
 
                 when NAST::Call, NAST::Tuple
                   x.args.each { walk.call(_1) }
+
+                when NAST::Hash
+                  x.pairs.each { walk.call(_1) }
+                when NAST::Pair
+                  walk.call(x.value)
                 end
               end
 

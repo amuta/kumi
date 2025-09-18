@@ -523,6 +523,8 @@ module Kumi
                 elem_slots = insert_align_to_if_needed(elem_slots, ops, access_plans, on_missing: :error) unless target.empty?
                 ops << Kumi::Core::IR::Ops.Array(elem_slots.size, *elem_slots)
                 return ops.size - 1
+              when Syntax::HashExpression
+                # Skip
 
               when Syntax::CascadeExpression
                 # Find a base (true) case, if present

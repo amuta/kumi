@@ -38,23 +38,21 @@ module Kumi
 
       def format_concise(node, indent_level)
         indent = "  " * indent_level
+        stamp_str = format_stamp(node.meta[:stamp])
 
         case node
         when NAST::Declaration
-          stamp_str = format_stamp(node.meta[:stamp])
           kind = node.meta.dig(:stamp, :dtype) == :boolean ? "TRAIT" : "VALUE"
           header = "(#{kind} #{node.name}"
           body = format_concise(node.body, indent_level + 1)
           "#{indent}#{header}\n#{body}\n#{indent}) #{stamp_str}"
 
         when NAST::Call
-          stamp_str = format_stamp(node.meta[:stamp])
           header = "(Call :#{node.fn}"
           args = node.args.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
           "#{indent}#{header}\n#{args}\n#{indent}) #{stamp_str}"
 
         when NAST::Select
-          stamp_str = format_stamp(node.meta[:stamp])
           header = "(Select"
           cond = format_concise(node.cond, indent_level + 1)
           tbranch = format_concise(node.on_true,  indent_level + 1)
@@ -62,31 +60,33 @@ module Kumi
           "#{indent}#{header}\n#{cond}\n#{tbranch}\n#{fbranch}\n#{indent}) #{stamp_str}"
 
         when NAST::Reduce
-          stamp_str = format_stamp(node.meta[:stamp])
           over = "[#{Array(node.over).map(&:to_s).join(', ')}]"
           header = "(Reduce :#{node.fn} over #{over}"
           arg = format_concise(node.arg, indent_level + 1)
           "#{indent}#{header}\n#{arg}\n#{indent}) #{stamp_str}"
 
         when NAST::Const
-          stamp_str = format_stamp(node.meta[:stamp])
           "#{indent}(Const #{node.value.inspect}) #{stamp_str}"
 
         when NAST::InputRef
-          stamp_str = format_stamp(node.meta[:stamp])
           key_chain_str = " key_chain=[#{node.key_chain.join(', ')}]"
           "#{indent}(InputRef #{node.path_fqn}#{key_chain_str}) #{stamp_str}"
 
         when NAST::Ref
-          stamp_str = format_stamp(node.meta[:stamp])
           "#{indent}(Ref #{node.name}) #{stamp_str}"
 
         when NAST::Tuple
-          stamp_str = format_stamp(node.meta[:stamp])
           header = "(Tuple"
           args = node.args.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
           "#{indent}#{header}\n#{args}\n#{indent}) #{stamp_str}"
+        when NAST::Hash
+          header = "(Hash"
+          pairs = node.pairs.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
+          "#{indent}#{header}\n#{pairs}\n#{indent}) #{stamp_str}"
 
+        when NAST::Pair
+          value = format_concise(node.value, indent_level + 1)
+          "#{indent}(Pair #{node.key}\n#{value}\n#{indent}) #{stamp_str}"
         else
           "#{indent}(UnknownNode: #{node.class})"
         end

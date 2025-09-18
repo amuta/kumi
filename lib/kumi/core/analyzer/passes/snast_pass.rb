@@ -87,6 +87,20 @@ module Kumi
             stamp!(out, m[:result_scope], m[:result_type])
           end
 
+          def visit_hash(n)
+            pairs = n.pairs.map { _1.accept(self) }
+            m    = meta_for(n)
+            out  = n.class.new(id: n.id, pairs:, loc: n.loc)
+            stamp!(out, m[:scope], m[:type])
+          end
+
+          def visit_pair(n)
+            value = n.value.accept(self)
+            m = meta_for(n)
+            out = n.class.new(id: n.id, key: n.key, value:)
+            stamp!(out, m[:scope], m[:type])
+          end
+
           def visit_call(n)
             if @registry.function_select?(n.fn)
               c = n.args[0].accept(self)
