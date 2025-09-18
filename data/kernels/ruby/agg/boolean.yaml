@@ -2,7 +2,7 @@ kernels:
   - id: any:ruby:v1
     fn: agg.any
     impl: "(a, b)\n  a || b"
-    inline: "$0 || $1"
+    inline: "= $0 || $1"
     # The identity for a boolean OR reduction is `false`.
     # `any?` of an empty list is correctly `false`.
     identity:
@@ -11,7 +11,7 @@ kernels:
   - id: all:ruby:v1
     fn: agg.all
     impl: "(a, b)\n  a && b"
-    inline: "$0 && $1"
+    inline: "= $0 && $1"
     # The identity for a boolean AND reduction is `true`.
     # `all?` of an empty list is correctly `true`.
     identity:
