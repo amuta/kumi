@@ -1,0 +1,11 @@
+schema do
+  input do
+    string :name
+    string :state
+  end
+
+  value :data, {
+    name: input.name,
+    state: input.state
+  }
+end

@@ -25,6 +25,8 @@ module Kumi
             create_literal(obj)
           when Array
             create_list(obj)
+          when Hash
+            create_hash(obj)
           when Syntax::Node
             obj
           else
@@ -79,6 +81,14 @@ module Kumi
         def create_list(array)
           elements = array.map { |element| ensure_syntax(element) }
           Kumi::Syntax::ArrayExpression.new(elements, loc: current_location)
+        end
+
+        def create_hash(vhash)
+          pairs = vhash.map do |key, val|
+            [ensure_syntax(key), ensure_syntax(val)]
+          end
+
+          Kumi::Syntax::HashExpression.new(pairs, loc: current_location)
         end
 
         def handle_custom_object(obj)
