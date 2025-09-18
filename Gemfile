@@ -25,7 +25,7 @@ gem "parslet", "~> 2.0"
 gem "simplecov", "~> 0.21"
 
 # Optional: for text frontend support
-gem "kumi-parser", "0.0.15", require: false
+gem "kumi-parser", "0.0.16", require: false
 
 group :development do
   gem "ruby-lsp", "~> 0.26.1"

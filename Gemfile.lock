@@ -14,7 +14,7 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     json (2.13.2)
-    kumi-parser (0.0.15)
+    kumi-parser (0.0.16)
       kumi (~> 0.0.13)
       parslet (~> 2.0)
       zeitwerk (~> 2.6)
@@ -97,7 +97,7 @@ DEPENDENCIES
   benchmark-ips (~> 2.14)
   csv
   kumi!
-  kumi-parser (= 0.0.15)
+  kumi-parser (= 0.0.16)
   parslet (~> 2.0)
   pry (~> 0.15.2)
   rake (~> 13.0)
