@@ -1,0 +1,48 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+  ]
+  values: [
+    (ValueDeclaration :tuple
+      (ArrayExpression
+        (Literal 1)
+        (Literal 2)
+        (Literal 3)
+        (InputReference :x)
+      )
+    )
+    (ValueDeclaration :max_1
+      (CallExpression :max
+        (DeclarationReference :tuple)
+      )
+    )
+    (ValueDeclaration :max_2
+      (CallExpression :max
+        (ArrayExpression
+          (Literal 1)
+          (Literal 2)
+          (Literal 3)
+          (InputReference :x)
+          (Literal 1000)
+        )
+      )
+    )
+    (ValueDeclaration :min_1
+      (CallExpression :min
+        (DeclarationReference :tuple)
+      )
+    )
+    (ValueDeclaration :min_2
+      (CallExpression :min
+        (ArrayExpression
+          (Literal 1)
+          (Literal 2)
+          (Literal 3)
+          (InputReference :x)
+          (Literal -100)
+        )
+      )
+    )
+  ]
+  traits: []
+)

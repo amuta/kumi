@@ -107,16 +107,10 @@ module Kumi
       end
 
       def build_ruby!(schema_path, output_dir)
-        require_relative "../analyzer"
-        require_relative "../codegen/ruby"
-
         schema, = Kumi::Frontends.load(path: schema_path)
-        result = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        result = Kumi::Analyzer.analyze!(schema)
 
-        ir = result.state[:irv2]
-        binding_manifest = result.state[:binding_manifest] || {}
-
-        ruby_code = Kumi::Codegen::Ruby.generate_from_data(ir, binding_manifest)
+        code = result.state[:ruby_codegen_files]["codegen.rb"]
 
         File.write("#{output_dir}/generated_code.rb", ruby_code)
         puts "  ✓ Ruby code generated"

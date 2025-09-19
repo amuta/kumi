@@ -31,6 +31,9 @@ module Kumi
 
         def same_type_as(reference_type_symbol)
           normalize_type_symbol(reference_type_symbol)
+        rescue StandardError
+          # binding.pry
+          raise
         end
 
         def array_type(element_type)
@@ -55,8 +58,7 @@ module Kumi
             return promote_types(member_types)
           end
 
-          # Add more collection types like tuple if needed in the future
-          raise "Cannot determine element type of non-collection type: #{collection_type}"
+          normalize_type_symbol(str_type)
         end
 
         # Compile dtype rule string into callable

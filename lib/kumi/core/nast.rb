@@ -141,6 +141,21 @@ module Kumi
       end
 
       # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
+      class Fold < Node
+        attr_reader :fn, :arg
+
+        def initialize(fn:, arg:, **k)
+          super(**k)
+          @fn = fn.to_sym
+          @arg = arg
+        end
+
+        def accept(visitor)
+          visitor.respond_to?(:visit_fold) ? visitor.visit_fold(self) : super
+        end
+      end
+
+      # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
       class Reduce < Node
         attr_reader :fn, :over, :arg
 

@@ -91,6 +91,7 @@ module Kumi
               when NAST::Ref      then emit_ref(node)
               when NAST::Tuple    then emit_tuple(node)
               when NAST::Select   then emit_select(node)
+              when NAST::Fold     then emit_fold(node)
               when NAST::Reduce   then emit_reduce(node)
               when NAST::Call     then emit_call(node)
               when NAST::Hash     then emit_hash(node)
@@ -149,6 +150,19 @@ module Kumi
               t = lower_expr(n.on_true)
               f = lower_expr(n.on_false)
               ins = Build.select(cond: c, on_true: t, on_false: f, out_dtype: dtype_of(n), ids: @ids)
+              @ops << ins
+              ins.result_register
+            end
+
+            def emit_fold(n)
+              arg = lower_expr(n.arg)
+
+              ins = Build.fold(
+                arg:,
+                function: @registry.resolve_function(n.fn),
+                out_dtype: dtype_of(n),
+                ids: @ids
+              )
               @ops << ins
               ins.result_register
             end

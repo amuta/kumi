@@ -7,7 +7,7 @@ module Kumi
   module Core
     module Analyzer
       module Binder
-        OPS_WITH_KERNELS = %i[KernelCall Accumulate].freeze
+        OPS_WITH_KERNELS = %i[KernelCall Accumulate Fold].freeze
 
         module_function
 
@@ -17,7 +17,8 @@ module Kumi
 
           lir_decls.each do |decl_name, decl|
             Array(decl[:operations]).each do |op|
-              next unless OPS_WITH_KERNELS.include?(op.opcode)
+              opcode = op.opcode
+              next unless OPS_WITH_KERNELS.include?(opcode)
 
               fn_name = op.attributes[:fn]
               raise "KernelCall at #{op.location} is missing :fn attribute" unless fn_name
@@ -29,15 +30,22 @@ module Kumi
               id = kernel.id
               impl = kernel.impl
               inline = kernel.inline
+              fold_inline = kernel.fold_inline
               dtype = op.stamp&.dig("dtype")
 
               attrs = {}
 
               attrs["inline"] = inline if inline
+              attrs["fold_inline"] = fold_inline if fold_inline
 
-              if registry.function_reduce?(fn_id) && dtype
-                identity = registry.kernel_identity_for(fn_id, dtype: dtype, target: target_sym)
-                attrs["identity"] = identity if identity
+              if function.reduce?
+                case function.reduction_strategy
+                when :identity
+                  identity = registry.kernel_identity_for(fn_id, dtype: dtype, target: target_sym)
+                  attrs["identity"] = identity if identity
+                when :first_element
+                  attrs["first_element"] = true
+                end
               end
 
               fname = fn_id.split(".").join("_")

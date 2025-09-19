@@ -120,24 +120,54 @@ module Kumi
             end
 
             if @registry.function_reduce?(n.fn)
-              arg = n.args.first.accept(self)
-              in_axes = axes_of(arg)
-              raise Kumi::Core::Errors::SemanticError, "reduce: scalar input" if in_axes.empty?
+              raise "Reducers should only have one arg" if n.args.size != 1 # TODO: -> sugar to collapse variadics?
 
-              m        = meta_for(n) # has result_scope/result_type for the call
-              out_axes = Array(m[:result_scope])
-              raise Kumi::Core::Errors::SemanticError, "reduce: out axes must prefix arg axes" unless prefix?(out_axes, in_axes)
+              arg_node = n.args.first
+              visited_arg = arg_node.accept(self)
+              arg_meta = visited_arg[:meta]
+              arg_type = arg_meta[:stamp][:dtype]
 
-              over_axes = in_axes.drop(out_axes.length) # derived, non-empty given guard above
-              red = NAST::Reduce.new(
-                id: n.id,
-                fn: @registry.resolve_function(n.fn),
-                over: over_axes,
-                arg: arg,
-                loc: n.loc,
-                meta: n.meta.dup
-              )
-              return stamp!(red, out_axes, m[:result_type])
+              if Kumi::Core::Types.tuple?(arg_type)
+                # --- Path for FOLD (Scalar or Vectorized) ---
+                # The argument is semantically a tuple. Create a Fold node.
+
+                # We still need to visit the child node to build the SNAST tree
+
+                fold_node = NAST::Fold.new(
+                  id: n.id,
+                  fn: @registry.resolve_function(n.fn),
+                  arg: visited_arg, # The arg is the tuple/reference to the tuple
+                  loc: n.loc,
+                  meta: n.meta.dup
+                )
+
+                # The output type is the reduced scalar type (e.g., :integer for max).
+                # The axes are PRESERVED because a fold is an element-wise operation
+                # on the container of tuples.
+                result_meta = meta_for(n)
+                return stamp!(fold_node, arg_meta[:result_scope], result_meta[:result_type])
+              else
+                # --- Path for REDUCE (Vectorized Arrays) ---
+                in_axes = axes_of(visited_arg)
+
+                raise Kumi::Core::Errors::SemanticError, "reduce function called on a non-collection scalar: #{arg_type}" if in_axes.empty?
+
+                result_meta = meta_for(n)
+                out_axes = Array(result_meta[:result_scope])
+
+                raise Kumi::Core::Errors::SemanticError, "reduce: out axes must prefix arg axes" unless prefix?(out_axes, in_axes)
+
+                over_axes = in_axes.drop(out_axes.length)
+                reduce_node = NAST::Reduce.new(
+                  id: n.id,
+                  fn: @registry.resolve_function(n.fn),
+                  over: over_axes,
+                  arg: visited_arg,
+                  loc: n.loc,
+                  meta: n.meta.dup
+                )
+                return stamp!(reduce_node, out_axes, result_meta[:result_type])
+              end
             end
 
             # regular elementwise

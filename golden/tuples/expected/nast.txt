@@ -1,0 +1,42 @@
+(NAST
+  (VALUE tuple
+    (Tuple
+    (Const 1)
+    (Const 2)
+    (Const 3)
+    (InputRef [:x])
+  )
+  )
+  (VALUE max_1
+    (Call :"agg.max"
+    (Ref tuple)
+  )
+  )
+  (VALUE max_2
+    (Call :"agg.max"
+    (Tuple
+      (Const 1)
+      (Const 2)
+      (Const 3)
+      (InputRef [:x])
+      (Const 1000)
+    )
+  )
+  )
+  (VALUE min_1
+    (Call :"agg.min"
+    (Ref tuple)
+  )
+  )
+  (VALUE min_2
+    (Call :"agg.min"
+    (Tuple
+      (Const 1)
+      (Const 2)
+      (Const 3)
+      (InputRef [:x])
+      (Const -100)
+    )
+  )
+  )
+)

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "rspec"
-require "kumi/registry_v2"
 require "tempfile"
 require "yaml"
 

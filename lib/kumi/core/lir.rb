@@ -11,6 +11,7 @@ module Kumi
         LoopEnd
         KernelCall
         Select
+        FoldCall
         DeclareAccumulator
         Accumulate
         LoadAccumulator

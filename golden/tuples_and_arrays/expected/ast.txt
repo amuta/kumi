@@ -1,0 +1,57 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :array access_mode: :element
+      [
+        (InputDeclaration :y :integer)
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :max_y
+      (CallExpression :max
+        (InputElementReference x.y)
+      )
+    )
+    (ValueDeclaration :tuple
+      (ArrayExpression
+        (Literal 1)
+        (Literal 2)
+        (Literal 3)
+        (DeclarationReference :max_y)
+      )
+    )
+    (ValueDeclaration :max_1
+      (CallExpression :max
+        (DeclarationReference :tuple)
+      )
+    )
+    (ValueDeclaration :max_2
+      (CallExpression :max
+        (ArrayExpression
+          (Literal 1)
+          (Literal 2)
+          (Literal 3)
+          (DeclarationReference :max_y)
+          (Literal 1000)
+        )
+      )
+    )
+    (ValueDeclaration :min_1
+      (CallExpression :min
+        (DeclarationReference :tuple)
+      )
+    )
+    (ValueDeclaration :min_2
+      (CallExpression :min
+        (ArrayExpression
+          (Literal 1)
+          (Literal 2)
+          (Literal 3)
+          (DeclarationReference :max_y)
+          (Literal -100)
+        )
+      )
+    )
+  ]
+  traits: []
+)

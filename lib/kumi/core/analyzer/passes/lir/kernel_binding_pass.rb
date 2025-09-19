@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "kumi/registry_v2"
-
 module Kumi
   module Core
     module Analyzer

@@ -127,7 +127,7 @@ module Kumi
 
         # KernelCall
         # Params:
-        #   function:   String kernel id (e.g., "core.mul")
+        #   function:   String function id (e.g., "core.mul")
         #   args:       Array of register names
         #   out_dtype:  dtype of the result
         #   as:         result register
@@ -140,6 +140,27 @@ module Kumi
             result_register: as,
             stamp: Stamp.new(dtype: out_dtype),
             inputs: args,
+            immediates: [],
+            attributes: { fn: function.to_s },
+            location:
+          )
+        end
+
+        # Fold
+        # Params:
+        #   function:   String function id (e.g., "core.mul")
+        #   arg:        Collection being folded register
+        #   out_dtype:  dtype of the result
+        #   as:         result register
+        #   location:   optional Location
+        # Result: produces
+        def fold(function:, arg:, out_dtype:, as: nil, ids: nil, location: nil)
+          as ||= ids.generate_temp
+          Instruction.new(
+            opcode: :Fold,
+            result_register: as,
+            stamp: Stamp.new(dtype: out_dtype),
+            inputs: Array(arg),
             immediates: [],
             attributes: { fn: function.to_s },
             location:
@@ -190,7 +211,7 @@ module Kumi
         # Accumulate
         # Params:
         #   accumulator: Symbol accumulator name
-        #   function:    String kernel id (e.g., "core.add")
+        #   function:    String function id (e.g., "core.add")
         #   value_register: register providing the value to accumulate
         #   location:      optional Location
         # Result: does not produce

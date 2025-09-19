@@ -1,0 +1,47 @@
+(SNAST
+  (VALUE max_y
+    (Reduce :agg.max over [x]
+      (InputRef x.y key_chain=[]) :: [x] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE tuple
+    (Tuple
+      (Const 1) :: [] -> integer
+      (Const 2) :: [] -> integer
+      (Const 3) :: [] -> integer
+      (Ref max_y) :: [] -> integer
+    ) :: [] -> tuple<integer, integer, integer, integer>
+  ) :: [] -> tuple<integer, integer, integer, integer>
+  (VALUE max_1
+    (Fold :agg.max
+      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE max_2
+    (Fold :agg.max
+      (Tuple
+        (Const 1) :: [] -> integer
+        (Const 2) :: [] -> integer
+        (Const 3) :: [] -> integer
+        (Ref max_y) :: [] -> integer
+        (Const 1000) :: [] -> integer
+      ) :: [] -> tuple<integer, integer, integer, integer, integer>
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE min_1
+    (Fold :agg.min
+      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE min_2
+    (Fold :agg.min
+      (Tuple
+        (Const 1) :: [] -> integer
+        (Const 2) :: [] -> integer
+        (Const 3) :: [] -> integer
+        (Ref max_y) :: [] -> integer
+        (Const -100) :: [] -> integer
+      ) :: [] -> tuple<integer, integer, integer, integer, integer>
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

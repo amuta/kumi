@@ -1,0 +1,49 @@
+(LIR
+  (Declaration max_y
+    %acc_1 = decl_acc :: integer
+    %t2 = load_input "x" :: array
+    loop x id=L1 in %t2 as el=%x_el_3, idx=%x_i_4
+      %acc_1 = acc_add agg.max(%acc_1, %x_el_3) :: integer
+    end_loop
+    %t5 = acc_load %acc_1 :: integer
+    yield %t5
+  )
+  (Declaration tuple
+    %t6 = const 1 :: integer
+    %t7 = const 2 :: integer
+    %t8 = const 3 :: integer
+    %t9 = load_decl max_y :: integer
+    %t10 = make_tuple(%t6, %t7, %t8, %t9) :: tuple<integer, integer, integer, integer>
+    yield %t10
+  )
+  (Declaration max_1
+    %t11 = load_decl tuple :: tuple<integer, integer, integer, integer>
+    %t12 = Fold %t11 fn="agg.max" :: integer
+    yield %t12
+  )
+  (Declaration max_2
+    %t13 = const 1 :: integer
+    %t14 = const 2 :: integer
+    %t15 = const 3 :: integer
+    %t16 = load_decl max_y :: integer
+    %t17 = const 1000 :: integer
+    %t18 = make_tuple(%t13, %t14, %t15, %t16, %t17) :: tuple<integer, integer, integer, integer, integer>
+    %t19 = Fold %t18 fn="agg.max" :: integer
+    yield %t19
+  )
+  (Declaration min_1
+    %t20 = load_decl tuple :: tuple<integer, integer, integer, integer>
+    %t21 = Fold %t20 fn="agg.min" :: integer
+    yield %t21
+  )
+  (Declaration min_2
+    %t22 = const 1 :: integer
+    %t23 = const 2 :: integer
+    %t24 = const 3 :: integer
+    %t25 = load_decl max_y :: integer
+    %t26 = const -100 :: integer
+    %t27 = make_tuple(%t22, %t23, %t24, %t25, %t26) :: tuple<integer, integer, integer, integer, integer>
+    %t28 = Fold %t27 fn="agg.min" :: integer
+    yield %t28
+  )
+)

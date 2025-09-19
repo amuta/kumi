@@ -1,0 +1,14 @@
+schema do
+  input do
+    array :x do
+      element :integer, :y
+    end
+  end
+
+  value :max_y, fn(:max, input.x.y)
+  value :tuple, [1, 2, 3, max_y]
+  value :max_1, fn(:max, tuple)
+  value :max_2, fn(:max, [1, 2, 3, max_y, 1000])
+  value :min_1, fn(:min, tuple)
+  value :min_2, fn(:min, [1, 2, 3, max_y, -100])
+end

@@ -3,6 +3,7 @@ kernels:
     fn: agg.sum
     inline: "+= $1"
     impl: "(a,b)\n  a + b"
+    fold_inline: "= $0.sum"
     identity: 
       float: 0.0
       integer: 0
@@ -11,6 +12,7 @@ kernels:
     fn: agg.count
     inline: "+= 1"
     impl: "(a,_b)\n  a + 1"
+    fold_inline: "= $0.count"
     identity:
       any: 0
 
@@ -18,8 +20,10 @@ kernels:
     fn: agg.min
     inline: "= $1 if $1 < $0" 
     impl: "(a, b)\n  a < b ? a : b"
+    fold_inline: "= $0.min"
 
   - id: agg.max:ruby:v1
     fn: agg.max
     inline: "= $1 if $1 > $0" 
     impl: "(a, b)\n  a > b ? a : b"
+    fold_inline: "= $0.max"

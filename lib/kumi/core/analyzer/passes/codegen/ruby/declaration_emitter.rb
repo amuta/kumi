@@ -126,8 +126,7 @@ module Kumi
               def emit_kernelcall(ins, _i)
                 kernel = kernel_for(ins.result_register)
                 args = operands_for(ins)
-                # NOTE: I've corrected an earlier bug from a copy-paste here.
-                # The simple `write "#{vreg(ins)} #{inlined_code}"` was too basic.
+
                 if (template = kernel[:attrs]["inline"])
                   inlined_code = _inline_kernel(template, args)
                   if template.start_with?("=") || template.include?("$0")
@@ -142,13 +141,28 @@ module Kumi
                 end
               end
 
+              def emit_fold(ins, _i)
+                kernel = kernel_for(ins.result_register)
+                args = operands_for(ins)
+
+                if (template = kernel[:attrs]["fold_inline"])
+                  inlined_code = _inline_kernel(template, args)
+                  write "#{vreg(ins)} #{inlined_code}"
+                else
+                  raise "Can't fold - no template defined"
+                end
+              end
+
               def emit_accumulate(ins, _i)
                 kernel = kernel_for(ins.result_register)
                 args = [vreg(ins), operands_for(ins).first]
+
+                write "#{args[0]} ||= #{args[1]}" if kernel[:attrs]["first_element"]
+
                 if (template = kernel[:attrs]["inline"])
                   inlined_code = _inline_kernel(template, args)
                   if template.include?("$0")
-                    write "#{args[0]} = #{inlined_code}"
+                    write "#{args[0]} #{inlined_code}"
                   else
                     write "#{args[0]} #{inlined_code}"
                   end

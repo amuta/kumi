@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../functions/loader"
-
 module Kumi
   module Core
     module Analyzer
@@ -85,7 +83,15 @@ module Kumi
                 { function_spec.param_names.first => arg_types } # variadic TODO: this is a hack
               end
 
-            result_type  = function_spec.dtype_rule.call(named_types)
+            begin
+              result_type = function_spec.dtype_rule.call(named_types)
+            rescue StandardError
+              # Maybe we have the wrong function, lets try to see if another function with same name works
+              # TODO: Fix this hack
+
+              raise
+            end
+
             result_scope = compute_result_scope(function_spec, arg_scopes)
 
             @metadata_table[node_id(call)] = {

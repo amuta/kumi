@@ -3,36 +3,35 @@ functions:
     kind: reduce
     params: [{ name: source_value }]
     dtype: "same_as(source_value)"
+    reduction_strategy: identity # This function has a true identity value.
     aliases: ["sum"]
-    folding_class_method: sum
     
   - id: agg.count
     kind: reduce
     params: [{ name: source_value }]
     dtype: "integer"
+    reduction_strategy: identity # This function has a true identity value.
     aliases: ["count"]
-    folding_class_method: count
 
   - id: agg.min
     kind: reduce
     params: [{ name: source_value }]
     dtype: "element_of(source_value)"
+    reduction_strategy: first_element
     aliases: ["min"]
-    folding_class_method: min
 
   - id: agg.max
     kind: reduce
     params: [{ name: source_value }]
     dtype: "element_of(source_value)"
+    reduction_strategy: first_element
     aliases: ["max"]
-    folding_class_method: max
   
   - id: agg.mean
     kind: reduce
     params: [{ name: source_value }]
     dtype: "float"
     aliases: ["mean", "avg"]
-    folding_class_method: mean
     expand:
       fn: div
       args:
@@ -63,7 +62,7 @@ functions:
         - fn: __select__
           args: [ "$2", { const: 1 }, { const: 0 } ] # $2=condition
 
-  - id: agg.avg_if
+  - id: agg.mean_if
     kind: reduce
     params: [{ name: source_value }, { name: condition }]
     dtype: "float"

@@ -75,6 +75,11 @@ module Kumi
         when NAST::Ref
           "#{indent}(Ref #{node.name}) #{stamp_str}"
 
+        when NAST::Fold
+          header = "(Fold :#{node.fn}"
+          arg = format_concise(node.arg, indent_level + 1)
+          "#{indent}#{header}\n#{arg}\n#{indent}) #{stamp_str}"
+
         when NAST::Tuple
           header = "(Tuple"
           args = node.args.map { |arg| format_concise(arg, indent_level + 1) }.join("\n")
