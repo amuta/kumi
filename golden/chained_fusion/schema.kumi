@@ -1,0 +1,48 @@
+# This schema is designed to test "chained" loop fusion.
+#
+# The `department_summary` value depends on FOUR other values, each
+# requiring a separate aggregation over the nested `employees` array.
+#
+# After the inlining and CSE passes, the LIR for `department_summary` will
+# contain four adjacent, independent loops over `employees`. A robust
+# LoopFusionPass should be able to detect this chain and merge all four
+# loops into a single, highly efficient pass over the data.
+
+schema do
+  input do
+    array :departments do
+      string :name
+      array :employees do
+        integer :salary
+        string  :role
+      end
+    end
+  end
+
+  # --- Intermediate Aggregations (Four distinct loops will be created) ---
+
+  # Aggregation 1: Sum of all salaries.
+  value :total_payroll, fn(:sum, input.departments.employees.salary)
+
+  # Aggregation 2: Count of employees with the "manager" role.
+  value :manager_count, fn(:count_if, input.departments.employees.role, "manager")
+
+  # Aggregation 3: Count of employees with the "senior" role.
+  value :senior_employee_count, fn(:count_if, input.departments.employees.role, "senior")
+
+  # Aggregation 4: The maximum salary in the department.
+  value :max_salary, fn(:max, input.departments.employees.salary)
+
+
+  # --- Final Value ---
+
+  # This value depends on all four aggregations above.
+  # The inliner will expand this, creating the chain of four fusable loops.
+  value :department_summary, {
+    name: input.departments.name,
+    total_payroll: total_payroll,
+    manager_count: manager_count,
+    senior_count: senior_employee_count,
+    top_salary: max_salary
+  }
+end

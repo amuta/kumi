@@ -55,16 +55,14 @@ module SchemaModule
     t19.each_with_index do |departments_el_20, _departments_i_21|
       acc36 = 0
       t37 = departments_el_20["teams"]
+      acc42 = 0
       t37.each_with_index do |teams_el_6, _teams_i_7|
         t38 = teams_el_6["headcount"]
         acc36 += t38
-      end
-      t39 = acc36
-      acc42 = 0
-      t37.each_with_index do |teams_el_15, _teams_i_16|
-        t44 = teams_el_15["team_name"]
+        t44 = teams_el_6["team_name"]
         acc42 += 1
       end
+      t39 = acc36
       t45 = acc42
       t24 = t39 / t45
       out << t24
@@ -79,16 +77,14 @@ module SchemaModule
       out_1 = []
       t28 = departments_el_26["teams"]
       acc52 = 0
+      acc58 = 0
       t28.each_with_index do |teams_el_6, _teams_i_7|
         t54 = teams_el_6["headcount"]
         acc52 += t54
-      end
-      t55 = acc52
-      acc58 = 0
-      t28.each_with_index do |teams_el_15, _teams_i_16|
-        t60 = teams_el_15["team_name"]
+        t60 = teams_el_6["team_name"]
         acc58 += 1
       end
+      t55 = acc52
       t61 = acc58
       t49 = t55 / t61
       t28.each_with_index do |teams_el_29, _teams_i_30|

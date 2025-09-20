@@ -1,0 +1,32 @@
+(NAST
+  (VALUE total_payroll
+    (Call :"agg.sum"
+    (InputRef [:departments, :employees, :salary])
+  )
+  )
+  (VALUE manager_count
+    (Call :sum
+    (Call :__select__
+      (Call :eq
+        (InputRef [:departments, :employees, :role])
+        (Const "manager")
+      )
+      (Const 1)
+      (Const 0)
+    )
+  )
+  )
+  (VALUE department_summary
+    (Hash
+    (Pair name 
+      (InputRef [:departments, :name])
+    )
+    (Pair total_payroll 
+      (Ref total_payroll)
+    )
+    (Pair manager_count 
+      (Ref manager_count)
+    )
+  )
+  )
+)

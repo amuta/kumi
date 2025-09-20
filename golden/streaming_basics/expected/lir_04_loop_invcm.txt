@@ -34,8 +34,8 @@
     %t26 = const 0.9 :: float
     loop items id=L4 in %t21 as el=%items_el_22, idx=%items_i_23
       %t49 = load_field items_el_22["price"] :: float
-      %t51 = call core.gt(%t49, %t50) :: boolean
       %t54 = load_field items_el_22["qty"] :: integer
+      %t51 = call core.gt(%t49, %t50) :: boolean
       %t55 = call core.mul(%t49, %t54) :: float
       %t27 = call core.mul(%t55, %t26) :: float
       %t29 = select %t51, %t27, %t55 :: float
@@ -71,8 +71,8 @@
     %t63 = const 0.9 :: float
     loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
       %t68 = load_field items_el_44["price"] :: float
-      %t70 = call core.gt(%t68, %t69) :: boolean
       %t73 = load_field items_el_44["qty"] :: integer
+      %t70 = call core.gt(%t68, %t69) :: boolean
       %t74 = call core.mul(%t68, %t73) :: float
       %t64 = call core.mul(%t74, %t63) :: float
       %t66 = select %t70, %t64, %t74 :: float

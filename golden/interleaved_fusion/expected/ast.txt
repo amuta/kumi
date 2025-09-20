@@ -1,0 +1,43 @@
+(Root
+  inputs: [
+    (InputDeclaration :departments :array access_mode: :field
+      [
+        (InputDeclaration :name :string)
+        (InputDeclaration :employees :array access_mode: :field
+          [
+            (InputDeclaration :salary :integer)
+            (InputDeclaration :role :string)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :total_payroll
+      (CallExpression :sum
+        (InputElementReference departments.employees.salary)
+      )
+    )
+    (ValueDeclaration :payroll_tax
+      (CallExpression :multiply
+        (DeclarationReference :total_payroll)
+        (Literal 0.15)
+      )
+    )
+    (ValueDeclaration :manager_count
+      (CallExpression :count_if
+        (InputElementReference departments.employees.role)
+        (Literal "manager")
+      )
+    )
+    (ValueDeclaration :department_summary
+      (HashExpression
+        ((Literal :name) (InputElementReference departments.name))
+        ((Literal :payroll) (DeclarationReference :total_payroll))
+        ((Literal :tax) (DeclarationReference :payroll_tax))
+        ((Literal :managers) (DeclarationReference :manager_count))
+      )
+    )
+  ]
+  traits: []
+)

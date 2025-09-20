@@ -61,8 +61,8 @@ module SchemaModule
     t21 = @input["items"]
     t21.each_with_index do |items_el_22, _items_i_23|
       t49 = items_el_22["price"]
-      t51 = t49 > 100.0
       t54 = items_el_22["qty"]
+      t51 = t49 > 100.0
       t55 = t49 * t54
       t27 = t55 * 0.9
       t29 = t51 ? t27 : t55
@@ -98,8 +98,8 @@ module SchemaModule
     t43 = @input["items"]
     t43.each_with_index do |items_el_44, _items_i_45|
       t68 = items_el_44["price"]
-      t70 = t68 > 100.0
       t73 = items_el_44["qty"]
+      t70 = t68 > 100.0
       t74 = t68 * t73
       t64 = t74 * 0.9
       t66 = t70 ? t64 : t74

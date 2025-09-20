@@ -13,8 +13,8 @@
     %t29 = const 100 :: integer
     loop points id=L2 in %t7 as el=%points_el_8, idx=%points_i_9
       %t28 = load_field points_el_8["x"] :: integer
-      %t30 = call core.gt(%t28, %t29) :: boolean
       %t12 = load_field points_el_8["y"] :: integer
+      %t30 = call core.gt(%t28, %t29) :: boolean
       %t13 = select %t30, %t28, %t12 :: integer
       yield %t13
     end_loop
@@ -24,8 +24,8 @@
     %t43 = const 100 :: integer
     loop points id=L3 in %t14 as el=%points_el_15, idx=%points_i_16
       %t42 = load_field points_el_15["x"] :: integer
-      %t44 = call core.gt(%t42, %t43) :: boolean
       %t34 = load_field points_el_15["y"] :: integer
+      %t44 = call core.gt(%t42, %t43) :: boolean
       %t35 = select %t44, %t42, %t34 :: integer
       %t19 = make_tuple(%t35, %t42) :: tuple<integer, integer>
       %t20 = Fold %t19 fn="agg.max" :: integer
@@ -38,8 +38,8 @@
     %t48 = const 100 :: integer
     loop points id=L4 in %t22 as el=%points_el_23, idx=%points_i_24
       %t47 = load_field points_el_23["x"] :: integer
-      %t49 = call core.gt(%t47, %t48) :: boolean
       %t51 = load_field points_el_23["y"] :: integer
+      %t49 = call core.gt(%t47, %t48) :: boolean
       %t52 = select %t49, %t47, %t51 :: integer
       %t39 = make_tuple(%t52, %t47) :: tuple<integer, integer>
       %t40 = Fold %t39 fn="agg.max" :: integer

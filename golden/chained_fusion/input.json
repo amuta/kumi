@@ -1,0 +1,51 @@
+{
+    "departments": [
+        {
+            "name": "Engineering",
+            "employees": [
+                {
+                    "salary": 150000,
+                    "role": "manager"
+                },
+                {
+                    "salary": 100000,
+                    "role": "engineer"
+                },
+                {
+                    "salary": 150000,
+                    "role": "senior"
+                }
+            ]
+        },
+        {
+            "name": "Sales",
+            "employees": [
+                {
+                    "salary": 120000,
+                    "role": "manager"
+                },
+                {
+                    "salary": 90000,
+                    "role": "associate"
+                },
+                {
+                    "salary": 75000,
+                    "role": "associate"
+                },
+                {
+                    "salary": 110000,
+                    "role": "senior"
+                }
+            ]
+        },
+        {
+            "name": "HR",
+            "employees": [
+                {
+                    "salary": 75000,
+                    "role": "generalist"
+                }
+            ]
+        }
+    ]
+}

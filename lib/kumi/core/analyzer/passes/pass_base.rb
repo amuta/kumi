@@ -23,6 +23,20 @@ module Kumi
             raise NotImplementedError, "#{self.class.name} must implement #run"
           end
 
+          # Debug helpers - automatic pattern based on pass class name
+          # InputIndexTablePass -> DEBUG_INPUT_INDEX_TABLE=1
+          # ScopeResolutionPass -> DEBUG_SCOPE_RESOLUTION=1
+          def debug_enabled?
+            class_name = self.class.name.split("::").last
+            env_name = "DEBUG_#{to_underscore(class_name.gsub(/Pass$/, '')).upcase}"
+            ENV[env_name] == "1"
+          end
+
+          def debug(message)
+            class_name = self.class.name.split("::").last.gsub(/Pass$/, "")
+            puts "[#{class_name}] #{message}" if debug_enabled?
+          end
+
           protected
 
           attr_reader :schema, :state
@@ -48,20 +62,6 @@ module Kumi
 
           def add_error(errors, location, message)
             errors << ErrorReporter.create_error(message, location: location, type: :semantic)
-          end
-
-          # Debug helpers - automatic pattern based on pass class name
-          # InputIndexTablePass -> DEBUG_INPUT_INDEX_TABLE=1
-          # ScopeResolutionPass -> DEBUG_SCOPE_RESOLUTION=1
-          def debug_enabled?
-            class_name = self.class.name.split("::").last
-            env_name = "DEBUG_#{to_underscore(class_name.gsub(/Pass$/, '')).upcase}"
-            ENV[env_name] == "1"
-          end
-
-          def debug(message)
-            class_name = self.class.name.split("::").last.gsub(/Pass$/, "")
-            puts "[#{class_name}] #{message}" if debug_enabled?
           end
 
           private

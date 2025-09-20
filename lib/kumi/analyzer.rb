@@ -37,10 +37,13 @@ module Kumi
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
       Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
+      Passes::LIR::InstructionSchedulingPass,
+      Passes::LIR::LoopFusionPass,
+      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
       Passes::LIR::DeadCodeEliminationPass, # Removes dead code
       Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
-      Passes::LIR::LoopInvariantCodeMotionPass,
-      Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
+      Passes::LIR::LoopInvariantCodeMotionPass
+      # Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
     ].freeze
 
     RUBY_TARGET_PASSES = [

@@ -1,0 +1,28 @@
+schema do
+  input do
+    array :departments do
+      string :name
+      array :employees do
+        integer :salary
+        string  :role
+      end
+    end
+  end
+
+  # VALUE 1: Requires a loop over all employees to sum their salaries.
+  # Scope: [:departments]
+  value :total_payroll, fn(:sum, input.departments.employees.salary)
+  value :manager_count, fn(:count_if, input.departments.employees.role, "manager")
+
+  # VALUE 2: Requires a separate loop over all employees to count managers.
+  # Scope: [:departments]
+
+  # This value depends on the two aggregations above.
+  # When the inliner expands this, it will create two back-to-back loops
+  # over the `employees` array inside the main `departments` loop.
+  value :department_summary, {
+    name: input.departments.name,
+    total_payroll: total_payroll,
+    manager_count: manager_count
+  }
+end

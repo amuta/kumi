@@ -47,8 +47,8 @@ module SchemaModule
     t13 = @input["users"]
     t13.each_with_index do |users_el_14, _users_i_15|
       t21 = users_el_14["name"]
-      t23 = t21 == "John"
       t26 = users_el_14["state"]
+      t23 = t21 == "John"
       t27 = {
         "name" => t21,
         "state" => t26,

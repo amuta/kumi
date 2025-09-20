@@ -33,8 +33,8 @@ module SchemaModule
     t7 = @input["points"]
     t7.each_with_index do |points_el_8, _points_i_9|
       t28 = points_el_8["x"]
-      t30 = t28 > 100
       t12 = points_el_8["y"]
+      t30 = t28 > 100
       t13 = t30 ? t28 : t12
       out << t13
     end
@@ -46,8 +46,8 @@ module SchemaModule
     t14 = @input["points"]
     t14.each_with_index do |points_el_15, _points_i_16|
       t42 = points_el_15["x"]
-      t44 = t42 > 100
       t34 = points_el_15["y"]
+      t44 = t42 > 100
       t35 = t44 ? t42 : t34
       t19 = [t35, t42]
       t20 = t19.max
@@ -61,8 +61,8 @@ module SchemaModule
     t22 = @input["points"]
     t22.each_with_index do |points_el_23, _points_i_24|
       t47 = points_el_23["x"]
-      t49 = t47 > 100
       t51 = points_el_23["y"]
+      t49 = t47 > 100
       t52 = t49 ? t47 : t51
       t39 = [t52, t47]
       t40 = t39.max

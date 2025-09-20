@@ -1,0 +1,32 @@
+(SNAST
+  (VALUE total_payroll
+    (Reduce :agg.sum over [employees]
+      (InputRef departments.employees.salary key_chain=[salary]) :: [departments, employees] -> integer
+    ) :: [departments] -> integer
+  ) :: [departments] -> integer
+  (VALUE manager_count
+    (Reduce :agg.sum over [employees]
+      (Select
+        (Call :core.eq
+          (InputRef departments.employees.role key_chain=[role]) :: [departments, employees] -> string
+          (Const "manager") :: [] -> string
+        ) :: [departments, employees] -> boolean
+        (Const 1) :: [] -> integer
+        (Const 0) :: [] -> integer
+      ) :: [departments, employees] -> integer
+    ) :: [departments] -> integer
+  ) :: [departments] -> integer
+  (VALUE department_summary
+    (Hash
+      (Pair name
+        (InputRef departments.name key_chain=[name]) :: [departments] -> string
+      ) :: [departments] -> pair
+      (Pair total_payroll
+        (Ref total_payroll) :: [departments] -> integer
+      ) :: [departments] -> pair
+      (Pair manager_count
+        (Ref manager_count) :: [departments] -> integer
+      ) :: [departments] -> pair
+    ) :: [departments] -> hash
+  ) :: [departments] -> hash
+)

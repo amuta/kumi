@@ -53,14 +53,18 @@ functions:
 
   - id: agg.count_if
     kind: reduce
-    params: [{ name: source_value }, { name: condition }]
+    params: [{ name: condition }, { name: source_value }]
     dtype: "integer"
     aliases: ["count_if"]
     expand:
       fn: sum # Summing 1s and 0s is equivalent to a conditional count
       args:
         - fn: __select__
-          args: [ "$2", { const: 1 }, { const: 0 } ] # $2=condition
+          args: 
+            - fn: eq
+              args: ["$1", "$2"]
+            - { const: 1 }
+            - { const: 0 }
 
   - id: agg.mean_if
     kind: reduce

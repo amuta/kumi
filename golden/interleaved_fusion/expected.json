@@ -1,0 +1,37 @@
+{
+    "total_payroll": [
+      400000,
+      320000,
+      75000
+    ],
+    "payroll_tax": [
+      60000.0,
+      48000.0,
+      11250.0
+    ],
+    "manager_count": [
+      1,
+      1,
+      0
+    ],
+    "department_summary": [
+      {
+        "name": "Engineering",
+        "payroll": 400000,
+        "tax": 60000.0,
+        "managers": 1
+      },
+      {
+        "name": "Sales",
+        "payroll": 320000,
+        "tax": 48000.0,
+        "managers": 1
+      },
+      {
+        "name": "HR",
+        "payroll": 75000,
+        "tax": 11250.0,
+        "managers": 0
+      }
+    ]
+  }

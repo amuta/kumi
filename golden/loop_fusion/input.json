@@ -1,0 +1,28 @@
+{
+    "departments": [
+      {
+        "name": "Engineering",
+        "employees": [
+          { "salary": 120000, "role": "manager" },
+          { "salary": 95000, "role": "developer" },
+          { "salary": 105000, "role": "developer" },
+          { "salary": 80000, "role": "qa" }
+        ]
+      },
+      {
+        "name": "Sales",
+        "employees": [
+          { "salary": 110000, "role": "manager" },
+          { "salary": 85000, "role": "associate" },
+          { "salary": 90000, "role": "associate" }
+        ]
+      },
+      {
+        "name": "HR",
+        "employees": [
+          { "salary": 75000, "role": "specialist" }
+        ]
+      }
+    ]
+  }
+  

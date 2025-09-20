@@ -1,0 +1,57 @@
+(LIR
+  (Declaration total_payroll
+    %t1 = load_input "departments" :: array
+    loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
+      %acc_4 = decl_acc :: integer
+      %t5 = load_field departments_el_2["employees"] :: array
+      loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
+        %t8 = load_field employees_el_6["salary"] :: integer
+        %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
+      end_loop
+      %t9 = acc_load %acc_4 :: integer
+      yield %t9
+    end_loop
+  )
+  (Declaration manager_count
+    %t10 = load_input "departments" :: array
+    %t18 = const "manager" :: string
+    %t20 = const 1 :: integer
+    %t21 = const 0 :: integer
+    loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
+      %acc_13 = decl_acc :: integer
+      %t14 = load_field departments_el_11["employees"] :: array
+      loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
+        %t17 = load_field employees_el_15["role"] :: string
+        %t19 = call core.eq(%t17, %__immediate_placeholder__) :: boolean
+        %t22 = select %t19, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %acc_13 = acc_add agg.sum(%acc_13, %t22) :: integer
+      end_loop
+      %t23 = acc_load %acc_13 :: integer
+      yield %t23
+    end_loop
+  )
+  (Declaration department_summary
+    %t24 = load_input "departments" :: array
+    %t42 = const "manager" :: string
+    %t44 = const 1 :: integer
+    %t45 = const 0 :: integer
+    loop departments id=L5 in %t24 as el=%departments_el_25, idx=%departments_i_26
+      %t27 = load_field departments_el_25["name"] :: string
+      %acc33 = decl_acc :: integer
+      %t34 = load_field departments_el_25["employees"] :: array
+      %acc39 = decl_acc :: integer
+      loop employees id=L6 in %t34 as el=%employees_el_6, idx=%employees_i_7
+        %t35 = load_field employees_el_6["salary"] :: integer
+        %acc33 = acc_add agg.sum(%acc33, %t35) :: integer
+        %t41 = load_field employees_el_6["role"] :: string
+        %t43 = call core.eq(%t41, %__immediate_placeholder__) :: boolean
+        %t46 = select %t43, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %acc39 = acc_add agg.sum(%acc39, %t46) :: integer
+      end_loop
+      %t36 = acc_load %acc33 :: integer
+      %t47 = acc_load %acc39 :: integer
+      %t30 = make_object{name: %t27, total_payroll: %t36, manager_count: %t47} :: object
+      yield %t30
+    end_loop
+  )
+)

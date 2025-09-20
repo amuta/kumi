@@ -1,0 +1,77 @@
+(LIR
+  (Declaration total_payroll
+    %t1 = load_input "departments" :: array
+    loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
+      %acc_4 = decl_acc :: integer
+      %t5 = load_field departments_el_2["employees"] :: array
+      loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
+        %t8 = load_field employees_el_6["salary"] :: integer
+        %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
+      end_loop
+      %t9 = acc_load %acc_4 :: integer
+      yield %t9
+    end_loop
+  )
+  (Declaration payroll_tax
+    %t10 = load_input "departments" :: array
+    loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
+      %acc40 = decl_acc :: integer
+      %t41 = load_field departments_el_11["employees"] :: array
+      %t14 = const 0.15 :: float
+      loop employees id=L7 in %t41 as el=%employees_el_6, idx=%employees_i_7
+        %t42 = load_field employees_el_6["salary"] :: integer
+        %acc40 = acc_add agg.sum(%acc40, %t42) :: integer
+      end_loop
+      %t43 = acc_load %acc40 :: integer
+      %t15 = call core.mul(%t43, %t14) :: float
+      yield %t15
+    end_loop
+  )
+  (Declaration manager_count
+    %t16 = load_input "departments" :: array
+    loop departments id=L4 in %t16 as el=%departments_el_17, idx=%departments_i_18
+      %acc_19 = decl_acc :: integer
+      %t20 = load_field departments_el_17["employees"] :: array
+      loop employees id=L5 in %t20 as el=%employees_el_21, idx=%employees_i_22
+        %t23 = load_field employees_el_21["role"] :: string
+        %t24 = const "manager" :: string
+        %t25 = call core.eq(%t23, %t24) :: boolean
+        %t26 = const 1 :: integer
+        %t27 = const 0 :: integer
+        %t28 = select %t25, %t26, %t27 :: integer
+        %acc_19 = acc_add agg.sum(%acc_19, %t28) :: integer
+      end_loop
+      %t29 = acc_load %acc_19 :: integer
+      yield %t29
+    end_loop
+  )
+  (Declaration department_summary
+    %t30 = load_input "departments" :: array
+    loop departments id=L6 in %t30 as el=%departments_el_31, idx=%departments_i_32
+      %t33 = load_field departments_el_31["name"] :: string
+      %acc46 = decl_acc :: integer
+      %t47 = load_field departments_el_31["employees"] :: array
+      %acc67 = decl_acc :: integer
+      %t52 = const 0.15 :: float
+      %acc56 = decl_acc :: integer
+      loop employees id=L8 in %t47 as el=%employees_el_6, idx=%employees_i_7
+        %t48 = load_field employees_el_6["salary"] :: integer
+        %acc46 = acc_add agg.sum(%acc46, %t48) :: integer
+        %t58 = load_field employees_el_6["role"] :: string
+        %t59 = const "manager" :: string
+        %t60 = call core.eq(%t58, %t59) :: boolean
+        %t61 = const 1 :: integer
+        %t62 = const 0 :: integer
+        %t63 = select %t60, %t61, %t62 :: integer
+        %acc56 = acc_add agg.sum(%acc56, %t63) :: integer
+        %acc67 = acc_add agg.sum(%acc67, %t48) :: integer
+      end_loop
+      %t49 = acc_load %acc46 :: integer
+      %t64 = acc_load %acc56 :: integer
+      %t70 = acc_load %acc67 :: integer
+      %t53 = call core.mul(%t70, %t52) :: float
+      %t37 = make_object{name: %t33, payroll: %t49, tax: %t53, managers: %t64} :: object
+      yield %t37
+    end_loop
+  )
+)
