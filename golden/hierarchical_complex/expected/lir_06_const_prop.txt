@@ -52,9 +52,9 @@
   )
   (Declaration employee_bonus
     %t43 = load_input "regions" :: array
+    %t92 = const 0.9 :: float
     %t79 = const 4.5 :: float
     %t86 = const "senior" :: string
-    %t92 = const 0.9 :: float
     %t61 = const 0.3 :: float
     %t67 = const 0.2 :: float
     %t70 = const 0.05 :: float

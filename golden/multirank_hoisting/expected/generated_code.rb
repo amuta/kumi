@@ -118,20 +118,20 @@ module SchemaModule
     t45.each_with_index do |batch_el_46, _batch_i_47|
       acc_48 = 0.0
       t49 = batch_el_46["row"]
-      t107 = batch_el_46["mean"]
-      t108 = t107 + t112
+      t105 = batch_el_46["mean"]
+      t106 = t105 + t112
       t49.each_with_index do |row_el_50, _row_i_51|
-        t76 = 0.0
+        acc77 = 0.0
         t78 = row_el_50["col"]
-        t101 = row_el_50["scale"]
-        t103 = t101 * 2.0
+        t100 = row_el_50["scale"]
+        t102 = t100 * 2.0
         t78.each_with_index do |col_el_41, _col_i_42|
-          t98 = col_el_41["val"]
-          t104 = t98 * t103
-          t109 = t104 + t108
-          t76 += t109
+          t107 = col_el_41["val"]
+          t108 = t107 * t102
+          t109 = t108 + t106
+          acc77 += t109
         end
-        t80 = t76
+        t80 = acc77
         acc_48 += t80
       end
       t53 = acc_48

@@ -46,13 +46,13 @@ module SchemaModule
   def _mixed_array
     out = []
     t16 = @input["matrix"]
-    t27 = 0
+    acc28 = 0
     t29 = @input["numbers"]
     t29.each_with_index do |numbers_el_3, _numbers_i_4|
       t30 = numbers_el_3["value"]
-      t27 += t30
+      acc28 += t30
     end
-    t31 = t27
+    t31 = acc28
     t22 = @input["scalar_val"]
     t16.each_with_index do |matrix_el_17, _matrix_i_18|
       out_1 = []

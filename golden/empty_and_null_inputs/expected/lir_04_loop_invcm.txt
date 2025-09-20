@@ -16,32 +16,32 @@
     %acc_10 = decl_acc :: integer
     %t11 = load_input "regions" :: array
     loop regions id=L3 in %t11 as el=%regions_el_12, idx=%regions_i_13
-      %t20 = decl_acc :: integer
+      %acc21 = decl_acc :: integer
       %t22 = load_field regions_el_12["sales"] :: array
       loop sales id=L4 in %t22 as el=%sales_el_6, idx=%sales_i_7
         %t23 = load_field sales_el_6["amount"] :: integer
-        %t20 = acc_add agg.sum(%t20, %t23) :: integer
+        %acc21 = acc_add agg.sum(%acc21, %t23) :: integer
       end_loop
-      %t24 = acc_load %t20 :: integer
+      %t24 = acc_load %acc21 :: integer
       %acc_10 = acc_add agg.sum(%acc_10, %t24) :: integer
     end_loop
     %t15 = acc_load %acc_10 :: integer
     yield %t15
   )
   (Declaration adjusted_total
-    %t25 = decl_acc :: integer
+    %acc26 = decl_acc :: integer
     %t27 = load_input "regions" :: array
     loop regions id=L5 in %t27 as el=%regions_el_12, idx=%regions_i_13
-      %t31 = decl_acc :: integer
+      %acc32 = decl_acc :: integer
       %t33 = load_field regions_el_12["sales"] :: array
       loop sales id=L6 in %t33 as el=%sales_el_6, idx=%sales_i_7
         %t34 = load_field sales_el_6["amount"] :: integer
-        %t31 = acc_add agg.sum(%t31, %t34) :: integer
+        %acc32 = acc_add agg.sum(%acc32, %t34) :: integer
       end_loop
-      %t35 = acc_load %t31 :: integer
-      %t25 = acc_add agg.sum(%t25, %t35) :: integer
+      %t35 = acc_load %acc32 :: integer
+      %acc26 = acc_add agg.sum(%acc26, %t35) :: integer
     end_loop
-    %t29 = acc_load %t25 :: integer
+    %t29 = acc_load %acc26 :: integer
     %t17 = load_input "adjustment" :: integer
     %t18 = call core.add(%t29, %t17) :: integer
     yield %t18

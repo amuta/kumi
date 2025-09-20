@@ -36,32 +36,32 @@ module SchemaModule
     acc_10 = 0
     t11 = @input["regions"]
     t11.each_with_index do |regions_el_12, _regions_i_13|
-      t20 = 0
+      acc21 = 0
       t22 = regions_el_12["sales"]
       t22.each_with_index do |sales_el_6, _sales_i_7|
         t23 = sales_el_6["amount"]
-        t20 += t23
+        acc21 += t23
       end
-      t24 = t20
+      t24 = acc21
       acc_10 += t24
     end
     acc_10
   end
 
   def _adjusted_total
-    t25 = 0
+    acc26 = 0
     t27 = @input["regions"]
     t27.each_with_index do |regions_el_12, _regions_i_13|
-      t31 = 0
+      acc32 = 0
       t33 = regions_el_12["sales"]
       t33.each_with_index do |sales_el_6, _sales_i_7|
         t34 = sales_el_6["amount"]
-        t31 += t34
+        acc32 += t34
       end
-      t35 = t31
-      t25 += t35
+      t35 = acc32
+      acc26 += t35
     end
-    t29 = t25
+    t29 = acc26
     t17 = @input["adjustment"]
     t29 + t17
   end
