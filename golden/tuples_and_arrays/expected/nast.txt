@@ -1,47 +1,28 @@
 (NAST
-  (VALUE max_y
-    (Call :"agg.max"
-    (InputRef [:x, :y])
+  (TRAIT x_is_large
+    (Call :"core.gt"
+    (InputRef [:points, :x])
+    (Const 100)
   )
   )
-  (VALUE tuple
-    (Tuple
-    (Const 1)
-    (Const 2)
-    (Const 3)
-    (Ref max_y)
+  (VALUE selected_value
+    (Call :__select__
+    (Ref x_is_large)
+    (InputRef [:points, :x])
+    (InputRef [:points, :y])
   )
   )
-  (VALUE max_1
-    (Call :"agg.max"
-    (Ref tuple)
-  )
-  )
-  (VALUE max_2
+  (VALUE final_value_per_point
     (Call :"agg.max"
     (Tuple
-      (Const 1)
-      (Const 2)
-      (Const 3)
-      (Ref max_y)
-      (Const 1000)
+      (Ref selected_value)
+      (InputRef [:points, :x])
     )
   )
   )
-  (VALUE min_1
-    (Call :"agg.min"
-    (Ref tuple)
-  )
-  )
-  (VALUE min_2
-    (Call :"agg.min"
-    (Tuple
-      (Const 1)
-      (Const 2)
-      (Const 3)
-      (Ref max_y)
-      (Const -100)
-    )
+  (VALUE grand_total
+    (Call :"agg.sum"
+    (Ref final_value_per_point)
   )
   )
 )

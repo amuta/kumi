@@ -1,57 +1,40 @@
 (Root
   inputs: [
-    (InputDeclaration :x :array access_mode: :element
+    (InputDeclaration :points :array access_mode: :field
       [
+        (InputDeclaration :x :integer)
         (InputDeclaration :y :integer)
       ]
     )
   ]
   values: [
-    (ValueDeclaration :max_y
-      (CallExpression :max
-        (InputElementReference x.y)
+    (ValueDeclaration :selected_value
+      (CallExpression :select
+        (DeclarationReference :x_is_large)
+        (InputElementReference points.x)
+        (InputElementReference points.y)
       )
     )
-    (ValueDeclaration :tuple
-      (ArrayExpression
-        (Literal 1)
-        (Literal 2)
-        (Literal 3)
-        (DeclarationReference :max_y)
-      )
-    )
-    (ValueDeclaration :max_1
-      (CallExpression :max
-        (DeclarationReference :tuple)
-      )
-    )
-    (ValueDeclaration :max_2
+    (ValueDeclaration :final_value_per_point
       (CallExpression :max
         (ArrayExpression
-          (Literal 1)
-          (Literal 2)
-          (Literal 3)
-          (DeclarationReference :max_y)
-          (Literal 1000)
+          (DeclarationReference :selected_value)
+          (InputElementReference points.x)
         )
       )
     )
-    (ValueDeclaration :min_1
-      (CallExpression :min
-        (DeclarationReference :tuple)
-      )
-    )
-    (ValueDeclaration :min_2
-      (CallExpression :min
-        (ArrayExpression
-          (Literal 1)
-          (Literal 2)
-          (Literal 3)
-          (DeclarationReference :max_y)
-          (Literal -100)
-        )
+    (ValueDeclaration :grand_total
+      (CallExpression :sum
+        (DeclarationReference :final_value_per_point)
       )
     )
   ]
-  traits: []
+  traits: [
+    (TraitDeclaration :x_is_large
+      (CallExpression :>
+        (InputElementReference points.x)
+        (Literal 100)
+      )
+    )
+  ]
 )

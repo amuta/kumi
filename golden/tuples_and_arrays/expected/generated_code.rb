@@ -9,82 +9,65 @@ module SchemaModule
 
   def [](name)
     case name
-    when :max_y then _max_y
-    when :tuple then _tuple
-    when :max_1 then _max_1
-    when :max_2 then _max_2
-    when :min_1 then _min_1
-    when :min_2 then _min_2
+    when :x_is_large then _x_is_large
+    when :selected_value then _selected_value
+    when :final_value_per_point then _final_value_per_point
+    when :grand_total then _grand_total
     else raise KeyError, "Unknown declaration"
     end
   end
 
-  def _max_y
-    acc_1 = nil
-    t2 = @input["x"]
-    t2.each_with_index do |x_el_3, _x_i_4|
-      acc_1 ||= x_el_3
-      acc_1 = x_el_3 if x_el_3 > acc_1
+  def _x_is_large
+    out = []
+    t1 = @input["points"]
+    t1.each_with_index do |points_el_2, _points_i_3|
+      t4 = points_el_2["x"]
+      t6 = t4 > 100
+      out << t6
     end
-    acc_1
+    out
   end
 
-  def _tuple
-    t29 = nil
-    t31 = @input["x"]
-    t31.each_with_index do |x_el_3, _x_i_4|
-      t29 ||= x_el_3
-      t29 = x_el_3 if x_el_3 > t29
+  def _selected_value
+    out = []
+    t7 = @input["points"]
+    t7.each_with_index do |points_el_8, _points_i_9|
+      t28 = points_el_8["x"]
+      t30 = t28 > 100
+      t12 = points_el_8["y"]
+      t13 = t30 ? t28 : t12
+      out << t13
     end
-    t32 = t29
-    [1, 2, 3, t32]
+    out
   end
 
-  def _max_1
-    t51 = nil
-    t53 = @input["x"]
-    t53.each_with_index do |x_el_3, _x_i_4|
-      t51 ||= x_el_3
-      t51 = x_el_3 if x_el_3 > t51
+  def _final_value_per_point
+    out = []
+    t14 = @input["points"]
+    t14.each_with_index do |points_el_15, _points_i_16|
+      t42 = points_el_15["x"]
+      t44 = t42 > 100
+      t34 = points_el_15["y"]
+      t35 = t44 ? t42 : t34
+      t19 = [t35, t42]
+      t20 = t19.max
+      out << t20
     end
-    t54 = t51
-    t37 = [1, 2, 3, t54]
-    t37.max
+    out
   end
 
-  def _max_2
-    t38 = nil
-    t40 = @input["x"]
-    t40.each_with_index do |x_el_3, _x_i_4|
-      t38 ||= x_el_3
-      t38 = x_el_3 if x_el_3 > t38
+  def _grand_total
+    acc_21 = 0
+    t22 = @input["points"]
+    t22.each_with_index do |points_el_23, _points_i_24|
+      t47 = points_el_23["x"]
+      t49 = t47 > 100
+      t51 = points_el_23["y"]
+      t52 = t49 ? t47 : t51
+      t39 = [t52, t47]
+      t40 = t39.max
+      acc_21 += t40
     end
-    t41 = t38
-    t18 = [1, 2, 3, t41, 1000]
-    t18.max
-  end
-
-  def _min_1
-    t55 = nil
-    t57 = @input["x"]
-    t57.each_with_index do |x_el_3, _x_i_4|
-      t55 ||= x_el_3
-      t55 = x_el_3 if x_el_3 > t55
-    end
-    t58 = t55
-    t46 = [1, 2, 3, t58]
-    t46.min
-  end
-
-  def _min_2
-    t47 = nil
-    t49 = @input["x"]
-    t49.each_with_index do |x_el_3, _x_i_4|
-      t47 ||= x_el_3
-      t47 = x_el_3 if x_el_3 > t47
-    end
-    t50 = t47
-    t27 = [1, 2, 3, t50, -100]
-    t27.min
+    acc_21
   end
 end

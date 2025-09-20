@@ -128,7 +128,7 @@ module Kumi
               arg_type = arg_meta[:stamp][:dtype]
 
               if Kumi::Core::Types.tuple?(arg_type)
-                # --- Path for FOLD (Scalar or Vectorized) ---
+                # --- Path for FOLD (Scalar or Vectorized) ---w
                 # The argument is semantically a tuple. Create a Fold node.
 
                 # We still need to visit the child node to build the SNAST tree
@@ -145,7 +145,7 @@ module Kumi
                 # The axes are PRESERVED because a fold is an element-wise operation
                 # on the container of tuples.
                 result_meta = meta_for(n)
-                return stamp!(fold_node, arg_meta[:result_scope], result_meta[:result_type])
+                return stamp!(fold_node, result_meta[:result_scope], result_meta[:result_type])
               else
                 # --- Path for REDUCE (Vectorized Arrays) ---
                 in_axes = axes_of(visited_arg)

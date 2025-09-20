@@ -337,23 +337,18 @@ module Kumi
                 when NAST::InputRef
                   ax = axes_of(x)
                   found ||= x if prefix?(need_prefix, ax)
-
                 when NAST::Ref
                   # Follow the reference into its declaration body
                   decl = @snast.decls.fetch(x.name) { raise "unknown declaration #{x.name}" }
                   walk.call(decl.body)
-
                 when NAST::Select
                   walk.call(x.cond)
                   walk.call(x.on_true)
                   walk.call(x.on_false)
-
-                when NAST::Reduce
+                when NAST::Reduce, NAST::Fold
                   walk.call(x.arg)
-
                 when NAST::Call, NAST::Tuple
                   x.args.each { walk.call(_1) }
-
                 when NAST::Hash
                   x.pairs.each { walk.call(_1) }
                 when NAST::Pair

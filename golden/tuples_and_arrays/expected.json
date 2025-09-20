@@ -1,7 +1,18 @@
 {
-    "tuple": [1,2,3,100],
-    "max_1": 100,
-    "max_2": 1000,
-    "min_1": 1,
-    "min_2": -100
-}
+    "x_is_large": [
+      true,
+      false,
+      false
+    ],
+    "selected_value": [
+      120,
+      90,
+      10
+    ],
+    "final_value_per_point": [
+      120,
+      90,
+      30
+    ],
+    "grand_total": 240
+  }

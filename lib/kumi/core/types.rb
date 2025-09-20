@@ -6,6 +6,10 @@ module Kumi
       # Re-export constants for compatibility
       VALID_TYPES = Validator::VALID_TYPES
 
+      def self.collection?(dtype)
+        tuple?(dtype) || array?(dtype)
+      end
+
       def self.tuple?(dtype) = dtype.match?(/^tuple</)
       def self.array?(dtype) = dtype.match?(/^array</)
 

@@ -1,82 +1,51 @@
 (LIR
-  (Declaration max_y
-    %acc_1 = decl_acc :: integer
-    %t2 = load_input "x" :: array
-    loop x id=L1 in %t2 as el=%x_el_3, idx=%x_i_4
-      %acc_1 = acc_add agg.max(%acc_1, %x_el_3) :: integer
+  (Declaration x_is_large
+    %t1 = load_input "points" :: array
+    loop points id=L1 in %t1 as el=%points_el_2, idx=%points_i_3
+      %t4 = load_field points_el_2["x"] :: integer
+      %t5 = const 100 :: integer
+      %t6 = call core.gt(%t4, %t5) :: boolean
+      yield %t6
     end_loop
-    %t5 = acc_load %acc_1 :: integer
-    yield %t5
   )
-  (Declaration tuple
-    %t6 = const 1 :: integer
-    %t7 = const 2 :: integer
-    %t8 = const 3 :: integer
-    %t29 = decl_acc :: integer
-    %t31 = load_input "x" :: array
-    loop x id=L2 in %t31 as el=%x_el_3, idx=%x_i_4
-      %t29 = acc_add agg.max(%t29, %x_el_3) :: integer
+  (Declaration selected_value
+    %t7 = load_input "points" :: array
+    loop points id=L2 in %t7 as el=%points_el_8, idx=%points_i_9
+      %t28 = load_field points_el_8["x"] :: integer
+      %t29 = const 100 :: integer
+      %t30 = call core.gt(%t28, %t29) :: boolean
+      %t12 = load_field points_el_8["y"] :: integer
+      %t13 = select %t30, %t28, %t12 :: integer
+      yield %t13
     end_loop
-    %t32 = acc_load %t29 :: integer
-    %t10 = make_tuple(%t6, %t7, %t8, %t32) :: tuple<integer, integer, integer, integer>
-    yield %t10
   )
-  (Declaration max_1
-    %t33 = const 1 :: integer
-    %t34 = const 2 :: integer
-    %t35 = const 3 :: integer
-    %t51 = decl_acc :: integer
-    %t53 = load_input "x" :: array
-    loop x id=L5 in %t53 as el=%x_el_3, idx=%x_i_4
-      %t51 = acc_add agg.max(%t51, %x_el_3) :: integer
+  (Declaration final_value_per_point
+    %t14 = load_input "points" :: array
+    loop points id=L3 in %t14 as el=%points_el_15, idx=%points_i_16
+      %t42 = load_field points_el_15["x"] :: integer
+      %t43 = const 100 :: integer
+      %t44 = call core.gt(%t42, %t43) :: boolean
+      %t34 = load_field points_el_15["y"] :: integer
+      %t35 = select %t44, %t42, %t34 :: integer
+      %t19 = make_tuple(%t35, %t42) :: tuple<integer, integer>
+      %t20 = Fold %t19 fn="agg.max" :: integer
+      yield %t20
     end_loop
-    %t54 = acc_load %t51 :: integer
-    %t37 = make_tuple(%t33, %t34, %t35, %t54) :: tuple<integer, integer, integer, integer>
-    %t12 = Fold %t37 fn="agg.max" :: integer
-    yield %t12
   )
-  (Declaration max_2
-    %t13 = const 1 :: integer
-    %t14 = const 2 :: integer
-    %t15 = const 3 :: integer
-    %t38 = decl_acc :: integer
-    %t40 = load_input "x" :: array
-    loop x id=L3 in %t40 as el=%x_el_3, idx=%x_i_4
-      %t38 = acc_add agg.max(%t38, %x_el_3) :: integer
+  (Declaration grand_total
+    %acc_21 = decl_acc :: integer
+    %t22 = load_input "points" :: array
+    loop points id=L4 in %t22 as el=%points_el_23, idx=%points_i_24
+      %t47 = load_field points_el_23["x"] :: integer
+      %t48 = const 100 :: integer
+      %t49 = call core.gt(%t47, %t48) :: boolean
+      %t51 = load_field points_el_23["y"] :: integer
+      %t52 = select %t49, %t47, %t51 :: integer
+      %t39 = make_tuple(%t52, %t47) :: tuple<integer, integer>
+      %t40 = Fold %t39 fn="agg.max" :: integer
+      %acc_21 = acc_add agg.sum(%acc_21, %t40) :: integer
     end_loop
-    %t41 = acc_load %t38 :: integer
-    %t17 = const 1000 :: integer
-    %t18 = make_tuple(%t13, %t14, %t15, %t41, %t17) :: tuple<integer, integer, integer, integer, integer>
-    %t19 = Fold %t18 fn="agg.max" :: integer
-    yield %t19
-  )
-  (Declaration min_1
-    %t42 = const 1 :: integer
-    %t43 = const 2 :: integer
-    %t44 = const 3 :: integer
-    %t55 = decl_acc :: integer
-    %t57 = load_input "x" :: array
-    loop x id=L6 in %t57 as el=%x_el_3, idx=%x_i_4
-      %t55 = acc_add agg.max(%t55, %x_el_3) :: integer
-    end_loop
-    %t58 = acc_load %t55 :: integer
-    %t46 = make_tuple(%t42, %t43, %t44, %t58) :: tuple<integer, integer, integer, integer>
-    %t21 = Fold %t46 fn="agg.min" :: integer
-    yield %t21
-  )
-  (Declaration min_2
-    %t22 = const 1 :: integer
-    %t23 = const 2 :: integer
-    %t24 = const 3 :: integer
-    %t47 = decl_acc :: integer
-    %t49 = load_input "x" :: array
-    loop x id=L4 in %t49 as el=%x_el_3, idx=%x_i_4
-      %t47 = acc_add agg.max(%t47, %x_el_3) :: integer
-    end_loop
-    %t50 = acc_load %t47 :: integer
-    %t26 = const -100 :: integer
-    %t27 = make_tuple(%t22, %t23, %t24, %t50, %t26) :: tuple<integer, integer, integer, integer, integer>
-    %t28 = Fold %t27 fn="agg.min" :: integer
-    yield %t28
+    %t26 = acc_load %acc_21 :: integer
+    yield %t26
   )
 )

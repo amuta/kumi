@@ -92,7 +92,8 @@ module Kumi
               raise
             end
 
-            result_scope = compute_result_scope(function_spec, arg_scopes)
+            over_collection = arg_types.all? { |dtype| Types.collection?(dtype) }
+            result_scope = compute_result_scope(function_spec, arg_scopes, over_collection)
 
             @metadata_table[node_id(call)] = {
               function: function_spec.id,
@@ -102,7 +103,7 @@ module Kumi
               result_scope: result_scope,
               arg_types: arg_types,
               arg_scopes: arg_scopes,
-              last_axis_token: (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil)
+              last_axis_token: (function_spec.kind == :reduce ? (arg_scopes.first || []).last : nil) # TODO: REMOVE
             }.freeze
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
@@ -185,13 +186,17 @@ module Kumi
             { type: meta[:result_type], scope: meta[:result_scope] }
           end
 
-          def compute_result_scope(function_spec, arg_scopes)
+          def compute_result_scope(function_spec, arg_scopes, over_collection = false)
             case function_spec.kind
             when :elementwise, :constructor
               lub_by_prefix(arg_scopes)
             when :reduce
-              child = arg_scopes.first || []
-              child[0...-1]
+              if over_collection
+                lub_by_prefix(arg_scopes)
+              else
+                child = arg_scopes.first || []
+                child[0...-1]
+              end
             else
               []
             end

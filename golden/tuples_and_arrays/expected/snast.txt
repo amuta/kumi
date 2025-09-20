@@ -1,47 +1,28 @@
 (SNAST
-  (VALUE max_y
-    (Reduce :agg.max over [x]
-      (InputRef x.y key_chain=[]) :: [x] -> integer
-    ) :: [] -> integer
-  ) :: [] -> integer
-  (VALUE tuple
-    (Tuple
-      (Const 1) :: [] -> integer
-      (Const 2) :: [] -> integer
-      (Const 3) :: [] -> integer
-      (Ref max_y) :: [] -> integer
-    ) :: [] -> tuple<integer, integer, integer, integer>
-  ) :: [] -> tuple<integer, integer, integer, integer>
-  (VALUE max_1
-    (Fold :agg.max
-      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
-    ) :: [] -> integer
-  ) :: [] -> integer
-  (VALUE max_2
+  (TRAIT x_is_large
+    (Call :core.gt
+      (InputRef points.x key_chain=[x]) :: [points] -> integer
+      (Const 100) :: [] -> integer
+    ) :: [points] -> boolean
+  ) :: [points] -> boolean
+  (VALUE selected_value
+    (Select
+      (Ref x_is_large) :: [points] -> boolean
+      (InputRef points.x key_chain=[x]) :: [points] -> integer
+      (InputRef points.y key_chain=[y]) :: [points] -> integer
+    ) :: [points] -> integer
+  ) :: [points] -> integer
+  (VALUE final_value_per_point
     (Fold :agg.max
       (Tuple
-        (Const 1) :: [] -> integer
-        (Const 2) :: [] -> integer
-        (Const 3) :: [] -> integer
-        (Ref max_y) :: [] -> integer
-        (Const 1000) :: [] -> integer
-      ) :: [] -> tuple<integer, integer, integer, integer, integer>
-    ) :: [] -> integer
-  ) :: [] -> integer
-  (VALUE min_1
-    (Fold :agg.min
-      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
-    ) :: [] -> integer
-  ) :: [] -> integer
-  (VALUE min_2
-    (Fold :agg.min
-      (Tuple
-        (Const 1) :: [] -> integer
-        (Const 2) :: [] -> integer
-        (Const 3) :: [] -> integer
-        (Ref max_y) :: [] -> integer
-        (Const -100) :: [] -> integer
-      ) :: [] -> tuple<integer, integer, integer, integer, integer>
+        (Ref selected_value) :: [points] -> integer
+        (InputRef points.x key_chain=[x]) :: [points] -> integer
+      ) :: [points] -> tuple<integer, integer>
+    ) :: [points] -> integer
+  ) :: [points] -> integer
+  (VALUE grand_total
+    (Reduce :agg.sum over [points]
+      (Ref final_value_per_point) :: [points] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
 )

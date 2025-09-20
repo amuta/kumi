@@ -66,7 +66,7 @@ module Kumi
               annotate!(node.cond, by_fqn)
               annotate!(node.on_true, by_fqn)
               annotate!(node.on_false, by_fqn)
-            when NAST::Reduce
+            when NAST::Reduce, NAST::Fold
               annotate!(node.arg, by_fqn)
             end
           end
