@@ -163,16 +163,11 @@ module Kumi
             { type: dtype, scope: axes }
           end
 
-          def analyze_const(const)
-            type =
-              case const.value
-              when Integer   then :integer
-              when Float     then :float
-              when String    then :string
-              when true, false then :boolean
-              else raise "Unknown constant type: #{const.value.class}"
-              end
-            { type: type, scope: [] }
+          def analyze_const(node)
+            type = Types.normalize(node.value.class)
+            meta = { type: type, scope: [] }
+
+            @metadata_table[node_id(node)] = meta
           end
 
           def analyze_declaration_ref(ref)

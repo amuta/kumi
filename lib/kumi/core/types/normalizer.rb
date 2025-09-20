@@ -26,6 +26,7 @@ module Kumi
           when Class
             # Handle Ruby class inputs
             case type_input.name
+            when "NilClass" then :null
             when "Integer" then :integer
             when "String" then :string
             when "Float" then :float

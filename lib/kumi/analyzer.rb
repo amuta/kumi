@@ -4,7 +4,7 @@ module Kumi
   module Analyzer
     Result = Struct.new(:definitions, :dependency_graph, :leaf_map, :topo_order, :decl_types, :state, keyword_init: true)
     Passes = Core::Analyzer::Passes
-    ERROR_THRESHOLD_PASS = Passes::LowerToIRPass
+    ERROR_THRESHOLD_PASS = Passes::NormalizeToNASTPass
 
     DEFAULT_PASSES = [
       Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
@@ -73,9 +73,9 @@ module Kumi
       skipping   = !!resume_at
 
       passes.each_with_index do |pass_class, idx|
-        raise handle_analysis_errors(errors) if !errors.empty? && # (ERROR_THRESHOLD_PASS == pass_class)
+        raise handle_analysis_errors(errors) if !errors.empty? && (ERROR_THRESHOLD_PASS == pass_class)
 
-                                                pass_name = pass_class.name.split("::").last
+        pass_name = pass_class.name.split("::").last
 
         if skipping
           skipping = false if pass_name == resume_at
@@ -100,7 +100,7 @@ module Kumi
           errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
 
           if debug_on
-            logs = Core::Analyzer::Debug.drain_log
+            logs = Costop_atre::Analyzer::Debug.drain_log
             elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
 
             Core::Analyzer::Debug.emit(

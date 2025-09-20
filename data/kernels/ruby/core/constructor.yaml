@@ -2,3 +2,4 @@ kernels:
   - id: length:ruby:v1
     fn: core.length
     impl: "(collection)\n  collection.size"
+    inline: "= $0.length"

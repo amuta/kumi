@@ -5,3 +5,11 @@ kernels:
     impl: |
       (a, b)
       a.to_s + b.to_s
+  
+  - id: upcase:ruby:v1
+    fn: core.upcase
+    inline: "= $0.upcase"
+  
+  - id: downcase:ruby:v1
+    fn: core.downcase
+    inline: "= $0.downcase"

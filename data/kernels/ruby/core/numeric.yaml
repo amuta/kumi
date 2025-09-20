@@ -1,0 +1,4 @@
+kernels:
+  - id: abs:ruby:v1
+    fn: core.abs
+    inline: "= $0.abs"

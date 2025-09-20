@@ -56,16 +56,9 @@ module Kumi
           # ---------- Leaves ----------
 
           def visit_const(n)
-            dt =
-              case n.value
-              when Integer     then :integer
-              when Float       then :float
-              when String      then :string
-              when true, false then :boolean
-              else raise "Unknown constant type: #{n.value.class}"
-              end
+            meta = meta_for(n)
             out = n.class.new(id: n.id, value: n.value, loc: n.loc)
-            stamp!(out, [], dt)
+            stamp!(out, [], meta[:type])
           end
 
           def visit_input_ref(n)
@@ -108,11 +101,9 @@ module Kumi
               f = n.args[2].accept(self)
               target_axes = lub_by_prefix([axes_of(t), axes_of(f)])
               target_axes = axes_of(c) if target_axes.empty?
-              unless prefix?(
-                axes_of(c), target_axes
-              )
+              unless prefix?(axes_of(c), target_axes)
                 raise Kumi::Core::Errors::SemanticError,
-                      "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect}"
+                      "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect} at: #{n.loc}"
               end
 
               out = NAST::Select.new(id: n.id, cond: c, on_true: t, on_false: f, loc: n.loc, meta: n.meta.dup)

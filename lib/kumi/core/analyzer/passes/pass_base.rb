@@ -41,7 +41,11 @@ module Kumi
             state[key]
           end
 
-          # Add error to the error list
+          def error(msg, loc: nil, node: nil)
+            location = loc || node&.loc
+            add_error(@errors, location, msg)
+          end
+
           def add_error(errors, location, message)
             errors << ErrorReporter.create_error(message, location: location, type: :semantic)
           end

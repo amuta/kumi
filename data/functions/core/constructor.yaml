@@ -4,7 +4,7 @@ functions:
     kind: elementwise
     params: [{ name: collection }]
     dtype: "integer"
-    aliases: ["length", "len"]
+    aliases: ["length", "len", "size"]
     folding_class_method: length
 
   - id: core.at
