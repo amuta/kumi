@@ -1,0 +1,8 @@
+{
+    "transactions": [
+      { "amount": 100.0, "type": "credit", "day": 1 },
+      { "amount": -50.0, "type": "debit", "day": 2 },
+      { "amount": 200.0, "type": "credit", "day": 3 },
+      { "amount": -25.0, "type": "debit", "day": 3 }
+    ]
+  }

@@ -1,0 +1,9 @@
+{
+    "products": [
+      { "price": 100.0, "stock": 15, "status": "available" },
+      { "price": 200.0, "stock": 3, "status": "available" },
+      { "price": 50.0, "stock": 0, "status": "discontinued" }
+    ],
+    "discount_rate": 0.1,
+    "low_stock_threshold": 5
+  }

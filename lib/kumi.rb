@@ -38,5 +38,25 @@ loader.inflector.inflect(
 loader.setup
 
 module Kumi
-  IR_SCHEMA_VERSION = "0.1"
+  # Provides access to the singleton configuration object.
+  #
+  # @return [Kumi::Configuration] the configuration instance
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
+  # Yields the configuration object to a block for user setup.
+  # This is the main entry point for configuring Kumi in an application.
+  #
+  # Example (in config/initializers/kumi.rb):
+  #   Kumi.configure do |config|
+  #     config.cache_path = "/shared/cache/kumi"
+  #   end
+  def self.configure
+    yield(configuration)
+  end
+
+  # A namespace for dynamically created compiled modules.
+  module Compiled
+  end
 end

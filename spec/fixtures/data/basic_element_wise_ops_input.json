@@ -1,0 +1,9 @@
+{
+    "items": [
+      { "price": 50.0, "quantity": 2, "category": "books" },
+      { "price": 150.0, "quantity": 1, "category": "electronics" },
+      { "price": 75.0, "quantity": 6, "category": "clothing" }
+    ],
+    "tax_rate": 0.08,
+    "multiplier": 1.2
+  }

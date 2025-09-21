@@ -1,0 +1,26 @@
+input do
+  array :items do
+    float :price
+    string :category
+    boolean :on_sale
+  end
+  float :sale_discount
+end
+
+trait :is_expensive, input.items.price > 100.0
+trait :is_on_sale, input.items.on_sale == true
+trait :is_electronics, input.items.category == "electronics"
+
+value :sale_prices do
+  on is_on_sale, fn(:multiply, input.items.price, fn(:subtract, 1, input.sale_discount))
+  base input.items.price
+end
+value :category_labels do
+  on is_electronics, "Electronic Device"
+  base "General Item"
+end
+value :display_labels do
+  on is_expensive, "Premium Item"
+  on is_on_sale, "Sale Item"
+  base "Regular Item"
+end

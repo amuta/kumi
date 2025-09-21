@@ -1,69 +1,83 @@
 # frozen_string_literal: true
 
-require "ostruct"
+require "mutex_m"
+require "digest"
+require "fileutils"
 
 module Kumi
+  # This module is the main entry point for users of the Kumi DSL.
+  # When a user module `extend`s this, it gains the `schema` block method
+  # and the `from` class method to execute the compiled logic.
   module Schema
-    attr_reader :__syntax_tree__, :__analyzer_result__, :__executable__
+    # The `__syntax_tree__` is available on the class for introspection.
+    attr_reader :__kumi_syntax_tree__, :__kumi_compiled_module__
 
-    def from(context)
-      # VERY IMPORTANT: This method is overriden on specs in order to use dual mode.
-
-      raise("No schema defined") unless @__executable__
-
-      # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:input_metadata] || {}
-      violations = Core::Input::Validator.validate_context(context, input_meta)
-
-      raise Errors::InputValidationError, violations unless violations.empty?
-
-      # TODO: Lazily start a Runner
-      @__executable__.read(context, mode: :ruby)
+    def schema(&block)
+      @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
+      # Store the location where the schema was defined. This is essential for caching
+      # and providing good error messages.
+      @kumi_source_location = block.source_location.first
     end
 
-    def explain(context, *keys)
-      raise("No schema defined") unless @__executable__
+    def runner
+      ensure_compiled!
 
-      # Validate input types and domain constraints
-      input_meta = @__analyzer_result__.state[:input_metadata] || {}
-      violations = Core::Input::Validator.validate_context(context, input_meta)
-
-      raise Errors::InputValidationError, violations unless violations.empty?
-
-      keys.each do |key|
-        puts Core::Explain.call(self, key, inputs: context)
-      end
-
-      nil
+      __kumi_compiled_module__.runner
     end
 
-    def build_syntax_tree(&)
-      @__syntax_tree__ = Core::RubyParser::Dsl.build_syntax_tree(&).freeze
+    def from(input_data)
+      ensure_compiled!
+      __kumi_compiled_module__.from(input_data)
     end
 
-    def schema(&)
-      # from_location = caller_locations(1, 1).first
-      # raise "Called from #{from_location.path}:#{from_location.lineno}"
-      @__syntax_tree__ = Dev::Profiler.phase("frontend.parse") do
-        Core::RubyParser::Dsl.build_syntax_tree(&).freeze
-      end
+    private
 
-      puts Support::SExpressionPrinter.print(@__syntax_tree__, indent: 2) if ENV["KUMI_DEBUG"] || ENV["KUMI_PRINT_SYNTAX_TREE"]
+    def ensure_compiled!
+      @kumi_compile_lock ||= Mutex.new
+      @kumi_compile_lock.synchronize do
+        # We check `force_recompile` here to allow for debugging the compiler.
+        return if @kumi_compiled && !Kumi.configuration.force_recompile
 
-      @__analyzer_result__ = Dev::Profiler.phase("analyzer") do
-        Analyzer.analyze!(@__syntax_tree__).freeze
-      end
-      @__executable__ = Dev::Profiler.phase("compiler") do
-        Compiler.compile(@__syntax_tree__, analyzer: @__analyzer_result__, schema_name: name).freeze
-      end
+        schema_digest = @__kumi_syntax_tree__.digest
+        cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}.rb")
 
-      nil
+        # This is the core JIT vs. AOT logic.
+        case Kumi.configuration.compilation_mode
+        when :jit
+          compile_and_write_cache(cache_path, schema_digest) unless File.exist?(cache_path)
+        when :aot
+          unless File.exist?(cache_path) && !Kumi.configuration.force_recompile
+            raise "Schema #{name} is not precompiled for digest #{schema_digest}. Please run the `kumi:compile` build task."
+          end
+        else
+          raise "Invalid Kumi compilation mode: #{Kumi.configuration.compilation_mode}"
+        end
+
+        # Load the dynamically generated but statically cached file.
+        require cache_path
+
+        # The loaded file defined a module inside Kumi::Compiled. We now include it
+        # to mix in the compiled methods (_total_payroll, etc.) and the instance
+        # method `__kumi_compiled_module__`.
+        @__kumi_compiled_module__ = Kumi::Compiled.const_get(schema_digest)
+        @kumi_compiled = true
+      end
     end
 
-    def schema_metadata
-      raise("No schema defined") unless @__analyzer_result__
+    def compile_and_write_cache(cache_path, digest)
+      # 1. Run the full analysis pipeline.
+      analyzer_result = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
 
-      @schema_metadata ||= SchemaMetadata.new(@__analyzer_result__.state, @__syntax_tree__)
+      # 2. Extract the generated code from the final state object.
+      compiler_output = analyzer_result.state[:ruby_codegen_files]["codegen.rb"]
+      raise "Compiler did not produce ruby_codegen_files" unless compiler_output
+
+      FileUtils.mkdir_p(File.dirname(cache_path))
+      # Write to a temporary file and then move it to prevent race conditions
+      # where another process might try to read a partially written file.
+      temp_path = "#{cache_path}.#{Process.pid}-#{rand(1000)}"
+      File.write(temp_path, compiler_output)
+      FileUtils.mv(temp_path, cache_path)
     end
   end
 end

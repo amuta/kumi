@@ -54,9 +54,10 @@ module Kumi
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
+      schema_digest = schema.digest
 
       registry ||= Kumi::RegistryV2.load
-      state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry)
+      state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
       state = run_analysis_passes(schema, passes, state, errors)
 
       state = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)

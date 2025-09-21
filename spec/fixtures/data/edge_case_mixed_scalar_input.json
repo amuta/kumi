@@ -1,0 +1,9 @@
+{
+    "items": [
+      { "value": 10.0 },
+      { "value": 20.0 },
+      { "value": 30.0 }
+    ],
+    "multiplier": 2.0,
+    "bonus": 5.0
+  }

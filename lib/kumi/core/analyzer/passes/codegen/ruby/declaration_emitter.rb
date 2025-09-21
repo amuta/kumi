@@ -27,7 +27,7 @@ module Kumi
                 # Pre-calculate the depth of the single Yield instruction.
                 @yield_depth = find_yield_depth(ops)
 
-                write "def _#{name}"
+                write "def _#{name}(input=@input)"
                 indent!
 
                 # Setup the top-level 'out' container if the result is an array.
@@ -177,13 +177,14 @@ module Kumi
               end
 
               def emit_loadinput(ins, _i)
-                write "#{vreg(ins)} = @input[#{imm_key(ins).inspect}]"
+                key = imm_key(ins)
+                write "#{vreg(ins)} = input[#{key.inspect}] || input[:#{key}]"
               end
 
               def emit_loadfield(ins, _i)
                 obj = areg(ins.inputs.first)
                 key = imm_key(ins)
-                write "#{vreg(ins)} = #{obj}[#{key.inspect}]"
+                write "#{vreg(ins)} = #{obj}[#{key.inspect}] || #{obj}[:#{key}] "
               end
 
               def emit_select(ins, _i)
@@ -205,7 +206,7 @@ module Kumi
               end
 
               def emit_loaddeclaration(ins, _i)
-                write "#{vreg(ins)} = _#{ins.immediates.first.value}"
+                write "#{vreg(ins)} = _#{ins.immediates.first.value}(input)"
               end
 
               def emit_maketuple(ins, _i)

@@ -1,0 +1,9 @@
+input do
+  array :products do
+    float :price
+  end
+  array :orders do
+    integer :quantity
+  end
+end
+value :totals, input.products.price * input.orders.quantity

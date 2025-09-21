@@ -1,0 +1,9 @@
+input do
+  array :items do
+    string :name
+  end
+  array :logs do
+    string :user_name
+  end
+end
+trait :same_name, input.items.name == input.logs.user_name

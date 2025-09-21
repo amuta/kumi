@@ -1,0 +1,8 @@
+{
+    "items": [
+      { "price": 150.0, "category": "electronics", "on_sale": true },
+      { "price": 80.0, "category": "books", "on_sale": true },
+      { "price": 200.0, "category": "furniture", "on_sale": false }
+    ],
+    "sale_discount": 0.2
+  }

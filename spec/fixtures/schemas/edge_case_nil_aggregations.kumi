@@ -1,0 +1,14 @@
+input do
+  array :items do
+    float :price
+  end
+end
+trait :has_price, fn(:!=, input.items.price, nil)
+value :valid_prices do
+  on has_price, input.items.price
+  base 0.0
+end
+value :total_valid_prices, fn(:sum, valid_prices)
+value :array_size, fn(:size, has_price)
+value :count_indicators, fn(:if, has_price, 1, 0)
+value :count_items_with_price, fn(:sum, count_indicators)

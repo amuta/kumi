@@ -8,6 +8,18 @@ module Kumi
       include Node
 
       def children = [inputs, values, traits]
+
+      def digest
+        canonical_ast = Marshal.dump(self)
+
+        # The digest must be stable and depend on anything that could change the
+        # compiled output. This includes the AST, the Kumi version (compiler changes),
+        # and the Ruby version (runtime behavior changes).
+        digest_input = "#{Kumi::VERSION}-#{RUBY_VERSION}-#{canonical_ast}"
+
+        # Ruby constants cannot start with a number, so we add a prefix.
+        "KUMI_#{Digest::SHA256.hexdigest(digest_input)}"
+      end
     end
   end
 end

@@ -1,0 +1,35 @@
+input do
+  array :transactions do
+    float   :amount
+    string  :type
+    integer :day
+  end
+end
+
+# Vectorized calculations
+trait :is_debit, input.transactions.type == "debit"
+trait :is_credit, input.transactions.type == "credit"
+value :absolute_amounts, fn(:abs, input.transactions.amount)
+
+# Direct aggregations
+value :total_amount, fn(:sum, input.transactions.amount)
+value :max_amount, fn(:max, absolute_amounts)
+value :min_amount, fn(:min, absolute_amounts)
+value :transaction_count, fn(:size, input.transactions)
+
+# Conditional aggregations using cascades
+value :debit_amounts do
+  on is_debit, input.transactions.amount
+  base 0.0
+end
+
+value :credit_amounts do
+  on is_credit, input.transactions.amount
+  base 0.0
+end
+
+value :total_debits, fn(:sum, debit_amounts)
+value :total_credits, fn(:sum, credit_amounts)
+
+# Complex aggregations
+value :net_balance, total_credits + total_debits

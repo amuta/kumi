@@ -1,0 +1,8 @@
+{
+    "orders": [
+      { "customer_name": "Alice", "order_total": 150.0, "status": "completed" },
+      { "customer_name": "Bob", "order_total": 50.0, "status": "pending" },
+      { "customer_name": "Carol", "order_total": 200.0, "status": "completed" }
+    ],
+    "vip_discount": 0.15
+  }

@@ -1,0 +1,7 @@
+{
+    "items": [
+      { "price": 100.0, "category": "books" },
+      { "price": null, "category": "electronics" },
+      { "price": 50.0, "category": null }
+    ]
+  }

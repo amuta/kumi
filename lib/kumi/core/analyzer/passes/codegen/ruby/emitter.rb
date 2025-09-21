@@ -21,9 +21,9 @@ module Kumi
                 @buffer = OutputBuffer.new
               end
 
-              def emit(declarations)
+              def emit(declarations, schema_digest:)
                 @buffer.reset!
-                @buffer.emit_header
+                @buffer.emit_header(schema_digest)
                 @buffer.emit_class_methods(declarations.keys)
 
                 declarations.each do |name, payload|
