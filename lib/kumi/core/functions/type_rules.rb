@@ -80,7 +80,7 @@ module Kumi
             key = m[1].strip.to_sym
             return ->(named) { same_type_as(named.fetch(key)) }
           end
-          if (m = /\Aunify\(([^,]+),\s*([^)]+)\)\z/.match(rule))
+          if (m = /\Aunify\(([^,]+),\s*([^)]+)\)\z/.match(rule)) # TODO: - check if needed or is just the promote
             k1 = m[1].strip.to_sym
             k2 = m[2].strip.to_sym
             return ->(named) { unify_types(named.fetch(k1), named.fetch(k2)) }

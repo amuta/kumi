@@ -12,11 +12,20 @@ module Kumi
     # The `__syntax_tree__` is available on the class for introspection.
     attr_reader :__kumi_syntax_tree__, :__kumi_compiled_module__
 
+    def build_syntax_tree(&) = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
+
     def schema(&block)
       @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
       # Store the location where the schema was defined. This is essential for caching
       # and providing good error messages.
       @kumi_source_location = block.source_location.first
+
+      ensure_compiled!
+    end
+
+    def schema_metadata
+      ensure_compiled!
+      SchemaMetadata.new(@__kumi_analyzer_result__.state, @__kumi_syntax_tree__)
     end
 
     def runner
@@ -66,10 +75,10 @@ module Kumi
 
     def compile_and_write_cache(cache_path, digest)
       # 1. Run the full analysis pipeline.
-      analyzer_result = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
+      @__kumi_analyzer_result__ = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
 
       # 2. Extract the generated code from the final state object.
-      compiler_output = analyzer_result.state[:ruby_codegen_files]["codegen.rb"]
+      compiler_output = @__kumi_analyzer_result__.state[:ruby_codegen_files]["codegen.rb"]
       raise "Compiler did not produce ruby_codegen_files" unless compiler_output
 
       FileUtils.mkdir_p(File.dirname(cache_path))

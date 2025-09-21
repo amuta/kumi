@@ -22,20 +22,18 @@ module Kumi
               decl = definitions[name]
               next unless decl
 
-              begin
-                # Check if this declaration is marked as vectorized
-                if broadcast_meta[:vectorized_operations]&.key?(name)
-                  # Infer the element type and wrap in array
-                  element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
-                  types[name] = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }
-                else
-                  # Normal type inference
-                  inferred_type = infer_expression_type(decl.expression, types, broadcast_meta, name)
-                  types[name] = inferred_type
-                end
-              rescue StandardError => e
-                report_type_error(errors, "Type inference failed: #{e.message}", location: decl&.loc)
+              # Check if this declaration is marked as vectorized
+              if broadcast_meta[:vectorized_operations]&.key?(name)
+                # Infer the element type and wrap in array
+                element_type = infer_vectorized_element_type(decl.expression, types, broadcast_meta)
+                types[name] = decl.is_a?(Kumi::Syntax::TraitDeclaration) ? { array: :boolean } : { array: element_type }
+              else
+                # Normal type inference
+                inferred_type = infer_expression_type(decl.expression, types, broadcast_meta, name)
+                types[name] = inferred_type
               end
+              # rescue StandardError => e
+              # report_type_error(errors, "Type inference failed: #{e.message}", location: decl&.loc)
             end
 
             state.with(:inferred_types, types)
@@ -108,9 +106,9 @@ module Kumi
                 expected_type = param_types[i] || param_types.last
                 next if expected_type.nil?
 
-                unless Types.compatible?(arg_type, expected_type)
-                  # Could add warning here in future, but for now just infer best type
-                end
+                # unless Types.compatible?(arg_type, expected_type)
+                # Could add warning here in future, but for now just infer best type
+                # end
               end
             end
 

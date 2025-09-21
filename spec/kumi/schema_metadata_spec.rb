@@ -222,7 +222,10 @@ RSpec.describe Kumi::SchemaMetadata do
 
         schema do
           input do
-            hash :config, key: { type: :string }, val: { type: :any }
+            hash :config do
+              string :key
+              string :val
+            end
             array :items, elem: { type: :float }
           end
 
@@ -240,7 +243,7 @@ RSpec.describe Kumi::SchemaMetadata do
       metadata = complex_schema.schema_metadata
 
       expect(metadata.inputs[:config]).to include(type: :hash)
-      expect(metadata.inputs[:items]).to include(type: :array)
+      expect(metadata.inputs[:items]).to include(type: "array<float>")
     end
 
     it "extracts function calls from expressions" do

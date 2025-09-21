@@ -32,7 +32,7 @@ functions:
   - id: core.mod
     kind: elementwise
     params:
-      - { name: left_operand, dtype: integer }
-      - { name: right_operand, dtype: integer }
-    dtype: "integer"
+      - { name: left_operand}
+      - { name: right_operand}
+    dtype: "promote(left_operand,right_operand)"
     aliases: ["mod", "modulo", "%"]

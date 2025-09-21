@@ -2,3 +2,7 @@ kernels:
   - id: abs:ruby:v1
     fn: core.abs
     inline: "= $0.abs"
+  - id: mod.ruby:v1
+    fn: core.mod
+    inline: "= $0 % $1"
+  

@@ -59,6 +59,8 @@ module Kumi
                 end
                 write "end\n"
 
+                return unless decl_names.size > 1
+
                 write "def [](name)"
                 indented do
                   write "case name"

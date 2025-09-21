@@ -38,9 +38,11 @@ module Kumi
               attrs["inline"] = inline if inline
               attrs["fold_inline"] = fold_inline if fold_inline
 
-              if function.reduce?
+              # TODO: Make this logic clear, we are mixing reducers functions that works over scalars collections and eachwise, this is confusing.
+              if function.reduce? && opcode != :Fold
                 case function.reduction_strategy
                 when :identity
+
                   identity = registry.kernel_identity_for(fn_id, dtype: dtype, target: target_sym)
                   attrs["identity"] = identity if identity
                 when :first_element

@@ -118,7 +118,7 @@ module Kumi
               arg_meta = visited_arg[:meta]
               arg_type = arg_meta[:stamp][:dtype]
 
-              if Kumi::Core::Types.tuple?(arg_type)
+              if Kumi::Core::Types.collection?(arg_type)
                 # --- Path for FOLD (Scalar or Vectorized) ---w
                 # The argument is semantically a tuple. Create a Fold node.
 

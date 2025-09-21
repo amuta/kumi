@@ -92,7 +92,7 @@ module Kumi
               raise
             end
 
-            over_collection = arg_types.all? { |dtype| Types.collection?(dtype) }
+            over_collection = arg_types.size == 1 && Types.collection?(arg_types[0])
             result_scope = compute_result_scope(function_spec, arg_scopes, over_collection)
 
             @metadata_table[node_id(call)] = {
