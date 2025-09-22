@@ -74,7 +74,7 @@ module Kumi
             begin
               func = @registry.function(node.fn_name)
             rescue StandardError
-              puts "MISSING_FUNCTION: #{node.fn_name.inspect}"
+              # puts "MISSING_FUNCTION: #{node.fn_name.inspect}"
               raise
             end
 

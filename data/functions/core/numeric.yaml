@@ -1,6 +1,0 @@
-functions:
-  - id: core.abs
-    kind: elementwise
-    params: [{ name: number }]
-    dtype: "same_as(number)"
-    aliases: ["abs"]

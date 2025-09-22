@@ -1,0 +1,20 @@
+schema do
+  input do
+    hash :config do
+      string :app_name
+      array :feature_flags do
+        element :string, :flag_name
+      end
+      array :servers do
+        string :hostname
+        integer :port
+      end
+    end
+  end
+
+  value :app_name, input.config.app_name
+  value :all_flags, input.config.feature_flags
+  value :server_hostnames, input.config.servers.hostname
+  value :server_count, fn(:size, input.config.servers)
+  value :total_ports, fn(:sum, input.config.servers.port)
+end

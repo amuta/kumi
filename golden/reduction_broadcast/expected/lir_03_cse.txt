@@ -39,7 +39,7 @@
       end_loop
       %t39 = acc_load %acc36 :: integer
       %t45 = acc_load %acc42 :: integer
-      %t24 = call core.div(%t39, %t45) :: integer
+      %t24 = call core.div(%t39, %t45) :: float
       yield %t24
     end_loop
   )
@@ -57,7 +57,7 @@
       end_loop
       %t55 = acc_load %acc52 :: integer
       %t61 = acc_load %acc58 :: integer
-      %t49 = call core.div(%t55, %t61) :: integer
+      %t49 = call core.div(%t55, %t61) :: float
       loop teams id=L7 in %t28 as el=%teams_el_29, idx=%teams_i_30
         %t31 = load_field teams_el_29["headcount"] :: integer
         %t33 = call core.gt(%t31, %t49) :: boolean

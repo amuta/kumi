@@ -15,4 +15,11 @@ functions:
     dtype: "element_of(collection)"
     aliases: ["at", "get", "[]"]
     folding_class_method: at
-  
+
+  - id: core.hash_fetch
+    kind: elementwise
+    params: 
+      - { name: key, dtype: hash }
+    dtype: "value_of(key)" # TODO, we can calculate,
+    aliases: ["fetch"]
+    folding_class_method: "[]"

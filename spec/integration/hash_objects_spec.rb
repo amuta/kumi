@@ -96,8 +96,8 @@ RSpec.describe "Hash Objects Integration" do
             end
           end
 
-          value :order_summary, fn(:concat, input.order.id, " for ", input.order.customer.name)
-          value :shipping_info, fn(:concat, input.order.shipping.city, " - ", input.order.shipping.address)
+          value :order_summary, fn(:join, [input.order.id, " for ", input.order.customer.name])
+          value :shipping_info, fn(:join, [input.order.shipping.city, " - ", input.order.shipping.address])
         end
       end
 

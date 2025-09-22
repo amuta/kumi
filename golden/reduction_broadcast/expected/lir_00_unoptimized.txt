@@ -30,7 +30,7 @@
     loop departments id=L5 in %t19 as el=%departments_el_20, idx=%departments_i_21
       %t22 = load_decl dept_headcount axes=[departments] :: integer
       %t23 = load_decl teams_per_dept axes=[departments] :: integer
-      %t24 = call core.div(%t22, %t23) :: integer
+      %t24 = call core.div(%t22, %t23) :: float
       yield %t24
     end_loop
   )
@@ -40,7 +40,7 @@
       %t28 = load_field departments_el_26["teams"] :: array
       loop teams id=L7 in %t28 as el=%teams_el_29, idx=%teams_i_30
         %t31 = load_field teams_el_29["headcount"] :: integer
-        %t32 = load_decl avg_headcount_per_dept axes=[departments] :: integer
+        %t32 = load_decl avg_headcount_per_dept axes=[departments] :: float
         %t33 = call core.gt(%t31, %t32) :: boolean
         yield %t33
       end_loop

@@ -1,0 +1,25 @@
+input do
+  string :primary_color
+  string :secondary_color
+  integer :font_size, domain: 8..72
+  boolean :dark_mode
+end
+
+trait :is_dark_mode, input.dark_mode, :==, true
+
+value :accent_color do
+  on is_dark_mode, fn(:join,[input.primary_color, "-light"])
+  base fn(:join,[input.primary_color, "-dark"])
+end
+
+value :text_color do
+  on is_dark_mode, "#ffffff"
+  base "#000000"
+end
+
+value :css_vars, fn(:join, [
+                      "--primary: ", input.primary_color, "; ",
+                      "--accent: ", accent_color, "; ",
+                      "--text: ", text_color, "; ",
+                      "--font-size: ", input.font_size, "px;"
+                    ])

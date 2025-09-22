@@ -1,0 +1,16 @@
+input do
+  integer :base_value, domain: 1..100
+  integer :multiplier, domain: 1..10
+  string :label
+end
+
+value :computed_value, fn(:multiply, input.base_value, input.multiplier)
+value :display_text, fn(:join, [input.label, ": ", computed_value])
+value :independent_value, fn(:add, input.base_value, 10)
+
+trait :high_value, fn(:>, computed_value, 50)
+
+value :status do
+  on high_value, "HIGH"
+  base "LOW"
+end

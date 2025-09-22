@@ -12,7 +12,7 @@ module Kumi
         end
 
         def self.hash(key_type, val_type)
-          raise ArgumentError, "Invalizsssss cd hash key type: #{key_type}" unless Validator.valid_type?(key_type)
+          raise ArgumentError, "Invalid hash key type: #{key_type}" unless Validator.valid_type?(key_type)
           raise ArgumentError, "Invalid hash value type: #{val_type}" unless Validator.valid_type?(val_type)
 
           :hash

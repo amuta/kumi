@@ -1,0 +1,21 @@
+(NAST
+  (VALUE app_name
+    (InputRef [:config, :app_name])
+  )
+  (VALUE all_flags
+    (InputRef [:config, :feature_flags])
+  )
+  (VALUE server_hostnames
+    (InputRef [:config, :servers, :hostname])
+  )
+  (VALUE server_count
+    (Call :"core.length"
+    (InputRef [:config, :servers])
+  )
+  )
+  (VALUE total_ports
+    (Call :"agg.sum"
+    (InputRef [:config, :servers, :port])
+  )
+  )
+)

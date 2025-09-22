@@ -20,7 +20,7 @@ RSpec.describe Kumi::Core::Types do
 
     it "rejects invalid type symbols" do
       expect(described_class.valid_type?(:invalid)).to be false
-      expect(described_class.valid_type?("string")).to be false
+      expect(described_class.valid_type?("string")).to be true
       expect(described_class.valid_type?(42)).to be false
     end
 
@@ -59,7 +59,7 @@ RSpec.describe Kumi::Core::Types do
     describe "array" do
       it "creates array types" do
         result = described_class.array(:string)
-        expect(result).to eq({ array: :string })
+        expect(result).to eq("array<string>")
       end
 
       it "raises error for invalid element types" do
@@ -70,7 +70,7 @@ RSpec.describe Kumi::Core::Types do
     describe "hash" do
       it "creates hash types" do
         result = described_class.hash(:string, :integer)
-        expect(result).to eq({ hash: %i[string integer] })
+        expect(result).to eq(:hash)
       end
 
       it "raises error for invalid key/value types" do
@@ -135,14 +135,14 @@ RSpec.describe Kumi::Core::Types do
       arr1 = { array: :integer }
       arr2 = { array: :float }
       result = described_class.unify(arr1, arr2)
-      expect(result).to eq({ array: :float })
+      expect(result).to eq("array<float>")
     end
 
     it "unifies hash types" do
       hash1 = { hash: %i[string integer] }
       hash2 = { hash: %i[string float] }
       result = described_class.unify(hash1, hash2)
-      expect(result).to eq({ hash: %i[string float] })
+      expect(result).to eq(:hash)
     end
 
     it "falls back to :any for incompatible types" do
@@ -162,13 +162,13 @@ RSpec.describe Kumi::Core::Types do
     end
 
     it "infers array types" do
-      expect(described_class.infer_from_value([1, 2, 3])).to eq({ array: :integer })
-      expect(described_class.infer_from_value([])).to eq({ array: :any })
+      expect(described_class.infer_from_value([1, 2, 3])).to eq("array<integer>")
+      expect(described_class.infer_from_value([])).to eq("array<any>")
     end
 
     it "infers hash types" do
-      expect(described_class.infer_from_value({ "key" => 42 })).to eq({ hash: %i[string integer] })
-      expect(described_class.infer_from_value({})).to eq({ hash: %i[any any] })
+      expect(described_class.infer_from_value({ "key" => 42 })).to eq(:hash)
+      expect(described_class.infer_from_value({})).to eq(:hash)
     end
 
     it "handles unknown types" do

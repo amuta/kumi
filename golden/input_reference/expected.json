@@ -1,0 +1,7 @@
+{
+    "app_name": "MyApp",
+    "all_flags": ["dark_mode", "beta_features", "analytics"],
+    "server_hostnames": ["web-01", "web-02", "api-01"],
+    "server_count": 3,
+    "total_ports": 19161
+}

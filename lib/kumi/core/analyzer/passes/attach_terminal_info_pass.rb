@@ -39,15 +39,26 @@ module Kumi
 
               steps = Array(plan.navigation_steps)
               # find last array_loop in steps
-              last_array_ix = steps.rindex { |s| s[:kind].to_s == "array_loop" } || -1
-              tail = steps[(last_array_ix + 1)..] || []
+              loop_indexes = steps.each_index.select { |i| steps[i][:kind].to_s == "array_loop" }
+              *loops_idxs, last_loop_idx = loop_indexes
+              b_last_loop_idx = loops_idxs.last || 0
+              last_idx = steps.size - 1
+
+              finish_at_loop = last_loop_idx == last_idx
+
+              # If the last is not a loop, we cound from the last loop
+              tail = steps[b_last_loop_idx..last_idx] if finish_at_loop
+              tail ||= steps[last_loop_idx..last_idx]
 
               # property keys after the last loop
-              keys = tail.select { |s| s[:kind].to_s == "property_access" }
+              keys = tail.select { |s| s[:kind] == "property_access" }
                          .map { |s| s[:key].to_sym }
 
               # element access present in the tail?
               element = tail.any? { |s| s[:kind].to_s == "element_access" }
+
+              # TODO: See a beter way...
+              keys << tail.last[:key].to_sym if tail.last[:key] && finish_at_loop && !element
 
               # sanity: no property access after element access
               raise "invalid plan: property_access after element_access for #{plan.path_fqn}" if element && keys.any?

@@ -1,0 +1,42 @@
+(Root
+  inputs: [
+    (InputDeclaration :config :hash access_mode: :field
+      [
+        (InputDeclaration :app_name :string)
+        (InputDeclaration :feature_flags :array access_mode: :element
+          [
+            (InputDeclaration :flag_name :string)
+          ]
+        )
+        (InputDeclaration :servers :array access_mode: :field
+          [
+            (InputDeclaration :hostname :string)
+            (InputDeclaration :port :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :app_name
+      (InputElementReference config.app_name)
+    )
+    (ValueDeclaration :all_flags
+      (InputElementReference config.feature_flags)
+    )
+    (ValueDeclaration :server_hostnames
+      (InputElementReference config.servers.hostname)
+    )
+    (ValueDeclaration :server_count
+      (CallExpression :size
+        (InputElementReference config.servers)
+      )
+    )
+    (ValueDeclaration :total_ports
+      (CallExpression :sum
+        (InputElementReference config.servers.port)
+      )
+    )
+  ]
+  traits: []
+)

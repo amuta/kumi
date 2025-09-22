@@ -36,7 +36,7 @@ module Kumi
               end
 
               def emit_class_methods(decl_names)
-                write "def self.from(input_data=nil)"
+                write "def self.from(input_data = nil)"
                 indented do
                   write "instance = Object.new"
                   write "instance.extend(self)"
@@ -55,11 +55,12 @@ module Kumi
 
                 write "def update(input_data)"
                 indented do
-                  write "@input = input_data"
+                  write "@input = @input.merge(input_data)"
+                  write "self"
                 end
                 write "end\n"
 
-                return unless decl_names.size > 1
+                return unless decl_names.size >= 1
 
                 write "def [](name)"
                 indented do

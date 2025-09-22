@@ -122,7 +122,7 @@ RSpec.describe "Kumi Compiler Integration" do
         # === values THAT COMBINE MULTIPLE DATA SOURCES ===
         # These show how values can reference both raw fields and computed traits
 
-        value :welcome_message, fn(:concat, [
+        value :welcome_message, fn(:join, [
                                      "Hello ",
                                      input.name,
                                      ", you are a ",

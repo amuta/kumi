@@ -3,7 +3,7 @@ functions:
     kind: elementwise
     params: [{ name: left_string }, { name: right_string }]
     dtype: "string"
-    aliases: ["concat", "join"]
+    aliases: ["concat"]
 
   - id: core.upcase
     kind: elementwise

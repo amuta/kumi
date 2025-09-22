@@ -1,0 +1,11 @@
+{
+    "config": {
+        "app_name": "MyApp",
+        "feature_flags": ["dark_mode", "beta_features", "analytics"],
+        "servers": [
+          { "hostname": "web-01", "port": 8080 },
+          { "hostname": "web-02", "port": 8081 },
+          { "hostname": "api-01", "port": 3000 }
+        ]
+      }
+}

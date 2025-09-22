@@ -1,0 +1,8 @@
+functions:
+  - id: agg.join
+    kind: reduce
+    params: [{ name: source_value, dtype: string }]
+    dtype: "string"
+    reduction_strategy: first_element
+    aliases: ["join"]
+    

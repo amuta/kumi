@@ -49,7 +49,7 @@ module Kumi
               ops.reverse_each.with_index do |ins, i|
                 original_index = ops.size - 1 - i
                 debug "\n[DCE] [#{original_index}] Processing: #{ins.inspect}"
-                debug "[DCE]   Live set before: #{live.to_a.sort.inspect}"
+                # debug "[DCE]   Live set before: #{live.to_a.sort.inspect}"
 
                 is_side_effect = ins.side_effect?
                 result_in_live = ins.result_register && live.include?(ins.result_register)
@@ -74,7 +74,7 @@ module Kumi
                     live.add(input)
                     debug "[DCE]     + Adding used reg to live set: #{input}"
                   end
-                  debug "[DCE]   Live set after:  #{live.to_a.sort.inspect}"
+                  # debug "[DCE]   Live set after:  #{live.to_a.sort.inspect}"
                 else
                   debug "[DCE]   -> DROPPING (Reason: no side effect and result #{ins.result_register || 'n/a'} is not live)"
                 end

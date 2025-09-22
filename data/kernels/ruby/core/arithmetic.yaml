@@ -1,4 +1,12 @@
 kernels:
+  - id: abs:ruby:v1
+    fn: core.abs
+    inline: "= $0.abs"
+  
+  - id: mod.ruby:v1
+    fn: core.mod
+    inline: "= $0 % $1"
+  
   - id: add:ruby:v1
     fn: core.add
     inline: "= $0 + $1"
@@ -21,5 +29,5 @@ kernels:
 
   - id: div:ruby:v1
     fn: core.div
-    inline: "= $0 / $1"
-    impl: "(a, b)\n  a / b"
+    inline: "= $0 / $1.to_f"
+    impl: "(a, b)\n  a / b.to_f"

@@ -201,8 +201,25 @@ module Kumi
                 # Root-scoped access (no open loops).
                 if keys.empty?
                   # Whole-root access; load the plan head key with the node's dtype.
-                  head = plan_for_fqn(ir_fqn(n)).source_path.first.to_sym
-                  return Build.load_input(key: head, dtype: dtype_of(n), ids: @ids).tap { @ops << _1 }.result_register
+                  plan = plan_for_fqn(ir_fqn(n))
+                  steps    = Array(plan.navigation_steps).map { |h| h.transform_keys(&:to_sym) }
+                  loop_ix  = steps.each_index.find { |i| steps[i][:kind].to_s == "array_loop" }
+
+                  first, *mid, last = steps[..loop_ix].map { _1[:key].to_sym }
+                  only_first = mid.empty? && !last
+                  first_dtype = only_first ? :array : :hash
+
+                  reg = Build.load_input(key: first, dtype: first_dtype, ids: @ids).tap { @ops << _1 }.result_register
+
+                  mid.each do |key|
+                    reg = Build.load_field(object_register: reg, key: key,
+                                           dtype: :hash, ids: @ids).tap { @ops << _1 }.result_register
+                  end
+
+                  reg ||= Build.load_field(object_register: reg, key: last,
+                                           dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+
+                  return reg
                 end
 
                 head_dtype = (keys.length == 1 ? dtype_of(n) : :hash)
@@ -267,10 +284,26 @@ module Kumi
 
                 coll =
                   if i == 0 && base == 0
-                    # First axis overall: load from root (prefer explicit key, else source_path head).
-                    key = steps[cur_loopi][:key]
-                    Build.load_input(key: (key ? key.to_sym : plan.source_path.first.to_sym),
-                                     dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+                    # TODO: This SHOULD NOT BE HERE.
+                    # But this is getting too complex...
+                    # it seems simple but the access plans are very hard to get right
+                    first, *mid, last = steps[..cur_loopi].map { _1[:key].to_sym }
+                    only_first = mid.empty? && !last
+                    first_dtype = only_first ? :array : :hash
+
+                    reg = Build.load_input(key: first, dtype: first_dtype, ids: @ids).tap { @ops << _1 }.result_register
+
+                    mid.each do |key|
+                      reg = Build.load_field(object_register: reg, key: key,
+                                             dtype: :hash, ids: @ids).tap { @ops << _1 }.result_register
+                    end
+
+                    if last
+                      reg = Build.load_field(object_register: reg, key: last,
+                                             dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+                    end
+
+                    reg
                   else
                     # Walk any property_access between previous loop and current loop.
                     prev_axis = target_axes[i - 1]

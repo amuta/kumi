@@ -13,12 +13,12 @@
     (Call :core.div
       (Ref dept_headcount) :: [departments] -> integer
       (Ref teams_per_dept) :: [departments] -> integer
-    ) :: [departments] -> integer
-  ) :: [departments] -> integer
+    ) :: [departments] -> float
+  ) :: [departments] -> float
   (TRAIT is_above_average_team
     (Call :core.gt
       (InputRef departments.teams.headcount key_chain=[headcount]) :: [departments, teams] -> integer
-      (Ref avg_headcount_per_dept) :: [departments] -> integer
+      (Ref avg_headcount_per_dept) :: [departments] -> float
     ) :: [departments, teams] -> boolean
   ) :: [departments, teams] -> boolean
 )
