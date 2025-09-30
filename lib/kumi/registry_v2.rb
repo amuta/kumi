@@ -6,8 +6,8 @@ require_relative "registry_v2/loader" # Assuming loader is in a sub-file
 
 module Kumi
   module RegistryV2
-    DEFAULT_FUNCTIONS_DIR = "data/functions"
-    DEFAULT_KERNELS_DIR = "data/kernels"
+    DEFAULT_FUNCTIONS_DIR = File.expand_path("../../data/functions", __dir__)
+    DEFAULT_KERNELS_DIR = File.expand_path("../../data/kernels", __dir__)
     SELECT_ID = "__select__"
 
     # --- NEW: Define the Function struct ---
