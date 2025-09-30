@@ -72,7 +72,8 @@ module Kumi
 
           def normalize_call_expression(node, errors)
             begin
-              func = @registry.function(node.fn_name)
+              fn_name = FnAliases::MAP[node.fn_name] || node.fn_name
+              func = @registry.function(fn_name)
             rescue StandardError
               # puts "MISSING_FUNCTION: #{node.fn_name.inspect}"
               raise
