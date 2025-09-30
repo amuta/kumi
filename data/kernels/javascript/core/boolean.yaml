@@ -1,0 +1,12 @@
+kernels:
+  - id: not:javascript:v1
+    fn: core.not
+    inline: "= !$0"
+
+  - id: and:javascript:v1
+    fn: core.and
+    inline: "= $0 && $1"
+
+  - id: or:javascript:v1
+    fn: core.or
+    inline: "= $0 || $1"

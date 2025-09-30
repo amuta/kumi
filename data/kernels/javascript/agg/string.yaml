@@ -1,0 +1,5 @@
+kernels:
+  - id: agg.join:javascript:v1
+    fn: agg.join
+    inline: "+= $1"
+    fold_inline: "= $0.join('')"

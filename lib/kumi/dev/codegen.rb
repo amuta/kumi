@@ -112,7 +112,7 @@ module Kumi
 
         code = result.state[:ruby_codegen_files]["codegen.rb"]
 
-        File.write("#{output_dir}/generated_code.rb", ruby_code)
+        File.write("#{output_dir}/schema_ruby.rb", ruby_code)
         puts "  ✓ Ruby code generated"
 
         ruby_code
@@ -120,7 +120,7 @@ module Kumi
 
       def test_schema!(schema_name)
         output_dir = "codegen/#{schema_name}"
-        generated_file = "#{output_dir}/generated_code.rb"
+        generated_file = "#{output_dir}/schema_ruby.rb"
         input_file = find_test_input(schema_name)
         expected_file = find_expected_output(schema_name)
 

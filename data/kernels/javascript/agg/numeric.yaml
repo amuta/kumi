@@ -1,0 +1,27 @@
+kernels:
+  - id: agg.sum:javascript:v1
+    fn: agg.sum
+    inline: "+= $1"
+    fold_inline: "= $0.reduce((a, b) => a + b, 0)"
+    identity:
+      float: 0.0
+      integer: 0
+
+  - id: agg.count:javascript:v1
+    fn: agg.count
+    inline: "+= 1"
+    fold_inline: "= $0.length"
+    identity:
+      any: 0
+
+  - id: agg.min:javascript:v1
+    fn: agg.min
+    # Handles first element being null/undefined
+    inline: "= ($0 === null || $1 < $0) ? $1 : $0"
+    fold_inline: "= Math.min(...$0)"
+
+  - id: agg.max:javascript:v1
+    fn: agg.max
+    # Handles first element being null/undefined
+    inline: "= ($0 === null || $1 > $0) ? $1 : $0"
+    fold_inline: "= Math.max(...$0)"

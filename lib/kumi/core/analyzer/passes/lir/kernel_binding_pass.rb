@@ -13,8 +13,12 @@ module Kumi
               registry = get_state(:registry)
 
               # Generate binding manifest from the final LIR
-              target_backend = :ruby # Or get from config
-              manifest = Binder.bind(lir_decls, registry, target: target_backend)
+              manifest_ruby = Binder.bind(lir_decls, registry, target: :ruby)
+              manifest_js = Binder.bind(lir_decls, registry, target: :javascript)
+              manifest = {
+                ruby: manifest_ruby,
+                javascript: manifest_js
+              }
 
               state.with(:binding_manifest, manifest)
             end

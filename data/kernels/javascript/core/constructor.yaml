@@ -1,0 +1,4 @@
+kernels:
+  - id: length:javascript:v1
+    fn: core.length
+    inline: "= $0.length"

@@ -30,16 +30,6 @@ module Kumi
           )
       end
       alias eql? ==
-
-      def hash
-        values = if respond_to?(:members)
-                   members.map { |m| self[m] }
-                 else
-                   instance_variables.reject { |iv| iv == :@loc }
-                                     .map { |iv| instance_variable_get(iv) }
-                 end
-        [self.class, *values].hash
-      end
     end
   end
 end

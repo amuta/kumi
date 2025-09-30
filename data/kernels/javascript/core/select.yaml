@@ -1,0 +1,7 @@
+kernels:
+  - id: select:javascript:v1
+    fn: __select__
+    # The ternary operator is identical in Ruby and JS, so an inline template
+    # isn't strictly necessary as the LIR `select` op can generate it directly.
+    # But for completeness, an `impl` would be:
+    impl: "(condition, true_val, false_val) => condition ? true_val : false_val"

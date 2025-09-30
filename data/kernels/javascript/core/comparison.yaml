@@ -1,0 +1,24 @@
+kernels:
+  - id: eq:javascript:v1
+    fn: core.eq
+    inline: "= $0 == $1"
+
+  - id: gt:javascript:v1
+    fn: core.gt
+    inline: "= $0 > $1"
+
+  - id: lt:javascript:v1
+    fn: core.lt
+    inline: "= $0 < $1"
+
+  - id: lte:javascript:v1
+    fn: core.lte
+    inline: "= $0 <= $1"
+
+  - id: gte:javascript:v1
+    fn: core.gte
+    inline: "= $0 >= $1"
+
+  - id: neq:javascript:v1
+    fn: core.neq
+    inline: "= $0 != $1"

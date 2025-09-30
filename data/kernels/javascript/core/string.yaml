@@ -1,0 +1,12 @@
+kernels:
+  - id: concat:javascript:v1
+    fn: core.concat
+    inline: "= String($0) + String($1)"
+
+  - id: upcase:javascript:v1
+    fn: core.upcase
+    inline: "= $0.toUpperCase()"
+
+  - id: downcase:javascript:v1
+    fn: core.downcase
+    inline: "= $0.toLowerCase()"

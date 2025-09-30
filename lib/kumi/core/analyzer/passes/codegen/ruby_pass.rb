@@ -12,7 +12,7 @@ module Kumi
 
             def run(_errors)
               decls = get_state(:lir_module)
-              manifest = get_state(:binding_manifest)
+              manifest = get_state(:binding_manifest)[:ruby]
               schema_digest = get_state(:schema_digest)
               # The codegen pass no longer needs direct access to the registry
               emitter = Codegen::Ruby::Emitter.new(manifest["kernels"], manifest["bindings"])

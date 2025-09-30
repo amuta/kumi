@@ -169,12 +169,20 @@ module Kumi
         Printer::WidthAwareJson.dump(res.state[:binding_manifest])
       end
 
-      def generate_generated_code(path)
+      def generate_schema_ruby(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
         return nil unless res.state[:ruby_codegen_files]
 
         res.state[:ruby_codegen_files]["codegen.rb"]
+      end
+
+      def generate_schema_javascript(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        return nil unless res.state[:javascript_codegen_files]
+
+        res.state[:javascript_codegen_files]["codegen.js"]
       end
 
       def generate_planning(path)

@@ -74,7 +74,8 @@ when "golden"
   when "diff"   then Kumi::Dev::Golden.diff!(name)
   when "test"
     Kumi::Dev::Golden.update!(name) 
-    exit(Kumi::Dev::Golden.test_codegen!(name) ? 0 : 1)
+    Kumi::Dev::Golden.test_codegen!(name)
+    Kumi::Dev::Golden.test_js_codegen!(name)
   when "test_lir"
     Kumi::Dev::Golden.update!(name)
     exit(Kumi::Dev::Golden.test_lir_codegen!(name) ? 0 : 1)

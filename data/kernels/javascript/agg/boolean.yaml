@@ -1,0 +1,12 @@
+kernels:
+  - id: any:javascript:v1
+    fn: agg.any
+    inline: "= $0 || $1"
+    identity:
+      boolean: false
+
+  - id: all:javascript:v1
+    fn: agg.all
+    inline: "= $0 && $1"
+    identity:
+      boolean: true

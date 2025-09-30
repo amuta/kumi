@@ -1,0 +1,28 @@
+kernels:
+  - id: abs:javascript:v1
+    fn: core.abs
+    inline: "= Math.abs($0)"
+
+  - id: mod:javascript:v1
+    fn: core.mod
+    inline: "= $0 % $1"
+
+  - id: add:javascript:v1
+    fn: core.add
+    inline: "= $0 + $1"
+
+  - id: sub:javascript:v1
+    fn: core.sub
+    inline: "= $0 - $1"
+
+  - id: mul:javascript:v1
+    fn: core.mul
+    inline: "= $0 * $1"
+
+  - id: pow:javascript:v1
+    fn: core.pow
+    inline: "= Math.pow($0, $1)"
+
+  - id: div:javascript:v1
+    fn: core.div
+    inline: "= $0 / $1"
