@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "zeitwerk"
+require "mutex_m"
 # require "pry" # COMMENT AFTER DEBUGGING
 
 loader = Zeitwerk::Loader.for_gem
