@@ -10,7 +10,7 @@
     yield %t4
   )
   (Declaration server_hostnames
-    %t5 = load_field ["config"] :: any
+    %t5 = load_input "config" :: array
     %t6 = load_field t5["servers"] :: any
     loop servers id=L1 in %t6 as el=%servers_el_7, idx=%servers_i_8
       %t9 = load_field servers_el_7["hostname"] :: string
@@ -25,7 +25,7 @@
   )
   (Declaration total_ports
     %acc_13 = decl_acc :: integer
-    %t14 = load_field ["config"] :: any
+    %t14 = load_input "config" :: array
     %t15 = load_field t14["servers"] :: any
     loop servers id=L2 in %t15 as el=%servers_el_16, idx=%servers_i_17
       %t18 = load_field servers_el_16["port"] :: integer

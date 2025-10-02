@@ -39,22 +39,28 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
   def _shift_cols_right_zero(input = @input)
     out = []
     t1 = input["rows"] || input[:rows]
-    t8 = 1
-    t10 = 0
+    t7 = t1.length
+    t14 = 1
+    t16 = 0
     t1.each_with_index do |rows_el_2, rows_i_3|
       out_1 = []
       t4 = rows_el_2["col"] || rows_el_2[:col]
-      t7 = t4.length
-      t15 = t7 - t8
+      t8 = rows_i_3 % t7
+      t9 = t8 + t7
+      t10 = t9 % t7
+      t11 = t1[t10]
+      t12 = t11["col"] || t11[:col]
+      t13 = t12.length
+      t21 = t13 - t14
       t4.each_with_index do |col_el_5, col_i_6|
-        t9 = col_i_6 - t8
-        t11 = t9 >= t10
-        t12 = t9 < t7
-        t13 = t11 && t12
-        t17 = [[ t9, t10 ].max, t15 ].min
-        t18 = t4[t17]
-        t20 = t13 ? t18 : t10
-        out_1 << t20
+        t15 = col_i_6 - t14
+        t17 = t15 >= t16
+        t18 = t15 < t13
+        t19 = t17 && t18
+        t23 = [[ t15, t16 ].max, t21 ].min
+        t24 = t12[t23]
+        t26 = t19 ? t24 : t16
+        out_1 << t26
       end
       out << out_1
     end
@@ -63,19 +69,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_cols_right_clamp(input = @input)
     out = []
-    t21 = input["rows"] || input[:rows]
-    t28 = 1
-    t32 = 0
-    t21.each_with_index do |rows_el_22, rows_i_23|
+    t27 = input["rows"] || input[:rows]
+    t33 = t27.length
+    t40 = 1
+    t44 = 0
+    t27.each_with_index do |rows_el_28, rows_i_29|
       out_1 = []
-      t24 = rows_el_22["col"] || rows_el_22[:col]
-      t27 = t24.length
-      t31 = t27 - t28
-      t24.each_with_index do |col_el_25, col_i_26|
-        t29 = col_i_26 - t28
-        t33 = [[ t29, t32 ].max, t31 ].min
-        t34 = t24[t33]
-        out_1 << t34
+      t30 = rows_el_28["col"] || rows_el_28[:col]
+      t34 = rows_i_29 % t33
+      t35 = t34 + t33
+      t36 = t35 % t33
+      t37 = t27[t36]
+      t38 = t37["col"] || t37[:col]
+      t39 = t38.length
+      t43 = t39 - t40
+      t30.each_with_index do |col_el_31, col_i_32|
+        t41 = col_i_32 - t40
+        t45 = [[ t41, t44 ].max, t43 ].min
+        t46 = t38[t45]
+        out_1 << t46
       end
       out << out_1
     end
@@ -84,19 +96,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_cols_right_wrap(input = @input)
     out = []
-    t35 = input["rows"] || input[:rows]
-    t42 = 1
-    t35.each_with_index do |rows_el_36, rows_i_37|
+    t47 = input["rows"] || input[:rows]
+    t53 = t47.length
+    t60 = 1
+    t47.each_with_index do |rows_el_48, rows_i_49|
       out_1 = []
-      t38 = rows_el_36["col"] || rows_el_36[:col]
-      t41 = t38.length
-      t38.each_with_index do |col_el_39, col_i_40|
-        t43 = col_i_40 - t42
-        t44 = t43 % t41
-        t45 = t44 + t41
-        t46 = t45 % t41
-        t47 = t38[t46]
-        out_1 << t47
+      t50 = rows_el_48["col"] || rows_el_48[:col]
+      t54 = rows_i_49 % t53
+      t55 = t54 + t53
+      t56 = t55 % t53
+      t57 = t47[t56]
+      t58 = t57["col"] || t57[:col]
+      t59 = t58.length
+      t50.each_with_index do |col_el_51, col_i_52|
+        t61 = col_i_52 - t60
+        t62 = t61 % t59
+        t63 = t62 + t59
+        t64 = t63 % t59
+        t65 = t58[t64]
+        out_1 << t65
       end
       out << out_1
     end
@@ -105,24 +123,30 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_cols_left_zero(input = @input)
     out = []
-    t48 = input["rows"] || input[:rows]
-    t55 = -1
-    t57 = 0
-    t61 = 1
-    t48.each_with_index do |rows_el_49, rows_i_50|
+    t66 = input["rows"] || input[:rows]
+    t72 = t66.length
+    t79 = -1
+    t81 = 0
+    t85 = 1
+    t66.each_with_index do |rows_el_67, rows_i_68|
       out_1 = []
-      t51 = rows_el_49["col"] || rows_el_49[:col]
-      t54 = t51.length
-      t62 = t54 - t61
-      t51.each_with_index do |col_el_52, col_i_53|
-        t56 = col_i_53 - t55
-        t58 = t56 >= t57
-        t59 = t56 < t54
-        t60 = t58 && t59
-        t64 = [[ t56, t57 ].max, t62 ].min
-        t65 = t51[t64]
-        t67 = t60 ? t65 : t57
-        out_1 << t67
+      t69 = rows_el_67["col"] || rows_el_67[:col]
+      t73 = rows_i_68 % t72
+      t74 = t73 + t72
+      t75 = t74 % t72
+      t76 = t66[t75]
+      t77 = t76["col"] || t76[:col]
+      t78 = t77.length
+      t86 = t78 - t85
+      t69.each_with_index do |col_el_70, col_i_71|
+        t80 = col_i_71 - t79
+        t82 = t80 >= t81
+        t83 = t80 < t78
+        t84 = t82 && t83
+        t88 = [[ t80, t81 ].max, t86 ].min
+        t89 = t77[t88]
+        t91 = t84 ? t89 : t81
+        out_1 << t91
       end
       out << out_1
     end
@@ -131,20 +155,26 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_cols_left_clamp(input = @input)
     out = []
-    t68 = input["rows"] || input[:rows]
-    t75 = -1
-    t77 = 1
-    t79 = 0
-    t68.each_with_index do |rows_el_69, rows_i_70|
+    t92 = input["rows"] || input[:rows]
+    t98 = t92.length
+    t105 = -1
+    t107 = 1
+    t109 = 0
+    t92.each_with_index do |rows_el_93, rows_i_94|
       out_1 = []
-      t71 = rows_el_69["col"] || rows_el_69[:col]
-      t74 = t71.length
-      t78 = t74 - t77
-      t71.each_with_index do |col_el_72, col_i_73|
-        t76 = col_i_73 - t75
-        t80 = [[ t76, t79 ].max, t78 ].min
-        t81 = t71[t80]
-        out_1 << t81
+      t95 = rows_el_93["col"] || rows_el_93[:col]
+      t99 = rows_i_94 % t98
+      t100 = t99 + t98
+      t101 = t100 % t98
+      t102 = t92[t101]
+      t103 = t102["col"] || t102[:col]
+      t104 = t103.length
+      t108 = t104 - t107
+      t95.each_with_index do |col_el_96, col_i_97|
+        t106 = col_i_97 - t105
+        t110 = [[ t106, t109 ].max, t108 ].min
+        t111 = t103[t110]
+        out_1 << t111
       end
       out << out_1
     end
@@ -153,19 +183,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_cols_left_wrap(input = @input)
     out = []
-    t82 = input["rows"] || input[:rows]
-    t89 = -1
-    t82.each_with_index do |rows_el_83, rows_i_84|
+    t112 = input["rows"] || input[:rows]
+    t118 = t112.length
+    t125 = -1
+    t112.each_with_index do |rows_el_113, rows_i_114|
       out_1 = []
-      t85 = rows_el_83["col"] || rows_el_83[:col]
-      t88 = t85.length
-      t85.each_with_index do |col_el_86, col_i_87|
-        t90 = col_i_87 - t89
-        t91 = t90 % t88
-        t92 = t91 + t88
-        t93 = t92 % t88
-        t94 = t85[t93]
-        out_1 << t94
+      t115 = rows_el_113["col"] || rows_el_113[:col]
+      t119 = rows_i_114 % t118
+      t120 = t119 + t118
+      t121 = t120 % t118
+      t122 = t112[t121]
+      t123 = t122["col"] || t122[:col]
+      t124 = t123.length
+      t115.each_with_index do |col_el_116, col_i_117|
+        t126 = col_i_117 - t125
+        t127 = t126 % t124
+        t128 = t127 + t124
+        t129 = t128 % t124
+        t130 = t123[t129]
+        out_1 << t130
       end
       out << out_1
     end
@@ -174,28 +210,29 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_down_zero(input = @input)
     out = []
-    t95 = input["rows"] || input[:rows]
-    t101 = t95.length
-    t102 = 1
-    t104 = 0
-    t109 = t101 - t102
-    t95.each_with_index do |rows_el_96, rows_i_97|
+    t131 = input["rows"] || input[:rows]
+    t137 = t131.length
+    t138 = 1
+    t140 = 0
+    t145 = t137 - t138
+    t131.each_with_index do |rows_el_132, rows_i_133|
       out_1 = []
-      t98 = rows_el_96["col"] || rows_el_96[:col]
-      t103 = rows_i_97 - t102
-      t105 = t103 >= t104
-      t106 = t103 < t101
-      t111 = [[ t103, t104 ].max, t109 ].min
-      t107 = t105 && t106
-      t112 = t95[t111]
-      t113 = t112["col"] || t112[:col]
-      t114 = t113.length
-      t116 = t114 - t102
-      t98.each_with_index do |col_el_99, col_i_100|
-        t118 = [[ col_i_100, t104 ].max, t116 ].min
-        t119 = t113[t118]
-        t121 = t107 ? t119 : t104
-        out_1 << t121
+      t134 = rows_el_132["col"] || rows_el_132[:col]
+      t139 = rows_i_133 - t138
+      t141 = t139 >= t140
+      t142 = t139 < t137
+      t147 = [[ t139, t140 ].max, t145 ].min
+      t143 = t141 && t142
+      t148 = t131[t147]
+      t149 = t148["col"] || t148[:col]
+      t150 = t149.length
+      t134.each_with_index do |col_el_135, col_i_136|
+        t151 = col_i_136 % t150
+        t152 = t151 + t150
+        t153 = t152 % t150
+        t154 = t149[t153]
+        t156 = t143 ? t154 : t140
+        out_1 << t156
       end
       out << out_1
     end
@@ -204,24 +241,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_down_clamp(input = @input)
     out = []
-    t122 = input["rows"] || input[:rows]
-    t128 = t122.length
-    t129 = 1
-    t133 = 0
-    t132 = t128 - t129
-    t122.each_with_index do |rows_el_123, rows_i_124|
+    t157 = input["rows"] || input[:rows]
+    t163 = t157.length
+    t164 = 1
+    t168 = 0
+    t167 = t163 - t164
+    t157.each_with_index do |rows_el_158, rows_i_159|
       out_1 = []
-      t125 = rows_el_123["col"] || rows_el_123[:col]
-      t130 = rows_i_124 - t129
-      t134 = [[ t130, t133 ].max, t132 ].min
-      t135 = t122[t134]
-      t136 = t135["col"] || t135[:col]
-      t137 = t136.length
-      t139 = t137 - t129
-      t125.each_with_index do |col_el_126, col_i_127|
-        t141 = [[ col_i_127, t133 ].max, t139 ].min
-        t142 = t136[t141]
-        out_1 << t142
+      t160 = rows_el_158["col"] || rows_el_158[:col]
+      t165 = rows_i_159 - t164
+      t169 = [[ t165, t168 ].max, t167 ].min
+      t170 = t157[t169]
+      t171 = t170["col"] || t170[:col]
+      t172 = t171.length
+      t160.each_with_index do |col_el_161, col_i_162|
+        t173 = col_i_162 % t172
+        t174 = t173 + t172
+        t175 = t174 % t172
+        t176 = t171[t175]
+        out_1 << t176
       end
       out << out_1
     end
@@ -230,25 +268,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_down_wrap(input = @input)
     out = []
-    t143 = input["rows"] || input[:rows]
-    t149 = t143.length
-    t150 = 1
-    t160 = 0
-    t143.each_with_index do |rows_el_144, rows_i_145|
+    t177 = input["rows"] || input[:rows]
+    t183 = t177.length
+    t184 = 1
+    t177.each_with_index do |rows_el_178, rows_i_179|
       out_1 = []
-      t146 = rows_el_144["col"] || rows_el_144[:col]
-      t151 = rows_i_145 - t150
-      t152 = t151 % t149
-      t153 = t152 + t149
-      t154 = t153 % t149
-      t155 = t143[t154]
-      t156 = t155["col"] || t155[:col]
-      t157 = t156.length
-      t159 = t157 - t150
-      t146.each_with_index do |col_el_147, col_i_148|
-        t161 = [[ col_i_148, t160 ].max, t159 ].min
-        t162 = t156[t161]
-        out_1 << t162
+      t180 = rows_el_178["col"] || rows_el_178[:col]
+      t185 = rows_i_179 - t184
+      t186 = t185 % t183
+      t187 = t186 + t183
+      t188 = t187 % t183
+      t189 = t177[t188]
+      t190 = t189["col"] || t189[:col]
+      t191 = t190.length
+      t180.each_with_index do |col_el_181, col_i_182|
+        t192 = col_i_182 % t191
+        t193 = t192 + t191
+        t194 = t193 % t191
+        t195 = t190[t194]
+        out_1 << t195
       end
       out << out_1
     end
@@ -257,29 +295,30 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_up_zero(input = @input)
     out = []
-    t163 = input["rows"] || input[:rows]
-    t169 = t163.length
-    t170 = -1
-    t172 = 0
-    t176 = 1
-    t177 = t169 - t176
-    t163.each_with_index do |rows_el_164, rows_i_165|
+    t196 = input["rows"] || input[:rows]
+    t202 = t196.length
+    t203 = -1
+    t205 = 0
+    t209 = 1
+    t210 = t202 - t209
+    t196.each_with_index do |rows_el_197, rows_i_198|
       out_1 = []
-      t166 = rows_el_164["col"] || rows_el_164[:col]
-      t171 = rows_i_165 - t170
-      t173 = t171 >= t172
-      t174 = t171 < t169
-      t179 = [[ t171, t172 ].max, t177 ].min
-      t175 = t173 && t174
-      t180 = t163[t179]
-      t181 = t180["col"] || t180[:col]
-      t182 = t181.length
-      t184 = t182 - t176
-      t166.each_with_index do |col_el_167, col_i_168|
-        t186 = [[ col_i_168, t172 ].max, t184 ].min
-        t187 = t181[t186]
-        t189 = t175 ? t187 : t172
-        out_1 << t189
+      t199 = rows_el_197["col"] || rows_el_197[:col]
+      t204 = rows_i_198 - t203
+      t206 = t204 >= t205
+      t207 = t204 < t202
+      t212 = [[ t204, t205 ].max, t210 ].min
+      t208 = t206 && t207
+      t213 = t196[t212]
+      t214 = t213["col"] || t213[:col]
+      t215 = t214.length
+      t199.each_with_index do |col_el_200, col_i_201|
+        t216 = col_i_201 % t215
+        t217 = t216 + t215
+        t218 = t217 % t215
+        t219 = t214[t218]
+        t221 = t208 ? t219 : t205
+        out_1 << t221
       end
       out << out_1
     end
@@ -288,25 +327,26 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_up_clamp(input = @input)
     out = []
-    t190 = input["rows"] || input[:rows]
-    t196 = t190.length
-    t197 = -1
-    t199 = 1
-    t201 = 0
-    t200 = t196 - t199
-    t190.each_with_index do |rows_el_191, rows_i_192|
+    t222 = input["rows"] || input[:rows]
+    t228 = t222.length
+    t229 = -1
+    t231 = 1
+    t233 = 0
+    t232 = t228 - t231
+    t222.each_with_index do |rows_el_223, rows_i_224|
       out_1 = []
-      t193 = rows_el_191["col"] || rows_el_191[:col]
-      t198 = rows_i_192 - t197
-      t202 = [[ t198, t201 ].max, t200 ].min
-      t203 = t190[t202]
-      t204 = t203["col"] || t203[:col]
-      t205 = t204.length
-      t207 = t205 - t199
-      t193.each_with_index do |col_el_194, col_i_195|
-        t209 = [[ col_i_195, t201 ].max, t207 ].min
-        t210 = t204[t209]
-        out_1 << t210
+      t225 = rows_el_223["col"] || rows_el_223[:col]
+      t230 = rows_i_224 - t229
+      t234 = [[ t230, t233 ].max, t232 ].min
+      t235 = t222[t234]
+      t236 = t235["col"] || t235[:col]
+      t237 = t236.length
+      t225.each_with_index do |col_el_226, col_i_227|
+        t238 = col_i_227 % t237
+        t239 = t238 + t237
+        t240 = t239 % t237
+        t241 = t236[t240]
+        out_1 << t241
       end
       out << out_1
     end
@@ -315,26 +355,25 @@ module Kumi::Compiled::KUMI_6fdf019c4927ac72bbf49d09261f8162d74babc6d6f40926c197
 
   def _shift_rows_up_wrap(input = @input)
     out = []
-    t211 = input["rows"] || input[:rows]
-    t217 = t211.length
-    t218 = -1
-    t226 = 1
-    t228 = 0
-    t211.each_with_index do |rows_el_212, rows_i_213|
+    t242 = input["rows"] || input[:rows]
+    t248 = t242.length
+    t249 = -1
+    t242.each_with_index do |rows_el_243, rows_i_244|
       out_1 = []
-      t214 = rows_el_212["col"] || rows_el_212[:col]
-      t219 = rows_i_213 - t218
-      t220 = t219 % t217
-      t221 = t220 + t217
-      t222 = t221 % t217
-      t223 = t211[t222]
-      t224 = t223["col"] || t223[:col]
-      t225 = t224.length
-      t227 = t225 - t226
-      t214.each_with_index do |col_el_215, col_i_216|
-        t229 = [[ col_i_216, t228 ].max, t227 ].min
-        t230 = t224[t229]
-        out_1 << t230
+      t245 = rows_el_243["col"] || rows_el_243[:col]
+      t250 = rows_i_244 - t249
+      t251 = t250 % t248
+      t252 = t251 + t248
+      t253 = t252 % t248
+      t254 = t242[t253]
+      t255 = t254["col"] || t254[:col]
+      t256 = t255.length
+      t245.each_with_index do |col_el_246, col_i_247|
+        t257 = col_i_247 % t256
+        t258 = t257 + t256
+        t259 = t258 % t256
+        t260 = t255[t259]
+        out_1 << t260
       end
       out << out_1
     end

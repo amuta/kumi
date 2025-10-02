@@ -38,7 +38,7 @@ export class KumiCompiledModule {
 
   _server_hostnames(input = this.input) {
     let out = [];
-    let t5 = null.config;
+    let t5 = input["config"];
     let t6 = t5.servers;
     t6.forEach((servers_el_7, servers_i_8) => {
       let t9 = servers_el_7.hostname;
@@ -56,7 +56,7 @@ export class KumiCompiledModule {
 
   _total_ports(input = this.input) {
     let acc_13 = 0;
-    let t14 = null.config;
+    let t14 = input["config"];
     let t15 = t14.servers;
     t15.forEach((servers_el_16, servers_i_17) => {
       let t18 = servers_el_16.port;

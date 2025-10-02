@@ -34,22 +34,28 @@ export class KumiCompiledModule {
   _shift_cols_right_zero(input = this.input) {
     let out = [];
     let t1 = input["rows"];
-    const t8 = 1;
-    const t10 = 0;
+    let t7 = t1.length
+    const t14 = 1;
+    const t16 = 0;
     t1.forEach((rows_el_2, rows_i_3) => {
       let out_1 = [];
       let t4 = rows_el_2.col;
-      let t7 = t4.length
-      let t15 = t7 - t8;
+      let t8 = rows_i_3 % t7;
+      let t9 = t8 + t7;
+      let t10 = t9 % t7;
+      let t11 = t1[t10]
+      let t12 = t11.col;
+      let t13 = t12.length
+      let t21 = t13 - t14;
       t4.forEach((col_el_5, col_i_6) => {
-        let t9 = col_i_6 - t8;
-        let t11 = t9 >= t10;
-        let t12 = t9 < t7;
-        let t13 = t11 && t12;
-        let t17 = Math.min(Math.max(t9, t10), t15);
-        let t18 = t4[t17]
-        let t20 = t13 ? t18 : t10;
-        out_1.push(t20);
+        let t15 = col_i_6 - t14;
+        let t17 = t15 >= t16;
+        let t18 = t15 < t13;
+        let t19 = t17 && t18;
+        let t23 = Math.min(Math.max(t15, t16), t21);
+        let t24 = t12[t23]
+        let t26 = t19 ? t24 : t16;
+        out_1.push(t26);
       });
       out.push(out_1);
     });
@@ -58,19 +64,25 @@ export class KumiCompiledModule {
 
   _shift_cols_right_clamp(input = this.input) {
     let out = [];
-    let t21 = input["rows"];
-    const t28 = 1;
-    const t32 = 0;
-    t21.forEach((rows_el_22, rows_i_23) => {
+    let t27 = input["rows"];
+    let t33 = t27.length
+    const t40 = 1;
+    const t44 = 0;
+    t27.forEach((rows_el_28, rows_i_29) => {
       let out_1 = [];
-      let t24 = rows_el_22.col;
-      let t27 = t24.length
-      let t31 = t27 - t28;
-      t24.forEach((col_el_25, col_i_26) => {
-        let t29 = col_i_26 - t28;
-        let t33 = Math.min(Math.max(t29, t32), t31);
-        let t34 = t24[t33]
-        out_1.push(t34);
+      let t30 = rows_el_28.col;
+      let t34 = rows_i_29 % t33;
+      let t35 = t34 + t33;
+      let t36 = t35 % t33;
+      let t37 = t27[t36]
+      let t38 = t37.col;
+      let t39 = t38.length
+      let t43 = t39 - t40;
+      t30.forEach((col_el_31, col_i_32) => {
+        let t41 = col_i_32 - t40;
+        let t45 = Math.min(Math.max(t41, t44), t43);
+        let t46 = t38[t45]
+        out_1.push(t46);
       });
       out.push(out_1);
     });
@@ -79,19 +91,25 @@ export class KumiCompiledModule {
 
   _shift_cols_right_wrap(input = this.input) {
     let out = [];
-    let t35 = input["rows"];
-    const t42 = 1;
-    t35.forEach((rows_el_36, rows_i_37) => {
+    let t47 = input["rows"];
+    let t53 = t47.length
+    const t60 = 1;
+    t47.forEach((rows_el_48, rows_i_49) => {
       let out_1 = [];
-      let t38 = rows_el_36.col;
-      let t41 = t38.length
-      t38.forEach((col_el_39, col_i_40) => {
-        let t43 = col_i_40 - t42;
-        let t44 = t43 % t41;
-        let t45 = t44 + t41;
-        let t46 = t45 % t41;
-        let t47 = t38[t46]
-        out_1.push(t47);
+      let t50 = rows_el_48.col;
+      let t54 = rows_i_49 % t53;
+      let t55 = t54 + t53;
+      let t56 = t55 % t53;
+      let t57 = t47[t56]
+      let t58 = t57.col;
+      let t59 = t58.length
+      t50.forEach((col_el_51, col_i_52) => {
+        let t61 = col_i_52 - t60;
+        let t62 = t61 % t59;
+        let t63 = t62 + t59;
+        let t64 = t63 % t59;
+        let t65 = t58[t64]
+        out_1.push(t65);
       });
       out.push(out_1);
     });
@@ -100,24 +118,30 @@ export class KumiCompiledModule {
 
   _shift_cols_left_zero(input = this.input) {
     let out = [];
-    let t48 = input["rows"];
-    const t55 = -1;
-    const t57 = 0;
-    const t61 = 1;
-    t48.forEach((rows_el_49, rows_i_50) => {
+    let t66 = input["rows"];
+    let t72 = t66.length
+    const t79 = -1;
+    const t81 = 0;
+    const t85 = 1;
+    t66.forEach((rows_el_67, rows_i_68) => {
       let out_1 = [];
-      let t51 = rows_el_49.col;
-      let t54 = t51.length
-      let t62 = t54 - t61;
-      t51.forEach((col_el_52, col_i_53) => {
-        let t56 = col_i_53 - t55;
-        let t58 = t56 >= t57;
-        let t59 = t56 < t54;
-        let t60 = t58 && t59;
-        let t64 = Math.min(Math.max(t56, t57), t62);
-        let t65 = t51[t64]
-        let t67 = t60 ? t65 : t57;
-        out_1.push(t67);
+      let t69 = rows_el_67.col;
+      let t73 = rows_i_68 % t72;
+      let t74 = t73 + t72;
+      let t75 = t74 % t72;
+      let t76 = t66[t75]
+      let t77 = t76.col;
+      let t78 = t77.length
+      let t86 = t78 - t85;
+      t69.forEach((col_el_70, col_i_71) => {
+        let t80 = col_i_71 - t79;
+        let t82 = t80 >= t81;
+        let t83 = t80 < t78;
+        let t84 = t82 && t83;
+        let t88 = Math.min(Math.max(t80, t81), t86);
+        let t89 = t77[t88]
+        let t91 = t84 ? t89 : t81;
+        out_1.push(t91);
       });
       out.push(out_1);
     });
@@ -126,20 +150,26 @@ export class KumiCompiledModule {
 
   _shift_cols_left_clamp(input = this.input) {
     let out = [];
-    let t68 = input["rows"];
-    const t75 = -1;
-    const t77 = 1;
-    const t79 = 0;
-    t68.forEach((rows_el_69, rows_i_70) => {
+    let t92 = input["rows"];
+    let t98 = t92.length
+    const t105 = -1;
+    const t107 = 1;
+    const t109 = 0;
+    t92.forEach((rows_el_93, rows_i_94) => {
       let out_1 = [];
-      let t71 = rows_el_69.col;
-      let t74 = t71.length
-      let t78 = t74 - t77;
-      t71.forEach((col_el_72, col_i_73) => {
-        let t76 = col_i_73 - t75;
-        let t80 = Math.min(Math.max(t76, t79), t78);
-        let t81 = t71[t80]
-        out_1.push(t81);
+      let t95 = rows_el_93.col;
+      let t99 = rows_i_94 % t98;
+      let t100 = t99 + t98;
+      let t101 = t100 % t98;
+      let t102 = t92[t101]
+      let t103 = t102.col;
+      let t104 = t103.length
+      let t108 = t104 - t107;
+      t95.forEach((col_el_96, col_i_97) => {
+        let t106 = col_i_97 - t105;
+        let t110 = Math.min(Math.max(t106, t109), t108);
+        let t111 = t103[t110]
+        out_1.push(t111);
       });
       out.push(out_1);
     });
@@ -148,19 +178,25 @@ export class KumiCompiledModule {
 
   _shift_cols_left_wrap(input = this.input) {
     let out = [];
-    let t82 = input["rows"];
-    const t89 = -1;
-    t82.forEach((rows_el_83, rows_i_84) => {
+    let t112 = input["rows"];
+    let t118 = t112.length
+    const t125 = -1;
+    t112.forEach((rows_el_113, rows_i_114) => {
       let out_1 = [];
-      let t85 = rows_el_83.col;
-      let t88 = t85.length
-      t85.forEach((col_el_86, col_i_87) => {
-        let t90 = col_i_87 - t89;
-        let t91 = t90 % t88;
-        let t92 = t91 + t88;
-        let t93 = t92 % t88;
-        let t94 = t85[t93]
-        out_1.push(t94);
+      let t115 = rows_el_113.col;
+      let t119 = rows_i_114 % t118;
+      let t120 = t119 + t118;
+      let t121 = t120 % t118;
+      let t122 = t112[t121]
+      let t123 = t122.col;
+      let t124 = t123.length
+      t115.forEach((col_el_116, col_i_117) => {
+        let t126 = col_i_117 - t125;
+        let t127 = t126 % t124;
+        let t128 = t127 + t124;
+        let t129 = t128 % t124;
+        let t130 = t123[t129]
+        out_1.push(t130);
       });
       out.push(out_1);
     });
@@ -169,28 +205,29 @@ export class KumiCompiledModule {
 
   _shift_rows_down_zero(input = this.input) {
     let out = [];
-    let t95 = input["rows"];
-    let t101 = t95.length
-    const t102 = 1;
-    const t104 = 0;
-    let t109 = t101 - t102;
-    t95.forEach((rows_el_96, rows_i_97) => {
+    let t131 = input["rows"];
+    let t137 = t131.length
+    const t138 = 1;
+    const t140 = 0;
+    let t145 = t137 - t138;
+    t131.forEach((rows_el_132, rows_i_133) => {
       let out_1 = [];
-      let t98 = rows_el_96.col;
-      let t103 = rows_i_97 - t102;
-      let t105 = t103 >= t104;
-      let t106 = t103 < t101;
-      let t111 = Math.min(Math.max(t103, t104), t109);
-      let t107 = t105 && t106;
-      let t112 = t95[t111]
-      let t113 = t112.col;
-      let t114 = t113.length
-      let t116 = t114 - t102;
-      t98.forEach((col_el_99, col_i_100) => {
-        let t118 = Math.min(Math.max(col_i_100, t104), t116);
-        let t119 = t113[t118]
-        let t121 = t107 ? t119 : t104;
-        out_1.push(t121);
+      let t134 = rows_el_132.col;
+      let t139 = rows_i_133 - t138;
+      let t141 = t139 >= t140;
+      let t142 = t139 < t137;
+      let t147 = Math.min(Math.max(t139, t140), t145);
+      let t143 = t141 && t142;
+      let t148 = t131[t147]
+      let t149 = t148.col;
+      let t150 = t149.length
+      t134.forEach((col_el_135, col_i_136) => {
+        let t151 = col_i_136 % t150;
+        let t152 = t151 + t150;
+        let t153 = t152 % t150;
+        let t154 = t149[t153]
+        let t156 = t143 ? t154 : t140;
+        out_1.push(t156);
       });
       out.push(out_1);
     });
@@ -199,24 +236,25 @@ export class KumiCompiledModule {
 
   _shift_rows_down_clamp(input = this.input) {
     let out = [];
-    let t122 = input["rows"];
-    let t128 = t122.length
-    const t129 = 1;
-    const t133 = 0;
-    let t132 = t128 - t129;
-    t122.forEach((rows_el_123, rows_i_124) => {
+    let t157 = input["rows"];
+    let t163 = t157.length
+    const t164 = 1;
+    const t168 = 0;
+    let t167 = t163 - t164;
+    t157.forEach((rows_el_158, rows_i_159) => {
       let out_1 = [];
-      let t125 = rows_el_123.col;
-      let t130 = rows_i_124 - t129;
-      let t134 = Math.min(Math.max(t130, t133), t132);
-      let t135 = t122[t134]
-      let t136 = t135.col;
-      let t137 = t136.length
-      let t139 = t137 - t129;
-      t125.forEach((col_el_126, col_i_127) => {
-        let t141 = Math.min(Math.max(col_i_127, t133), t139);
-        let t142 = t136[t141]
-        out_1.push(t142);
+      let t160 = rows_el_158.col;
+      let t165 = rows_i_159 - t164;
+      let t169 = Math.min(Math.max(t165, t168), t167);
+      let t170 = t157[t169]
+      let t171 = t170.col;
+      let t172 = t171.length
+      t160.forEach((col_el_161, col_i_162) => {
+        let t173 = col_i_162 % t172;
+        let t174 = t173 + t172;
+        let t175 = t174 % t172;
+        let t176 = t171[t175]
+        out_1.push(t176);
       });
       out.push(out_1);
     });
@@ -225,25 +263,25 @@ export class KumiCompiledModule {
 
   _shift_rows_down_wrap(input = this.input) {
     let out = [];
-    let t143 = input["rows"];
-    let t149 = t143.length
-    const t150 = 1;
-    const t160 = 0;
-    t143.forEach((rows_el_144, rows_i_145) => {
+    let t177 = input["rows"];
+    let t183 = t177.length
+    const t184 = 1;
+    t177.forEach((rows_el_178, rows_i_179) => {
       let out_1 = [];
-      let t146 = rows_el_144.col;
-      let t151 = rows_i_145 - t150;
-      let t152 = t151 % t149;
-      let t153 = t152 + t149;
-      let t154 = t153 % t149;
-      let t155 = t143[t154]
-      let t156 = t155.col;
-      let t157 = t156.length
-      let t159 = t157 - t150;
-      t146.forEach((col_el_147, col_i_148) => {
-        let t161 = Math.min(Math.max(col_i_148, t160), t159);
-        let t162 = t156[t161]
-        out_1.push(t162);
+      let t180 = rows_el_178.col;
+      let t185 = rows_i_179 - t184;
+      let t186 = t185 % t183;
+      let t187 = t186 + t183;
+      let t188 = t187 % t183;
+      let t189 = t177[t188]
+      let t190 = t189.col;
+      let t191 = t190.length
+      t180.forEach((col_el_181, col_i_182) => {
+        let t192 = col_i_182 % t191;
+        let t193 = t192 + t191;
+        let t194 = t193 % t191;
+        let t195 = t190[t194]
+        out_1.push(t195);
       });
       out.push(out_1);
     });
@@ -252,29 +290,30 @@ export class KumiCompiledModule {
 
   _shift_rows_up_zero(input = this.input) {
     let out = [];
-    let t163 = input["rows"];
-    let t169 = t163.length
-    const t170 = -1;
-    const t172 = 0;
-    const t176 = 1;
-    let t177 = t169 - t176;
-    t163.forEach((rows_el_164, rows_i_165) => {
+    let t196 = input["rows"];
+    let t202 = t196.length
+    const t203 = -1;
+    const t205 = 0;
+    const t209 = 1;
+    let t210 = t202 - t209;
+    t196.forEach((rows_el_197, rows_i_198) => {
       let out_1 = [];
-      let t166 = rows_el_164.col;
-      let t171 = rows_i_165 - t170;
-      let t173 = t171 >= t172;
-      let t174 = t171 < t169;
-      let t179 = Math.min(Math.max(t171, t172), t177);
-      let t175 = t173 && t174;
-      let t180 = t163[t179]
-      let t181 = t180.col;
-      let t182 = t181.length
-      let t184 = t182 - t176;
-      t166.forEach((col_el_167, col_i_168) => {
-        let t186 = Math.min(Math.max(col_i_168, t172), t184);
-        let t187 = t181[t186]
-        let t189 = t175 ? t187 : t172;
-        out_1.push(t189);
+      let t199 = rows_el_197.col;
+      let t204 = rows_i_198 - t203;
+      let t206 = t204 >= t205;
+      let t207 = t204 < t202;
+      let t212 = Math.min(Math.max(t204, t205), t210);
+      let t208 = t206 && t207;
+      let t213 = t196[t212]
+      let t214 = t213.col;
+      let t215 = t214.length
+      t199.forEach((col_el_200, col_i_201) => {
+        let t216 = col_i_201 % t215;
+        let t217 = t216 + t215;
+        let t218 = t217 % t215;
+        let t219 = t214[t218]
+        let t221 = t208 ? t219 : t205;
+        out_1.push(t221);
       });
       out.push(out_1);
     });
@@ -283,25 +322,26 @@ export class KumiCompiledModule {
 
   _shift_rows_up_clamp(input = this.input) {
     let out = [];
-    let t190 = input["rows"];
-    let t196 = t190.length
-    const t197 = -1;
-    const t199 = 1;
-    const t201 = 0;
-    let t200 = t196 - t199;
-    t190.forEach((rows_el_191, rows_i_192) => {
+    let t222 = input["rows"];
+    let t228 = t222.length
+    const t229 = -1;
+    const t231 = 1;
+    const t233 = 0;
+    let t232 = t228 - t231;
+    t222.forEach((rows_el_223, rows_i_224) => {
       let out_1 = [];
-      let t193 = rows_el_191.col;
-      let t198 = rows_i_192 - t197;
-      let t202 = Math.min(Math.max(t198, t201), t200);
-      let t203 = t190[t202]
-      let t204 = t203.col;
-      let t205 = t204.length
-      let t207 = t205 - t199;
-      t193.forEach((col_el_194, col_i_195) => {
-        let t209 = Math.min(Math.max(col_i_195, t201), t207);
-        let t210 = t204[t209]
-        out_1.push(t210);
+      let t225 = rows_el_223.col;
+      let t230 = rows_i_224 - t229;
+      let t234 = Math.min(Math.max(t230, t233), t232);
+      let t235 = t222[t234]
+      let t236 = t235.col;
+      let t237 = t236.length
+      t225.forEach((col_el_226, col_i_227) => {
+        let t238 = col_i_227 % t237;
+        let t239 = t238 + t237;
+        let t240 = t239 % t237;
+        let t241 = t236[t240]
+        out_1.push(t241);
       });
       out.push(out_1);
     });
@@ -310,26 +350,25 @@ export class KumiCompiledModule {
 
   _shift_rows_up_wrap(input = this.input) {
     let out = [];
-    let t211 = input["rows"];
-    let t217 = t211.length
-    const t218 = -1;
-    const t226 = 1;
-    const t228 = 0;
-    t211.forEach((rows_el_212, rows_i_213) => {
+    let t242 = input["rows"];
+    let t248 = t242.length
+    const t249 = -1;
+    t242.forEach((rows_el_243, rows_i_244) => {
       let out_1 = [];
-      let t214 = rows_el_212.col;
-      let t219 = rows_i_213 - t218;
-      let t220 = t219 % t217;
-      let t221 = t220 + t217;
-      let t222 = t221 % t217;
-      let t223 = t211[t222]
-      let t224 = t223.col;
-      let t225 = t224.length
-      let t227 = t225 - t226;
-      t214.forEach((col_el_215, col_i_216) => {
-        let t229 = Math.min(Math.max(col_i_216, t228), t227);
-        let t230 = t224[t229]
-        out_1.push(t230);
+      let t245 = rows_el_243.col;
+      let t250 = rows_i_244 - t249;
+      let t251 = t250 % t248;
+      let t252 = t251 + t248;
+      let t253 = t252 % t248;
+      let t254 = t242[t253]
+      let t255 = t254.col;
+      let t256 = t255.length
+      t245.forEach((col_el_246, col_i_247) => {
+        let t257 = col_i_247 % t256;
+        let t258 = t257 + t256;
+        let t259 = t258 % t256;
+        let t260 = t255[t259]
+        out_1.push(t260);
       });
       out.push(out_1);
     });

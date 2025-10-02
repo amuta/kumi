@@ -41,7 +41,7 @@ module Kumi::Compiled::KUMI_65fd6b62741a9bb5be8cc780afaed94a8b4a69e3a863a66480fc
 
   def _server_hostnames(input = @input)
     out = []
-    t5 = nil["config"] || nil[:config]
+    t5 = input["config"] || input[:config]
     t6 = t5["servers"] || t5[:servers]
     t6.each_with_index do |servers_el_7, servers_i_8|
       t9 = servers_el_7["hostname"] || servers_el_7[:hostname]
@@ -58,7 +58,7 @@ module Kumi::Compiled::KUMI_65fd6b62741a9bb5be8cc780afaed94a8b4a69e3a863a66480fc
 
   def _total_ports(input = @input)
     acc_13 = 0
-    t14 = nil["config"] || nil[:config]
+    t14 = input["config"] || input[:config]
     t15 = t14["servers"] || t14[:servers]
     t15.each_with_index do |servers_el_16, servers_i_17|
       t18 = servers_el_16["port"] || servers_el_16[:port]

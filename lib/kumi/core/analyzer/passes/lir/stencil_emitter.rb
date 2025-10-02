@@ -38,7 +38,12 @@ module Kumi
                   axes     = axes_of(src)
                   defaults = @registry.function(cur.fn)[:options] || {}
                   opts     = merge_call_opts(cur, defaults)
-                  policy   = (cur.fn == :roll ? :wrap : opts.fetch(:policy).to_sym)
+                  explicit = opts[:policy]
+                  policy   = (if explicit
+                                explicit.to_sym
+                              else
+                                (cur.fn == :roll ? :wrap : :wrap)
+                              end)
                   aoff     = Integer(opts.fetch(:axis_offset, 0))
                   axis     = axes.fetch(axes.length - 1 - aoff) { raise "stencil: axis_offset out of range" }
                   offsets[axis]  += literal_offset!(off_node)

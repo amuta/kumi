@@ -1,246 +1,285 @@
 (LIR
   (Declaration shift_cols_right_zero
     %t1 = load_input "rows" :: array
-    %t8 = const 1 :: integer
-    %t10 = const 0 :: integer
+    %t7 = Length %t1 :: integer
+    %t14 = const 1 :: integer
+    %t16 = const 0 :: integer
     loop rows id=L1 in %t1 as el=%rows_el_2, idx=%rows_i_3
       %t4 = load_field rows_el_2["col"] :: any
-      %t7 = Length %t4 :: integer
-      %t15 = call core.sub(%t7, %t8) :: integer
+      %t8 = call core.mod(%rows_i_3, %t7) :: integer
+      %t9 = call core.add(%t8, %t7) :: integer
+      %t10 = call core.mod(%t9, %t7) :: integer
+      %t11 = Gather %t1, %t10 :: any
+      %t12 = load_field t11["col"] :: any
+      %t13 = Length %t12 :: integer
+      %t21 = call core.sub(%t13, %t14) :: integer
       loop col id=L2 in %t4 as el=%col_el_5, idx=%col_i_6
-        %t9 = call core.sub(%col_i_6, %t8) :: integer
-        %t11 = call core.gte(%t9, %t10) :: boolean
-        %t12 = call core.lt(%t9, %t7) :: boolean
-        %t13 = call core.and(%t11, %t12) :: boolean
-        %t17 = call core.clamp(%t9, %t10, %t15) :: integer
-        %t18 = Gather %t4, %t17 :: integer
-        %t20 = select %t13, %t18, %t10 :: integer
-        yield %t20
+        %t15 = call core.sub(%col_i_6, %t14) :: integer
+        %t17 = call core.gte(%t15, %t16) :: boolean
+        %t18 = call core.lt(%t15, %t13) :: boolean
+        %t19 = call core.and(%t17, %t18) :: boolean
+        %t23 = call core.clamp(%t15, %t16, %t21) :: integer
+        %t24 = Gather %t12, %t23 :: integer
+        %t26 = select %t19, %t24, %t16 :: integer
+        yield %t26
       end_loop
     end_loop
   )
   (Declaration shift_cols_right_clamp
-    %t21 = load_input "rows" :: array
-    %t28 = const 1 :: integer
-    %t32 = const 0 :: integer
-    loop rows id=L3 in %t21 as el=%rows_el_22, idx=%rows_i_23
-      %t24 = load_field rows_el_22["col"] :: any
-      %t27 = Length %t24 :: integer
-      %t31 = call core.sub(%t27, %t28) :: integer
-      loop col id=L4 in %t24 as el=%col_el_25, idx=%col_i_26
-        %t29 = call core.sub(%col_i_26, %t28) :: integer
-        %t33 = call core.clamp(%t29, %t32, %t31) :: integer
-        %t34 = Gather %t24, %t33 :: integer
-        yield %t34
+    %t27 = load_input "rows" :: array
+    %t33 = Length %t27 :: integer
+    %t40 = const 1 :: integer
+    %t44 = const 0 :: integer
+    loop rows id=L3 in %t27 as el=%rows_el_28, idx=%rows_i_29
+      %t30 = load_field rows_el_28["col"] :: any
+      %t34 = call core.mod(%rows_i_29, %t33) :: integer
+      %t35 = call core.add(%t34, %t33) :: integer
+      %t36 = call core.mod(%t35, %t33) :: integer
+      %t37 = Gather %t27, %t36 :: any
+      %t38 = load_field t37["col"] :: any
+      %t39 = Length %t38 :: integer
+      %t43 = call core.sub(%t39, %t40) :: integer
+      loop col id=L4 in %t30 as el=%col_el_31, idx=%col_i_32
+        %t41 = call core.sub(%col_i_32, %t40) :: integer
+        %t45 = call core.clamp(%t41, %t44, %t43) :: integer
+        %t46 = Gather %t38, %t45 :: integer
+        yield %t46
       end_loop
     end_loop
   )
   (Declaration shift_cols_right_wrap
-    %t35 = load_input "rows" :: array
-    %t42 = const 1 :: integer
-    loop rows id=L5 in %t35 as el=%rows_el_36, idx=%rows_i_37
-      %t38 = load_field rows_el_36["col"] :: any
-      %t41 = Length %t38 :: integer
-      loop col id=L6 in %t38 as el=%col_el_39, idx=%col_i_40
-        %t43 = call core.sub(%col_i_40, %t42) :: integer
-        %t44 = call core.mod(%t43, %t41) :: integer
-        %t45 = call core.add(%t44, %t41) :: integer
-        %t46 = call core.mod(%t45, %t41) :: integer
-        %t47 = Gather %t38, %t46 :: integer
-        yield %t47
+    %t47 = load_input "rows" :: array
+    %t53 = Length %t47 :: integer
+    %t60 = const 1 :: integer
+    loop rows id=L5 in %t47 as el=%rows_el_48, idx=%rows_i_49
+      %t50 = load_field rows_el_48["col"] :: any
+      %t54 = call core.mod(%rows_i_49, %t53) :: integer
+      %t55 = call core.add(%t54, %t53) :: integer
+      %t56 = call core.mod(%t55, %t53) :: integer
+      %t57 = Gather %t47, %t56 :: any
+      %t58 = load_field t57["col"] :: any
+      %t59 = Length %t58 :: integer
+      loop col id=L6 in %t50 as el=%col_el_51, idx=%col_i_52
+        %t61 = call core.sub(%col_i_52, %t60) :: integer
+        %t62 = call core.mod(%t61, %t59) :: integer
+        %t63 = call core.add(%t62, %t59) :: integer
+        %t64 = call core.mod(%t63, %t59) :: integer
+        %t65 = Gather %t58, %t64 :: integer
+        yield %t65
       end_loop
     end_loop
   )
   (Declaration shift_cols_left_zero
-    %t48 = load_input "rows" :: array
-    %t55 = const -1 :: integer
-    %t57 = const 0 :: integer
-    %t61 = const 1 :: integer
-    loop rows id=L7 in %t48 as el=%rows_el_49, idx=%rows_i_50
-      %t51 = load_field rows_el_49["col"] :: any
-      %t54 = Length %t51 :: integer
-      %t62 = call core.sub(%t54, %t61) :: integer
-      loop col id=L8 in %t51 as el=%col_el_52, idx=%col_i_53
-        %t56 = call core.sub(%col_i_53, %t55) :: integer
-        %t58 = call core.gte(%t56, %t57) :: boolean
-        %t59 = call core.lt(%t56, %t54) :: boolean
-        %t60 = call core.and(%t58, %t59) :: boolean
-        %t64 = call core.clamp(%t56, %t57, %t62) :: integer
-        %t65 = Gather %t51, %t64 :: integer
-        %t67 = select %t60, %t65, %t57 :: integer
-        yield %t67
+    %t66 = load_input "rows" :: array
+    %t72 = Length %t66 :: integer
+    %t79 = const -1 :: integer
+    %t81 = const 0 :: integer
+    %t85 = const 1 :: integer
+    loop rows id=L7 in %t66 as el=%rows_el_67, idx=%rows_i_68
+      %t69 = load_field rows_el_67["col"] :: any
+      %t73 = call core.mod(%rows_i_68, %t72) :: integer
+      %t74 = call core.add(%t73, %t72) :: integer
+      %t75 = call core.mod(%t74, %t72) :: integer
+      %t76 = Gather %t66, %t75 :: any
+      %t77 = load_field t76["col"] :: any
+      %t78 = Length %t77 :: integer
+      %t86 = call core.sub(%t78, %t85) :: integer
+      loop col id=L8 in %t69 as el=%col_el_70, idx=%col_i_71
+        %t80 = call core.sub(%col_i_71, %t79) :: integer
+        %t82 = call core.gte(%t80, %t81) :: boolean
+        %t83 = call core.lt(%t80, %t78) :: boolean
+        %t84 = call core.and(%t82, %t83) :: boolean
+        %t88 = call core.clamp(%t80, %t81, %t86) :: integer
+        %t89 = Gather %t77, %t88 :: integer
+        %t91 = select %t84, %t89, %t81 :: integer
+        yield %t91
       end_loop
     end_loop
   )
   (Declaration shift_cols_left_clamp
-    %t68 = load_input "rows" :: array
-    %t75 = const -1 :: integer
-    %t77 = const 1 :: integer
-    %t79 = const 0 :: integer
-    loop rows id=L9 in %t68 as el=%rows_el_69, idx=%rows_i_70
-      %t71 = load_field rows_el_69["col"] :: any
-      %t74 = Length %t71 :: integer
-      %t78 = call core.sub(%t74, %t77) :: integer
-      loop col id=L10 in %t71 as el=%col_el_72, idx=%col_i_73
-        %t76 = call core.sub(%col_i_73, %t75) :: integer
-        %t80 = call core.clamp(%t76, %t79, %t78) :: integer
-        %t81 = Gather %t71, %t80 :: integer
-        yield %t81
+    %t92 = load_input "rows" :: array
+    %t98 = Length %t92 :: integer
+    %t105 = const -1 :: integer
+    %t107 = const 1 :: integer
+    %t109 = const 0 :: integer
+    loop rows id=L9 in %t92 as el=%rows_el_93, idx=%rows_i_94
+      %t95 = load_field rows_el_93["col"] :: any
+      %t99 = call core.mod(%rows_i_94, %t98) :: integer
+      %t100 = call core.add(%t99, %t98) :: integer
+      %t101 = call core.mod(%t100, %t98) :: integer
+      %t102 = Gather %t92, %t101 :: any
+      %t103 = load_field t102["col"] :: any
+      %t104 = Length %t103 :: integer
+      %t108 = call core.sub(%t104, %t107) :: integer
+      loop col id=L10 in %t95 as el=%col_el_96, idx=%col_i_97
+        %t106 = call core.sub(%col_i_97, %t105) :: integer
+        %t110 = call core.clamp(%t106, %t109, %t108) :: integer
+        %t111 = Gather %t103, %t110 :: integer
+        yield %t111
       end_loop
     end_loop
   )
   (Declaration shift_cols_left_wrap
-    %t82 = load_input "rows" :: array
-    %t89 = const -1 :: integer
-    loop rows id=L11 in %t82 as el=%rows_el_83, idx=%rows_i_84
-      %t85 = load_field rows_el_83["col"] :: any
-      %t88 = Length %t85 :: integer
-      loop col id=L12 in %t85 as el=%col_el_86, idx=%col_i_87
-        %t90 = call core.sub(%col_i_87, %t89) :: integer
-        %t91 = call core.mod(%t90, %t88) :: integer
-        %t92 = call core.add(%t91, %t88) :: integer
-        %t93 = call core.mod(%t92, %t88) :: integer
-        %t94 = Gather %t85, %t93 :: integer
-        yield %t94
+    %t112 = load_input "rows" :: array
+    %t118 = Length %t112 :: integer
+    %t125 = const -1 :: integer
+    loop rows id=L11 in %t112 as el=%rows_el_113, idx=%rows_i_114
+      %t115 = load_field rows_el_113["col"] :: any
+      %t119 = call core.mod(%rows_i_114, %t118) :: integer
+      %t120 = call core.add(%t119, %t118) :: integer
+      %t121 = call core.mod(%t120, %t118) :: integer
+      %t122 = Gather %t112, %t121 :: any
+      %t123 = load_field t122["col"] :: any
+      %t124 = Length %t123 :: integer
+      loop col id=L12 in %t115 as el=%col_el_116, idx=%col_i_117
+        %t126 = call core.sub(%col_i_117, %t125) :: integer
+        %t127 = call core.mod(%t126, %t124) :: integer
+        %t128 = call core.add(%t127, %t124) :: integer
+        %t129 = call core.mod(%t128, %t124) :: integer
+        %t130 = Gather %t123, %t129 :: integer
+        yield %t130
       end_loop
     end_loop
   )
   (Declaration shift_rows_down_zero
-    %t95 = load_input "rows" :: array
-    %t101 = Length %t95 :: integer
-    %t102 = const 1 :: integer
-    %t104 = const 0 :: integer
-    %t109 = call core.sub(%t101, %t102) :: integer
-    loop rows id=L13 in %t95 as el=%rows_el_96, idx=%rows_i_97
-      %t98 = load_field rows_el_96["col"] :: any
-      %t103 = call core.sub(%rows_i_97, %t102) :: integer
-      %t105 = call core.gte(%t103, %t104) :: boolean
-      %t106 = call core.lt(%t103, %t101) :: boolean
-      %t111 = call core.clamp(%t103, %t104, %t109) :: integer
-      %t107 = call core.and(%t105, %t106) :: boolean
-      %t112 = Gather %t95, %t111 :: any
-      %t113 = load_field t112["col"] :: any
-      %t114 = Length %t113 :: integer
-      %t116 = call core.sub(%t114, %t102) :: integer
-      loop col id=L14 in %t98 as el=%col_el_99, idx=%col_i_100
-        %t118 = call core.clamp(%col_i_100, %t104, %t116) :: integer
-        %t119 = Gather %t113, %t118 :: integer
-        %t121 = select %t107, %t119, %t104 :: integer
-        yield %t121
+    %t131 = load_input "rows" :: array
+    %t137 = Length %t131 :: integer
+    %t138 = const 1 :: integer
+    %t140 = const 0 :: integer
+    %t145 = call core.sub(%t137, %t138) :: integer
+    loop rows id=L13 in %t131 as el=%rows_el_132, idx=%rows_i_133
+      %t134 = load_field rows_el_132["col"] :: any
+      %t139 = call core.sub(%rows_i_133, %t138) :: integer
+      %t141 = call core.gte(%t139, %t140) :: boolean
+      %t142 = call core.lt(%t139, %t137) :: boolean
+      %t147 = call core.clamp(%t139, %t140, %t145) :: integer
+      %t143 = call core.and(%t141, %t142) :: boolean
+      %t148 = Gather %t131, %t147 :: any
+      %t149 = load_field t148["col"] :: any
+      %t150 = Length %t149 :: integer
+      loop col id=L14 in %t134 as el=%col_el_135, idx=%col_i_136
+        %t151 = call core.mod(%col_i_136, %t150) :: integer
+        %t152 = call core.add(%t151, %t150) :: integer
+        %t153 = call core.mod(%t152, %t150) :: integer
+        %t154 = Gather %t149, %t153 :: integer
+        %t156 = select %t143, %t154, %t140 :: integer
+        yield %t156
       end_loop
     end_loop
   )
   (Declaration shift_rows_down_clamp
-    %t122 = load_input "rows" :: array
-    %t128 = Length %t122 :: integer
-    %t129 = const 1 :: integer
-    %t133 = const 0 :: integer
-    %t132 = call core.sub(%t128, %t129) :: integer
-    loop rows id=L15 in %t122 as el=%rows_el_123, idx=%rows_i_124
-      %t125 = load_field rows_el_123["col"] :: any
-      %t130 = call core.sub(%rows_i_124, %t129) :: integer
-      %t134 = call core.clamp(%t130, %t133, %t132) :: integer
-      %t135 = Gather %t122, %t134 :: any
-      %t136 = load_field t135["col"] :: any
-      %t137 = Length %t136 :: integer
-      %t139 = call core.sub(%t137, %t129) :: integer
-      loop col id=L16 in %t125 as el=%col_el_126, idx=%col_i_127
-        %t141 = call core.clamp(%col_i_127, %t133, %t139) :: integer
-        %t142 = Gather %t136, %t141 :: integer
-        yield %t142
+    %t157 = load_input "rows" :: array
+    %t163 = Length %t157 :: integer
+    %t164 = const 1 :: integer
+    %t168 = const 0 :: integer
+    %t167 = call core.sub(%t163, %t164) :: integer
+    loop rows id=L15 in %t157 as el=%rows_el_158, idx=%rows_i_159
+      %t160 = load_field rows_el_158["col"] :: any
+      %t165 = call core.sub(%rows_i_159, %t164) :: integer
+      %t169 = call core.clamp(%t165, %t168, %t167) :: integer
+      %t170 = Gather %t157, %t169 :: any
+      %t171 = load_field t170["col"] :: any
+      %t172 = Length %t171 :: integer
+      loop col id=L16 in %t160 as el=%col_el_161, idx=%col_i_162
+        %t173 = call core.mod(%col_i_162, %t172) :: integer
+        %t174 = call core.add(%t173, %t172) :: integer
+        %t175 = call core.mod(%t174, %t172) :: integer
+        %t176 = Gather %t171, %t175 :: integer
+        yield %t176
       end_loop
     end_loop
   )
   (Declaration shift_rows_down_wrap
-    %t143 = load_input "rows" :: array
-    %t149 = Length %t143 :: integer
-    %t150 = const 1 :: integer
-    %t160 = const 0 :: integer
-    loop rows id=L17 in %t143 as el=%rows_el_144, idx=%rows_i_145
-      %t146 = load_field rows_el_144["col"] :: any
-      %t151 = call core.sub(%rows_i_145, %t150) :: integer
-      %t152 = call core.mod(%t151, %t149) :: integer
-      %t153 = call core.add(%t152, %t149) :: integer
-      %t154 = call core.mod(%t153, %t149) :: integer
-      %t155 = Gather %t143, %t154 :: any
-      %t156 = load_field t155["col"] :: any
-      %t157 = Length %t156 :: integer
-      %t159 = call core.sub(%t157, %t150) :: integer
-      loop col id=L18 in %t146 as el=%col_el_147, idx=%col_i_148
-        %t161 = call core.clamp(%col_i_148, %t160, %t159) :: integer
-        %t162 = Gather %t156, %t161 :: integer
-        yield %t162
+    %t177 = load_input "rows" :: array
+    %t183 = Length %t177 :: integer
+    %t184 = const 1 :: integer
+    loop rows id=L17 in %t177 as el=%rows_el_178, idx=%rows_i_179
+      %t180 = load_field rows_el_178["col"] :: any
+      %t185 = call core.sub(%rows_i_179, %t184) :: integer
+      %t186 = call core.mod(%t185, %t183) :: integer
+      %t187 = call core.add(%t186, %t183) :: integer
+      %t188 = call core.mod(%t187, %t183) :: integer
+      %t189 = Gather %t177, %t188 :: any
+      %t190 = load_field t189["col"] :: any
+      %t191 = Length %t190 :: integer
+      loop col id=L18 in %t180 as el=%col_el_181, idx=%col_i_182
+        %t192 = call core.mod(%col_i_182, %t191) :: integer
+        %t193 = call core.add(%t192, %t191) :: integer
+        %t194 = call core.mod(%t193, %t191) :: integer
+        %t195 = Gather %t190, %t194 :: integer
+        yield %t195
       end_loop
     end_loop
   )
   (Declaration shift_rows_up_zero
-    %t163 = load_input "rows" :: array
-    %t169 = Length %t163 :: integer
-    %t170 = const -1 :: integer
-    %t172 = const 0 :: integer
-    %t176 = const 1 :: integer
-    %t177 = call core.sub(%t169, %t176) :: integer
-    loop rows id=L19 in %t163 as el=%rows_el_164, idx=%rows_i_165
-      %t166 = load_field rows_el_164["col"] :: any
-      %t171 = call core.sub(%rows_i_165, %t170) :: integer
-      %t173 = call core.gte(%t171, %t172) :: boolean
-      %t174 = call core.lt(%t171, %t169) :: boolean
-      %t179 = call core.clamp(%t171, %t172, %t177) :: integer
-      %t175 = call core.and(%t173, %t174) :: boolean
-      %t180 = Gather %t163, %t179 :: any
-      %t181 = load_field t180["col"] :: any
-      %t182 = Length %t181 :: integer
-      %t184 = call core.sub(%t182, %t176) :: integer
-      loop col id=L20 in %t166 as el=%col_el_167, idx=%col_i_168
-        %t186 = call core.clamp(%col_i_168, %t172, %t184) :: integer
-        %t187 = Gather %t181, %t186 :: integer
-        %t189 = select %t175, %t187, %t172 :: integer
-        yield %t189
+    %t196 = load_input "rows" :: array
+    %t202 = Length %t196 :: integer
+    %t203 = const -1 :: integer
+    %t205 = const 0 :: integer
+    %t209 = const 1 :: integer
+    %t210 = call core.sub(%t202, %t209) :: integer
+    loop rows id=L19 in %t196 as el=%rows_el_197, idx=%rows_i_198
+      %t199 = load_field rows_el_197["col"] :: any
+      %t204 = call core.sub(%rows_i_198, %t203) :: integer
+      %t206 = call core.gte(%t204, %t205) :: boolean
+      %t207 = call core.lt(%t204, %t202) :: boolean
+      %t212 = call core.clamp(%t204, %t205, %t210) :: integer
+      %t208 = call core.and(%t206, %t207) :: boolean
+      %t213 = Gather %t196, %t212 :: any
+      %t214 = load_field t213["col"] :: any
+      %t215 = Length %t214 :: integer
+      loop col id=L20 in %t199 as el=%col_el_200, idx=%col_i_201
+        %t216 = call core.mod(%col_i_201, %t215) :: integer
+        %t217 = call core.add(%t216, %t215) :: integer
+        %t218 = call core.mod(%t217, %t215) :: integer
+        %t219 = Gather %t214, %t218 :: integer
+        %t221 = select %t208, %t219, %t205 :: integer
+        yield %t221
       end_loop
     end_loop
   )
   (Declaration shift_rows_up_clamp
-    %t190 = load_input "rows" :: array
-    %t196 = Length %t190 :: integer
-    %t197 = const -1 :: integer
-    %t199 = const 1 :: integer
-    %t201 = const 0 :: integer
-    %t200 = call core.sub(%t196, %t199) :: integer
-    loop rows id=L21 in %t190 as el=%rows_el_191, idx=%rows_i_192
-      %t193 = load_field rows_el_191["col"] :: any
-      %t198 = call core.sub(%rows_i_192, %t197) :: integer
-      %t202 = call core.clamp(%t198, %t201, %t200) :: integer
-      %t203 = Gather %t190, %t202 :: any
-      %t204 = load_field t203["col"] :: any
-      %t205 = Length %t204 :: integer
-      %t207 = call core.sub(%t205, %t199) :: integer
-      loop col id=L22 in %t193 as el=%col_el_194, idx=%col_i_195
-        %t209 = call core.clamp(%col_i_195, %t201, %t207) :: integer
-        %t210 = Gather %t204, %t209 :: integer
-        yield %t210
+    %t222 = load_input "rows" :: array
+    %t228 = Length %t222 :: integer
+    %t229 = const -1 :: integer
+    %t231 = const 1 :: integer
+    %t233 = const 0 :: integer
+    %t232 = call core.sub(%t228, %t231) :: integer
+    loop rows id=L21 in %t222 as el=%rows_el_223, idx=%rows_i_224
+      %t225 = load_field rows_el_223["col"] :: any
+      %t230 = call core.sub(%rows_i_224, %t229) :: integer
+      %t234 = call core.clamp(%t230, %t233, %t232) :: integer
+      %t235 = Gather %t222, %t234 :: any
+      %t236 = load_field t235["col"] :: any
+      %t237 = Length %t236 :: integer
+      loop col id=L22 in %t225 as el=%col_el_226, idx=%col_i_227
+        %t238 = call core.mod(%col_i_227, %t237) :: integer
+        %t239 = call core.add(%t238, %t237) :: integer
+        %t240 = call core.mod(%t239, %t237) :: integer
+        %t241 = Gather %t236, %t240 :: integer
+        yield %t241
       end_loop
     end_loop
   )
   (Declaration shift_rows_up_wrap
-    %t211 = load_input "rows" :: array
-    %t217 = Length %t211 :: integer
-    %t218 = const -1 :: integer
-    %t226 = const 1 :: integer
-    %t228 = const 0 :: integer
-    loop rows id=L23 in %t211 as el=%rows_el_212, idx=%rows_i_213
-      %t214 = load_field rows_el_212["col"] :: any
-      %t219 = call core.sub(%rows_i_213, %t218) :: integer
-      %t220 = call core.mod(%t219, %t217) :: integer
-      %t221 = call core.add(%t220, %t217) :: integer
-      %t222 = call core.mod(%t221, %t217) :: integer
-      %t223 = Gather %t211, %t222 :: any
-      %t224 = load_field t223["col"] :: any
-      %t225 = Length %t224 :: integer
-      %t227 = call core.sub(%t225, %t226) :: integer
-      loop col id=L24 in %t214 as el=%col_el_215, idx=%col_i_216
-        %t229 = call core.clamp(%col_i_216, %t228, %t227) :: integer
-        %t230 = Gather %t224, %t229 :: integer
-        yield %t230
+    %t242 = load_input "rows" :: array
+    %t248 = Length %t242 :: integer
+    %t249 = const -1 :: integer
+    loop rows id=L23 in %t242 as el=%rows_el_243, idx=%rows_i_244
+      %t245 = load_field rows_el_243["col"] :: any
+      %t250 = call core.sub(%rows_i_244, %t249) :: integer
+      %t251 = call core.mod(%t250, %t248) :: integer
+      %t252 = call core.add(%t251, %t248) :: integer
+      %t253 = call core.mod(%t252, %t248) :: integer
+      %t254 = Gather %t242, %t253 :: any
+      %t255 = load_field t254["col"] :: any
+      %t256 = Length %t255 :: integer
+      loop col id=L24 in %t245 as el=%col_el_246, idx=%col_i_247
+        %t257 = call core.mod(%col_i_247, %t256) :: integer
+        %t258 = call core.add(%t257, %t256) :: integer
+        %t259 = call core.mod(%t258, %t256) :: integer
+        %t260 = Gather %t255, %t259 :: integer
+        yield %t260
       end_loop
     end_loop
   )

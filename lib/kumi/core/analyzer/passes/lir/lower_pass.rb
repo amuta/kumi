@@ -325,7 +325,11 @@ module Kumi
               key = [pre.object_id, li]
               @env.memo_get(:head, key) || begin
                 reg = nil
+
                 pre[:head_path_by_loop].fetch(li).each do |kind, k|
+                  if reg.nil? && kind == :field
+                    kind = :input # defensive: first hop must load the root input
+                  end
                   case kind
                   when :input
                     reg = Build.load_input(key: k, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
