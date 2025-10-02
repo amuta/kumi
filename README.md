@@ -54,12 +54,10 @@ result[:total_tax]   # => 21,491.00
 result[:after_tax]   # => 78,509.00
 ```
 
----
-
-Add this section to the README. Paste as-is.
-
-````markdown
 ## Codegen: Ruby and JavaScript
+
+*Note: this is not available on the last published gem version (0.0.18), but if you clone this repository you can just copy a ./golden/$schema_name and modify schema.kumi as you and run bin/kumi golden test $schema_name*
+
 
 Kumi executes via the analyzer/interpreter or emits standalone code.
 
@@ -243,14 +241,6 @@ export class KumiCompiledModule {
 
 </details>
 
-<details>
-<summary><strong>How to emit</strong></summary>
-
-This is not on the published version, but if you clone this repository you can just copy a ./golden/<schema_name> and modify schema.kumi as you and run bin/kumi golden test <schema_name> 
-
-</details>
-```
-::contentReference[oaicite:0]{index=0}
 
 
 ---
