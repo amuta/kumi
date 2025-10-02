@@ -1,0 +1,26 @@
+(SNAST
+  (VALUE roll_right
+    (Call :roll
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE roll_left
+    (Call :roll
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE roll_right_clamp
+    (Call :roll
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE roll_left_clamp
+    (Call :roll
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+)

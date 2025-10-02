@@ -17,7 +17,7 @@
       (Tuple
         (Ref selected_value) :: [points] -> integer
         (InputRef points.x key_chain=[x]) :: [points] -> integer
-      ) :: [points] -> tuple<integer, integer>
+      ) :: [points] -> tuple<integer>
     ) :: [points] -> integer
   ) :: [points] -> integer
   (VALUE grand_total

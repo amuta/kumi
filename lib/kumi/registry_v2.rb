@@ -11,7 +11,8 @@ module Kumi
     SELECT_ID = "__select__"
 
     # --- NEW: Define the Function struct ---
-    Function = Struct.new(:id, :kind, :dtype, :aliases, :params, :expand, :folding_class_method, :reduction_strategy, keyword_init: true) do
+    Function = Struct.new(:id, :kind, :dtype, :aliases, :params, :options, :expand, :folding_class_method, :reduction_strategy,
+                          keyword_init: true) do
       def reduce? = kind == :reduce
       def select? = id == SELECT_ID
       def elementwise? = kind == :elementwise

@@ -1,0 +1,263 @@
+(LIR
+  (Declaration a
+    %t1 = load_input "rows" :: array
+    loop rows id=L1 in %t1 as el=%rows_el_2, idx=%rows_i_3
+      loop col id=L2 in %rows_el_2 as el=%col_el_4, idx=%col_i_5
+        yield %col_el_4
+      end_loop
+    end_loop
+  )
+  (Declaration n
+    %t6 = load_input "rows" :: array
+    loop rows id=L3 in %t6 as el=%rows_el_7, idx=%rows_i_8
+      loop col id=L4 in %rows_el_7 as el=%col_el_9, idx=%col_i_10
+        %t11 = Length %t6 :: integer
+        %t12 = const -1 :: integer
+        %t13 = call core.sub(%rows_i_8, %t12) :: integer
+        %t14 = call core.mod(%t13, %t11) :: integer
+        %t15 = call core.add(%t14, %t11) :: integer
+        %t16 = call core.mod(%t15, %t11) :: integer
+        %t17 = Gather %t6, %t16 :: any
+        %t18 = Length %t17 :: integer
+        %t19 = call core.mod(%col_i_10, %t18) :: integer
+        %t20 = call core.add(%t19, %t18) :: integer
+        %t21 = call core.mod(%t20, %t18) :: integer
+        %t22 = Gather %t17, %t21 :: integer
+        yield %t22
+      end_loop
+    end_loop
+  )
+  (Declaration s
+    %t23 = load_input "rows" :: array
+    loop rows id=L5 in %t23 as el=%rows_el_24, idx=%rows_i_25
+      loop col id=L6 in %rows_el_24 as el=%col_el_26, idx=%col_i_27
+        %t28 = Length %t23 :: integer
+        %t29 = const 1 :: integer
+        %t30 = call core.sub(%rows_i_25, %t29) :: integer
+        %t31 = call core.mod(%t30, %t28) :: integer
+        %t32 = call core.add(%t31, %t28) :: integer
+        %t33 = call core.mod(%t32, %t28) :: integer
+        %t34 = Gather %t23, %t33 :: any
+        %t35 = Length %t34 :: integer
+        %t36 = call core.mod(%col_i_27, %t35) :: integer
+        %t37 = call core.add(%t36, %t35) :: integer
+        %t38 = call core.mod(%t37, %t35) :: integer
+        %t39 = Gather %t34, %t38 :: integer
+        yield %t39
+      end_loop
+    end_loop
+  )
+  (Declaration w
+    %t40 = load_input "rows" :: array
+    loop rows id=L7 in %t40 as el=%rows_el_41, idx=%rows_i_42
+      loop col id=L8 in %rows_el_41 as el=%col_el_43, idx=%col_i_44
+        %t45 = Length %t40 :: integer
+        %t46 = call core.mod(%rows_i_42, %t45) :: integer
+        %t47 = call core.add(%t46, %t45) :: integer
+        %t48 = call core.mod(%t47, %t45) :: integer
+        %t49 = Gather %t40, %t48 :: any
+        %t50 = Length %t49 :: integer
+        %t51 = const -1 :: integer
+        %t52 = call core.sub(%col_i_44, %t51) :: integer
+        %t53 = call core.mod(%t52, %t50) :: integer
+        %t54 = call core.add(%t53, %t50) :: integer
+        %t55 = call core.mod(%t54, %t50) :: integer
+        %t56 = Gather %t49, %t55 :: integer
+        yield %t56
+      end_loop
+    end_loop
+  )
+  (Declaration e
+    %t57 = load_input "rows" :: array
+    loop rows id=L9 in %t57 as el=%rows_el_58, idx=%rows_i_59
+      loop col id=L10 in %rows_el_58 as el=%col_el_60, idx=%col_i_61
+        %t62 = Length %t57 :: integer
+        %t63 = call core.mod(%rows_i_59, %t62) :: integer
+        %t64 = call core.add(%t63, %t62) :: integer
+        %t65 = call core.mod(%t64, %t62) :: integer
+        %t66 = Gather %t57, %t65 :: any
+        %t67 = Length %t66 :: integer
+        %t68 = const 1 :: integer
+        %t69 = call core.sub(%col_i_61, %t68) :: integer
+        %t70 = call core.mod(%t69, %t67) :: integer
+        %t71 = call core.add(%t70, %t67) :: integer
+        %t72 = call core.mod(%t71, %t67) :: integer
+        %t73 = Gather %t66, %t72 :: integer
+        yield %t73
+      end_loop
+    end_loop
+  )
+  (Declaration nw
+    %t74 = load_input "rows" :: array
+    loop rows id=L11 in %t74 as el=%rows_el_75, idx=%rows_i_76
+      loop col id=L12 in %rows_el_75 as el=%col_el_77, idx=%col_i_78
+        %t79 = Length %t74 :: integer
+        %t80 = const -1 :: integer
+        %t81 = call core.sub(%rows_i_76, %t80) :: integer
+        %t82 = call core.mod(%t81, %t79) :: integer
+        %t83 = call core.add(%t82, %t79) :: integer
+        %t84 = call core.mod(%t83, %t79) :: integer
+        %t85 = Gather %t74, %t84 :: any
+        %t86 = Length %t85 :: integer
+        %t87 = const -1 :: integer
+        %t88 = call core.sub(%col_i_78, %t87) :: integer
+        %t89 = call core.mod(%t88, %t86) :: integer
+        %t90 = call core.add(%t89, %t86) :: integer
+        %t91 = call core.mod(%t90, %t86) :: integer
+        %t92 = Gather %t85, %t91 :: integer
+        yield %t92
+      end_loop
+    end_loop
+  )
+  (Declaration ne
+    %t93 = load_input "rows" :: array
+    loop rows id=L13 in %t93 as el=%rows_el_94, idx=%rows_i_95
+      loop col id=L14 in %rows_el_94 as el=%col_el_96, idx=%col_i_97
+        %t98 = Length %t93 :: integer
+        %t99 = const -1 :: integer
+        %t100 = call core.sub(%rows_i_95, %t99) :: integer
+        %t101 = call core.mod(%t100, %t98) :: integer
+        %t102 = call core.add(%t101, %t98) :: integer
+        %t103 = call core.mod(%t102, %t98) :: integer
+        %t104 = Gather %t93, %t103 :: any
+        %t105 = Length %t104 :: integer
+        %t106 = const 1 :: integer
+        %t107 = call core.sub(%col_i_97, %t106) :: integer
+        %t108 = call core.mod(%t107, %t105) :: integer
+        %t109 = call core.add(%t108, %t105) :: integer
+        %t110 = call core.mod(%t109, %t105) :: integer
+        %t111 = Gather %t104, %t110 :: integer
+        yield %t111
+      end_loop
+    end_loop
+  )
+  (Declaration sw
+    %t112 = load_input "rows" :: array
+    loop rows id=L15 in %t112 as el=%rows_el_113, idx=%rows_i_114
+      loop col id=L16 in %rows_el_113 as el=%col_el_115, idx=%col_i_116
+        %t117 = Length %t112 :: integer
+        %t118 = const 1 :: integer
+        %t119 = call core.sub(%rows_i_114, %t118) :: integer
+        %t120 = call core.mod(%t119, %t117) :: integer
+        %t121 = call core.add(%t120, %t117) :: integer
+        %t122 = call core.mod(%t121, %t117) :: integer
+        %t123 = Gather %t112, %t122 :: any
+        %t124 = Length %t123 :: integer
+        %t125 = const -1 :: integer
+        %t126 = call core.sub(%col_i_116, %t125) :: integer
+        %t127 = call core.mod(%t126, %t124) :: integer
+        %t128 = call core.add(%t127, %t124) :: integer
+        %t129 = call core.mod(%t128, %t124) :: integer
+        %t130 = Gather %t123, %t129 :: integer
+        yield %t130
+      end_loop
+    end_loop
+  )
+  (Declaration se
+    %t131 = load_input "rows" :: array
+    loop rows id=L17 in %t131 as el=%rows_el_132, idx=%rows_i_133
+      loop col id=L18 in %rows_el_132 as el=%col_el_134, idx=%col_i_135
+        %t136 = Length %t131 :: integer
+        %t137 = const 1 :: integer
+        %t138 = call core.sub(%rows_i_133, %t137) :: integer
+        %t139 = call core.mod(%t138, %t136) :: integer
+        %t140 = call core.add(%t139, %t136) :: integer
+        %t141 = call core.mod(%t140, %t136) :: integer
+        %t142 = Gather %t131, %t141 :: any
+        %t143 = Length %t142 :: integer
+        %t144 = const 1 :: integer
+        %t145 = call core.sub(%col_i_135, %t144) :: integer
+        %t146 = call core.mod(%t145, %t143) :: integer
+        %t147 = call core.add(%t146, %t143) :: integer
+        %t148 = call core.mod(%t147, %t143) :: integer
+        %t149 = Gather %t142, %t148 :: integer
+        yield %t149
+      end_loop
+    end_loop
+  )
+  (Declaration neighbors
+    %t150 = load_input "rows" :: array
+    loop rows id=L19 in %t150 as el=%rows_el_151, idx=%rows_i_152
+      loop col id=L20 in %rows_el_151 as el=%col_el_153, idx=%col_i_154
+        %t155 = load_decl n axes=[rows, col] :: integer
+        %t156 = load_decl s axes=[rows, col] :: integer
+        %t157 = load_decl w axes=[rows, col] :: integer
+        %t158 = load_decl e axes=[rows, col] :: integer
+        %t159 = load_decl nw axes=[rows, col] :: integer
+        %t160 = load_decl ne axes=[rows, col] :: integer
+        %t161 = load_decl sw axes=[rows, col] :: integer
+        %t162 = load_decl se axes=[rows, col] :: integer
+        %t163 = make_tuple(%t155, %t156, %t157, %t158, %t159, %t160, %t161, %t162) :: tuple<integer>
+        %t164 = Fold %t163 fn="agg.sum" :: 
+        yield %t164
+      end_loop
+    end_loop
+  )
+  (Declaration alive
+    %t165 = load_input "rows" :: array
+    loop rows id=L21 in %t165 as el=%rows_el_166, idx=%rows_i_167
+      loop col id=L22 in %rows_el_166 as el=%col_el_168, idx=%col_i_169
+        %t170 = load_decl a axes=[rows, col] :: integer
+        %t171 = const 0 :: integer
+        %t172 = call core.gt(%t170, %t171) :: boolean
+        yield %t172
+      end_loop
+    end_loop
+  )
+  (Declaration n3_alive
+    %t173 = load_input "rows" :: array
+    loop rows id=L23 in %t173 as el=%rows_el_174, idx=%rows_i_175
+      loop col id=L24 in %rows_el_174 as el=%col_el_176, idx=%col_i_177
+        %t178 = load_decl neighbors axes=[rows, col] :: 
+        %t179 = const 3 :: integer
+        %t180 = call core.eq(%t178, %t179) :: boolean
+        yield %t180
+      end_loop
+    end_loop
+  )
+  (Declaration n2_alive
+    %t181 = load_input "rows" :: array
+    loop rows id=L25 in %t181 as el=%rows_el_182, idx=%rows_i_183
+      loop col id=L26 in %rows_el_182 as el=%col_el_184, idx=%col_i_185
+        %t186 = load_decl neighbors axes=[rows, col] :: 
+        %t187 = const 2 :: integer
+        %t188 = call core.eq(%t186, %t187) :: boolean
+        yield %t188
+      end_loop
+    end_loop
+  )
+  (Declaration keep_alive
+    %t189 = load_input "rows" :: array
+    loop rows id=L27 in %t189 as el=%rows_el_190, idx=%rows_i_191
+      loop col id=L28 in %rows_el_190 as el=%col_el_192, idx=%col_i_193
+        %t194 = load_decl n2_alive axes=[rows, col] :: boolean
+        %t195 = load_decl alive axes=[rows, col] :: boolean
+        %t196 = call core.and(%t194, %t195) :: boolean
+        yield %t196
+      end_loop
+    end_loop
+  )
+  (Declaration next_alive
+    %t197 = load_input "rows" :: array
+    loop rows id=L29 in %t197 as el=%rows_el_198, idx=%rows_i_199
+      loop col id=L30 in %rows_el_198 as el=%col_el_200, idx=%col_i_201
+        %t202 = load_decl n3_alive axes=[rows, col] :: boolean
+        %t203 = load_decl keep_alive axes=[rows, col] :: boolean
+        %t204 = call core.or(%t202, %t203) :: boolean
+        yield %t204
+      end_loop
+    end_loop
+  )
+  (Declaration next_state
+    %t205 = load_input "rows" :: array
+    loop rows id=L31 in %t205 as el=%rows_el_206, idx=%rows_i_207
+      loop col id=L32 in %rows_el_206 as el=%col_el_208, idx=%col_i_209
+        %t210 = load_decl next_alive axes=[rows, col] :: boolean
+        %t211 = const 1 :: integer
+        %t212 = const 0 :: integer
+        %t213 = select %t210, %t211, %t212 :: integer
+        yield %t213
+      end_loop
+    end_loop
+  )
+)

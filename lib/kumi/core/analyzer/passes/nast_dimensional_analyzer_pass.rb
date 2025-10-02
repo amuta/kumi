@@ -115,7 +115,12 @@ module Kumi
             element_types   = elems.map { |m| m[:type] }
             element_scopes  = elems.map { |m| m[:scope] }
             result_scope    = lub_by_prefix(element_scopes)
-            result_type     = "tuple<#{element_types.join(', ')}>"
+
+            result_type = if element_types.uniq.size == 1
+                            "tuple<#{element_types.uniq[0]}>"
+                          else
+                            "tuple<#{element_types.join(', ')}>"
+                          end
 
             @metadata_table[node_id(node)] = {
               parameter_names: [],

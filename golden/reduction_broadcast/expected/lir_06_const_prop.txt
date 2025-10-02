@@ -3,7 +3,7 @@
     %t1 = load_input "departments" :: array
     loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field departments_el_2["teams"] :: array
+      %t5 = load_field departments_el_2["teams"] :: any
       loop teams id=L2 in %t5 as el=%teams_el_6, idx=%teams_i_7
         %t8 = load_field teams_el_6["headcount"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -16,7 +16,7 @@
     %t10 = load_input "departments" :: array
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc_13 = decl_acc :: integer
-      %t14 = load_field departments_el_11["teams"] :: array
+      %t14 = load_field departments_el_11["teams"] :: any
       loop teams id=L4 in %t14 as el=%teams_el_15, idx=%teams_i_16
         %t17 = load_field teams_el_15["team_name"] :: string
         %acc_13 = acc_add agg.count(%acc_13, %t17) :: integer
@@ -29,7 +29,7 @@
     %t19 = load_input "departments" :: array
     loop departments id=L5 in %t19 as el=%departments_el_20, idx=%departments_i_21
       %acc36 = decl_acc :: integer
-      %t37 = load_field departments_el_20["teams"] :: array
+      %t37 = load_field departments_el_20["teams"] :: any
       %acc42 = decl_acc :: integer
       loop teams id=L8 in %t37 as el=%teams_el_6, idx=%teams_i_7
         %t38 = load_field teams_el_6["headcount"] :: integer
@@ -46,7 +46,7 @@
   (Declaration is_above_average_team
     %t25 = load_input "departments" :: array
     loop departments id=L6 in %t25 as el=%departments_el_26, idx=%departments_i_27
-      %t28 = load_field departments_el_26["teams"] :: array
+      %t28 = load_field departments_el_26["teams"] :: any
       %acc52 = decl_acc :: integer
       %acc58 = decl_acc :: integer
       loop teams id=L10 in %t28 as el=%teams_el_6, idx=%teams_i_7

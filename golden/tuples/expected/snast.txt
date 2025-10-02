@@ -5,11 +5,11 @@
       (Const 2) :: [] -> integer
       (Const 3) :: [] -> integer
       (InputRef x key_chain=[x]) :: [] -> integer
-    ) :: [] -> tuple<integer, integer, integer, integer>
-  ) :: [] -> tuple<integer, integer, integer, integer>
+    ) :: [] -> tuple<integer>
+  ) :: [] -> tuple<integer>
   (VALUE max_1
     (Fold :agg.max
-      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
+      (Ref tuple) :: [] -> tuple<integer>
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE max_2
@@ -20,12 +20,12 @@
         (Const 3) :: [] -> integer
         (InputRef x key_chain=[x]) :: [] -> integer
         (Const 1000) :: [] -> integer
-      ) :: [] -> tuple<integer, integer, integer, integer, integer>
+      ) :: [] -> tuple<integer>
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE min_1
     (Fold :agg.min
-      (Ref tuple) :: [] -> tuple<integer, integer, integer, integer>
+      (Ref tuple) :: [] -> tuple<integer>
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE min_2
@@ -36,7 +36,7 @@
         (Const 3) :: [] -> integer
         (InputRef x key_chain=[x]) :: [] -> integer
         (Const -100) :: [] -> integer
-      ) :: [] -> tuple<integer, integer, integer, integer, integer>
+      ) :: [] -> tuple<integer>
     ) :: [] -> integer
   ) :: [] -> integer
 )

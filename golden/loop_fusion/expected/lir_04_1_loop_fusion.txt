@@ -3,7 +3,7 @@
     %t1 = load_input "departments" :: array
     loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field departments_el_2["employees"] :: array
+      %t5 = load_field departments_el_2["employees"] :: any
       loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
         %t8 = load_field employees_el_6["salary"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -16,7 +16,7 @@
     %t10 = load_input "departments" :: array
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc_13 = decl_acc :: integer
-      %t14 = load_field departments_el_11["employees"] :: array
+      %t14 = load_field departments_el_11["employees"] :: any
       loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
         %t17 = load_field employees_el_15["role"] :: string
         %t18 = const "manager" :: string
@@ -35,7 +35,7 @@
     loop departments id=L5 in %t24 as el=%departments_el_25, idx=%departments_i_26
       %t27 = load_field departments_el_25["name"] :: string
       %acc33 = decl_acc :: integer
-      %t34 = load_field departments_el_25["employees"] :: array
+      %t34 = load_field departments_el_25["employees"] :: any
       %acc39 = decl_acc :: integer
       loop employees id=L6 in %t34 as el=%employees_el_6, idx=%employees_i_7
         %t35 = load_field employees_el_6["salary"] :: integer

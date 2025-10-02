@@ -1,0 +1,26 @@
+(NAST
+  (VALUE roll_right
+    (Call :roll
+    (InputRef [:cells, :value])
+    (Const 1)
+  )
+  )
+  (VALUE roll_left
+    (Call :roll
+    (InputRef [:cells, :value])
+    (Const -1)
+  )
+  )
+  (VALUE roll_right_clamp
+    (Call :roll
+    (InputRef [:cells, :value])
+    (Const 1)
+  )
+  )
+  (VALUE roll_left_clamp
+    (Call :roll
+    (InputRef [:cells, :value])
+    (Const -1)
+  )
+  )
+)

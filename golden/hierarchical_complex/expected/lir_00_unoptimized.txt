@@ -2,11 +2,11 @@
   (Declaration high_performer
     %t1 = load_input "regions" :: array
     loop regions id=L1 in %t1 as el=%regions_el_2, idx=%regions_i_3
-      %t4 = load_field regions_el_2["offices"] :: array
+      %t4 = load_field regions_el_2["offices"] :: any
       loop offices id=L2 in %t4 as el=%offices_el_5, idx=%offices_i_6
-        %t7 = load_field offices_el_5["teams"] :: array
+        %t7 = load_field offices_el_5["teams"] :: any
         loop teams id=L3 in %t7 as el=%teams_el_8, idx=%teams_i_9
-          %t10 = load_field teams_el_8["employees"] :: array
+          %t10 = load_field teams_el_8["employees"] :: any
           loop employees id=L4 in %t10 as el=%employees_el_11, idx=%employees_i_12
             %t13 = load_field employees_el_11["rating"] :: float
             %t14 = const 4.5 :: float
@@ -20,11 +20,11 @@
   (Declaration senior_level
     %t16 = load_input "regions" :: array
     loop regions id=L5 in %t16 as el=%regions_el_17, idx=%regions_i_18
-      %t19 = load_field regions_el_17["offices"] :: array
+      %t19 = load_field regions_el_17["offices"] :: any
       loop offices id=L6 in %t19 as el=%offices_el_20, idx=%offices_i_21
-        %t22 = load_field offices_el_20["teams"] :: array
+        %t22 = load_field offices_el_20["teams"] :: any
         loop teams id=L7 in %t22 as el=%teams_el_23, idx=%teams_i_24
-          %t25 = load_field teams_el_23["employees"] :: array
+          %t25 = load_field teams_el_23["employees"] :: any
           loop employees id=L8 in %t25 as el=%employees_el_26, idx=%employees_i_27
             %t28 = load_field employees_el_26["level"] :: string
             %t29 = const "senior" :: string
@@ -38,9 +38,9 @@
   (Declaration top_team
     %t31 = load_input "regions" :: array
     loop regions id=L9 in %t31 as el=%regions_el_32, idx=%regions_i_33
-      %t34 = load_field regions_el_32["offices"] :: array
+      %t34 = load_field regions_el_32["offices"] :: any
       loop offices id=L10 in %t34 as el=%offices_el_35, idx=%offices_i_36
-        %t37 = load_field offices_el_35["teams"] :: array
+        %t37 = load_field offices_el_35["teams"] :: any
         loop teams id=L11 in %t37 as el=%teams_el_38, idx=%teams_i_39
           %t40 = load_field teams_el_38["performance_score"] :: float
           %t41 = const 0.9 :: float
@@ -53,11 +53,11 @@
   (Declaration employee_bonus
     %t43 = load_input "regions" :: array
     loop regions id=L12 in %t43 as el=%regions_el_44, idx=%regions_i_45
-      %t46 = load_field regions_el_44["offices"] :: array
+      %t46 = load_field regions_el_44["offices"] :: any
       loop offices id=L13 in %t46 as el=%offices_el_47, idx=%offices_i_48
-        %t49 = load_field offices_el_47["teams"] :: array
+        %t49 = load_field offices_el_47["teams"] :: any
         loop teams id=L14 in %t49 as el=%teams_el_50, idx=%teams_i_51
-          %t52 = load_field teams_el_50["employees"] :: array
+          %t52 = load_field teams_el_50["employees"] :: any
           loop employees id=L15 in %t52 as el=%employees_el_53, idx=%employees_i_54
             %t55 = load_decl high_performer axes=[regions, offices, teams, employees] :: boolean
             %t56 = load_decl senior_level axes=[regions, offices, teams, employees] :: boolean

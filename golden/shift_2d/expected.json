@@ -1,0 +1,15 @@
+{
+  "shift_cols_right_zero":  [[0, 1, 2],   [0, 10, 20]],
+  "shift_cols_right_clamp": [[1, 1, 2],   [10, 10, 20]],
+  "shift_cols_right_wrap":  [[3, 1, 2],   [30, 10, 20]],
+  "shift_cols_left_zero":   [[2, 3, 0],   [20, 30, 0]],
+  "shift_cols_left_clamp":  [[2, 3, 3],   [20, 30, 30]],
+  "shift_cols_left_wrap":   [[2, 3, 1],   [20, 30, 10]],
+
+  "shift_rows_down_zero":   [[0, 0, 0],   [1, 2, 3]],
+  "shift_rows_down_clamp":  [[1, 2, 3],   [1, 2, 3]],
+  "shift_rows_down_wrap":   [[10, 20, 30],[1, 2, 3]],
+  "shift_rows_up_zero":     [[10, 20, 30],[0, 0, 0]],
+  "shift_rows_up_clamp":    [[10, 20, 30],[10, 20, 30]],
+  "shift_rows_up_wrap":     [[10, 20, 30],[1, 2, 3]]
+}

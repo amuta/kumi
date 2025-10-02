@@ -1,0 +1,118 @@
+(Root
+  inputs: [
+    (InputDeclaration :rows :array access_mode: :element
+      [
+        (InputDeclaration :col :array access_mode: :element
+          [
+            (InputDeclaration :alive :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :a
+      (InputElementReference rows.col.alive)
+    )
+    (ValueDeclaration :n
+      (CallExpression :shift
+        (DeclarationReference :a)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :s
+      (CallExpression :shift
+        (DeclarationReference :a)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :w
+      (CallExpression :shift
+        (DeclarationReference :a)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :e
+      (CallExpression :shift
+        (DeclarationReference :a)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :nw
+      (CallExpression :shift
+        (DeclarationReference :n)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :ne
+      (CallExpression :shift
+        (DeclarationReference :n)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :sw
+      (CallExpression :shift
+        (DeclarationReference :s)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :se
+      (CallExpression :shift
+        (DeclarationReference :s)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :neighbors
+      (CallExpression :sum
+        (ArrayExpression
+          (DeclarationReference :n)
+          (DeclarationReference :s)
+          (DeclarationReference :w)
+          (DeclarationReference :e)
+          (DeclarationReference :nw)
+          (DeclarationReference :ne)
+          (DeclarationReference :sw)
+          (DeclarationReference :se)
+        )
+      )
+    )
+    (ValueDeclaration :alive
+      (CallExpression :>
+        (DeclarationReference :a)
+        (Literal 0)
+      )
+    )
+    (ValueDeclaration :n3_alive
+      (CallExpression :==
+        (DeclarationReference :neighbors)
+        (Literal 3)
+      )
+    )
+    (ValueDeclaration :n2_alive
+      (CallExpression :==
+        (DeclarationReference :neighbors)
+        (Literal 2)
+      )
+    )
+    (ValueDeclaration :keep_alive
+      (CallExpression :and
+        (DeclarationReference :n2_alive)
+        (DeclarationReference :alive)
+      )
+    )
+    (ValueDeclaration :next_alive
+      (CallExpression :or
+        (DeclarationReference :n3_alive)
+        (DeclarationReference :keep_alive)
+      )
+    )
+    (ValueDeclaration :next_state
+      (CallExpression :select
+        (DeclarationReference :next_alive)
+        (Literal 1)
+        (Literal 0)
+      )
+    )
+  ]
+  traits: []
+)

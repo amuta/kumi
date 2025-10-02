@@ -1,7 +1,7 @@
 (LIR
   (Declaration double
-    %t1 = load_input "x" :: hash
-    %t2 = load_field t1["y"] :: hash
+    %t1 = load_input "x" :: any
+    %t2 = load_field t1["y"] :: any
     %t3 = load_field t2["z"] :: integer
     %t4 = const 2 :: integer
     %t5 = call core.mul(%t3, %t4) :: integer

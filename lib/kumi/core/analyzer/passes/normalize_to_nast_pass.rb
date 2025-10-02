@@ -89,7 +89,7 @@ module Kumi
             else
               # Regular, non-expandable function call.
               args = node.args.map { |a| normalize_expr(a, errors) }
-              NAST::Call.new(fn: func.id.to_sym, args: args, loc: node.loc)
+              NAST::Call.new(fn: func.id.to_sym, args: args, opts: node.opts, loc: node.loc)
             end
           end
 

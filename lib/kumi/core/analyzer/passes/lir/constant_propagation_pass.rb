@@ -23,13 +23,14 @@ module Kumi
 
             def run(_errors)
               ops_by_decl = get_state(:lir_module)
-              out = {}
+              # out = {}
 
-              ops_by_decl.each do |name, payload|
-                out[name] = { operations: optimize_decl(Array(payload[:operations])) }
-              end
+              # ops_by_decl.each do |name, payload|
+              #   out[name] = { operations: optimize_decl(Array(payload[:operations])) }
+              # end
 
-              out.freeze
+              # out.freeze
+              out = ops_by_decl
               state.with(:lir_06_const_prop, out).with(:lir_module, out.freeze)
             end
 

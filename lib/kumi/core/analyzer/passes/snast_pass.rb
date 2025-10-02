@@ -164,7 +164,7 @@ module Kumi
             # regular elementwise
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
-            out  = n.class.new(id: n.id, fn: @registry.resolve_function(n.fn), args:, loc: n.loc)
+            out  = n.class.new(id: n.id, fn: @registry.resolve_function(n.fn), args:, opts: n.opts, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end
 

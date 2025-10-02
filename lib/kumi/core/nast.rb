@@ -71,12 +71,13 @@ module Kumi
       end
 
       class Call < Node
-        attr_reader :fn, :args
+        attr_reader :fn, :args, :opts
 
-        def initialize(fn:, args:, **k)
+        def initialize(fn:, args:, opts: {}, **k)
           super(**k)
           @fn = fn.to_sym
           @args = args
+          @opts = opts
         end
 
         def accept(visitor)

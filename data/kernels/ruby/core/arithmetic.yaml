@@ -31,3 +31,8 @@ kernels:
     fn: core.div
     inline: "= $0 / $1.to_f"
     impl: "(a, b)\n  a / b.to_f"
+  
+  - id: clamp:ruby:v1
+    fn: core.clamp
+    inline: "= [[ $0, $1 ].max, $2 ].min"
+    impl: "(x, lo, hi)\n  [[x, lo].max, hi].min"

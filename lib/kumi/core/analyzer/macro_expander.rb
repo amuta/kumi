@@ -46,6 +46,7 @@ module Kumi
           new_args = template_hash.fetch("args", []).map do |arg_template|
             build_nast_node(arg_template)
           end
+
           NAST::Call.new(
             fn: template_hash.fetch("fn"),
             args: new_args,

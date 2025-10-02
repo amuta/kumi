@@ -1,0 +1,38 @@
+(SNAST
+  (VALUE shift_right_zero
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE shift_left_zero
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE shift_right_clamp
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE shift_left_clamp
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE shift_right_wrap
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+  (VALUE shift_left_wrap
+    (Call :shift
+      (InputRef cells.value key_chain=[]) :: [cells] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [cells] -> integer
+  ) :: [cells] -> integer
+)

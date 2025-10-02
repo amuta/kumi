@@ -3,7 +3,7 @@
     %t1 = load_input "regions" :: array
     loop regions id=L1 in %t1 as el=%regions_el_2, idx=%regions_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field regions_el_2["sales"] :: array
+      %t5 = load_field regions_el_2["sales"] :: any
       loop sales id=L2 in %t5 as el=%sales_el_6, idx=%sales_i_7
         %t8 = load_field sales_el_6["amount"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -17,7 +17,7 @@
     %t11 = load_input "regions" :: array
     loop regions id=L3 in %t11 as el=%regions_el_12, idx=%regions_i_13
       %acc21 = decl_acc :: integer
-      %t22 = load_field regions_el_12["sales"] :: array
+      %t22 = load_field regions_el_12["sales"] :: any
       loop sales id=L4 in %t22 as el=%sales_el_6, idx=%sales_i_7
         %t23 = load_field sales_el_6["amount"] :: integer
         %acc21 = acc_add agg.sum(%acc21, %t23) :: integer
@@ -33,7 +33,7 @@
     %t27 = load_input "regions" :: array
     loop regions id=L5 in %t27 as el=%regions_el_12, idx=%regions_i_13
       %acc32 = decl_acc :: integer
-      %t33 = load_field regions_el_12["sales"] :: array
+      %t33 = load_field regions_el_12["sales"] :: any
       loop sales id=L6 in %t33 as el=%sales_el_6, idx=%sales_i_7
         %t34 = load_field sales_el_6["amount"] :: integer
         %acc32 = acc_add agg.sum(%acc32, %t34) :: integer

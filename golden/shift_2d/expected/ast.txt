@@ -1,0 +1,88 @@
+(Root
+  inputs: [
+    (InputDeclaration :rows :array access_mode: :field
+      [
+        (InputDeclaration :col :array access_mode: :element
+          [
+            (InputDeclaration :v :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :shift_cols_right_zero
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_cols_right_clamp
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_cols_right_wrap
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_cols_left_zero
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :shift_cols_left_clamp
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :shift_cols_left_wrap
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :shift_rows_down_zero
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_rows_down_clamp
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_rows_down_wrap
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :shift_rows_up_zero
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :shift_rows_up_clamp
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :shift_rows_up_wrap
+      (CallExpression :shift
+        (InputElementReference rows.col.v)
+        (Literal -1)
+      )
+    )
+  ]
+  traits: []
+)

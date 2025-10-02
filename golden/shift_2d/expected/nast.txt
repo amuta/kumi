@@ -1,0 +1,74 @@
+(NAST
+  (VALUE shift_cols_right_zero
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_cols_right_clamp
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_cols_right_wrap
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_cols_left_zero
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+  (VALUE shift_cols_left_clamp
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+  (VALUE shift_cols_left_wrap
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+  (VALUE shift_rows_down_zero
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_rows_down_clamp
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_rows_down_wrap
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const 1)
+  )
+  )
+  (VALUE shift_rows_up_zero
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+  (VALUE shift_rows_up_clamp
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+  (VALUE shift_rows_up_wrap
+    (Call :shift
+    (InputRef [:rows, :col, :v])
+    (Const -1)
+  )
+  )
+)

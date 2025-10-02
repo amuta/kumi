@@ -303,6 +303,32 @@ module Kumi
           )
         end
 
+        def length(collection_register:, as: nil, ids: nil, location: nil)
+          as ||= ids.generate_temp
+          Instruction.new(
+            opcode: :Length,
+            result_register: as,
+            stamp: Stamp.new(dtype: :integer),
+            inputs: [collection_register],
+            immediates: [],
+            attributes: {},
+            location:
+          )
+        end
+
+        def gather(collection_register:, index_register:, dtype:, as: nil, ids: nil, location: nil)
+          as ||= ids.generate_temp
+          Instruction.new(
+            opcode: :Gather,
+            result_register: as,
+            stamp: Stamp.new(dtype: dtype),
+            inputs: [collection_register, index_register],
+            immediates: [],
+            attributes: {},
+            location:
+          )
+        end
+
         # Yield
         # Opcode: Yield
         # Semantics:

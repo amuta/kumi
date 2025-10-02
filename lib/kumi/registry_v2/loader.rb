@@ -26,12 +26,28 @@ module Kumi
             params: h.fetch("params"),
             dtype: h["dtype"],
             expand: h["expand"],
+            options: symbolize_keys(h["options"] || {}),
             folding_class_method: h["folding_class_method"],
             reduction_strategy: h["reduction_strategy"]&.to_sym
           )
           raise "duplicate function id `#{f.id}`" if acc.key?(f.id)
 
           acc[f.id] = f
+        end
+      end
+
+      def symbolize_keys(h)
+        h.each_with_object({}) { |(k, v), out| out[k.to_sym] = v }
+      end
+
+      def deep_symbolize_keys(obj)
+        case obj
+        when Hash
+          obj.each_with_object({}) { |(k, v), out| out[k.to_sym] = deep_symbolize_keys(v) }
+        when Array
+          obj.map { |v| deep_symbolize_keys(v) }
+        else
+          obj
         end
       end
 

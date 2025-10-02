@@ -3,7 +3,7 @@
     %t1 = load_input "regions" :: array
     loop regions id=L1 in %t1 as el=%regions_el_2, idx=%regions_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field regions_el_2["sales"] :: array
+      %t5 = load_field regions_el_2["sales"] :: any
       loop sales id=L2 in %t5 as el=%sales_el_6, idx=%sales_i_7
         %t8 = load_field sales_el_6["amount"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer

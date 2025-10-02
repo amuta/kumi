@@ -96,6 +96,10 @@ module Kumi
               when :TupleGet
                 idx = ins.immediates&.first&.value
                 [:TupleGet, ins.inputs, idx, ins.stamp&.dtype]
+              when :Gather
+                [:Gather, ins.inputs]
+              when :Length
+                [:Length, ins.inputs]
               else
                 # Fallback (shouldn't be hit due to PURE guard)
                 [ins.opcode, ins.inputs,

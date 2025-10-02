@@ -1,0 +1,8 @@
+{
+  "shift_right_zero":  [0, 1, 2, 3],
+  "shift_left_zero":   [2, 3, 4, 0],
+  "shift_right_clamp": [1, 1, 2, 3],
+  "shift_left_clamp":  [2, 3, 4, 4],
+  "shift_right_wrap":  [4, 1, 2, 3],
+  "shift_left_wrap":   [2, 3, 4, 1]
+}

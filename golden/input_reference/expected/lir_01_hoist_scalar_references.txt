@@ -1,32 +1,32 @@
 (LIR
   (Declaration app_name
-    %t1 = load_input "config" :: hash
+    %t1 = load_input "config" :: any
     %t2 = load_field t1["app_name"] :: string
     yield %t2
   )
   (Declaration all_flags
-    %t3 = load_input "config" :: hash
+    %t3 = load_input "config" :: any
     %t4 = load_field t3["feature_flags"] :: array
     yield %t4
   )
   (Declaration server_hostnames
-    %t5 = load_input "config" :: hash
-    %t6 = load_field t5["servers"] :: array
+    %t5 = load_field ["config"] :: any
+    %t6 = load_field t5["servers"] :: any
     loop servers id=L1 in %t6 as el=%servers_el_7, idx=%servers_i_8
       %t9 = load_field servers_el_7["hostname"] :: string
       yield %t9
     end_loop
   )
   (Declaration server_count
-    %t10 = load_input "config" :: hash
+    %t10 = load_input "config" :: any
     %t11 = load_field t10["servers"] :: array
     %t12 = call core.length(%t11) :: integer
     yield %t12
   )
   (Declaration total_ports
     %acc_13 = decl_acc :: integer
-    %t14 = load_input "config" :: hash
-    %t15 = load_field t14["servers"] :: array
+    %t14 = load_field ["config"] :: any
+    %t15 = load_field t14["servers"] :: any
     loop servers id=L2 in %t15 as el=%servers_el_16, idx=%servers_i_17
       %t18 = load_field servers_el_16["port"] :: integer
       %acc_13 = acc_add agg.sum(%acc_13, %t18) :: integer

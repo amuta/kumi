@@ -1,0 +1,25 @@
+schema do
+  input do
+    array :rows do
+      array :col do
+        element :integer, :v
+      end
+    end
+  end
+
+  # Column-wise (axis_offset = 0)
+  value :shift_cols_right_zero,  shift(input.rows.col.v,  1)
+  value :shift_cols_right_clamp, shift(input.rows.col.v,  1, policy: :clamp)
+  value :shift_cols_right_wrap,  shift(input.rows.col.v,  1, policy: :wrap)
+  value :shift_cols_left_zero,   shift(input.rows.col.v, -1)
+  value :shift_cols_left_clamp,  shift(input.rows.col.v, -1, policy: :clamp)
+  value :shift_cols_left_wrap,   shift(input.rows.col.v, -1, policy: :wrap)
+
+  # Row-wise (axis_offset = 1)
+  value :shift_rows_down_zero,   shift(input.rows.col.v,  1, axis_offset: 1)
+  value :shift_rows_down_clamp,  shift(input.rows.col.v,  1, axis_offset: 1, policy: :clamp)
+  value :shift_rows_down_wrap,   shift(input.rows.col.v,  1, axis_offset: 1, policy: :wrap)
+  value :shift_rows_up_zero,     shift(input.rows.col.v, -1, axis_offset: 1)
+  value :shift_rows_up_clamp,    shift(input.rows.col.v, -1, axis_offset: 1, policy: :clamp)
+  value :shift_rows_up_wrap,     shift(input.rows.col.v, -1, axis_offset: 1, policy: :wrap)
+end

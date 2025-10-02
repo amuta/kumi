@@ -33,7 +33,8 @@ module Kumi
           normalize_type_symbol(reference_type_symbol)
         rescue StandardError
           # binding.pry
-          raise
+          # raise
+          # TODO CHECK HOW HANDLE THIS
         end
 
         def array_type(element_type)

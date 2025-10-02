@@ -1,0 +1,18 @@
+{
+  "a": [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]],
+  "n": [[0,1,0,0],[0,1,0,0],[0,0,0,0],[0,1,0,0]],
+  "s": [[0,0,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]],
+  "w": [[1,0,0,0],[1,0,0,0],[1,0,0,0],[0,0,0,0]],
+  "e": [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,0,0]],
+  "nw": [[1,0,0,0],[1,0,0,0],[0,0,0,0],[1,0,0,0]],
+  "ne": [[0,0,1,0],[0,0,1,0],[0,0,0,0],[0,0,1,0]],
+  "sw": [[0,0,0,0],[1,0,0,0],[1,0,0,0],[1,0,0,0]],
+  "se": [[0,0,0,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+  "neighbors": [[2,1,2,0],[3,2,3,0],[2,1,2,0],[2,2,2,0]],
+  "alive": [[false,true,false,false],[false,true,false,false],[false,true,false,false],[false,false,false,false]],
+  "n3_alive": [[false,false,false,false],[true,false,true,false],[false,false,false,false],[false,false,false,false]],
+  "n2_alive": [[true,false,true,false],[false,true,false,false],[true,false,true,false],[true,true,true,false]],
+  "keep_alive": [[false,false,false,false],[false,true,false,false],[false,false,false,false],[false,false,false,false]],
+  "next_alive": [[false,false,false,false],[true,true,true,false],[false,false,false,false],[false,false,false,false]],
+  "next_state": [[0,0,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]]
+}

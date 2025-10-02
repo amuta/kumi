@@ -3,7 +3,7 @@
     %t1 = load_input "departments" :: array
     loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field departments_el_2["employees"] :: array
+      %t5 = load_field departments_el_2["employees"] :: any
       loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
         %t8 = load_field employees_el_6["salary"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -17,7 +17,7 @@
     %t14 = const 0.15 :: float
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc40 = decl_acc :: integer
-      %t41 = load_field departments_el_11["employees"] :: array
+      %t41 = load_field departments_el_11["employees"] :: any
       loop employees id=L7 in %t41 as el=%employees_el_6, idx=%employees_i_7
         %t42 = load_field employees_el_6["salary"] :: integer
         %acc40 = acc_add agg.sum(%acc40, %t42) :: integer
@@ -34,7 +34,7 @@
     %t27 = const 0 :: integer
     loop departments id=L4 in %t16 as el=%departments_el_17, idx=%departments_i_18
       %acc_19 = decl_acc :: integer
-      %t20 = load_field departments_el_17["employees"] :: array
+      %t20 = load_field departments_el_17["employees"] :: any
       loop employees id=L5 in %t20 as el=%employees_el_21, idx=%employees_i_22
         %t23 = load_field employees_el_21["role"] :: string
         %t25 = call core.eq(%t23, %t24) :: boolean
@@ -54,7 +54,7 @@
     loop departments id=L6 in %t30 as el=%departments_el_31, idx=%departments_i_32
       %t33 = load_field departments_el_31["name"] :: string
       %acc46 = decl_acc :: integer
-      %t47 = load_field departments_el_31["employees"] :: array
+      %t47 = load_field departments_el_31["employees"] :: any
       %acc67 = decl_acc :: integer
       %acc56 = decl_acc :: integer
       loop employees id=L8 in %t47 as el=%employees_el_6, idx=%employees_i_7

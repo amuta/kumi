@@ -1,0 +1,13 @@
+schema do
+  input do
+    array :cells do
+      element :integer, :value
+    end
+  end
+
+  # ROLL — wrap by default; include clamp variants
+  value :roll_right,         roll(input.cells.value,  1)                       # :wrap
+  value :roll_left,          roll(input.cells.value, -1)                       # :wrap
+  value :roll_right_clamp,   roll(input.cells.value,  1, policy: :clamp)
+  value :roll_left_clamp,    roll(input.cells.value, -1, policy: :clamp)
+end

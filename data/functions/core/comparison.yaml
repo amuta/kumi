@@ -3,7 +3,7 @@ functions:
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
-    aliases : ["gte", "greater_than_or_equal", ">="]
+    aliases : ["gte", "ge", "greater_than_or_equal", ">="]
     folding_class_method: gte
 
   - id: core.gt
@@ -17,7 +17,7 @@ functions:
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
     dtype: "boolean"
-    aliases : ["lte", "less_than_or_equal", "<="]
+    aliases : ["lte", "le", "less_than_or_equal", "<="]
     folding_class_method: lte
 
   - id: core.lt

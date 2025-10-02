@@ -1,0 +1,104 @@
+(SNAST
+  (VALUE a
+    (InputRef rows.col.alive key_chain=[]) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE n
+    (Call :shift
+      (Ref a) :: [rows, col] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE s
+    (Call :shift
+      (Ref a) :: [rows, col] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE w
+    (Call :shift
+      (Ref a) :: [rows, col] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE e
+    (Call :shift
+      (Ref a) :: [rows, col] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE nw
+    (Call :shift
+      (Ref n) :: [rows, col] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE ne
+    (Call :shift
+      (Ref n) :: [rows, col] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE sw
+    (Call :shift
+      (Ref s) :: [rows, col] -> integer
+      (Const -1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE se
+    (Call :shift
+      (Ref s) :: [rows, col] -> integer
+      (Const 1) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+  (VALUE neighbors
+    (Fold :agg.sum
+      (Tuple
+        (Ref n) :: [rows, col] -> integer
+        (Ref s) :: [rows, col] -> integer
+        (Ref w) :: [rows, col] -> integer
+        (Ref e) :: [rows, col] -> integer
+        (Ref nw) :: [rows, col] -> integer
+        (Ref ne) :: [rows, col] -> integer
+        (Ref sw) :: [rows, col] -> integer
+        (Ref se) :: [rows, col] -> integer
+      ) :: [rows, col] -> tuple<integer>
+    ) :: [rows, col] -> 
+  ) :: [rows, col] -> 
+  (TRAIT alive
+    (Call :core.gt
+      (Ref a) :: [rows, col] -> integer
+      (Const 0) :: [] -> integer
+    ) :: [rows, col] -> boolean
+  ) :: [rows, col] -> boolean
+  (TRAIT n3_alive
+    (Call :core.eq
+      (Ref neighbors) :: [rows, col] -> 
+      (Const 3) :: [] -> integer
+    ) :: [rows, col] -> boolean
+  ) :: [rows, col] -> boolean
+  (TRAIT n2_alive
+    (Call :core.eq
+      (Ref neighbors) :: [rows, col] -> 
+      (Const 2) :: [] -> integer
+    ) :: [rows, col] -> boolean
+  ) :: [rows, col] -> boolean
+  (TRAIT keep_alive
+    (Call :core.and
+      (Ref n2_alive) :: [rows, col] -> boolean
+      (Ref alive) :: [rows, col] -> boolean
+    ) :: [rows, col] -> boolean
+  ) :: [rows, col] -> boolean
+  (TRAIT next_alive
+    (Call :core.or
+      (Ref n3_alive) :: [rows, col] -> boolean
+      (Ref keep_alive) :: [rows, col] -> boolean
+    ) :: [rows, col] -> boolean
+  ) :: [rows, col] -> boolean
+  (VALUE next_state
+    (Select
+      (Ref next_alive) :: [rows, col] -> boolean
+      (Const 1) :: [] -> integer
+      (Const 0) :: [] -> integer
+    ) :: [rows, col] -> integer
+  ) :: [rows, col] -> integer
+)

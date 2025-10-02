@@ -71,7 +71,9 @@ module Kumi
                           node
                         else
                           NAST::Call.new(fn: node.fn,
-                                         args: folded_args, loc: node.loc)
+                                         args: folded_args,
+                                         opts: node.opts,
+                                         loc: node.loc)
                         end
 
           debug "[FOLD]     - Attempting to evaluate call to :#{folded_call.fn}"

@@ -1,0 +1,104 @@
+(NAST
+  (VALUE a
+    (InputRef [:rows, :col, :alive])
+  )
+  (VALUE n
+    (Call :shift
+    (Ref a)
+    (Const -1)
+  )
+  )
+  (VALUE s
+    (Call :shift
+    (Ref a)
+    (Const 1)
+  )
+  )
+  (VALUE w
+    (Call :shift
+    (Ref a)
+    (Const -1)
+  )
+  )
+  (VALUE e
+    (Call :shift
+    (Ref a)
+    (Const 1)
+  )
+  )
+  (VALUE nw
+    (Call :shift
+    (Ref n)
+    (Const -1)
+  )
+  )
+  (VALUE ne
+    (Call :shift
+    (Ref n)
+    (Const 1)
+  )
+  )
+  (VALUE sw
+    (Call :shift
+    (Ref s)
+    (Const -1)
+  )
+  )
+  (VALUE se
+    (Call :shift
+    (Ref s)
+    (Const 1)
+  )
+  )
+  (VALUE neighbors
+    (Call :"agg.sum"
+    (Tuple
+      (Ref n)
+      (Ref s)
+      (Ref w)
+      (Ref e)
+      (Ref nw)
+      (Ref ne)
+      (Ref sw)
+      (Ref se)
+    )
+  )
+  )
+  (VALUE alive
+    (Call :"core.gt"
+    (Ref a)
+    (Const 0)
+  )
+  )
+  (VALUE n3_alive
+    (Call :"core.eq"
+    (Ref neighbors)
+    (Const 3)
+  )
+  )
+  (VALUE n2_alive
+    (Call :"core.eq"
+    (Ref neighbors)
+    (Const 2)
+  )
+  )
+  (VALUE keep_alive
+    (Call :"core.and"
+    (Ref n2_alive)
+    (Ref alive)
+  )
+  )
+  (VALUE next_alive
+    (Call :"core.or"
+    (Ref n3_alive)
+    (Ref keep_alive)
+  )
+  )
+  (VALUE next_state
+    (Call :__select__
+    (Ref next_alive)
+    (Const 1)
+    (Const 0)
+  )
+  )
+)

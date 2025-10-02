@@ -27,7 +27,7 @@
       %t34 = load_field points_el_15["y"] :: integer
       %t44 = call core.gt(%t42, %t43) :: boolean
       %t35 = select %t44, %t42, %t34 :: integer
-      %t19 = make_tuple(%t35, %t42) :: tuple<integer, integer>
+      %t19 = make_tuple(%t35, %t42) :: tuple<integer>
       %t20 = Fold %t19 fn="agg.max" :: integer
       yield %t20
     end_loop
@@ -41,7 +41,7 @@
       %t51 = load_field points_el_23["y"] :: integer
       %t49 = call core.gt(%t47, %t48) :: boolean
       %t52 = select %t49, %t47, %t51 :: integer
-      %t39 = make_tuple(%t52, %t47) :: tuple<integer, integer>
+      %t39 = make_tuple(%t52, %t47) :: tuple<integer>
       %t40 = Fold %t39 fn="agg.max" :: integer
       %acc_21 = acc_add agg.sum(%acc_21, %t40) :: integer
     end_loop

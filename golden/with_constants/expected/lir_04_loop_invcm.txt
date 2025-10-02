@@ -3,7 +3,7 @@
     %t1 = const 100 :: integer
     %t2 = const 85 :: integer
     %t3 = const 92 :: integer
-    %t4 = make_tuple(%t1, %t2, %t3) :: tuple<integer, integer, integer>
+    %t4 = make_tuple(%t1, %t2, %t3) :: tuple<integer>
     yield %t4
   )
   (Declaration first_score

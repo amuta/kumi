@@ -33,6 +33,8 @@ module Kumi
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
+      Passes::AttachAnchorsPass,
+      Passes::PrecomputeAccessPathsPass,
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes

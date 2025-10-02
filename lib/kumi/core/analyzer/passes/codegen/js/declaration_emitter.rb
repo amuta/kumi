@@ -66,7 +66,7 @@ module Kumi
                 el = to_local(ins.attributes[:as_element])
                 ix = to_local(ins.attributes[:as_index])
 
-                write "#{coll}?.forEach((#{el}, #{ix}) => {"
+                write "#{coll}.forEach((#{el}, #{ix}) => {"
                 indent!
                 @stack.push({ el: el, ix: ix })
 
@@ -185,7 +185,7 @@ module Kumi
                 obj = areg(ins.inputs.first)
                 key = imm_key(ins)
                 # Use optional chaining for safety
-                write "let #{vreg(ins)} = #{obj}?.#{key};"
+                write "let #{vreg(ins)} = #{obj}.#{key};"
               end
 
               def emit_select(ins, _i)
@@ -228,7 +228,16 @@ module Kumi
                 write "};"
               end
 
-              # --- Helpers ---
+              def emit_length(ins, _i)
+                arr = ins.inputs[0]
+                write "let #{vreg(ins)} = #{arr}.length"
+              end
+
+              def emit_gather(ins, _)
+                arr = ins.inputs[0]
+                idx = ins.inputs[1]
+                write "let #{vreg(ins)} = #{arr}[#{idx}]"
+              end
 
               def find_matching_loop_end(start_index)
                 depth = 1; (start_index + 1...@ops.length).each do |i|

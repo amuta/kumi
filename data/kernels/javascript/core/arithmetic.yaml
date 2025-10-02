@@ -26,3 +26,7 @@ kernels:
   - id: div:javascript:v1
     fn: core.div
     inline: "= $0 / $1"
+
+  - id: clamp:javascript:v1
+    fn: core.clamp
+    inline: "= Math.min(Math.max($0, $1), $2)"

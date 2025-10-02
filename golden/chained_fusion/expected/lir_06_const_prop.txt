@@ -3,7 +3,7 @@
     %t1 = load_input "departments" :: array
     loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field departments_el_2["employees"] :: array
+      %t5 = load_field departments_el_2["employees"] :: any
       loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
         %t8 = load_field employees_el_6["salary"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -19,11 +19,11 @@
     %t21 = const 0 :: integer
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc_13 = decl_acc :: integer
-      %t14 = load_field departments_el_11["employees"] :: array
+      %t14 = load_field departments_el_11["employees"] :: any
       loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
         %t17 = load_field employees_el_15["role"] :: string
-        %t19 = call core.eq(%t17, %__immediate_placeholder__) :: boolean
-        %t22 = select %t19, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t19 = call core.eq(%t17, %t18) :: boolean
+        %t22 = select %t19, %t20, %t21 :: integer
         %acc_13 = acc_add agg.sum(%acc_13, %t22) :: integer
       end_loop
       %t23 = acc_load %acc_13 :: integer
@@ -37,11 +37,11 @@
     %t35 = const 0 :: integer
     loop departments id=L5 in %t24 as el=%departments_el_25, idx=%departments_i_26
       %acc_27 = decl_acc :: integer
-      %t28 = load_field departments_el_25["employees"] :: array
+      %t28 = load_field departments_el_25["employees"] :: any
       loop employees id=L6 in %t28 as el=%employees_el_29, idx=%employees_i_30
         %t31 = load_field employees_el_29["role"] :: string
-        %t33 = call core.eq(%t31, %__immediate_placeholder__) :: boolean
-        %t36 = select %t33, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t33 = call core.eq(%t31, %t32) :: boolean
+        %t36 = select %t33, %t34, %t35 :: integer
         %acc_27 = acc_add agg.sum(%acc_27, %t36) :: integer
       end_loop
       %t37 = acc_load %acc_27 :: integer
@@ -52,7 +52,7 @@
     %t38 = load_input "departments" :: array
     loop departments id=L7 in %t38 as el=%departments_el_39, idx=%departments_i_40
       %acc_41 = decl_acc :: integer
-      %t42 = load_field departments_el_39["employees"] :: array
+      %t42 = load_field departments_el_39["employees"] :: any
       loop employees id=L8 in %t42 as el=%employees_el_43, idx=%employees_i_44
         %t45 = load_field employees_el_43["salary"] :: integer
         %acc_41 = acc_add agg.max(%acc_41, %t45) :: integer
@@ -70,7 +70,7 @@
     loop departments id=L9 in %t47 as el=%departments_el_48, idx=%departments_i_49
       %t50 = load_field departments_el_48["name"] :: string
       %acc58 = decl_acc :: integer
-      %t59 = load_field departments_el_48["employees"] :: array
+      %t59 = load_field departments_el_48["employees"] :: any
       %acc64 = decl_acc :: integer
       %acc75 = decl_acc :: integer
       %acc86 = decl_acc :: integer
@@ -78,12 +78,12 @@
         %t60 = load_field employees_el_6["salary"] :: integer
         %acc58 = acc_add agg.sum(%acc58, %t60) :: integer
         %t66 = load_field employees_el_6["role"] :: string
-        %t68 = call core.eq(%t66, %__immediate_placeholder__) :: boolean
-        %t71 = select %t68, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t68 = call core.eq(%t66, %t67) :: boolean
+        %t71 = select %t68, %t69, %t70 :: integer
         %acc64 = acc_add agg.sum(%acc64, %t71) :: integer
         %acc86 = acc_add agg.max(%acc86, %t60) :: integer
-        %t79 = call core.eq(%t66, %__immediate_placeholder__) :: boolean
-        %t82 = select %t79, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t79 = call core.eq(%t66, %t78) :: boolean
+        %t82 = select %t79, %t69, %t70 :: integer
         %acc75 = acc_add agg.sum(%acc75, %t82) :: integer
       end_loop
       %t61 = acc_load %acc58 :: integer

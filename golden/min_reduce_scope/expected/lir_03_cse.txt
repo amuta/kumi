@@ -3,7 +3,7 @@
     %t1 = load_input "depts" :: array
     loop depts id=L1 in %t1 as el=%depts_el_2, idx=%depts_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field depts_el_2["teams"] :: array
+      %t5 = load_field depts_el_2["teams"] :: any
       loop teams id=L2 in %t5 as el=%teams_el_6, idx=%teams_i_7
         %t8 = load_field teams_el_6["headcount"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -17,7 +17,7 @@
     %t11 = load_input "depts" :: array
     loop depts id=L3 in %t11 as el=%depts_el_12, idx=%depts_i_13
       %acc_14 = decl_acc :: integer
-      %t15 = load_field depts_el_12["teams"] :: array
+      %t15 = load_field depts_el_12["teams"] :: any
       loop teams id=L4 in %t15 as el=%teams_el_16, idx=%teams_i_17
         %t18 = load_field teams_el_16["headcount"] :: integer
         %acc_14 = acc_add agg.sum(%acc_14, %t18) :: integer
@@ -31,7 +31,7 @@
   (Declaration big_team
     %t21 = load_input "depts" :: array
     loop depts id=L5 in %t21 as el=%depts_el_22, idx=%depts_i_23
-      %t24 = load_field depts_el_22["teams"] :: array
+      %t24 = load_field depts_el_22["teams"] :: any
       loop teams id=L6 in %t24 as el=%teams_el_25, idx=%teams_i_26
         %t27 = load_field teams_el_25["headcount"] :: integer
         %t28 = const 10 :: integer
@@ -44,7 +44,7 @@
     %t30 = load_input "depts" :: array
     loop depts id=L7 in %t30 as el=%depts_el_31, idx=%depts_i_32
       %acc_33 = decl_acc :: integer
-      %t34 = load_field depts_el_31["teams"] :: array
+      %t34 = load_field depts_el_31["teams"] :: any
       loop teams id=L8 in %t34 as el=%teams_el_35, idx=%teams_i_36
         %t44 = load_field teams_el_35["headcount"] :: integer
         %t45 = const 10 :: integer

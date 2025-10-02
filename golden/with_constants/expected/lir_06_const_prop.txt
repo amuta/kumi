@@ -3,15 +3,15 @@
     %t1 = const 100 :: integer
     %t2 = const 85 :: integer
     %t3 = const 92 :: integer
-    %t4 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__) :: tuple<integer, integer, integer>
+    %t4 = make_tuple(%t1, %t2, %t3) :: tuple<integer>
     yield %t4
   )
   (Declaration first_score
     %t5 = const 100 :: integer
-    yield %__immediate_placeholder__
+    yield %t5
   )
   (Declaration second_score
     %t6 = const 85 :: integer
-    yield %__immediate_placeholder__
+    yield %t6
   )
 )

@@ -3,7 +3,7 @@
     %t1 = load_input "departments" :: array
     loop departments id=L1 in %t1 as el=%departments_el_2, idx=%departments_i_3
       %acc_4 = decl_acc :: integer
-      %t5 = load_field departments_el_2["employees"] :: array
+      %t5 = load_field departments_el_2["employees"] :: any
       loop employees id=L2 in %t5 as el=%employees_el_6, idx=%employees_i_7
         %t8 = load_field employees_el_6["salary"] :: integer
         %acc_4 = acc_add agg.sum(%acc_4, %t8) :: integer
@@ -17,13 +17,13 @@
     %t14 = const 0.15 :: float
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc40 = decl_acc :: integer
-      %t41 = load_field departments_el_11["employees"] :: array
+      %t41 = load_field departments_el_11["employees"] :: any
       loop employees id=L7 in %t41 as el=%employees_el_6, idx=%employees_i_7
         %t42 = load_field employees_el_6["salary"] :: integer
         %acc40 = acc_add agg.sum(%acc40, %t42) :: integer
       end_loop
       %t43 = acc_load %acc40 :: integer
-      %t15 = call core.mul(%t43, %__immediate_placeholder__) :: float
+      %t15 = call core.mul(%t43, %t14) :: float
       yield %t15
     end_loop
   )
@@ -34,11 +34,11 @@
     %t27 = const 0 :: integer
     loop departments id=L4 in %t16 as el=%departments_el_17, idx=%departments_i_18
       %acc_19 = decl_acc :: integer
-      %t20 = load_field departments_el_17["employees"] :: array
+      %t20 = load_field departments_el_17["employees"] :: any
       loop employees id=L5 in %t20 as el=%employees_el_21, idx=%employees_i_22
         %t23 = load_field employees_el_21["role"] :: string
-        %t25 = call core.eq(%t23, %__immediate_placeholder__) :: boolean
-        %t28 = select %t25, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t25 = call core.eq(%t23, %t24) :: boolean
+        %t28 = select %t25, %t26, %t27 :: integer
         %acc_19 = acc_add agg.sum(%acc_19, %t28) :: integer
       end_loop
       %t29 = acc_load %acc_19 :: integer
@@ -54,22 +54,22 @@
     loop departments id=L6 in %t30 as el=%departments_el_31, idx=%departments_i_32
       %t33 = load_field departments_el_31["name"] :: string
       %acc46 = decl_acc :: integer
-      %t47 = load_field departments_el_31["employees"] :: array
+      %t47 = load_field departments_el_31["employees"] :: any
       %acc67 = decl_acc :: integer
       %acc56 = decl_acc :: integer
       loop employees id=L8 in %t47 as el=%employees_el_6, idx=%employees_i_7
         %t48 = load_field employees_el_6["salary"] :: integer
         %acc46 = acc_add agg.sum(%acc46, %t48) :: integer
         %t58 = load_field employees_el_6["role"] :: string
-        %t60 = call core.eq(%t58, %__immediate_placeholder__) :: boolean
-        %t63 = select %t60, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t60 = call core.eq(%t58, %t59) :: boolean
+        %t63 = select %t60, %t61, %t62 :: integer
         %acc56 = acc_add agg.sum(%acc56, %t63) :: integer
         %acc67 = acc_add agg.sum(%acc67, %t48) :: integer
       end_loop
       %t49 = acc_load %acc46 :: integer
       %t64 = acc_load %acc56 :: integer
       %t70 = acc_load %acc67 :: integer
-      %t53 = call core.mul(%t70, %__immediate_placeholder__) :: float
+      %t53 = call core.mul(%t70, %t52) :: float
       %t37 = make_object{name: %t33, payroll: %t49, tax: %t53, managers: %t64} :: object
       yield %t37
     end_loop

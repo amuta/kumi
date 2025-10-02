@@ -1,0 +1,36 @@
+(Root
+  inputs: [
+    (InputDeclaration :cells :array access_mode: :element
+      [
+        (InputDeclaration :value :integer)
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :roll_right
+      (CallExpression :roll
+        (InputElementReference cells.value)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :roll_left
+      (CallExpression :roll
+        (InputElementReference cells.value)
+        (Literal -1)
+      )
+    )
+    (ValueDeclaration :roll_right_clamp
+      (CallExpression :roll
+        (InputElementReference cells.value)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :roll_left_clamp
+      (CallExpression :roll
+        (InputElementReference cells.value)
+        (Literal -1)
+      )
+    )
+  ]
+  traits: []
+)

@@ -1,0 +1,6 @@
+{
+  "roll_right":       [4, 1, 2, 3],
+  "roll_left":        [2, 3, 4, 1],
+  "roll_right_clamp": [1, 1, 2, 3],
+  "roll_left_clamp":  [2, 3, 4, 4]
+}

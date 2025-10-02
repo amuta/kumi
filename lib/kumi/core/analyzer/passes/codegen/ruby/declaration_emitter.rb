@@ -71,7 +71,7 @@ module Kumi
                 el = to_local(ins.attributes[:as_element])
                 ix = to_local(ins.attributes[:as_index])
 
-                write "#{coll}.each_with_index do |#{el}, _#{ix}|"
+                write "#{coll}.each_with_index do |#{el}, #{ix}|"
                 indent!
 
                 @stack.push({ el: el, ix: ix })
@@ -225,6 +225,17 @@ module Kumi
                 end
                 dedent!
                 write "}"
+              end
+
+              def emit_length(ins, _i)
+                arr = ins.inputs[0]
+                write "#{vreg(ins)} = #{arr}.length"
+              end
+
+              def emit_gather(ins, _i)
+                arr = ins.inputs[0]
+                idx = ins.inputs[1]
+                write "#{vreg(ins)} = #{arr}[#{idx}]"
               end
 
               def find_matching_loop_end(start_index)
