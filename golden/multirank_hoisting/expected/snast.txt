@@ -7,20 +7,20 @@
   ) :: [] -> float
   (VALUE batch_bias
     (Call :core.add
-      (InputRef batch.mean key_chain=[mean]) :: [batch] -> float
+      (InputRef batch.b.mean key_chain=[mean]) :: [batch] -> float
       (Ref global_offset_plus) :: [] -> float
     ) :: [batch] -> float
   ) :: [batch] -> float
   (VALUE row_scale2
     (Call :core.mul
-      (InputRef batch.row.scale key_chain=[scale]) :: [batch, row] -> float
+      (InputRef batch.b.row.r.scale key_chain=[scale]) :: [batch, row] -> float
       (Const 2.0) :: [] -> float
     ) :: [batch, row] -> float
   ) :: [batch, row] -> float
   (VALUE elem_affine
     (Call :core.add
       (Call :core.mul
-        (InputRef batch.row.col.val key_chain=[val]) :: [batch, row, col] -> float
+        (InputRef batch.b.row.r.col.c.val key_chain=[val]) :: [batch, row, col] -> float
         (Ref row_scale2) :: [batch, row] -> float
       ) :: [batch, row, col] -> float
       (Ref batch_bias) :: [batch] -> float

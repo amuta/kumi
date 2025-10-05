@@ -1,17 +1,33 @@
 (Root
   inputs: [
-    (InputDeclaration :regions :array access_mode: :field
+    (InputDeclaration :regions :array
       [
-        (InputDeclaration :offices :array access_mode: :field
+        (InputDeclaration :region :hash
           [
-            (InputDeclaration :teams :array access_mode: :field
+            (InputDeclaration :offices :array
               [
-                (InputDeclaration :performance_score :float)
-                (InputDeclaration :employees :array access_mode: :field
+                (InputDeclaration :office :hash
                   [
-                    (InputDeclaration :salary :float)
-                    (InputDeclaration :rating :float)
-                    (InputDeclaration :level :string)
+                    (InputDeclaration :teams :array
+                      [
+                        (InputDeclaration :team :hash
+                          [
+                            (InputDeclaration :performance_score :float)
+                            (InputDeclaration :employees :array
+                              [
+                                (InputDeclaration :employee :hash
+                                  [
+                                    (InputDeclaration :salary :float)
+                                    (InputDeclaration :rating :float)
+                                    (InputDeclaration :level :string)
+                                  ]
+                                )
+                              ]
+                            )
+                          ]
+                        )
+                      ]
+                    )
                   ]
                 )
               ]
@@ -29,18 +45,18 @@
         (DeclarationReference :senior_level)
         (DeclarationReference :top_team)
       ) (CallExpression :multiply
-        (InputElementReference regions.offices.teams.employees.salary)
+        (InputElementReference regions.region.offices.office.teams.team.employees.employee.salary)
         (Literal 0.3)
       ))
         ((CallExpression :cascade_and
         (DeclarationReference :high_performer)
         (DeclarationReference :top_team)
       ) (CallExpression :multiply
-        (InputElementReference regions.offices.teams.employees.salary)
+        (InputElementReference regions.region.offices.office.teams.team.employees.employee.salary)
         (Literal 0.2)
       ))
         ((Literal true) (CallExpression :multiply
-        (InputElementReference regions.offices.teams.employees.salary)
+        (InputElementReference regions.region.offices.office.teams.team.employees.employee.salary)
         (Literal 0.05)
       ))
       )
@@ -49,19 +65,19 @@
   traits: [
     (TraitDeclaration :high_performer
       (CallExpression :>=
-        (InputElementReference regions.offices.teams.employees.rating)
+        (InputElementReference regions.region.offices.office.teams.team.employees.employee.rating)
         (Literal 4.5)
       )
     )
     (TraitDeclaration :senior_level
       (CallExpression :==
-        (InputElementReference regions.offices.teams.employees.level)
+        (InputElementReference regions.region.offices.office.teams.team.employees.employee.level)
         (Literal "senior")
       )
     )
     (TraitDeclaration :top_team
       (CallExpression :>=
-        (InputElementReference regions.offices.teams.performance_score)
+        (InputElementReference regions.region.offices.office.teams.team.performance_score)
         (Literal 0.9)
       )
     )

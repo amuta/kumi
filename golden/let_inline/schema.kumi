@@ -1,0 +1,11 @@
+schema do
+  input do
+    integer :x
+    integer :y
+  end
+
+  let   :x_sq, input.x * input.x
+  let   :y_sq, input.y * input.y
+  let   :distance_sq, x_sq + y_sq
+  value :distance, distance_sq**0.5
+end

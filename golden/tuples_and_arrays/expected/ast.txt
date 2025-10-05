@@ -1,9 +1,13 @@
 (Root
   inputs: [
-    (InputDeclaration :points :array access_mode: :field
+    (InputDeclaration :points :array
       [
-        (InputDeclaration :x :integer)
-        (InputDeclaration :y :integer)
+        (InputDeclaration :point :hash
+          [
+            (InputDeclaration :x :integer)
+            (InputDeclaration :y :integer)
+          ]
+        )
       ]
     )
   ]
@@ -11,15 +15,15 @@
     (ValueDeclaration :selected_value
       (CallExpression :select
         (DeclarationReference :x_is_large)
-        (InputElementReference points.x)
-        (InputElementReference points.y)
+        (InputElementReference points.point.x)
+        (InputElementReference points.point.y)
       )
     )
     (ValueDeclaration :final_value_per_point
       (CallExpression :max
         (ArrayExpression
           (DeclarationReference :selected_value)
-          (InputElementReference points.x)
+          (InputElementReference points.point.x)
         )
       )
     )
@@ -32,7 +36,7 @@
   traits: [
     (TraitDeclaration :x_is_large
       (CallExpression :>
-        (InputElementReference points.x)
+        (InputElementReference points.point.x)
         (Literal 100)
       )
     )

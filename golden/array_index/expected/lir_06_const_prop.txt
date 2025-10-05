@@ -1,0 +1,13 @@
+(LIR
+  (Declaration v_sum_y
+    %t1 = load_input "x" :: array
+    loop x id=L1 in %t1 as el=%x_el_2, idx=%x_i_3
+      %acc_4 = decl_acc :: integer
+      loop y id=L2 in %x_el_2 as el=%y_el_5, idx=%y_i_6
+        %acc_4 = acc_add agg.sum(%acc_4, %y_el_5) :: integer
+      end_loop
+      %t7 = acc_load %acc_4 :: integer
+      yield %t7
+    end_loop
+  )
+)

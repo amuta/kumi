@@ -1,0 +1,33 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+    (InputDeclaration :y :integer)
+  ]
+  values: [
+    (ValueDeclaration :x_sq
+      (CallExpression :multiply
+        (InputReference :x)
+        (InputReference :x)
+      )
+    )
+    (ValueDeclaration :y_sq
+      (CallExpression :multiply
+        (InputReference :y)
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :distance_sq
+      (CallExpression :add
+        (DeclarationReference :x_sq)
+        (DeclarationReference :y_sq)
+      )
+    )
+    (ValueDeclaration :distance
+      (CallExpression :power
+        (DeclarationReference :distance_sq)
+        (Literal 0.5)
+      )
+    )
+  ]
+  traits: []
+)

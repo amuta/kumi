@@ -1,0 +1,18 @@
+(LIR
+  (Declaration meta
+    %t1 = const "grid2d" :: string
+    %t2 = load_input "width" :: integer
+    %t3 = load_input "height" :: integer
+    %t4 = make_object{width: %t2, height: %t3} :: object
+    %t5 = const "random" :: string
+    %t6 = const 0.3 :: float
+    %t7 = make_object{kind: %t5, density: %t6} :: object
+    %t8 = const 10 :: integer
+    %t9 = const "#0f1219" :: string
+    %t10 = const "#10b981" :: string
+    %t11 = make_object{0: %t9, 1: %t10} :: object
+    %t12 = make_object{cellSize: %t8, palette: %t11} :: object
+    %t13 = make_object{render: %t1, size: %t4, prefill: %t7, ui: %t12} :: object
+    yield %t13
+  )
+)

@@ -1,22 +1,24 @@
 schema do
   input do
     array :items do
-      float   :price
-      integer :qty
+      hash :item do
+        float   :price
+        integer :qty
+      end
     end
     float :discount
   end
 
   # Elementwise
-  value :items_subtotal,   input.items.price * input.items.qty
-  value :items_discounted, input.items.price * (1.0 - input.discount)
+  value :items_subtotal,   input.items.item.price * input.items.item.qty
+  value :items_discounted, input.items.item.price * (1.0 - input.discount)
 
   # Boolean mask + branch at the same stamp
-  value :items_is_big,     input.items.price > 100.0
+  value :items_is_big,     input.items.item.price > 100.0
   value :items_effective, select(items_is_big, items_subtotal * 0.9, items_subtotal)
 
   # Reductions (rank 1 -> rank 0)
-  value :total_qty,            fn(:sum, input.items.qty)
+  value :total_qty,            fn(:sum, input.items.item.qty)
   value :cart_total,           fn(:sum, items_subtotal)
   value :cart_total_effective, fn(:sum, items_effective)
 end

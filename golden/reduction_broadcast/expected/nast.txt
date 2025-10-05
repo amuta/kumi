@@ -1,12 +1,12 @@
 (NAST
   (VALUE dept_headcount
     (Call :"agg.sum"
-    (InputRef [:departments, :teams, :headcount])
+    (InputRef [:departments, :dept, :teams, :team, :headcount])
   )
   )
   (VALUE teams_per_dept
     (Call :"agg.count"
-    (InputRef [:departments, :teams, :team_name])
+    (InputRef [:departments, :dept, :teams, :team, :team_name])
   )
   )
   (VALUE avg_headcount_per_dept
@@ -17,7 +17,7 @@
   )
   (TRAIT is_above_average_team
     (Call :"core.gt"
-    (InputRef [:departments, :teams, :headcount])
+    (InputRef [:departments, :dept, :teams, :team, :headcount])
     (Ref avg_headcount_per_dept)
   )
   )

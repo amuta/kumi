@@ -2,21 +2,23 @@ schema do
   input do
     # Input is an array of points, each with an x and y coordinate.
     array :points do
-      integer :x
-      integer :y
+      hash :point do
+        integer :x
+        integer :y
+      end
     end
   end
 
   # --- Part 1: Element-wise Logic ---
-  
+
   # First, create an element-wise boolean mask. This will be an array of booleans
   # the same size as the input 'points' array.
-  trait :x_is_large, input.points.x > 100
+  trait :x_is_large, input.points.point.x > 100
 
   # Next, use the mask to perform an element-wise selection.
   # For each point, it will pick `x` if the condition is true, otherwise it picks `y`.
   # The result, `selected_value`, is another array.
-  value :selected_value, select(x_is_large, input.points.x, input.points.y)
+  value :selected_value, select(x_is_large, input.points.point.x, input.points.point.y)
 
   # --- Part 2: Vectorized Fold ---
 
@@ -26,7 +28,7 @@ schema do
   #   1. Create a temporary 2-element tuple: `[selected_value_for_point, x_for_point]`
   #   2. Perform a `max` reduction on that small tuple (a Fold).
   # The result, `final_value_per_point`, is a new array containing the result of each fold.
-  value :final_value_per_point, fn(:max, [selected_value, input.points.x])
+  value :final_value_per_point, fn(:max, [selected_value, input.points.point.x])
 
   # --- Part 3: Final Reduction ---
 

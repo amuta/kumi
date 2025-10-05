@@ -1,0 +1,26 @@
+(SNAST
+  (VALUE x_sq
+    (Call :core.mul
+      (InputRef x key_chain=[x]) :: [] -> integer
+      (InputRef x key_chain=[x]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE y_sq
+    (Call :core.mul
+      (InputRef y key_chain=[y]) :: [] -> integer
+      (InputRef y key_chain=[y]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE distance_sq
+    (Call :core.add
+      (Ref x_sq) :: [] -> integer
+      (Ref y_sq) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE distance
+    (Call :core.pow
+      (Ref distance_sq) :: [] -> integer
+      (Const 0.5) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

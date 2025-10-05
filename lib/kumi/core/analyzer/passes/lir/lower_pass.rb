@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Kumi
   module Core
     module Analyzer
@@ -19,7 +17,7 @@ module Kumi
               @ids      = Ids.new
               @anchors  = get_state(:anchor_by_decl, required: true)
               @pre      = get_state(:precomputed_plan_by_fqn, required: true)
-              plans     = get_state(:ir_input_plans, required: true)
+              plans     = get_state(:input_table, required: true)
               @plans_by_fqn = plans.each_with_object({}) { |p, h| h[p.path_fqn.to_s] = p }
 
               ops_by_decl = {}
@@ -223,20 +221,15 @@ module Kumi
               open_suffix_loops!(over_axes: missing, anchor_fqn: anchor_fqn)
             end
 
+            # --- inside open_suffix_loops! (unchanged except it now relies on axis_to_loop) ---
             def open_suffix_loops!(over_axes:, anchor_fqn:)
               return if over_axes.empty?
 
               target_axes = @env.axes + over_axes
               pre = @pre.fetch(anchor_fqn) { raise "no precomputed plan for #{anchor_fqn}" }
 
-              steps     = pre[:steps]
-              loop_ixs  = pre[:loop_ixs]
-              loop_axes = loop_ixs.map { |i| steps[i][:axis].to_sym }
-
-              idxs = target_axes.map do |ax|
-                j = loop_axes.index(ax) or raise "plan #{anchor_fqn} lacks axis #{ax.inspect}"
-                loop_ixs[j]
-              end
+              axis_to_loop = pre[:axis_to_loop] || {}
+              idxs = target_axes.map { |ax| axis_to_loop.fetch(ax) { raise "plan #{anchor_fqn} lacks axis #{ax.inspect}" } }
 
               base = @env.axes.length
               (base...target_axes.length).each do |i|
@@ -245,13 +238,11 @@ module Kumi
 
                 coll =
                   if i == 0 && base == 0
-                    # Already returns the destination collection for li.
                     head_collection(pre, li)
                   else
                     prev_axis = target_axes[i - 1]
                     prev_el   = @env.element_reg_for(prev_axis) or raise "no element for #{prev_axis}"
                     prev_li   = idxs[i - 1]
-                    # between_loops returns the DESTINATION collection (including key if any).
                     between_loops(pre, prev_li, li, prev_el)
                   end
 
@@ -321,22 +312,37 @@ module Kumi
 
             # ---------- path caches (no dtype checks) ----------
 
+            # --- replace head_collection entirely ---
             def head_collection(pre, li)
               key = [pre.object_id, li]
               @env.memo_get(:head, key) || begin
                 reg = nil
+                path = Array(pre[:head_path_by_loop][li])
 
-                pre[:head_path_by_loop].fetch(li).each do |kind, k|
-                  if reg.nil? && kind == :field
-                    kind = :input # defensive: first hop must load the root input
-                  end
+                if path.empty?
+                  # Defensive fallback: loop step carries the root key in pre[:steps][li]
+                  step = pre[:steps][li] or raise "no step at loop index #{li}"
+                  root_key = (step[:key] || step[:axis]).to_sym
+                  reg = Build.load_input(key: root_key, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+                  @env.memo_set(:head, key, reg)
+                  return reg
+                end
+
+                path.each do |kind, ksym|
                   case kind
                   when :input
-                    reg = Build.load_input(key: k, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
+                    reg = Build.load_input(key: ksym, dtype: :array, ids: @ids).tap { @ops << _1 }.result_register
                   when :field
-                    reg = Build.load_field(object_register: reg, key: k, dtype: :any, ids: @ids).tap { @ops << _1 }.result_register
+                    raise "head path field before input" if reg.nil?
+
+                    reg = Build.load_field(object_register: reg, key: ksym, dtype: :any, ids: @ids).tap do
+                      @ops << _1
+                    end.result_register
+                  else
+                    raise "unknown head hop #{kind.inspect}"
                   end
                 end
+
                 @env.memo_set(:head, key, reg)
               end
             end
@@ -373,3 +379,5 @@ module Kumi
     end
   end
 end
+
+# frozen_string_literal: true

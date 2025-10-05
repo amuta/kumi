@@ -1,17 +1,21 @@
 (Root
   inputs: [
-    (InputDeclaration :config :hash access_mode: :field
+    (InputDeclaration :config :hash
       [
         (InputDeclaration :app_name :string)
-        (InputDeclaration :feature_flags :array access_mode: :element
+        (InputDeclaration :feature_flags :array
           [
             (InputDeclaration :flag_name :string)
           ]
         )
-        (InputDeclaration :servers :array access_mode: :field
+        (InputDeclaration :servers :array
           [
-            (InputDeclaration :hostname :string)
-            (InputDeclaration :port :integer)
+            (InputDeclaration :server :hash
+              [
+                (InputDeclaration :hostname :string)
+                (InputDeclaration :port :integer)
+              ]
+            )
           ]
         )
       ]
@@ -22,10 +26,10 @@
       (InputElementReference config.app_name)
     )
     (ValueDeclaration :all_flags
-      (InputElementReference config.feature_flags)
+      (InputElementReference config.feature_flags.flag_name)
     )
     (ValueDeclaration :server_hostnames
-      (InputElementReference config.servers.hostname)
+      (InputElementReference config.servers.server.hostname)
     )
     (ValueDeclaration :server_count
       (CallExpression :size
@@ -34,7 +38,7 @@
     )
     (ValueDeclaration :total_ports
       (CallExpression :sum
-        (InputElementReference config.servers.port)
+        (InputElementReference config.servers.server.port)
       )
     )
   ]

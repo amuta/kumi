@@ -1,0 +1,15 @@
+config: hash (hash)
+  └─> app_name: property_access
+  └─> feature_flags: property_access → array_loop
+  └─> servers: property_access → array_loop
+  app_name: string
+  feature_flags: array (array) access_mode=element
+    └─> flag_name: element_access
+    flag_name: string
+  servers: array (array) access_mode=element
+    └─> server: element_access
+    server: hash (hash)
+      └─> hostname: property_access
+      └─> port: property_access
+      hostname: string
+      port: integer

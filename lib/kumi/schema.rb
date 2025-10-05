@@ -12,7 +12,9 @@ module Kumi
     # The `__syntax_tree__` is available on the class for introspection.
     attr_reader :__kumi_syntax_tree__, :__kumi_compiled_module__
 
-    def build_syntax_tree(&) = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
+    def build_syntax_tree(&)
+      @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
+    end
 
     def schema(&block)
       @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
@@ -31,7 +33,7 @@ module Kumi
     def runner
       ensure_compiled!
 
-      __kumi_compiled_module__.runner
+      __kumi_compiled_module__.from({})
     end
 
     def from(input_data)

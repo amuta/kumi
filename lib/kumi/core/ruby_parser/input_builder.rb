@@ -102,16 +102,15 @@ module Kumi
           domain = options[:domain]
 
           # Collect children by creating a nested context
-          children, _, using_elements = collect_array_children(&)
+          children, = collect_array_children(&)
 
           # Create the InputDeclaration with children and access_mode
-          access_mode = using_elements ? :element : :field
+          # access_mode = using_elements ? :element : :field
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
             :array,
             children,
-            access_mode,
             loc: @context.current_location
           )
         end

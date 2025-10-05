@@ -1,17 +1,19 @@
 schema do
   input do
     array :users do
-      string :name
-      string :state
+      hash :user do
+        string :name
+        string :state
+      end
     end
   end
 
   value :users, {
-    name: input.users.name,
-    state: input.users.state
+    name: input.users.user.name,
+    state: input.users.user.state
   }
 
-  trait :is_john, input.users.name == "John"
+  trait :is_john, input.users.user.name == "John"
 
   value :john_user, select(is_john, users, "NOT_JOHN")
 end

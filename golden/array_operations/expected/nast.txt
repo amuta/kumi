@@ -1,31 +1,31 @@
 (NAST
   (VALUE subtotals
     (Call :"core.mul"
-    (InputRef [:items, :price])
-    (InputRef [:items, :quantity])
+    (InputRef [:items, :item, :price])
+    (InputRef [:items, :item, :quantity])
   )
   )
   (VALUE discounted_price
     (Call :"core.mul"
-    (InputRef [:items, :price])
+    (InputRef [:items, :item, :price])
     (Const 0.9)
   )
   )
   (VALUE is_valid_quantity
     (Call :"core.gt"
-    (InputRef [:items, :quantity])
+    (InputRef [:items, :item, :quantity])
     (Const 0)
   )
   )
   (TRAIT expensive_items
     (Call :"core.gt"
-    (InputRef [:items, :price])
+    (InputRef [:items, :item, :price])
     (Const 100.0)
   )
   )
   (TRAIT electronics
     (Call :"core.eq"
-    (InputRef [:items, :category])
+    (InputRef [:items, :item, :category])
     (Const "electronics")
   )
   )

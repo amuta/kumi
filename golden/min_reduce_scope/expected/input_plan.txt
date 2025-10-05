@@ -1,0 +1,5 @@
+depts: array (array) access_mode=element
+  └─> teams: element_access → array_loop
+  teams: array (array) access_mode=element
+    └─> headcount: element_access
+    headcount: integer

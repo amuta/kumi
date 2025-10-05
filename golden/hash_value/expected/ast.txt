@@ -1,17 +1,21 @@
 (Root
   inputs: [
-    (InputDeclaration :users :array access_mode: :field
+    (InputDeclaration :users :array
       [
-        (InputDeclaration :name :string)
-        (InputDeclaration :state :string)
+        (InputDeclaration :user :hash
+          [
+            (InputDeclaration :name :string)
+            (InputDeclaration :state :string)
+          ]
+        )
       ]
     )
   ]
   values: [
     (ValueDeclaration :users
       (HashExpression
-        ((Literal :name) (InputElementReference users.name))
-        ((Literal :state) (InputElementReference users.state))
+        ((Literal :name) (InputElementReference users.user.name))
+        ((Literal :state) (InputElementReference users.user.state))
       )
     )
     (ValueDeclaration :john_user
@@ -25,7 +29,7 @@
   traits: [
     (TraitDeclaration :is_john
       (CallExpression :==
-        (InputElementReference users.name)
+        (InputElementReference users.user.name)
         (Literal "John")
       )
     )

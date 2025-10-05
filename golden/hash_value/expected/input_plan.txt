@@ -1,0 +1,7 @@
+users: array (array) access_mode=element
+  └─> user: element_access
+  user: hash (hash)
+    └─> name: property_access
+    └─> state: property_access
+    name: string
+    state: string

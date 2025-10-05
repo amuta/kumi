@@ -1,0 +1,29 @@
+(Root
+  inputs: [
+    (InputDeclaration :width :integer)
+    (InputDeclaration :height :integer)
+  ]
+  values: [
+    (ValueDeclaration :meta
+      (HashExpression
+        ((Literal :render) (Literal "grid2d"))
+        ((Literal :size) (HashExpression
+        ((Literal :width) (InputReference :width))
+        ((Literal :height) (InputReference :height))
+      ))
+        ((Literal :prefill) (HashExpression
+        ((Literal :kind) (Literal "random"))
+        ((Literal :density) (Literal 0.3))
+      ))
+        ((Literal :ui) (HashExpression
+        ((Literal :cellSize) (Literal 10))
+        ((Literal :palette) (HashExpression
+        ((Literal "0") (Literal "#0f1219"))
+        ((Literal "1") (Literal "#10b981"))
+      ))
+      ))
+      )
+    )
+  ]
+  traits: []
+)

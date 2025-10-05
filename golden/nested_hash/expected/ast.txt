@@ -1,8 +1,8 @@
 (Root
   inputs: [
-    (InputDeclaration :x :hash access_mode: :field
+    (InputDeclaration :x :hash
       [
-        (InputDeclaration :y :hash access_mode: :field
+        (InputDeclaration :y :hash
           [
             (InputDeclaration :z :integer)
           ]

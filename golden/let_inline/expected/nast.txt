@@ -1,0 +1,26 @@
+(NAST
+  (VALUE x_sq
+    (Call :"core.mul"
+    (InputRef [:x])
+    (InputRef [:x])
+  )
+  )
+  (VALUE y_sq
+    (Call :"core.mul"
+    (InputRef [:y])
+    (InputRef [:y])
+  )
+  )
+  (VALUE distance_sq
+    (Call :"core.add"
+    (Ref x_sq)
+    (Ref y_sq)
+  )
+  )
+  (VALUE distance
+    (Call :"core.pow"
+    (Ref distance_sq)
+    (Const 0.5)
+  )
+  )
+)

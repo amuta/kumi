@@ -1,14 +1,26 @@
 (Root
   inputs: [
-    (InputDeclaration :batch :array access_mode: :field
+    (InputDeclaration :batch :array
       [
-        (InputDeclaration :mean :float)
-        (InputDeclaration :row :array access_mode: :field
+        (InputDeclaration :b :hash
           [
-            (InputDeclaration :scale :float)
-            (InputDeclaration :col :array access_mode: :field
+            (InputDeclaration :mean :float)
+            (InputDeclaration :row :array
               [
-                (InputDeclaration :val :float)
+                (InputDeclaration :r :hash
+                  [
+                    (InputDeclaration :scale :float)
+                    (InputDeclaration :col :array
+                      [
+                        (InputDeclaration :c :hash
+                          [
+                            (InputDeclaration :val :float)
+                          ]
+                        )
+                      ]
+                    )
+                  ]
+                )
               ]
             )
           ]
@@ -26,20 +38,20 @@
     )
     (ValueDeclaration :batch_bias
       (CallExpression :add
-        (InputElementReference batch.mean)
+        (InputElementReference batch.b.mean)
         (DeclarationReference :global_offset_plus)
       )
     )
     (ValueDeclaration :row_scale2
       (CallExpression :multiply
-        (InputElementReference batch.row.scale)
+        (InputElementReference batch.b.row.r.scale)
         (Literal 2.0)
       )
     )
     (ValueDeclaration :elem_affine
       (CallExpression :add
         (CallExpression :multiply
-          (InputElementReference batch.row.col.val)
+          (InputElementReference batch.b.row.r.col.c.val)
           (DeclarationReference :row_scale2)
         )
         (DeclarationReference :batch_bias)

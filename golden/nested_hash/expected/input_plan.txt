@@ -1,0 +1,5 @@
+x: hash (hash)
+  └─> y: property_access
+  y: hash (hash)
+    └─> z: property_access
+    z: integer

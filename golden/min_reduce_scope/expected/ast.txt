@@ -1,8 +1,8 @@
 (Root
   inputs: [
-    (InputDeclaration :depts :array access_mode: :field
+    (InputDeclaration :depts :array
       [
-        (InputDeclaration :teams :array access_mode: :field
+        (InputDeclaration :teams :array
           [
             (InputDeclaration :headcount :integer)
           ]

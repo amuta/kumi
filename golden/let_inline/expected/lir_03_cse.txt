@@ -1,0 +1,30 @@
+(LIR
+  (Declaration x_sq
+    %t1 = load_input "x" :: integer
+    %t3 = call core.mul(%t1, %t1) :: integer
+    yield %t3
+  )
+  (Declaration y_sq
+    %t4 = load_input "y" :: integer
+    %t6 = call core.mul(%t4, %t4) :: integer
+    yield %t6
+  )
+  (Declaration distance_sq
+    %t13 = load_input "x" :: integer
+    %t15 = call core.mul(%t13, %t13) :: integer
+    %t16 = load_input "y" :: integer
+    %t18 = call core.mul(%t16, %t16) :: integer
+    %t9 = call core.add(%t15, %t18) :: integer
+    yield %t9
+  )
+  (Declaration distance
+    %t22 = load_input "x" :: integer
+    %t24 = call core.mul(%t22, %t22) :: integer
+    %t25 = load_input "y" :: integer
+    %t27 = call core.mul(%t25, %t25) :: integer
+    %t21 = call core.add(%t24, %t27) :: integer
+    %t11 = const 0.5 :: float
+    %t12 = call core.pow(%t21, %t11) :: float
+    yield %t12
+  )
+)

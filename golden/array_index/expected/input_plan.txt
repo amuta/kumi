@@ -1,0 +1,5 @@
+x: array (array) access_mode=element
+  └─> y: element_access → array_loop
+  y: array (array) access_mode=element
+    └─> v: element_access
+    v: integer

@@ -1,21 +1,21 @@
 (Root
   inputs: [
-    (InputDeclaration :a1 :array access_mode: :element
+    (InputDeclaration :a1 :array
       [
-        (InputDeclaration :ea1 :array access_mode: :field
+        (InputDeclaration :ea1 :array
           [
-            (InputDeclaration :a2 :array access_mode: :field
+            (InputDeclaration :a2 :array
               [
-                (InputDeclaration :h1 :hash access_mode: :field
+                (InputDeclaration :h1 :hash
                   [
-                    (InputDeclaration :ea2 :array access_mode: :element
+                    (InputDeclaration :ea2 :array
                       [
                         (InputDeclaration :number :integer)
                       ]
                     )
-                    (InputDeclaration :h2 :hash access_mode: :field
+                    (InputDeclaration :h2 :hash
                       [
-                        (InputDeclaration :h3 :hash access_mode: :field
+                        (InputDeclaration :h3 :hash
                           [
                             (InputDeclaration :name :string)
                           ]

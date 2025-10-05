@@ -37,35 +37,35 @@ module Kumi
               end
 
               def emit_class_methods(decl_names)
-                write "constructor(inputData = {}) {"
-                indented do
-                  write "this.input = inputData;"
-                end
-                write "}\n"
+                # write "constructor(inputData = {}) {"
+                # indented do
+                #   write "this.input = inputData;"
+                # end
+                # write "}\n"
 
-                write "static from(inputData = {}) {"
-                indented do
-                  write "return new KumiCompiledModule(inputData);"
-                end
-                write "}\n"
+                # write "static from(inputData = {}) {"
+                # indented do
+                #   write "return new KumiCompiledModule(inputData);"
+                # end
+                # write "}\n"
 
-                write "update(inputData) {"
-                indented do
-                  write "this.input = { ...this.input, ...inputData };"
-                  write "return this;"
-                end
-                write "}\n"
+                # write "update(inputData) {"
+                # indented do
+                #   write "this.input = { ...this.input, ...inputData };"
+                #   write "return this;"
+                # end
+                # write "}\n"
 
-                return if decl_names.empty?
+                # return if decl_names.empty?
 
-                write "get(name) {"
-                indented do
-                  write "switch (name) {"
-                  decl_names.each { |name| write "  case '#{name}': return this._#{name}();" }
-                  write "  default: throw new Error(`Unknown declaration: ${name}`);"
-                  write "}"
-                end
-                write "}\n"
+                # write "get(name) {"
+                # indented do
+                #   write "switch (name) {"
+                #   decl_names.each { |name| write "  case '#{name}': return this._#{name}();" }
+                #   write "  default: throw new Error(`Unknown declaration: ${name}`);"
+                #   write "}"
+                # end
+                # write "}\n"
               end
 
               def section(name)

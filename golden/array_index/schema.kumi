@@ -1,0 +1,11 @@
+schema do
+  input do
+    array :x do
+      array :y do
+        integer :v
+      end
+    end
+  end
+
+  value :v_sum_y, fn(:sum, input.x.y.v)
+end

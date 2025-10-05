@@ -29,6 +29,7 @@ module Kumi
               #   out[name] = { operations: optimize_decl(Array(payload[:operations])) }
               # end
 
+              # TODO: - make it work with new gather/length
               # out.freeze
               out = ops_by_decl
               state.with(:lir_06_const_prop, out).with(:lir_module, out.freeze)

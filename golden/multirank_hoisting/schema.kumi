@@ -1,11 +1,17 @@
 schema do
   input do
     array :batch do
-      float :mean
-      array :row do
-        float :scale
-        array :col do
-          float :val
+      hash :b do
+        float :mean
+        array :row do
+          hash :r do
+            float :scale
+            array :col do
+              hash :c do
+                float :val
+              end
+            end
+          end
         end
       end
     end
@@ -16,13 +22,13 @@ schema do
   value :global_offset_plus, input.global_offset + 1.0
 
   # Depth 1 ([:batch]) — hoisted per batch
-  value :batch_bias, input.batch.mean + global_offset_plus
+  value :batch_bias, input.batch.b.mean + global_offset_plus
 
   # Depth 2 ([:batch, :row]) — hoisted per (batch,row)
-  value :row_scale2, input.batch.row.scale * 2.0
+  value :row_scale2, input.batch.b.row.r.scale * 2.0
 
   # Depth 3 ([:batch, :row, :col]) — uses both hoisted values
-  value :elem_affine, input.batch.row.col.val * row_scale2 + batch_bias
+  value :elem_affine, input.batch.b.row.r.col.c.val * row_scale2 + batch_bias
 
   # Reduce col → rank-2 ([:batch, :row])
   value :row_sum_affine, fn(:sum, elem_affine)

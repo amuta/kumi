@@ -7,10 +7,12 @@ module Kumi
     # Base module included by all AST nodes to provide a standard
     # interface for accessing source location information..
     module Node
-      attr_accessor :loc
+      attr_accessor :loc, :hints
 
-      def initialize(*args, loc: nil, **kwargs)
+      def initialize(*args, hints: {}, loc: nil, **kwargs)
         @loc = loc
+        @hints = hints
+
         super(*args, **kwargs)
         freeze
       end

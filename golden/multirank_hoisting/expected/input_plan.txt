@@ -1,0 +1,18 @@
+batch: array (array) access_mode=element
+  └─> b: element_access
+  b: hash (hash)
+    └─> mean: property_access
+    └─> row: property_access → array_loop
+    mean: float
+    row: array (array) access_mode=element
+      └─> r: element_access
+      r: hash (hash)
+        └─> scale: property_access
+        └─> col: property_access → array_loop
+        scale: float
+        col: array (array) access_mode=element
+          └─> c: element_access
+          c: hash (hash)
+            └─> val: property_access
+            val: float
+global_offset: float

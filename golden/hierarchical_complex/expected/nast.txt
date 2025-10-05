@@ -1,19 +1,19 @@
 (NAST
   (TRAIT high_performer
     (Call :"core.gte"
-    (InputRef [:regions, :offices, :teams, :employees, :rating])
+    (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :rating])
     (Const 4.5)
   )
   )
   (TRAIT senior_level
     (Call :"core.eq"
-    (InputRef [:regions, :offices, :teams, :employees, :level])
+    (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :level])
     (Const "senior")
   )
   )
   (TRAIT top_team
     (Call :"core.gte"
-    (InputRef [:regions, :offices, :teams, :performance_score])
+    (InputRef [:regions, :region, :offices, :office, :teams, :team, :performance_score])
     (Const 0.9)
   )
   )
@@ -27,7 +27,7 @@
       )
     )
     (Call :"core.mul"
-      (InputRef [:regions, :offices, :teams, :employees, :salary])
+      (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
       (Const 0.3)
     )
     (Call :__select__
@@ -36,11 +36,11 @@
         (Ref top_team)
       )
       (Call :"core.mul"
-        (InputRef [:regions, :offices, :teams, :employees, :salary])
+        (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
         (Const 0.2)
       )
       (Call :"core.mul"
-        (InputRef [:regions, :offices, :teams, :employees, :salary])
+        (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
         (Const 0.05)
       )
     )

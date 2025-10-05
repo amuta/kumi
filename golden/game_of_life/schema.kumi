@@ -1,33 +1,33 @@
 schema do
   input do
     array :rows do
-      element :array, :col do
-        element :integer, :alive  # 0 or 1
+      array :col do
+        integer :alive # 0 or 1
       end
     end
   end
 
-  value :a, input.rows.col.alive
+  let :a, input.rows.col.alive
 
   # axis_offset: 0 = x, 1 = y
-  value :n,  fn(:shift, a, -1, policy: :wrap, axis_offset: 1)
-  value :s,  fn(:shift, a,  1, policy: :wrap, axis_offset: 1)
-  value :w,  fn(:shift, a, -1, policy: :wrap, axis_offset: 0)
-  value :e,  fn(:shift, a,  1, policy: :wrap, axis_offset: 0)
-  value :nw, fn(:shift, n, -1, policy: :wrap, axis_offset: 0)
-  value :ne, fn(:shift, n,  1, policy: :wrap, axis_offset: 0)
-  value :sw, fn(:shift, s, -1, policy: :wrap, axis_offset: 0)
-  value :se, fn(:shift, s,  1, policy: :wrap, axis_offset: 0)
+  let :n,  fn(:shift, a, -1, policy: :wrap, axis_offset: 1)
+  let :s,  fn(:shift, a,  1, policy: :wrap, axis_offset: 1)
+  let :w,  fn(:shift, a, -1, policy: :wrap, axis_offset: 0)
+  let :e,  fn(:shift, a,  1, policy: :wrap, axis_offset: 0)
+  let :nw, fn(:shift, n, -1, policy: :wrap, axis_offset: 0)
+  let :ne, fn(:shift, n,  1, policy: :wrap, axis_offset: 0)
+  let :sw, fn(:shift, s, -1, policy: :wrap, axis_offset: 0)
+  let :se, fn(:shift, s,  1, policy: :wrap, axis_offset: 0)
 
-  value :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
+  let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
 
   # Conway rules
-  value :alive, a > 0
-  value :n3_alive, neighbors == 3
-  value :n2_alive, neighbors == 2
-  value :keep_alive, n2_alive & alive
+  let :alive, a > 0
+  let :n3_alive, neighbors == 3
+  let :n2_alive, neighbors == 2
+  let :keep_alive, n2_alive & alive
 
-  value :next_alive, n3_alive | keep_alive
+  let :next_alive, n3_alive | keep_alive
 
   value :next_state, select(next_alive, 1, 0)
 end

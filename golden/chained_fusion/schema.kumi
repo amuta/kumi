@@ -11,10 +11,14 @@
 schema do
   input do
     array :departments do
-      string :name
-      array :employees do
-        integer :salary
-        string  :role
+      hash :dept do
+        string :name
+        array :employees do
+          hash :emp do
+            integer :salary
+            string  :role
+          end
+        end
       end
     end
   end
@@ -22,16 +26,16 @@ schema do
   # --- Intermediate Aggregations (Four distinct loops will be created) ---
 
   # Aggregation 1: Sum of all salaries.
-  value :total_payroll, fn(:sum, input.departments.employees.salary)
+  value :total_payroll, fn(:sum, input.departments.dept.employees.emp.salary)
 
   # Aggregation 2: Count of employees with the "manager" role.
-  value :manager_count, fn(:count_if, input.departments.employees.role, "manager")
+  value :manager_count, fn(:count_if, input.departments.dept.employees.emp.role, "manager")
 
   # Aggregation 3: Count of employees with the "senior" role.
-  value :senior_employee_count, fn(:count_if, input.departments.employees.role, "senior")
+  value :senior_employee_count, fn(:count_if, input.departments.dept.employees.emp.role, "senior")
 
   # Aggregation 4: The maximum salary in the department.
-  value :max_salary, fn(:max, input.departments.employees.salary)
+  value :max_salary, fn(:max, input.departments.dept.employees.emp.salary)
 
 
   # --- Final Value ---
@@ -39,7 +43,7 @@ schema do
   # This value depends on all four aggregations above.
   # The inliner will expand this, creating the chain of four fusable loops.
   value :department_summary, {
-    name: input.departments.name,
+    name: input.departments.dept.name,
     total_payroll: total_payroll,
     manager_count: manager_count,
     senior_count: senior_employee_count,

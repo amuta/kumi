@@ -10,7 +10,9 @@ module Kumi
               decls = get_state(:lir_module)
               manifest = get_state(:binding_manifest)[:javascript]
               schema_digest = get_state(:schema_digest)
+              hints = get_state(:hints)
 
+              decls = decls.reject { |n, v| hints[n][:inline] }
               emitter = Codegen::Js::Emitter.new(manifest["kernels"], manifest["bindings"])
               src = emitter.emit(decls, schema_digest: schema_digest)
 

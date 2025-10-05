@@ -1,18 +1,22 @@
 schema do
   input do
     array :departments do
-      string :name
-      array :employees do
-        integer :salary
-        string  :role
+      hash :dept do
+        string :name
+        array :employees do
+          hash :emp do
+            integer :salary
+            string  :role
+          end
+        end
       end
     end
   end
 
   # VALUE 1: Requires a loop over all employees to sum their salaries.
   # Scope: [:departments]
-  value :total_payroll, fn(:sum, input.departments.employees.salary)
-  value :manager_count, fn(:count_if, input.departments.employees.role, "manager")
+  value :total_payroll, fn(:sum, input.departments.dept.employees.emp.salary)
+  value :manager_count, fn(:count_if, input.departments.dept.employees.emp.role, "manager")
 
   # VALUE 2: Requires a separate loop over all employees to count managers.
   # Scope: [:departments]
@@ -21,7 +25,7 @@ schema do
   # When the inliner expands this, it will create two back-to-back loops
   # over the `employees` array inside the main `departments` loop.
   value :department_summary, {
-    name: input.departments.name,
+    name: input.departments.dept.name,
     total_payroll: total_payroll,
     manager_count: manager_count
   }

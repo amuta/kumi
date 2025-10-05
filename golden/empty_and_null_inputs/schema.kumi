@@ -2,9 +2,13 @@ schema do
   input do
     # This array will be empty in one of the input records.
     array :regions do
-      string :name
-      array :sales do
-        integer :amount
+      hash :region do
+        string :name
+        array :sales do
+          hash :sale do
+            integer :amount
+          end
+        end
       end
     end
 
@@ -15,7 +19,7 @@ schema do
   # 1. Reduction on Empty Array: The `agg.sum` kernel for integers
   # should use its identity value (0) when the `sales` array is empty.
   # This should not produce null or an error.
-  value :regional_sales, fn(:sum, input.regions.sales.amount)
+  value :regional_sales, fn(:sum, input.regions.region.sales.sale.amount)
 
   # 2. Total Sales: This will test summing the results from the above,
   # including the zero from the empty region.

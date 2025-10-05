@@ -1,0 +1,9 @@
+numbers: array (array) access_mode=element
+  └─> value: element_access
+  value: integer
+scalar_val: integer
+matrix: array (array) access_mode=element
+  └─> row: element_access → array_loop
+  row: array (array) access_mode=element
+    └─> cell: element_access
+    cell: float

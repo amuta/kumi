@@ -1,0 +1,12 @@
+regions: array (array) access_mode=element
+  └─> region: element_access
+  region: hash (hash)
+    └─> name: property_access
+    └─> sales: property_access → array_loop
+    name: string
+    sales: array (array) access_mode=element
+      └─> sale: element_access
+      sale: hash (hash)
+        └─> amount: property_access
+        amount: integer
+adjustment: integer

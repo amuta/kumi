@@ -1,10 +1,10 @@
 (Root
   inputs: [
-    (InputDeclaration :cube :array access_mode: :element
+    (InputDeclaration :cube :array
       [
-        (InputDeclaration :layer :array access_mode: :element
+        (InputDeclaration :layer :array
           [
-            (InputDeclaration :row :array access_mode: :element
+            (InputDeclaration :row :array
               [
                 (InputDeclaration :cell :integer)
               ]

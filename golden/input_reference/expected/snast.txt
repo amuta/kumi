@@ -3,19 +3,19 @@
     (InputRef config.app_name key_chain=[config, app_name]) :: [] -> string
   ) :: [] -> string
   (VALUE all_flags
-    (InputRef config.feature_flags key_chain=[config, feature_flags]) :: [] -> array
-  ) :: [] -> array
+    (InputRef config.feature_flags.flag_name key_chain=[]) :: [feature_flags] -> string
+  ) :: [feature_flags] -> string
   (VALUE server_hostnames
-    (InputRef config.servers.hostname key_chain=[hostname]) :: [servers] -> string
+    (InputRef config.servers.server.hostname key_chain=[hostname]) :: [servers] -> string
   ) :: [servers] -> string
   (VALUE server_count
     (Call :core.length
-      (InputRef config.servers key_chain=[config, servers]) :: [] -> array
-    ) :: [] -> integer
-  ) :: [] -> integer
+      (InputRef config.servers key_chain=[]) :: [servers] -> array
+    ) :: [servers] -> integer
+  ) :: [servers] -> integer
   (VALUE total_ports
     (Reduce :agg.sum over [servers]
-      (InputRef config.servers.port key_chain=[port]) :: [servers] -> integer
+      (InputRef config.servers.server.port key_chain=[port]) :: [servers] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
 )

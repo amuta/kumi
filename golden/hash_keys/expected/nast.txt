@@ -1,0 +1,46 @@
+(NAST
+  (VALUE meta
+    (Hash
+    (Pair render 
+      (Const "grid2d")
+    )
+    (Pair size 
+      (Hash
+        (Pair width 
+          (InputRef [:width])
+        )
+        (Pair height 
+          (InputRef [:height])
+        )
+      )
+    )
+    (Pair prefill 
+      (Hash
+        (Pair kind 
+          (Const "random")
+        )
+        (Pair density 
+          (Const 0.3)
+        )
+      )
+    )
+    (Pair ui 
+      (Hash
+        (Pair cellSize 
+          (Const 10)
+        )
+        (Pair palette 
+          (Hash
+            (Pair 0 
+              (Const "#0f1219")
+            )
+            (Pair 1 
+              (Const "#10b981")
+            )
+          )
+        )
+      )
+    )
+  )
+  )
+)

@@ -29,7 +29,7 @@ module Kumi
                 has_yield = @ops.any? { |op| op.opcode == :Yield }
                 @aliases.clear
 
-                write "_#{name}(input = this.input) {"
+                write "_#{name}(input) {"
                 indent!
 
                 # Only declare 'out' if a yield will produce an array.

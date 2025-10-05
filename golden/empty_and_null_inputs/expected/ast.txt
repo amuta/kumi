@@ -1,11 +1,19 @@
 (Root
   inputs: [
-    (InputDeclaration :regions :array access_mode: :field
+    (InputDeclaration :regions :array
       [
-        (InputDeclaration :name :string)
-        (InputDeclaration :sales :array access_mode: :field
+        (InputDeclaration :region :hash
           [
-            (InputDeclaration :amount :integer)
+            (InputDeclaration :name :string)
+            (InputDeclaration :sales :array
+              [
+                (InputDeclaration :sale :hash
+                  [
+                    (InputDeclaration :amount :integer)
+                  ]
+                )
+              ]
+            )
           ]
         )
       ]
@@ -15,7 +23,7 @@
   values: [
     (ValueDeclaration :regional_sales
       (CallExpression :sum
-        (InputElementReference regions.sales.amount)
+        (InputElementReference regions.region.sales.sale.amount)
       )
     )
     (ValueDeclaration :total_sales

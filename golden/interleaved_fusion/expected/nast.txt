@@ -1,7 +1,7 @@
 (NAST
   (VALUE total_payroll
     (Call :"agg.sum"
-    (InputRef [:departments, :employees, :salary])
+    (InputRef [:departments, :dept, :employees, :emp, :salary])
   )
   )
   (VALUE payroll_tax
@@ -14,7 +14,7 @@
     (Call :sum
     (Call :__select__
       (Call :eq
-        (InputRef [:departments, :employees, :role])
+        (InputRef [:departments, :dept, :employees, :emp, :role])
         (Const "manager")
       )
       (Const 1)
@@ -25,7 +25,7 @@
   (VALUE department_summary
     (Hash
     (Pair name 
-      (InputRef [:departments, :name])
+      (InputRef [:departments, :dept, :name])
     )
     (Pair payroll 
       (Ref total_payroll)

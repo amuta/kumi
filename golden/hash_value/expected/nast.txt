@@ -2,16 +2,16 @@
   (VALUE users
     (Hash
     (Pair name 
-      (InputRef [:users, :name])
+      (InputRef [:users, :user, :name])
     )
     (Pair state 
-      (InputRef [:users, :state])
+      (InputRef [:users, :user, :state])
     )
   )
   )
   (TRAIT is_john
     (Call :"core.eq"
-    (InputRef [:users, :name])
+    (InputRef [:users, :user, :name])
     (Const "John")
   )
   )

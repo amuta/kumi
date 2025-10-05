@@ -1,8 +1,8 @@
 (Root
   inputs: [
-    (InputDeclaration :rows :array access_mode: :field
+    (InputDeclaration :rows :array
       [
-        (InputDeclaration :col :array access_mode: :element
+        (InputDeclaration :col :array
           [
             (InputDeclaration :v :integer)
           ]

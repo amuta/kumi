@@ -8,10 +8,18 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll].freeze
 
         def initialize(context)
           @context = context
+        end
+
+        def let(name = nil, expr = nil, &blk)
+          update_location
+          validate_value_args(name, expr, blk)
+
+          expression = blk ? build_cascade(&blk) : ensure_syntax(expr)
+          @context.values << Kumi::Syntax::ValueDeclaration.new(name, expression, inline: true, loc: @context.current_location)
         end
 
         def value(name = nil, expr = nil, &blk)
@@ -49,10 +57,10 @@ module Kumi
           Kumi::Syntax::Literal.new(value, loc: @context.current_location)
         end
 
-        def fn(fn_name, *args)
+        def fn(fn_name, *args, **kwargs)
           update_location
-          expr_args = args.map { |a| ensure_syntax(a) }
-          Kumi::Syntax::CallExpression.new(fn_name, expr_args, loc: @context.current_location)
+          expr_args = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(fn_name, expr_args, kwargs, loc: @context.current_location)
         end
 
         def select(condition, value_when_true, value_when_false)
@@ -61,6 +69,16 @@ module Kumi
           true_expr = ensure_syntax(value_when_true)
           false_expr = ensure_syntax(value_when_false)
           Kumi::Syntax::CallExpression.new(:__select__, [condition_expr, true_expr, false_expr], loc: @context.current_location)
+        end
+
+        def roll(*args, **kwargs)
+          args_expr = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        def shift(*args, **kwargs)
+          args_expr = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
         end
 
         def method_missing(method_name, *args, &)

@@ -1,7 +1,7 @@
 (NAST
   (VALUE regional_sales
     (Call :"agg.sum"
-    (InputRef [:regions, :sales, :amount])
+    (InputRef [:regions, :region, :sales, :sale, :amount])
   )
   )
   (VALUE total_sales

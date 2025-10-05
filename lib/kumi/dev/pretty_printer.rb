@@ -8,61 +8,53 @@ module Kumi
     module PrettyPrinter
       module_function
 
-      # def run(kind, path)
-      #   case kind
-      #   when "ast" then print_ast(path)
-      #   when "ir"  then print_ir(path)
-      #   when "irv2" then print_irv2(path)
-      #   when "nast" then print_nast(path)
-      #   when "snast" then print_snast(path)
-      #   when "planning" then print_planning(path)
-      #   else
-      #     abort "unknown representation: #{kind}"
-      #   end
-      # end
-
-      # def print_ast(path)
-      #   schema, = Kumi::Frontends.load(path: path)
-      #   puts Kumi::Support::SExpressionPrinter.print(schema)
-      # end
-
-      # def print_ir(path)
-      #   schema, = Kumi::Frontends.load(path: path)
-      #   res = Kumi::Analyzer.analyze!(schema)
-      #   abort "No IR" unless res.state[:ir_module]
-      #   puts Kumi::Support::IRRender.to_text(res.state[:ir_module], analysis_state: res.state)
-      # end
-
-      # def print_nast(path)
-      #   schema, = Kumi::Frontends.load(path: path)
-      #   res = Kumi::Analyzer.analyze!(schema)
-      #   abort "No NAST" unless res.state[:nast_module]
-      #   puts Kumi::Support::NASTPrinter.print(res.state[:nast_module])
-      # end
-
-      # def print_snast(path)
-      #   schema, = Kumi::Frontends.load(path: path)
-      #   res = Kumi::Analyzer.analyze!(schema)
-      #   abort "No SNAST" unless res.state[:snast_module]
-      #   puts Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
-      # end
-
-      # def print_irv2(path)
-      #   schema, = Kumi::Frontends.load(path: path)
-      #   res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-      #   abort "No IRV2" unless res.state[:irv2]
-
-      #   puts generate_irv2(path)
-      # end
-
-      # def print_planning(path)
-      #   puts generate_planning(path)
-      # end
-
-      # For golden testing - returns the output instead of printing
       def generate_ast(path)
         schema, = Kumi::Frontends.load(path: path)
         Kumi::Support::SExpressionPrinter.print(schema)
+      end
+
+      def generate_input_plan(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, return_with_state: :input_metadata)
+        return nil unless res.state[:input_metadata]
+
+        print_input_plan(res.state[:input_metadata])
+      end
+
+      def print_input_plan(metadata, indent = 0)
+        lines = []
+        metadata.each do |name, node|
+          lines << format_node(name, node, indent)
+        end
+        lines.join("\n")
+      end
+
+      def format_node(name, node, indent)
+        prefix = "  " * indent
+        result = []
+
+        # Node header with type and container
+        header = "#{prefix}#{name}: #{node.type}"
+        header += " (#{node.container})" if node.container != :scalar
+        header += " access_mode=#{node.access_mode}" if node.access_mode
+        result << header
+
+        # Child steps if any
+        if node.child_steps && !node.child_steps.empty?
+          node.child_steps.each do |child_name, steps|
+            steps_str = steps.map { |s| s[:kind] }.join(" → ")
+            result << "#{prefix}  └─> #{child_name}: #{steps_str}"
+          end
+        end
+
+        # Recursively print children
+        if node.children && !node.children.empty?
+          node.children.each do |child_name, child_node|
+            result << format_node(child_name, child_node, indent + 1)
+          end
+        end
+
+        result.join("\n")
       end
 
       def generate_ir(path)

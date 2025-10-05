@@ -14,6 +14,7 @@ module Kumi
           Atom        = Kumi::Core::AtomUnsatSolver::Atom
 
           def run(errors)
+            return state
             definitions = get_state(:declarations)
             @input_meta = get_state(:input_metadata) || {}
             @definitions = definitions

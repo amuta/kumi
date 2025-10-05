@@ -1,0 +1,46 @@
+(SNAST
+  (VALUE meta
+    (Hash
+      (Pair render
+        (Const "grid2d") :: [] -> string
+      ) :: [] -> pair
+      (Pair size
+        (Hash
+          (Pair width
+            (InputRef width key_chain=[width]) :: [] -> integer
+          ) :: [] -> pair
+          (Pair height
+            (InputRef height key_chain=[height]) :: [] -> integer
+          ) :: [] -> pair
+        ) :: [] -> hash
+      ) :: [] -> pair
+      (Pair prefill
+        (Hash
+          (Pair kind
+            (Const "random") :: [] -> string
+          ) :: [] -> pair
+          (Pair density
+            (Const 0.3) :: [] -> float
+          ) :: [] -> pair
+        ) :: [] -> hash
+      ) :: [] -> pair
+      (Pair ui
+        (Hash
+          (Pair cellSize
+            (Const 10) :: [] -> integer
+          ) :: [] -> pair
+          (Pair palette
+            (Hash
+              (Pair 0
+                (Const "#0f1219") :: [] -> string
+              ) :: [] -> pair
+              (Pair 1
+                (Const "#10b981") :: [] -> string
+              ) :: [] -> pair
+            ) :: [] -> hash
+          ) :: [] -> pair
+        ) :: [] -> hash
+      ) :: [] -> pair
+    ) :: [] -> hash
+  ) :: [] -> hash
+)

@@ -1,0 +1,7 @@
+points: array (array) access_mode=element
+  └─> point: element_access
+  point: hash (hash)
+    └─> x: property_access
+    └─> y: property_access
+    x: integer
+    y: integer

@@ -1,0 +1,23 @@
+regions: array (array) access_mode=element
+  └─> region: element_access
+  region: hash (hash)
+    └─> offices: property_access → array_loop
+    offices: array (array) access_mode=element
+      └─> office: element_access
+      office: hash (hash)
+        └─> teams: property_access → array_loop
+        teams: array (array) access_mode=element
+          └─> team: element_access
+          team: hash (hash)
+            └─> performance_score: property_access
+            └─> employees: property_access → array_loop
+            performance_score: float
+            employees: array (array) access_mode=element
+              └─> employee: element_access
+              employee: hash (hash)
+                └─> salary: property_access
+                └─> rating: property_access
+                └─> level: property_access
+                salary: float
+                rating: float
+                level: string

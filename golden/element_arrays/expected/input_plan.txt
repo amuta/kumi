@@ -1,0 +1,7 @@
+cube: array (array) access_mode=element
+  └─> layer: element_access → array_loop
+  layer: array (array) access_mode=element
+    └─> row: element_access → array_loop
+    row: array (array) access_mode=element
+      └─> cell: element_access
+      cell: integer

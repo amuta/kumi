@@ -1,6 +1,6 @@
 (Root
   inputs: [
-    (InputDeclaration :cells :array access_mode: :element
+    (InputDeclaration :cells :array
       [
         (InputDeclaration :value :integer)
       ]

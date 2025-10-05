@@ -3,10 +3,10 @@
     (InputRef [:config, :app_name])
   )
   (VALUE all_flags
-    (InputRef [:config, :feature_flags])
+    (InputRef [:config, :feature_flags, :flag_name])
   )
   (VALUE server_hostnames
-    (InputRef [:config, :servers, :hostname])
+    (InputRef [:config, :servers, :server, :hostname])
   )
   (VALUE server_count
     (Call :"core.length"
@@ -15,7 +15,7 @@
   )
   (VALUE total_ports
     (Call :"agg.sum"
-    (InputRef [:config, :servers, :port])
+    (InputRef [:config, :servers, :server, :port])
   )
   )
 )

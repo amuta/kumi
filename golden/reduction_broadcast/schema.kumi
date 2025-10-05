@@ -1,21 +1,25 @@
 schema do
   input do
     array :departments do
-      string :dept_name
-      array :teams do
-        string :team_name
-        integer :headcount
+      hash :dept do
+        string :dept_name
+        array :teams do
+          hash :team do
+            string :team_name
+            integer :headcount
+          end
+        end
       end
     end
   end
 
   # 1. Reduce to find the total headcount per department.
   # Scope: [departments] -> integer
-  value :dept_headcount, fn(:sum, input.departments.teams.headcount)
+  value :dept_headcount, fn(:sum, input.departments.dept.teams.team.headcount)
 
   # 2. Count the number of teams per department.
   # Scope: [departments] -> integer
-  value :teams_per_dept, fn(:count, input.departments.teams.team_name)
+  value :teams_per_dept, fn(:count, input.departments.dept.teams.team.team_name)
 
   # 3. Calculate the average headcount for each department.
   # Note: This is a scalar value *at the department level*.
@@ -26,5 +30,5 @@ schema do
   # to the team level for comparison. The compiler must correctly align
   # `avg_headcount_per_dept` with each team within that department.
   # Scope: [departments, teams] -> boolean
-  trait :is_above_average_team, input.departments.teams.headcount > avg_headcount_per_dept
+  trait :is_above_average_team, input.departments.dept.teams.team.headcount > avg_headcount_per_dept
 end

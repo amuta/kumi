@@ -5,33 +5,37 @@
     yield %t2
   )
   (Declaration all_flags
-    %t3 = load_input "config" :: any
-    %t4 = load_field t3["feature_flags"] :: array
-    yield %t4
+    %t3 = load_input "config" :: array
+    %t4 = load_field t3["feature_flags"] :: any
+    loop feature_flags id=L1 in %t4 as el=%feature_flags_el_5, idx=%feature_flags_i_6
+      yield %feature_flags_el_5
+    end_loop
   )
   (Declaration server_hostnames
-    %t5 = load_input "config" :: array
-    %t6 = load_field t5["servers"] :: any
-    loop servers id=L1 in %t6 as el=%servers_el_7, idx=%servers_i_8
-      %t9 = load_field servers_el_7["hostname"] :: string
-      yield %t9
+    %t7 = load_input "config" :: array
+    %t8 = load_field t7["servers"] :: any
+    loop servers id=L2 in %t8 as el=%servers_el_9, idx=%servers_i_10
+      %t11 = load_field servers_el_9["hostname"] :: string
+      yield %t11
     end_loop
   )
   (Declaration server_count
-    %t10 = load_input "config" :: any
-    %t11 = load_field t10["servers"] :: array
-    %t12 = call core.length(%t11) :: integer
-    yield %t12
+    %t12 = load_input "config" :: array
+    %t13 = load_field t12["servers"] :: any
+    loop servers id=L3 in %t13 as el=%servers_el_14, idx=%servers_i_15
+      %t16 = call core.length(%servers_el_14) :: integer
+      yield %t16
+    end_loop
   )
   (Declaration total_ports
-    %acc_13 = decl_acc :: integer
-    %t14 = load_input "config" :: array
-    %t15 = load_field t14["servers"] :: any
-    loop servers id=L2 in %t15 as el=%servers_el_16, idx=%servers_i_17
-      %t18 = load_field servers_el_16["port"] :: integer
-      %acc_13 = acc_add agg.sum(%acc_13, %t18) :: integer
+    %acc_17 = decl_acc :: integer
+    %t18 = load_input "config" :: array
+    %t19 = load_field t18["servers"] :: any
+    loop servers id=L4 in %t19 as el=%servers_el_20, idx=%servers_i_21
+      %t22 = load_field servers_el_20["port"] :: integer
+      %acc_17 = acc_add agg.sum(%acc_17, %t22) :: integer
     end_loop
-    %t19 = acc_load %acc_13 :: integer
-    yield %t19
+    %t23 = acc_load %acc_17 :: integer
+    yield %t23
   )
 )

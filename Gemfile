@@ -25,12 +25,10 @@ gem "rubocop-rspec", "~> 3.6"
 gem "simplecov", "~> 0.21"
 
 # Optional: for text frontend support
-# gem "kumi-parser", "0.0.17", require: false
+# gem "kumi-parser", "0.0.23", require: false
 gem "kumi-parser", path: "/home/muta/repos/kumi-parser"
 
 group :development do
   gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"
 end
-
-

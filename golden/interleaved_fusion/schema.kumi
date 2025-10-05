@@ -19,10 +19,14 @@
 schema do
   input do
     array :departments do
-      string :name
-      array :employees do
-        integer :salary
-        string  :role
+      hash :dept do
+        string :name
+        array :employees do
+          hash :emp do
+            integer :salary
+            string  :role
+          end
+        end
       end
     end
   end
@@ -30,13 +34,13 @@ schema do
   # --- Interleaved Calculations ---
 
   # Calculation A: Requires a loop over employees.
-  value :total_payroll, fn(:sum, input.departments.employees.salary)
+  value :total_payroll, fn(:sum, input.departments.dept.employees.emp.salary)
 
   # Calculation B: Depends on the final result of A. This creates the barrier.
   value :payroll_tax, total_payroll * 0.15
 
   # Calculation C: Another loop over employees, but independent of A and B.
-  value :manager_count, fn(:count_if, input.departments.employees.role, "manager")
+  value :manager_count, fn(:count_if, input.departments.dept.employees.emp.role, "manager")
 
 
   # --- Final Value ---
@@ -45,7 +49,7 @@ schema do
   # An intelligent optimizer should be able to reorder the calculation for B
   # to allow the loops from A and C to be fused.
   value :department_summary, {
-    name: input.departments.name,
+    name: input.departments.dept.name,
     payroll: total_payroll,
     tax: payroll_tax,
     managers: manager_count

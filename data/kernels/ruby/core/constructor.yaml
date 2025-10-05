@@ -3,3 +3,8 @@ kernels:
     fn: core.length
     impl: "(collection)\n  collection.size"
     inline: "= $0.length"
+
+  - id: at:javascript:v1
+    fn: core.at
+    inline: "= $0[$1]"        # assumes non-negative integer index
+

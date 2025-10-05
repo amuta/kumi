@@ -1,0 +1,13 @@
+departments: array (array) access_mode=element
+  └─> dept: element_access
+  dept: hash (hash)
+    └─> dept_name: property_access
+    └─> teams: property_access → array_loop
+    dept_name: string
+    teams: array (array) access_mode=element
+      └─> team: element_access
+      team: hash (hash)
+        └─> team_name: property_access
+        └─> headcount: property_access
+        team_name: string
+        headcount: integer

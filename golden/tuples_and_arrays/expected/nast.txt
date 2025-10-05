@@ -1,22 +1,22 @@
 (NAST
   (TRAIT x_is_large
     (Call :"core.gt"
-    (InputRef [:points, :x])
+    (InputRef [:points, :point, :x])
     (Const 100)
   )
   )
   (VALUE selected_value
     (Call :__select__
     (Ref x_is_large)
-    (InputRef [:points, :x])
-    (InputRef [:points, :y])
+    (InputRef [:points, :point, :x])
+    (InputRef [:points, :point, :y])
   )
   )
   (VALUE final_value_per_point
     (Call :"agg.max"
     (Tuple
       (Ref selected_value)
-      (InputRef [:points, :x])
+      (InputRef [:points, :point, :x])
     )
   )
   )

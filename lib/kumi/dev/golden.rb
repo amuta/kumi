@@ -9,7 +9,7 @@ module Kumi
     module Golden
       module_function
 
-      REPRESENTATIONS = %w[ast nast snast lir_00_unoptimized lir_01_hoist_scalar_references lir_02_inlined lir_04_1_loop_fusion lir_03_cse
+      REPRESENTATIONS = %w[ast input_plan nast snast lir_00_unoptimized lir_01_hoist_scalar_references lir_02_inlined lir_04_1_loop_fusion lir_03_cse
                            lir_04_loop_invcm lir_06_const_prop
                            schema_ruby schema_javascript].freeze
       RUBY_REPRESENTATIONS = %w[schema_ruby].freeze
