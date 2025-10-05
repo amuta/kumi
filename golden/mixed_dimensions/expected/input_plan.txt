@@ -1,9 +1,15 @@
 numbers: array (array) access_mode=element
-  └─> value: element_access
-  value: integer
+  └─> num: element_access
+  num: hash (hash)
+    └─> value: property_access
+    value: integer
 scalar_val: integer
 matrix: array (array) access_mode=element
-  └─> row: element_access → array_loop
-  row: array (array) access_mode=element
-    └─> cell: element_access
-    cell: float
+  └─> m: element_access
+  m: hash (hash)
+    └─> row: property_access → array_loop
+    row: array (array) access_mode=element
+      └─> r: element_access
+      r: hash (hash)
+        └─> cell: property_access
+        cell: float

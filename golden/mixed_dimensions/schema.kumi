@@ -1,12 +1,18 @@
 schema do
   input do
     array :numbers do
-      integer :value
+      hash :num do
+        integer :value
+      end
     end
     integer :scalar_val
     array :matrix do
-      array :row do
-        float :cell
+      hash :m do
+        array :row do
+          hash :r do
+            float :cell
+          end
+        end
       end
     end
   end
@@ -14,16 +20,16 @@ schema do
   # Scalar (rank 0)
   value :constant, 42
 
-  # 1D array (rank 1) 
-  value :sum_numbers, fn(:sum, input.numbers.value)
+  # 1D array (rank 1)
+  value :sum_numbers, fn(:sum, input.numbers.num.value)
 
   # 2D operation (rank 2)
-  value :matrix_sums, fn(:sum, input.matrix.row.cell)
+  value :matrix_sums, fn(:sum, input.matrix.m.row.r.cell)
 
   # Mixed array with different dimensional elements
   value :mixed_array, [
     input.scalar_val,           # scalar (rank 0 broadcast to rank 2)
     sum_numbers,               # reduced to rank 0, broadcasted to rank 2
-    input.matrix.row.cell      # scalar at rank 2
+    input.matrix.m.row.r.cell  # scalar at rank 2
   ]
 end

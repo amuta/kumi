@@ -2,9 +2,17 @@
   inputs: [
     (InputDeclaration :depts :array
       [
-        (InputDeclaration :teams :array
+        (InputDeclaration :dept :hash
           [
-            (InputDeclaration :headcount :integer)
+            (InputDeclaration :teams :array
+              [
+                (InputDeclaration :team :hash
+                  [
+                    (InputDeclaration :headcount :integer)
+                  ]
+                )
+              ]
+            )
           ]
         )
       ]
@@ -13,19 +21,19 @@
   values: [
     (ValueDeclaration :dept_total
       (CallExpression :sum
-        (InputElementReference depts.teams.headcount)
+        (InputElementReference depts.dept.teams.team.headcount)
       )
     )
     (ValueDeclaration :company_total
       (CallExpression :sum
         (CallExpression :sum
-          (InputElementReference depts.teams.headcount)
+          (InputElementReference depts.dept.teams.team.headcount)
         )
       )
     )
     (ValueDeclaration :dept_total_masked
       (CallExpression :sum_if
-        (InputElementReference depts.teams.headcount)
+        (InputElementReference depts.dept.teams.team.headcount)
         (DeclarationReference :big_team)
       )
     )
@@ -33,7 +41,7 @@
   traits: [
     (TraitDeclaration :big_team
       (CallExpression :>
-        (InputElementReference depts.teams.headcount)
+        (InputElementReference depts.dept.teams.team.headcount)
         (Literal 10)
       )
     )

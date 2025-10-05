@@ -2,15 +2,27 @@
   inputs: [
     (InputDeclaration :numbers :array
       [
-        (InputDeclaration :value :integer)
+        (InputDeclaration :num :hash
+          [
+            (InputDeclaration :value :integer)
+          ]
+        )
       ]
     )
     (InputDeclaration :scalar_val :integer)
     (InputDeclaration :matrix :array
       [
-        (InputDeclaration :row :array
+        (InputDeclaration :m :hash
           [
-            (InputDeclaration :cell :float)
+            (InputDeclaration :row :array
+              [
+                (InputDeclaration :r :hash
+                  [
+                    (InputDeclaration :cell :float)
+                  ]
+                )
+              ]
+            )
           ]
         )
       ]
@@ -22,19 +34,19 @@
     )
     (ValueDeclaration :sum_numbers
       (CallExpression :sum
-        (InputElementReference numbers.value)
+        (InputElementReference numbers.num.value)
       )
     )
     (ValueDeclaration :matrix_sums
       (CallExpression :sum
-        (InputElementReference matrix.row.cell)
+        (InputElementReference matrix.m.row.r.cell)
       )
     )
     (ValueDeclaration :mixed_array
       (ArrayExpression
         (InputReference :scalar_val)
         (DeclarationReference :sum_numbers)
-        (InputElementReference matrix.row.cell)
+        (InputElementReference matrix.m.row.r.cell)
       )
     )
   ]

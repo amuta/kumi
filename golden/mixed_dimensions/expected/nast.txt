@@ -1,19 +1,19 @@
 (NAST
   (VALUE sum_numbers
     (Call :"agg.sum"
-    (InputRef [:numbers, :value])
+    (InputRef [:numbers, :num, :value])
   )
   )
   (VALUE matrix_sums
     (Call :"agg.sum"
-    (InputRef [:matrix, :row, :cell])
+    (InputRef [:matrix, :m, :row, :r, :cell])
   )
   )
   (VALUE mixed_array
     (Tuple
     (InputRef [:scalar_val])
     (Ref sum_numbers)
-    (InputRef [:matrix, :row, :cell])
+    (InputRef [:matrix, :m, :row, :r, :cell])
   )
   )
   (VALUE constant
