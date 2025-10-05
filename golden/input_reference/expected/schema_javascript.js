@@ -28,25 +28,21 @@ export class KumiCompiledModule {
   }
 
   _server_count(input) {
-    let out = [];
     let t12 = input["config"];
     let t13 = t12.servers;
-    t13.forEach((servers_el_14, servers_i_15) => {
-      let t16 = servers_el_14.length;
-      out.push(t16);
-    });
-    return out;
+    let t14 = t13.length;
+    return t14;
   }
 
   _total_ports(input) {
-    let acc_17 = 0;
-    let t18 = input["config"];
-    let t19 = t18.servers;
-    t19.forEach((servers_el_20, servers_i_21) => {
-      let t22 = servers_el_20.port;
-      acc_17 += t22;
+    let acc_15 = 0;
+    let t16 = input["config"];
+    let t17 = t16.servers;
+    t17.forEach((servers_el_18, servers_i_19) => {
+      let t20 = servers_el_18.port;
+      acc_15 += t20;
     });
-    return acc_17;
+    return acc_15;
   }
 
 }

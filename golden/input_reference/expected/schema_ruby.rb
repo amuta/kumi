@@ -56,24 +56,19 @@ module Kumi::Compiled::KUMI_73756373ce0872db14bf15199ea5225441d5b9378adabad0f40c
   end
 
   def _server_count(input = @input)
-    out = []
     t12 = input["config"] || input[:config]
     t13 = t12["servers"] || t12[:servers]
-    t13.each_with_index do |servers_el_14, servers_i_15|
-      t16 = servers_el_14.length
-      out << t16
-    end
-    out
+    t13.length
   end
 
   def _total_ports(input = @input)
-    acc_17 = 0
-    t18 = input["config"] || input[:config]
-    t19 = t18["servers"] || t18[:servers]
-    t19.each_with_index do |servers_el_20, servers_i_21|
-      t22 = servers_el_20["port"] || servers_el_20[:port]
-      acc_17 += t22
+    acc_15 = 0
+    t16 = input["config"] || input[:config]
+    t17 = t16["servers"] || t16[:servers]
+    t17.each_with_index do |servers_el_18, servers_i_19|
+      t20 = servers_el_18["port"] || servers_el_18[:port]
+      acc_15 += t20
     end
-    acc_17
+    acc_15
   end
 end

@@ -44,26 +44,18 @@ module Kumi::Compiled::KUMI_0c5896f495c673cb497152d5ccde9d5efbe406d23829b4528bf6
     out = []
     t4 = input["cube"] || input[:cube]
     t4.each_with_index do |cube_el_5, cube_i_6|
-      out_1 = []
-      cube_el_5.each_with_index do |layer_el_7, layer_i_8|
-        out_1 << layer_el_7
-      end
-      out << out_1
+      out << cube_el_5
     end
     out
   end
 
   def _row(input = @input)
     out = []
-    t9 = input["cube"] || input[:cube]
-    t9.each_with_index do |cube_el_10, cube_i_11|
+    t7 = input["cube"] || input[:cube]
+    t7.each_with_index do |cube_el_8, cube_i_9|
       out_1 = []
-      cube_el_10.each_with_index do |layer_el_12, layer_i_13|
-        out_2 = []
-        layer_el_12.each_with_index do |row_el_14, row_i_15|
-          out_2 << row_el_14
-        end
-        out_1 << out_2
+      cube_el_8.each_with_index do |layer_el_10, layer_i_11|
+        out_1 << layer_el_10
       end
       out << out_1
     end
@@ -72,13 +64,13 @@ module Kumi::Compiled::KUMI_0c5896f495c673cb497152d5ccde9d5efbe406d23829b4528bf6
 
   def _cell(input = @input)
     out = []
-    t16 = input["cube"] || input[:cube]
-    t16.each_with_index do |cube_el_17, cube_i_18|
+    t12 = input["cube"] || input[:cube]
+    t12.each_with_index do |cube_el_13, cube_i_14|
       out_1 = []
-      cube_el_17.each_with_index do |layer_el_19, layer_i_20|
+      cube_el_13.each_with_index do |layer_el_15, layer_i_16|
         out_2 = []
-        layer_el_19.each_with_index do |row_el_21, row_i_22|
-          out_2 << row_el_21
+        layer_el_15.each_with_index do |row_el_17, row_i_18|
+          out_2 << row_el_17
         end
         out_1 << out_2
       end
@@ -89,15 +81,15 @@ module Kumi::Compiled::KUMI_0c5896f495c673cb497152d5ccde9d5efbe406d23829b4528bf6
 
   def _cell_over_limit(input = @input)
     out = []
-    t23 = input["cube"] || input[:cube]
-    t30 = 100
-    t23.each_with_index do |cube_el_24, cube_i_25|
+    t19 = input["cube"] || input[:cube]
+    t26 = 100
+    t19.each_with_index do |cube_el_20, cube_i_21|
       out_1 = []
-      cube_el_24.each_with_index do |layer_el_26, layer_i_27|
+      cube_el_20.each_with_index do |layer_el_22, layer_i_23|
         out_2 = []
-        layer_el_26.each_with_index do |row_el_28, row_i_29|
-          t31 = row_el_28 > t30
-          out_2 << t31
+        layer_el_22.each_with_index do |row_el_24, row_i_25|
+          t27 = row_el_24 > t26
+          out_2 << t27
         end
         out_1 << out_2
       end
@@ -108,20 +100,20 @@ module Kumi::Compiled::KUMI_0c5896f495c673cb497152d5ccde9d5efbe406d23829b4528bf6
 
   def _cell_sum(input = @input)
     out = []
-    t32 = input["cube"] || input[:cube]
-    t62 = 100
-    t41 = 0
-    t32.each_with_index do |cube_el_33, cube_i_34|
+    t28 = input["cube"] || input[:cube]
+    t58 = 100
+    t37 = 0
+    t28.each_with_index do |cube_el_29, cube_i_30|
       out_1 = []
-      cube_el_33.each_with_index do |layer_el_35, layer_i_36|
-        acc_37 = 0
-        layer_el_35.each_with_index do |row_el_38, row_i_39|
-          t63 = row_el_38 > t62
-          t42 = t63 ? row_el_38 : t41
-          acc_37 += t42
+      cube_el_29.each_with_index do |layer_el_31, layer_i_32|
+        acc_33 = 0
+        layer_el_31.each_with_index do |row_el_34, row_i_35|
+          t59 = row_el_34 > t58
+          t38 = t59 ? row_el_34 : t37
+          acc_33 += t38
         end
-        t43 = acc_37
-        out_1 << t43
+        t39 = acc_33
+        out_1 << t39
       end
       out << out_1
     end
@@ -129,26 +121,26 @@ module Kumi::Compiled::KUMI_0c5896f495c673cb497152d5ccde9d5efbe406d23829b4528bf6
   end
 
   def _count_over_limit(input = @input)
-    acc_44 = 0
-    t45 = input["cube"] || input[:cube]
-    t65 = 100
-    t55 = 1
-    t56 = 0
-    t45.each_with_index do |cube_el_46, cube_i_47|
-      acc_48 = 0
-      cube_el_46.each_with_index do |layer_el_49, layer_i_50|
-        acc_51 = 0
-        layer_el_49.each_with_index do |row_el_52, row_i_53|
-          t66 = row_el_52 > t65
-          t57 = t66 ? t55 : t56
-          acc_51 += t57
+    acc_40 = 0
+    t41 = input["cube"] || input[:cube]
+    t61 = 100
+    t51 = 1
+    t52 = 0
+    t41.each_with_index do |cube_el_42, cube_i_43|
+      acc_44 = 0
+      cube_el_42.each_with_index do |layer_el_45, layer_i_46|
+        acc_47 = 0
+        layer_el_45.each_with_index do |row_el_48, row_i_49|
+          t62 = row_el_48 > t61
+          t53 = t62 ? t51 : t52
+          acc_47 += t53
         end
-        t58 = acc_51
-        acc_48 += t58
+        t54 = acc_47
+        acc_44 += t54
       end
-      t59 = acc_48
-      acc_44 += t59
+      t55 = acc_44
+      acc_40 += t55
     end
-    acc_44
+    acc_40
   end
 end

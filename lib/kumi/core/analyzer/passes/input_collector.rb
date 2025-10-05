@@ -46,7 +46,6 @@ module Kumi
             Node.new(type: decl.type, domain: decl.domain, container: container, children: kids, child_steps: {})
           end
 
-          # === NEW: arity validation with full path ===
           def validate_arity!(meta, errors, path:)
             meta.each do |name, node|
               cur_path = (path + [name]).join(".")
@@ -62,8 +61,10 @@ module Kumi
           end
 
           # Annotate per-child hops (no arity checks here to avoid duplicates)
-          def annotate_children!(meta, _errors)
+          def annotate_children!(meta, _errors, indent: 0)
             meta.each do |name, node|
+              prefix = "  " * indent
+              debug "#{prefix}[#{name}] (#{node.container})"
               node.child_steps = {}
               (node.children || {}).each do |cname, child|
                 steps =
@@ -90,10 +91,12 @@ module Kumi
                     raise "unknown parent container #{node.container.inspect}"
                   end
 
+                step_str = steps.map { |s| s[:kind] == :array_loop ? "loop(#{s[:axis]})" : s[:kind].to_s.split("_").first }.join(" → ")
+                debug "#{prefix}  └─ #{cname}: #{step_str}"
                 node.child_steps[cname.to_sym] = steps
               end
 
-              annotate_children!(node.children || {}, _errors)
+              annotate_children!(node.children || {}, _errors, indent: indent + 1)
             end
           end
 

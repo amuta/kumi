@@ -10,9 +10,9 @@
   ) :: [servers] -> string
   (VALUE server_count
     (Call :core.length
-      (InputRef config.servers key_chain=[]) :: [servers] -> array
-    ) :: [servers] -> integer
-  ) :: [servers] -> integer
+      (InputRef config.servers key_chain=[config, servers]) :: [] -> array
+    ) :: [] -> integer
+  ) :: [] -> integer
   (VALUE total_ports
     (Reduce :agg.sum over [servers]
       (InputRef config.servers.server.port key_chain=[port]) :: [servers] -> integer

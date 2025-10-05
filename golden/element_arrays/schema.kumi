@@ -1,9 +1,9 @@
 schema do
   input do
     array :cube do
-      element :array, :layer do
-        element :array, :row do
-          element :integer, :cell
+      array :layer do
+        array :row do
+          integer :cell
         end
       end
     end

@@ -20,22 +20,20 @@
     end_loop
   )
   (Declaration server_count
-    %t12 = load_input "config" :: array
-    %t13 = load_field t12["servers"] :: any
-    loop servers id=L3 in %t13 as el=%servers_el_14, idx=%servers_i_15
-      %t16 = call core.length(%servers_el_14) :: integer
-      yield %t16
-    end_loop
+    %t12 = load_input "config" :: any
+    %t13 = load_field t12["servers"] :: array
+    %t14 = call core.length(%t13) :: integer
+    yield %t14
   )
   (Declaration total_ports
-    %acc_17 = decl_acc :: integer
-    %t18 = load_input "config" :: array
-    %t19 = load_field t18["servers"] :: any
-    loop servers id=L4 in %t19 as el=%servers_el_20, idx=%servers_i_21
-      %t22 = load_field servers_el_20["port"] :: integer
-      %acc_17 = acc_add agg.sum(%acc_17, %t22) :: integer
+    %acc_15 = decl_acc :: integer
+    %t16 = load_input "config" :: array
+    %t17 = load_field t16["servers"] :: any
+    loop servers id=L3 in %t17 as el=%servers_el_18, idx=%servers_i_19
+      %t20 = load_field servers_el_18["port"] :: integer
+      %acc_15 = acc_add agg.sum(%acc_15, %t20) :: integer
     end_loop
-    %t23 = acc_load %acc_17 :: integer
-    yield %t23
+    %t21 = acc_load %acc_15 :: integer
+    yield %t21
   )
 )

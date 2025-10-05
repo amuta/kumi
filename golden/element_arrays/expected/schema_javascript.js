@@ -13,26 +13,18 @@ export class KumiCompiledModule {
     let out = [];
     let t4 = input["cube"];
     t4.forEach((cube_el_5, cube_i_6) => {
-      let out_1 = [];
-      cube_el_5.forEach((layer_el_7, layer_i_8) => {
-        out_1.push(layer_el_7);
-      });
-      out.push(out_1);
+      out.push(cube_el_5);
     });
     return out;
   }
 
   _row(input) {
     let out = [];
-    let t9 = input["cube"];
-    t9.forEach((cube_el_10, cube_i_11) => {
+    let t7 = input["cube"];
+    t7.forEach((cube_el_8, cube_i_9) => {
       let out_1 = [];
-      cube_el_10.forEach((layer_el_12, layer_i_13) => {
-        let out_2 = [];
-        layer_el_12.forEach((row_el_14, row_i_15) => {
-          out_2.push(row_el_14);
-        });
-        out_1.push(out_2);
+      cube_el_8.forEach((layer_el_10, layer_i_11) => {
+        out_1.push(layer_el_10);
       });
       out.push(out_1);
     });
@@ -41,13 +33,13 @@ export class KumiCompiledModule {
 
   _cell(input) {
     let out = [];
-    let t16 = input["cube"];
-    t16.forEach((cube_el_17, cube_i_18) => {
+    let t12 = input["cube"];
+    t12.forEach((cube_el_13, cube_i_14) => {
       let out_1 = [];
-      cube_el_17.forEach((layer_el_19, layer_i_20) => {
+      cube_el_13.forEach((layer_el_15, layer_i_16) => {
         let out_2 = [];
-        layer_el_19.forEach((row_el_21, row_i_22) => {
-          out_2.push(row_el_21);
+        layer_el_15.forEach((row_el_17, row_i_18) => {
+          out_2.push(row_el_17);
         });
         out_1.push(out_2);
       });
@@ -58,15 +50,15 @@ export class KumiCompiledModule {
 
   _cell_over_limit(input) {
     let out = [];
-    let t23 = input["cube"];
-    const t30 = 100;
-    t23.forEach((cube_el_24, cube_i_25) => {
+    let t19 = input["cube"];
+    const t26 = 100;
+    t19.forEach((cube_el_20, cube_i_21) => {
       let out_1 = [];
-      cube_el_24.forEach((layer_el_26, layer_i_27) => {
+      cube_el_20.forEach((layer_el_22, layer_i_23) => {
         let out_2 = [];
-        layer_el_26.forEach((row_el_28, row_i_29) => {
-          let t31 = row_el_28 > t30;
-          out_2.push(t31);
+        layer_el_22.forEach((row_el_24, row_i_25) => {
+          let t27 = row_el_24 > t26;
+          out_2.push(t27);
         });
         out_1.push(out_2);
       });
@@ -77,19 +69,19 @@ export class KumiCompiledModule {
 
   _cell_sum(input) {
     let out = [];
-    let t32 = input["cube"];
-    const t62 = 100;
-    const t41 = 0;
-    t32.forEach((cube_el_33, cube_i_34) => {
+    let t28 = input["cube"];
+    const t58 = 100;
+    const t37 = 0;
+    t28.forEach((cube_el_29, cube_i_30) => {
       let out_1 = [];
-      cube_el_33.forEach((layer_el_35, layer_i_36) => {
-        let acc_37 = 0;
-        layer_el_35.forEach((row_el_38, row_i_39) => {
-          let t63 = row_el_38 > t62;
-          let t42 = t63 ? row_el_38 : t41;
-          acc_37 += t42;
+      cube_el_29.forEach((layer_el_31, layer_i_32) => {
+        let acc_33 = 0;
+        layer_el_31.forEach((row_el_34, row_i_35) => {
+          let t59 = row_el_34 > t58;
+          let t38 = t59 ? row_el_34 : t37;
+          acc_33 += t38;
         });
-        out_1.push(acc_37);
+        out_1.push(acc_33);
       });
       out.push(out_1);
     });
@@ -97,25 +89,25 @@ export class KumiCompiledModule {
   }
 
   _count_over_limit(input) {
-    let acc_44 = 0;
-    let t45 = input["cube"];
-    const t65 = 100;
-    const t55 = 1;
-    const t56 = 0;
-    t45.forEach((cube_el_46, cube_i_47) => {
-      let acc_48 = 0;
-      cube_el_46.forEach((layer_el_49, layer_i_50) => {
-        let acc_51 = 0;
-        layer_el_49.forEach((row_el_52, row_i_53) => {
-          let t66 = row_el_52 > t65;
-          let t57 = t66 ? t55 : t56;
-          acc_51 += t57;
+    let acc_40 = 0;
+    let t41 = input["cube"];
+    const t61 = 100;
+    const t51 = 1;
+    const t52 = 0;
+    t41.forEach((cube_el_42, cube_i_43) => {
+      let acc_44 = 0;
+      cube_el_42.forEach((layer_el_45, layer_i_46) => {
+        let acc_47 = 0;
+        layer_el_45.forEach((row_el_48, row_i_49) => {
+          let t62 = row_el_48 > t61;
+          let t53 = t62 ? t51 : t52;
+          acc_47 += t53;
         });
-        acc_48 += acc_51;
+        acc_44 += acc_47;
       });
-      acc_44 += acc_48;
+      acc_40 += acc_44;
     });
-    return acc_44;
+    return acc_40;
   }
 
 }

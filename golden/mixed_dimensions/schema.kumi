@@ -28,7 +28,7 @@ schema do
 
   # Mixed array with different dimensional elements
   value :mixed_array, [
-    input.scalar_val,           # scalar (rank 0 broadcast to rank 2)
+    input.scalar_val, # scalar (rank 0 broadcast to rank 2)
     sum_numbers,               # reduced to rank 0, broadcasted to rank 2
     input.matrix.m.row.r.cell  # scalar at rank 2
   ]

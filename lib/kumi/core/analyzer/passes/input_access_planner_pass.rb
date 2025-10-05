@@ -16,7 +16,7 @@ module Kumi
             # TODO : Allow by input definition on policies or at least general policy definition
             # plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, options)
 
-            plans_v2 = Kumi::Core::Compiler::AccessPlannerV2.plan(input_metadata, options)
+            plans_v2 = Kumi::Core::Compiler::AccessPlannerV2.plan(input_metadata, options, debug_on: debug_enabled?)
 
             # Quick validation
             # validate_plans!(plans, errors)

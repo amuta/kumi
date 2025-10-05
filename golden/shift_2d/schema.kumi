@@ -2,7 +2,7 @@ schema do
   input do
     array :rows do
       array :col do
-        element :integer, :v
+        integer :v
       end
     end
   end

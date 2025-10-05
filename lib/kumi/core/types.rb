@@ -10,8 +10,8 @@ module Kumi
         tuple?(dtype) || array?(dtype)
       end
 
-      def self.tuple?(dtype) = dtype.match?(/^tuple</)
-      def self.array?(dtype) = dtype.match?(/^array</)
+      def self.tuple?(dtype) = dtype == :tuple || dtype.match?(/^tuple</)
+      def self.array?(dtype) = dtype == :array || dtype.match?(/^array</)
 
       # Validation methods
       def self.valid_type?(type)
