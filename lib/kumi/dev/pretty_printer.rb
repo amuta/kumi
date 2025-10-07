@@ -8,6 +8,32 @@ module Kumi
     module PrettyPrinter
       module_function
 
+      def run(kind, path)
+        method_name = "generate_#{kind}"
+        raise "Unknown pretty print kind: #{kind}" unless respond_to?(method_name)
+
+        output = send(method_name, path)
+        puts output if output
+      end
+
+      def with_stop_after(pass_name)
+        saved = {
+          "KUMI_STOP_AFTER" => ENV["KUMI_STOP_AFTER"],
+          "KUMI_CHECKPOINT" => ENV["KUMI_CHECKPOINT"],
+          "KUMI_RESUME_FROM" => ENV["KUMI_RESUME_FROM"],
+          "KUMI_RESUME_AT" => ENV["KUMI_RESUME_AT"]
+        }
+
+        ENV["KUMI_STOP_AFTER"] = pass_name
+        ENV["KUMI_CHECKPOINT"] = "0"
+        ENV.delete("KUMI_RESUME_FROM")
+        ENV.delete("KUMI_RESUME_AT")
+
+        yield
+      ensure
+        saved.each { |k, v| v ? ENV[k] = v : ENV.delete(k) }
+      end
+
       def generate_ast(path)
         schema, = Kumi::Frontends.load(path: path)
         Kumi::Support::SExpressionPrinter.print(schema)
@@ -67,10 +93,12 @@ module Kumi
 
       def generate_nast(path)
         schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, return_with_state: :nast_module)
-        return nil unless res.state[:nast_module]
+        with_stop_after("NormalizeToNASTPass") do
+          res = Kumi::Analyzer.analyze!(schema)
+          return nil unless res.state[:nast_module]
 
-        Kumi::Support::NASTPrinter.print(res.state[:nast_module])
+          Kumi::Support::NASTPrinter.print(res.state[:nast_module])
+        end
       end
 
       def generate_lir_00_unoptimized(path)
@@ -139,10 +167,12 @@ module Kumi
 
       def generate_snast(path)
         schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema)
-        raise "Error Generating #{path}" unless res.state[:snast_module]
+        with_stop_after("SNASTPass") do
+          res = Kumi::Analyzer.analyze!(schema)
+          raise "Error Generating #{path}" unless res.state[:snast_module]
 
-        Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
+          Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
+        end
       end
 
       def generate_irv2(path)

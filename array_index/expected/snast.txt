@@ -1,7 +1,0 @@
-(SNAST
-  (VALUE v_sum_y
-    (Reduce :agg.sum over [y]
-      (InputRef x.y.v key_chain=[]) :: [x, y] -> integer
-    ) :: [x] -> integer
-  ) :: [x] -> integer
-)

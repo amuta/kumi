@@ -3,11 +3,11 @@
 module Kumi
   module Syntax
     # For field metadata declarations inside input blocks
-    InputDeclaration = Struct.new(:name, :domain, :type, :children, :access_mode) do
+    InputDeclaration = Struct.new(:name, :domain, :type, :children, :index) do
       include Node
 
       def children = self[:children] || []
-      def access_mode = self[:access_mode]
+      def index = self[:index]
     end
   end
 end

@@ -75,6 +75,9 @@ module Kumi
         when NAST::Ref
           "#{indent}(Ref #{node.name}) #{stamp_str}"
 
+        when NAST::IndexRef
+          "#{indent}(IndexRef #{node.name} input=#{node.input_fqn}) #{stamp_str}"
+
         when NAST::Fold
           header = "(Fold :#{node.fn}"
           arg = format_concise(node.arg, indent_level + 1)

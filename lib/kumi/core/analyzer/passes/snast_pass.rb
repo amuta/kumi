@@ -31,6 +31,7 @@ module Kumi
             @metadata_table    = get_state(:metadata_table,    required: true)
             @declaration_table = get_state(:declaration_table, required: true)
             @input_table       = get_state(:input_table,       required: true)
+            @index_table       = get_state(:index_table,       required: true)
             @registry          = get_state(:registry,          required: true)
             @errors = errors
 
@@ -65,6 +66,12 @@ module Kumi
             ent = lookup_input(n.path_fqn)
             out = n.class.new(id: n.id, path: n.path, loc: n.loc)
             stamp!(out, ent[:axes], ent[:dtype])
+          end
+
+          def visit_index_ref(n)
+            m = meta_for(n)
+            out = n.class.new(id: n.id, name: n.name, input_fqn: n.input_fqn, loc: n.loc)
+            stamp!(out, m[:scope], m[:type])
           end
 
           def visit_ref(n)
@@ -141,7 +148,10 @@ module Kumi
                 # --- Path for REDUCE (Vectorized Arrays) ---
                 in_axes = axes_of(visited_arg)
 
-                raise Kumi::Core::Errors::SemanticError, "reduce function called on a non-collection scalar: #{arg_type}" if in_axes.empty?
+                if in_axes.empty?
+                  raise Kumi::Core::Errors::SemanticError,
+                        "reduce function called on a non-collection scalar: #{arg_type}"
+                end
 
                 result_meta = meta_for(n)
                 out_axes = Array(result_meta[:result_scope])

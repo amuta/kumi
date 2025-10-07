@@ -55,6 +55,7 @@ module Kumi
           :missing_policy,  # Symbol
           :navigation_steps, # Array<Hash>   [{axis:, kind:, key:, alias:, loop_idx:, ...}]
           :path_fqn, # String        "a.b.c"
+          :open_axis,
           keyword_init: true
         )
       end

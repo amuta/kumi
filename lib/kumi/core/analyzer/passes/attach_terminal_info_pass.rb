@@ -36,6 +36,8 @@ module Kumi
               end
               steps = Array(plan.navigation_steps)
 
+              steps.pop(1) if plan.open_axis
+
               # last array loop (or -1 if none)
               last_loop_idx = steps.rindex { |s| (s[:kind] || s["kind"]).to_s == "array_loop" } || -1
               tail = steps[(last_loop_idx + 1)..-1] || []
@@ -76,6 +78,8 @@ module Kumi
 
             when NAST::Reduce, NAST::Fold
               annotate!(node.arg, by_fqn)
+            when NAST::IndexRef
+              # Nothing
             end
           end
         end

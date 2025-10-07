@@ -1,0 +1,33 @@
+(SNAST
+  (VALUE W
+    (Call :core.array_size
+      (InputRef x.y key_chain=[]) :: [x] -> array
+    ) :: [x] -> integer
+  ) :: [x] -> integer
+  (VALUE box
+    (Call :core.add
+      (Call :core.mul
+        (IndexRef i input=x.__index(i)) :: [x] -> integer
+        (Ref W) :: [x] -> integer
+      ) :: [x] -> integer
+      (IndexRef j input=x.y.__index(j)) :: [x, y] -> integer
+    ) :: [x, y] -> integer
+  ) :: [x, y] -> integer
+  (VALUE col_major
+    (Call :core.add
+      (Call :core.mul
+        (IndexRef j input=x.y.__index(j)) :: [x, y] -> integer
+        (Call :core.array_size
+          (InputRef x key_chain=[]) :: [] -> array
+        ) :: [] -> integer
+      ) :: [x, y] -> integer
+      (IndexRef i input=x.__index(i)) :: [x] -> integer
+    ) :: [x, y] -> integer
+  ) :: [x, y] -> integer
+  (VALUE sum_ij
+    (Call :core.add
+      (IndexRef i input=x.__index(i)) :: [x] -> integer
+      (IndexRef j input=x.y.__index(j)) :: [x, y] -> integer
+    ) :: [x, y] -> integer
+  ) :: [x, y] -> integer
+)

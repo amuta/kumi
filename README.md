@@ -3,96 +3,76 @@
 [![CI](https://github.com/amuta/kumi/workflows/CI/badge.svg)](https://github.com/amuta/kumi/actions)
 [![Gem Version](https://badge.fury.io/rb/kumi.svg)](https://badge.fury.io/rb/kumi)
 
-Kumi is a declarative calculation DSL for Ruby. It compiles business rules into a typed dependency graph with vector semantics, performs static validation at definition time, lowers into a portable Low-level IR (LIR), and either executes deterministically or code-generates standalone Ruby and JavaScript.
-
-It’s built for domains where correctness and explainability matter: finance, tax, pricing, insurance, payroll, and other rule-heavy systems.
 
 ---
 
-## Example: U.S. Federal Taxes
+**Status**: experimental. Public API may change. Typing and some static checks are still evolving.
 
-```ruby
-module FederalTax2024
-  extend Kumi::Schema
-  
-  schema do
-    input do
-      float  :income
-      string :filing_status, domain: %w[single married_joint]
-    end
-    
-    trait :single,  input.filing_status == "single"
-    trait :married, input.filing_status == "married_joint"
-    
-    value :std_deduction do
-      on single,  14_600
-      on married, 29_200
-      base        21_900
-    end
-    
-    value :taxable_income, fn(:max, [input.income - std_deduction, 0])
-    
-    value :fed_breaks do
-      on single,  [11_600, 47_150, 100_525, 191_950, 243_725, 609_350, Float::INFINITY]
-      on married, [23_200, 94_300, 201_050, 383_900, 487_450, 731_200, Float::INFINITY]
-    end
-    
-    value :fed_rates, [0.10, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]
-    value :fed_calc,  fn(:piecewise_sum, taxable_income, fed_breaks, fed_rates)
-    value :fed_tax,   fed_calc[0]
-    
-    value :ss_tax, fn(:min, [input.income, 168_600]) * 0.062
-    value :medicare_tax, input.income * 0.0145
-    
-    value :total_tax, fed_tax + ss_tax + medicare_tax
-    value :after_tax, input.income - total_tax
-  end
-end
+**Feedback**: have a use case or a paper cut? Open an issue or reach out.
 
-result = FederalTax2024.from(income: 100_000, filing_status: "single")
-result[:total_tax]   # => 21,491.00
-result[:after_tax]   # => 78,509.00
-```
+---
 
-## Codegen: Ruby and JavaScript
+
+Kumi is a **declarative calculation DSL for Ruby**. You write business rules once; Kumi:
+
+- Builds a **typed dependency graph** with vector semantics.
+- Performs **static validation** at definition time.
+- Lowers to a **portable Low-level IR (LIR)**.
+- Code-generates standalone **Ruby** and **JavaScript**.
+
+Targets: finance, tax, pricing, insurance, payroll, analytics—domains where **correctness, transparency, and reproducibility** matter.
+
+---
+
+## Codegen: Currently Ruby and JavaScript
 
 *Note: this is not available on the last published gem version (0.0.18), but if you clone this repository you can just copy a ./golden/$schema_name and modify schema.kumi as you and run bin/kumi golden test $schema_name*
 
 
-Kumi executes via the analyzer/interpreter or emits standalone code.
+Kumi emits the kernel for your schema with no runtime in the target language. You can use it within your ruby application backend and/or export to the client.
 
-- Ruby backend: pure Ruby module. No Kumi at runtime.
-- JavaScript backend: ES module for Node or browsers.
 
 <details>
 <summary><strong>Schema</strong></summary>
 
 ```ruby
-module Cart
+module GameOfLife
   extend Kumi::Schema
 
   schema do
     input do
-      array :items do
-        float   :price
-        integer :qty
+      array :rows do
+        array :col do
+          integer :alive # 0 or 1
+        end
       end
-      float :discount
     end
 
-    # Elementwise
-    value :items_subtotal,   input.items.price * input.items.qty
-    value :items_discounted, input.items.price * (1.0 - input.discount)
+    let :a, input.rows.col.alive
 
-    # Boolean mask + branch at same stamp
-    value :items_is_big,     input.items.price > 100.0
-    value :items_effective,  select(items_is_big, items_subtotal * 0.9, items_subtotal)
+    # axis_offset: 0 = x, 1 = y
+    let :n,  shift(a, -1, axis_offset: 1)
+    let :s,  shift(a,  1, axis_offset: 1)
+    let :w,  shift(a, -1)
+    let :e,  shift(a,  1)
+    let :nw, shift(n, -1)
+    let :ne, shift(n,  1)
+    let :sw, shift(s, -1)
+    let :se, shift(s,  1)
 
-    # Reductions (rank 1 -> rank 0)
-    value :total_qty,            fn(:sum, input.items.qty)
-    value :cart_total,           fn(:sum, items_subtotal)
-    value :cart_total_effective, fn(:sum, items_effective)
+    let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
+
+    # Conway rules
+    let :alive, a > 0
+    let :n3_alive, neighbors == 3
+    let :n2_alive, neighbors == 2
+    let :keep_alive, n2_alive & alive
+
+    let :next_alive, n3_alive | keep_alive
+
+    value :next_state, select(next_alive, 1, 0)
   end
+
 end
 ````
 
@@ -103,36 +83,20 @@ end
 
 ```bash
 # ...
-
-(Declaration cart_total
-  %acc_36 = decl_acc :: float
-  %t37 = load_input "items" :: array
-  loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
-    %t57 = load_field items_el_38["price"] :: float
-    %t58 = load_field items_el_38["qty"] :: integer
-    %t59 = call core.mul(%t57, %t58) :: float
-    %acc_36 = acc_add agg.sum(%acc_36, %t59) :: float
-  end_loop
-  %t41 = acc_load %acc_36 :: float
-  yield %t41
-)
-(Declaration cart_total_effective
-  %acc_42 = decl_acc :: float
-  %t43 = load_input "items" :: array
-  %t69 = const 100.0 :: float
-  %t63 = const 0.9 :: float
-  loop items id=L7 in %t43 as el=%items_el_44, idx=%items_i_45
-    %t68 = load_field items_el_44["price"] :: float
-    %t73 = load_field items_el_44["qty"] :: integer
-    %t70 = call core.gt(%t68, %__immediate_placeholder__) :: boolean
-    %t74 = call core.mul(%t68, %t73) :: float
-    %t64 = call core.mul(%t74, %__immediate_placeholder__) :: float
-    %t66 = select %t70, %t64, %t74 :: float
-    %acc_42 = acc_add agg.sum(%acc_42, %t66) :: float
-  end_loop
-  %t47 = acc_load %acc_42 :: float
-  yield %t47
-)
+  (Declaration next_state
+    %t285 = load_input "rows" :: array
+    %t1539 = Length %t285 :: integer
+    %t1540 = const -1 :: integer
+    %t1542 = const 0 :: integer
+    %t1546 = const 1 :: integer
+    %t1334 = const 3 :: integer
+    %t1339 = const 2 :: integer
+    %t1547 = call core.sub(%t1539, %t1546) :: integer
+    loop rows id=L31 in %t285 as el=%rows_el_286, idx=%rows_i_287
+      %t1541 = call core.sub(%rows_i_287, %t1540) :: integer
+      %t1561 = call core.sub(%rows_i_287, %t1546) :: integer
+      %t1580 = call core.mod(%rows_i_287, %t1539) :: integer
+      # ...
 ```
 
 </details>
@@ -142,62 +106,52 @@ end
 
 ```ruby
 # Autogenerated by Kumi Codegen
-module Kumi::Compiled::KUMI_ab5095ff65347e715e158fac0f8baa864bf96c953ee33be671467d16a6202958
-  #  ...
+module Kumi::Compiled::KUMI_bd17a3ebee1bec4e58b72118d43e8c1c93bf773f257fc93d9c32a783d212ea4f
+  def self.from(input_data = nil)
+    instance = Object.new
+    instance.extend(self)
+    instance.instance_variable_set(:@input, input_data)
+    instance
+  end
 
-  def _items_effective(input = @input)
+  def self.__kumi_executable__
+    instance = Object.new
+    instance.extend(self)
+    instance
+  end
+
+  def update(input_data)
+    @input = @input.merge(input_data)
+    self
+  end
+
+  def [](name)
+    case name
+    when :next_state then _next_state
+    else raise KeyError, "Unknown declaration"
+    end
+  end
+
+  def _next_state(input = @input)
     out = []
-    t21 = input["items"] || input[:items]
-    t21.each_with_index do |items_el_22, _items_i_23|
-      t49 = items_el_22["price"] || items_el_22[:price]
-      t54 = items_el_22["qty"] || items_el_22[:qty]
-      t51 = t49 > 100.0
-      t55 = t49 * t54
-      t27 = t55 * 0.9
-      t29 = t51 ? t27 : t55
-      out << t29
-    end
-    out
-  end
-
-  def _total_qty(input = @input)
-    acc_30 = 0.0
-    t31 = input["items"] || input[:items]
-    t31.each_with_index do |items_el_32, _items_i_33|
-      t34 = items_el_32["qty"] || items_el_32[:qty]
-      acc_30 += t34
-    end
-    acc_30
-  end
-
-  def _cart_total(input = @input)
-    acc_36 = 0.0
-    t37 = input["items"] || input[:items]
-    t37.each_with_index do |items_el_38, _items_i_39|
-      t57 = items_el_38["price"] || items_el_38[:price]
-      t58 = items_el_38["qty"] || items_el_38[:qty]
-      t59 = t57 * t58
-      acc_36 += t59
-    end
-    acc_36
-  end
-
-  def _cart_total_effective(input = @input)
-    acc_42 = 0.0
-    t43 = input["items"] || input[:items]
-    t43.each_with_index do |items_el_44, _items_i_45|
-      t68 = items_el_44["price"] || items_el_44[:price]
-      t73 = items_el_44["qty"] || items_el_44[:qty]
-      t70 = t68 > 100.0
-      t74 = t68 * t73
-      t64 = t74 * 0.9
-      t66 = t70 ? t64 : t74
-      acc_42 += t66
-    end
-    acc_42
-  end
-end
-
+    t285 = input["rows"] || input[:rows]
+    t1539 = t285.length
+    t1540 = -1
+    t1542 = 0
+    t1546 = 1
+    t1334 = 3
+    t1339 = 2
+    t1547 = t1539 - t1546
+    t285.each_with_index do |rows_el_286, rows_i_287|
+      out_1 = []
+      t1541 = rows_i_287 - t1540
+      t1561 = rows_i_287 - t1546
+      t1580 = rows_i_287 % t1539
+      t1543 = t1541 >= t1542
+      t1544 = t1541 < t1539
+      t1549 = [[ t1541, t1542 ].max, t1547 ].min
+      t1563 = t1561 >= t1542
+# ...
 ```
 
 </details>
@@ -206,42 +160,35 @@ end
 <summary><strong>Generated JavaScript (excerpt)</strong></summary>
 
 ```js
-// Autogenerated by Kumi Codegen for schema KUMI_ab5095ff65347e715e158fac0f8baa864bf96c953ee33be671467d16a6202958
 export class KumiCompiledModule {
-  // ...
-  
-  _cart_total(input = this.input) {
-    let acc_36 = 0.0;
-    let t37 = input["items"];
-    t37?.forEach((items_el_38, items_i_39) => {
-      let t57 = items_el_38?.price;
-      let t58 = items_el_38?.qty;
-      let t59 = t57 * t58;
-      acc_36 += t59;
-    });
-    return acc_36;
-  }
-
-  _cart_total_effective(input = this.input) {
-    let acc_42 = 0.0;
-    let t43 = input["items"];
-    t43?.forEach((items_el_44, items_i_45) => {
-      let t68 = items_el_44?.price;
-      let t73 = items_el_44?.qty;
-      let t70 = t68 > 100.0;
-      let t74 = t68 * t73;
-      let t64 = t74 * 0.9;
-      let t66 = t70 ? t64 : t74;
-      acc_42 += t66;
-    });
-    return acc_42;
-  }
-}
+  _next_state(input) {
+    let out = [];
+    let t285 = input["rows"];
+    let t1539 = t285.length
+    const t1540 = -1;
+    const t1542 = 0;
+    const t1546 = 1;
+    const t1334 = 3;
+    const t1339 = 2;
+    let t1547 = t1539 - t1546;
+    t285.forEach((rows_el_286, rows_i_287) => {
+      let out_1 = [];
+      let t1541 = rows_i_287 - t1540;
+      let t1561 = rows_i_287 - t1546;
+      let t1580 = ((rows_i_287 % t1539) + t1539) % t1539;
+      let t1543 = t1541 >= t1542;
+      let t1544 = t1541 < t1539;
+      let t1549 = Math.min(Math.max(t1541, t1542), t1547);
+      let t1563 = t1561 >= t1542;
+      let t1564 = t1561 < t1539;
+      let t1569 = Math.min(Math.max(t1561, t1542), t1547);
+      let t1581 = t1580 + t1539;
+      let t1545 = t1543 && t1544;
+      let t1550 = t285[t1549]
+      // ...
 ```
 
 </details>
-
-
 
 ---
 

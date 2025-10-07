@@ -52,6 +52,8 @@ module Kumi
                 x.pairs.each { walk.call(_1) }
               when NAST::Pair
                 walk.call(x.value)
+              when NAST::IndexRef
+                found ||= x.input_fqn
               end
             end
 

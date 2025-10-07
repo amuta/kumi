@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         class InputCollector < PassBase
-          Node = Struct.new(:type, :domain, :container, :children, :access_mode, :child_steps, keyword_init: true) do
+          Node = Struct.new(:type, :domain, :container, :children, :access_mode, :child_steps, :define_index, keyword_init: true) do
             def as_json(*)
               {
                 type: type,
@@ -13,7 +13,8 @@ module Kumi
                 container: container,
                 children: children&.transform_values(&:as_json),
                 access_mode: access_mode,
-                child_steps: child_steps
+                child_steps: child_steps,
+                define_index: define_index
               }
             end
 
@@ -43,7 +44,8 @@ module Kumi
               kids = {}
               decl.children.each { |ch| kids[ch.name] = build_node(ch) }
             end
-            Node.new(type: decl.type, domain: decl.domain, container: container, children: kids, child_steps: {})
+
+            Node.new(type: decl.type, domain: decl.domain, container: container, children: kids, child_steps: {}, define_index: decl.index)
           end
 
           def validate_arity!(meta, errors, path:)

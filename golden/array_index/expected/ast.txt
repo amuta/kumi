@@ -1,0 +1,59 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :array :i
+      [
+        (InputDeclaration :y :array :j
+          [
+            (InputDeclaration :_ :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :W
+      (CallExpression :array_size
+        (InputElementReference x.y)
+      )
+    )
+    (ValueDeclaration :box
+      (CallExpression :add
+        (CallExpression :multiply
+          (CallExpression :index
+            (Literal :i)
+          )
+          (DeclarationReference :W)
+        )
+        (CallExpression :index
+          (Literal :j)
+        )
+      )
+    )
+    (ValueDeclaration :col_major
+      (CallExpression :add
+        (CallExpression :multiply
+          (CallExpression :index
+            (Literal :j)
+          )
+          (CallExpression :array_size
+            (InputReference :x)
+          )
+        )
+        (CallExpression :index
+          (Literal :i)
+        )
+      )
+    )
+    (ValueDeclaration :sum_ij
+      (CallExpression :add
+        (CallExpression :index
+          (Literal :i)
+        )
+        (CallExpression :index
+          (Literal :j)
+        )
+      )
+    )
+  ]
+  traits: []
+)

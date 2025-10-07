@@ -1,7 +1,0 @@
-(NAST
-  (VALUE v_sum_y
-    (Call :"agg.sum"
-    (InputRef [:x, :y, :v])
-  )
-  )
-)

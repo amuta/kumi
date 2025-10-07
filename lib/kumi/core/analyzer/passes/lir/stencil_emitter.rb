@@ -136,68 +136,68 @@ module Kumi
               end
             end
 
-            def neighbor_leaf_at(src:, src_axes:, at_axis:, pre:, liA:, collA:, jA:, safe_first_hop: false)
-              mkey = [at_axis, jA.object_id, safe_first_hop, collA.object_id]
-              if (cached = @env.memo_get(:neighbor, mkey))
-                return cached[:leaf]
-              end
+            # def neighbor_leaf_at(src:, src_axes:, at_axis:, pre:, liA:, collA:, jA:, safe_first_hop: false)
+            #   mkey = [at_axis, jA.object_id, safe_first_hop, collA.object_id]
+            #   if (cached = @env.memo_get(:neighbor, mkey))
+            #     return cached[:leaf]
+            #   end
 
-              a_pos = src_axes.index(at_axis) or raise "axis #{at_axis} not in #{src_axes.inspect}"
-              first_dtype = a_pos == src_axes.length - 1 ? dtype_of(src) : :any
+            #   a_pos = src_axes.index(at_axis) or raise "axis #{at_axis} not in #{src_axes.inspect}"
+            #   first_dtype = a_pos == src_axes.length - 1 ? dtype_of(src) : :any
 
-              j0  = safe_first_hop ? jA : clamped_index(jA, collA)
-              cur = @emit.gather(collA, j0, first_dtype)
+            #   j0  = safe_first_hop ? jA : clamped_index(jA, collA)
+            #   cur = @emit.gather(collA, j0, first_dtype)
 
-              prev_li = liA
-              (a_pos + 1).upto(src_axes.length - 1) do |k|
-                ax  = src_axes[k]
-                li  = loop_index_for_axis(pre, ax)
-                cur = between_loops(pre, prev_li, li, cur)
+            #   prev_li = liA
+            #   (a_pos + 1).upto(src_axes.length - 1) do |k|
+            #     ax  = src_axes[k]
+            #     li  = loop_index_for_axis(pre, ax)
+            #     cur = between_loops(pre, prev_li, li, cur)
 
-                idx  = @env.index_reg_for(ax) or raise "no index for #{ax}"
-                cur  = @emit.gather(cur, clamped_index(idx, cur), k == src_axes.length - 1 ? dtype_of(src) : :any)
+            #     idx  = @env.index_reg_for(ax) or raise "no index for #{ax}"
+            #     cur  = @emit.gather(cur, clamped_index(idx, cur), k == src_axes.length - 1 ? dtype_of(src) : :any)
 
-                prev_li = li
-              end
+            #     prev_li = li
+            #   end
 
-              @env.memo_set(:neighbor, mkey, { leaf: cur })
-              cur
-            end
+            #   @env.memo_set(:neighbor, mkey, { leaf: cur })
+            #   cur
+            # end
 
-            def loop_index_for_axis(pre, axis)
-              steps     = pre[:steps]
-              loop_ixs  = pre[:loop_ixs]
-              loop_axes = loop_ixs.map { |i| steps[i][:axis].to_sym }
-              j = loop_axes.index(axis) or raise "plan lacks axis #{axis.inspect}"
-              loop_ixs[j]
-            end
+            # def loop_index_for_axis(pre, axis)
+            #   steps     = pre[:steps]
+            #   loop_ixs  = pre[:loop_ixs]
+            #   loop_axes = loop_ixs.map { |i| steps[i][:axis].to_sym }
+            #   j = loop_axes.index(axis) or raise "plan lacks axis #{axis.inspect}"
+            #   loop_ixs[j]
+            # end
 
-            def last_prior_env_axis_in_plan(pre, axis)
-              in_plan    = pre[:loop_ixs].map { |i| pre[:steps][i][:axis].to_sym }
-              target_pos = in_plan.index(axis)
-              return nil unless target_pos
+            # def last_prior_env_axis_in_plan(pre, axis)
+            #   in_plan    = pre[:loop_ixs].map { |i| pre[:steps][i][:axis].to_sym }
+            #   target_pos = in_plan.index(axis)
+            #   return nil unless target_pos
 
-              @env.axes.reverse.find { |ax| (pos = in_plan.index(ax)) && pos < target_pos }
-            end
+            #   @env.axes.reverse.find { |ax| (pos = in_plan.index(ax)) && pos < target_pos }
+            # end
 
-            # ---- math helpers ----
+            # # ---- math helpers ----
 
-            def shifted_index(kind, policy, idx, off, nlen)
-              case policy
-              when :wrap
-                i1 = @emit.sub_i(idx, @emit.iconst(off))
-                m1 = @emit.mod_i(i1, nlen)
-                @emit.mod_i(@emit.add_i(m1, nlen), nlen)
-              when :clamp
-                j  = @emit.sub_i(idx, @emit.iconst(off))
-                hi = @emit.sub_i(nlen, @emit.iconst(1))
-                @emit.clamp(j, @emit.iconst(0), hi, out: :integer)
-              when :zero
-                @emit.sub_i(idx, @emit.iconst(off))
-              else
-                kind == :roll ? shifted_index(kind, :wrap, idx, off, nlen) : raise("#{kind}: unknown policy #{policy.inspect}")
-              end
-            end
+            # def shifted_index(kind, policy, idx, off, nlen)
+            #   case policy
+            #   when :wrap
+            #     i1 = @emit.add_i(idx, @emit.iconst(off))
+            #     m1 = @emit.mod_i(i1, nlen)
+            #     @emit.mod_i(@emit.add_i(m1, nlen), nlen)
+            #   when :clamp
+            #     j  = @emit.add_i(idx, @emit.iconst(off))
+            #     hi = @emit.sub_i(nlen, @emit.iconst(1))
+            #     @emit.clamp(j, @emit.iconst(0), hi, out: :integer)
+            #   when :zero
+            #     @emit.add_i(idx, @emit.iconst(off))
+            #   else
+            #     kind == :roll ? shifted_index(kind, :wrap, idx, off, nlen) : raise("#{kind}: unknown policy #{policy.inspect}")
+            #   end
+            # end
 
             # TODO : fix call node.opts being {opts: {}} or just flat keys, make always flat keys
             def merge_call_opts(call_node, defaults)

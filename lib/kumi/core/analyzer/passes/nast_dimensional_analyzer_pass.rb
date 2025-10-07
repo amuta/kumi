@@ -56,10 +56,12 @@ module Kumi
             when Kumi::Core::NAST::Call         then analyze_call_expression(expr, errors)
             when Kumi::Core::NAST::Tuple        then analyze_tuple(expr, errors)
             when Kumi::Core::NAST::InputRef     then analyze_input_ref(expr)
+            when Kumi::Core::NAST::IndexRef     then analyze_index_ref(expr, errors)
             when Kumi::Core::NAST::Const        then analyze_const(expr)
+            when Kumi::Core::NAST::Pair         then analyze_pair(expr, errors)
             when Kumi::Core::NAST::Ref          then analyze_declaration_ref(expr)
             when Kumi::Core::NAST::Hash         then analyze_hash(expr, errors)
-            when Kumi::Core::NAST::Pair         then analyze_pair(expr, errors)
+
             else
               raise "Unknown NAST node type: #{expr.class}"
             end
@@ -72,8 +74,10 @@ module Kumi
             arg_types    = arg_metadata.map { |m| m[:type] }
             arg_scopes   = arg_metadata.map { |m| m[:scope] }
 
-            if ENV["DEBUG_NAST_DIMENSIONAL_ANALYZER"] == "1" && function_spec.parameter_names.size != arg_types.size
-              puts "[NASTDimensionalAnalyzer] WARNING: #{call.fn} expects #{function_spec.parameter_names.size} args, got #{arg_types.size}"
+            debug "    Call #{call.fn}: arg_scopes=#{arg_scopes.inspect}"
+
+            if ENV["DEBUG_NAST_DIMENSIONAL_ANALYZER"] == "1" && function_spec.param_names.size != arg_types.size
+              puts "[NASTDimensionalAnalyzer] WARNING: #{call.fn} expects #{function_spec.param_names.size} args, got #{arg_types.size}"
             end
 
             named_types =
@@ -173,6 +177,17 @@ module Kumi
             meta = { type: type, scope: [] }
 
             @metadata_table[node_id(node)] = meta
+          end
+
+          def analyze_index_ref(node, _errors)
+            meta = @input_table.find { _1.path_fqn == node.input_fqn } or raise "Index plan found: #{n.name.inspect}"
+            axes = Array(meta[:axes])
+            type = :integer
+
+            debug "    IndexRef #{node.name}: input_fqn=#{node.input_fqn}, axes=#{axes.inspect}"
+
+            @metadata_table[node_id(node)] = { type:, scope: axes }.freeze
+            { type:, scope: axes }
           end
 
           def analyze_declaration_ref(ref)

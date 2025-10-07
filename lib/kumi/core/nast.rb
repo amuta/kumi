@@ -70,6 +70,22 @@ module Kumi
         end
       end
 
+      class IndexRef < Node
+        attr_reader :name, :input_fqn, :axes
+
+        def initialize(name:, input_fqn:, **k)
+          super(**k)
+          @name = name.to_sym
+          @input_fqn = input_fqn
+        end
+
+        def axes
+          meta[:stamp][:axes]
+        end
+
+        def accept(visitor) = visitor.respond_to?(:visit_index_ref) ? visitor.visit_index_ref(self) : super
+      end
+
       class Call < Node
         attr_reader :fn, :args, :opts
 

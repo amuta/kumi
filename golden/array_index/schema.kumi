@@ -1,0 +1,19 @@
+schema do
+  input do
+    array :x, index: :i do
+      array :y, index: :j do
+        integer :_ # placeholder; values unused
+      end
+    end
+  end
+
+  # width per row
+  let   :W, fn(:array_size, input.x.y)
+
+  # row-major numbering: i*W + j
+  value :box, (index(:i) * W) + index(:j)
+
+  # variants:
+  value :col_major, (index(:j) * fn(:array_size, input.x)) + index(:i)
+  value :sum_ij,    index(:i) + index(:j)
+end

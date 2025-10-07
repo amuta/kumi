@@ -2,9 +2,16 @@ functions:
 # length is probably in the wrong place 
   - id: core.length
     kind: elementwise
-    params: [{ name: collection }]
+    params: [{ name: collection, dtype: string }]
     dtype: "integer"
     aliases: ["length", "len", "size"]
+    folding_class_method: length
+
+  - id: core.array_size
+    kind: elementwise
+    params: [{ name: collection, dtype: array }]
+    dtype: "integer"
+    aliases: ["array_size","size"]
     folding_class_method: length
 
   - id: core.at

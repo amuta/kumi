@@ -58,13 +58,17 @@ module Kumi
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
       schema_digest = schema.digest
+      stop_after = Core::Analyzer::Checkpoint.stop_after
 
       registry ||= Kumi::RegistryV2.load
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
-      state = run_analysis_passes(schema, passes, state, errors)
+      state, stopped = run_analysis_passes(schema, passes, state, errors)
+      return create_analysis_result(state) if stopped
 
-      state = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
-      state = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
+      state, stopped = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
+      return create_analysis_result(state) if stopped
+
+      state, stopped = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
 
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)
@@ -78,6 +82,7 @@ module Kumi
       resume_at  = Core::Analyzer::Checkpoint.resume_at
       stop_after = Core::Analyzer::Checkpoint.stop_after
       skipping   = !!resume_at
+      stopped    = false
 
       passes.each_with_index do |pass_class, idx|
         raise handle_analysis_errors(errors) if !errors.empty? && (ERROR_THRESHOLD_PASS == pass_class)
@@ -107,7 +112,7 @@ module Kumi
           errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
 
           if debug_on
-            logs = Costop_atre::Analyzer::Debug.drain_log
+            logs = Core::Analyzer::Debug.drain_log
             elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
 
             Core::Analyzer::Debug.emit(
@@ -152,9 +157,12 @@ module Kumi
 
         Core::Analyzer::Checkpoint.leaving(pass_name:, idx:, state:)
 
-        break if stop_after && pass_name == stop_after
+        if stop_after && pass_name == stop_after
+          stopped = true
+          break
+        end
       end
-      state
+      [state, stopped]
     end
 
     def self.handle_analysis_errors(errors)

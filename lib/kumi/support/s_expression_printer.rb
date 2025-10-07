@@ -66,11 +66,12 @@ module Kumi
         fields << "domain: #{node.domain.inspect}" if node.respond_to?(:domain) && node.domain
         fields << "access_mode: #{node.access_mode.inspect}" if node.respond_to?(:access_mode) && node.access_mode
 
+        index = node.index ? " :#{node.index}" : ""
         if node.respond_to?(:children) && !node.children.empty?
           children_str = child_printer.visit(node.children)
-          "(InputDeclaration #{fields.join(' ')}\n#{child_indent}#{children_str}\n#{indent_str})"
+          "(InputDeclaration #{fields.join(' ')}#{index}\n#{child_indent}#{children_str}\n#{indent_str})"
         else
-          "(InputDeclaration #{fields.join(' ')})"
+          "(InputDeclaration #{fields.join(' ')}#{index})"
         end
       end
 

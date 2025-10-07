@@ -30,6 +30,7 @@ module Kumi
             when "Integer" then :integer
             when "String" then :string
             when "Float" then :float
+            when "Symbol" then :symbol
             when "TrueClass", "FalseClass" then :boolean
             when "Array" then raise ArgumentError, "Use array(:type) helper for array types"
             when "Hash" then raise ArgumentError, "Use hash(:key_type, :value_type) helper for hash types"

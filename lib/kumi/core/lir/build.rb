@@ -291,15 +291,16 @@ module Kumi
         #   index: Integer
         #   out_dtype: element dtype
         #   as: result
-        def tuple_get(tuple:, index:, out_dtype:, as: Ids.generate_temp, location: nil)
+        def tuple_get(tuple:, index:, out_dtype:, as: nil, ids: nil, location: nil)
+          as ||= ids.generate_temp
           Instruction.new(
             opcode: :TupleGet,
             result_register: as,
             stamp: Stamp.new(dtype: out_dtype),
             inputs: [tuple],
-            immediates: [Literal.new(value: Integer(index), dtype: :i32)],
+            immediates: [Literal.new(value: Integer(index), dtype: :integer)],
             attributes: {},
-            location: location
+            location:
           )
         end
 

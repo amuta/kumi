@@ -9,9 +9,10 @@ module Kumi
           SELECT_ID = Kumi::RegistryV2::SELECT_ID
 
           def run(errors)
-            decls = get_state(:declarations, required: true)
-            order = get_state(:evaluation_order, required: true)
-            @registry = get_state(:registry, required: true)
+            decls = get_state(:declarations)
+            order = get_state(:evaluation_order)
+            @index_table = get_state(:index_table)
+            @registry = get_state(:registry)
 
             nast_decls = {}
             order.each do |name|
@@ -47,6 +48,8 @@ module Kumi
               when :cascade_and
                 # Desugar cascade_and into chained binary core.and operations
                 normalize_cascade_and(node.args, errors, node.loc)
+              when :index
+                normalize_index_ref(node, errors, node.loc)
               else
                 normalize_call_expression(node, errors)
               end
@@ -127,6 +130,17 @@ module Kumi
               normalized_args = args.map { |arg| normalize_expr(arg, errors) }
               build_right_associative_and(normalized_args, loc)
             end
+          end
+
+          def normalize_index_ref(n, errors, loc)
+            idx_name_n = normalize_expr(n.args.first, errors)
+
+            debug "normalize_index_ref: idx_name_n=#{idx_name_n.inspect}, is Const? #{idx_name_n.is_a?(NAST::Const)}, value=#{idx_name_n.respond_to?(:value) ? idx_name_n.value.inspect : 'N/A'}"
+
+            add_error(errors, loc, "index() needs a symbol") unless idx_name_n.is_a?(NAST::Const) && idx_name_n.value.is_a?(Symbol)
+            idx_name = idx_name_n.value
+            idx_meta = @index_table[idx_name]
+            NAST::IndexRef.new(name: idx_name, input_fqn: idx_meta[:fqn])
           end
 
           def build_right_associative_and(normalized_args, loc)

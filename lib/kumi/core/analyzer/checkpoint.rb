@@ -9,6 +9,8 @@ module Kumi
         class << self
           # ===== Interface shape matches Debug =====
           def enabled?
+            return false if ENV["KUMI_CHECKPOINT"] == "0"
+
             ENV["KUMI_CHECKPOINT"] == "1" ||
               !resume_from.nil? || !resume_at.nil? || !stop_after.nil?
           end

@@ -84,6 +84,7 @@ module Kumi
               when NAST::Reduce   then emit_reduce(node)
               when NAST::Call     then call_emit_selection(node)
               when NAST::Hash     then emit_hash(node)
+              when NAST::IndexRef then emit_index_ref(node)
               else raise "unknown node #{node.class}"
               end
             end
@@ -210,6 +211,27 @@ module Kumi
               cur
             end
 
+            def emit_index_ref(n)
+              ax = axes_of(n)
+              raise "index ref without axes" if ax.empty?
+
+              debug "emit_index_ref: name=#{n.name}, axes=#{ax.inspect}, input_fqn=#{n.input_fqn}, env.axes=#{@env.axes.inspect}"
+
+              # IndexRef nodes reference an index that should already be in scope.
+              # The index refers to the LAST axis in the IndexRef's own stamp.
+              # We do NOT open loops for broadcast axes - those loops should already be open
+              # from other parts of the expression.
+              target_axis = ax.last
+
+              # The index variable is defined by the array that introduced this axis.
+              idx = @env.index_reg_for(target_axis) or raise "no index register for axis #{target_axis.inspect}"
+
+              debug "emit_index_ref: returning index register #{idx.inspect} for axis #{target_axis}"
+
+              # Index is an integer scalar elementwise over the current axes ⇒ just return the register.
+              idx
+            end
+
             # ---------- context management ----------
 
             def ensure_context_for!(target_axes, anchor_fqn:)
@@ -221,7 +243,6 @@ module Kumi
               open_suffix_loops!(over_axes: missing, anchor_fqn: anchor_fqn)
             end
 
-            # --- inside open_suffix_loops! (unchanged except it now relies on axis_to_loop) ---
             def open_suffix_loops!(over_axes:, anchor_fqn:)
               return if over_axes.empty?
 
@@ -279,6 +300,8 @@ module Kumi
 
             def anchor_fqn_from_node!(node, need_prefix:)
               ir = find_anchor_inputref(node, need_prefix: need_prefix)
+              return ir if ir.is_a? String
+
               ir_fqn(ir)
             end
 
@@ -304,6 +327,9 @@ module Kumi
                   x.pairs.each { walk.call(_1) }
                 when NAST::Pair
                   walk.call(x.value)
+                when NAST::IndexRef
+                  ax = axes_of(x)
+                  found ||= x.input_fqn if need_prefix.each_with_index.all? { |tok, i| ax[i] == tok }
                 end
               end
               walk.call(node)
@@ -379,5 +405,3 @@ module Kumi
     end
   end
 end
-
-# frozen_string_literal: true

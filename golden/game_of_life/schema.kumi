@@ -10,14 +10,14 @@ schema do
   let :a, input.rows.col.alive
 
   # axis_offset: 0 = x, 1 = y
-  let :n,  fn(:shift, a, -1, policy: :wrap, axis_offset: 1)
-  let :s,  fn(:shift, a,  1, policy: :wrap, axis_offset: 1)
-  let :w,  fn(:shift, a, -1, policy: :wrap, axis_offset: 0)
-  let :e,  fn(:shift, a,  1, policy: :wrap, axis_offset: 0)
-  let :nw, fn(:shift, n, -1, policy: :wrap, axis_offset: 0)
-  let :ne, fn(:shift, n,  1, policy: :wrap, axis_offset: 0)
-  let :sw, fn(:shift, s, -1, policy: :wrap, axis_offset: 0)
-  let :se, fn(:shift, s,  1, policy: :wrap, axis_offset: 0)
+  let :n,  shift(a, -1, axis_offset: 1)
+  let :s,  shift(a,  1, axis_offset: 1)
+  let :w,  shift(a, -1)
+  let :e,  shift(a,  1)
+  let :nw, shift(n, -1)
+  let :ne, shift(n,  1)
+  let :sw, shift(s, -1)
+  let :se, shift(s,  1)
 
   let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
 

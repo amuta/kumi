@@ -1,0 +1,40 @@
+(LIR
+  (Declaration W
+    %t1 = load_input "x" :: array
+    loop x id=L1 in %t1 as el=%x_el_2, idx=%x_i_3
+      %t4 = call core.array_size(%x_el_2) :: integer
+      yield %t4
+    end_loop
+  )
+  (Declaration box
+    %t5 = load_input "x" :: array
+    loop x id=L2 in %t5 as el=%x_el_6, idx=%x_i_7
+      %t29 = call core.array_size(%x_el_6) :: integer
+      loop y id=L3 in %x_el_6 as el=%y_el_8, idx=%y_i_9
+        %t11 = call core.mul(%x_i_7, %t29) :: integer
+        %t12 = call core.add(%t11, %y_i_9) :: integer
+        yield %t12
+      end_loop
+    end_loop
+  )
+  (Declaration col_major
+    %t13 = load_input "x" :: array
+    loop x id=L4 in %t13 as el=%x_el_14, idx=%x_i_15
+      loop y id=L5 in %x_el_14 as el=%y_el_16, idx=%y_i_17
+        %t19 = call core.array_size(%t13) :: integer
+        %t20 = call core.mul(%y_i_17, %t19) :: integer
+        %t21 = call core.add(%t20, %x_i_15) :: integer
+        yield %t21
+      end_loop
+    end_loop
+  )
+  (Declaration sum_ij
+    %t22 = load_input "x" :: array
+    loop x id=L6 in %t22 as el=%x_el_23, idx=%x_i_24
+      loop y id=L7 in %x_el_23 as el=%y_el_25, idx=%y_i_26
+        %t27 = call core.add(%x_i_24, %y_i_26) :: integer
+        yield %t27
+      end_loop
+    end_loop
+  )
+)
