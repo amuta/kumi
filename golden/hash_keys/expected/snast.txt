@@ -7,10 +7,10 @@
       (Pair size
         (Hash
           (Pair width
-            (InputRef width key_chain=[width]) :: [] -> integer
+            (InputRef width key_chain=[]) :: [] -> integer
           ) :: [] -> pair
           (Pair height
-            (InputRef height key_chain=[height]) :: [] -> integer
+            (InputRef height key_chain=[]) :: [] -> integer
           ) :: [] -> pair
         ) :: [] -> hash
       ) :: [] -> pair

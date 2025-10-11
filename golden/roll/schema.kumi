@@ -1,7 +1,7 @@
 schema do
   input do
     array :cells do
-      element :integer, :value
+      integer :value
     end
   end
 

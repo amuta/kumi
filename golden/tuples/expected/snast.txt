@@ -4,7 +4,7 @@
       (Const 1) :: [] -> integer
       (Const 2) :: [] -> integer
       (Const 3) :: [] -> integer
-      (InputRef x key_chain=[x]) :: [] -> integer
+      (InputRef x key_chain=[]) :: [] -> integer
     ) :: [] -> tuple<integer>
   ) :: [] -> tuple<integer>
   (VALUE max_1
@@ -18,7 +18,7 @@
         (Const 1) :: [] -> integer
         (Const 2) :: [] -> integer
         (Const 3) :: [] -> integer
-        (InputRef x key_chain=[x]) :: [] -> integer
+        (InputRef x key_chain=[]) :: [] -> integer
         (Const 1000) :: [] -> integer
       ) :: [] -> tuple<integer>
     ) :: [] -> integer
@@ -34,7 +34,7 @@
         (Const 1) :: [] -> integer
         (Const 2) :: [] -> integer
         (Const 3) :: [] -> integer
-        (InputRef x key_chain=[x]) :: [] -> integer
+        (InputRef x key_chain=[]) :: [] -> integer
         (Const -100) :: [] -> integer
       ) :: [] -> tuple<integer>
     ) :: [] -> integer

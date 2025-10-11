@@ -1,22 +1,22 @@
 (SNAST
   (TRAIT x_is_large
     (Call :core.gt
-      (InputRef points.point.x key_chain=[x]) :: [points] -> integer
+      (InputRef points.point.x key_chain=[]) :: [points] -> integer
       (Const 100) :: [] -> integer
     ) :: [points] -> boolean
   ) :: [points] -> boolean
   (VALUE selected_value
     (Select
       (Ref x_is_large) :: [points] -> boolean
-      (InputRef points.point.x key_chain=[x]) :: [points] -> integer
-      (InputRef points.point.y key_chain=[y]) :: [points] -> integer
+      (InputRef points.point.x key_chain=[]) :: [points] -> integer
+      (InputRef points.point.y key_chain=[]) :: [points] -> integer
     ) :: [points] -> integer
   ) :: [points] -> integer
   (VALUE final_value_per_point
     (Fold :agg.max
       (Tuple
         (Ref selected_value) :: [points] -> integer
-        (InputRef points.point.x key_chain=[x]) :: [points] -> integer
+        (InputRef points.point.x key_chain=[]) :: [points] -> integer
       ) :: [points] -> tuple<integer>
     ) :: [points] -> integer
   ) :: [points] -> integer

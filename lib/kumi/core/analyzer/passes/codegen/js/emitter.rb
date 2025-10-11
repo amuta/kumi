@@ -21,15 +21,15 @@ module Kumi
 
               def emit(declarations, schema_digest:)
                 @buffer.reset!
-                @buffer.emit_header(schema_digest)
-                @buffer.emit_class_methods(declarations.keys)
+                # @buffer.emit_header(schema_digest)
+                # @buffer.emit_class_methods(declarations.keys)
+                emit_private_helpers
+                # @buffer.emit_footer
 
                 declarations.each do |name, payload|
                   emit_declaration(name, Array(payload[:operations]))
                 end
 
-                emit_private_helpers
-                @buffer.emit_footer
                 @buffer.to_s
               end
 

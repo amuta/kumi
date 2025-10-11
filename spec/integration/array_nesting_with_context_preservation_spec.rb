@@ -6,43 +6,51 @@ module ArrayNestingWithContextPreservationSpec
   schema do
     input do
       array :regions do
-        string :name
-        float :tax_rate
-        array :offices do
-          string :city
-          float :col_adjustment
-          array :teams do
-            string :name
-            float :performance_score
-            array :employees do
-              string :name
-              float :base_salary
-              string :level
-              float :rating
+        hash :region do
+          string :name
+          float :tax_rate
+          array :offices do
+            hash :office do
+              string :city
+              float :col_adjustment
+              array :teams do
+                hash :team do
+                  string :name
+                  float :performance_score
+                  array :employees do
+                    hash :employee do
+                      string :name
+                      float :base_salary
+                      string :level
+                      float :rating
+                    end
+                  end
+                end
+              end
             end
           end
         end
       end
     end
 
-    trait :high_performer, input.regions.offices.teams.employees.rating >= 4.5
-    trait :senior_level, input.regions.offices.teams.employees.level == "senior"
-    trait :top_team, input.regions.offices.teams.performance_score >= 0.9
+    trait :high_performer, input.regions.region.offices.office.teams.team.employees.employee.rating >= 4.5
+    trait :senior_level, input.regions.region.offices.office.teams.team.employees.employee.level == "senior"
+    trait :top_team, input.regions.region.offices.office.teams.team.performance_score >= 0.9
 
     value :employee_bonus do
       on high_performer, senior_level, top_team,
-         input.regions.offices.teams.employees.base_salary * 0.30
+         input.regions.region.offices.office.teams.team.employees.employee.base_salary * 0.30
       on high_performer, top_team,
-         input.regions.offices.teams.employees.base_salary * 0.20
-      base input.regions.offices.teams.employees.base_salary * 0.05
+         input.regions.region.offices.office.teams.team.employees.employee.base_salary * 0.20
+      base input.regions.region.offices.office.teams.team.employees.employee.base_salary * 0.05
     end
 
     value :location_adjusted_bonus,
-          employee_bonus * input.regions.offices.col_adjustment
+          employee_bonus * input.regions.region.offices.office.col_adjustment
 
     value :take_home,
-          (input.regions.offices.teams.employees.base_salary + location_adjusted_bonus) *
-          (1 - input.regions.tax_rate)
+          (input.regions.region.offices.office.teams.team.employees.employee.base_salary + location_adjusted_bonus) *
+          (1 - input.regions.region.tax_rate)
   end
 end
 

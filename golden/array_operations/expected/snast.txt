@@ -1,31 +1,31 @@
 (SNAST
   (VALUE subtotals
     (Call :core.mul
-      (InputRef items.item.price key_chain=[price]) :: [items] -> float
-      (InputRef items.item.quantity key_chain=[quantity]) :: [items] -> integer
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
+      (InputRef items.item.quantity key_chain=[]) :: [items] -> integer
     ) :: [items] -> float
   ) :: [items] -> float
   (VALUE discounted_price
     (Call :core.mul
-      (InputRef items.item.price key_chain=[price]) :: [items] -> float
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
       (Const 0.9) :: [] -> float
     ) :: [items] -> float
   ) :: [items] -> float
   (TRAIT is_valid_quantity
     (Call :core.gt
-      (InputRef items.item.quantity key_chain=[quantity]) :: [items] -> integer
+      (InputRef items.item.quantity key_chain=[]) :: [items] -> integer
       (Const 0) :: [] -> integer
     ) :: [items] -> boolean
   ) :: [items] -> boolean
   (TRAIT expensive_items
     (Call :core.gt
-      (InputRef items.item.price key_chain=[price]) :: [items] -> float
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
       (Const 100.0) :: [] -> float
     ) :: [items] -> boolean
   ) :: [items] -> boolean
   (TRAIT electronics
     (Call :core.eq
-      (InputRef items.item.category key_chain=[category]) :: [items] -> string
+      (InputRef items.item.category key_chain=[]) :: [items] -> string
       (Const "electronics") :: [] -> string
     ) :: [items] -> boolean
   ) :: [items] -> boolean

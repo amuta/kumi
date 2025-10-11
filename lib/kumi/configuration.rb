@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tmpdir"
+
 module Kumi
   # Holds the configuration state for the Kumi compiler and runtime.
   # This object is yielded to the user in the `Kumi.configure` block.

@@ -1,0 +1,45 @@
+export function _app_name(input) {
+  let t1 = input["config"];
+  let t2 = t1["app_name"];
+  return t2;
+}
+
+export function _all_flags(input) {
+  let out = [];
+  let t3 = input["config"];
+  let t4 = t3["feature_flags"];
+  t4.forEach((feature_flags_el_5, feature_flags_i_6) => {
+    out.push(feature_flags_el_5);
+  });
+  return out;
+}
+
+export function _server_hostnames(input) {
+  let out = [];
+  let t7 = input["config"];
+  let t8 = t7["servers"];
+  t8.forEach((servers_el_9, servers_i_10) => {
+    let t11 = servers_el_9["hostname"];
+    out.push(t11);
+  });
+  return out;
+}
+
+export function _server_count(input) {
+  let t12 = input["config"];
+  let t13 = t12["servers"];
+  let t14 = t13.length;
+  return t14;
+}
+
+export function _total_ports(input) {
+  let acc_15 = 0;
+  let t16 = input["config"];
+  let t17 = t16["servers"];
+  t17.forEach((servers_el_18, servers_i_19) => {
+    let t20 = servers_el_18["port"];
+    acc_15 += t20;
+  });
+  return acc_15;
+}
+

@@ -6,27 +6,33 @@ module MySchema
   schema do
     input do
       array :regions do
-        float :tax_rate
-        array :offices do
-          float :cost_of_living
-          array :employees do
-            float :salary
-            float :rating
+        hash :region do
+          float :tax_rate
+          array :offices do
+            hash :office do
+              float :cost_of_living
+              array :employees do
+                hash :employee do
+                  float :salary
+                  float :rating
+                end
+              end
+            end
           end
         end
       end
     end
 
-    trait :high_performer, input.regions.offices.employees.rating > 4.5
+    trait :high_performer, input.regions.region.offices.office.employees.employee.rating > 4.5
 
     value :bonus do
-      on high_performer, input.regions.offices.employees.salary * 0.25
-      base input.regions.offices.employees.salary * 0.10
+      on high_performer, input.regions.region.offices.office.employees.employee.salary * 0.25
+      base input.regions.region.offices.office.employees.employee.salary * 0.10
     end
 
     value :take_home,
-          (input.regions.offices.employees.salary + (bonus * input.regions.offices.cost_of_living)) *
-          (1 - input.regions.tax_rate)
+          (input.regions.region.offices.office.employees.employee.salary + (bonus * input.regions.region.offices.office.cost_of_living)) *
+          (1 - input.regions.region.tax_rate)
   end
 end
 

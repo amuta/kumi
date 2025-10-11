@@ -1,31 +1,31 @@
 (SNAST
   (VALUE sum
     (Call :core.add
-      (InputRef x key_chain=[x]) :: [] -> integer
-      (InputRef y key_chain=[y]) :: [] -> integer
+      (InputRef x key_chain=[]) :: [] -> integer
+      (InputRef y key_chain=[]) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE product
     (Call :core.mul
-      (InputRef x key_chain=[x]) :: [] -> integer
-      (InputRef y key_chain=[y]) :: [] -> integer
+      (InputRef x key_chain=[]) :: [] -> integer
+      (InputRef y key_chain=[]) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE difference
     (Call :core.sub
-      (InputRef x key_chain=[x]) :: [] -> integer
-      (InputRef y key_chain=[y]) :: [] -> integer
+      (InputRef x key_chain=[]) :: [] -> integer
+      (InputRef y key_chain=[]) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE results_array
     (Tuple
       (Const 1) :: [] -> integer
       (Call :core.add
-        (InputRef x key_chain=[x]) :: [] -> integer
+        (InputRef x key_chain=[]) :: [] -> integer
         (Const 10) :: [] -> integer
       ) :: [] -> integer
       (Call :core.mul
-        (InputRef y key_chain=[y]) :: [] -> integer
+        (InputRef y key_chain=[]) :: [] -> integer
         (Const 2) :: [] -> integer
       ) :: [] -> integer
     ) :: [] -> tuple<integer>

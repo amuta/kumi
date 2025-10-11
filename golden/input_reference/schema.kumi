@@ -17,6 +17,6 @@ schema do
   value :app_name, input.config.app_name
   value :all_flags, input.config.feature_flags.flag_name
   value :server_hostnames, input.config.servers.server.hostname
-  value :server_count, fn(:size, input.config.servers)
+  value :server_count, fn(:array_size, input.config.servers)
   value :total_ports, fn(:sum, input.config.servers.server.port)
 end

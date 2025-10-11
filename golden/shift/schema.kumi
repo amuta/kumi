@@ -1,12 +1,12 @@
 schema do
   input do
     array :cells do
-      element :integer, :value
+      integer :value
     end
   end
 
   # SHIFT — all policies, both directions
-  value :shift_right_zero,   shift(input.cells.value,  1)                      # default :zero
+  value :shift_right_zero,   shift(input.cells.value,  1) # default :zero
   value :shift_left_zero,    shift(input.cells.value, -1)
   value :shift_right_clamp,  shift(input.cells.value,  1, policy: :clamp)
   value :shift_left_clamp,   shift(input.cells.value, -1, policy: :clamp)

@@ -14,9 +14,9 @@ module Kumi
       Passes::DependencyResolver,              # 5. Builds the dependency graph with conditional dependencies.
       Passes::UnsatDetector,                   # 6. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
       Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
-      Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
-      Passes::TypeChecker,                     # 10. Validates types using inferred information.
+      # Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
+      # Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
+      # Passes::TypeChecker,                     # 10. Validates types using inferred information.
       Passes::InputAccessPlannerPass # 11. Plans access strategies for input fields.
       # Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
       # Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)

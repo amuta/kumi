@@ -1,0 +1,86 @@
+export function _total_payroll(input) {
+  let out = [];
+  let t1 = input["departments"];
+  t1.forEach((departments_el_2, departments_i_3) => {
+    let acc_4 = 0;
+    let t5 = departments_el_2["employees"];
+    t5.forEach((employees_el_6, employees_i_7) => {
+      let t8 = employees_el_6["salary"];
+      acc_4 += t8;
+    });
+    out.push(acc_4);
+  });
+  return out;
+}
+
+export function _payroll_tax(input) {
+  let out = [];
+  let t10 = input["departments"];
+  const t14 = 0.15;
+  t10.forEach((departments_el_11, departments_i_12) => {
+    let acc40 = 0;
+    let t41 = departments_el_11["employees"];
+    t41.forEach((employees_el_6, employees_i_7) => {
+      let t42 = employees_el_6["salary"];
+      acc40 += t42;
+    });
+    let t15 = acc40 * t14;
+    out.push(t15);
+  });
+  return out;
+}
+
+export function _manager_count(input) {
+  let out = [];
+  let t16 = input["departments"];
+  const t24 = "manager";
+  const t26 = 1;
+  const t27 = 0;
+  t16.forEach((departments_el_17, departments_i_18) => {
+    let acc_19 = 0;
+    let t20 = departments_el_17["employees"];
+    t20.forEach((employees_el_21, employees_i_22) => {
+      let t23 = employees_el_21["role"];
+      let t25 = t23 == t24;
+      let t28 = t25 ? t26 : t27;
+      acc_19 += t28;
+    });
+    out.push(acc_19);
+  });
+  return out;
+}
+
+export function _department_summary(input) {
+  let out = [];
+  let t30 = input["departments"];
+  const t52 = 0.15;
+  const t59 = "manager";
+  const t61 = 1;
+  const t62 = 0;
+  t30.forEach((departments_el_31, departments_i_32) => {
+    let t33 = departments_el_31["name"];
+    let acc46 = 0;
+    let t47 = departments_el_31["employees"];
+    let acc67 = 0;
+    let acc56 = 0;
+    t47.forEach((employees_el_6, employees_i_7) => {
+      let t48 = employees_el_6["salary"];
+      acc46 += t48;
+      let t58 = employees_el_6["role"];
+      let t60 = t58 == t59;
+      let t63 = t60 ? t61 : t62;
+      acc56 += t63;
+      acc67 += t48;
+    });
+    let t53 = acc67 * t52;
+    let t37 = {
+      "name": t33,
+      "payroll": acc46,
+      "tax": t53,
+      "managers": acc56
+    };
+    out.push(t37);
+  });
+  return out;
+}
+

@@ -18,10 +18,10 @@ module Kumi
 
       def with_stop_after(pass_name)
         saved = {
-          "KUMI_STOP_AFTER" => ENV["KUMI_STOP_AFTER"],
-          "KUMI_CHECKPOINT" => ENV["KUMI_CHECKPOINT"],
-          "KUMI_RESUME_FROM" => ENV["KUMI_RESUME_FROM"],
-          "KUMI_RESUME_AT" => ENV["KUMI_RESUME_AT"]
+          "KUMI_STOP_AFTER" => ENV.fetch("KUMI_STOP_AFTER", nil),
+          "KUMI_CHECKPOINT" => ENV.fetch("KUMI_CHECKPOINT", nil),
+          "KUMI_RESUME_FROM" => ENV.fetch("KUMI_RESUME_FROM", nil),
+          "KUMI_RESUME_AT" => ENV.fetch("KUMI_RESUME_AT", nil)
         }
 
         ENV["KUMI_STOP_AFTER"] = pass_name
@@ -204,7 +204,7 @@ module Kumi
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
         return nil unless res.state[:javascript_codegen_files]
 
-        res.state[:javascript_codegen_files]["codegen.js"]
+        res.state[:javascript_codegen_files]["codegen.mjs"]
       end
 
       def generate_planning(path)

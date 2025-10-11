@@ -1,19 +1,19 @@
 (SNAST
   (VALUE dept_total
     (Reduce :agg.sum over [teams]
-      (InputRef depts.dept.teams.team.headcount key_chain=[headcount]) :: [depts, teams] -> integer
+      (InputRef depts.dept.teams.team.headcount key_chain=[]) :: [depts, teams] -> integer
     ) :: [depts] -> integer
   ) :: [depts] -> integer
   (VALUE company_total
     (Reduce :agg.sum over [depts]
       (Reduce :agg.sum over [teams]
-        (InputRef depts.dept.teams.team.headcount key_chain=[headcount]) :: [depts, teams] -> integer
+        (InputRef depts.dept.teams.team.headcount key_chain=[]) :: [depts, teams] -> integer
       ) :: [depts] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (TRAIT big_team
     (Call :core.gt
-      (InputRef depts.dept.teams.team.headcount key_chain=[headcount]) :: [depts, teams] -> integer
+      (InputRef depts.dept.teams.team.headcount key_chain=[]) :: [depts, teams] -> integer
       (Const 10) :: [] -> integer
     ) :: [depts, teams] -> boolean
   ) :: [depts, teams] -> boolean
@@ -21,7 +21,7 @@
     (Reduce :agg.sum over [teams]
       (Select
         (Ref big_team) :: [depts, teams] -> boolean
-        (InputRef depts.dept.teams.team.headcount key_chain=[headcount]) :: [depts, teams] -> integer
+        (InputRef depts.dept.teams.team.headcount key_chain=[]) :: [depts, teams] -> integer
         (Const 0) :: [] -> integer
       ) :: [depts, teams] -> integer
     ) :: [depts] -> integer

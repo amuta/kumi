@@ -44,7 +44,7 @@ module Kumi
             extension = if RUBY_REPRESENTATIONS.include?(repr)
                           "rb"
                         elsif JS_REPRESENTATIONS.include?(repr)
-                          "js"
+                          "mjs"
                         else
                           "txt"
                         end
@@ -253,10 +253,10 @@ module Kumi
       end
 
       def execute_javascript(schema_name, decl_names)
-        runner_path = File.expand_path("support/kumi_runner.js", __dir__)
+        runner_path = File.expand_path("support/kumi_runner.mjs", __dir__)
         raise "JS test runner not found at #{runner_path}" unless File.exist?(runner_path)
 
-        module_path = File.absolute_path(golden_path(schema_name, "expected/schema_javascript.js"))
+        module_path = File.absolute_path(golden_path(schema_name, "expected/schema_javascript.mjs"))
         input_path = File.absolute_path(golden_path(schema_name, "input.json"))
         decl_str = decl_names.join(",")
 
@@ -311,7 +311,7 @@ module Kumi
 
       def golden_dirs_with_js_codegen
         golden_dirs.select do |name|
-          File.exist?(golden_path(name, "expected/schema_javascript.js")) &&
+          File.exist?(golden_path(name, "expected/schema_javascript.mjs")) &&
             File.exist?(golden_path(name, "input.json")) &&
             File.exist?(golden_path(name, "expected.json"))
         end

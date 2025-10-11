@@ -29,20 +29,16 @@ module Kumi
                 has_yield = @ops.any? { |op| op.opcode == :Yield }
                 @aliases.clear
 
-                write "_#{name}(input) {"
+                # Exported, pure function per declaration
+                write "export function _#{name}(input) {"
                 indent!
 
-                # Only declare 'out' if a yield will produce an array.
                 write "let out = [];" if has_yield && @yield_depth.positive?
                 @out_containers = ["out"]
 
                 @ops.each_with_index { |ins, i| emit_ins(ins, i) }
 
-                # The final return is only needed for array-producing yields.
-                # Scalar yields are handled authoritatively by `emit_yield`, which writes its own `return`.
                 write "return out;" if has_yield && @yield_depth.positive?
-                # If there's a scalar yield, `emit_yield` has already returned.
-                # If there is no yield, the function implicitly returns undefined.
 
                 dedent!
                 write "}\n"
@@ -110,8 +106,6 @@ module Kumi
                 end
               end
 
-              # --- Instruction Emitters ---
-
               def emit_kernelcall(ins, _i)
                 kernel = kernel_for(ins.result_register)
                 args = operands_for(ins)
@@ -120,12 +114,12 @@ module Kumi
                   inlined_code = _inline_kernel(template, args)
                   if template.start_with?("=") || template.include?("$0")
                     write "let #{vreg(ins)} #{inlined_code};"
-                  else # For operators like +=, -=
+                  else
                     write "#{vreg(ins)} #{inlined_code};"
                   end
                 else
                   fn_name = kernel_method_name(kernel[:fn_id])
-                  write "let #{vreg(ins)} = this.#{fn_name}(#{args.join(', ')});"
+                  write "let #{vreg(ins)} = #{fn_name}(#{args.join(', ')});"
                 end
               end
 
@@ -143,10 +137,8 @@ module Kumi
 
               def emit_accumulate(ins, _i)
                 kernel = kernel_for(ins.result_register)
-                # In JS, the accumulator is the first arg, and the value to accumulate is the second.
                 args = [vreg(ins), operands_for(ins).first]
 
-                # Handle first element assignment, JS equivalent of ||=
                 if kernel[:attrs]["first_element"]
                   write "if (#{args[0]} === null || #{args[0]} === undefined) {"
                   indent!
@@ -158,14 +150,12 @@ module Kumi
 
                 if (template = kernel[:attrs]["js_inline"] || kernel[:attrs]["inline"])
                   inlined_code = _inline_kernel(template, args)
-                  # The template defines the operation, e.g., "+= $1"
                   write "#{args[0]} #{inlined_code};"
                 else
                   fn_name = kernel_method_name(kernel[:fn_id])
-                  write "#{args[0]} = this.#{fn_name}(#{args.join(', ')});"
+                  write "#{args[0]} = #{fn_name}(#{args.join(', ')});"
                 end
 
-                # Close the 'else' block if we opened an 'if'
                 return unless kernel[:attrs]["first_element"]
 
                 dedent!
@@ -184,8 +174,8 @@ module Kumi
               def emit_loadfield(ins, _i)
                 obj = areg(ins.inputs.first)
                 key = imm_key(ins)
-                # Use optional chaining for safety
-                write "let #{vreg(ins)} = #{obj}.#{key};"
+
+                write "let #{vreg(ins)} = #{obj}[#{key.to_json}];"
               end
 
               def emit_select(ins, _i)
@@ -207,7 +197,7 @@ module Kumi
               end
 
               def emit_loaddeclaration(ins, _i)
-                write "let #{vreg(ins)} = this._#{ins.immediates.first.value}(input);"
+                write "let #{vreg(ins)} = _$#{ins.immediates.first.value}(input);"
               end
 
               def emit_maketuple(ins, _i)
@@ -230,13 +220,13 @@ module Kumi
 
               def emit_length(ins, _i)
                 arr = ins.inputs[0]
-                write "let #{vreg(ins)} = #{arr}.length"
+                write "let #{vreg(ins)} = #{arr}.length;"
               end
 
               def emit_gather(ins, _)
                 arr = ins.inputs[0]
                 idx = ins.inputs[1]
-                write "let #{vreg(ins)} = #{arr}[#{idx}]"
+                write "let #{vreg(ins)} = #{arr}[#{idx}];"
               end
 
               def find_matching_loop_end(start_index)

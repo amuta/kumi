@@ -9,7 +9,7 @@
     (InputRef [:config, :servers, :server, :hostname])
   )
   (VALUE server_count
-    (Call :"core.length"
+    (Call :"core.array_size"
     (InputRef [:config, :servers])
   )
   )

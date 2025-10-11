@@ -1,7 +1,7 @@
 (SNAST
   (VALUE cube
-    (InputRef cube key_chain=[]) :: [cube] -> array
-  ) :: [cube] -> array
+    (InputRef cube key_chain=[]) :: [] -> array
+  ) :: [] -> array
   (VALUE layer
     (InputRef cube.layer key_chain=[]) :: [cube] -> array
   ) :: [cube] -> array

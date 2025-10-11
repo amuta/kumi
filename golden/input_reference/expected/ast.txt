@@ -32,7 +32,7 @@
       (InputElementReference config.servers.server.hostname)
     )
     (ValueDeclaration :server_count
-      (CallExpression :size
+      (CallExpression :array_size
         (InputElementReference config.servers)
       )
     )

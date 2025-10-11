@@ -7,9 +7,15 @@
   )
   )
   (VALUE first_score
-    (Const 100)
+    (Call :"core.at"
+    (Ref scores)
+    (Const 0)
+  )
   )
   (VALUE second_score
-    (Const 85)
+    (Call :"core.at"
+    (Ref scores)
+    (Const 1)
+  )
   )
 )

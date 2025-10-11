@@ -16,7 +16,7 @@ module Kumi
               emitter = Codegen::Js::Emitter.new(manifest["kernels"], manifest["bindings"])
               src = emitter.emit(decls, schema_digest: schema_digest)
 
-              files = { "codegen.js" => src }
+              files = { "codegen.mjs" => src }
               state.with(:javascript_codegen_files, files)
             end
           end

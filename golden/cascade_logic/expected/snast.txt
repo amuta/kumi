@@ -1,13 +1,13 @@
 (SNAST
   (TRAIT y_positive
     (Call :core.gt
-      (InputRef y key_chain=[y]) :: [] -> integer
+      (InputRef y key_chain=[]) :: [] -> integer
       (Const 0) :: [] -> integer
     ) :: [] -> boolean
   ) :: [] -> boolean
   (TRAIT x_positive
     (Call :core.gt
-      (InputRef x key_chain=[x]) :: [] -> integer
+      (InputRef x key_chain=[]) :: [] -> integer
       (Const 0) :: [] -> integer
     ) :: [] -> boolean
   ) :: [] -> boolean

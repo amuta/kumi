@@ -1,21 +1,21 @@
 (SNAST
   (VALUE app_name
-    (InputRef config.app_name key_chain=[config, app_name]) :: [] -> string
+    (InputRef config.app_name key_chain=[]) :: [] -> string
   ) :: [] -> string
   (VALUE all_flags
     (InputRef config.feature_flags.flag_name key_chain=[]) :: [feature_flags] -> string
   ) :: [feature_flags] -> string
   (VALUE server_hostnames
-    (InputRef config.servers.server.hostname key_chain=[hostname]) :: [servers] -> string
+    (InputRef config.servers.server.hostname key_chain=[]) :: [servers] -> string
   ) :: [servers] -> string
   (VALUE server_count
-    (Call :core.length
-      (InputRef config.servers key_chain=[config, servers]) :: [] -> array
+    (Call :core.array_size
+      (InputRef config.servers key_chain=[]) :: [] -> array
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE total_ports
     (Reduce :agg.sum over [servers]
-      (InputRef config.servers.server.port key_chain=[port]) :: [servers] -> integer
+      (InputRef config.servers.server.port key_chain=[]) :: [servers] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
 )

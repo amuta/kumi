@@ -2,16 +2,16 @@
   (VALUE users
     (Hash
       (Pair name
-        (InputRef users.user.name key_chain=[name]) :: [users] -> string
+        (InputRef users.user.name key_chain=[]) :: [users] -> string
       ) :: [users] -> pair
       (Pair state
-        (InputRef users.user.state key_chain=[state]) :: [users] -> string
+        (InputRef users.user.state key_chain=[]) :: [users] -> string
       ) :: [users] -> pair
     ) :: [users] -> hash
   ) :: [users] -> hash
   (TRAIT is_john
     (Call :core.eq
-      (InputRef users.user.name key_chain=[name]) :: [users] -> string
+      (InputRef users.user.name key_chain=[]) :: [users] -> string
       (Const "John") :: [] -> string
     ) :: [users] -> boolean
   ) :: [users] -> boolean
