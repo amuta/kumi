@@ -69,6 +69,8 @@ module Kumi
         # We check `force_recompile` here to allow for debugging the compiler.
         return if @kumi_compiled && !Kumi.configuration.force_recompile
 
+        @__kumi_analyzer_result__ = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
+
         schema_digest = @__kumi_syntax_tree__.digest
         cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}.rb")
 
@@ -96,19 +98,12 @@ module Kumi
     end
 
     def compile_and_write_cache(cache_path, digest)
-      # 1. Run the full analysis pipeline.
-      @__kumi_analyzer_result__ = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
-
-      # 2. Extract the generated code from the final state object.
+      # 1. Extract the generated code from the final state object.
       compiler_output = @__kumi_analyzer_result__.state[:ruby_codegen_files]["codegen.rb"]
       raise "Compiler did not produce ruby_codegen_files" unless compiler_output
 
       FileUtils.mkdir_p(File.dirname(cache_path))
-      # Write to a temporary file and then move it to prevent race conditions
-      # where another process might try to read a partially written file.
-      temp_path = "#{cache_path}.#{Process.pid}-#{rand(1000)}"
-      File.write(temp_path, compiler_output)
-      FileUtils.mv(temp_path, cache_path)
+      File.write(cache_path, compiler_output)
     end
   end
 end

@@ -12,6 +12,7 @@ gemspec
 # spec.add_development_dependency "rubocop-performance", "~> 1.25"
 # spec.add_development_dependency "rubocop-rspec", "~> 3.6"
 
+gem "benchmark"
 gem "benchmark-ips", "~> 2.14"
 gem "csv"
 gem "mutex_m", "~> 0.3.0"

@@ -27,7 +27,7 @@ Kumi.configure do |config|
 
   # Use a dedicated, temporary directory for test caches to avoid
   # polluting the system's tmp or a developer's local dev cache.
-  config.cache_path = File.expand_path("../tmp/kumi_cache", __dir__)
+  config.cache_path = File.expand_path("../tmp/kumi_cache_test", __dir__)
 
   # Ensure tests are isolated and don't rely on a warm cache.
   config.force_recompile = true
@@ -41,9 +41,10 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-  config.after do
+
+  config.before do
     cache_dir = Kumi.configuration.cache_path
-    FileUtils.rm_rf(cache_dir) if Dir.exist?(cache_dir)
+    FileUtils.rm_rf(cache_dir)
   end
 end
 
