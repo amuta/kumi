@@ -41,6 +41,26 @@ module Kumi
       __kumi_compiled_module__.from(input_data)
     end
 
+    def write_source(file_path, platform: :ruby)
+      raise "No schema defined" unless @__kumi_syntax_tree__
+      raise ArgumentError, "platform must be :ruby or :javascript" unless %i[ruby javascript].include?(platform)
+
+      result = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
+
+      code = case platform
+             when :ruby
+               result.state[:ruby_codegen_files]&.fetch("codegen.rb", nil)
+             when :javascript
+               result.state[:javascript_codegen_files]&.fetch("codegen.mjs", nil)
+             end
+
+      raise "Compiler did not produce #{platform}_codegen_files" unless code
+
+      FileUtils.mkdir_p(File.dirname(file_path))
+      File.write(file_path, code)
+      file_path
+    end
+
     private
 
     def ensure_compiled!

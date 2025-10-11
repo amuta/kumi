@@ -116,3 +116,6 @@ RSpec/ExpectActual:
 
 RSpec/IdenticalEqualityAssertion:
   Enabled: false  # Sometimes needed for testing type systems
+
+RSpec/PendingWithoutReason:
+  Enabled: false
