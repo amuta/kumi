@@ -54,7 +54,17 @@ module Kumi
             base_sym, full_chain = detect_base_and_full_chain(steps)
             tail = tail_after_last_loop(steps)
             element_terminal = tail.any? { |s| s[:kind] == "element_access" }
-            key_chain = collect_tail_props(tail)
+
+            # Compute key_chain based on context
+            key_chain =
+              if !element_terminal && tail.empty? && !full_chain.empty?
+                # Non-element-terminal array reference (e.g., fn(:array_size, input.x))
+                # Use full property chain to load from root
+                full_chain
+              else
+                # Element access or other cases: collect from tail
+                collect_tail_props(tail)
+              end
 
             # Attach
             node.instance_variable_set(:@fqn,               plan.path_fqn.to_s)
@@ -64,7 +74,7 @@ module Kumi
             node.instance_variable_set(:@key_chain,         key_chain)
             node.instance_variable_set(:@element_terminal,  element_terminal)
 
-            # return unless debug_enabled?
+            return unless debug_enabled?
 
             dbg_dump(
               title: "InputRef #{plan.path_fqn}",

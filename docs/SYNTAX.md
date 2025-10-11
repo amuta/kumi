@@ -1,49 +1,150 @@
-# Kumi Syntax — Practical Guide
+# Kumi Syntax — Quick Reference & Guide
 
-A practical reference for writing Kumi schemas, organized by common patterns and use cases.
+## Quick Reference
 
-## Table of Contents
-1. [File Structure](#1-file-structure)
-2. [Input Shapes](#2-input-shapes)
-3. [Declarations](#3-declarations)
-4. [Expressions](#4-expressions)
-5. [Functions (Kernels)](#5-functions-kernels)
-6. [Conditionals](#6-conditionals)
-7. [Tuples and Indexing](#7-tuples-and-indexing)
-8. [Spatial Operations](#8-spatial-operations)
-9. [Reductions and Broadcasting](#9-reductions-and-broadcasting)
-10. [Common Patterns](#10-common-patterns)
-11. [Complete Examples](#11-complete-examples)
-
-## 1) File Structure
-
-Every Kumi schema follows this basic skeleton:
-
+### File Structure
 ```kumi
 schema do
   input do
-    # Declare your input shape here
+    # Input shape declarations
   end
 
-  # Declare computed values here (let, value, trait)
+  # Declarations: let, value, trait
 end
 ```
 
-## 2) Input Shapes
+### Types
+```kumi
+integer    # Integer numbers
+float      # Floating point numbers
+string     # Text strings
+array      # Sequential collections
+hash       # Structured objects
+```
 
-### Scalars
+### Declarations
+```kumi
+let   :name, expr    # Intermediate value
+value :name, expr    # Output value
+trait :name, expr    # Boolean mask
+```
+
+### Operators
+
+**Arithmetic:** `+` `-` `*` `/` `**` `%`
+**Comparison:** `>` `>=` `<` `<=` `==` `!=`
+**Boolean:** `&` (AND) `|` (OR)
+**Indexing:** `tuple[0]` `tuple[1]` ...
+
+### Aggregation Functions
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `fn(:sum, arr)` | Sum all elements | `fn(:sum, input.items.item.price)` |
+| `fn(:count, arr)` | Count elements | `fn(:count, input.items.item.price)` |
+| `fn(:max, arr)` | Maximum value | `fn(:max, input.items.item.price)` |
+| `fn(:min, arr)` | Minimum value | `fn(:min, input.items.item.price)` |
+| `fn(:mean, arr)` | Average (aliases: `avg`) | `fn(:mean, input.scores.score)` |
+| `fn(:sum_if, vals, cond)` | Sum where condition is true | `fn(:sum_if, input.items.item.price, expensive)` |
+| `fn(:count_if, vals, match)` | Count matching values | `fn(:count_if, input.cells.value, 0)` |
+| `fn(:mean_if, vals, cond)` | Average where true (aliases: `avg_if`) | `fn(:mean_if, input.scores.score, passing)` |
+| `fn(:any, arr)` | True if any element true | `fn(:any, input.flags.active)` |
+| `fn(:all, arr)` | True if all elements true | `fn(:all, input.checks.passed)` |
+| `fn(:join, arr)` | Join strings | `fn(:join, input.words.word)` |
+
+### Elementwise Functions
+
+**Arithmetic:**
+- `fn(:abs, x)` — Absolute value
+- `fn(:clamp, x, lo, hi)` — Clamp to range
+
+**String:**
+- `fn(:concat, s1, s2)` — Concatenate strings
+- `fn(:upcase, str)` — Convert to uppercase
+- `fn(:downcase, str)` — Convert to lowercase
+- `fn(:length, str)` — String length (aliases: `len`, `size`)
+
+**Array:**
+- `fn(:array_size, arr)` — Array length (alias: `size`)
+- `fn(:at, arr, idx)` — Get element at index (alias: `[]`)
+
+**Hash:**
+- `fn(:fetch, key)` — Fetch value from hash
+
+### Control Flow
+```kumi
+# Simple selection
+select(condition, if_true, if_false)
+
+# Multi-way cascade (first match wins)
+value :result do
+  on cond1, cond2, expr1    # If cond1 AND cond2
+  on cond3, expr2           # Else if cond3
+  base expr3                # Else (default)
+end
+```
+
+### Spatial Operations
+```kumi
+# Shift — access neighbors
+shift(expr, offset, axis_offset: 0, policy: :zero)
+  # offset: -N (left/up), +N (right/down)
+  # axis_offset: 0 (innermost/x), 1 (next/y)
+  # policy: :zero (default) | :wrap | :clamp
+
+# Roll — rotate with wrapping
+roll(expr, offset, policy: :wrap)
+  # policy: :wrap (default) | :clamp
+
+# Index access
+index(:name)  # Get index value (requires array declared with index: :name)
+```
+
+### Common Patterns
+
+**Filter and aggregate:**
+```kumi
+trait :expensive, input.items.item.price > 100.0
+value :expensive_total, fn(:sum_if, input.items.item.price, expensive)
+```
+
+**Map then reduce:**
+```kumi
+value :subtotals, input.items.item.price * input.items.item.quantity
+value :total, fn(:sum, subtotals)
+```
+
+**Broadcasting (parent to child):**
+```kumi
+value :dept_total, fn(:sum, input.depts.dept.teams.team.headcount)
+trait :large_team, input.depts.dept.teams.team.headcount > dept_total / 3
+```
+
+**Index-based calculation:**
+```kumi
+let :W, fn(:array_size, input.x.y)
+value :row_major, (index(:i) * W) + index(:j)
+```
+
+---
+
+## Detailed Guide
+
+### 1) Input Shapes
+
+#### Scalars
 
 Scalar inputs represent single values:
 
 ```kumi
 input do
-  integer :x        # Single integer
-  float   :rate     # Single float
-  string  :name     # Single string
+  integer :x
+  float :rate
+  string :name
 end
 ```
 
-**Example: Simple math**
+**Example:**
 ```kumi
 schema do
   input do
@@ -56,11 +157,11 @@ schema do
 end
 ```
 
-### Arrays
+#### Arrays
 
-Arrays represent sequences of values. Elements can be scalars, hashes, or nested arrays.
+Arrays represent sequences. Navigate using dot notation through each level.
 
-**1D Arrays:**
+**1D Array:**
 ```kumi
 input do
   array :cells do
@@ -69,7 +170,7 @@ input do
 end
 ```
 
-**2D Arrays (grids):**
+**2D Array (grid):**
 ```kumi
 input do
   array :rows do
@@ -80,7 +181,7 @@ input do
 end
 ```
 
-**3D Arrays (cubes):**
+**3D Array (cube):**
 ```kumi
 input do
   array :cube do
@@ -93,7 +194,7 @@ input do
 end
 ```
 
-### Arrays of Hashes
+#### Arrays of Hashes
 
 Common pattern for structured collections:
 
@@ -109,9 +210,10 @@ input do
 end
 
 # Access: input.items.item.price
+#         input.items.item.quantity
 ```
 
-### Hashes
+#### Hashes
 
 Hashes represent structured data with named fields:
 
@@ -128,34 +230,34 @@ input do
   end
 end
 
-# Access scalar field: input.config.app_name
-# Access array within hash: input.config.servers.server.hostname
+# Access scalar: input.config.app_name
+# Access nested: input.config.servers.server.hostname
 ```
 
-### Arrays with Named Indices
+#### Arrays with Named Indices
 
-Use `index: :name` to access positional indices in expressions:
+Declare indices to access position values:
 
 ```kumi
 input do
   array :x, index: :i do
     array :y, index: :j do
-      integer :_           # Placeholder when value doesn't matter
+      integer :_           # Placeholder (value unused)
     end
   end
 end
 
-# Compute row-major index
-value :box, (index(:i) * fn(:array_size, input.x.y)) + index(:j)
+# Use in expressions
+let :W, fn(:array_size, input.x.y)
+value :row_major, (index(:i) * W) + index(:j)
+value :col_major, (index(:j) * fn(:array_size, input.x)) + index(:i)
 ```
 
-## 3) Declarations
+### 2) Declarations
 
-Kumi has three types of declarations:
+#### `let` — Intermediate Values
 
-### `let` — Intermediate Values
-
-Use `let` for computed values that you'll reference in other expressions:
+Use for computed values referenced elsewhere:
 
 ```kumi
 let :x_sq, input.x * input.x
@@ -164,128 +266,126 @@ let :distance_sq, x_sq + y_sq
 value :distance, distance_sq ** 0.5
 ```
 
-### `value` — Outputs
+#### `value` — Outputs
 
-Use `value` for results that will be serialized in the output:
+Results serialized to output:
 
 ```kumi
 value :cart_total, fn(:sum, input.items.item.price * input.items.item.quantity)
 value :item_count, fn(:count, input.items.item.quantity)
 ```
 
-### `trait` — Boolean Masks
+#### `trait` — Boolean Masks
 
-Use `trait` for boolean conditions used in filtering or conditional logic:
+Boolean conditions for filtering/branching:
 
 ```kumi
 trait :expensive_items, input.items.item.price > 100.0
 trait :electronics, input.items.item.category == "electronics"
 trait :high_value, expensive_items & electronics
 
-value :discounted_price, select(high_value, input.items.item.price * 0.8, input.items.item.price)
+value :discounted, select(high_value,
+  input.items.item.price * 0.8,
+  input.items.item.price
+)
 ```
 
-## 4) Expressions
+### 3) Operators
 
-### Accessing Input
-
-Navigate input structures using dot notation:
-
+**Arithmetic:**
 ```kumi
-input.x                                    # Scalar field
-input.items.item.price                     # Array element field
-input.config.app_name                      # Hash field
-input.departments.dept.teams.team.name     # Nested hierarchy
-```
++   -   *   /   **   %
 
-### Arithmetic Operators
-
-```kumi
-+   -   *   /         # Basic math
-**                    # Exponentiation
-( )                   # Grouping
-
-# Examples
 value :total, input.x + input.y
 value :area, input.width * input.height
-value :hypotenuse, (input.x ** 2 + input.y ** 2) ** 0.5
+value :power, input.base ** input.exponent
+value :remainder, input.x % input.y
 ```
 
-### Comparison Operators
-
+**Comparison:**
 ```kumi
 >   >=   <   <=   ==   !=
 
-# Examples
 trait :is_adult, input.age >= 18
 trait :is_expensive, input.price > 100.0
 trait :exact_match, input.category == "electronics"
 ```
 
-### Boolean Operators
-
+**Boolean:**
 ```kumi
-&   # AND
-|   # OR
+&   |   !
 
-# Examples
 trait :premium, is_adult & is_expensive
 trait :eligible, is_member | is_trial
+trait :not_active, !is_active
 ```
 
-## 5) Functions (Kernels)
+### 4) Functions
 
-Functions are called using `fn(:name, args...)` syntax.
+All functions use `fn(:name, args...)` syntax.
 
-### Aggregation Functions
+#### Aggregation (Reduce Dimension)
 
-**`fn(:sum, array)`** — Sum all elements
+**Sum and Count:**
 ```kumi
-value :total_price, fn(:sum, input.items.item.price)
-value :grand_total, fn(:sum, fn(:sum, input.matrix.row.cell))  # 2D sum
+value :total, fn(:sum, input.items.item.price)
+value :count, fn(:count, input.items.item.price)
 ```
 
-**`fn(:count, array)`** — Count elements
+**Min, Max, Mean:**
 ```kumi
-value :num_items, fn(:count, input.items.item.price)
+value :highest, fn(:max, input.items.item.price)
+value :lowest, fn(:min, input.items.item.price)
+value :average, fn(:mean, input.scores.score)
 ```
 
-**`fn(:max, array)` / `fn(:min, array)`** — Maximum/minimum value
-```kumi
-value :highest_price, fn(:max, input.items.item.price)
-value :lowest_score, fn(:min, scores)
-```
-
-### Conditional Aggregation
-
-**`fn(:sum_if, values, condition)`** — Sum where condition is true
+**Conditional Aggregation:**
 ```kumi
 trait :expensive, input.items.item.price > 100.0
-value :expensive_total, fn(:sum_if, input.items.item.price, expensive)
-```
-
-**`fn(:count_if, values, match_value)`** — Count matching values
-```kumi
+value :expensive_sum, fn(:sum_if, input.items.item.price, expensive)
+value :expensive_avg, fn(:mean_if, input.items.item.price, expensive)
 value :zero_count, fn(:count_if, input.cells.value, 0)
 ```
 
-### Array Utilities
-
-**`fn(:array_size, array)`** — Get array length at that dimension
+**Boolean Aggregation:**
 ```kumi
-value :num_rows, fn(:array_size, input.matrix.row)
-value :num_cols, fn(:array_size, input.matrix.row.col)
-
-# Use in calculations
-let :W, fn(:array_size, input.x.y)
-value :linear_index, (index(:i) * W) + index(:j)
+value :has_any_active, fn(:any, input.flags.active)
+value :all_passed, fn(:all, input.checks.passed)
 ```
 
-## 6) Conditionals
+**String Aggregation:**
+```kumi
+value :combined, fn(:join, input.words.word)
+```
 
-### Elementwise Selection with `select`
+#### Elementwise (No Dimension Change)
 
-Use `select(condition, if_true, if_false)` for simple branching:
+**Array Utilities:**
+```kumi
+value :num_rows, fn(:array_size, input.matrix.row)
+value :first_item, fn(:at, input.items, 0)
+
+let :W, fn(:array_size, input.x.y)
+value :linear_idx, (index(:i) * W) + index(:j)
+```
+
+**String Operations:**
+```kumi
+value :full_name, fn(:concat, input.first_name, input.last_name)
+value :upper, fn(:upcase, input.name)
+value :lower, fn(:downcase, input.name)
+value :name_len, fn(:length, input.name)
+```
+
+**Math:**
+```kumi
+value :magnitude, fn(:abs, input.value)
+value :bounded, fn(:clamp, input.value, 0, 100)
+```
+
+### 5) Conditionals
+
+#### Simple Selection with `select`
 
 ```kumi
 trait :is_expensive, input.items.item.price > 100.0
@@ -295,9 +395,9 @@ value :discounted, select(is_expensive,
 )
 ```
 
-### Cascaded Conditions with `on`
+#### Multi-way Cascade with `on`
 
-Use `value ... do on ... end` for multiple conditions. First matching condition wins:
+First matching condition wins:
 
 ```kumi
 trait :x_positive, input.x > 0
@@ -311,45 +411,39 @@ value :status do
 end
 ```
 
-**Complex example with broadcasts:**
+**Complex Example with Broadcasting:**
 ```kumi
-trait :high_performer, input.teams.team.employees.employee.rating >= 4.5
-trait :senior_level, input.teams.team.employees.employee.level == "senior"
+trait :high_performer, input.employees.employee.rating >= 4.5
+trait :senior, input.employees.employee.level == "senior"
 trait :top_team, input.teams.team.performance_score >= 0.9
 
 value :bonus do
-  on high_performer, senior_level, top_team, input.teams.team.employees.employee.salary * 0.30
-  on high_performer, top_team,                input.teams.team.employees.employee.salary * 0.20
-  base                                        input.teams.team.employees.employee.salary * 0.05
+  on high_performer, senior, top_team, input.employees.employee.salary * 0.30
+  on high_performer, top_team,         input.employees.employee.salary * 0.20
+  base                                 input.employees.employee.salary * 0.05
 end
 ```
 
-## 7) Tuples and Indexing
+### 6) Tuples and Indexing
 
-### Tuple Literals
-
-Create fixed-size tuples with array literal syntax:
+#### Tuple Literals
 
 ```kumi
 value :scores, [100, 85, 92]
-value :combo, [input.x, input.y]
+value :coords, [input.x, input.y]
 value :mixed, [1, input.x + 10, input.y * 2]
 ```
 
-### Tuple Indexing
-
-Access tuple elements by position:
+#### Tuple Indexing
 
 ```kumi
 value :scores, [100, 85, 92]
-value :first_score, scores[0]
-value :second_score, scores[1]
-value :third_score, scores[2]
+value :first, scores[0]
+value :second, scores[1]
+value :third, scores[2]
 ```
 
-### Operations on Tuples
-
-Apply functions to tuples:
+#### Operations on Tuples
 
 ```kumi
 value :coords, [input.x, input.y, input.z]
@@ -357,32 +451,38 @@ value :max_coord, fn(:max, coords)
 value :sum_coords, fn(:sum, coords)
 ```
 
-### Vectorized Operations
+#### Vectorized Tuple Operations
 
-When tuples contain array elements, operations are vectorized:
+When tuples contain array elements:
 
 ```kumi
 trait :x_large, input.points.point.x > 100
-value :selected, select(x_large, input.points.point.x, input.points.point.y)
+value :selected, select(x_large,
+  input.points.point.x,
+  input.points.point.y
+)
 
-# For each point, compute max of selected value and x coordinate
+# For each point, compute max of selected and x
 value :max_per_point, fn(:max, [selected, input.points.point.x])
 ```
 
-## 8) Spatial Operations
+### 7) Spatial Operations
 
-Spatial operations allow you to access neighboring values in arrays.
+#### `shift` — Access Neighbors
 
-### `shift` — Access Offset Elements
+Move along arrays to access adjacent values.
 
-**Syntax:** `shift(expr, offset, axis_offset: n, policy: :zero | :wrap | :clamp)`
+**Syntax:**
+```kumi
+shift(expr, offset, axis_offset: 0, policy: :zero)
+```
 
 **Parameters:**
-- `offset`: How many positions to shift (negative = left/up, positive = right/down)
-- `axis_offset`: Which dimension (0 = innermost/x, 1 = next level/y, etc.)
-- `policy`: How to handle edges
+- `offset`: Distance to shift (negative = left/up, positive = right/down)
+- `axis_offset`: Which dimension (0 = innermost/x, 1 = next/y, etc.)
+- `policy`: Edge handling
   - `:zero` (default) — Use 0 for out-of-bounds
-  - `:wrap` — Wrap around to opposite edge
+  - `:wrap` — Wrap to opposite edge
   - `:clamp` — Repeat edge value
 
 **1D Example:**
@@ -393,23 +493,23 @@ input do
   end
 end
 
-value :left_neighbor,  shift(input.cells.value, -1)              # Default :zero
-value :right_neighbor, shift(input.cells.value,  1, policy: :wrap)
+value :left,  shift(input.cells.value, -1)
+value :right, shift(input.cells.value,  1, policy: :wrap)
 ```
 
 **2D Example (Game of Life):**
 ```kumi
 let :a, input.rows.col.alive
 
-# Horizontal neighbors (axis_offset: 0)
+# Horizontal (axis_offset: 0, default)
 let :w, shift(a, -1)                  # West
 let :e, shift(a,  1)                  # East
 
-# Vertical neighbors (axis_offset: 1)
+# Vertical (axis_offset: 1)
 let :n, shift(a, -1, axis_offset: 1)  # North
 let :s, shift(a,  1, axis_offset: 1)  # South
 
-# Diagonals
+# Diagonals (shift twice)
 let :nw, shift(n, -1)
 let :ne, shift(n,  1)
 let :sw, shift(s, -1)
@@ -418,61 +518,47 @@ let :se, shift(s,  1)
 let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
 ```
 
-### `roll` — Rotate with Wrapping
+#### `roll` — Rotate with Wrapping
 
-**Syntax:** `roll(expr, offset, policy: :wrap | :clamp)`
-
-Convenience function for 1D rotations (wrap by default):
+Convenience for 1D rotations:
 
 ```kumi
-value :roll_right, roll(input.cells.value,  1)                    # Wrap
+value :roll_right, roll(input.cells.value,  1)                    # Wrap (default)
 value :roll_left,  roll(input.cells.value, -1)
 value :roll_clamp, roll(input.cells.value,  1, policy: :clamp)
 ```
 
-## 9) Reductions and Broadcasting
+### 8) Reductions and Broadcasting
 
-### Reductions
+#### Reductions
 
 Aggregation functions reduce dimensionality:
 
 **1D → Scalar:**
 ```kumi
-input do
-  array :items do
-    hash :item do
-      float :price
-    end
-  end
-end
-
-# Reduces array to single value
 value :total, fn(:sum, input.items.item.price)
 ```
 
-**2D → 1D:**
+**2D → 1D (reduce inner dimension):**
 ```kumi
-input do
-  array :rows do
-    array :col do
-      integer :v
-    end
-  end
-end
-
-# Sum each row (reduces inner dimension)
 value :row_sums, fn(:sum, input.rows.col.v)
 ```
 
-**2D → Scalar:**
+**2D → Scalar (double reduction):**
 ```kumi
-# Double reduction
 value :grand_total, fn(:sum, fn(:sum, input.rows.col.v))
 ```
 
-### Broadcasting
+**3D → Scalar (triple reduction):**
+```kumi
+trait :over_limit, input.cube.layer.row.cell > 100
+value :sum_over, fn(:sum_if, input.cube.layer.row.cell, over_limit)
+value :total, fn(:sum, fn(:sum, sum_over))
+```
 
-Values at higher levels automatically broadcast to lower levels when combined:
+#### Broadcasting
+
+Values at higher/parent levels automatically broadcast to lower/child levels.
 
 **Scalar to Array:**
 ```kumi
@@ -506,17 +592,15 @@ end
 # Reduce to department level
 value :dept_total, fn(:sum, input.departments.dept.teams.team.headcount)
 
-# dept_total broadcasts to team level for comparison
+# dept_total broadcasts to team level
 trait :large_team, input.departments.dept.teams.team.headcount > dept_total / 3
 ```
 
-**Key Rule:** Axes align by identity (lineage), not by name. A value computed at department level knows which department's teams to broadcast to.
+**Key Rule:** Axes align by identity (lineage), not name. A department-level value knows which teams belong to it.
 
-## 10) Common Patterns
+### 9) Common Patterns
 
-### Filter and Aggregate
-
-Use traits to filter, then aggregate matching values:
+#### Filter and Aggregate
 
 ```kumi
 trait :expensive, input.items.item.price > 100.0
@@ -524,31 +608,22 @@ value :expensive_total, fn(:sum_if, input.items.item.price, expensive)
 value :expensive_count, fn(:sum_if, 1, expensive)
 ```
 
-### Map then Reduce
-
-Transform elements, then aggregate:
+#### Map then Reduce
 
 ```kumi
-# Calculate subtotals for each item
 value :subtotals, input.items.item.price * input.items.item.quantity
-
-# Sum all subtotals
 value :cart_total, fn(:sum, subtotals)
 ```
 
-### Conditional Aggregation in Hierarchies
-
-Filter at child level, aggregate to parent:
+#### Conditional Aggregation in Hierarchies
 
 ```kumi
 trait :over_limit, input.cube.layer.row.cell > 100
-value :cell_sum_over_limit, fn(:sum_if, input.cube.layer.row.cell, over_limit)
-value :total_over_limit, fn(:sum, fn(:sum, cell_sum_over_limit))
+value :cell_sum, fn(:sum_if, input.cube.layer.row.cell, over_limit)
+value :total, fn(:sum, fn(:sum, cell_sum))
 ```
 
-### Hash Construction
-
-Build structured output objects:
+#### Hash Construction
 
 ```kumi
 value :users, {
@@ -560,9 +635,7 @@ trait :is_john, input.users.user.name == "John"
 value :john_user, select(is_john, users, "NOT_JOHN")
 ```
 
-### Index-Based Calculations
-
-Use named indices for position-dependent logic:
+#### Index-Based Calculations
 
 ```kumi
 input do
@@ -574,18 +647,14 @@ input do
 end
 
 let :W, fn(:array_size, input.x.y)
-
-# Row-major linear index
 value :row_major, (index(:i) * W) + index(:j)
-
-# Column-major linear index
 value :col_major, (index(:j) * fn(:array_size, input.x)) + index(:i)
-
-# Simple coordinate sum
 value :coord_sum, index(:i) + index(:j)
 ```
 
-## 11) Complete Examples
+---
+
+## Complete Examples
 
 ### Shopping Cart with Discounts
 
@@ -601,20 +670,15 @@ schema do
     float :discount
   end
 
-  # Compute subtotals per item
   value :items_subtotal, input.items.item.price * input.items.item.qty
-
-  # Apply discount to each item
   value :items_discounted, input.items.item.price * (1.0 - input.discount)
 
-  # Conditional pricing
   value :items_is_big, input.items.item.price > 100.0
   value :items_effective, select(items_is_big,
     items_subtotal * 0.9,
     items_subtotal
   )
 
-  # Final aggregations
   value :total_qty, fn(:sum, input.items.item.qty)
   value :cart_total, fn(:sum, items_subtotal)
   value :cart_total_effective, fn(:sum, items_effective)
@@ -635,11 +699,10 @@ schema do
 
   let :a, input.rows.col.alive
 
-  # Get 8 neighbors using shift
-  let :n,  shift(a, -1, axis_offset: 1)  # North
-  let :s,  shift(a,  1, axis_offset: 1)  # South
-  let :w,  shift(a, -1)                  # West
-  let :e,  shift(a,  1)                  # East
+  let :n,  shift(a, -1, axis_offset: 1)
+  let :s,  shift(a,  1, axis_offset: 1)
+  let :w,  shift(a, -1)
+  let :e,  shift(a,  1)
   let :nw, shift(n, -1)
   let :ne, shift(n,  1)
   let :sw, shift(s, -1)
@@ -647,7 +710,6 @@ schema do
 
   let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
 
-  # Conway rules
   let :alive, a > 0
   let :n3_alive, neighbors == 3
   let :n2_alive, neighbors == 2
@@ -676,68 +738,27 @@ schema do
     end
   end
 
-  # Department-level aggregations
   value :dept_headcount, fn(:sum, input.departments.dept.teams.team.headcount)
   value :teams_per_dept, fn(:count, input.departments.dept.teams.team.team_name)
   value :avg_headcount_per_dept, dept_headcount / teams_per_dept
 
-  # Broadcast department average back to team level
   trait :is_above_average_team,
     input.departments.dept.teams.team.headcount > avg_headcount_per_dept
 end
 ```
 
-## 12) Quick Reference
+---
 
-### Declaration Keywords
-- `schema` — Root container
-- `input` — Input shape declaration
-- `value` — Output declaration
-- `let` — Intermediate value
-- `trait` — Boolean mask
-
-### Type Keywords
-- `integer`, `float`, `string` — Scalar types
-- `array` — Sequential collection
-- `hash` — Structured object
-
-### Functions (fn)
-- `fn(:sum, arr)` — Sum elements
-- `fn(:count, arr)` — Count elements
-- `fn(:max, arr)`, `fn(:min, arr)` — Min/max
-- `fn(:sum_if, values, condition)` — Conditional sum
-- `fn(:count_if, values, match)` — Conditional count
-- `fn(:array_size, arr)` — Get array length
-
-### Control Flow
-- `select(cond, if_true, if_false)` — Ternary selection
-- `value :x do on ..., ...; base ... end` — Multi-way branch
-
-### Spatial Functions
-- `shift(expr, offset, axis_offset: 0, policy: :zero)` — Access neighbors
-- `roll(expr, offset, policy: :wrap)` — Rotate array
-- `index(:name)` — Access named array index
-
-### Operators
-- Arithmetic: `+`, `-`, `*`, `/`, `**`
-- Comparison: `>`, `>=`, `<`, `<=`, `==`, `!=`
-- Boolean: `&` (AND), `|` (OR)
-- Indexing: `tuple[0]`, `tuple[1]`, etc.
-
-### Policies
-- `:zero` — Use 0 for out-of-bounds (default for shift)
-- `:wrap` — Wrap to opposite edge (default for roll)
-- `:clamp` — Repeat edge value
-
-### Best Practices
+## Best Practices
 
 **Do:**
 - Use `trait` for boolean conditions
 - Use `fn(:array_size, ...)` instead of hardcoding lengths
 - Name intermediate values with `let` for clarity
 - Think about which dimension you're reducing
+- Remember axes align by lineage, not name
 
 **Don't:**
-- Forget that functions reduce dimensionality
+- Forget that aggregation functions reduce dimensionality
 - Hardcode array sizes
-- Mix up axis_offset values (0 = inner/x, 1 = outer/y)
+- Mix up `axis_offset` values (0 = inner/x, 1 = outer/y)
