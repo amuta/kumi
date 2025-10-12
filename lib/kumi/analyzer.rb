@@ -33,6 +33,7 @@ module Kumi
       Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Passes::OutputSchemaPass,                # Builds minimal output schema from SNAST
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
