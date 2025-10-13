@@ -1,4 +1,7 @@
 ## [Unreleased]
+## [0.0.21] – 2025-10-13
+Fix - update Gemfile.lock to current version
+
 ## [0.0.20] – 2025-10-13
 Fix - Remove require of pry gem on runtime.
 
