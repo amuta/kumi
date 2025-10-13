@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.0.23] – 2025-10-13
+### Fixed
+- OutputSchemaPass now excludes inline `:let` declarations from output_schema metadata, matching JS/Ruby codegen behavior
+
 ## [0.0.22] – 2025-10-13
 ### Removed
 - Legacy analyzer passes and compiler components referencing old Registry and Runtime APIs

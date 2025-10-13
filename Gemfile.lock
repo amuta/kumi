@@ -1,14 +1,14 @@
 PATH
   remote: ../kumi-parser
   specs:
-    kumi-parser (0.0.25)
+    kumi-parser (0.0.27)
       parslet (~> 2.0)
       zeitwerk (~> 2.6)
 
 PATH
   remote: .
   specs:
-    kumi (0.0.22)
+    kumi (0.0.23)
       mutex_m (~> 0.3.0)
       zeitwerk (~> 2.6.0)
 

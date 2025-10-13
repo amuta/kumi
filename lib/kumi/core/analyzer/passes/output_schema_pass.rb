@@ -9,15 +9,17 @@ module Kumi
             snast_module = get_state(:snast_module)
             return state unless snast_module
 
-            output_schema = build_output_schema(snast_module)
+            hints = get_state(:hints)
+            output_schema = build_output_schema(snast_module, hints)
             state.with(:output_schema, output_schema.freeze)
           end
 
           private
 
-          def build_output_schema(snast_module)
-            snast_module.decls.transform_values do |decl|
-              build_output_field(decl)
+          def build_output_schema(snast_module, hints)
+            snast_module.decls.each_with_object({}) do |(name, decl), acc|
+              next if hints[name][:inline]
+              acc[name] = build_output_field(decl)
             end
           end
 
