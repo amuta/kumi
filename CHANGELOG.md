@@ -1,4 +1,10 @@
 ## [Unreleased]
+
+## [0.0.22] – 2025-10-13
+### Removed
+- Legacy analyzer passes and compiler components referencing old Registry and Runtime APIs
+- Obsolete test files that depended on removed infrastructure
+
 ## [0.0.21] – 2025-10-13
 Fix - update Gemfile.lock to current version
 

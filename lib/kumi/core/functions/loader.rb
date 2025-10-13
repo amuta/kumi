@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
-require_relative "model"
+require_relative "function_spec"
 require_relative "type_rules"
 
 module Kumi
