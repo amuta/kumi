@@ -1,4 +1,31 @@
 ## [Unreleased]
+## [0.0.20] – 2025-10-13
+Fix - Remove require of pry gem on runtime.
+
+## [0.0.19] – 2025-10-13
+### Added
+- **Ruby & JavaScript Code Generation:** The compiler now directly generates clean, idiomatic Ruby and JavaScript (MJS) code from Kumi schemas, removing the need for a complex runtime interpreter.
+- **IRv2:** A new, backend-agnostic intermediate representation (IR) that simplifies the compilation process and improves performance.
+- **New Language Features:**
+    - First-class `select` expressions for conditional logic.
+    - `fold` expressions for reductions over tuples.
+    - Hash expressions for creating and manipulating hash maps.
+    - Tuple-based syntax for array literals.
+- **Tooling:**
+    - `InputFormSchemaPass` for generating minimal form schemas from Kumi files.
+    - `OutputSchemaPass` for extracting output metadata.
+
+### Changed
+- **Compiler Architecture:** The compiler has been redesigned around the new IRv2 and code generation backend.
+- **Syntax:** Array literals now use a tuple-based syntax `(1, 2, 3)` instead of `[1, 2, 3]`.
+
+### Removed
+- **Legacy Runtime:** The old, interpreter-based runtime and legacy FunctionRegistry have been removed in favor of direct code generation.
+- **`align_to`:** The `align_to` operator has been removed from the language.
+
+### Performance
+- **Reduced Overhead:** By generating direct Ruby/JavaScript code, the runtime overhead of the interpreter is eliminated, resulting in significant performance improvements.
+- **Optimizations:** New optimization passes, including loop fusion and inlining, have been added to the compiler.
 
 ## [0.0.18] – 2025-09-03
 - Fixed bug missing updated Gemfile.lock
