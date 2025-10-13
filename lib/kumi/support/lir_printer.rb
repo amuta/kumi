@@ -52,6 +52,8 @@ module Kumi
 
       def instr_line(ins)
         res = ins.result_register ? "#{fmt_reg(ins.result_register)} = " : ""
+        attrs = fmt_attrs(ins.attributes)
+        imms  = fmt_imms(ins.immediates)
         case ins.opcode
         when :Constant
           lit = ins.immediates&.first
@@ -96,9 +98,7 @@ module Kumi
           "yield #{fmt_reg(only(ins.inputs))}"
         else
           # Fallback
-          attrs = fmt_attrs(ins.attributes)
-          imms  = fmt_imms(ins.immediates)
-          "#{res}#{ins.opcode} #{list(ins.inputs)}#{imms}#{attrs}#{stamp(ins)}"
+          "#{res}#{ins.opcode.downcase} #{list(ins.inputs)}#{imms}#{attrs}#{stamp(ins)}"
         end
       end
 
