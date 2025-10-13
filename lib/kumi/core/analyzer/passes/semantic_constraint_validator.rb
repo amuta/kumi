@@ -86,11 +86,10 @@ module Kumi
           def validate_function_call(call_expr, errors)
             fn_name = call_expr.fn_name
 
-            # Skip validation if Kumi::Registry.is being mocked for testing
-            return if function_registry_mocked?
+            skip = [:cascade_and] # TODO: - hack
+            return if skip.include? fn_name
 
-            return if Kumi::Registry.supported?(fn_name.to_sym)
-
+            # binding.pry
             return if @registry.resolve_function(fn_name)
 
             report_error(
@@ -111,16 +110,6 @@ module Kumi
           def boolean_trait_composition?(call_expr)
             # Allow boolean composition functions that operate on trait collections
             %i[all? any? none?].include?(call_expr.fn_name)
-          end
-
-          def function_registry_mocked?
-            # Check if Kumi::Registry.is being mocked (for tests)
-
-            # Try to access a method that doesn't exist in the real registry
-            # If it's mocked, this won't raise an error
-            Kumi::Registry.respond_to?(:confirm_support!)
-          rescue StandardError
-            false
           end
         end
       end

@@ -180,7 +180,7 @@ module Kumi
             raise_syntax_error("expects a symbol for an operator, got #{operator.class}", location: @context.current_location)
           end
 
-          return if Kumi::Registry.operator?(operator)
+          return if Sugar::COMPARISON_OPS.include?(operator)
 
           raise_syntax_error("unsupported operator `#{operator}`", location: @context.current_location)
         end

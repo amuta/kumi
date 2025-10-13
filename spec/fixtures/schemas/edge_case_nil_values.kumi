@@ -1,17 +1,19 @@
 input do
   array :items do
-    float :price
-    string :category
+    hash :item do
+      float :price
+      string :category
+    end
   end
 end
-trait :has_price, fn(:!=, input.items.price, nil)
-trait :has_category, fn(:!=, input.items.category, nil)
-trait :price_not_nil, fn(:!=, input.items.price, nil)
+trait :has_price, fn(:!=, input.items.item.price, nil)
+trait :has_category, fn(:!=, input.items.item.category, nil)
+trait :price_not_nil, fn(:!=, input.items.item.price, nil)
 value :prices_with_fallback do
-  on has_price, input.items.price
+  on has_price, input.items.item.price
   base 0.0
 end
 value :categories_with_fallback do
-  on has_category, input.items.category
+  on has_category, input.items.item.category
   base "unknown"
 end

@@ -1,9 +1,11 @@
 input do
   array :items do
+    hash :item do
     integer :count
+    end
   end
 end
-value :doubled, input.items.count * 2
-value :sum_count, fn(:sum, input.items.count)
+value :doubled, input.items.item.count * 2
+value :sum_count, fn(:sum, input.items.item.count)
 trait :positive, sum_count > 0
 value :total, fn(:sum, doubled)

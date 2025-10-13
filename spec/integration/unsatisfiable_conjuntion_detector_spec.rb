@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# TODO: move test schemas to fixtures
+
 RSpec.describe "Unsatisfiable‑conjunction detector" do
   context "strict inequality cycles" do
     it "detects 3-element cycle: x > y > z > x" do

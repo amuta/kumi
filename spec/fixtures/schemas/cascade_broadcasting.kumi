@@ -1,17 +1,20 @@
 input do
   array :products do
-    float   :price
-    integer :stock
-    string  :status
+    hash :product do
+      float   :price
+      integer :stock
+      string  :status
+    end
   end
+  
   float :discount_rate
   integer :low_stock_threshold
 end
 
 # Base vectorized values
-trait :low_stock, input.products.stock < input.low_stock_threshold
-trait :available, input.products.status == "available"
-value :base_prices, input.products.price
+trait :low_stock, input.products.product.stock < input.low_stock_threshold
+trait :available, input.products.product.status == "available"
+value :base_prices, input.products.product.price
 
 # Cascades with vectorized results (proper cascade syntax)
 value :effective_prices do

@@ -1,16 +1,18 @@
 input do
   array :orders do
+    hash :order do
     string :customer_name
     float  :order_total
     string :status
+    end
   end
   float :vip_discount
 end
 
-value :customer_names, input.orders.customer_name
-value :order_totals, input.orders.order_total
-trait :high_value, input.orders.order_total > 100.0
-trait :completed, input.orders.status == "completed"
+value :customer_names, input.orders.order.customer_name
+value :order_totals, input.orders.order.order_total
+trait :high_value, input.orders.order.order_total > 100.0
+trait :completed, input.orders.order.status == "completed"
 
 value :discounted_totals do
   on high_value, fn(:multiply, order_totals, fn(:subtract, 1, input.vip_discount))

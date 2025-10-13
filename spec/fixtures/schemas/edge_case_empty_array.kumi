@@ -1,7 +1,9 @@
 input do
   array :items do
-    float :value
+    hash :item do
+      float :value
+    end
   end
 end
-value :doubled, input.items.value * 2
+value :doubled, input.items.item.value * 2
 value :sum_values, fn(:sum, doubled)

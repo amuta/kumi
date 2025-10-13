@@ -1,11 +1,13 @@
 input do
   array :items do
-    float :value
+    hash :item do
+      float :value
+    end
   end
   float :multiplier
   float :bonus
 end
-value :scaled_values, input.items.value * input.multiplier
+value :scaled_values, input.items.item.value * input.multiplier
 value :bonus_values, scaled_values + input.bonus
 value :total_with_bonus, fn(:sum, bonus_values)
 value :final_total, total_with_bonus * input.multiplier

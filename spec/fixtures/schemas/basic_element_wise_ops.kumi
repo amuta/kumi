@@ -1,22 +1,24 @@
 input do
   array :items do
-    float   :price
-    integer :quantity
-    string  :category
+    hash :item do
+      float   :price
+      integer :quantity
+      string  :category
+    end
   end
   float :tax_rate
   float :multiplier
 end
 
 # Basic arithmetic operations
-value :subtotals, input.items.price * input.items.quantity
-value :discounted_prices, input.items.price * 0.9
-value :scaled_prices, input.items.price * input.multiplier
+value :subtotals, input.items.item.price * input.items.item.quantity
+value :discounted_prices, input.items.item.price * 0.9
+value :scaled_prices, input.items.item.price * input.multiplier
 
 # Comparison operations
-trait :expensive, input.items.price > 100.0
-trait :high_quantity, input.items.quantity >= 5
-trait :is_electronics, input.items.category == "electronics"
+trait :expensive, input.items.item.price > 100.0
+trait :high_quantity, input.items.item.quantity >= 5
+trait :is_electronics, input.items.item.category == "electronics"
 
 # Conditional operations using fn(:if)
-value :conditional_prices, fn(:if, expensive, input.items.price * 0.8, input.items.price)
+value :conditional_prices, fn(:if, expensive, input.items.item.price * 0.8, input.items.item.price)
