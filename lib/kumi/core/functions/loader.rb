@@ -34,7 +34,7 @@ module Kumi
           parameter_names = (fn_hash["params"] || []).map { |p| p["name"].to_sym }
           dtype_rule_fn = TypeRules.compile_dtype_rule(fn_hash.fetch("dtype"), parameter_names)
 
-          FunctionSpec.new(
+          Functions::FunctionSpec.new(
             id: function_id,
             kind: function_kind,
             parameter_names: parameter_names,
