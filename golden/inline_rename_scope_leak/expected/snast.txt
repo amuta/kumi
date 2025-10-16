@@ -1,0 +1,31 @@
+(SNAST
+  (VALUE sum_x
+    (Reduce :agg.sum over [xs]
+      (InputRef xs.el.v key_chain=[]) :: [xs] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE sum_y
+    (Reduce :agg.sum over [ys]
+      (InputRef ys.el.v key_chain=[]) :: [ys] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE tail
+    (Call :core.add
+      (Const 7.0) :: [] -> float
+      (Const 5.0) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE out
+    (Hash
+      (Pair x
+        (Ref sum_x) :: [] -> float
+      ) :: [] -> pair
+      (Pair y
+        (Ref sum_y) :: [] -> float
+      ) :: [] -> pair
+      (Pair t
+        (Ref tail) :: [] -> float
+      ) :: [] -> pair
+    ) :: [] -> hash
+  ) :: [] -> hash
+)

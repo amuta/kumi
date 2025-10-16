@@ -1,0 +1,31 @@
+(NAST
+  (VALUE sum_x
+    (Call :"agg.sum"
+    (InputRef [:xs, :el, :v])
+  )
+  )
+  (VALUE sum_y
+    (Call :"agg.sum"
+    (InputRef [:ys, :el, :v])
+  )
+  )
+  (VALUE tail
+    (Call :"core.add"
+    (Const 7.0)
+    (Const 5.0)
+  )
+  )
+  (VALUE out
+    (Hash
+    (Pair x 
+      (Ref sum_x)
+    )
+    (Pair y 
+      (Ref sum_y)
+    )
+    (Pair t 
+      (Ref tail)
+    )
+  )
+  )
+)

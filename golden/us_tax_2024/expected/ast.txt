@@ -1,0 +1,865 @@
+(Root
+  inputs: [
+    (InputDeclaration :income :float)
+    (InputDeclaration :state_rate :float)
+    (InputDeclaration :local_rate :float)
+    (InputDeclaration :retirement_contrib :float)
+    (InputDeclaration :fed :hash
+      [
+        (InputDeclaration :single :hash
+          [
+            (InputDeclaration :std :float)
+            (InputDeclaration :rates :array
+              [
+                (InputDeclaration :bracket :hash
+                  [
+                    (InputDeclaration :lo :float)
+                    (InputDeclaration :hi :float)
+                    (InputDeclaration :rate :float)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+        (InputDeclaration :married_joint :hash
+          [
+            (InputDeclaration :std :float)
+            (InputDeclaration :rates :array
+              [
+                (InputDeclaration :bracket :hash
+                  [
+                    (InputDeclaration :lo :float)
+                    (InputDeclaration :hi :float)
+                    (InputDeclaration :rate :float)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+        (InputDeclaration :married_separate :hash
+          [
+            (InputDeclaration :std :float)
+            (InputDeclaration :rates :array
+              [
+                (InputDeclaration :bracket :hash
+                  [
+                    (InputDeclaration :lo :float)
+                    (InputDeclaration :hi :float)
+                    (InputDeclaration :rate :float)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+        (InputDeclaration :head_of_household :hash
+          [
+            (InputDeclaration :std :float)
+            (InputDeclaration :rates :array
+              [
+                (InputDeclaration :bracket :hash
+                  [
+                    (InputDeclaration :lo :float)
+                    (InputDeclaration :hi :float)
+                    (InputDeclaration :rate :float)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :big_hi
+      (Literal 100000000000.0)
+    )
+    (ValueDeclaration :state_tax
+      (CallExpression :multiply
+        (InputReference :income)
+        (InputReference :state_rate)
+      )
+    )
+    (ValueDeclaration :local_tax
+      (CallExpression :multiply
+        (InputReference :income)
+        (InputReference :local_rate)
+      )
+    )
+    (ValueDeclaration :ss_wage_base
+      (Literal 168600.0)
+    )
+    (ValueDeclaration :ss_rate
+      (Literal 0.062)
+    )
+    (ValueDeclaration :med_base_rate
+      (Literal 0.0145)
+    )
+    (ValueDeclaration :addl_med_rate
+      (Literal 0.009)
+    )
+    (ValueDeclaration :addl_threshold_single
+      (Literal 200000.0)
+    )
+    (ValueDeclaration :addl_threshold_mj
+      (Literal 250000.0)
+    )
+    (ValueDeclaration :addl_threshold_ms
+      (Literal 125000.0)
+    )
+    (ValueDeclaration :addl_threshold_hoh
+      (Literal 200000.0)
+    )
+    (ValueDeclaration :taxable_single
+      (CallExpression :max
+        (ArrayExpression
+          (CallExpression :subtract
+            (InputReference :income)
+            (InputElementReference fed.single.std)
+          )
+          (Literal 0)
+        )
+      )
+    )
+    (ValueDeclaration :lo_s
+      (InputElementReference fed.single.rates.bracket.lo)
+    )
+    (ValueDeclaration :hi_s
+      (InputElementReference fed.single.rates.bracket.hi)
+    )
+    (ValueDeclaration :rate_s
+      (InputElementReference fed.single.rates.bracket.rate)
+    )
+    (ValueDeclaration :hi_s_eff
+      (CallExpression :select
+        (CallExpression :==
+          (DeclarationReference :hi_s)
+          (Literal -1)
+        )
+        (DeclarationReference :big_hi)
+        (DeclarationReference :hi_s)
+      )
+    )
+    (ValueDeclaration :amt_s
+      (CallExpression :clamp
+        (CallExpression :subtract
+          (DeclarationReference :taxable_single)
+          (DeclarationReference :lo_s)
+        )
+        (Literal 0)
+        (CallExpression :subtract
+          (DeclarationReference :hi_s_eff)
+          (DeclarationReference :lo_s)
+        )
+      )
+    )
+    (ValueDeclaration :fed_tax_single
+      (CallExpression :sum
+        (CallExpression :multiply
+          (DeclarationReference :amt_s)
+          (DeclarationReference :rate_s)
+        )
+      )
+    )
+    (ValueDeclaration :in_br_s
+      (CallExpression :and
+        (CallExpression :>=
+          (DeclarationReference :taxable_single)
+          (DeclarationReference :lo_s)
+        )
+        (CallExpression :<
+          (DeclarationReference :taxable_single)
+          (DeclarationReference :hi_s_eff)
+        )
+      )
+    )
+    (ValueDeclaration :fed_marginal_single
+      (CallExpression :sum_if
+        (DeclarationReference :rate_s)
+        (DeclarationReference :in_br_s)
+      )
+    )
+    (ValueDeclaration :fed_eff_single
+      (CallExpression :divide
+        (DeclarationReference :fed_tax_single)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :ss_tax_s
+      (CallExpression :multiply
+        (CallExpression :min
+          (ArrayExpression
+            (InputReference :income)
+            (DeclarationReference :ss_wage_base)
+          )
+        )
+        (DeclarationReference :ss_rate)
+      )
+    )
+    (ValueDeclaration :med_tax_s
+      (CallExpression :multiply
+        (InputReference :income)
+        (DeclarationReference :med_base_rate)
+      )
+    )
+    (ValueDeclaration :addl_med_tax_s
+      (CallExpression :multiply
+        (CallExpression :max
+          (ArrayExpression
+            (CallExpression :subtract
+              (InputReference :income)
+              (DeclarationReference :addl_threshold_single)
+            )
+            (Literal 0)
+          )
+        )
+        (DeclarationReference :addl_med_rate)
+      )
+    )
+    (ValueDeclaration :fica_tax_single
+      (CallExpression :add
+        (CallExpression :add
+          (DeclarationReference :ss_tax_s)
+          (DeclarationReference :med_tax_s)
+        )
+        (DeclarationReference :addl_med_tax_s)
+      )
+    )
+    (ValueDeclaration :fica_eff_single
+      (CallExpression :divide
+        (DeclarationReference :fica_tax_single)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :total_tax_single
+      (CallExpression :add
+        (CallExpression :add
+          (CallExpression :add
+            (DeclarationReference :fed_tax_single)
+            (DeclarationReference :fica_tax_single)
+          )
+          (DeclarationReference :state_tax)
+        )
+        (DeclarationReference :local_tax)
+      )
+    )
+    (ValueDeclaration :total_eff_single
+      (CallExpression :divide
+        (DeclarationReference :total_tax_single)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :after_tax_single
+      (CallExpression :subtract
+        (InputReference :income)
+        (DeclarationReference :total_tax_single)
+      )
+    )
+    (ValueDeclaration :take_home_single
+      (CallExpression :subtract
+        (DeclarationReference :after_tax_single)
+        (InputReference :retirement_contrib)
+      )
+    )
+    (ValueDeclaration :taxable_mj
+      (CallExpression :max
+        (ArrayExpression
+          (CallExpression :subtract
+            (InputReference :income)
+            (InputElementReference fed.married_joint.std)
+          )
+          (Literal 0)
+        )
+      )
+    )
+    (ValueDeclaration :lo_mj
+      (InputElementReference fed.married_joint.rates.bracket.lo)
+    )
+    (ValueDeclaration :hi_mj
+      (InputElementReference fed.married_joint.rates.bracket.hi)
+    )
+    (ValueDeclaration :rate_mj
+      (InputElementReference fed.married_joint.rates.bracket.rate)
+    )
+    (ValueDeclaration :hi_mj_eff
+      (CallExpression :select
+        (CallExpression :==
+          (DeclarationReference :hi_mj)
+          (Literal -1)
+        )
+        (DeclarationReference :big_hi)
+        (DeclarationReference :hi_mj)
+      )
+    )
+    (ValueDeclaration :amt_mj
+      (CallExpression :clamp
+        (CallExpression :subtract
+          (DeclarationReference :taxable_mj)
+          (DeclarationReference :lo_mj)
+        )
+        (Literal 0)
+        (CallExpression :subtract
+          (DeclarationReference :hi_mj_eff)
+          (DeclarationReference :lo_mj)
+        )
+      )
+    )
+    (ValueDeclaration :fed_tax_mj
+      (CallExpression :sum
+        (CallExpression :multiply
+          (DeclarationReference :amt_mj)
+          (DeclarationReference :rate_mj)
+        )
+      )
+    )
+    (ValueDeclaration :in_br_mj
+      (CallExpression :and
+        (CallExpression :>=
+          (DeclarationReference :taxable_mj)
+          (DeclarationReference :lo_mj)
+        )
+        (CallExpression :<
+          (DeclarationReference :taxable_mj)
+          (DeclarationReference :hi_mj_eff)
+        )
+      )
+    )
+    (ValueDeclaration :fed_marginal_mj
+      (CallExpression :sum_if
+        (DeclarationReference :rate_mj)
+        (DeclarationReference :in_br_mj)
+      )
+    )
+    (ValueDeclaration :fed_eff_mj
+      (CallExpression :divide
+        (DeclarationReference :fed_tax_mj)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :ss_tax_mj
+      (DeclarationReference :ss_tax_s)
+    )
+    (ValueDeclaration :med_tax_mj
+      (DeclarationReference :med_tax_s)
+    )
+    (ValueDeclaration :addl_med_tax_mj
+      (CallExpression :multiply
+        (CallExpression :max
+          (ArrayExpression
+            (CallExpression :subtract
+              (InputReference :income)
+              (DeclarationReference :addl_threshold_mj)
+            )
+            (Literal 0)
+          )
+        )
+        (DeclarationReference :addl_med_rate)
+      )
+    )
+    (ValueDeclaration :fica_tax_mj
+      (CallExpression :add
+        (CallExpression :add
+          (DeclarationReference :ss_tax_mj)
+          (DeclarationReference :med_tax_mj)
+        )
+        (DeclarationReference :addl_med_tax_mj)
+      )
+    )
+    (ValueDeclaration :fica_eff_mj
+      (CallExpression :divide
+        (DeclarationReference :fica_tax_mj)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :total_tax_mj
+      (CallExpression :add
+        (CallExpression :add
+          (CallExpression :add
+            (DeclarationReference :fed_tax_mj)
+            (DeclarationReference :fica_tax_mj)
+          )
+          (DeclarationReference :state_tax)
+        )
+        (DeclarationReference :local_tax)
+      )
+    )
+    (ValueDeclaration :total_eff_mj
+      (CallExpression :divide
+        (DeclarationReference :total_tax_mj)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :after_tax_mj
+      (CallExpression :subtract
+        (InputReference :income)
+        (DeclarationReference :total_tax_mj)
+      )
+    )
+    (ValueDeclaration :take_home_mj
+      (CallExpression :subtract
+        (DeclarationReference :after_tax_mj)
+        (InputReference :retirement_contrib)
+      )
+    )
+    (ValueDeclaration :taxable_ms
+      (CallExpression :max
+        (ArrayExpression
+          (CallExpression :subtract
+            (InputReference :income)
+            (InputElementReference fed.married_separate.std)
+          )
+          (Literal 0)
+        )
+      )
+    )
+    (ValueDeclaration :lo_ms
+      (InputElementReference fed.married_separate.rates.bracket.lo)
+    )
+    (ValueDeclaration :hi_ms
+      (InputElementReference fed.married_separate.rates.bracket.hi)
+    )
+    (ValueDeclaration :rate_ms
+      (InputElementReference fed.married_separate.rates.bracket.rate)
+    )
+    (ValueDeclaration :hi_ms_eff
+      (CallExpression :select
+        (CallExpression :==
+          (DeclarationReference :hi_ms)
+          (Literal -1)
+        )
+        (DeclarationReference :big_hi)
+        (DeclarationReference :hi_ms)
+      )
+    )
+    (ValueDeclaration :amt_ms
+      (CallExpression :clamp
+        (CallExpression :subtract
+          (DeclarationReference :taxable_ms)
+          (DeclarationReference :lo_ms)
+        )
+        (Literal 0)
+        (CallExpression :subtract
+          (DeclarationReference :hi_ms_eff)
+          (DeclarationReference :lo_ms)
+        )
+      )
+    )
+    (ValueDeclaration :fed_tax_ms
+      (CallExpression :sum
+        (CallExpression :multiply
+          (DeclarationReference :amt_ms)
+          (DeclarationReference :rate_ms)
+        )
+      )
+    )
+    (ValueDeclaration :in_br_ms
+      (CallExpression :and
+        (CallExpression :>=
+          (DeclarationReference :taxable_ms)
+          (DeclarationReference :lo_ms)
+        )
+        (CallExpression :<
+          (DeclarationReference :taxable_ms)
+          (DeclarationReference :hi_ms_eff)
+        )
+      )
+    )
+    (ValueDeclaration :fed_marginal_ms
+      (CallExpression :sum_if
+        (DeclarationReference :rate_ms)
+        (DeclarationReference :in_br_ms)
+      )
+    )
+    (ValueDeclaration :fed_eff_ms
+      (CallExpression :divide
+        (DeclarationReference :fed_tax_ms)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :ss_tax_ms
+      (DeclarationReference :ss_tax_s)
+    )
+    (ValueDeclaration :med_tax_ms
+      (DeclarationReference :med_tax_s)
+    )
+    (ValueDeclaration :addl_med_tax_ms
+      (CallExpression :multiply
+        (CallExpression :max
+          (ArrayExpression
+            (CallExpression :subtract
+              (InputReference :income)
+              (DeclarationReference :addl_threshold_ms)
+            )
+            (Literal 0)
+          )
+        )
+        (DeclarationReference :addl_med_rate)
+      )
+    )
+    (ValueDeclaration :fica_tax_ms
+      (CallExpression :add
+        (CallExpression :add
+          (DeclarationReference :ss_tax_ms)
+          (DeclarationReference :med_tax_ms)
+        )
+        (DeclarationReference :addl_med_tax_ms)
+      )
+    )
+    (ValueDeclaration :fica_eff_ms
+      (CallExpression :divide
+        (DeclarationReference :fica_tax_ms)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :total_tax_ms
+      (CallExpression :add
+        (CallExpression :add
+          (CallExpression :add
+            (DeclarationReference :fed_tax_ms)
+            (DeclarationReference :fica_tax_ms)
+          )
+          (DeclarationReference :state_tax)
+        )
+        (DeclarationReference :local_tax)
+      )
+    )
+    (ValueDeclaration :total_eff_ms
+      (CallExpression :divide
+        (DeclarationReference :total_tax_ms)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :after_tax_ms
+      (CallExpression :subtract
+        (InputReference :income)
+        (DeclarationReference :total_tax_ms)
+      )
+    )
+    (ValueDeclaration :take_home_ms
+      (CallExpression :subtract
+        (DeclarationReference :after_tax_ms)
+        (InputReference :retirement_contrib)
+      )
+    )
+    (ValueDeclaration :taxable_hoh
+      (CallExpression :max
+        (ArrayExpression
+          (CallExpression :subtract
+            (InputReference :income)
+            (InputElementReference fed.head_of_household.std)
+          )
+          (Literal 0)
+        )
+      )
+    )
+    (ValueDeclaration :lo_h
+      (InputElementReference fed.head_of_household.rates.bracket.lo)
+    )
+    (ValueDeclaration :hi_h
+      (InputElementReference fed.head_of_household.rates.bracket.hi)
+    )
+    (ValueDeclaration :rate_h
+      (InputElementReference fed.head_of_household.rates.bracket.rate)
+    )
+    (ValueDeclaration :hi_h_eff
+      (CallExpression :select
+        (CallExpression :==
+          (DeclarationReference :hi_h)
+          (Literal -1)
+        )
+        (DeclarationReference :big_hi)
+        (DeclarationReference :hi_h)
+      )
+    )
+    (ValueDeclaration :amt_h
+      (CallExpression :clamp
+        (CallExpression :subtract
+          (DeclarationReference :taxable_hoh)
+          (DeclarationReference :lo_h)
+        )
+        (Literal 0)
+        (CallExpression :subtract
+          (DeclarationReference :hi_h_eff)
+          (DeclarationReference :lo_h)
+        )
+      )
+    )
+    (ValueDeclaration :fed_tax_hoh
+      (CallExpression :sum
+        (CallExpression :multiply
+          (DeclarationReference :amt_h)
+          (DeclarationReference :rate_h)
+        )
+      )
+    )
+    (ValueDeclaration :in_br_h
+      (CallExpression :and
+        (CallExpression :>=
+          (DeclarationReference :taxable_hoh)
+          (DeclarationReference :lo_h)
+        )
+        (CallExpression :<
+          (DeclarationReference :taxable_hoh)
+          (DeclarationReference :hi_h_eff)
+        )
+      )
+    )
+    (ValueDeclaration :fed_marginal_hoh
+      (CallExpression :sum_if
+        (DeclarationReference :rate_h)
+        (DeclarationReference :in_br_h)
+      )
+    )
+    (ValueDeclaration :fed_eff_hoh
+      (CallExpression :divide
+        (DeclarationReference :fed_tax_hoh)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :ss_tax_h
+      (DeclarationReference :ss_tax_s)
+    )
+    (ValueDeclaration :med_tax_h
+      (DeclarationReference :med_tax_s)
+    )
+    (ValueDeclaration :addl_med_tax_h
+      (CallExpression :multiply
+        (CallExpression :max
+          (ArrayExpression
+            (CallExpression :subtract
+              (InputReference :income)
+              (DeclarationReference :addl_threshold_hoh)
+            )
+            (Literal 0)
+          )
+        )
+        (DeclarationReference :addl_med_rate)
+      )
+    )
+    (ValueDeclaration :fica_tax_hoh
+      (CallExpression :add
+        (CallExpression :add
+          (DeclarationReference :ss_tax_h)
+          (DeclarationReference :med_tax_h)
+        )
+        (DeclarationReference :addl_med_tax_h)
+      )
+    )
+    (ValueDeclaration :fica_eff_hoh
+      (CallExpression :divide
+        (DeclarationReference :fica_tax_hoh)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :total_tax_hoh
+      (CallExpression :add
+        (CallExpression :add
+          (CallExpression :add
+            (DeclarationReference :fed_tax_hoh)
+            (DeclarationReference :fica_tax_hoh)
+          )
+          (DeclarationReference :state_tax)
+        )
+        (DeclarationReference :local_tax)
+      )
+    )
+    (ValueDeclaration :total_eff_hoh
+      (CallExpression :divide
+        (DeclarationReference :total_tax_hoh)
+        (CallExpression :max
+          (ArrayExpression
+            (InputReference :income)
+            (Literal 1.0)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :after_tax_hoh
+      (CallExpression :subtract
+        (InputReference :income)
+        (DeclarationReference :total_tax_hoh)
+      )
+    )
+    (ValueDeclaration :take_home_hoh
+      (CallExpression :subtract
+        (DeclarationReference :after_tax_hoh)
+        (InputReference :retirement_contrib)
+      )
+    )
+    (ValueDeclaration :summary
+      (HashExpression
+        ((Literal :single) (HashExpression
+        ((Literal :federal) (HashExpression
+        ((Literal :marginal) (DeclarationReference :fed_marginal_single))
+        ((Literal :effective) (DeclarationReference :fed_eff_single))
+        ((Literal :tax) (DeclarationReference :fed_tax_single))
+      ))
+        ((Literal :fica) (HashExpression
+        ((Literal :effective) (DeclarationReference :fica_eff_single))
+        ((Literal :tax) (DeclarationReference :fica_tax_single))
+      ))
+        ((Literal :state) (HashExpression
+        ((Literal :marginal) (InputReference :state_rate))
+        ((Literal :effective) (InputReference :state_rate))
+        ((Literal :tax) (DeclarationReference :state_tax))
+      ))
+        ((Literal :local) (HashExpression
+        ((Literal :marginal) (InputReference :local_rate))
+        ((Literal :effective) (InputReference :local_rate))
+        ((Literal :tax) (DeclarationReference :local_tax))
+      ))
+        ((Literal :total) (HashExpression
+        ((Literal :effective) (DeclarationReference :total_eff_single))
+        ((Literal :tax) (DeclarationReference :total_tax_single))
+      ))
+        ((Literal :after_tax) (DeclarationReference :after_tax_single))
+        ((Literal :retirement_contrib) (InputReference :retirement_contrib))
+        ((Literal :take_home) (DeclarationReference :take_home_single))
+      ))
+        ((Literal :married_joint) (HashExpression
+        ((Literal :federal) (HashExpression
+        ((Literal :marginal) (DeclarationReference :fed_marginal_mj))
+        ((Literal :effective) (DeclarationReference :fed_eff_mj))
+        ((Literal :tax) (DeclarationReference :fed_tax_mj))
+      ))
+        ((Literal :fica) (HashExpression
+        ((Literal :effective) (DeclarationReference :fica_eff_mj))
+        ((Literal :tax) (DeclarationReference :fica_tax_mj))
+      ))
+        ((Literal :state) (HashExpression
+        ((Literal :marginal) (InputReference :state_rate))
+        ((Literal :effective) (InputReference :state_rate))
+        ((Literal :tax) (DeclarationReference :state_tax))
+      ))
+        ((Literal :local) (HashExpression
+        ((Literal :marginal) (InputReference :local_rate))
+        ((Literal :effective) (InputReference :local_rate))
+        ((Literal :tax) (DeclarationReference :local_tax))
+      ))
+        ((Literal :total) (HashExpression
+        ((Literal :effective) (DeclarationReference :total_eff_mj))
+        ((Literal :tax) (DeclarationReference :total_tax_mj))
+      ))
+        ((Literal :after_tax) (DeclarationReference :after_tax_mj))
+        ((Literal :retirement_contrib) (InputReference :retirement_contrib))
+        ((Literal :take_home) (DeclarationReference :take_home_mj))
+      ))
+        ((Literal :married_separate) (HashExpression
+        ((Literal :federal) (HashExpression
+        ((Literal :marginal) (DeclarationReference :fed_marginal_ms))
+        ((Literal :effective) (DeclarationReference :fed_eff_ms))
+        ((Literal :tax) (DeclarationReference :fed_tax_ms))
+      ))
+        ((Literal :fica) (HashExpression
+        ((Literal :effective) (DeclarationReference :fica_eff_ms))
+        ((Literal :tax) (DeclarationReference :fica_tax_ms))
+      ))
+        ((Literal :state) (HashExpression
+        ((Literal :marginal) (InputReference :state_rate))
+        ((Literal :effective) (InputReference :state_rate))
+        ((Literal :tax) (DeclarationReference :state_tax))
+      ))
+        ((Literal :local) (HashExpression
+        ((Literal :marginal) (InputReference :local_rate))
+        ((Literal :effective) (InputReference :local_rate))
+        ((Literal :tax) (DeclarationReference :local_tax))
+      ))
+        ((Literal :total) (HashExpression
+        ((Literal :effective) (DeclarationReference :total_eff_ms))
+        ((Literal :tax) (DeclarationReference :total_tax_ms))
+      ))
+        ((Literal :after_tax) (DeclarationReference :after_tax_ms))
+        ((Literal :retirement_contrib) (InputReference :retirement_contrib))
+        ((Literal :take_home) (DeclarationReference :take_home_ms))
+      ))
+        ((Literal :head_of_household) (HashExpression
+        ((Literal :federal) (HashExpression
+        ((Literal :marginal) (DeclarationReference :fed_marginal_hoh))
+        ((Literal :effective) (DeclarationReference :fed_eff_hoh))
+        ((Literal :tax) (DeclarationReference :fed_tax_hoh))
+      ))
+        ((Literal :fica) (HashExpression
+        ((Literal :effective) (DeclarationReference :fica_eff_hoh))
+        ((Literal :tax) (DeclarationReference :fica_tax_hoh))
+      ))
+        ((Literal :state) (HashExpression
+        ((Literal :marginal) (InputReference :state_rate))
+        ((Literal :effective) (InputReference :state_rate))
+        ((Literal :tax) (DeclarationReference :state_tax))
+      ))
+        ((Literal :local) (HashExpression
+        ((Literal :marginal) (InputReference :local_rate))
+        ((Literal :effective) (InputReference :local_rate))
+        ((Literal :tax) (DeclarationReference :local_tax))
+      ))
+        ((Literal :total) (HashExpression
+        ((Literal :effective) (DeclarationReference :total_eff_hoh))
+        ((Literal :tax) (DeclarationReference :total_tax_hoh))
+      ))
+        ((Literal :after_tax) (DeclarationReference :after_tax_hoh))
+        ((Literal :retirement_contrib) (InputReference :retirement_contrib))
+        ((Literal :take_home) (DeclarationReference :take_home_hoh))
+      ))
+      )
+    )
+  ]
+  traits: []
+)

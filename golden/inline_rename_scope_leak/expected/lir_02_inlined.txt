@@ -1,0 +1,49 @@
+(LIR
+  (Declaration sum_x
+    %acc_1 = decl_acc :: float
+    %t2 = load_input "xs" :: array
+    loop xs id=L1 in %t2 as el=%xs_el_3, idx=%xs_i_4
+      %t5 = load_field xs_el_3["v"] :: float
+      %acc_1 = acc_add agg.sum(%acc_1, %t5) :: float
+    end_loop
+    %t6 = acc_load %acc_1 :: float
+    yield %t6
+  )
+  (Declaration sum_y
+    %acc_7 = decl_acc :: float
+    %t8 = load_input "ys" :: array
+    loop ys id=L2 in %t8 as el=%ys_el_9, idx=%ys_i_10
+      %t11 = load_field ys_el_9["v"] :: float
+      %acc_7 = acc_add agg.sum(%acc_7, %t11) :: float
+    end_loop
+    %t12 = acc_load %acc_7 :: float
+    yield %t12
+  )
+  (Declaration tail
+    %t13 = const 7.0 :: float
+    %t14 = const 5.0 :: float
+    %t15 = call core.add(%t13, %t14) :: float
+    yield %t15
+  )
+  (Declaration out
+    %acc21 = decl_acc :: float
+    %t22 = load_input "xs" :: array
+    loop xs id=L3 in %t22 as el=%t23, idx=%t24
+      %t25 = load_field t23["v"] :: float
+      %acc21 = acc_add agg.sum(%acc21, %t25) :: float
+    end_loop
+    %t26 = acc_load %acc21 :: float
+    %acc28 = decl_acc :: float
+    %t29 = load_input "ys" :: array
+    loop ys id=L4 in %t29 as el=%t30, idx=%t31
+      %t32 = load_field t30["v"] :: float
+      %acc28 = acc_add agg.sum(%acc28, %t32) :: float
+    end_loop
+    %t33 = acc_load %acc28 :: float
+    %t34 = const 7.0 :: float
+    %t35 = const 5.0 :: float
+    %t36 = call core.add(%t34, %t35) :: float
+    %t19 = make_object{x: %t26, y: %t33, t: %t36} :: object
+    yield %t19
+  )
+)

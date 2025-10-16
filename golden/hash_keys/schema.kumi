@@ -1,14 +1,13 @@
 schema do
-
   input do
     integer :width
     integer :height
   end
 
   value :meta, {
-    render:  "grid2d",
-    size:    { width: input.width, height: input.height },
+    render: "grid2d",
+    size: { width: input.width, height: input.height },
     prefill: { kind: "random", density: 0.3 },
-    ui:      { cellSize: 10, palette: { "0" => "#0f1219", "1" => "#10b981" } }
+    ui: { cellSize: 10, palette: { "0" => "#0f1219", "1" => "#10b981" } }
   }
 end

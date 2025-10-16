@@ -1,0 +1,61 @@
+income: float
+state_rate: float
+local_rate: float
+retirement_contrib: float
+fed: hash (hash)
+  └─> single: property_access
+  └─> married_joint: property_access
+  └─> married_separate: property_access
+  └─> head_of_household: property_access
+  single: hash (hash)
+    └─> std: property_access
+    └─> rates: property_access → array_loop
+    std: float
+    rates: array (array) access_mode=element
+      └─> bracket: element_access
+      bracket: hash (hash)
+        └─> lo: property_access
+        └─> hi: property_access
+        └─> rate: property_access
+        lo: float
+        hi: float
+        rate: float
+  married_joint: hash (hash)
+    └─> std: property_access
+    └─> rates: property_access → array_loop
+    std: float
+    rates: array (array) access_mode=element
+      └─> bracket: element_access
+      bracket: hash (hash)
+        └─> lo: property_access
+        └─> hi: property_access
+        └─> rate: property_access
+        lo: float
+        hi: float
+        rate: float
+  married_separate: hash (hash)
+    └─> std: property_access
+    └─> rates: property_access → array_loop
+    std: float
+    rates: array (array) access_mode=element
+      └─> bracket: element_access
+      bracket: hash (hash)
+        └─> lo: property_access
+        └─> hi: property_access
+        └─> rate: property_access
+        lo: float
+        hi: float
+        rate: float
+  head_of_household: hash (hash)
+    └─> std: property_access
+    └─> rates: property_access → array_loop
+    std: float
+    rates: array (array) access_mode=element
+      └─> bracket: element_access
+      bracket: hash (hash)
+        └─> lo: property_access
+        └─> hi: property_access
+        └─> rate: property_access
+        lo: float
+        hi: float
+        rate: float

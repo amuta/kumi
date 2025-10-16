@@ -1,0 +1,48 @@
+(Root
+  inputs: [
+    (InputDeclaration :xs :array
+      [
+        (InputDeclaration :el :hash
+          [
+            (InputDeclaration :v :float)
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :ys :array
+      [
+        (InputDeclaration :el :hash
+          [
+            (InputDeclaration :v :float)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :sum_x
+      (CallExpression :sum
+        (InputElementReference xs.el.v)
+      )
+    )
+    (ValueDeclaration :sum_y
+      (CallExpression :sum
+        (InputElementReference ys.el.v)
+      )
+    )
+    (ValueDeclaration :tail
+      (CallExpression :add
+        (Literal 7.0)
+        (Literal 5.0)
+      )
+    )
+    (ValueDeclaration :out
+      (HashExpression
+        ((Literal :x) (DeclarationReference :sum_x))
+        ((Literal :y) (DeclarationReference :sum_y))
+        ((Literal :t) (DeclarationReference :tail))
+      )
+    )
+  ]
+  traits: []
+)

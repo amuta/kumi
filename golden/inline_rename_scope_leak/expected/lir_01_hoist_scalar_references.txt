@@ -1,0 +1,35 @@
+(LIR
+  (Declaration sum_x
+    %acc_1 = decl_acc :: float
+    %t2 = load_input "xs" :: array
+    loop xs id=L1 in %t2 as el=%xs_el_3, idx=%xs_i_4
+      %t5 = load_field xs_el_3["v"] :: float
+      %acc_1 = acc_add agg.sum(%acc_1, %t5) :: float
+    end_loop
+    %t6 = acc_load %acc_1 :: float
+    yield %t6
+  )
+  (Declaration sum_y
+    %acc_7 = decl_acc :: float
+    %t8 = load_input "ys" :: array
+    loop ys id=L2 in %t8 as el=%ys_el_9, idx=%ys_i_10
+      %t11 = load_field ys_el_9["v"] :: float
+      %acc_7 = acc_add agg.sum(%acc_7, %t11) :: float
+    end_loop
+    %t12 = acc_load %acc_7 :: float
+    yield %t12
+  )
+  (Declaration tail
+    %t13 = const 7.0 :: float
+    %t14 = const 5.0 :: float
+    %t15 = call core.add(%t13, %t14) :: float
+    yield %t15
+  )
+  (Declaration out
+    %t16 = load_decl sum_x :: float
+    %t17 = load_decl sum_y :: float
+    %t18 = load_decl tail :: float
+    %t19 = make_object{x: %t16, y: %t17, t: %t18} :: object
+    yield %t19
+  )
+)

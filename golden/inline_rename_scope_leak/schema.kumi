@@ -1,0 +1,24 @@
+schema do
+  input do
+    array :xs do
+      hash :el do
+        float :v
+      end
+    end
+    array :ys do
+      hash :el do
+        float :v
+      end
+    end
+  end
+
+  # two separate decls that each compile to a gamma (sum over array)
+  value :sum_x, fn(:sum, input.xs.el.v)
+  value :sum_y, fn(:sum, input.ys.el.v)
+
+  # unrelated scalar decl
+  value :tail, 7.0 + 5.0
+
+  # caller that forces two LoadDeclaration inlines, then a scalar op
+  value :out, { x: sum_x, y: sum_y, t: tail }
+end
