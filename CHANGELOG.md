@@ -1,4 +1,7 @@
 ## [Unreleased]
+## [0.0.24] – 2025-10-16
+### Fixed
+- Bug when inlining of declarations with multiple axis reductions.
 
 ## [0.0.23] – 2025-10-13
 ### Fixed
