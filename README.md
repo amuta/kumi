@@ -3,7 +3,7 @@
 [![CI](https://github.com/amuta/kumi/workflows/CI/badge.svg)](https://github.com/amuta/kumi/actions)
 [![Gem Version](https://badge.fury.io/rb/kumi.svg)](https://badge.fury.io/rb/kumi)
 
-**[Try the interactive demo →](https://kumi-play.example.com)**
+**[Try the interactive demo →](https://kumi-play-web.fly.dev/)**
 
 ---
 
