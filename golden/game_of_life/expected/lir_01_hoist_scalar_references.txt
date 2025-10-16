@@ -11,7 +11,7 @@
     %t6 = load_input "rows" :: array
     loop rows id=L3 in %t6 as el=%rows_el_7, idx=%rows_i_8
       loop col id=L4 in %rows_el_7 as el=%col_el_9, idx=%col_i_10
-        %t11 = Length %t6 :: integer
+        %t11 = length %t6 :: integer
         %t12 = const -1 :: integer
         %t13 = call core.sub(%rows_i_8, %t12) :: integer
         %t14 = const 0 :: integer
@@ -22,12 +22,12 @@
         %t19 = call core.sub(%t11, %t18) :: integer
         %t20 = const 0 :: integer
         %t21 = call core.clamp(%t13, %t20, %t19) :: integer
-        %t22 = Gather %t6, %t21 :: any
-        %t23 = Length %t22 :: integer
+        %t22 = gather %t6, %t21 :: any
+        %t23 = length %t22 :: integer
         %t24 = call core.mod(%col_i_10, %t23) :: integer
         %t25 = call core.add(%t24, %t23) :: integer
         %t26 = call core.mod(%t25, %t23) :: integer
-        %t27 = Gather %t22, %t26 :: integer
+        %t27 = gather %t22, %t26 :: integer
         %t28 = const 0 :: integer
         %t29 = select %t17, %t27, %t28 :: integer
         yield %t29
@@ -38,7 +38,7 @@
     %t30 = load_input "rows" :: array
     loop rows id=L5 in %t30 as el=%rows_el_31, idx=%rows_i_32
       loop col id=L6 in %rows_el_31 as el=%col_el_33, idx=%col_i_34
-        %t35 = Length %t30 :: integer
+        %t35 = length %t30 :: integer
         %t36 = const 1 :: integer
         %t37 = call core.sub(%rows_i_32, %t36) :: integer
         %t38 = const 0 :: integer
@@ -49,12 +49,12 @@
         %t43 = call core.sub(%t35, %t42) :: integer
         %t44 = const 0 :: integer
         %t45 = call core.clamp(%t37, %t44, %t43) :: integer
-        %t46 = Gather %t30, %t45 :: any
-        %t47 = Length %t46 :: integer
+        %t46 = gather %t30, %t45 :: any
+        %t47 = length %t46 :: integer
         %t48 = call core.mod(%col_i_34, %t47) :: integer
         %t49 = call core.add(%t48, %t47) :: integer
         %t50 = call core.mod(%t49, %t47) :: integer
-        %t51 = Gather %t46, %t50 :: integer
+        %t51 = gather %t46, %t50 :: integer
         %t52 = const 0 :: integer
         %t53 = select %t41, %t51, %t52 :: integer
         yield %t53
@@ -65,12 +65,12 @@
     %t54 = load_input "rows" :: array
     loop rows id=L7 in %t54 as el=%rows_el_55, idx=%rows_i_56
       loop col id=L8 in %rows_el_55 as el=%col_el_57, idx=%col_i_58
-        %t59 = Length %t54 :: integer
+        %t59 = length %t54 :: integer
         %t60 = call core.mod(%rows_i_56, %t59) :: integer
         %t61 = call core.add(%t60, %t59) :: integer
         %t62 = call core.mod(%t61, %t59) :: integer
-        %t63 = Gather %t54, %t62 :: any
-        %t64 = Length %t63 :: integer
+        %t63 = gather %t54, %t62 :: any
+        %t64 = length %t63 :: integer
         %t65 = const -1 :: integer
         %t66 = call core.sub(%col_i_58, %t65) :: integer
         %t67 = const 0 :: integer
@@ -81,7 +81,7 @@
         %t72 = call core.sub(%t64, %t71) :: integer
         %t73 = const 0 :: integer
         %t74 = call core.clamp(%t66, %t73, %t72) :: integer
-        %t75 = Gather %t63, %t74 :: integer
+        %t75 = gather %t63, %t74 :: integer
         %t76 = const 0 :: integer
         %t77 = select %t70, %t75, %t76 :: integer
         yield %t77
@@ -92,12 +92,12 @@
     %t78 = load_input "rows" :: array
     loop rows id=L9 in %t78 as el=%rows_el_79, idx=%rows_i_80
       loop col id=L10 in %rows_el_79 as el=%col_el_81, idx=%col_i_82
-        %t83 = Length %t78 :: integer
+        %t83 = length %t78 :: integer
         %t84 = call core.mod(%rows_i_80, %t83) :: integer
         %t85 = call core.add(%t84, %t83) :: integer
         %t86 = call core.mod(%t85, %t83) :: integer
-        %t87 = Gather %t78, %t86 :: any
-        %t88 = Length %t87 :: integer
+        %t87 = gather %t78, %t86 :: any
+        %t88 = length %t87 :: integer
         %t89 = const 1 :: integer
         %t90 = call core.sub(%col_i_82, %t89) :: integer
         %t91 = const 0 :: integer
@@ -108,7 +108,7 @@
         %t96 = call core.sub(%t88, %t95) :: integer
         %t97 = const 0 :: integer
         %t98 = call core.clamp(%t90, %t97, %t96) :: integer
-        %t99 = Gather %t87, %t98 :: integer
+        %t99 = gather %t87, %t98 :: integer
         %t100 = const 0 :: integer
         %t101 = select %t94, %t99, %t100 :: integer
         yield %t101
@@ -119,7 +119,7 @@
     %t102 = load_input "rows" :: array
     loop rows id=L11 in %t102 as el=%rows_el_103, idx=%rows_i_104
       loop col id=L12 in %rows_el_103 as el=%col_el_105, idx=%col_i_106
-        %t107 = Length %t102 :: integer
+        %t107 = length %t102 :: integer
         %t108 = const -1 :: integer
         %t109 = call core.sub(%rows_i_104, %t108) :: integer
         %t110 = const 0 :: integer
@@ -130,8 +130,8 @@
         %t115 = call core.sub(%t107, %t114) :: integer
         %t116 = const 0 :: integer
         %t117 = call core.clamp(%t109, %t116, %t115) :: integer
-        %t118 = Gather %t102, %t117 :: any
-        %t119 = Length %t118 :: integer
+        %t118 = gather %t102, %t117 :: any
+        %t119 = length %t118 :: integer
         %t120 = const -1 :: integer
         %t121 = call core.sub(%col_i_106, %t120) :: integer
         %t122 = const 0 :: integer
@@ -143,7 +143,7 @@
         %t128 = call core.sub(%t119, %t127) :: integer
         %t129 = const 0 :: integer
         %t130 = call core.clamp(%t121, %t129, %t128) :: integer
-        %t131 = Gather %t118, %t130 :: integer
+        %t131 = gather %t118, %t130 :: integer
         %t132 = const 0 :: integer
         %t133 = select %t126, %t131, %t132 :: integer
         yield %t133
@@ -154,7 +154,7 @@
     %t134 = load_input "rows" :: array
     loop rows id=L13 in %t134 as el=%rows_el_135, idx=%rows_i_136
       loop col id=L14 in %rows_el_135 as el=%col_el_137, idx=%col_i_138
-        %t139 = Length %t134 :: integer
+        %t139 = length %t134 :: integer
         %t140 = const -1 :: integer
         %t141 = call core.sub(%rows_i_136, %t140) :: integer
         %t142 = const 0 :: integer
@@ -165,8 +165,8 @@
         %t147 = call core.sub(%t139, %t146) :: integer
         %t148 = const 0 :: integer
         %t149 = call core.clamp(%t141, %t148, %t147) :: integer
-        %t150 = Gather %t134, %t149 :: any
-        %t151 = Length %t150 :: integer
+        %t150 = gather %t134, %t149 :: any
+        %t151 = length %t150 :: integer
         %t152 = const 1 :: integer
         %t153 = call core.sub(%col_i_138, %t152) :: integer
         %t154 = const 0 :: integer
@@ -178,7 +178,7 @@
         %t160 = call core.sub(%t151, %t159) :: integer
         %t161 = const 0 :: integer
         %t162 = call core.clamp(%t153, %t161, %t160) :: integer
-        %t163 = Gather %t150, %t162 :: integer
+        %t163 = gather %t150, %t162 :: integer
         %t164 = const 0 :: integer
         %t165 = select %t158, %t163, %t164 :: integer
         yield %t165
@@ -189,7 +189,7 @@
     %t166 = load_input "rows" :: array
     loop rows id=L15 in %t166 as el=%rows_el_167, idx=%rows_i_168
       loop col id=L16 in %rows_el_167 as el=%col_el_169, idx=%col_i_170
-        %t171 = Length %t166 :: integer
+        %t171 = length %t166 :: integer
         %t172 = const 1 :: integer
         %t173 = call core.sub(%rows_i_168, %t172) :: integer
         %t174 = const 0 :: integer
@@ -200,8 +200,8 @@
         %t179 = call core.sub(%t171, %t178) :: integer
         %t180 = const 0 :: integer
         %t181 = call core.clamp(%t173, %t180, %t179) :: integer
-        %t182 = Gather %t166, %t181 :: any
-        %t183 = Length %t182 :: integer
+        %t182 = gather %t166, %t181 :: any
+        %t183 = length %t182 :: integer
         %t184 = const -1 :: integer
         %t185 = call core.sub(%col_i_170, %t184) :: integer
         %t186 = const 0 :: integer
@@ -213,7 +213,7 @@
         %t192 = call core.sub(%t183, %t191) :: integer
         %t193 = const 0 :: integer
         %t194 = call core.clamp(%t185, %t193, %t192) :: integer
-        %t195 = Gather %t182, %t194 :: integer
+        %t195 = gather %t182, %t194 :: integer
         %t196 = const 0 :: integer
         %t197 = select %t190, %t195, %t196 :: integer
         yield %t197
@@ -224,7 +224,7 @@
     %t198 = load_input "rows" :: array
     loop rows id=L17 in %t198 as el=%rows_el_199, idx=%rows_i_200
       loop col id=L18 in %rows_el_199 as el=%col_el_201, idx=%col_i_202
-        %t203 = Length %t198 :: integer
+        %t203 = length %t198 :: integer
         %t204 = const 1 :: integer
         %t205 = call core.sub(%rows_i_200, %t204) :: integer
         %t206 = const 0 :: integer
@@ -235,8 +235,8 @@
         %t211 = call core.sub(%t203, %t210) :: integer
         %t212 = const 0 :: integer
         %t213 = call core.clamp(%t205, %t212, %t211) :: integer
-        %t214 = Gather %t198, %t213 :: any
-        %t215 = Length %t214 :: integer
+        %t214 = gather %t198, %t213 :: any
+        %t215 = length %t214 :: integer
         %t216 = const 1 :: integer
         %t217 = call core.sub(%col_i_202, %t216) :: integer
         %t218 = const 0 :: integer
@@ -248,7 +248,7 @@
         %t224 = call core.sub(%t215, %t223) :: integer
         %t225 = const 0 :: integer
         %t226 = call core.clamp(%t217, %t225, %t224) :: integer
-        %t227 = Gather %t214, %t226 :: integer
+        %t227 = gather %t214, %t226 :: integer
         %t228 = const 0 :: integer
         %t229 = select %t222, %t227, %t228 :: integer
         yield %t229
@@ -268,7 +268,7 @@
         %t241 = load_decl sw axes=[rows, col] :: integer
         %t242 = load_decl se axes=[rows, col] :: integer
         %t243 = make_tuple(%t235, %t236, %t237, %t238, %t239, %t240, %t241, %t242) :: tuple<integer>
-        %t244 = Fold %t243 fn="agg.sum" :: 
+        %t244 = fold %t243 fn="agg.sum" :: 
         yield %t244
       end_loop
     end_loop

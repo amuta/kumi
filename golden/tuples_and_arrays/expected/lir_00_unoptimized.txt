@@ -24,7 +24,7 @@
       %t17 = load_decl selected_value axes=[points] :: integer
       %t18 = load_field points_el_15["x"] :: integer
       %t19 = make_tuple(%t17, %t18) :: tuple<integer>
-      %t20 = Fold %t19 fn="agg.max" :: integer
+      %t20 = fold %t19 fn="agg.max" :: integer
       yield %t20
     end_loop
   )

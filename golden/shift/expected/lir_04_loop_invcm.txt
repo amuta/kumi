@@ -1,7 +1,7 @@
 (LIR
   (Declaration shift_right_zero
     %t1 = load_input "cells" :: array
-    %t4 = Length %t1 :: integer
+    %t4 = length %t1 :: integer
     %t5 = const 1 :: integer
     %t7 = const 0 :: integer
     %t12 = call core.sub(%t4, %t5) :: integer
@@ -11,14 +11,14 @@
       %t9 = call core.lt(%t6, %t4) :: boolean
       %t14 = call core.clamp(%t6, %t7, %t12) :: integer
       %t10 = call core.and(%t8, %t9) :: boolean
-      %t15 = Gather %t1, %t14 :: integer
+      %t15 = gather %t1, %t14 :: integer
       %t17 = select %t10, %t15, %t7 :: integer
       yield %t17
     end_loop
   )
   (Declaration shift_left_zero
     %t18 = load_input "cells" :: array
-    %t21 = Length %t18 :: integer
+    %t21 = length %t18 :: integer
     %t22 = const -1 :: integer
     %t24 = const 0 :: integer
     %t28 = const 1 :: integer
@@ -29,27 +29,27 @@
       %t26 = call core.lt(%t23, %t21) :: boolean
       %t31 = call core.clamp(%t23, %t24, %t29) :: integer
       %t27 = call core.and(%t25, %t26) :: boolean
-      %t32 = Gather %t18, %t31 :: integer
+      %t32 = gather %t18, %t31 :: integer
       %t34 = select %t27, %t32, %t24 :: integer
       yield %t34
     end_loop
   )
   (Declaration shift_right_clamp
     %t35 = load_input "cells" :: array
-    %t38 = Length %t35 :: integer
+    %t38 = length %t35 :: integer
     %t39 = const 1 :: integer
     %t43 = const 0 :: integer
     %t42 = call core.sub(%t38, %t39) :: integer
     loop cells id=L3 in %t35 as el=%cells_el_36, idx=%cells_i_37
       %t40 = call core.sub(%cells_i_37, %t39) :: integer
       %t44 = call core.clamp(%t40, %t43, %t42) :: integer
-      %t45 = Gather %t35, %t44 :: integer
+      %t45 = gather %t35, %t44 :: integer
       yield %t45
     end_loop
   )
   (Declaration shift_left_clamp
     %t46 = load_input "cells" :: array
-    %t49 = Length %t46 :: integer
+    %t49 = length %t46 :: integer
     %t50 = const -1 :: integer
     %t52 = const 1 :: integer
     %t54 = const 0 :: integer
@@ -57,33 +57,33 @@
     loop cells id=L4 in %t46 as el=%cells_el_47, idx=%cells_i_48
       %t51 = call core.sub(%cells_i_48, %t50) :: integer
       %t55 = call core.clamp(%t51, %t54, %t53) :: integer
-      %t56 = Gather %t46, %t55 :: integer
+      %t56 = gather %t46, %t55 :: integer
       yield %t56
     end_loop
   )
   (Declaration shift_right_wrap
     %t57 = load_input "cells" :: array
-    %t60 = Length %t57 :: integer
+    %t60 = length %t57 :: integer
     %t61 = const 1 :: integer
     loop cells id=L5 in %t57 as el=%cells_el_58, idx=%cells_i_59
       %t62 = call core.sub(%cells_i_59, %t61) :: integer
       %t63 = call core.mod(%t62, %t60) :: integer
       %t64 = call core.add(%t63, %t60) :: integer
       %t65 = call core.mod(%t64, %t60) :: integer
-      %t66 = Gather %t57, %t65 :: integer
+      %t66 = gather %t57, %t65 :: integer
       yield %t66
     end_loop
   )
   (Declaration shift_left_wrap
     %t67 = load_input "cells" :: array
-    %t70 = Length %t67 :: integer
+    %t70 = length %t67 :: integer
     %t71 = const -1 :: integer
     loop cells id=L6 in %t67 as el=%cells_el_68, idx=%cells_i_69
       %t72 = call core.sub(%cells_i_69, %t71) :: integer
       %t73 = call core.mod(%t72, %t70) :: integer
       %t74 = call core.add(%t73, %t70) :: integer
       %t75 = call core.mod(%t74, %t70) :: integer
-      %t76 = Gather %t67, %t75 :: integer
+      %t76 = gather %t67, %t75 :: integer
       yield %t76
     end_loop
   )

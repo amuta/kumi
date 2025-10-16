@@ -34,7 +34,7 @@
       %t35 = select %t44, %t33, %t34 :: integer
       %t18 = load_field points_el_15["x"] :: integer
       %t19 = make_tuple(%t35, %t18) :: tuple<integer>
-      %t20 = Fold %t19 fn="agg.max" :: integer
+      %t20 = fold %t19 fn="agg.max" :: integer
       yield %t20
     end_loop
   )
@@ -53,7 +53,7 @@
       %t52 = select %t49, %t50, %t51 :: integer
       %t38 = load_field points_el_23["x"] :: integer
       %t39 = make_tuple(%t52, %t38) :: tuple<integer>
-      %t40 = Fold %t39 fn="agg.max" :: integer
+      %t40 = fold %t39 fn="agg.max" :: integer
       %acc_21 = acc_add agg.sum(%acc_21, %t40) :: integer
     end_loop
     %t26 = acc_load %acc_21 :: integer

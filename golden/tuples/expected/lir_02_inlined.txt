@@ -13,7 +13,7 @@
     %t26 = const 3 :: integer
     %t27 = load_input "x" :: integer
     %t28 = make_tuple(%t24, %t25, %t26, %t27) :: tuple<integer>
-    %t7 = Fold %t28 fn="agg.max" :: integer
+    %t7 = fold %t28 fn="agg.max" :: integer
     yield %t7
   )
   (Declaration max_2
@@ -23,7 +23,7 @@
     %t11 = load_input "x" :: integer
     %t12 = const 1000 :: integer
     %t13 = make_tuple(%t8, %t9, %t10, %t11, %t12) :: tuple<integer>
-    %t14 = Fold %t13 fn="agg.max" :: integer
+    %t14 = fold %t13 fn="agg.max" :: integer
     yield %t14
   )
   (Declaration min_1
@@ -32,7 +32,7 @@
     %t31 = const 3 :: integer
     %t32 = load_input "x" :: integer
     %t33 = make_tuple(%t29, %t30, %t31, %t32) :: tuple<integer>
-    %t16 = Fold %t33 fn="agg.min" :: integer
+    %t16 = fold %t33 fn="agg.min" :: integer
     yield %t16
   )
   (Declaration min_2
@@ -42,7 +42,7 @@
     %t20 = load_input "x" :: integer
     %t21 = const -100 :: integer
     %t22 = make_tuple(%t17, %t18, %t19, %t20, %t21) :: tuple<integer>
-    %t23 = Fold %t22 fn="agg.min" :: integer
+    %t23 = fold %t22 fn="agg.min" :: integer
     yield %t23
   )
 )

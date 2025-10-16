@@ -2,54 +2,54 @@
   (Declaration roll_right
     %t1 = load_input "cells" :: array
     loop cells id=L1 in %t1 as el=%cells_el_2, idx=%cells_i_3
-      %t4 = Length %t1 :: integer
+      %t4 = length %t1 :: integer
       %t5 = const 1 :: integer
       %t6 = call core.sub(%cells_i_3, %t5) :: integer
       %t7 = call core.mod(%t6, %t4) :: integer
       %t8 = call core.add(%t7, %t4) :: integer
       %t9 = call core.mod(%t8, %t4) :: integer
-      %t10 = Gather %t1, %t9 :: integer
+      %t10 = gather %t1, %t9 :: integer
       yield %t10
     end_loop
   )
   (Declaration roll_left
     %t11 = load_input "cells" :: array
     loop cells id=L2 in %t11 as el=%cells_el_12, idx=%cells_i_13
-      %t14 = Length %t11 :: integer
+      %t14 = length %t11 :: integer
       %t15 = const -1 :: integer
       %t16 = call core.sub(%cells_i_13, %t15) :: integer
       %t17 = call core.mod(%t16, %t14) :: integer
       %t18 = call core.add(%t17, %t14) :: integer
       %t19 = call core.mod(%t18, %t14) :: integer
-      %t20 = Gather %t11, %t19 :: integer
+      %t20 = gather %t11, %t19 :: integer
       yield %t20
     end_loop
   )
   (Declaration roll_right_clamp
     %t21 = load_input "cells" :: array
     loop cells id=L3 in %t21 as el=%cells_el_22, idx=%cells_i_23
-      %t24 = Length %t21 :: integer
+      %t24 = length %t21 :: integer
       %t25 = const 1 :: integer
       %t26 = call core.sub(%cells_i_23, %t25) :: integer
       %t27 = const 1 :: integer
       %t28 = call core.sub(%t24, %t27) :: integer
       %t29 = const 0 :: integer
       %t30 = call core.clamp(%t26, %t29, %t28) :: integer
-      %t31 = Gather %t21, %t30 :: integer
+      %t31 = gather %t21, %t30 :: integer
       yield %t31
     end_loop
   )
   (Declaration roll_left_clamp
     %t32 = load_input "cells" :: array
     loop cells id=L4 in %t32 as el=%cells_el_33, idx=%cells_i_34
-      %t35 = Length %t32 :: integer
+      %t35 = length %t32 :: integer
       %t36 = const -1 :: integer
       %t37 = call core.sub(%cells_i_34, %t36) :: integer
       %t38 = const 1 :: integer
       %t39 = call core.sub(%t35, %t38) :: integer
       %t40 = const 0 :: integer
       %t41 = call core.clamp(%t37, %t40, %t39) :: integer
-      %t42 = Gather %t32, %t41 :: integer
+      %t42 = gather %t32, %t41 :: integer
       yield %t42
     end_loop
   )
