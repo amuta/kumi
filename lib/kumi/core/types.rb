@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'types/value_objects'
+
 module Kumi
   module Core
     module Types
@@ -10,17 +12,42 @@ module Kumi
         tuple?(dtype) || array?(dtype)
       end
 
-      def self.tuple?(dtype) = dtype == :tuple || dtype.match?(/^tuple</)
-      def self.array?(dtype) = dtype == :array || dtype.match?(/^array</)
+      def self.tuple?(dtype)
+        return dtype.is_a?(TupleType) if dtype.is_a?(Type)
+        # Legacy string/symbol support for backwards compatibility
+        dtype == :tuple || dtype.to_s.match?(/^tuple</)
+      end
+
+      def self.array?(dtype)
+        return dtype.is_a?(ArrayType) if dtype.is_a?(Type)
+        # Legacy string/symbol support for backwards compatibility
+        dtype == :array || dtype.to_s.match?(/^array</)
+      end
 
       # Validation methods
       def self.valid_type?(type)
         Validator.valid_type?(type)
       end
 
-      # Type builders
-      def self.array(elem_type)
-        Builder.array(elem_type)
+      # Type value object constructors
+      def self.scalar(kind)
+        ScalarType.new(kind)
+      end
+
+      def self.array(element_type)
+        if element_type.is_a?(Type)
+          ArrayType.new(element_type)
+        else
+          Builder.array(element_type)
+        end
+      end
+
+      def self.tuple(element_types)
+        if element_types.is_a?(Array) && element_types.all? { |t| t.is_a?(Type) }
+          TupleType.new(element_types)
+        else
+          raise ArgumentError, "tuple expects array of Type objects"
+        end
       end
 
       def self.hash(key_type, val_type)
@@ -36,23 +63,9 @@ module Kumi
         Normalizer.coerce(type_input)
       end
 
-      # Compatibility and unification
-      def self.compatible?(type1, type2)
-        Compatibility.compatible?(type1, type2)
-      end
-
-      def self.unify(type1, type2)
-        Compatibility.unify(type1, type2)
-      end
-
       # Type inference
       def self.infer_from_value(value)
         Inference.infer_from_value(value)
-      end
-
-      # Formatting
-      def self.type_to_s(type)
-        Formatter.type_to_s(type)
       end
 
       # Legacy compatibility constants (will be phased out)

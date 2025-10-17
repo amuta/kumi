@@ -65,7 +65,7 @@
       ) :: [statuses, rates] -> float
     ) :: [statuses] -> float
   ) :: [statuses] -> float
-  (TRAIT in_br
+  (VALUE in_br
     (Call :core.and
       (Call :core.gte
         (Ref taxable) :: [statuses] -> float

@@ -1,18 +1,25 @@
 # frozen_string_literal: true
 
+require 'kumi/core/types/value_objects'
+
 RSpec.describe Kumi::Core::Functions::OverloadResolver do
   let(:registry) { Kumi::RegistryV2.load }
   let(:resolver) { described_class.new(registry.instance_variable_get(:@functions)) }
 
+  let(:int_type) { Kumi::Core::Types.scalar(:integer) }
+  let(:float_type) { Kumi::Core::Types.scalar(:float) }
+  let(:string_type) { Kumi::Core::Types.scalar(:string) }
+  let(:array_int_type) { Kumi::Core::Types.array(int_type) }
+
   describe "#resolve" do
     describe "with single overload" do
       it "resolves unambiguous functions by name" do
-        resolved = resolver.resolve("add", [:integer, :integer])
+        resolved = resolver.resolve("add", [int_type, int_type])
         expect(resolved).to eq("core.add")
       end
 
       it "handles full function IDs" do
-        resolved = resolver.resolve("core.add", [:integer, :integer])
+        resolved = resolver.resolve("core.add", [int_type, int_type])
         expect(resolved).to eq("core.add")
       end
     end
@@ -20,22 +27,22 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
     describe "with multiple overloads (overloaded functions)" do
       it "resolves 'size' to core.length for string argument" do
         # size can mean both core.length (string) and core.array_size (array)
-        resolved = resolver.resolve("size", [:string])
+        resolved = resolver.resolve("size", [string_type])
         expect(resolved).to eq("core.length")
       end
 
       it "resolves 'size' to core.array_size for array argument" do
-        resolved = resolver.resolve("size", ["array<integer>"])
+        resolved = resolver.resolve("size", [array_int_type])
         expect(resolved).to eq("core.array_size")
       end
 
       it "resolves 'length' alias to core.length for string" do
-        resolved = resolver.resolve("length", [:string])
+        resolved = resolver.resolve("length", [string_type])
         expect(resolved).to eq("core.length")
       end
 
       it "resolves 'array_size' alias to core.array_size for array" do
-        resolved = resolver.resolve("array_size", ["array<integer>"])
+        resolved = resolver.resolve("array_size", [array_int_type])
         expect(resolved).to eq("core.array_size")
       end
     end
@@ -43,26 +50,26 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
     describe "error handling" do
       it "raises ResolutionError for unknown function" do
         expect {
-          resolver.resolve("nonexistent", [:integer])
+          resolver.resolve("nonexistent", [int_type])
         }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "raises ResolutionError when no overload matches types" do
         expect {
-          resolver.resolve("size", [:integer])  # integers don't have a "size" function
+          resolver.resolve("size", [int_type])  # integers don't have a "size" function
         }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "raises ResolutionError for arity mismatch" do
         expect {
-          resolver.resolve("core.add", [:integer])  # add needs 2 args
+          resolver.resolve("core.add", [int_type])  # add needs 2 args
         }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "provides helpful error messages with available overloads" do
         error = nil
         begin
-          resolver.resolve("size", [:integer])
+          resolver.resolve("size", [int_type])
         rescue Kumi::Core::Functions::OverloadResolver::ResolutionError => e
           error = e
         end
@@ -104,22 +111,22 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
     context "with no dtype constraint" do
       it "accepts any type" do
         # Most functions don't have dtype constraints on all params
-        resolved = resolver.resolve("add", [:integer, :integer])
+        resolved = resolver.resolve("add", [int_type, int_type])
         expect(resolved).to eq("core.add")
 
-        resolved = resolver.resolve("add", [:float, :float])
+        resolved = resolver.resolve("add", [float_type, float_type])
         expect(resolved).to eq("core.add")
       end
     end
 
     context "with dtype constraint" do
       it "matches string constraint" do
-        resolved = resolver.resolve("upcase", [:string])
+        resolved = resolver.resolve("upcase", [string_type])
         expect(resolved).to eq("core.upcase")
       end
 
       it "matches array constraint" do
-        resolved = resolver.resolve("array_size", ["array<integer>"])
+        resolved = resolver.resolve("array_size", [array_int_type])
         expect(resolved).to eq("core.array_size")
       end
 
@@ -127,11 +134,11 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
       # When given different types, it should pick the right overload
       it "picks correct overload for shared aliases" do
         # With string, should pick core.length
-        resolved = resolver.resolve("size", [:string])
+        resolved = resolver.resolve("size", [string_type])
         expect(resolved).to eq("core.length")
 
         # With array, should pick core.array_size
-        resolved = resolver.resolve("size", ["array<integer>"])
+        resolved = resolver.resolve("size", [array_int_type])
         expect(resolved).to eq("core.array_size")
       end
     end

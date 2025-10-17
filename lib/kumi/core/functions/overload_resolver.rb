@@ -102,31 +102,46 @@ module Kumi
           # 0 = no match, 1 = matches with unconstrained params, 2 = exact match
           return 0 unless params_match?(params, arg_types)
 
-          # Count exact constraint matches
+          # Count exact constraint matches (all arg_types are Type objects now)
           exact_matches = params.zip(arg_types).count do |param, arg_type|
             param_dtype = param["dtype"]
-            param_dtype&.to_s == "string" && arg_type == :string ||
-            param_dtype&.to_s == "array" && (arg_type == :array || arg_type.to_s.start_with?("array<")) ||
-            param_dtype&.to_s == "integer" && arg_type == :integer ||
-            param_dtype&.to_s == "float" && arg_type == :float ||
-            param_dtype&.to_s == "hash" && arg_type == :hash
+            score_type_object_match(param_dtype, arg_type)
           end
 
           exact_matches
         end
 
+        def score_type_object_match(param_dtype, type_obj)
+          case param_dtype&.to_s
+          when "string"
+            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :string
+          when "array"
+            type_obj.is_a?(Kumi::Core::Types::ArrayType)
+          when "integer"
+            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :integer
+          when "float"
+            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :float
+          when "hash"
+            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :hash
+          else
+            false
+          end
+        end
+
         def type_compatible?(param_dtype_str, arg_type)
+          raise ArgumentError, "arg_type must be a Type object, got #{arg_type.inspect}" unless arg_type.is_a?(Kumi::Core::Types::Type)
+
           case param_dtype_str
           when "string"
-            arg_type == :string
+            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :string
           when "array"
-            arg_type == :array || arg_type.to_s.start_with?("array<")
+            arg_type.is_a?(Kumi::Core::Types::ArrayType)
           when "integer"
-            arg_type == :integer
+            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :integer
           when "float"
-            arg_type == :float
+            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :float
           when "hash"
-            arg_type == :hash
+            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :hash
           else
             # No constraint, any type matches
             true
