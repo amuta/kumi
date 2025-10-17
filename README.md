@@ -16,7 +16,7 @@
 
 **Declarative calculation DSL for Ruby.** Write business rules once, run them anywhere.
 
-Kumi compiles high-level schemas into standalone Ruby and JavaScript with no runtime dependencies.
+Kumi compiles high-level schemas into standalone Ruby and JavaScript with no runtime dependencies. Includes static analysis to catch impossible constraints before runtime.
 
 **Built for:** finance, tax, pricing, insurance, payroll, analytics—domains where correctness and transparency matter.
 
