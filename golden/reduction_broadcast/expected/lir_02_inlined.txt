@@ -51,7 +51,6 @@
   (Declaration is_above_average_team
     %t25 = load_input "departments" :: array
     loop departments id=L6 in %t25 as el=%departments_el_26, idx=%departments_i_27
-      %t28 = load_field departments_el_26["teams"] :: any
       %t54 = load_input "departments" :: array
       %acc56 = decl_acc :: integer
       %t57 = load_field departments_el_26["teams"] :: any
@@ -70,6 +69,7 @@
       %t69 = acc_load %acc64 :: integer
       %t50 = load_input "departments" :: array
       %t53 = call core.div(%t61, %t69) :: float
+      %t28 = load_field departments_el_26["teams"] :: any
       loop teams id=L7 in %t28 as el=%teams_el_29, idx=%teams_i_30
         %t31 = load_field teams_el_29["headcount"] :: integer
         %t33 = call core.gt(%t31, %t53) :: boolean

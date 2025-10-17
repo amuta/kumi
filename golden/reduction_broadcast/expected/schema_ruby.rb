@@ -86,10 +86,10 @@ module Kumi::Compiled::KUMI_798dac22208bafc0f2b7f93d43bef5ae4c1d550f52f4c3773c48
     t25 = input["departments"] || input[:departments]
     t25.each_with_index do |departments_el_26, departments_i_27|
       out_1 = []
-      t28 = departments_el_26["teams"] || departments_el_26[:teams]
       acc56 = 0
+      t57 = departments_el_26["teams"] || departments_el_26[:teams]
       acc64 = 0
-      t28.each_with_index do |t58, t59|
+      t57.each_with_index do |t58, t59|
         t60 = t58["headcount"] || t58[:headcount]
         acc56 += t60
         t68 = t58["team_name"] || t58[:team_name]
@@ -98,7 +98,7 @@ module Kumi::Compiled::KUMI_798dac22208bafc0f2b7f93d43bef5ae4c1d550f52f4c3773c48
       t61 = acc56
       t69 = acc64
       t53 = t61 / t69.to_f
-      t28.each_with_index do |teams_el_29, teams_i_30|
+      t57.each_with_index do |teams_el_29, teams_i_30|
         t31 = teams_el_29["headcount"] || teams_el_29[:headcount]
         t33 = t31 > t53
         out_1 << t33

@@ -46,10 +46,10 @@
   (Declaration is_above_average_team
     %t25 = load_input "departments" :: array
     loop departments id=L6 in %t25 as el=%departments_el_26, idx=%departments_i_27
-      %t28 = load_field departments_el_26["teams"] :: any
       %acc56 = decl_acc :: integer
+      %t57 = load_field departments_el_26["teams"] :: any
       %acc64 = decl_acc :: integer
-      loop teams id=L10 in %t28 as el=%t58, idx=%t59
+      loop teams id=L10 in %t57 as el=%t58, idx=%t59
         %t60 = load_field t58["headcount"] :: integer
         %acc56 = acc_add agg.sum(%acc56, %t60) :: integer
         %t68 = load_field t58["team_name"] :: string
@@ -58,7 +58,7 @@
       %t61 = acc_load %acc56 :: integer
       %t69 = acc_load %acc64 :: integer
       %t53 = call core.div(%t61, %t69) :: float
-      loop teams id=L7 in %t28 as el=%teams_el_29, idx=%teams_i_30
+      loop teams id=L7 in %t57 as el=%teams_el_29, idx=%teams_i_30
         %t31 = load_field teams_el_29["headcount"] :: integer
         %t33 = call core.gt(%t31, %t53) :: boolean
         yield %t33

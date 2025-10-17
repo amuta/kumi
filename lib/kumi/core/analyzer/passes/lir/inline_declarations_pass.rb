@@ -58,6 +58,7 @@ module Kumi
             end
 
             # returns [processed_ops, hoist_pkgs]
+            # returns [processed_ops, hoist_pkgs]
             def process_and_hoist_block(block_ops, env, reg_map, rename_map)
               out = []
               hoisted_pkgs = []
@@ -73,34 +74,47 @@ module Kumi
                   child_rename = {}
                   processed_body, child_hoists =
                     process_and_hoist_block(loop_body, env, reg_map, child_rename)
+
+                  depth_here = env.axes.length
+                  child_el   = ins.attributes[:as_element]
+                  child_ix   = ins.attributes[:as_index]
+
+                  # Partition hoists: those that belong *inside* this loop vs bubble upward
+                  inside_pkgs, bubble_pkgs = child_hoists.partition { |p| p.target_depth == depth_here }
+
+                  # Renames: never let aliases to this loop's el/idx escape upward
+                  safe_pairs = child_rename.reject { |_, v| v == child_el || v == child_ix }
                   env.pop
 
-                  # Emit any hoists that belong exactly here; bubble the rest up.
-                  depth_here = env.axes.length
-                  emit, bubble = child_hoists.partition { |p| p.target_depth == depth_here }
-                  out.concat(emit.flat_map(&:ops))
-                  hoisted_pkgs.concat(bubble)
+                  # Merge only safe renames into outer scope
+                  rename_map.merge!(safe_pairs)
 
-                  # guard: do not let child loop el/idx escape via rename
-                  child_el = ins.attributes[:as_element]
-                  child_ix = ins.attributes[:as_index]
-                  if (child_rename.values & [child_el, child_ix]).any?
-                    raise "rename leak across loop: #{[child_el, child_ix].inspect} via #{child_rename.inspect}"
-                  end
+                  # Emit loop shell
+                  out << rewrite(ins, reg_map, rename_map)
 
-                  # Merge renames *before* we emit the body, so all uses are rewritten.
-                  rename_map.merge!(child_rename)
+                  # Local view inside loop: apply both local and outer renames, with local taking precedence
+                  local_map = child_rename.merge(rename_map)
 
-                  # Emit loop shell and rewritten body/end with the merged rename map.
-                  out << rewrite(ins, reg_map, rename_map) # loop shell
-                  out.concat(rewrite_block(processed_body, rename_map))
+                  # Emit hoists that belong at this depth *inside* the loop, before the body
+                  inside_ops = inside_pkgs.flat_map(&:ops)
+                  out.concat(rewrite_block(inside_ops, local_map))
+
+                  # Emit rewritten body
+                  out.concat(rewrite_block(processed_body, local_map))
+
+                  # Close loop
                   out << rewrite(block_ops[end_idx], reg_map, rename_map)
+
+                  # Bubble remaining hoists to outer scopes
+                  hoisted_pkgs.concat(bubble_pkgs)
+
+                  # Extra safety: ensure no aliases to this loop's el/idx remain in outer map
+                  rename_map.delete_if { |_, v| v == child_el || v == child_ix }
 
                   i = end_idx
 
                 when :LoadDeclaration
-                  inline_ops, new_pkgs =
-                    handle_load_declaration(ins, env, reg_map, rename_map)
+                  inline_ops, new_pkgs = handle_load_declaration(ins, env, reg_map, rename_map)
                   out.concat(inline_ops)
                   hoisted_pkgs.concat(new_pkgs)
 
@@ -131,30 +145,30 @@ module Kumi
               # recursively process nested calls
               processed_inline, nested_pkgs = process_and_hoist_block(fresh_ops, env, {}, rename_map)
 
-              # compute yielded register mapping
+              # compute yielded register mapping, then resolve through any renames created by nested inlines
               mapped_yield =
                 local_reg_map[yield_reg] || remap[yield_reg] ||
                 (raise "inliner: yielded reg #{yield_reg} not produced in inlined body for #{callee}")
+              resolved_yield = resolve_rename(mapped_yield, rename_map)
 
-              # sanity: mapped_yield must be definable at site
+              # sanity: resolved_yield must be definable at site
               emitted_defs = processed_inline.map(&:result_register).compact +
                              nested_pkgs.flat_map { |p| p.ops }.map(&:result_register).compact
-              unless emitted_defs.include?(mapped_yield) || env.ambient_regs.include?(mapped_yield)
-                raise "inliner: mapped yield #{mapped_yield} has no def in emitted ops for #{callee}\n" \
+              unless emitted_defs.include?(resolved_yield) || env.ambient_regs.include?(resolved_yield)
+                raise "inliner: mapped yield #{resolved_yield} has no def in emitted ops for #{callee}\n" \
                       "original yield: #{yield_reg}\n" \
                       "inline defs size: #{processed_inline.count { |x| x.result_register }}\n" \
                       "nested hoist defs size: #{nested_pkgs.flat_map { |p| p.ops }.count { |x| x.result_register }}"
               end
 
-              # record rename for the callsite result (e.g., %t8 -> %t56)
-              rename_map[ins.result_register] = mapped_yield
+              # final rename for call site result uses the resolved register
+              rename_map[ins.result_register] = resolved_yield
 
               # decide placement by depth
               site_depth   = env.axes.length
               callee_depth = decl_axes.length
 
               if callee_depth < site_depth
-                # guard: hoisted code must not reference deeper-axis regs (check only code we hoist now)
                 forb = forbidden_ambient_after(callee_depth, env)
                 used = uses_of(processed_inline)
                 bad  = used & forb
@@ -170,7 +184,6 @@ module Kumi
                 [(emit.flat_map(&:ops) + processed_inline), bubble]
 
               else
-                # cannot inline at a shallower site; keep the call
                 [[rewrite(ins, {}, rename_map)], []]
               end
             end
@@ -179,6 +192,16 @@ module Kumi
             def rewrite_block(ops, rename)
               # Ensure late-added renames apply to a block we built earlier.
               ops.map { |ins| rewrite(ins, {}, rename) }
+            end
+
+            def resolve_rename(reg, rename)
+              seen = {}
+              cur = reg
+              while (n = rename[cur]) && !seen[n]
+                seen[cur] = true
+                cur = n
+              end
+              cur
             end
 
             def uses_of(ops)

@@ -38,21 +38,21 @@ export function _row_scale2(input) {
 
 export function _elem_affine(input) {
   let out = [];
-  let t19 = input["batch"];
   let t66 = input["global_offset"];
   const t67 = 1.0;
   let t68 = t66 + t67;
+  let t19 = input["batch"];
   const t60 = 2.0;
   t19.forEach((batch_el_20, batch_i_21) => {
     let out_1 = [];
-    let t22 = batch_el_20["row"];
     let t64 = batch_el_20["mean"];
+    let t22 = batch_el_20["row"];
     let t65 = t64 + t68;
     t22.forEach((row_el_23, row_i_24) => {
       let out_2 = [];
-      let t25 = row_el_23["col"];
       let t59 = row_el_23["scale"];
       let t61 = t59 * t60;
+      let t25 = row_el_23["col"];
       t25.forEach((col_el_26, col_i_27) => {
         let t28 = col_el_26["val"];
         let t30 = t28 * t61;
@@ -68,21 +68,21 @@ export function _elem_affine(input) {
 
 export function _row_sum_affine(input) {
   let out = [];
-  let t33 = input["batch"];
   let t86 = input["global_offset"];
   const t87 = 1.0;
   let t88 = t86 + t87;
+  let t33 = input["batch"];
   const t80 = 2.0;
   t33.forEach((batch_el_34, batch_i_35) => {
     let out_1 = [];
-    let t36 = batch_el_34["row"];
     let t84 = batch_el_34["mean"];
+    let t36 = batch_el_34["row"];
     let t85 = t84 + t88;
     t36.forEach((row_el_37, row_i_38) => {
-      let acc_39 = 0.0;
-      let t40 = row_el_37["col"];
       let t79 = row_el_37["scale"];
       let t81 = t79 * t80;
+      let acc_39 = 0.0;
+      let t40 = row_el_37["col"];
       t40.forEach((col_el_41, col_i_42) => {
         let t72 = col_el_41["val"];
         let t74 = t72 * t81;
@@ -98,21 +98,21 @@ export function _row_sum_affine(input) {
 
 export function _batch_total_affine(input) {
   let out = [];
-  let t45 = input["batch"];
   let t115 = input["global_offset"];
   const t116 = 1.0;
   let t117 = t115 + t116;
+  let t45 = input["batch"];
   const t109 = 2.0;
   t45.forEach((batch_el_46, batch_i_47) => {
+    let t113 = batch_el_46["mean"];
     let acc_48 = 0.0;
     let t49 = batch_el_46["row"];
-    let t113 = batch_el_46["mean"];
     let t114 = t113 + t117;
     t49.forEach((row_el_50, row_i_51) => {
-      let acc92 = 0.0;
-      let t93 = row_el_50["col"];
       let t108 = row_el_50["scale"];
       let t110 = t108 * t109;
+      let acc92 = 0.0;
+      let t93 = row_el_50["col"];
       t93.forEach((t94, t95) => {
         let t101 = t94["val"];
         let t103 = t101 * t110;

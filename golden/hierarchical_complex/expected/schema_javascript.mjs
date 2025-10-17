@@ -91,9 +91,9 @@ export function _employee_bonus(input) {
       let t49 = offices_el_47["teams"];
       t49.forEach((teams_el_50, teams_i_51) => {
         let out_3 = [];
-        let t52 = teams_el_50["employees"];
         let t91 = teams_el_50["performance_score"];
         let t93 = t91 >= t92;
+        let t52 = teams_el_50["employees"];
         t52.forEach((employees_el_53, employees_i_54) => {
           let t78 = employees_el_53["rating"];
           let t80 = t78 >= t79;

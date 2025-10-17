@@ -70,13 +70,20 @@
     %t45 = load_input "fed" :: array
     %t46 = load_field t45["single"] :: any
     %t47 = load_field t46["rates"] :: any
+    %t636 = load_input "income" :: float
+    %t637 = load_input "fed" :: any
+    %t638 = load_field t637["single"] :: any
+    %t639 = load_field t638["std"] :: float
+    %t640 = call core.sub(%t636, %t639) :: float
     %t641 = const 0 :: integer
+    %t642 = make_tuple(%t640, %t641) :: tuple<float, integer>
+    %t643 = fold %t642 fn="agg.max" :: float
     %t652 = const -1 :: integer
     %t654 = const 100000000000.0 :: float
     loop rates id=L5 in %t47 as el=%rates_el_48, idx=%rates_i_49
       %t647 = load_field rates_el_48["lo"] :: float
       %t660 = load_field rates_el_48["hi"] :: float
-      %t52 = call core.sub(%t50, %t647) :: float
+      %t52 = call core.sub(%t643, %t647) :: float
       %t653 = call core.eq(%t660, %t652) :: boolean
       %t656 = select %t653, %t654, %t660 :: float
       %t56 = call core.sub(%t656, %t647) :: float
@@ -85,28 +92,28 @@
     end_loop
   )
   (Declaration fed_tax_single
+    %t680 = load_input "income" :: float
+    %t681 = load_input "fed" :: any
+    %t682 = load_field t681["single"] :: any
+    %t683 = load_field t682["std"] :: float
+    %t684 = call core.sub(%t680, %t683) :: float
+    %t685 = const 0 :: integer
+    %t686 = make_tuple(%t684, %t685) :: tuple<float, integer>
+    %t687 = fold %t686 fn="agg.max" :: float
     %acc_58 = decl_acc :: float
     %t59 = load_input "fed" :: array
     %t60 = load_field t59["single"] :: any
     %t61 = load_field t60["rates"] :: any
-    %t680 = load_input "income" :: float
-    %t681 = load_input "fed" :: any
-    %t685 = const 0 :: integer
     %t696 = const -1 :: integer
     %t698 = const 100000000000.0 :: float
-    %t682 = load_field t681["single"] :: any
-    %t683 = load_field t682["std"] :: float
-    %t684 = call core.sub(%t680, %t683) :: float
-    %t686 = make_tuple(%t684, %t685) :: tuple<float, integer>
-    %t687 = fold %t686 fn="agg.max" :: float
     loop rates id=L6 in %t61 as el=%rates_el_62, idx=%rates_i_63
       %t691 = load_field rates_el_62["lo"] :: float
       %t704 = load_field rates_el_62["hi"] :: float
       %t716 = load_field rates_el_62["rate"] :: float
+      %t674 = call core.sub(%t687, %t691) :: float
       %t697 = call core.eq(%t704, %t696) :: boolean
       %t700 = select %t697, %t698, %t704 :: float
       %t678 = call core.sub(%t700, %t691) :: float
-      %t674 = call core.sub(%t687, %t691) :: float
       %t679 = call core.clamp(%t674, %t685, %t678) :: float
       %t66 = call core.mul(%t679, %t716) :: float
       %acc_58 = acc_add agg.sum(%acc_58, %t66) :: float
@@ -118,41 +125,49 @@
     %t68 = load_input "fed" :: array
     %t69 = load_field t68["single"] :: any
     %t70 = load_field t69["rates"] :: any
+    %t717 = load_input "income" :: float
+    %t718 = load_input "fed" :: any
+    %t719 = load_field t718["single"] :: any
+    %t720 = load_field t719["std"] :: float
+    %t721 = call core.sub(%t717, %t720) :: float
+    %t722 = const 0 :: integer
+    %t723 = make_tuple(%t721, %t722) :: tuple<float, integer>
+    %t724 = fold %t723 fn="agg.max" :: float
     %t741 = const -1 :: integer
     %t743 = const 100000000000.0 :: float
     loop rates id=L7 in %t70 as el=%rates_el_71, idx=%rates_i_72
       %t736 = load_field rates_el_71["lo"] :: float
       %t749 = load_field rates_el_71["hi"] :: float
-      %t75 = call core.gte(%t73, %t736) :: boolean
+      %t75 = call core.gte(%t724, %t736) :: boolean
       %t742 = call core.eq(%t749, %t741) :: boolean
       %t745 = select %t742, %t743, %t749 :: float
-      %t78 = call core.lt(%t76, %t745) :: boolean
+      %t78 = call core.lt(%t724, %t745) :: boolean
       %t79 = call core.and(%t75, %t78) :: boolean
       yield %t79
     end_loop
   )
   (Declaration fed_marginal_single
+    %t764 = load_input "income" :: float
+    %t765 = load_input "fed" :: any
+    %t766 = load_field t765["single"] :: any
+    %t767 = load_field t766["std"] :: float
+    %t768 = call core.sub(%t764, %t767) :: float
+    %t769 = const 0 :: integer
+    %t770 = make_tuple(%t768, %t769) :: tuple<float, integer>
+    %t771 = fold %t770 fn="agg.max" :: float
     %acc_80 = decl_acc :: float
     %t81 = load_input "fed" :: array
     %t82 = load_field t81["single"] :: any
     %t83 = load_field t82["rates"] :: any
-    %t764 = load_input "income" :: float
-    %t765 = load_input "fed" :: any
-    %t769 = const 0 :: integer
     %t788 = const -1 :: integer
     %t790 = const 100000000000.0 :: float
-    %t766 = load_field t765["single"] :: any
-    %t767 = load_field t766["std"] :: float
-    %t768 = call core.sub(%t764, %t767) :: float
-    %t770 = make_tuple(%t768, %t769) :: tuple<float, integer>
-    %t771 = fold %t770 fn="agg.max" :: float
     loop rates id=L8 in %t83 as el=%rates_el_84, idx=%rates_i_85
       %t783 = load_field rates_el_84["lo"] :: float
       %t796 = load_field rates_el_84["hi"] :: float
       %t804 = load_field rates_el_84["rate"] :: float
+      %t760 = call core.gte(%t771, %t783) :: boolean
       %t789 = call core.eq(%t796, %t788) :: boolean
       %t792 = select %t789, %t790, %t796 :: float
-      %t760 = call core.gte(%t771, %t783) :: boolean
       %t762 = call core.lt(%t771, %t792) :: boolean
       %t763 = call core.and(%t760, %t762) :: boolean
       %t89 = select %t763, %t804, %t769 :: float
@@ -162,28 +177,28 @@
     yield %t90
   )
   (Declaration fed_eff_single
+    %t827 = load_input "income" :: float
+    %t828 = load_input "fed" :: any
+    %t829 = load_field t828["single"] :: any
+    %t830 = load_field t829["std"] :: float
+    %t831 = call core.sub(%t827, %t830) :: float
+    %t832 = const 0 :: integer
+    %t833 = make_tuple(%t831, %t832) :: tuple<float, integer>
+    %t834 = fold %t833 fn="agg.max" :: float
     %acc806 = decl_acc :: float
     %t807 = load_input "fed" :: array
     %t808 = load_field t807["single"] :: any
     %t809 = load_field t808["rates"] :: any
-    %t827 = load_input "income" :: float
-    %t828 = load_input "fed" :: any
-    %t832 = const 0 :: integer
     %t843 = const -1 :: integer
     %t845 = const 100000000000.0 :: float
-    %t829 = load_field t828["single"] :: any
-    %t830 = load_field t829["std"] :: float
-    %t831 = call core.sub(%t827, %t830) :: float
-    %t833 = make_tuple(%t831, %t832) :: tuple<float, integer>
-    %t834 = fold %t833 fn="agg.max" :: float
     loop rates id=L33 in %t809 as el=%t810, idx=%t811
       %t838 = load_field t810["lo"] :: float
       %t851 = load_field t810["hi"] :: float
       %t863 = load_field t810["rate"] :: float
+      %t821 = call core.sub(%t834, %t838) :: float
       %t844 = call core.eq(%t851, %t843) :: boolean
       %t847 = select %t844, %t845, %t851 :: float
       %t825 = call core.sub(%t847, %t838) :: float
-      %t821 = call core.sub(%t834, %t838) :: float
       %t826 = call core.clamp(%t821, %t832, %t825) :: float
       %t814 = call core.mul(%t826, %t863) :: float
       %acc806 = acc_add agg.sum(%acc806, %t814) :: float
@@ -286,28 +301,28 @@
     yield %t129
   )
   (Declaration total_tax_single
+    %t925 = load_input "income" :: float
+    %t926 = load_input "fed" :: any
+    %t927 = load_field t926["single"] :: any
+    %t928 = load_field t927["std"] :: float
+    %t929 = call core.sub(%t925, %t928) :: float
+    %t930 = const 0 :: integer
+    %t931 = make_tuple(%t929, %t930) :: tuple<float, integer>
+    %t932 = fold %t931 fn="agg.max" :: float
     %acc904 = decl_acc :: float
     %t905 = load_input "fed" :: array
     %t906 = load_field t905["single"] :: any
     %t907 = load_field t906["rates"] :: any
-    %t925 = load_input "income" :: float
-    %t926 = load_input "fed" :: any
-    %t930 = const 0 :: integer
     %t941 = const -1 :: integer
     %t943 = const 100000000000.0 :: float
-    %t927 = load_field t926["single"] :: any
-    %t928 = load_field t927["std"] :: float
-    %t929 = call core.sub(%t925, %t928) :: float
-    %t931 = make_tuple(%t929, %t930) :: tuple<float, integer>
-    %t932 = fold %t931 fn="agg.max" :: float
     loop rates id=L34 in %t907 as el=%t908, idx=%t909
       %t936 = load_field t908["lo"] :: float
       %t949 = load_field t908["hi"] :: float
       %t961 = load_field t908["rate"] :: float
+      %t919 = call core.sub(%t932, %t936) :: float
       %t942 = call core.eq(%t949, %t941) :: boolean
       %t945 = select %t942, %t943, %t949 :: float
       %t923 = call core.sub(%t945, %t936) :: float
-      %t919 = call core.sub(%t932, %t936) :: float
       %t924 = call core.clamp(%t919, %t930, %t923) :: float
       %t912 = call core.mul(%t924, %t961) :: float
       %acc904 = acc_add agg.sum(%acc904, %t912) :: float
@@ -338,28 +353,28 @@
     yield %t136
   )
   (Declaration total_eff_single
+    %t1019 = load_input "income" :: float
+    %t1020 = load_input "fed" :: any
+    %t1021 = load_field t1020["single"] :: any
+    %t1022 = load_field t1021["std"] :: float
+    %t1023 = call core.sub(%t1019, %t1022) :: float
+    %t1024 = const 0 :: integer
+    %t1025 = make_tuple(%t1023, %t1024) :: tuple<float, integer>
+    %t1026 = fold %t1025 fn="agg.max" :: float
     %acc998 = decl_acc :: float
     %t999 = load_input "fed" :: array
     %t1000 = load_field t999["single"] :: any
     %t1001 = load_field t1000["rates"] :: any
-    %t1019 = load_input "income" :: float
-    %t1020 = load_input "fed" :: any
-    %t1024 = const 0 :: integer
     %t1035 = const -1 :: integer
     %t1037 = const 100000000000.0 :: float
-    %t1021 = load_field t1020["single"] :: any
-    %t1022 = load_field t1021["std"] :: float
-    %t1023 = call core.sub(%t1019, %t1022) :: float
-    %t1025 = make_tuple(%t1023, %t1024) :: tuple<float, integer>
-    %t1026 = fold %t1025 fn="agg.max" :: float
     loop rates id=L35 in %t1001 as el=%t1002, idx=%t1003
       %t1030 = load_field t1002["lo"] :: float
       %t1043 = load_field t1002["hi"] :: float
       %t1055 = load_field t1002["rate"] :: float
+      %t1013 = call core.sub(%t1026, %t1030) :: float
       %t1036 = call core.eq(%t1043, %t1035) :: boolean
       %t1039 = select %t1036, %t1037, %t1043 :: float
       %t1017 = call core.sub(%t1039, %t1030) :: float
-      %t1013 = call core.sub(%t1026, %t1030) :: float
       %t1018 = call core.clamp(%t1013, %t1024, %t1017) :: float
       %t1006 = call core.mul(%t1018, %t1055) :: float
       %acc998 = acc_add agg.sum(%acc998, %t1006) :: float
@@ -395,27 +410,27 @@
   )
   (Declaration after_tax_single
     %t143 = load_input "income" :: float
+    %t1114 = load_input "fed" :: any
+    %t1115 = load_field t1114["single"] :: any
+    %t1116 = load_field t1115["std"] :: float
+    %t1117 = call core.sub(%t143, %t1116) :: float
+    %t1118 = const 0 :: integer
+    %t1119 = make_tuple(%t1117, %t1118) :: tuple<float, integer>
+    %t1120 = fold %t1119 fn="agg.max" :: float
     %acc1092 = decl_acc :: float
     %t1093 = load_input "fed" :: array
     %t1094 = load_field t1093["single"] :: any
     %t1095 = load_field t1094["rates"] :: any
-    %t1114 = load_input "fed" :: any
-    %t1118 = const 0 :: integer
     %t1129 = const -1 :: integer
     %t1131 = const 100000000000.0 :: float
-    %t1115 = load_field t1114["single"] :: any
-    %t1116 = load_field t1115["std"] :: float
-    %t1117 = call core.sub(%t143, %t1116) :: float
-    %t1119 = make_tuple(%t1117, %t1118) :: tuple<float, integer>
-    %t1120 = fold %t1119 fn="agg.max" :: float
     loop rates id=L36 in %t1095 as el=%t1096, idx=%t1097
       %t1124 = load_field t1096["lo"] :: float
       %t1137 = load_field t1096["hi"] :: float
       %t1149 = load_field t1096["rate"] :: float
+      %t1107 = call core.sub(%t1120, %t1124) :: float
       %t1130 = call core.eq(%t1137, %t1129) :: boolean
       %t1133 = select %t1130, %t1131, %t1137 :: float
       %t1111 = call core.sub(%t1133, %t1124) :: float
-      %t1107 = call core.sub(%t1120, %t1124) :: float
       %t1112 = call core.clamp(%t1107, %t1118, %t1111) :: float
       %t1100 = call core.mul(%t1112, %t1149) :: float
       %acc1092 = acc_add agg.sum(%acc1092, %t1100) :: float
@@ -448,27 +463,27 @@
   )
   (Declaration take_home_single
     %t1178 = load_input "income" :: float
+    %t1211 = load_input "fed" :: any
+    %t1212 = load_field t1211["single"] :: any
+    %t1213 = load_field t1212["std"] :: float
+    %t1214 = call core.sub(%t1178, %t1213) :: float
+    %t1215 = const 0 :: integer
+    %t1216 = make_tuple(%t1214, %t1215) :: tuple<float, integer>
+    %t1217 = fold %t1216 fn="agg.max" :: float
     %acc1189 = decl_acc :: float
     %t1190 = load_input "fed" :: array
     %t1191 = load_field t1190["single"] :: any
     %t1192 = load_field t1191["rates"] :: any
-    %t1211 = load_input "fed" :: any
-    %t1215 = const 0 :: integer
     %t1226 = const -1 :: integer
     %t1228 = const 100000000000.0 :: float
-    %t1212 = load_field t1211["single"] :: any
-    %t1213 = load_field t1212["std"] :: float
-    %t1214 = call core.sub(%t1178, %t1213) :: float
-    %t1216 = make_tuple(%t1214, %t1215) :: tuple<float, integer>
-    %t1217 = fold %t1216 fn="agg.max" :: float
     loop rates id=L37 in %t1192 as el=%t1193, idx=%t1194
       %t1221 = load_field t1193["lo"] :: float
       %t1234 = load_field t1193["hi"] :: float
       %t1246 = load_field t1193["rate"] :: float
+      %t1204 = call core.sub(%t1217, %t1221) :: float
       %t1227 = call core.eq(%t1234, %t1226) :: boolean
       %t1230 = select %t1227, %t1228, %t1234 :: float
       %t1208 = call core.sub(%t1230, %t1221) :: float
-      %t1204 = call core.sub(%t1217, %t1221) :: float
       %t1209 = call core.clamp(%t1204, %t1215, %t1208) :: float
       %t1197 = call core.mul(%t1209, %t1246) :: float
       %acc1189 = acc_add agg.sum(%acc1189, %t1197) :: float
@@ -556,13 +571,20 @@
     %t186 = load_input "fed" :: array
     %t187 = load_field t186["married_joint"] :: any
     %t188 = load_field t187["rates"] :: any
+    %t1283 = load_input "income" :: float
+    %t1284 = load_input "fed" :: any
+    %t1285 = load_field t1284["married_joint"] :: any
+    %t1286 = load_field t1285["std"] :: float
+    %t1287 = call core.sub(%t1283, %t1286) :: float
     %t1288 = const 0 :: integer
+    %t1289 = make_tuple(%t1287, %t1288) :: tuple<float, integer>
+    %t1290 = fold %t1289 fn="agg.max" :: float
     %t1299 = const -1 :: integer
     %t1301 = const 100000000000.0 :: float
     loop rates id=L13 in %t188 as el=%rates_el_189, idx=%rates_i_190
       %t1294 = load_field rates_el_189["lo"] :: float
       %t1307 = load_field rates_el_189["hi"] :: float
-      %t193 = call core.sub(%t191, %t1294) :: float
+      %t193 = call core.sub(%t1290, %t1294) :: float
       %t1300 = call core.eq(%t1307, %t1299) :: boolean
       %t1303 = select %t1300, %t1301, %t1307 :: float
       %t197 = call core.sub(%t1303, %t1294) :: float
@@ -571,28 +593,28 @@
     end_loop
   )
   (Declaration fed_tax_mj
+    %t1327 = load_input "income" :: float
+    %t1328 = load_input "fed" :: any
+    %t1329 = load_field t1328["married_joint"] :: any
+    %t1330 = load_field t1329["std"] :: float
+    %t1331 = call core.sub(%t1327, %t1330) :: float
+    %t1332 = const 0 :: integer
+    %t1333 = make_tuple(%t1331, %t1332) :: tuple<float, integer>
+    %t1334 = fold %t1333 fn="agg.max" :: float
     %acc_199 = decl_acc :: float
     %t200 = load_input "fed" :: array
     %t201 = load_field t200["married_joint"] :: any
     %t202 = load_field t201["rates"] :: any
-    %t1327 = load_input "income" :: float
-    %t1328 = load_input "fed" :: any
-    %t1332 = const 0 :: integer
     %t1343 = const -1 :: integer
     %t1345 = const 100000000000.0 :: float
-    %t1329 = load_field t1328["married_joint"] :: any
-    %t1330 = load_field t1329["std"] :: float
-    %t1331 = call core.sub(%t1327, %t1330) :: float
-    %t1333 = make_tuple(%t1331, %t1332) :: tuple<float, integer>
-    %t1334 = fold %t1333 fn="agg.max" :: float
     loop rates id=L14 in %t202 as el=%rates_el_203, idx=%rates_i_204
       %t1338 = load_field rates_el_203["lo"] :: float
       %t1351 = load_field rates_el_203["hi"] :: float
       %t1363 = load_field rates_el_203["rate"] :: float
+      %t1321 = call core.sub(%t1334, %t1338) :: float
       %t1344 = call core.eq(%t1351, %t1343) :: boolean
       %t1347 = select %t1344, %t1345, %t1351 :: float
       %t1325 = call core.sub(%t1347, %t1338) :: float
-      %t1321 = call core.sub(%t1334, %t1338) :: float
       %t1326 = call core.clamp(%t1321, %t1332, %t1325) :: float
       %t207 = call core.mul(%t1326, %t1363) :: float
       %acc_199 = acc_add agg.sum(%acc_199, %t207) :: float
@@ -604,41 +626,49 @@
     %t209 = load_input "fed" :: array
     %t210 = load_field t209["married_joint"] :: any
     %t211 = load_field t210["rates"] :: any
+    %t1364 = load_input "income" :: float
+    %t1365 = load_input "fed" :: any
+    %t1366 = load_field t1365["married_joint"] :: any
+    %t1367 = load_field t1366["std"] :: float
+    %t1368 = call core.sub(%t1364, %t1367) :: float
+    %t1369 = const 0 :: integer
+    %t1370 = make_tuple(%t1368, %t1369) :: tuple<float, integer>
+    %t1371 = fold %t1370 fn="agg.max" :: float
     %t1388 = const -1 :: integer
     %t1390 = const 100000000000.0 :: float
     loop rates id=L15 in %t211 as el=%rates_el_212, idx=%rates_i_213
       %t1383 = load_field rates_el_212["lo"] :: float
       %t1396 = load_field rates_el_212["hi"] :: float
-      %t216 = call core.gte(%t214, %t1383) :: boolean
+      %t216 = call core.gte(%t1371, %t1383) :: boolean
       %t1389 = call core.eq(%t1396, %t1388) :: boolean
       %t1392 = select %t1389, %t1390, %t1396 :: float
-      %t219 = call core.lt(%t217, %t1392) :: boolean
+      %t219 = call core.lt(%t1371, %t1392) :: boolean
       %t220 = call core.and(%t216, %t219) :: boolean
       yield %t220
     end_loop
   )
   (Declaration fed_marginal_mj
+    %t1411 = load_input "income" :: float
+    %t1412 = load_input "fed" :: any
+    %t1413 = load_field t1412["married_joint"] :: any
+    %t1414 = load_field t1413["std"] :: float
+    %t1415 = call core.sub(%t1411, %t1414) :: float
+    %t1416 = const 0 :: integer
+    %t1417 = make_tuple(%t1415, %t1416) :: tuple<float, integer>
+    %t1418 = fold %t1417 fn="agg.max" :: float
     %acc_221 = decl_acc :: float
     %t222 = load_input "fed" :: array
     %t223 = load_field t222["married_joint"] :: any
     %t224 = load_field t223["rates"] :: any
-    %t1411 = load_input "income" :: float
-    %t1412 = load_input "fed" :: any
-    %t1416 = const 0 :: integer
     %t1435 = const -1 :: integer
     %t1437 = const 100000000000.0 :: float
-    %t1413 = load_field t1412["married_joint"] :: any
-    %t1414 = load_field t1413["std"] :: float
-    %t1415 = call core.sub(%t1411, %t1414) :: float
-    %t1417 = make_tuple(%t1415, %t1416) :: tuple<float, integer>
-    %t1418 = fold %t1417 fn="agg.max" :: float
     loop rates id=L16 in %t224 as el=%rates_el_225, idx=%rates_i_226
       %t1430 = load_field rates_el_225["lo"] :: float
       %t1443 = load_field rates_el_225["hi"] :: float
       %t1451 = load_field rates_el_225["rate"] :: float
+      %t1407 = call core.gte(%t1418, %t1430) :: boolean
       %t1436 = call core.eq(%t1443, %t1435) :: boolean
       %t1439 = select %t1436, %t1437, %t1443 :: float
-      %t1407 = call core.gte(%t1418, %t1430) :: boolean
       %t1409 = call core.lt(%t1418, %t1439) :: boolean
       %t1410 = call core.and(%t1407, %t1409) :: boolean
       %t230 = select %t1410, %t1451, %t1416 :: float
@@ -648,28 +678,28 @@
     yield %t231
   )
   (Declaration fed_eff_mj
+    %t1474 = load_input "income" :: float
+    %t1475 = load_input "fed" :: any
+    %t1476 = load_field t1475["married_joint"] :: any
+    %t1477 = load_field t1476["std"] :: float
+    %t1478 = call core.sub(%t1474, %t1477) :: float
+    %t1479 = const 0 :: integer
+    %t1480 = make_tuple(%t1478, %t1479) :: tuple<float, integer>
+    %t1481 = fold %t1480 fn="agg.max" :: float
     %acc1453 = decl_acc :: float
     %t1454 = load_input "fed" :: array
     %t1455 = load_field t1454["married_joint"] :: any
     %t1456 = load_field t1455["rates"] :: any
-    %t1474 = load_input "income" :: float
-    %t1475 = load_input "fed" :: any
-    %t1479 = const 0 :: integer
     %t1490 = const -1 :: integer
     %t1492 = const 100000000000.0 :: float
-    %t1476 = load_field t1475["married_joint"] :: any
-    %t1477 = load_field t1476["std"] :: float
-    %t1478 = call core.sub(%t1474, %t1477) :: float
-    %t1480 = make_tuple(%t1478, %t1479) :: tuple<float, integer>
-    %t1481 = fold %t1480 fn="agg.max" :: float
     loop rates id=L38 in %t1456 as el=%t1457, idx=%t1458
       %t1485 = load_field t1457["lo"] :: float
       %t1498 = load_field t1457["hi"] :: float
       %t1510 = load_field t1457["rate"] :: float
+      %t1468 = call core.sub(%t1481, %t1485) :: float
       %t1491 = call core.eq(%t1498, %t1490) :: boolean
       %t1494 = select %t1491, %t1492, %t1498 :: float
       %t1472 = call core.sub(%t1494, %t1485) :: float
-      %t1468 = call core.sub(%t1481, %t1485) :: float
       %t1473 = call core.clamp(%t1468, %t1479, %t1472) :: float
       %t1461 = call core.mul(%t1473, %t1510) :: float
       %acc1453 = acc_add agg.sum(%acc1453, %t1461) :: float
@@ -756,28 +786,28 @@
     yield %t259
   )
   (Declaration total_tax_mj
+    %t1585 = load_input "income" :: float
+    %t1586 = load_input "fed" :: any
+    %t1587 = load_field t1586["married_joint"] :: any
+    %t1588 = load_field t1587["std"] :: float
+    %t1589 = call core.sub(%t1585, %t1588) :: float
+    %t1590 = const 0 :: integer
+    %t1591 = make_tuple(%t1589, %t1590) :: tuple<float, integer>
+    %t1592 = fold %t1591 fn="agg.max" :: float
     %acc1564 = decl_acc :: float
     %t1565 = load_input "fed" :: array
     %t1566 = load_field t1565["married_joint"] :: any
     %t1567 = load_field t1566["rates"] :: any
-    %t1585 = load_input "income" :: float
-    %t1586 = load_input "fed" :: any
-    %t1590 = const 0 :: integer
     %t1601 = const -1 :: integer
     %t1603 = const 100000000000.0 :: float
-    %t1587 = load_field t1586["married_joint"] :: any
-    %t1588 = load_field t1587["std"] :: float
-    %t1589 = call core.sub(%t1585, %t1588) :: float
-    %t1591 = make_tuple(%t1589, %t1590) :: tuple<float, integer>
-    %t1592 = fold %t1591 fn="agg.max" :: float
     loop rates id=L39 in %t1567 as el=%t1568, idx=%t1569
       %t1596 = load_field t1568["lo"] :: float
       %t1609 = load_field t1568["hi"] :: float
       %t1621 = load_field t1568["rate"] :: float
+      %t1579 = call core.sub(%t1592, %t1596) :: float
       %t1602 = call core.eq(%t1609, %t1601) :: boolean
       %t1605 = select %t1602, %t1603, %t1609 :: float
       %t1583 = call core.sub(%t1605, %t1596) :: float
-      %t1579 = call core.sub(%t1592, %t1596) :: float
       %t1584 = call core.clamp(%t1579, %t1590, %t1583) :: float
       %t1572 = call core.mul(%t1584, %t1621) :: float
       %acc1564 = acc_add agg.sum(%acc1564, %t1572) :: float
@@ -808,28 +838,28 @@
     yield %t266
   )
   (Declaration total_eff_mj
+    %t1681 = load_input "income" :: float
+    %t1682 = load_input "fed" :: any
+    %t1683 = load_field t1682["married_joint"] :: any
+    %t1684 = load_field t1683["std"] :: float
+    %t1685 = call core.sub(%t1681, %t1684) :: float
+    %t1686 = const 0 :: integer
+    %t1687 = make_tuple(%t1685, %t1686) :: tuple<float, integer>
+    %t1688 = fold %t1687 fn="agg.max" :: float
     %acc1660 = decl_acc :: float
     %t1661 = load_input "fed" :: array
     %t1662 = load_field t1661["married_joint"] :: any
     %t1663 = load_field t1662["rates"] :: any
-    %t1681 = load_input "income" :: float
-    %t1682 = load_input "fed" :: any
-    %t1686 = const 0 :: integer
     %t1697 = const -1 :: integer
     %t1699 = const 100000000000.0 :: float
-    %t1683 = load_field t1682["married_joint"] :: any
-    %t1684 = load_field t1683["std"] :: float
-    %t1685 = call core.sub(%t1681, %t1684) :: float
-    %t1687 = make_tuple(%t1685, %t1686) :: tuple<float, integer>
-    %t1688 = fold %t1687 fn="agg.max" :: float
     loop rates id=L40 in %t1663 as el=%t1664, idx=%t1665
       %t1692 = load_field t1664["lo"] :: float
       %t1705 = load_field t1664["hi"] :: float
       %t1717 = load_field t1664["rate"] :: float
+      %t1675 = call core.sub(%t1688, %t1692) :: float
       %t1698 = call core.eq(%t1705, %t1697) :: boolean
       %t1701 = select %t1698, %t1699, %t1705 :: float
       %t1679 = call core.sub(%t1701, %t1692) :: float
-      %t1675 = call core.sub(%t1688, %t1692) :: float
       %t1680 = call core.clamp(%t1675, %t1686, %t1679) :: float
       %t1668 = call core.mul(%t1680, %t1717) :: float
       %acc1660 = acc_add agg.sum(%acc1660, %t1668) :: float
@@ -865,27 +895,27 @@
   )
   (Declaration after_tax_mj
     %t273 = load_input "income" :: float
+    %t1778 = load_input "fed" :: any
+    %t1779 = load_field t1778["married_joint"] :: any
+    %t1780 = load_field t1779["std"] :: float
+    %t1781 = call core.sub(%t273, %t1780) :: float
+    %t1782 = const 0 :: integer
+    %t1783 = make_tuple(%t1781, %t1782) :: tuple<float, integer>
+    %t1784 = fold %t1783 fn="agg.max" :: float
     %acc1756 = decl_acc :: float
     %t1757 = load_input "fed" :: array
     %t1758 = load_field t1757["married_joint"] :: any
     %t1759 = load_field t1758["rates"] :: any
-    %t1778 = load_input "fed" :: any
-    %t1782 = const 0 :: integer
     %t1793 = const -1 :: integer
     %t1795 = const 100000000000.0 :: float
-    %t1779 = load_field t1778["married_joint"] :: any
-    %t1780 = load_field t1779["std"] :: float
-    %t1781 = call core.sub(%t273, %t1780) :: float
-    %t1783 = make_tuple(%t1781, %t1782) :: tuple<float, integer>
-    %t1784 = fold %t1783 fn="agg.max" :: float
     loop rates id=L41 in %t1759 as el=%t1760, idx=%t1761
       %t1788 = load_field t1760["lo"] :: float
       %t1801 = load_field t1760["hi"] :: float
       %t1813 = load_field t1760["rate"] :: float
+      %t1771 = call core.sub(%t1784, %t1788) :: float
       %t1794 = call core.eq(%t1801, %t1793) :: boolean
       %t1797 = select %t1794, %t1795, %t1801 :: float
       %t1775 = call core.sub(%t1797, %t1788) :: float
-      %t1771 = call core.sub(%t1784, %t1788) :: float
       %t1776 = call core.clamp(%t1771, %t1782, %t1775) :: float
       %t1764 = call core.mul(%t1776, %t1813) :: float
       %acc1756 = acc_add agg.sum(%acc1756, %t1764) :: float
@@ -918,27 +948,27 @@
   )
   (Declaration take_home_mj
     %t1844 = load_input "income" :: float
+    %t1877 = load_input "fed" :: any
+    %t1878 = load_field t1877["married_joint"] :: any
+    %t1879 = load_field t1878["std"] :: float
+    %t1880 = call core.sub(%t1844, %t1879) :: float
+    %t1881 = const 0 :: integer
+    %t1882 = make_tuple(%t1880, %t1881) :: tuple<float, integer>
+    %t1883 = fold %t1882 fn="agg.max" :: float
     %acc1855 = decl_acc :: float
     %t1856 = load_input "fed" :: array
     %t1857 = load_field t1856["married_joint"] :: any
     %t1858 = load_field t1857["rates"] :: any
-    %t1877 = load_input "fed" :: any
-    %t1881 = const 0 :: integer
     %t1892 = const -1 :: integer
     %t1894 = const 100000000000.0 :: float
-    %t1878 = load_field t1877["married_joint"] :: any
-    %t1879 = load_field t1878["std"] :: float
-    %t1880 = call core.sub(%t1844, %t1879) :: float
-    %t1882 = make_tuple(%t1880, %t1881) :: tuple<float, integer>
-    %t1883 = fold %t1882 fn="agg.max" :: float
     loop rates id=L42 in %t1858 as el=%t1859, idx=%t1860
       %t1887 = load_field t1859["lo"] :: float
       %t1900 = load_field t1859["hi"] :: float
       %t1912 = load_field t1859["rate"] :: float
+      %t1870 = call core.sub(%t1883, %t1887) :: float
       %t1893 = call core.eq(%t1900, %t1892) :: boolean
       %t1896 = select %t1893, %t1894, %t1900 :: float
       %t1874 = call core.sub(%t1896, %t1887) :: float
-      %t1870 = call core.sub(%t1883, %t1887) :: float
       %t1875 = call core.clamp(%t1870, %t1881, %t1874) :: float
       %t1863 = call core.mul(%t1875, %t1912) :: float
       %acc1855 = acc_add agg.sum(%acc1855, %t1863) :: float
@@ -1026,13 +1056,20 @@
     %t316 = load_input "fed" :: array
     %t317 = load_field t316["married_separate"] :: any
     %t318 = load_field t317["rates"] :: any
+    %t1951 = load_input "income" :: float
+    %t1952 = load_input "fed" :: any
+    %t1953 = load_field t1952["married_separate"] :: any
+    %t1954 = load_field t1953["std"] :: float
+    %t1955 = call core.sub(%t1951, %t1954) :: float
     %t1956 = const 0 :: integer
+    %t1957 = make_tuple(%t1955, %t1956) :: tuple<float, integer>
+    %t1958 = fold %t1957 fn="agg.max" :: float
     %t1967 = const -1 :: integer
     %t1969 = const 100000000000.0 :: float
     loop rates id=L21 in %t318 as el=%rates_el_319, idx=%rates_i_320
       %t1962 = load_field rates_el_319["lo"] :: float
       %t1975 = load_field rates_el_319["hi"] :: float
-      %t323 = call core.sub(%t321, %t1962) :: float
+      %t323 = call core.sub(%t1958, %t1962) :: float
       %t1968 = call core.eq(%t1975, %t1967) :: boolean
       %t1971 = select %t1968, %t1969, %t1975 :: float
       %t327 = call core.sub(%t1971, %t1962) :: float
@@ -1041,28 +1078,28 @@
     end_loop
   )
   (Declaration fed_tax_ms
+    %t1995 = load_input "income" :: float
+    %t1996 = load_input "fed" :: any
+    %t1997 = load_field t1996["married_separate"] :: any
+    %t1998 = load_field t1997["std"] :: float
+    %t1999 = call core.sub(%t1995, %t1998) :: float
+    %t2000 = const 0 :: integer
+    %t2001 = make_tuple(%t1999, %t2000) :: tuple<float, integer>
+    %t2002 = fold %t2001 fn="agg.max" :: float
     %acc_329 = decl_acc :: float
     %t330 = load_input "fed" :: array
     %t331 = load_field t330["married_separate"] :: any
     %t332 = load_field t331["rates"] :: any
-    %t1995 = load_input "income" :: float
-    %t1996 = load_input "fed" :: any
-    %t2000 = const 0 :: integer
     %t2011 = const -1 :: integer
     %t2013 = const 100000000000.0 :: float
-    %t1997 = load_field t1996["married_separate"] :: any
-    %t1998 = load_field t1997["std"] :: float
-    %t1999 = call core.sub(%t1995, %t1998) :: float
-    %t2001 = make_tuple(%t1999, %t2000) :: tuple<float, integer>
-    %t2002 = fold %t2001 fn="agg.max" :: float
     loop rates id=L22 in %t332 as el=%rates_el_333, idx=%rates_i_334
       %t2006 = load_field rates_el_333["lo"] :: float
       %t2019 = load_field rates_el_333["hi"] :: float
       %t2031 = load_field rates_el_333["rate"] :: float
+      %t1989 = call core.sub(%t2002, %t2006) :: float
       %t2012 = call core.eq(%t2019, %t2011) :: boolean
       %t2015 = select %t2012, %t2013, %t2019 :: float
       %t1993 = call core.sub(%t2015, %t2006) :: float
-      %t1989 = call core.sub(%t2002, %t2006) :: float
       %t1994 = call core.clamp(%t1989, %t2000, %t1993) :: float
       %t337 = call core.mul(%t1994, %t2031) :: float
       %acc_329 = acc_add agg.sum(%acc_329, %t337) :: float
@@ -1074,41 +1111,49 @@
     %t339 = load_input "fed" :: array
     %t340 = load_field t339["married_separate"] :: any
     %t341 = load_field t340["rates"] :: any
+    %t2032 = load_input "income" :: float
+    %t2033 = load_input "fed" :: any
+    %t2034 = load_field t2033["married_separate"] :: any
+    %t2035 = load_field t2034["std"] :: float
+    %t2036 = call core.sub(%t2032, %t2035) :: float
+    %t2037 = const 0 :: integer
+    %t2038 = make_tuple(%t2036, %t2037) :: tuple<float, integer>
+    %t2039 = fold %t2038 fn="agg.max" :: float
     %t2056 = const -1 :: integer
     %t2058 = const 100000000000.0 :: float
     loop rates id=L23 in %t341 as el=%rates_el_342, idx=%rates_i_343
       %t2051 = load_field rates_el_342["lo"] :: float
       %t2064 = load_field rates_el_342["hi"] :: float
-      %t346 = call core.gte(%t344, %t2051) :: boolean
+      %t346 = call core.gte(%t2039, %t2051) :: boolean
       %t2057 = call core.eq(%t2064, %t2056) :: boolean
       %t2060 = select %t2057, %t2058, %t2064 :: float
-      %t349 = call core.lt(%t347, %t2060) :: boolean
+      %t349 = call core.lt(%t2039, %t2060) :: boolean
       %t350 = call core.and(%t346, %t349) :: boolean
       yield %t350
     end_loop
   )
   (Declaration fed_marginal_ms
+    %t2079 = load_input "income" :: float
+    %t2080 = load_input "fed" :: any
+    %t2081 = load_field t2080["married_separate"] :: any
+    %t2082 = load_field t2081["std"] :: float
+    %t2083 = call core.sub(%t2079, %t2082) :: float
+    %t2084 = const 0 :: integer
+    %t2085 = make_tuple(%t2083, %t2084) :: tuple<float, integer>
+    %t2086 = fold %t2085 fn="agg.max" :: float
     %acc_351 = decl_acc :: float
     %t352 = load_input "fed" :: array
     %t353 = load_field t352["married_separate"] :: any
     %t354 = load_field t353["rates"] :: any
-    %t2079 = load_input "income" :: float
-    %t2080 = load_input "fed" :: any
-    %t2084 = const 0 :: integer
     %t2103 = const -1 :: integer
     %t2105 = const 100000000000.0 :: float
-    %t2081 = load_field t2080["married_separate"] :: any
-    %t2082 = load_field t2081["std"] :: float
-    %t2083 = call core.sub(%t2079, %t2082) :: float
-    %t2085 = make_tuple(%t2083, %t2084) :: tuple<float, integer>
-    %t2086 = fold %t2085 fn="agg.max" :: float
     loop rates id=L24 in %t354 as el=%rates_el_355, idx=%rates_i_356
       %t2098 = load_field rates_el_355["lo"] :: float
       %t2111 = load_field rates_el_355["hi"] :: float
       %t2119 = load_field rates_el_355["rate"] :: float
+      %t2075 = call core.gte(%t2086, %t2098) :: boolean
       %t2104 = call core.eq(%t2111, %t2103) :: boolean
       %t2107 = select %t2104, %t2105, %t2111 :: float
-      %t2075 = call core.gte(%t2086, %t2098) :: boolean
       %t2077 = call core.lt(%t2086, %t2107) :: boolean
       %t2078 = call core.and(%t2075, %t2077) :: boolean
       %t360 = select %t2078, %t2119, %t2084 :: float
@@ -1118,28 +1163,28 @@
     yield %t361
   )
   (Declaration fed_eff_ms
+    %t2142 = load_input "income" :: float
+    %t2143 = load_input "fed" :: any
+    %t2144 = load_field t2143["married_separate"] :: any
+    %t2145 = load_field t2144["std"] :: float
+    %t2146 = call core.sub(%t2142, %t2145) :: float
+    %t2147 = const 0 :: integer
+    %t2148 = make_tuple(%t2146, %t2147) :: tuple<float, integer>
+    %t2149 = fold %t2148 fn="agg.max" :: float
     %acc2121 = decl_acc :: float
     %t2122 = load_input "fed" :: array
     %t2123 = load_field t2122["married_separate"] :: any
     %t2124 = load_field t2123["rates"] :: any
-    %t2142 = load_input "income" :: float
-    %t2143 = load_input "fed" :: any
-    %t2147 = const 0 :: integer
     %t2158 = const -1 :: integer
     %t2160 = const 100000000000.0 :: float
-    %t2144 = load_field t2143["married_separate"] :: any
-    %t2145 = load_field t2144["std"] :: float
-    %t2146 = call core.sub(%t2142, %t2145) :: float
-    %t2148 = make_tuple(%t2146, %t2147) :: tuple<float, integer>
-    %t2149 = fold %t2148 fn="agg.max" :: float
     loop rates id=L43 in %t2124 as el=%t2125, idx=%t2126
       %t2153 = load_field t2125["lo"] :: float
       %t2166 = load_field t2125["hi"] :: float
       %t2178 = load_field t2125["rate"] :: float
+      %t2136 = call core.sub(%t2149, %t2153) :: float
       %t2159 = call core.eq(%t2166, %t2158) :: boolean
       %t2162 = select %t2159, %t2160, %t2166 :: float
       %t2140 = call core.sub(%t2162, %t2153) :: float
-      %t2136 = call core.sub(%t2149, %t2153) :: float
       %t2141 = call core.clamp(%t2136, %t2147, %t2140) :: float
       %t2129 = call core.mul(%t2141, %t2178) :: float
       %acc2121 = acc_add agg.sum(%acc2121, %t2129) :: float
@@ -1226,28 +1271,28 @@
     yield %t389
   )
   (Declaration total_tax_ms
+    %t2253 = load_input "income" :: float
+    %t2254 = load_input "fed" :: any
+    %t2255 = load_field t2254["married_separate"] :: any
+    %t2256 = load_field t2255["std"] :: float
+    %t2257 = call core.sub(%t2253, %t2256) :: float
+    %t2258 = const 0 :: integer
+    %t2259 = make_tuple(%t2257, %t2258) :: tuple<float, integer>
+    %t2260 = fold %t2259 fn="agg.max" :: float
     %acc2232 = decl_acc :: float
     %t2233 = load_input "fed" :: array
     %t2234 = load_field t2233["married_separate"] :: any
     %t2235 = load_field t2234["rates"] :: any
-    %t2253 = load_input "income" :: float
-    %t2254 = load_input "fed" :: any
-    %t2258 = const 0 :: integer
     %t2269 = const -1 :: integer
     %t2271 = const 100000000000.0 :: float
-    %t2255 = load_field t2254["married_separate"] :: any
-    %t2256 = load_field t2255["std"] :: float
-    %t2257 = call core.sub(%t2253, %t2256) :: float
-    %t2259 = make_tuple(%t2257, %t2258) :: tuple<float, integer>
-    %t2260 = fold %t2259 fn="agg.max" :: float
     loop rates id=L44 in %t2235 as el=%t2236, idx=%t2237
       %t2264 = load_field t2236["lo"] :: float
       %t2277 = load_field t2236["hi"] :: float
       %t2289 = load_field t2236["rate"] :: float
+      %t2247 = call core.sub(%t2260, %t2264) :: float
       %t2270 = call core.eq(%t2277, %t2269) :: boolean
       %t2273 = select %t2270, %t2271, %t2277 :: float
       %t2251 = call core.sub(%t2273, %t2264) :: float
-      %t2247 = call core.sub(%t2260, %t2264) :: float
       %t2252 = call core.clamp(%t2247, %t2258, %t2251) :: float
       %t2240 = call core.mul(%t2252, %t2289) :: float
       %acc2232 = acc_add agg.sum(%acc2232, %t2240) :: float
@@ -1278,28 +1323,28 @@
     yield %t396
   )
   (Declaration total_eff_ms
+    %t2349 = load_input "income" :: float
+    %t2350 = load_input "fed" :: any
+    %t2351 = load_field t2350["married_separate"] :: any
+    %t2352 = load_field t2351["std"] :: float
+    %t2353 = call core.sub(%t2349, %t2352) :: float
+    %t2354 = const 0 :: integer
+    %t2355 = make_tuple(%t2353, %t2354) :: tuple<float, integer>
+    %t2356 = fold %t2355 fn="agg.max" :: float
     %acc2328 = decl_acc :: float
     %t2329 = load_input "fed" :: array
     %t2330 = load_field t2329["married_separate"] :: any
     %t2331 = load_field t2330["rates"] :: any
-    %t2349 = load_input "income" :: float
-    %t2350 = load_input "fed" :: any
-    %t2354 = const 0 :: integer
     %t2365 = const -1 :: integer
     %t2367 = const 100000000000.0 :: float
-    %t2351 = load_field t2350["married_separate"] :: any
-    %t2352 = load_field t2351["std"] :: float
-    %t2353 = call core.sub(%t2349, %t2352) :: float
-    %t2355 = make_tuple(%t2353, %t2354) :: tuple<float, integer>
-    %t2356 = fold %t2355 fn="agg.max" :: float
     loop rates id=L45 in %t2331 as el=%t2332, idx=%t2333
       %t2360 = load_field t2332["lo"] :: float
       %t2373 = load_field t2332["hi"] :: float
       %t2385 = load_field t2332["rate"] :: float
+      %t2343 = call core.sub(%t2356, %t2360) :: float
       %t2366 = call core.eq(%t2373, %t2365) :: boolean
       %t2369 = select %t2366, %t2367, %t2373 :: float
       %t2347 = call core.sub(%t2369, %t2360) :: float
-      %t2343 = call core.sub(%t2356, %t2360) :: float
       %t2348 = call core.clamp(%t2343, %t2354, %t2347) :: float
       %t2336 = call core.mul(%t2348, %t2385) :: float
       %acc2328 = acc_add agg.sum(%acc2328, %t2336) :: float
@@ -1335,27 +1380,27 @@
   )
   (Declaration after_tax_ms
     %t403 = load_input "income" :: float
+    %t2446 = load_input "fed" :: any
+    %t2447 = load_field t2446["married_separate"] :: any
+    %t2448 = load_field t2447["std"] :: float
+    %t2449 = call core.sub(%t403, %t2448) :: float
+    %t2450 = const 0 :: integer
+    %t2451 = make_tuple(%t2449, %t2450) :: tuple<float, integer>
+    %t2452 = fold %t2451 fn="agg.max" :: float
     %acc2424 = decl_acc :: float
     %t2425 = load_input "fed" :: array
     %t2426 = load_field t2425["married_separate"] :: any
     %t2427 = load_field t2426["rates"] :: any
-    %t2446 = load_input "fed" :: any
-    %t2450 = const 0 :: integer
     %t2461 = const -1 :: integer
     %t2463 = const 100000000000.0 :: float
-    %t2447 = load_field t2446["married_separate"] :: any
-    %t2448 = load_field t2447["std"] :: float
-    %t2449 = call core.sub(%t403, %t2448) :: float
-    %t2451 = make_tuple(%t2449, %t2450) :: tuple<float, integer>
-    %t2452 = fold %t2451 fn="agg.max" :: float
     loop rates id=L46 in %t2427 as el=%t2428, idx=%t2429
       %t2456 = load_field t2428["lo"] :: float
       %t2469 = load_field t2428["hi"] :: float
       %t2481 = load_field t2428["rate"] :: float
+      %t2439 = call core.sub(%t2452, %t2456) :: float
       %t2462 = call core.eq(%t2469, %t2461) :: boolean
       %t2465 = select %t2462, %t2463, %t2469 :: float
       %t2443 = call core.sub(%t2465, %t2456) :: float
-      %t2439 = call core.sub(%t2452, %t2456) :: float
       %t2444 = call core.clamp(%t2439, %t2450, %t2443) :: float
       %t2432 = call core.mul(%t2444, %t2481) :: float
       %acc2424 = acc_add agg.sum(%acc2424, %t2432) :: float
@@ -1388,27 +1433,27 @@
   )
   (Declaration take_home_ms
     %t2512 = load_input "income" :: float
+    %t2545 = load_input "fed" :: any
+    %t2546 = load_field t2545["married_separate"] :: any
+    %t2547 = load_field t2546["std"] :: float
+    %t2548 = call core.sub(%t2512, %t2547) :: float
+    %t2549 = const 0 :: integer
+    %t2550 = make_tuple(%t2548, %t2549) :: tuple<float, integer>
+    %t2551 = fold %t2550 fn="agg.max" :: float
     %acc2523 = decl_acc :: float
     %t2524 = load_input "fed" :: array
     %t2525 = load_field t2524["married_separate"] :: any
     %t2526 = load_field t2525["rates"] :: any
-    %t2545 = load_input "fed" :: any
-    %t2549 = const 0 :: integer
     %t2560 = const -1 :: integer
     %t2562 = const 100000000000.0 :: float
-    %t2546 = load_field t2545["married_separate"] :: any
-    %t2547 = load_field t2546["std"] :: float
-    %t2548 = call core.sub(%t2512, %t2547) :: float
-    %t2550 = make_tuple(%t2548, %t2549) :: tuple<float, integer>
-    %t2551 = fold %t2550 fn="agg.max" :: float
     loop rates id=L47 in %t2526 as el=%t2527, idx=%t2528
       %t2555 = load_field t2527["lo"] :: float
       %t2568 = load_field t2527["hi"] :: float
       %t2580 = load_field t2527["rate"] :: float
+      %t2538 = call core.sub(%t2551, %t2555) :: float
       %t2561 = call core.eq(%t2568, %t2560) :: boolean
       %t2564 = select %t2561, %t2562, %t2568 :: float
       %t2542 = call core.sub(%t2564, %t2555) :: float
-      %t2538 = call core.sub(%t2551, %t2555) :: float
       %t2543 = call core.clamp(%t2538, %t2549, %t2542) :: float
       %t2531 = call core.mul(%t2543, %t2580) :: float
       %acc2523 = acc_add agg.sum(%acc2523, %t2531) :: float
@@ -1496,13 +1541,20 @@
     %t446 = load_input "fed" :: array
     %t447 = load_field t446["head_of_household"] :: any
     %t448 = load_field t447["rates"] :: any
+    %t2619 = load_input "income" :: float
+    %t2620 = load_input "fed" :: any
+    %t2621 = load_field t2620["head_of_household"] :: any
+    %t2622 = load_field t2621["std"] :: float
+    %t2623 = call core.sub(%t2619, %t2622) :: float
     %t2624 = const 0 :: integer
+    %t2625 = make_tuple(%t2623, %t2624) :: tuple<float, integer>
+    %t2626 = fold %t2625 fn="agg.max" :: float
     %t2635 = const -1 :: integer
     %t2637 = const 100000000000.0 :: float
     loop rates id=L29 in %t448 as el=%rates_el_449, idx=%rates_i_450
       %t2630 = load_field rates_el_449["lo"] :: float
       %t2643 = load_field rates_el_449["hi"] :: float
-      %t453 = call core.sub(%t451, %t2630) :: float
+      %t453 = call core.sub(%t2626, %t2630) :: float
       %t2636 = call core.eq(%t2643, %t2635) :: boolean
       %t2639 = select %t2636, %t2637, %t2643 :: float
       %t457 = call core.sub(%t2639, %t2630) :: float
@@ -1511,28 +1563,28 @@
     end_loop
   )
   (Declaration fed_tax_hoh
+    %t2663 = load_input "income" :: float
+    %t2664 = load_input "fed" :: any
+    %t2665 = load_field t2664["head_of_household"] :: any
+    %t2666 = load_field t2665["std"] :: float
+    %t2667 = call core.sub(%t2663, %t2666) :: float
+    %t2668 = const 0 :: integer
+    %t2669 = make_tuple(%t2667, %t2668) :: tuple<float, integer>
+    %t2670 = fold %t2669 fn="agg.max" :: float
     %acc_459 = decl_acc :: float
     %t460 = load_input "fed" :: array
     %t461 = load_field t460["head_of_household"] :: any
     %t462 = load_field t461["rates"] :: any
-    %t2663 = load_input "income" :: float
-    %t2664 = load_input "fed" :: any
-    %t2668 = const 0 :: integer
     %t2679 = const -1 :: integer
     %t2681 = const 100000000000.0 :: float
-    %t2665 = load_field t2664["head_of_household"] :: any
-    %t2666 = load_field t2665["std"] :: float
-    %t2667 = call core.sub(%t2663, %t2666) :: float
-    %t2669 = make_tuple(%t2667, %t2668) :: tuple<float, integer>
-    %t2670 = fold %t2669 fn="agg.max" :: float
     loop rates id=L30 in %t462 as el=%rates_el_463, idx=%rates_i_464
       %t2674 = load_field rates_el_463["lo"] :: float
       %t2687 = load_field rates_el_463["hi"] :: float
       %t2699 = load_field rates_el_463["rate"] :: float
+      %t2657 = call core.sub(%t2670, %t2674) :: float
       %t2680 = call core.eq(%t2687, %t2679) :: boolean
       %t2683 = select %t2680, %t2681, %t2687 :: float
       %t2661 = call core.sub(%t2683, %t2674) :: float
-      %t2657 = call core.sub(%t2670, %t2674) :: float
       %t2662 = call core.clamp(%t2657, %t2668, %t2661) :: float
       %t467 = call core.mul(%t2662, %t2699) :: float
       %acc_459 = acc_add agg.sum(%acc_459, %t467) :: float
@@ -1544,41 +1596,49 @@
     %t469 = load_input "fed" :: array
     %t470 = load_field t469["head_of_household"] :: any
     %t471 = load_field t470["rates"] :: any
+    %t2700 = load_input "income" :: float
+    %t2701 = load_input "fed" :: any
+    %t2702 = load_field t2701["head_of_household"] :: any
+    %t2703 = load_field t2702["std"] :: float
+    %t2704 = call core.sub(%t2700, %t2703) :: float
+    %t2705 = const 0 :: integer
+    %t2706 = make_tuple(%t2704, %t2705) :: tuple<float, integer>
+    %t2707 = fold %t2706 fn="agg.max" :: float
     %t2724 = const -1 :: integer
     %t2726 = const 100000000000.0 :: float
     loop rates id=L31 in %t471 as el=%rates_el_472, idx=%rates_i_473
       %t2719 = load_field rates_el_472["lo"] :: float
       %t2732 = load_field rates_el_472["hi"] :: float
-      %t476 = call core.gte(%t474, %t2719) :: boolean
+      %t476 = call core.gte(%t2707, %t2719) :: boolean
       %t2725 = call core.eq(%t2732, %t2724) :: boolean
       %t2728 = select %t2725, %t2726, %t2732 :: float
-      %t479 = call core.lt(%t477, %t2728) :: boolean
+      %t479 = call core.lt(%t2707, %t2728) :: boolean
       %t480 = call core.and(%t476, %t479) :: boolean
       yield %t480
     end_loop
   )
   (Declaration fed_marginal_hoh
+    %t2747 = load_input "income" :: float
+    %t2748 = load_input "fed" :: any
+    %t2749 = load_field t2748["head_of_household"] :: any
+    %t2750 = load_field t2749["std"] :: float
+    %t2751 = call core.sub(%t2747, %t2750) :: float
+    %t2752 = const 0 :: integer
+    %t2753 = make_tuple(%t2751, %t2752) :: tuple<float, integer>
+    %t2754 = fold %t2753 fn="agg.max" :: float
     %acc_481 = decl_acc :: float
     %t482 = load_input "fed" :: array
     %t483 = load_field t482["head_of_household"] :: any
     %t484 = load_field t483["rates"] :: any
-    %t2747 = load_input "income" :: float
-    %t2748 = load_input "fed" :: any
-    %t2752 = const 0 :: integer
     %t2771 = const -1 :: integer
     %t2773 = const 100000000000.0 :: float
-    %t2749 = load_field t2748["head_of_household"] :: any
-    %t2750 = load_field t2749["std"] :: float
-    %t2751 = call core.sub(%t2747, %t2750) :: float
-    %t2753 = make_tuple(%t2751, %t2752) :: tuple<float, integer>
-    %t2754 = fold %t2753 fn="agg.max" :: float
     loop rates id=L32 in %t484 as el=%rates_el_485, idx=%rates_i_486
       %t2766 = load_field rates_el_485["lo"] :: float
       %t2779 = load_field rates_el_485["hi"] :: float
       %t2787 = load_field rates_el_485["rate"] :: float
+      %t2743 = call core.gte(%t2754, %t2766) :: boolean
       %t2772 = call core.eq(%t2779, %t2771) :: boolean
       %t2775 = select %t2772, %t2773, %t2779 :: float
-      %t2743 = call core.gte(%t2754, %t2766) :: boolean
       %t2745 = call core.lt(%t2754, %t2775) :: boolean
       %t2746 = call core.and(%t2743, %t2745) :: boolean
       %t490 = select %t2746, %t2787, %t2752 :: float
@@ -1588,28 +1648,28 @@
     yield %t491
   )
   (Declaration fed_eff_hoh
+    %t2810 = load_input "income" :: float
+    %t2811 = load_input "fed" :: any
+    %t2812 = load_field t2811["head_of_household"] :: any
+    %t2813 = load_field t2812["std"] :: float
+    %t2814 = call core.sub(%t2810, %t2813) :: float
+    %t2815 = const 0 :: integer
+    %t2816 = make_tuple(%t2814, %t2815) :: tuple<float, integer>
+    %t2817 = fold %t2816 fn="agg.max" :: float
     %acc2789 = decl_acc :: float
     %t2790 = load_input "fed" :: array
     %t2791 = load_field t2790["head_of_household"] :: any
     %t2792 = load_field t2791["rates"] :: any
-    %t2810 = load_input "income" :: float
-    %t2811 = load_input "fed" :: any
-    %t2815 = const 0 :: integer
     %t2826 = const -1 :: integer
     %t2828 = const 100000000000.0 :: float
-    %t2812 = load_field t2811["head_of_household"] :: any
-    %t2813 = load_field t2812["std"] :: float
-    %t2814 = call core.sub(%t2810, %t2813) :: float
-    %t2816 = make_tuple(%t2814, %t2815) :: tuple<float, integer>
-    %t2817 = fold %t2816 fn="agg.max" :: float
     loop rates id=L48 in %t2792 as el=%t2793, idx=%t2794
       %t2821 = load_field t2793["lo"] :: float
       %t2834 = load_field t2793["hi"] :: float
       %t2846 = load_field t2793["rate"] :: float
+      %t2804 = call core.sub(%t2817, %t2821) :: float
       %t2827 = call core.eq(%t2834, %t2826) :: boolean
       %t2830 = select %t2827, %t2828, %t2834 :: float
       %t2808 = call core.sub(%t2830, %t2821) :: float
-      %t2804 = call core.sub(%t2817, %t2821) :: float
       %t2809 = call core.clamp(%t2804, %t2815, %t2808) :: float
       %t2797 = call core.mul(%t2809, %t2846) :: float
       %acc2789 = acc_add agg.sum(%acc2789, %t2797) :: float
@@ -1696,28 +1756,28 @@
     yield %t519
   )
   (Declaration total_tax_hoh
+    %t2921 = load_input "income" :: float
+    %t2922 = load_input "fed" :: any
+    %t2923 = load_field t2922["head_of_household"] :: any
+    %t2924 = load_field t2923["std"] :: float
+    %t2925 = call core.sub(%t2921, %t2924) :: float
+    %t2926 = const 0 :: integer
+    %t2927 = make_tuple(%t2925, %t2926) :: tuple<float, integer>
+    %t2928 = fold %t2927 fn="agg.max" :: float
     %acc2900 = decl_acc :: float
     %t2901 = load_input "fed" :: array
     %t2902 = load_field t2901["head_of_household"] :: any
     %t2903 = load_field t2902["rates"] :: any
-    %t2921 = load_input "income" :: float
-    %t2922 = load_input "fed" :: any
-    %t2926 = const 0 :: integer
     %t2937 = const -1 :: integer
     %t2939 = const 100000000000.0 :: float
-    %t2923 = load_field t2922["head_of_household"] :: any
-    %t2924 = load_field t2923["std"] :: float
-    %t2925 = call core.sub(%t2921, %t2924) :: float
-    %t2927 = make_tuple(%t2925, %t2926) :: tuple<float, integer>
-    %t2928 = fold %t2927 fn="agg.max" :: float
     loop rates id=L49 in %t2903 as el=%t2904, idx=%t2905
       %t2932 = load_field t2904["lo"] :: float
       %t2945 = load_field t2904["hi"] :: float
       %t2957 = load_field t2904["rate"] :: float
+      %t2915 = call core.sub(%t2928, %t2932) :: float
       %t2938 = call core.eq(%t2945, %t2937) :: boolean
       %t2941 = select %t2938, %t2939, %t2945 :: float
       %t2919 = call core.sub(%t2941, %t2932) :: float
-      %t2915 = call core.sub(%t2928, %t2932) :: float
       %t2920 = call core.clamp(%t2915, %t2926, %t2919) :: float
       %t2908 = call core.mul(%t2920, %t2957) :: float
       %acc2900 = acc_add agg.sum(%acc2900, %t2908) :: float
@@ -1748,28 +1808,28 @@
     yield %t526
   )
   (Declaration total_eff_hoh
+    %t3017 = load_input "income" :: float
+    %t3018 = load_input "fed" :: any
+    %t3019 = load_field t3018["head_of_household"] :: any
+    %t3020 = load_field t3019["std"] :: float
+    %t3021 = call core.sub(%t3017, %t3020) :: float
+    %t3022 = const 0 :: integer
+    %t3023 = make_tuple(%t3021, %t3022) :: tuple<float, integer>
+    %t3024 = fold %t3023 fn="agg.max" :: float
     %acc2996 = decl_acc :: float
     %t2997 = load_input "fed" :: array
     %t2998 = load_field t2997["head_of_household"] :: any
     %t2999 = load_field t2998["rates"] :: any
-    %t3017 = load_input "income" :: float
-    %t3018 = load_input "fed" :: any
-    %t3022 = const 0 :: integer
     %t3033 = const -1 :: integer
     %t3035 = const 100000000000.0 :: float
-    %t3019 = load_field t3018["head_of_household"] :: any
-    %t3020 = load_field t3019["std"] :: float
-    %t3021 = call core.sub(%t3017, %t3020) :: float
-    %t3023 = make_tuple(%t3021, %t3022) :: tuple<float, integer>
-    %t3024 = fold %t3023 fn="agg.max" :: float
     loop rates id=L50 in %t2999 as el=%t3000, idx=%t3001
       %t3028 = load_field t3000["lo"] :: float
       %t3041 = load_field t3000["hi"] :: float
       %t3053 = load_field t3000["rate"] :: float
+      %t3011 = call core.sub(%t3024, %t3028) :: float
       %t3034 = call core.eq(%t3041, %t3033) :: boolean
       %t3037 = select %t3034, %t3035, %t3041 :: float
       %t3015 = call core.sub(%t3037, %t3028) :: float
-      %t3011 = call core.sub(%t3024, %t3028) :: float
       %t3016 = call core.clamp(%t3011, %t3022, %t3015) :: float
       %t3004 = call core.mul(%t3016, %t3053) :: float
       %acc2996 = acc_add agg.sum(%acc2996, %t3004) :: float
@@ -1805,27 +1865,27 @@
   )
   (Declaration after_tax_hoh
     %t533 = load_input "income" :: float
+    %t3114 = load_input "fed" :: any
+    %t3115 = load_field t3114["head_of_household"] :: any
+    %t3116 = load_field t3115["std"] :: float
+    %t3117 = call core.sub(%t533, %t3116) :: float
+    %t3118 = const 0 :: integer
+    %t3119 = make_tuple(%t3117, %t3118) :: tuple<float, integer>
+    %t3120 = fold %t3119 fn="agg.max" :: float
     %acc3092 = decl_acc :: float
     %t3093 = load_input "fed" :: array
     %t3094 = load_field t3093["head_of_household"] :: any
     %t3095 = load_field t3094["rates"] :: any
-    %t3114 = load_input "fed" :: any
-    %t3118 = const 0 :: integer
     %t3129 = const -1 :: integer
     %t3131 = const 100000000000.0 :: float
-    %t3115 = load_field t3114["head_of_household"] :: any
-    %t3116 = load_field t3115["std"] :: float
-    %t3117 = call core.sub(%t533, %t3116) :: float
-    %t3119 = make_tuple(%t3117, %t3118) :: tuple<float, integer>
-    %t3120 = fold %t3119 fn="agg.max" :: float
     loop rates id=L51 in %t3095 as el=%t3096, idx=%t3097
       %t3124 = load_field t3096["lo"] :: float
       %t3137 = load_field t3096["hi"] :: float
       %t3149 = load_field t3096["rate"] :: float
+      %t3107 = call core.sub(%t3120, %t3124) :: float
       %t3130 = call core.eq(%t3137, %t3129) :: boolean
       %t3133 = select %t3130, %t3131, %t3137 :: float
       %t3111 = call core.sub(%t3133, %t3124) :: float
-      %t3107 = call core.sub(%t3120, %t3124) :: float
       %t3112 = call core.clamp(%t3107, %t3118, %t3111) :: float
       %t3100 = call core.mul(%t3112, %t3149) :: float
       %acc3092 = acc_add agg.sum(%acc3092, %t3100) :: float
@@ -1858,27 +1918,27 @@
   )
   (Declaration take_home_hoh
     %t3180 = load_input "income" :: float
+    %t3213 = load_input "fed" :: any
+    %t3214 = load_field t3213["head_of_household"] :: any
+    %t3215 = load_field t3214["std"] :: float
+    %t3216 = call core.sub(%t3180, %t3215) :: float
+    %t3217 = const 0 :: integer
+    %t3218 = make_tuple(%t3216, %t3217) :: tuple<float, integer>
+    %t3219 = fold %t3218 fn="agg.max" :: float
     %acc3191 = decl_acc :: float
     %t3192 = load_input "fed" :: array
     %t3193 = load_field t3192["head_of_household"] :: any
     %t3194 = load_field t3193["rates"] :: any
-    %t3213 = load_input "fed" :: any
-    %t3217 = const 0 :: integer
     %t3228 = const -1 :: integer
     %t3230 = const 100000000000.0 :: float
-    %t3214 = load_field t3213["head_of_household"] :: any
-    %t3215 = load_field t3214["std"] :: float
-    %t3216 = call core.sub(%t3180, %t3215) :: float
-    %t3218 = make_tuple(%t3216, %t3217) :: tuple<float, integer>
-    %t3219 = fold %t3218 fn="agg.max" :: float
     loop rates id=L52 in %t3194 as el=%t3195, idx=%t3196
       %t3223 = load_field t3195["lo"] :: float
       %t3236 = load_field t3195["hi"] :: float
       %t3248 = load_field t3195["rate"] :: float
+      %t3206 = call core.sub(%t3219, %t3223) :: float
       %t3229 = call core.eq(%t3236, %t3228) :: boolean
       %t3232 = select %t3229, %t3230, %t3236 :: float
       %t3210 = call core.sub(%t3232, %t3223) :: float
-      %t3206 = call core.sub(%t3219, %t3223) :: float
       %t3211 = call core.clamp(%t3206, %t3217, %t3210) :: float
       %t3199 = call core.mul(%t3211, %t3248) :: float
       %acc3191 = acc_add agg.sum(%acc3191, %t3199) :: float
@@ -1912,28 +1972,28 @@
     yield %t538
   )
   (Declaration summary
+    %t3301 = load_input "income" :: float
+    %t3302 = load_input "fed" :: any
+    %t3303 = load_field t3302["single"] :: any
+    %t3304 = load_field t3303["std"] :: float
+    %t3305 = call core.sub(%t3301, %t3304) :: float
+    %t3306 = const 0 :: integer
+    %t3307 = make_tuple(%t3305, %t3306) :: tuple<float, integer>
+    %t3308 = fold %t3307 fn="agg.max" :: float
     %acc3280 = decl_acc :: float
     %t3281 = load_input "fed" :: array
     %t3282 = load_field t3281["single"] :: any
     %t3283 = load_field t3282["rates"] :: any
     %acc3349 = decl_acc :: float
-    %t3301 = load_input "income" :: float
-    %t3302 = load_input "fed" :: any
-    %t3306 = const 0 :: integer
     %t3325 = const -1 :: integer
     %t3327 = const 100000000000.0 :: float
-    %t3303 = load_field t3302["single"] :: any
-    %t3304 = load_field t3303["std"] :: float
-    %t3305 = call core.sub(%t3301, %t3304) :: float
-    %t3307 = make_tuple(%t3305, %t3306) :: tuple<float, integer>
-    %t3308 = fold %t3307 fn="agg.max" :: float
     loop rates id=L53 in %t3283 as el=%t3284, idx=%t3285
       %t3320 = load_field t3284["lo"] :: float
       %t3333 = load_field t3284["hi"] :: float
       %t3341 = load_field t3284["rate"] :: float
+      %t3297 = call core.gte(%t3308, %t3320) :: boolean
       %t3326 = call core.eq(%t3333, %t3325) :: boolean
       %t3329 = select %t3326, %t3327, %t3333 :: float
-      %t3297 = call core.gte(%t3308, %t3320) :: boolean
       %t3299 = call core.lt(%t3308, %t3329) :: boolean
       %t3300 = call core.and(%t3297, %t3299) :: boolean
       %t3289 = select %t3300, %t3341, %t3306 :: float
@@ -2063,22 +2123,22 @@
     %t3818 = call core.sub(%t3301, %t3825) :: float
     %t3815 = call core.sub(%t3818, %t558) :: float
     %t560 = make_object{federal: %t542, fica: %t545, state: %t549, local: %t553, total: %t556, after_tax: %t3718, retirement_contrib: %t558, take_home: %t3815} :: object
-    %acc3914 = decl_acc :: float
-    %t3916 = load_field t3281["married_joint"] :: any
-    %t3917 = load_field t3916["rates"] :: any
-    %acc3983 = decl_acc :: float
     %t3937 = load_field t3302["married_joint"] :: any
     %t3938 = load_field t3937["std"] :: float
     %t3939 = call core.sub(%t3301, %t3938) :: float
     %t3941 = make_tuple(%t3939, %t3306) :: tuple<float, integer>
     %t3942 = fold %t3941 fn="agg.max" :: float
+    %acc3914 = decl_acc :: float
+    %t3916 = load_field t3281["married_joint"] :: any
+    %t3917 = load_field t3916["rates"] :: any
+    %acc3983 = decl_acc :: float
     loop rates id=L60 in %t3917 as el=%t3918, idx=%t3919
       %t3954 = load_field t3918["lo"] :: float
       %t3967 = load_field t3918["hi"] :: float
       %t3975 = load_field t3918["rate"] :: float
+      %t3931 = call core.gte(%t3942, %t3954) :: boolean
       %t3960 = call core.eq(%t3967, %t3325) :: boolean
       %t3963 = select %t3960, %t3327, %t3967 :: float
-      %t3931 = call core.gte(%t3942, %t3954) :: boolean
       %t3933 = call core.lt(%t3942, %t3963) :: boolean
       %t3934 = call core.and(%t3931, %t3933) :: boolean
       %t3923 = select %t3934, %t3975, %t3306 :: float
@@ -2189,22 +2249,22 @@
     %t4462 = call core.sub(%t3301, %t4469) :: float
     %t4459 = call core.sub(%t4462, %t558) :: float
     %t582 = make_object{federal: %t564, fica: %t567, state: %t549, local: %t553, total: %t578, after_tax: %t4360, retirement_contrib: %t558, take_home: %t4459} :: object
-    %acc4560 = decl_acc :: float
-    %t4562 = load_field t3281["married_separate"] :: any
-    %t4563 = load_field t4562["rates"] :: any
-    %acc4629 = decl_acc :: float
     %t4583 = load_field t3302["married_separate"] :: any
     %t4584 = load_field t4583["std"] :: float
     %t4585 = call core.sub(%t3301, %t4584) :: float
     %t4587 = make_tuple(%t4585, %t3306) :: tuple<float, integer>
     %t4588 = fold %t4587 fn="agg.max" :: float
+    %acc4560 = decl_acc :: float
+    %t4562 = load_field t3281["married_separate"] :: any
+    %t4563 = load_field t4562["rates"] :: any
+    %acc4629 = decl_acc :: float
     loop rates id=L67 in %t4563 as el=%t4564, idx=%t4565
       %t4600 = load_field t4564["lo"] :: float
       %t4613 = load_field t4564["hi"] :: float
       %t4621 = load_field t4564["rate"] :: float
+      %t4577 = call core.gte(%t4588, %t4600) :: boolean
       %t4606 = call core.eq(%t4613, %t3325) :: boolean
       %t4609 = select %t4606, %t3327, %t4613 :: float
-      %t4577 = call core.gte(%t4588, %t4600) :: boolean
       %t4579 = call core.lt(%t4588, %t4609) :: boolean
       %t4580 = call core.and(%t4577, %t4579) :: boolean
       %t4569 = select %t4580, %t4621, %t3306 :: float
@@ -2315,22 +2375,22 @@
     %t5108 = call core.sub(%t3301, %t5115) :: float
     %t5105 = call core.sub(%t5108, %t558) :: float
     %t604 = make_object{federal: %t586, fica: %t589, state: %t549, local: %t553, total: %t600, after_tax: %t5006, retirement_contrib: %t558, take_home: %t5105} :: object
-    %acc5206 = decl_acc :: float
-    %t5208 = load_field t3281["head_of_household"] :: any
-    %t5209 = load_field t5208["rates"] :: any
-    %acc5275 = decl_acc :: float
     %t5229 = load_field t3302["head_of_household"] :: any
     %t5230 = load_field t5229["std"] :: float
     %t5231 = call core.sub(%t3301, %t5230) :: float
     %t5233 = make_tuple(%t5231, %t3306) :: tuple<float, integer>
     %t5234 = fold %t5233 fn="agg.max" :: float
+    %acc5206 = decl_acc :: float
+    %t5208 = load_field t3281["head_of_household"] :: any
+    %t5209 = load_field t5208["rates"] :: any
+    %acc5275 = decl_acc :: float
     loop rates id=L74 in %t5209 as el=%t5210, idx=%t5211
       %t5246 = load_field t5210["lo"] :: float
       %t5259 = load_field t5210["hi"] :: float
       %t5267 = load_field t5210["rate"] :: float
+      %t5223 = call core.gte(%t5234, %t5246) :: boolean
       %t5252 = call core.eq(%t5259, %t3325) :: boolean
       %t5255 = select %t5252, %t3327, %t5259 :: float
-      %t5223 = call core.gte(%t5234, %t5246) :: boolean
       %t5225 = call core.lt(%t5234, %t5255) :: boolean
       %t5226 = call core.and(%t5223, %t5225) :: boolean
       %t5215 = select %t5226, %t5267, %t3306 :: float

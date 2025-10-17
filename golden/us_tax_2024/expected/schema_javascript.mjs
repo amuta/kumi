@@ -1,26 +1,26 @@
 export function _summary(input) {
+  let t3301 = input["income"];
+  let t3302 = input["fed"];
+  let t3303 = t3302["single"];
+  let t3304 = t3303["std"];
+  let t3305 = t3301 - t3304;
+  const t3306 = 0;
+  let t3307 = [t3305, t3306];
+  let t3308 = Math.max(...t3307);
   let acc3280 = 0.0;
   let t3281 = input["fed"];
   let t3282 = t3281["single"];
   let t3283 = t3282["rates"];
   let acc3349 = 0.0;
-  let t3301 = input["income"];
-  let t3302 = input["fed"];
-  const t3306 = 0;
   const t3325 = -1;
   const t3327 = 100000000000.0;
-  let t3303 = t3302["single"];
-  let t3304 = t3303["std"];
-  let t3305 = t3301 - t3304;
-  let t3307 = [t3305, t3306];
-  let t3308 = Math.max(...t3307);
   t3283.forEach((t3284, t3285) => {
     let t3320 = t3284["lo"];
     let t3333 = t3284["hi"];
     let t3341 = t3284["rate"];
+    let t3297 = t3308 >= t3320;
     let t3326 = t3333 == t3325;
     let t3329 = t3326 ? t3327 : t3333;
-    let t3297 = t3308 >= t3320;
     let t3299 = t3308 < t3329;
     let t3300 = t3297 && t3299;
     let t3289 = t3300 ? t3341 : t3306;
@@ -170,22 +170,22 @@ export function _summary(input) {
     "retirement_contrib": t558,
     "take_home": t3815
   };
-  let acc3914 = 0.0;
-  let t3916 = t3281["married_joint"];
-  let t3917 = t3916["rates"];
-  let acc3983 = 0.0;
   let t3937 = t3302["married_joint"];
   let t3938 = t3937["std"];
   let t3939 = t3301 - t3938;
   let t3941 = [t3939, t3306];
   let t3942 = Math.max(...t3941);
+  let acc3914 = 0.0;
+  let t3916 = t3281["married_joint"];
+  let t3917 = t3916["rates"];
+  let acc3983 = 0.0;
   t3917.forEach((t3918, t3919) => {
     let t3954 = t3918["lo"];
     let t3967 = t3918["hi"];
     let t3975 = t3918["rate"];
+    let t3931 = t3942 >= t3954;
     let t3960 = t3967 == t3325;
     let t3963 = t3960 ? t3327 : t3967;
-    let t3931 = t3942 >= t3954;
     let t3933 = t3942 < t3963;
     let t3934 = t3931 && t3933;
     let t3923 = t3934 ? t3975 : t3306;
@@ -308,22 +308,22 @@ export function _summary(input) {
     "retirement_contrib": t558,
     "take_home": t4459
   };
-  let acc4560 = 0.0;
-  let t4562 = t3281["married_separate"];
-  let t4563 = t4562["rates"];
-  let acc4629 = 0.0;
   let t4583 = t3302["married_separate"];
   let t4584 = t4583["std"];
   let t4585 = t3301 - t4584;
   let t4587 = [t4585, t3306];
   let t4588 = Math.max(...t4587);
+  let acc4560 = 0.0;
+  let t4562 = t3281["married_separate"];
+  let t4563 = t4562["rates"];
+  let acc4629 = 0.0;
   t4563.forEach((t4564, t4565) => {
     let t4600 = t4564["lo"];
     let t4613 = t4564["hi"];
     let t4621 = t4564["rate"];
+    let t4577 = t4588 >= t4600;
     let t4606 = t4613 == t3325;
     let t4609 = t4606 ? t3327 : t4613;
-    let t4577 = t4588 >= t4600;
     let t4579 = t4588 < t4609;
     let t4580 = t4577 && t4579;
     let t4569 = t4580 ? t4621 : t3306;
@@ -446,22 +446,22 @@ export function _summary(input) {
     "retirement_contrib": t558,
     "take_home": t5105
   };
-  let acc5206 = 0.0;
-  let t5208 = t3281["head_of_household"];
-  let t5209 = t5208["rates"];
-  let acc5275 = 0.0;
   let t5229 = t3302["head_of_household"];
   let t5230 = t5229["std"];
   let t5231 = t3301 - t5230;
   let t5233 = [t5231, t3306];
   let t5234 = Math.max(...t5233);
+  let acc5206 = 0.0;
+  let t5208 = t3281["head_of_household"];
+  let t5209 = t5208["rates"];
+  let acc5275 = 0.0;
   t5209.forEach((t5210, t5211) => {
     let t5246 = t5210["lo"];
     let t5259 = t5210["hi"];
     let t5267 = t5210["rate"];
+    let t5223 = t5234 >= t5246;
     let t5252 = t5259 == t3325;
     let t5255 = t5252 ? t3327 : t5259;
-    let t5223 = t5234 >= t5246;
     let t5225 = t5234 < t5255;
     let t5226 = t5223 && t5225;
     let t5215 = t5226 ? t5267 : t3306;

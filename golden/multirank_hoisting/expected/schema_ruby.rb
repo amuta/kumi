@@ -69,21 +69,21 @@ module Kumi::Compiled::KUMI_7493f45c6a56b6958f928d8337e155ecf85850b56acef5a72dee
 
   def _elem_affine(input = @input)
     out = []
-    t19 = input["batch"] || input[:batch]
     t66 = input["global_offset"] || input[:global_offset]
     t67 = 1.0
     t68 = t66 + t67
+    t19 = input["batch"] || input[:batch]
     t60 = 2.0
     t19.each_with_index do |batch_el_20, batch_i_21|
       out_1 = []
-      t22 = batch_el_20["row"] || batch_el_20[:row]
       t64 = batch_el_20["mean"] || batch_el_20[:mean]
+      t22 = batch_el_20["row"] || batch_el_20[:row]
       t65 = t64 + t68
       t22.each_with_index do |row_el_23, row_i_24|
         out_2 = []
-        t25 = row_el_23["col"] || row_el_23[:col]
         t59 = row_el_23["scale"] || row_el_23[:scale]
         t61 = t59 * t60
+        t25 = row_el_23["col"] || row_el_23[:col]
         t25.each_with_index do |col_el_26, col_i_27|
           t28 = col_el_26["val"] || col_el_26[:val]
           t30 = t28 * t61
@@ -99,21 +99,21 @@ module Kumi::Compiled::KUMI_7493f45c6a56b6958f928d8337e155ecf85850b56acef5a72dee
 
   def _row_sum_affine(input = @input)
     out = []
-    t33 = input["batch"] || input[:batch]
     t86 = input["global_offset"] || input[:global_offset]
     t87 = 1.0
     t88 = t86 + t87
+    t33 = input["batch"] || input[:batch]
     t80 = 2.0
     t33.each_with_index do |batch_el_34, batch_i_35|
       out_1 = []
-      t36 = batch_el_34["row"] || batch_el_34[:row]
       t84 = batch_el_34["mean"] || batch_el_34[:mean]
+      t36 = batch_el_34["row"] || batch_el_34[:row]
       t85 = t84 + t88
       t36.each_with_index do |row_el_37, row_i_38|
-        acc_39 = 0.0
-        t40 = row_el_37["col"] || row_el_37[:col]
         t79 = row_el_37["scale"] || row_el_37[:scale]
         t81 = t79 * t80
+        acc_39 = 0.0
+        t40 = row_el_37["col"] || row_el_37[:col]
         t40.each_with_index do |col_el_41, col_i_42|
           t72 = col_el_41["val"] || col_el_41[:val]
           t74 = t72 * t81
@@ -130,21 +130,21 @@ module Kumi::Compiled::KUMI_7493f45c6a56b6958f928d8337e155ecf85850b56acef5a72dee
 
   def _batch_total_affine(input = @input)
     out = []
-    t45 = input["batch"] || input[:batch]
     t115 = input["global_offset"] || input[:global_offset]
     t116 = 1.0
     t117 = t115 + t116
+    t45 = input["batch"] || input[:batch]
     t109 = 2.0
     t45.each_with_index do |batch_el_46, batch_i_47|
+      t113 = batch_el_46["mean"] || batch_el_46[:mean]
       acc_48 = 0.0
       t49 = batch_el_46["row"] || batch_el_46[:row]
-      t113 = batch_el_46["mean"] || batch_el_46[:mean]
       t114 = t113 + t117
       t49.each_with_index do |row_el_50, row_i_51|
-        acc92 = 0.0
-        t93 = row_el_50["col"] || row_el_50[:col]
         t108 = row_el_50["scale"] || row_el_50[:scale]
         t110 = t108 * t109
+        acc92 = 0.0
+        t93 = row_el_50["col"] || row_el_50[:col]
         t93.each_with_index do |t94, t95|
           t101 = t94["val"] || t94[:val]
           t103 = t101 * t110

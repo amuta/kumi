@@ -121,9 +121,9 @@ module Kumi::Compiled::KUMI_296703f629e169ee9916ee2652186a615448b14fbf3dd810f07f
         t49 = offices_el_47["teams"] || offices_el_47[:teams]
         t49.each_with_index do |teams_el_50, teams_i_51|
           out_3 = []
-          t52 = teams_el_50["employees"] || teams_el_50[:employees]
           t91 = teams_el_50["performance_score"] || teams_el_50[:performance_score]
           t93 = t91 >= t92
+          t52 = teams_el_50["employees"] || teams_el_50[:employees]
           t52.each_with_index do |employees_el_53, employees_i_54|
             t78 = employees_el_53["rating"] || employees_el_53[:rating]
             t80 = t78 >= t79

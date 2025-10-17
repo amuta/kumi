@@ -52,17 +52,17 @@ export function _is_above_average_team(input) {
   let t25 = input["departments"];
   t25.forEach((departments_el_26, departments_i_27) => {
     let out_1 = [];
-    let t28 = departments_el_26["teams"];
     let acc56 = 0;
+    let t57 = departments_el_26["teams"];
     let acc64 = 0;
-    t28.forEach((t58, t59) => {
+    t57.forEach((t58, t59) => {
       let t60 = t58["headcount"];
       acc56 += t60;
       let t68 = t58["team_name"];
       acc64 += 1;
     });
     let t53 = acc56 / acc64;
-    t28.forEach((teams_el_29, teams_i_30) => {
+    t57.forEach((teams_el_29, teams_i_30) => {
       let t31 = teams_el_29["headcount"];
       let t33 = t31 > t53;
       out_1.push(t33);

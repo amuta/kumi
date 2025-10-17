@@ -63,9 +63,9 @@
       loop offices id=L13 in %t46 as el=%offices_el_47, idx=%offices_i_48
         %t49 = load_field offices_el_47["teams"] :: any
         loop teams id=L14 in %t49 as el=%teams_el_50, idx=%teams_i_51
-          %t52 = load_field teams_el_50["employees"] :: any
           %t91 = load_field teams_el_50["performance_score"] :: float
           %t93 = call core.gte(%t91, %t92) :: boolean
+          %t52 = load_field teams_el_50["employees"] :: any
           loop employees id=L15 in %t52 as el=%employees_el_53, idx=%employees_i_54
             %t78 = load_field employees_el_53["rating"] :: float
             %t80 = call core.gte(%t78, %t79) :: boolean
