@@ -16,12 +16,10 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
     # When Phase 2 is complete, UnsatDetector will use propagated constraints
     # to detect derived impossibilities. These tests will pass at that time.
 
-    pending "detects impossible constraint derived through arithmetic propagation" do
-      # This test shows how UnsatDetector COULD use constraint propagation
-      # in future phases to detect impossibilities that span multiple operations.
-      #
-      # Current behavior: Detects direct contradictions (phase 0)
-      # Future behavior: Would also detect derived impossibilities through propagation
+    it "detects impossible constraint derived through arithmetic propagation" do
+      # x ∈ [0, 10] => doubled ∈ [0, 20]
+      # But we explicitly constrain doubled == 50, which violates the bound
+      # Constraint propagation reverse-propagates this to detect x cannot satisfy both
       expect do
         build_schema do
           input do
@@ -30,9 +28,6 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
 
           value :doubled, fn(:mul, input.x, 2)
 
-          # This is directly unsatisfiable since:
-          # x ∈ [0, 10] => doubled ∈ [0, 20]
-          # But we explicitly constrain doubled == 50, which violates the bound
           trait :impossible_doubled, doubled == 50
 
           value :result do
@@ -43,9 +38,10 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
       end.to raise_error(Kumi::Core::Errors::SemanticError)
     end
 
-    pending "detects impossible reverse constraint derived through arithmetic" do
-      # If output is constrained to a value, reverse propagation derives input constraint
-      # Then we check if that derived constraint violates input domain
+    it "detects impossible reverse constraint derived through arithmetic" do
+      # result == 50 means x == -50
+      # But x domain is [0, 10], so x cannot be -50
+      # Reverse propagation derives this impossibility
       expect do
         build_schema do
           input do
@@ -54,8 +50,6 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
 
           value :result, fn(:add, input.x, 100)
 
-          # result == 50 means x == -50
-          # But x domain is [0, 10], so x cannot be -50
           trait :impossible_result, result == 50
 
           value :output do
