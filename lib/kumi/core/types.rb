@@ -35,11 +35,16 @@ module Kumi
       end
 
       def self.array(element_type)
-        if element_type.is_a?(Type)
-          ArrayType.new(element_type)
-        else
-          Builder.array(element_type)
-        end
+        elem_obj = case element_type
+                   when Type
+                     element_type
+                   when :string, :integer, :float, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
+                     scalar(element_type)
+                   else
+                     raise ArgumentError,
+                           "array element must be Type object or scalar kind, got #{element_type.inspect}"
+                   end
+        ArrayType.new(elem_obj)
       end
 
       def self.tuple(element_types)
@@ -51,7 +56,7 @@ module Kumi
       end
 
       def self.hash(key_type, val_type)
-        Builder.hash(key_type, val_type)
+        raise NotImplementedError, "Use scalar(:hash) instead - Kumi treats hash as scalar, not key/value pair"
       end
 
       # Normalization
