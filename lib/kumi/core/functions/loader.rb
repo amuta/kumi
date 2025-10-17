@@ -52,7 +52,9 @@ module Kumi
             pure_combiner: semantics_hash["pure_combiner"],
             commutativity: semantics_hash["commutativity"],
             associativity: semantics_hash["associativity"],
-            identity: semantics_hash["identity"]
+            identity: semantics_hash["identity"],
+            forward_propagation: semantics_hash["forward_propagation"],
+            reverse_propagation: semantics_hash["reverse_propagation"]
           }
         end
       end
