@@ -2,18 +2,23 @@ functions:
   - id: core.concat
     kind: elementwise
     params: [{ name: left_string }, { name: right_string }]
-    dtype: "string"
+    dtype:
+      rule: scalar
+      kind: string
     aliases: ["concat"]
 
   - id: core.upcase
     kind: elementwise
     params: [{ name: string }]
-    dtype: "string"
+    dtype:
+      rule: scalar
+      kind: string
     aliases: ["upcase"]
 
   - id: core.downcase
     kind: elementwise
     params: [{ name: string }]
-    dtype: "string"
+    dtype:
+      rule: scalar
+      kind: string
     aliases: ["downcase"]
-    

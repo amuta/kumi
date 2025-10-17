@@ -2,49 +2,65 @@ functions:
   - id: core.abs
     kind: elementwise
     params: [{ name: number }]
-    dtype: "same_as(number)"
+    dtype:
+      rule: same_as
+      param: number
     aliases: ["abs"]
 
   - id: core.add
-    kind: elementwise  
+    kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
-    dtype: "promote(left_operand,right_operand)"
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
     aliases: ["add"]
 
   - id: core.sub
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }] 
-    dtype: "promote(left_operand,right_operand)"
+    params: [{ name: left_operand }, { name: right_operand }]
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
     aliases: ["sub", "subtract"]
 
   - id: core.mul
     kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
-    dtype: "promote(left_operand,right_operand)"
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
     aliases: ["mul", "multiply"]
 
   - id: core.pow
     kind: elementwise
     params: [{ name: base }, { name: exponent }]
-    dtype: "promote(base,exponent)"
+    dtype:
+      rule: promote
+      params: [base, exponent]
     aliases: ["pow", "power"]
 
   - id: core.div
-    kind: elementwise  
+    kind: elementwise
     params: [{ name: left_operand }, { name: right_operand }]
-    dtype: "float"
+    dtype:
+      rule: scalar
+      kind: float
     aliases: ["div", "divide"]
 
   - id: core.mod
     kind: elementwise
     params:
-      - { name: left_operand}
-      - { name: right_operand}
-    dtype: "promote(left_operand,right_operand)"
+      - { name: left_operand }
+      - { name: right_operand }
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
     aliases: ["mod", "modulo", "%"]
 
   - id: core.clamp
     kind: elementwise
-    params: [{name: x},{name: lo},{name: hi}]
-    dtype: "same_as(x)"
+    params: [{ name: x }, { name: lo }, { name: hi }]
+    dtype:
+      rule: same_as
+      param: x
     aliases: ["clamp"]

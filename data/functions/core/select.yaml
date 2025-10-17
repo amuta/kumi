@@ -2,6 +2,8 @@ functions:
   - id: __select__
     kind: elementwise
     params: [{ name: condition_mask }, { name: value_when_true }, { name: value_when_false }]
-    dtype: "same_as(value_when_true)"
+    dtype:
+      rule: same_as
+      param: value_when_true
     aliases: ["select", "if"]
     folding_class_method: select

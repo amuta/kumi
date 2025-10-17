@@ -22,7 +22,7 @@ module Kumi
       end
 
       def dtype_rule
-        @dtype_rule ||= Core::Functions::TypeRules.compile_dtype_rule(dtype, param_names)
+        @dtype_rule ||= Loader.build_dtype_rule_from_yaml(dtype)
       end
     end
 

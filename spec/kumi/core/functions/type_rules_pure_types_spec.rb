@@ -128,5 +128,122 @@ RSpec.describe Kumi::Core::Functions::TypeRules do
         expect(result).to be_a(Kumi::Core::Types::TupleType)
       end
     end
+
+    describe 'Builder API (Direct Type Construction)' do
+      describe '#build_same_as' do
+        it 'builds rule that returns parameter type' do
+          rule = described_class.build_same_as(:value)
+          result = rule.call({ value: int_type })
+          expect(result).to eq(int_type)
+        end
+
+        it 'works with different parameter names' do
+          rule = described_class.build_same_as(:source_value)
+          result = rule.call({ source_value: float_type })
+          expect(result).to eq(float_type)
+        end
+      end
+
+      describe '#build_promote' do
+        it 'builds rule that promotes multiple parameters' do
+          rule = described_class.build_promote(:a, :b)
+          result = rule.call({ a: int_type, b: float_type })
+          expect(result).to eq(float_type)
+        end
+
+        it 'handles single parameter' do
+          rule = described_class.build_promote(:x)
+          result = rule.call({ x: string_type })
+          expect(result).to eq(string_type)
+        end
+      end
+
+      describe '#build_element_of' do
+        it 'builds rule that extracts element type from ArrayType' do
+          rule = described_class.build_element_of(:collection)
+          array_type = Kumi::Core::Types.array(int_type)
+          result = rule.call({ collection: array_type })
+          expect(result).to eq(int_type)
+        end
+
+        it 'extracts promoted type from TupleType' do
+          rule = described_class.build_element_of(:tuple_param)
+          tuple_type = Kumi::Core::Types.tuple([int_type, float_type])
+          result = rule.call({ tuple_param: tuple_type })
+          expect(result).to eq(float_type)
+        end
+      end
+
+      describe '#build_unify' do
+        it 'builds rule that unifies two parameters' do
+          rule = described_class.build_unify(:left, :right)
+          result = rule.call({ left: int_type, right: float_type })
+          expect(result).to eq(float_type)
+        end
+
+        it 'returns first type when both are same' do
+          rule = described_class.build_unify(:a, :b)
+          result = rule.call({ a: int_type, b: int_type })
+          expect(result).to eq(int_type)
+        end
+      end
+
+      describe '#build_common_type' do
+        it 'builds rule for common type among elements' do
+          rule = described_class.build_common_type(:elements)
+          result = rule.call({ elements: [int_type, float_type] })
+          expect(result).to eq(float_type)
+        end
+      end
+
+      describe '#build_array' do
+        it 'builds rule with constant element type' do
+          rule = described_class.build_array(:integer)
+          result = rule.call({})
+          expect(result).to be_a(Kumi::Core::Types::ArrayType)
+          expect(result.element_type.kind).to eq(:integer)
+        end
+
+        it 'builds rule with parameter reference' do
+          rule = described_class.build_array(:elem_type)
+          result = rule.call({ elem_type: int_type })
+          expect(result).to be_a(Kumi::Core::Types::ArrayType)
+          expect(result.element_type).to eq(int_type)
+        end
+      end
+
+      describe '#build_tuple' do
+        it 'builds rule with constant element types' do
+          rule = described_class.build_tuple(:integer, :float)
+          result = rule.call({})
+          expect(result).to be_a(Kumi::Core::Types::TupleType)
+          expect(result.element_types.map(&:kind)).to eq([:integer, :float])
+        end
+
+        it 'builds rule with parameter reference to types array' do
+          rule = described_class.build_tuple(:types)
+          result = rule.call({ types: [int_type, string_type] })
+          expect(result).to be_a(Kumi::Core::Types::TupleType)
+          expect(result.element_types).to eq([int_type, string_type])
+        end
+      end
+
+      describe '#build_scalar' do
+        it 'builds rule for scalar type kind' do
+          rule = described_class.build_scalar(:integer)
+          result = rule.call({})
+          expect(result).to be_a(Kumi::Core::Types::ScalarType)
+          expect(result.kind).to eq(:integer)
+        end
+
+        it 'works with different scalar kinds' do
+          [:string, :float, :boolean].each do |kind|
+            rule = described_class.build_scalar(kind)
+            result = rule.call({})
+            expect(result.kind).to eq(kind)
+          end
+        end
+      end
+    end
   end
 end

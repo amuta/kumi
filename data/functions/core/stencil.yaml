@@ -1,8 +1,10 @@
 functions:
   - id: roll
     kind: elementwise
-    params: [{ name: source }, { name: offset }] 
-    dtype: "same_as(source)"
+    params: [{ name: source }, { name: offset }]
+    dtype:
+      rule: same_as
+      param: source
     options:
       policy: wrap          # wrap|clamp
       axis_offset: 0
@@ -10,12 +12,16 @@ functions:
   - id: shift
     kind: elementwise
     params: [{ name: source }, { name: offset }]
-    dtype: "same_as(source)"
+    dtype:
+      rule: same_as
+      param: source
     options:
       policy: zero          # zero|clamp
       axis_offset: 0
 
   - id: index
     kind: elementwise
-    params: [{name: index_name, dtype: string }]
-    dtype: integer
+    params: [{ name: index_name, dtype: string }]
+    dtype:
+      rule: scalar
+      kind: integer
