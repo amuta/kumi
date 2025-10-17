@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+## [0.0.26] – 2025-10-17
+### Added
+- UNSAT detection via constraint propagation through operations
+- Reverse constraint propagation to detect derived impossibilities
+- Static analysis catches impossible constraints at compile time
+- Documentation for UNSAT detection in `docs/UNSAT_DETECTION.md`
+
+### Changed
+- Moved `UnsatDetector` to HIR-to-LIR pipeline for full resolution context
+
 ## [0.0.25] – 2025-10-17
 ### Fixed
 - Fix inlining bug caused by previous fix
