@@ -14,6 +14,12 @@ functions:
       rule: promote
       params: [left_operand, right_operand]
     aliases: ["add"]
+    constraint_semantics:
+      domain_effect: EXTEND
+      pure_combiner: true
+      commutativity: true
+      associativity: true
+      identity: 0
 
   - id: core.sub
     kind: elementwise
@@ -30,6 +36,12 @@ functions:
       rule: promote
       params: [left_operand, right_operand]
     aliases: ["mul", "multiply"]
+    constraint_semantics:
+      domain_effect: SCALE
+      pure_combiner: true
+      commutativity: true
+      associativity: true
+      identity: 1
 
   - id: core.pow
     kind: elementwise

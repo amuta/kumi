@@ -18,6 +18,9 @@ functions:
     options:
       policy: zero          # zero|clamp
       axis_offset: 0
+    constraint_semantics:
+      domain_effect: NONE
+      pure_combiner: false
 
   - id: index
     kind: elementwise

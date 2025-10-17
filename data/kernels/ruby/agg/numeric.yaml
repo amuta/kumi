@@ -4,7 +4,7 @@ kernels:
     inline: "+= $1"
     impl: "(a,b)\n  a + b"
     fold_inline: "= $0.sum"
-    identity: 
+    identity:
       float: 0.0
       integer: 0
       

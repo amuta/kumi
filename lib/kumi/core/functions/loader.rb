@@ -33,13 +33,27 @@ module Kumi
           function_kind = fn_hash.fetch("kind").to_sym
           parameter_names = (fn_hash["params"] || []).map { |p| p["name"].to_sym }
           dtype_rule_fn = TypeRules.compile_dtype_rule(fn_hash.fetch("dtype"), parameter_names)
+          constraint_semantics = parse_constraint_semantics(fn_hash["constraint_semantics"])
 
           Functions::FunctionSpec.new(
             id: function_id,
             kind: function_kind,
             parameter_names: parameter_names,
-            dtype_rule: dtype_rule_fn
+            dtype_rule: dtype_rule_fn,
+            constraint_semantics: constraint_semantics
           )
+        end
+
+        def parse_constraint_semantics(semantics_hash)
+          return nil unless semantics_hash
+
+          {
+            domain_effect: semantics_hash["domain_effect"]&.to_sym,
+            pure_combiner: semantics_hash["pure_combiner"],
+            commutativity: semantics_hash["commutativity"],
+            associativity: semantics_hash["associativity"],
+            identity: semantics_hash["identity"]
+          }
         end
       end
     end
