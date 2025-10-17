@@ -22,88 +22,87 @@ Kumi compiles high-level schemas into standalone Ruby and JavaScript with no run
 
 ---
 
-## Example: Conway's Game of Life
+## Example: US Tax Calculator (2024)
 
+See the [interactive demo](https://kumi-play-web.fly.dev/) or browse the [golden test files](golden/us_tax_2024/) (schema, input, expected output, generated code).
 
 <details>
 <summary><strong>Schema</strong></summary>
 
 ```ruby
-module GameOfLife
-  extend Kumi::Schema
+schema do
+  input do
+    float  :income
+    float  :state_rate
+    float  :local_rate
+    float  :retirement_contrib
+    string :filing_status
 
-  schema do
-    input do
-      array :rows do
-        array :col do
-          integer :alive # 0 or 1
+    array :statuses do
+      hash :status do
+        string :name
+        float  :std
+        float  :addl_threshold
+        array  :rates do
+          hash :bracket do
+            float :lo
+            float :hi # -1 = open-ended
+            float :rate
+          end
         end
       end
     end
-
-    let :a, input.rows.col.alive
-
-    # axis_offset: 0 = x, 1 = y
-    let :n,  shift(a, -1, axis_offset: 1)
-    let :s,  shift(a,  1, axis_offset: 1)
-    let :w,  shift(a, -1)
-    let :e,  shift(a,  1)
-    let :nw, shift(n, -1)
-    let :ne, shift(n,  1)
-    let :sw, shift(s, -1)
-    let :se, shift(s,  1)
-
-    let :neighbors, fn(:sum, [n, s, w, e, nw, ne, sw, se])
-
-    # Conway rules
-    let :alive, a > 0
-    let :n3_alive, neighbors == 3
-    let :n2_alive, neighbors == 2
-    let :keep_alive, n2_alive & alive
-
-    let :next_alive, n3_alive | keep_alive
-
-    value :next_state, select(next_alive, 1, 0)
   end
 
+  # shared
+  let :big_hi, 100_000_000_000.0
+  let :state_tax, input.income * input.state_rate
+  let :local_tax, input.income * input.local_rate
+
+  # FICA constants
+  let :ss_wage_base, 168_600.0
+  let :ss_rate, 0.062
+  let :med_base_rate, 0.0145
+  let :addl_med_rate, 0.009
+
+  # per-status federal
+  let :taxable,   fn(:max, [input.income - input.statuses.status.std, 0])
+  let :lo,        input.statuses.status.rates.bracket.lo
+  let :hi,        input.statuses.status.rates.bracket.hi
+  let :rate,      input.statuses.status.rates.bracket.rate
+  let :hi_eff,    select(hi == -1, big_hi, hi)
+  let :amt,       fn(:clamp, taxable - lo, 0, hi_eff - lo)
+  let :fed_tax,   fn(:sum, amt * rate)
+  let :in_br,     (taxable >= lo) & (taxable < hi_eff)
+  let :fed_marg,  fn(:sum_if, rate, in_br)
+  let :fed_eff,   fed_tax / fn(:max, [input.income, 1.0])
+
+  # per-status FICA
+  let :ss_tax,         fn(:min, [input.income, ss_wage_base]) * ss_rate
+  let :med_tax,        input.income * med_base_rate
+  let :addl_med_tax,   fn(:max, [input.income - input.statuses.status.addl_threshold, 0]) * addl_med_rate
+  let :fica_tax,       ss_tax + med_tax + addl_med_tax
+  let :fica_eff,       fica_tax / fn(:max, [input.income, 1.0])
+
+  # totals per status
+  let :total_tax,  fed_tax + fica_tax + state_tax + local_tax
+  let :total_eff,  total_tax / fn(:max, [input.income, 1.0])
+  let :after_tax,  input.income - total_tax
+  let :take_home,  after_tax - input.retirement_contrib
+
+  # array of result objects, one per status
+  value :summary, {
+    filing_status: input.statuses.status.name,
+    federal: { marginal: fed_marg, effective: fed_eff, tax: fed_tax },
+    fica: { effective: fica_eff, tax: fica_tax },
+    state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
+    local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
+    total: { effective: total_eff, tax: total_tax },
+    after_tax: after_tax,
+    retirement_contrib: input.retirement_contrib,
+    take_home: take_home
+  }
 end
-````
-
-</details>
-
-
-<details>
-<summary><strong>Generated JavaScript (excerpt)</strong></summary>
-
-```js
-export function _next_state(input) {
-  let out = [];
-  let t285 = input["rows"];
-  let t1539 = t285.length;
-  const t1540 = -1;
-  const t1542 = 0;
-  const t1546 = 1;
-  const t1334 = 3;
-  const t1339 = 2;
-  let t1547 = t1539 - t1546;
-  t285.forEach((rows_el_286, rows_i_287) => {
-    let out_1 = [];
-    let t1541 = rows_i_287 - t1540;
-    let t1561 = rows_i_287 - t1546;
-    let t1580 = ((rows_i_287 % t1539) + t1539) % t1539;
-    // ... neighbor calculations, Conway's rules
-    let t1332 = [t1557, t1577, t1597, t1617, t1645, t1673, t1701, t1729];
-    let t1333 = t1332.reduce((a, b) => a + b, 0);
-    let t1335 = t1333 == t1334;
-    let t1340 = t1333 == t1339;
-    let t1344 = col_el_288 > t1542;
-    let t1345 = t1340 && t1344;
-    let t528 = t1335 || t1345;
-    let t293 = t528 ? t1546 : t1542;
-    out_1.push(t293);
-  });
-  return out;
-}
 ```
 
 </details>
