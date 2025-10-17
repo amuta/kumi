@@ -150,11 +150,8 @@ module Kumi
             element_scopes  = elems.map { |m| m[:scope] }
             result_scope    = lub_by_prefix(element_scopes)
 
-            result_type = if element_types.uniq.size == 1
-                            "tuple<#{element_types.uniq[0]}>"
-                          else
-                            "tuple<#{element_types.join(', ')}>"
-                          end
+            # Create TupleType from element Types
+            result_type = Types.tuple(element_types)
 
             @metadata_table[node_id(node)] = {
               parameter_names: [],
@@ -173,7 +170,7 @@ module Kumi
             fields = node.pairs.map { |e| analyze_expression(e, errors) }
             fields_scopes = fields.map { |m| m[:scope] }
             scope = lub_by_prefix(fields_scopes)
-            dtype = :hash
+            dtype = Types.scalar(:hash)
 
             @metadata_table[node_id(node)] = {
               type: dtype,
@@ -183,7 +180,7 @@ module Kumi
 
           def analyze_pair(node, errors)
             value_node = analyze_expression(node.value, errors)
-            dtype = :pair
+            dtype = Types.scalar(:pair)
 
             @metadata_table[node_id(node)] = {
               type: dtype,
@@ -212,7 +209,7 @@ module Kumi
           def analyze_index_ref(node, _errors)
             meta = @input_table.find { _1.path_fqn == node.input_fqn } or raise "Index plan found: #{n.name.inspect}"
             axes = Array(meta[:axes])
-            type = :integer
+            type = Types.scalar(:integer)
 
             debug "    IndexRef #{node.name}: input_fqn=#{node.input_fqn}, axes=#{axes.inspect}"
 
