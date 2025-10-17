@@ -13,9 +13,41 @@ module Kumi
           @location = location
         end
 
+        # Extract location components cleanly
+        def location_file
+          @location&.file
+        end
+
+        def location_line
+          @location&.line
+        end
+
+        def location_column
+          @location&.column
+        end
+
+        # Aliases for convenient access
+        alias path location_file
+        alias line location_line
+        alias column location_column
+
+        # Check if location information is present and valid
+        def has_location?
+          @location && @location.file && @location.line && @location.line > 0
+        end
+
+        # Format location for error messages
+        def format_location
+          if @location
+            "at #{@location.file}:#{@location.line}:#{@location.column}"
+          else
+            "at ?"
+          end
+        end
+
         def to_s
           if @location
-            "#{super} at #{@location.file}:#{@location.line}:#{@location.column}"
+            "#{super} #{format_location}"
           else
             super
           end

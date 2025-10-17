@@ -12,14 +12,49 @@ module Kumi
     # 4. Support both immediate raising and error accumulation patterns
     module ErrorReporter
       # Standard error structure for internal use
-      ErrorEntry = Struct.new(:location, :message, :type, :context, :backtrace, keyword_init: true) do
+      # Provides clean access to location components (file, line, column)
+      class ErrorEntry
+        attr_reader :location, :message, :type, :context, :backtrace
+
+        def initialize(location:, message:, type: :semantic, context: {}, backtrace: nil)
+          @location = location
+          @message = message
+          @type = type
+          @context = context
+          @backtrace = backtrace
+        end
+
         def to_s
           location_str = format_location(location)
           "#{location_str}: #{message}"
         end
 
+        # Check if location information is present
         def location?
           location && !location.is_a?(Symbol)
+        end
+
+        # Extract location components cleanly
+        def file
+          location.is_a?(Syntax::Location) ? location.file : nil
+        end
+
+        def line
+          location.is_a?(Syntax::Location) ? location.line : nil
+        end
+
+        def column
+          location.is_a?(Syntax::Location) ? location.column : nil
+        end
+
+        # Alias for consistency
+        def path
+          file
+        end
+
+        # Check if location is valid (has file and line)
+        def valid_location?
+          !!(location? && file && line && line > 0)
         end
 
         private
