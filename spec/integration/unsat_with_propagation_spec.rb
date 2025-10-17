@@ -150,16 +150,17 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
 
           trait :x_constraint, input.x == 5
           trait :impossible_y, y == 20
+          trait :both_constraints, fn(:and, x_constraint, impossible_y)
 
           value :result do
-            on fn(:and, x_constraint, impossible_y), "Impossible"
+            on both_constraints, "Impossible"
             base "Normal"
           end
         end
       end.to raise_error(Kumi::Core::Errors::SemanticError)
     end
 
-    pending "allows consistent constraints across operations" do
+    it "allows consistent constraints across operations" do
       expect do
         build_schema do
           input do
@@ -170,9 +171,10 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
 
           trait :x_constraint, input.x == 5
           trait :consistent_y, y == 15
+          trait :both_consistent, fn(:and, x_constraint, consistent_y)
 
           value :result do
-            on fn(:and, x_constraint, consistent_y), "Consistent"
+            on both_consistent, "Consistent"
             base "Inconsistent"
           end
         end

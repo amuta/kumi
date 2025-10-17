@@ -13,18 +13,17 @@ module Kumi
       Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
       Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
       Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
-      Passes::UnsatDetector,                   # 7. Detects unsatisfiable constraints and analyzes cascade mutual exclusion.
-      Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
-      # Passes::BroadcastDetector,               # 9. Detects which operations should be broadcast over arrays.
-      # Passes::TypeInferencerPass,              # 10. Infers types for all declarations (uses vectorization metadata).
-      # Passes::TypeChecker,                     # 11. Validates types using inferred information.
-      Passes::InputAccessPlannerPass # 12. Plans access strategies for input fields.
-      # Passes::ScopeResolutionPass,             # 13. Plans execution scope and lifting needs for declarations.
-      # Passes::JoinReducePlanningPass,          # 14. Plans join/reduce operations (Generates IR Structs)
-      # Passes::LowerToIRPass,                   # 15. Lowers the schema to IR (Generates IR Structs)
-      # Passes::LoadInputCSE,                    # 16. Eliminates redundant load_input operations
-      # Passes::IRDependencyPass,                # 17. Extracts IR-level dependencies for VM execution optimization
-      # Passes::IRExecutionSchedulePass          # 18. Builds a precomputed execution schedule.
+      Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
+      # Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
+      # Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
+      # Passes::TypeChecker,                     # 10. Validates types using inferred information.
+      Passes::InputAccessPlannerPass # 11. Plans access strategies for input fields.
+      # Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
+      # Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
+      # Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
+      # Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
+      # Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
+      # Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
     ].freeze
 
     # Pipeline passes for the determinisitic NAST->LIR approach
@@ -33,6 +32,7 @@ module Kumi
       Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
+      Passes::UnsatDetector,                   # Detects impossible constraints with resolved function IDs and SNAST metadata
       Passes::OutputSchemaPass,                # Builds minimal output schema from SNAST
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::AttachAnchorsPass,
