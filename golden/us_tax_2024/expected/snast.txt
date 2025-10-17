@@ -93,7 +93,7 @@
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
+        ) :: [] -> tuple<float, float>
       ) :: [] -> float
     ) :: [statuses] -> float
   ) :: [statuses] -> float
@@ -109,7 +109,7 @@
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 168600.0) :: [] -> float
-        ) :: [] -> tuple<float>
+        ) :: [] -> tuple<float, float>
       ) :: [] -> float
       (Const 0.062) :: [] -> float
     ) :: [] -> float
@@ -156,7 +156,7 @@
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
+        ) :: [] -> tuple<float, float>
       ) :: [] -> float
     ) :: [statuses] -> float
   ) :: [statuses] -> float
@@ -179,7 +179,7 @@
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
+        ) :: [] -> tuple<float, float>
       ) :: [] -> float
     ) :: [statuses] -> float
   ) :: [statuses] -> float

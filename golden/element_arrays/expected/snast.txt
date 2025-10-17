@@ -11,7 +11,7 @@
   (VALUE cell
     (InputRef cube.layer.row.cell key_chain=[]) :: [cube, layer, row] -> integer
   ) :: [cube, layer, row] -> integer
-  (TRAIT cell_over_limit
+  (VALUE cell_over_limit
     (Call :core.gt
       (InputRef cube.layer.row.cell key_chain=[]) :: [cube, layer, row] -> integer
       (Const 100) :: [] -> integer

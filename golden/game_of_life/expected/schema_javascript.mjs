@@ -7,6 +7,8 @@ export function _next_state(input) {
   const t1555 = 1;
   const t1534 = 3;
   const t1745 = 2;
+  const t1952 = 0;
+  const t291 = 1;
   let t1556 = t1548 - t1555;
   t285.forEach((rows_el_286, rows_i_287) => {
     let out_1 = [];
@@ -85,10 +87,10 @@ export function _next_state(input) {
       let t1546 = t1545.reduce((a, b) => a + b, 0);
       let t1535 = t1546 == t1534;
       let t1746 = t1546 == t1745;
-      let t1953 = col_el_288 > t1551;
+      let t1953 = col_el_288 > t1952;
       let t1742 = t1746 && t1953;
       let t1531 = t1535 || t1742;
-      let t293 = t1531 ? t1555 : t1551;
+      let t293 = t1531 ? t291 : t1952;
       out_1.push(t293);
     });
     out.push(out_1);

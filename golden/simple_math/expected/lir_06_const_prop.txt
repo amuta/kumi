@@ -25,7 +25,7 @@
     %t14 = load_input "y" :: integer
     %t15 = const 2 :: integer
     %t16 = call core.mul(%t14, %t15) :: integer
-    %t17 = make_tuple(%t10, %t13, %t16) :: tuple<integer>
+    %t17 = make_tuple(%t10, %t13, %t16) :: tuple<integer, integer, integer>
     yield %t17
   )
 )

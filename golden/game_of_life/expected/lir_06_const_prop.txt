@@ -299,8 +299,8 @@
         %t482 = call core.clamp(%t362, %t298, %t452) :: integer
         %t483 = gather %t326, %t482 :: integer
         %t485 = select %t478, %t483, %t298 :: integer
-        %t243 = make_tuple(%t313, %t333, %t353, %t373, %t401, %t429, %t457, %t485) :: tuple<integer>
-        %t244 = fold %t243 fn="agg.sum" :: 
+        %t243 = make_tuple(%t313, %t333, %t353, %t373, %t401, %t429, %t457, %t485) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t244 = fold %t243 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         yield %t244
       end_loop
     end_loop
@@ -395,8 +395,8 @@
         %t686 = call core.clamp(%t566, %t502, %t656) :: integer
         %t687 = gather %t530, %t686 :: integer
         %t689 = select %t682, %t687, %t502 :: integer
-        %t496 = make_tuple(%t517, %t537, %t557, %t577, %t605, %t633, %t661, %t689) :: tuple<integer>
-        %t497 = fold %t496 fn="agg.sum" :: 
+        %t496 = make_tuple(%t517, %t537, %t557, %t577, %t605, %t633, %t661, %t689) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t497 = fold %t496 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t260 = call core.eq(%t497, %t259) :: boolean
         yield %t260
       end_loop
@@ -482,8 +482,8 @@
         %t889 = call core.clamp(%t769, %t705, %t859) :: integer
         %t890 = gather %t733, %t889 :: integer
         %t892 = select %t885, %t890, %t705 :: integer
-        %t699 = make_tuple(%t720, %t740, %t760, %t780, %t808, %t836, %t864, %t892) :: tuple<integer>
-        %t700 = fold %t699 fn="agg.sum" :: 
+        %t699 = make_tuple(%t720, %t740, %t760, %t780, %t808, %t836, %t864, %t892) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t700 = fold %t699 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t268 = call core.eq(%t700, %t267) :: boolean
         yield %t268
       end_loop
@@ -496,6 +496,7 @@
     %t912 = const 0 :: integer
     %t916 = const 1 :: integer
     %t895 = const 2 :: integer
+    %t1102 = const 0 :: integer
     %t917 = call core.sub(%t909, %t916) :: integer
     loop rows id=L27 in %t269 as el=%rows_el_270, idx=%rows_i_271
       %t911 = call core.sub(%rows_i_271, %t910) :: integer
@@ -569,10 +570,10 @@
         %t1096 = call core.clamp(%t976, %t912, %t1066) :: integer
         %t1097 = gather %t940, %t1096 :: integer
         %t1099 = select %t1092, %t1097, %t912 :: integer
-        %t906 = make_tuple(%t927, %t947, %t967, %t987, %t1015, %t1043, %t1071, %t1099) :: tuple<integer>
-        %t907 = fold %t906 fn="agg.sum" :: 
+        %t906 = make_tuple(%t927, %t947, %t967, %t987, %t1015, %t1043, %t1071, %t1099) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t907 = fold %t906 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t896 = call core.eq(%t907, %t895) :: boolean
-        %t1103 = call core.gt(%col_el_272, %t912) :: boolean
+        %t1103 = call core.gt(%col_el_272, %t1102) :: boolean
         %t276 = call core.and(%t896, %t1103) :: boolean
         yield %t276
       end_loop
@@ -586,6 +587,7 @@
     %t1128 = const 1 :: integer
     %t1107 = const 3 :: integer
     %t1318 = const 2 :: integer
+    %t1525 = const 0 :: integer
     %t1129 = call core.sub(%t1121, %t1128) :: integer
     loop rows id=L29 in %t277 as el=%rows_el_278, idx=%rows_i_279
       %t1123 = call core.sub(%rows_i_279, %t1122) :: integer
@@ -659,11 +661,11 @@
         %t1308 = call core.clamp(%t1188, %t1124, %t1278) :: integer
         %t1309 = gather %t1152, %t1308 :: integer
         %t1311 = select %t1304, %t1309, %t1124 :: integer
-        %t1118 = make_tuple(%t1139, %t1159, %t1179, %t1199, %t1227, %t1255, %t1283, %t1311) :: tuple<integer>
-        %t1119 = fold %t1118 fn="agg.sum" :: 
+        %t1118 = make_tuple(%t1139, %t1159, %t1179, %t1199, %t1227, %t1255, %t1283, %t1311) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1119 = fold %t1118 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1108 = call core.eq(%t1119, %t1107) :: boolean
         %t1319 = call core.eq(%t1119, %t1318) :: boolean
-        %t1526 = call core.gt(%col_el_280, %t1124) :: boolean
+        %t1526 = call core.gt(%col_el_280, %t1525) :: boolean
         %t1315 = call core.and(%t1319, %t1526) :: boolean
         %t284 = call core.or(%t1108, %t1315) :: boolean
         yield %t284
@@ -678,6 +680,8 @@
     %t1555 = const 1 :: integer
     %t1534 = const 3 :: integer
     %t1745 = const 2 :: integer
+    %t1952 = const 0 :: integer
+    %t291 = const 1 :: integer
     %t1556 = call core.sub(%t1548, %t1555) :: integer
     loop rows id=L31 in %t285 as el=%rows_el_286, idx=%rows_i_287
       %t1550 = call core.sub(%rows_i_287, %t1549) :: integer
@@ -751,14 +755,14 @@
         %t1735 = call core.clamp(%t1615, %t1551, %t1705) :: integer
         %t1736 = gather %t1579, %t1735 :: integer
         %t1738 = select %t1731, %t1736, %t1551 :: integer
-        %t1545 = make_tuple(%t1566, %t1586, %t1606, %t1626, %t1654, %t1682, %t1710, %t1738) :: tuple<integer>
-        %t1546 = fold %t1545 fn="agg.sum" :: 
+        %t1545 = make_tuple(%t1566, %t1586, %t1606, %t1626, %t1654, %t1682, %t1710, %t1738) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1546 = fold %t1545 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1535 = call core.eq(%t1546, %t1534) :: boolean
         %t1746 = call core.eq(%t1546, %t1745) :: boolean
-        %t1953 = call core.gt(%col_el_288, %t1551) :: boolean
+        %t1953 = call core.gt(%col_el_288, %t1952) :: boolean
         %t1742 = call core.and(%t1746, %t1953) :: boolean
         %t1531 = call core.or(%t1535, %t1742) :: boolean
-        %t293 = select %t1531, %t1555, %t1551 :: integer
+        %t293 = select %t1531, %t291, %t1952 :: integer
         yield %t293
       end_loop
     end_loop

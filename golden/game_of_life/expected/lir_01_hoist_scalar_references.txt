@@ -267,8 +267,8 @@
         %t240 = load_decl ne axes=[rows, col] :: integer
         %t241 = load_decl sw axes=[rows, col] :: integer
         %t242 = load_decl se axes=[rows, col] :: integer
-        %t243 = make_tuple(%t235, %t236, %t237, %t238, %t239, %t240, %t241, %t242) :: tuple<integer>
-        %t244 = fold %t243 fn="agg.sum" :: 
+        %t243 = make_tuple(%t235, %t236, %t237, %t238, %t239, %t240, %t241, %t242) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t244 = fold %t243 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         yield %t244
       end_loop
     end_loop
@@ -288,7 +288,7 @@
     %t253 = load_input "rows" :: array
     loop rows id=L23 in %t253 as el=%rows_el_254, idx=%rows_i_255
       loop col id=L24 in %rows_el_254 as el=%col_el_256, idx=%col_i_257
-        %t258 = load_decl neighbors axes=[rows, col] :: 
+        %t258 = load_decl neighbors axes=[rows, col] :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t259 = const 3 :: integer
         %t260 = call core.eq(%t258, %t259) :: boolean
         yield %t260
@@ -299,7 +299,7 @@
     %t261 = load_input "rows" :: array
     loop rows id=L25 in %t261 as el=%rows_el_262, idx=%rows_i_263
       loop col id=L26 in %rows_el_262 as el=%col_el_264, idx=%col_i_265
-        %t266 = load_decl neighbors axes=[rows, col] :: 
+        %t266 = load_decl neighbors axes=[rows, col] :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t267 = const 2 :: integer
         %t268 = call core.eq(%t266, %t267) :: boolean
         yield %t268

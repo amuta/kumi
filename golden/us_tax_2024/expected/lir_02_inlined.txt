@@ -300,7 +300,7 @@
       %t363 = acc_load %acc356 :: float
       %t104 = load_input "income" :: float
       %t105 = const 1.0 :: float
-      %t106 = make_tuple(%t104, %t105) :: tuple<float>
+      %t106 = make_tuple(%t104, %t105) :: tuple<float, float>
       %t107 = fold %t106 fn="agg.max" :: float
       %t108 = call core.div(%t363, %t107) :: float
       yield %t108
@@ -317,7 +317,7 @@
   (Declaration ss_tax
     %t111 = load_input "income" :: float
     %t112 = const 168600.0 :: float
-    %t113 = make_tuple(%t111, %t112) :: tuple<float>
+    %t113 = make_tuple(%t111, %t112) :: tuple<float, float>
     %t114 = fold %t113 fn="agg.min" :: float
     %t115 = const 0.062 :: float
     %t116 = call core.mul(%t114, %t115) :: float
@@ -355,7 +355,7 @@
     %t133 = load_input "statuses" :: array
     %t404 = load_input "income" :: float
     %t405 = const 168600.0 :: float
-    %t406 = make_tuple(%t404, %t405) :: tuple<float>
+    %t406 = make_tuple(%t404, %t405) :: tuple<float, float>
     %t407 = fold %t406 fn="agg.min" :: float
     %t408 = const 0.062 :: float
     %t409 = call core.mul(%t407, %t408) :: float
@@ -380,7 +380,7 @@
   (Declaration fica_eff
     %t428 = load_input "income" :: float
     %t429 = const 168600.0 :: float
-    %t430 = make_tuple(%t428, %t429) :: tuple<float>
+    %t430 = make_tuple(%t428, %t429) :: tuple<float, float>
     %t431 = fold %t430 fn="agg.min" :: float
     %t432 = const 0.062 :: float
     %t433 = call core.mul(%t431, %t432) :: float
@@ -403,7 +403,7 @@
       %t427 = call core.add(%t425, %t445) :: float
       %t145 = load_input "income" :: float
       %t146 = const 1.0 :: float
-      %t147 = make_tuple(%t145, %t146) :: tuple<float>
+      %t147 = make_tuple(%t145, %t146) :: tuple<float, float>
       %t148 = fold %t147 fn="agg.max" :: float
       %t149 = call core.div(%t427, %t148) :: float
       yield %t149
@@ -412,7 +412,7 @@
   (Declaration total_tax
     %t508 = load_input "income" :: float
     %t509 = const 168600.0 :: float
-    %t510 = make_tuple(%t508, %t509) :: tuple<float>
+    %t510 = make_tuple(%t508, %t509) :: tuple<float, float>
     %t511 = fold %t510 fn="agg.min" :: float
     %t512 = const 0.062 :: float
     %t513 = call core.mul(%t511, %t512) :: float
@@ -496,7 +496,7 @@
     %t539 = call core.mul(%t537, %t538) :: float
     %t596 = load_input "income" :: float
     %t597 = const 168600.0 :: float
-    %t598 = make_tuple(%t596, %t597) :: tuple<float>
+    %t598 = make_tuple(%t596, %t597) :: tuple<float, float>
     %t599 = fold %t598 fn="agg.min" :: float
     %t600 = const 0.062 :: float
     %t601 = call core.mul(%t599, %t600) :: float
@@ -565,7 +565,7 @@
       %t533 = call core.add(%t532, %t539) :: float
       %t164 = load_input "income" :: float
       %t165 = const 1.0 :: float
-      %t166 = make_tuple(%t164, %t165) :: tuple<float>
+      %t166 = make_tuple(%t164, %t165) :: tuple<float, float>
       %t167 = fold %t166 fn="agg.max" :: float
       %t168 = call core.div(%t533, %t167) :: float
       yield %t168
@@ -580,7 +580,7 @@
     %t627 = call core.mul(%t625, %t626) :: float
     %t684 = load_input "income" :: float
     %t685 = const 168600.0 :: float
-    %t686 = make_tuple(%t684, %t685) :: tuple<float>
+    %t686 = make_tuple(%t684, %t685) :: tuple<float, float>
     %t687 = fold %t686 fn="agg.min" :: float
     %t688 = const 0.062 :: float
     %t689 = call core.mul(%t687, %t688) :: float
@@ -661,7 +661,7 @@
     %t719 = call core.mul(%t717, %t718) :: float
     %t776 = load_input "income" :: float
     %t777 = const 168600.0 :: float
-    %t778 = make_tuple(%t776, %t777) :: tuple<float>
+    %t778 = make_tuple(%t776, %t777) :: tuple<float, float>
     %t779 = fold %t778 fn="agg.min" :: float
     %t780 = const 0.062 :: float
     %t781 = call core.mul(%t779, %t780) :: float
@@ -739,7 +739,7 @@
   (Declaration summary
     %t974 = load_input "income" :: float
     %t975 = const 168600.0 :: float
-    %t976 = make_tuple(%t974, %t975) :: tuple<float>
+    %t976 = make_tuple(%t974, %t975) :: tuple<float, float>
     %t977 = fold %t976 fn="agg.min" :: float
     %t978 = const 0.062 :: float
     %t979 = call core.mul(%t977, %t978) :: float
@@ -748,7 +748,7 @@
     %t982 = call core.mul(%t980, %t981) :: float
     %t998 = load_input "income" :: float
     %t999 = const 168600.0 :: float
-    %t1000 = make_tuple(%t998, %t999) :: tuple<float>
+    %t1000 = make_tuple(%t998, %t999) :: tuple<float, float>
     %t1001 = fold %t1000 fn="agg.min" :: float
     %t1002 = const 0.062 :: float
     %t1003 = call core.mul(%t1001, %t1002) :: float
@@ -763,7 +763,7 @@
     %t1036 = call core.mul(%t1034, %t1035) :: float
     %t1093 = load_input "income" :: float
     %t1094 = const 168600.0 :: float
-    %t1095 = make_tuple(%t1093, %t1094) :: tuple<float>
+    %t1095 = make_tuple(%t1093, %t1094) :: tuple<float, float>
     %t1096 = fold %t1095 fn="agg.min" :: float
     %t1097 = const 0.062 :: float
     %t1098 = call core.mul(%t1096, %t1097) :: float
@@ -778,7 +778,7 @@
     %t1124 = call core.mul(%t1122, %t1123) :: float
     %t1181 = load_input "income" :: float
     %t1182 = const 168600.0 :: float
-    %t1183 = make_tuple(%t1181, %t1182) :: tuple<float>
+    %t1183 = make_tuple(%t1181, %t1182) :: tuple<float, float>
     %t1184 = fold %t1183 fn="agg.min" :: float
     %t1185 = const 0.062 :: float
     %t1186 = call core.mul(%t1184, %t1185) :: float
@@ -793,7 +793,7 @@
     %t1216 = call core.mul(%t1214, %t1215) :: float
     %t1273 = load_input "income" :: float
     %t1274 = const 168600.0 :: float
-    %t1275 = make_tuple(%t1273, %t1274) :: tuple<float>
+    %t1275 = make_tuple(%t1273, %t1274) :: tuple<float, float>
     %t1276 = fold %t1275 fn="agg.min" :: float
     %t1277 = const 0.062 :: float
     %t1278 = call core.mul(%t1276, %t1277) :: float
@@ -808,7 +808,7 @@
     %t1312 = call core.mul(%t1310, %t1311) :: float
     %t1369 = load_input "income" :: float
     %t1370 = const 168600.0 :: float
-    %t1371 = make_tuple(%t1369, %t1370) :: tuple<float>
+    %t1371 = make_tuple(%t1369, %t1370) :: tuple<float, float>
     %t1372 = fold %t1371 fn="agg.min" :: float
     %t1373 = const 0.062 :: float
     %t1374 = call core.mul(%t1372, %t1373) :: float
@@ -915,7 +915,7 @@
       %t870 = acc_load %acc863 :: float
       %t856 = load_input "income" :: float
       %t857 = const 1.0 :: float
-      %t858 = make_tuple(%t856, %t857) :: tuple<float>
+      %t858 = make_tuple(%t856, %t857) :: tuple<float, float>
       %t859 = fold %t858 fn="agg.max" :: float
       %t860 = call core.div(%t870, %t859) :: float
       %t931 = load_input "statuses" :: array
@@ -976,7 +976,7 @@
       %t973 = call core.add(%t971, %t991) :: float
       %t963 = load_input "income" :: float
       %t964 = const 1.0 :: float
-      %t965 = make_tuple(%t963, %t964) :: tuple<float>
+      %t965 = make_tuple(%t963, %t964) :: tuple<float, float>
       %t966 = fold %t965 fn="agg.max" :: float
       %t967 = call core.div(%t973, %t966) :: float
       %t992 = load_input "statuses" :: array
@@ -1059,7 +1059,7 @@
       %t1030 = call core.add(%t1029, %t1036) :: float
       %t1018 = load_input "income" :: float
       %t1019 = const 1.0 :: float
-      %t1020 = make_tuple(%t1018, %t1019) :: tuple<float>
+      %t1020 = make_tuple(%t1018, %t1019) :: tuple<float, float>
       %t1021 = fold %t1020 fn="agg.max" :: float
       %t1022 = call core.div(%t1030, %t1021) :: float
       %t1111 = load_input "statuses" :: array

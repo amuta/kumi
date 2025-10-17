@@ -9,7 +9,7 @@
       ) :: [users] -> pair
     ) :: [users] -> hash
   ) :: [users] -> hash
-  (TRAIT is_john
+  (VALUE is_john
     (Call :core.eq
       (InputRef users.user.name key_chain=[]) :: [users] -> string
       (Const "John") :: [] -> string

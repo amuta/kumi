@@ -1,17 +1,17 @@
 (SNAST
-  (TRAIT high_performer
+  (VALUE high_performer
     (Call :core.gte
       (InputRef regions.region.offices.office.teams.team.employees.employee.rating key_chain=[]) :: [regions, offices, teams, employees] -> float
       (Const 4.5) :: [] -> float
     ) :: [regions, offices, teams, employees] -> boolean
   ) :: [regions, offices, teams, employees] -> boolean
-  (TRAIT senior_level
+  (VALUE senior_level
     (Call :core.eq
       (InputRef regions.region.offices.office.teams.team.employees.employee.level key_chain=[]) :: [regions, offices, teams, employees] -> string
       (Const "senior") :: [] -> string
     ) :: [regions, offices, teams, employees] -> boolean
   ) :: [regions, offices, teams, employees] -> boolean
-  (TRAIT top_team
+  (VALUE top_team
     (Call :core.gte
       (InputRef regions.region.offices.office.teams.team.performance_score key_chain=[]) :: [regions, offices, teams] -> float
       (Const 0.9) :: [] -> float

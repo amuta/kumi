@@ -451,8 +451,8 @@
         %t483 = gather %t470, %t482 :: integer
         %t484 = const 0 :: integer
         %t485 = select %t478, %t483, %t484 :: integer
-        %t243 = make_tuple(%t313, %t333, %t353, %t373, %t401, %t429, %t457, %t485) :: tuple<integer>
-        %t244 = fold %t243 fn="agg.sum" :: 
+        %t243 = make_tuple(%t313, %t333, %t353, %t373, %t401, %t429, %t457, %t485) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t244 = fold %t243 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         yield %t244
       end_loop
     end_loop
@@ -665,8 +665,8 @@
         %t687 = gather %t674, %t686 :: integer
         %t688 = const 0 :: integer
         %t689 = select %t682, %t687, %t688 :: integer
-        %t496 = make_tuple(%t517, %t537, %t557, %t577, %t605, %t633, %t661, %t689) :: tuple<integer>
-        %t497 = fold %t496 fn="agg.sum" :: 
+        %t496 = make_tuple(%t517, %t537, %t557, %t577, %t605, %t633, %t661, %t689) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t497 = fold %t496 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t259 = const 3 :: integer
         %t260 = call core.eq(%t497, %t259) :: boolean
         yield %t260
@@ -870,8 +870,8 @@
         %t890 = gather %t877, %t889 :: integer
         %t891 = const 0 :: integer
         %t892 = select %t885, %t890, %t891 :: integer
-        %t699 = make_tuple(%t720, %t740, %t760, %t780, %t808, %t836, %t864, %t892) :: tuple<integer>
-        %t700 = fold %t699 fn="agg.sum" :: 
+        %t699 = make_tuple(%t720, %t740, %t760, %t780, %t808, %t836, %t864, %t892) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t700 = fold %t699 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t267 = const 2 :: integer
         %t268 = call core.eq(%t700, %t267) :: boolean
         yield %t268
@@ -1076,8 +1076,8 @@
         %t1097 = gather %t1084, %t1096 :: integer
         %t1098 = const 0 :: integer
         %t1099 = select %t1092, %t1097, %t1098 :: integer
-        %t906 = make_tuple(%t927, %t947, %t967, %t987, %t1015, %t1043, %t1071, %t1099) :: tuple<integer>
-        %t907 = fold %t906 fn="agg.sum" :: 
+        %t906 = make_tuple(%t927, %t947, %t967, %t987, %t1015, %t1043, %t1071, %t1099) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t907 = fold %t906 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t895 = const 2 :: integer
         %t896 = call core.eq(%t907, %t895) :: boolean
         %t1100 = load_input "rows" :: array
@@ -1287,8 +1287,8 @@
         %t1309 = gather %t1296, %t1308 :: integer
         %t1310 = const 0 :: integer
         %t1311 = select %t1304, %t1309, %t1310 :: integer
-        %t1118 = make_tuple(%t1139, %t1159, %t1179, %t1199, %t1227, %t1255, %t1283, %t1311) :: tuple<integer>
-        %t1119 = fold %t1118 fn="agg.sum" :: 
+        %t1118 = make_tuple(%t1139, %t1159, %t1179, %t1199, %t1227, %t1255, %t1283, %t1311) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1119 = fold %t1118 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1107 = const 3 :: integer
         %t1108 = call core.eq(%t1119, %t1107) :: boolean
         %t1312 = load_input "rows" :: array
@@ -1486,8 +1486,8 @@
         %t1520 = gather %t1507, %t1519 :: integer
         %t1521 = const 0 :: integer
         %t1522 = select %t1515, %t1520, %t1521 :: integer
-        %t1329 = make_tuple(%t1350, %t1370, %t1390, %t1410, %t1438, %t1466, %t1494, %t1522) :: tuple<integer>
-        %t1330 = fold %t1329 fn="agg.sum" :: 
+        %t1329 = make_tuple(%t1350, %t1370, %t1390, %t1410, %t1438, %t1466, %t1494, %t1522) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1330 = fold %t1329 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1318 = const 2 :: integer
         %t1319 = call core.eq(%t1330, %t1318) :: boolean
         %t1523 = load_input "rows" :: array
@@ -1699,8 +1699,8 @@
         %t1736 = gather %t1723, %t1735 :: integer
         %t1737 = const 0 :: integer
         %t1738 = select %t1731, %t1736, %t1737 :: integer
-        %t1545 = make_tuple(%t1566, %t1586, %t1606, %t1626, %t1654, %t1682, %t1710, %t1738) :: tuple<integer>
-        %t1546 = fold %t1545 fn="agg.sum" :: 
+        %t1545 = make_tuple(%t1566, %t1586, %t1606, %t1626, %t1654, %t1682, %t1710, %t1738) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1546 = fold %t1545 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1534 = const 3 :: integer
         %t1535 = call core.eq(%t1546, %t1534) :: boolean
         %t1739 = load_input "rows" :: array
@@ -1898,8 +1898,8 @@
         %t1947 = gather %t1934, %t1946 :: integer
         %t1948 = const 0 :: integer
         %t1949 = select %t1942, %t1947, %t1948 :: integer
-        %t1756 = make_tuple(%t1777, %t1797, %t1817, %t1837, %t1865, %t1893, %t1921, %t1949) :: tuple<integer>
-        %t1757 = fold %t1756 fn="agg.sum" :: 
+        %t1756 = make_tuple(%t1777, %t1797, %t1817, %t1837, %t1865, %t1893, %t1921, %t1949) :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+        %t1757 = fold %t1756 fn="agg.sum" :: tuple<integer, integer, integer, integer, integer, integer, integer, integer>
         %t1745 = const 2 :: integer
         %t1746 = call core.eq(%t1757, %t1745) :: boolean
         %t1950 = load_input "rows" :: array

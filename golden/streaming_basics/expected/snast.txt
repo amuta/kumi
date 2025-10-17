@@ -14,7 +14,7 @@
       ) :: [] -> float
     ) :: [items] -> float
   ) :: [items] -> float
-  (TRAIT items_is_big
+  (VALUE items_is_big
     (Call :core.gt
       (InputRef items.item.price key_chain=[]) :: [items] -> float
       (Const 100.0) :: [] -> float

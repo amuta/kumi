@@ -48,11 +48,23 @@ module Kumi
       end
 
       def self.tuple(element_types)
-        if element_types.is_a?(Array) && element_types.all? { |t| t.is_a?(Type) }
-          TupleType.new(element_types)
-        else
-          raise ArgumentError, "tuple expects array of Type objects"
+        unless element_types.is_a?(Array)
+          raise ArgumentError, "tuple expects array of Type objects, got #{element_types.class}"
         end
+
+        # Convert any non-Type elements to Type objects
+        converted = element_types.map do |t|
+          case t
+          when Type
+            t
+          when :string, :integer, :float, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
+            scalar(t)
+          else
+            raise ArgumentError, "tuple element must be Type or scalar kind, got #{t.inspect}"
+          end
+        end
+
+        TupleType.new(converted)
       end
 
       def self.hash(key_type, val_type)

@@ -11,19 +11,19 @@
       (Const 0.9) :: [] -> float
     ) :: [items] -> float
   ) :: [items] -> float
-  (TRAIT is_valid_quantity
+  (VALUE is_valid_quantity
     (Call :core.gt
       (InputRef items.item.quantity key_chain=[]) :: [items] -> integer
       (Const 0) :: [] -> integer
     ) :: [items] -> boolean
   ) :: [items] -> boolean
-  (TRAIT expensive_items
+  (VALUE expensive_items
     (Call :core.gt
       (InputRef items.item.price key_chain=[]) :: [items] -> float
       (Const 100.0) :: [] -> float
     ) :: [items] -> boolean
   ) :: [items] -> boolean
-  (TRAIT electronics
+  (VALUE electronics
     (Call :core.eq
       (InputRef items.item.category key_chain=[]) :: [items] -> string
       (Const "electronics") :: [] -> string

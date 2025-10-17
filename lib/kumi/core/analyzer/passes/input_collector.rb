@@ -103,10 +103,28 @@ module Kumi
           end
 
           def kind_from_type(t)
-            return :array if t == :array
-            return :hash  if t == :hash
-
-            :scalar
+            # Handle both symbols (legacy) and Type objects (new)
+            case t
+            when Kumi::Core::Types::ArrayType
+              :array
+            when Kumi::Core::Types::TupleType
+              :array  # Tuples behave like arrays for input access
+            when :array, Kumi::Core::Types::ScalarType
+              # Check if it's a hash scalar or :hash symbol
+              if t.is_a?(Kumi::Core::Types::ScalarType) && t.kind == :hash
+                :hash
+              elsif t == :hash
+                :hash
+              elsif t == :array
+                :array
+              else
+                :scalar
+              end
+            when :hash
+              :hash
+            else
+              :scalar
+            end
           end
         end
       end

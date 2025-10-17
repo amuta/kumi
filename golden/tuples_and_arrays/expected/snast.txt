@@ -1,5 +1,5 @@
 (SNAST
-  (TRAIT x_is_large
+  (VALUE x_is_large
     (Call :core.gt
       (InputRef points.point.x key_chain=[]) :: [points] -> integer
       (Const 100) :: [] -> integer
@@ -17,7 +17,7 @@
       (Tuple
         (Ref selected_value) :: [points] -> integer
         (InputRef points.point.x key_chain=[]) :: [points] -> integer
-      ) :: [points] -> tuple<integer>
+      ) :: [points] -> tuple<integer, integer>
     ) :: [points] -> integer
   ) :: [points] -> integer
   (VALUE grand_total

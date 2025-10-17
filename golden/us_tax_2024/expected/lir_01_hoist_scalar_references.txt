@@ -142,7 +142,7 @@
       %t103 = load_decl fed_tax axes=[statuses] :: float
       %t104 = load_input "income" :: float
       %t105 = const 1.0 :: float
-      %t106 = make_tuple(%t104, %t105) :: tuple<float>
+      %t106 = make_tuple(%t104, %t105) :: tuple<float, float>
       %t107 = fold %t106 fn="agg.max" :: float
       %t108 = call core.div(%t103, %t107) :: float
       yield %t108
@@ -159,7 +159,7 @@
   (Declaration ss_tax
     %t111 = load_input "income" :: float
     %t112 = const 168600.0 :: float
-    %t113 = make_tuple(%t111, %t112) :: tuple<float>
+    %t113 = make_tuple(%t111, %t112) :: tuple<float, float>
     %t114 = fold %t113 fn="agg.min" :: float
     %t115 = const 0.062 :: float
     %t116 = call core.mul(%t114, %t115) :: float
@@ -210,7 +210,7 @@
       %t144 = load_decl fica_tax axes=[statuses] :: float
       %t145 = load_input "income" :: float
       %t146 = const 1.0 :: float
-      %t147 = make_tuple(%t145, %t146) :: tuple<float>
+      %t147 = make_tuple(%t145, %t146) :: tuple<float, float>
       %t148 = fold %t147 fn="agg.max" :: float
       %t149 = call core.div(%t144, %t148) :: float
       yield %t149
@@ -235,7 +235,7 @@
       %t163 = load_decl total_tax axes=[statuses] :: float
       %t164 = load_input "income" :: float
       %t165 = const 1.0 :: float
-      %t166 = make_tuple(%t164, %t165) :: tuple<float>
+      %t166 = make_tuple(%t164, %t165) :: tuple<float, float>
       %t167 = fold %t166 fn="agg.max" :: float
       %t168 = call core.div(%t163, %t167) :: float
       yield %t168

@@ -73,6 +73,25 @@ module Kumi
             arg_types    = arg_metadata.map { |m| m[:type] }
             arg_scopes   = arg_metadata.map { |m| m[:scope] }
 
+            # Ensure all arg_types are Type objects (defensive programming)
+            arg_types = arg_types.map do |t|
+              case t
+              when Types::Type
+                t
+              when :array
+                # :array is actually an ArrayType marker, not a scalar kind
+                Types.array(Types.scalar(:any))
+              when :hash
+                Types.scalar(:hash)
+              when Symbol
+                # Try to normalize as scalar kind
+                Types.normalize(t)
+              else
+                # Already a Type object or unknown format
+                t
+              end
+            end
+
             debug "    Call #{call.fn}: arg_scopes=#{arg_scopes.inspect}, arg_types=#{arg_types.inspect}"
 
             # Step 2: Resolve function using type-aware overload resolution

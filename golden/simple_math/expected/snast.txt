@@ -28,6 +28,6 @@
         (InputRef y key_chain=[]) :: [] -> integer
         (Const 2) :: [] -> integer
       ) :: [] -> integer
-    ) :: [] -> tuple<integer>
-  ) :: [] -> tuple<integer>
+    ) :: [] -> tuple<integer, integer, integer>
+  ) :: [] -> tuple<integer, integer, integer>
 )

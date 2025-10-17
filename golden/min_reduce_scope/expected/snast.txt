@@ -11,7 +11,7 @@
       ) :: [depts] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
-  (TRAIT big_team
+  (VALUE big_team
     (Call :core.gt
       (InputRef depts.dept.teams.team.headcount key_chain=[]) :: [depts, teams] -> integer
       (Const 10) :: [] -> integer

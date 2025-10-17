@@ -34,6 +34,8 @@ module Kumi::Compiled::KUMI_1f73a2a46cbf3f55ab3b67b6820326463bc02a96b17d7bf39135
     t1555 = 1
     t1534 = 3
     t1745 = 2
+    t1952 = 0
+    t291 = 1
     t1556 = t1548 - t1555
     t285.each_with_index do |rows_el_286, rows_i_287|
       out_1 = []
@@ -112,10 +114,10 @@ module Kumi::Compiled::KUMI_1f73a2a46cbf3f55ab3b67b6820326463bc02a96b17d7bf39135
         t1546 = t1545.sum
         t1535 = t1546 == t1534
         t1746 = t1546 == t1745
-        t1953 = col_el_288 > t1551
+        t1953 = col_el_288 > t1952
         t1742 = t1746 && t1953
         t1531 = t1535 || t1742
-        t293 = t1531 ? t1555 : t1551
+        t293 = t1531 ? t291 : t1952
         out_1 << t293
       end
       out << out_1

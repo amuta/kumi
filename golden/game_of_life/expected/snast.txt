@@ -61,34 +61,34 @@
         (Ref ne) :: [rows, col] -> integer
         (Ref sw) :: [rows, col] -> integer
         (Ref se) :: [rows, col] -> integer
-      ) :: [rows, col] -> tuple<integer>
-    ) :: [rows, col] -> 
-  ) :: [rows, col] -> 
-  (TRAIT alive
+      ) :: [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    ) :: [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  ) :: [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  (VALUE alive
     (Call :core.gt
       (Ref a) :: [rows, col] -> integer
       (Const 0) :: [] -> integer
     ) :: [rows, col] -> boolean
   ) :: [rows, col] -> boolean
-  (TRAIT n3_alive
+  (VALUE n3_alive
     (Call :core.eq
-      (Ref neighbors) :: [rows, col] -> 
+      (Ref neighbors) :: [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
       (Const 3) :: [] -> integer
     ) :: [rows, col] -> boolean
   ) :: [rows, col] -> boolean
-  (TRAIT n2_alive
+  (VALUE n2_alive
     (Call :core.eq
-      (Ref neighbors) :: [rows, col] -> 
+      (Ref neighbors) :: [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
       (Const 2) :: [] -> integer
     ) :: [rows, col] -> boolean
   ) :: [rows, col] -> boolean
-  (TRAIT keep_alive
+  (VALUE keep_alive
     (Call :core.and
       (Ref n2_alive) :: [rows, col] -> boolean
       (Ref alive) :: [rows, col] -> boolean
     ) :: [rows, col] -> boolean
   ) :: [rows, col] -> boolean
-  (TRAIT next_alive
+  (VALUE next_alive
     (Call :core.or
       (Ref n3_alive) :: [rows, col] -> boolean
       (Ref keep_alive) :: [rows, col] -> boolean
