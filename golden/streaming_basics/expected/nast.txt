@@ -1,14 +1,14 @@
 (NAST
   (VALUE items_subtotal
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:items, :item, :price])
     (InputRef [:items, :item, :qty])
   )
   )
   (VALUE items_discounted
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:items, :item, :price])
-    (Call :"core.sub"
+    (Call :subtract
       (Const 1.0)
       (InputRef [:discount])
     )
@@ -21,9 +21,9 @@
   )
   )
   (VALUE items_effective
-    (Call :__select__
+    (Call :select
     (Ref items_is_big)
-    (Call :"core.mul"
+    (Call :multiply
       (Ref items_subtotal)
       (Const 0.9)
     )
@@ -31,17 +31,17 @@
   )
   )
   (VALUE total_qty
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:items, :item, :qty])
   )
   )
   (VALUE cart_total
-    (Call :"agg.sum"
+    (Call :sum
     (Ref items_subtotal)
   )
   )
   (VALUE cart_total_effective
-    (Call :"agg.sum"
+    (Call :sum
     (Ref items_effective)
   )
   )

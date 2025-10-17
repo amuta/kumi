@@ -1,24 +1,24 @@
 (NAST
   (VALUE x_sq
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:x])
     (InputRef [:x])
   )
   )
   (VALUE y_sq
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:y])
     (InputRef [:y])
   )
   )
   (VALUE distance_sq
-    (Call :"core.add"
+    (Call :add
     (Ref x_sq)
     (Ref y_sq)
   )
   )
   (VALUE distance
-    (Call :"core.pow"
+    (Call :power
     (Ref distance_sq)
     (Const 0.5)
   )

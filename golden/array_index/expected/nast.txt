@@ -1,12 +1,12 @@
 (NAST
   (VALUE W
-    (Call :"core.array_size"
+    (Call :array_size
     (InputRef [:x, :y])
   )
   )
   (VALUE box
-    (Call :"core.add"
-    (Call :"core.mul"
+    (Call :add
+    (Call :multiply
       #<struct Kumi::Core::NAST::IndexRef id=83, loc=nil, meta={}>
       (Ref W)
     )
@@ -14,10 +14,10 @@
   )
   )
   (VALUE col_major
-    (Call :"core.add"
-    (Call :"core.mul"
+    (Call :add
+    (Call :multiply
       #<struct Kumi::Core::NAST::IndexRef id=91, loc=nil, meta={}>
-      (Call :"core.array_size"
+      (Call :array_size
         (InputRef [:x])
       )
     )
@@ -25,7 +25,7 @@
   )
   )
   (VALUE sum_ij
-    (Call :"core.add"
+    (Call :add
     #<struct Kumi::Core::NAST::IndexRef id=100, loc=nil, meta={}>
     #<struct Kumi::Core::NAST::IndexRef id=102, loc=nil, meta={}>
   )

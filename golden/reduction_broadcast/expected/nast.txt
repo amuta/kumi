@@ -1,16 +1,16 @@
 (NAST
   (VALUE dept_headcount
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:departments, :dept, :teams, :team, :headcount])
   )
   )
   (VALUE teams_per_dept
-    (Call :"agg.count"
+    (Call :count
     (InputRef [:departments, :dept, :teams, :team, :team_name])
   )
   )
   (VALUE avg_headcount_per_dept
-    (Call :"core.div"
+    (Call :divide
     (Ref dept_headcount)
     (Ref teams_per_dept)
   )

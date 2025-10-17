@@ -1,16 +1,16 @@
 (NAST
   (VALUE sum_x
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:xs, :el, :v])
   )
   )
   (VALUE sum_y
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:ys, :el, :v])
   )
   )
   (VALUE tail
-    (Call :"core.add"
+    (Call :add
     (Const 7.0)
     (Const 5.0)
   )

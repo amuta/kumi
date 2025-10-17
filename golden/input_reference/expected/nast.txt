@@ -9,12 +9,12 @@
     (InputRef [:config, :servers, :server, :hostname])
   )
   (VALUE server_count
-    (Call :"core.array_size"
+    (Call :array_size
     (InputRef [:config, :servers])
   )
   )
   (VALUE total_ports
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:config, :servers, :server, :port])
   )
   )

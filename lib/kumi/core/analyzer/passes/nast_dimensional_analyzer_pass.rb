@@ -68,18 +68,42 @@ module Kumi
           end
 
           def analyze_call_expression(call, errors)
-            function_spec = @registry.function(call.fn.to_s)
-
+            # Step 1: Analyze arguments to get their types and scopes
             arg_metadata = call.args.map { |arg| analyze_expression(arg, errors) }
             arg_types    = arg_metadata.map { |m| m[:type] }
             arg_scopes   = arg_metadata.map { |m| m[:scope] }
 
-            debug "    Call #{call.fn}: arg_scopes=#{arg_scopes.inspect}"
+            debug "    Call #{call.fn}: arg_scopes=#{arg_scopes.inspect}, arg_types=#{arg_types.inspect}"
 
-            if ENV["DEBUG_NAST_DIMENSIONAL_ANALYZER"] == "1" && function_spec.param_names.size != arg_types.size
-              puts "[NASTDimensionalAnalyzer] WARNING: #{call.fn} expects #{function_spec.param_names.size} args, got #{arg_types.size}"
+            # Step 2: Resolve function using type-aware overload resolution
+            begin
+              resolved_fn_id = @registry.resolve_function_with_types(call.fn.to_s, arg_types)
+              function_spec = @registry.function(resolved_fn_id)
+              debug "    Resolved '#{call.fn}' with types #{arg_types.inspect} to #{resolved_fn_id}"
+            rescue Core::Functions::OverloadResolver::ResolutionError => e
+              # Type-aware overload resolution failed - report with location
+              report_type_error(
+                errors,
+                e.message,
+                location: call.loc,
+                context: {
+                  function: call.fn.to_s,
+                  arg_types: arg_types
+                }
+              )
+              raise Kumi::Core::Errors::TypeError, e.message
+            rescue StandardError => e
+              # Other function resolution errors
+              report_semantic_error(
+                errors,
+                "Function resolution error for '#{call.fn}': #{e.message}",
+                location: call.loc,
+                context: { function: call.fn.to_s }
+              )
+              raise Kumi::Core::Errors::SemanticError, e.message
             end
 
+            # Step 3: Compute result type
             named_types =
               if function_spec.params.size == arg_types.size
                 Hash[function_spec.param_names.zip(arg_types)]
@@ -89,11 +113,17 @@ module Kumi
 
             begin
               result_type = function_spec.dtype_rule.call(named_types)
-            rescue StandardError
-              # Maybe we have the wrong function, lets try to see if another function with same name works
-              # TODO: Fix this hack
-
-              raise
+            rescue StandardError => e
+              report_type_error(
+                errors,
+                "Type rule evaluation failed for #{function_spec.id}: #{e.message}",
+                location: call.loc,
+                context: {
+                  function: function_spec.id,
+                  arg_types: arg_types
+                }
+              )
+              raise Kumi::Core::Errors::TypeError, "Type rule failed for #{function_spec.id}: #{e.message}"
             end
 
             over_collection = arg_types.size == 1 && Types.collection?(arg_types[0])

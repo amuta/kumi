@@ -1,18 +1,18 @@
 (NAST
   (VALUE sum
-    (Call :"core.add"
+    (Call :add
     (InputRef [:x])
     (InputRef [:y])
   )
   )
   (VALUE product
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:x])
     (InputRef [:y])
   )
   )
   (VALUE difference
-    (Call :"core.sub"
+    (Call :subtract
     (InputRef [:x])
     (InputRef [:y])
   )
@@ -20,11 +20,11 @@
   (VALUE results_array
     (Tuple
     (Const 1)
-    (Call :"core.add"
+    (Call :add
       (InputRef [:x])
       (Const 10)
     )
-    (Call :"core.mul"
+    (Call :multiply
       (InputRef [:y])
       (Const 2)
     )

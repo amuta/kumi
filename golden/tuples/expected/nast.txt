@@ -8,12 +8,12 @@
   )
   )
   (VALUE max_1
-    (Call :"agg.max"
+    (Call :max
     (Ref tuple)
   )
   )
   (VALUE max_2
-    (Call :"agg.max"
+    (Call :max
     (Tuple
       (Const 1)
       (Const 2)
@@ -24,12 +24,12 @@
   )
   )
   (VALUE min_1
-    (Call :"agg.min"
+    (Call :min
     (Ref tuple)
   )
   )
   (VALUE min_2
-    (Call :"agg.min"
+    (Call :min
     (Tuple
       (Const 1)
       (Const 2)

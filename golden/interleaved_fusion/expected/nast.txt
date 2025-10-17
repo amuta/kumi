@@ -1,11 +1,11 @@
 (NAST
   (VALUE total_payroll
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:departments, :dept, :employees, :emp, :salary])
   )
   )
   (VALUE payroll_tax
-    (Call :"core.mul"
+    (Call :multiply
     (Ref total_payroll)
     (Const 0.15)
   )

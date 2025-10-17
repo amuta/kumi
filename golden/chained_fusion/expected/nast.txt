@@ -1,6 +1,6 @@
 (NAST
   (VALUE total_payroll
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:departments, :dept, :employees, :emp, :salary])
   )
   )
@@ -29,7 +29,7 @@
   )
   )
   (VALUE max_salary
-    (Call :"agg.max"
+    (Call :max
     (InputRef [:departments, :dept, :employees, :emp, :salary])
   )
   )

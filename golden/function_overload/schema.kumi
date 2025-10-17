@@ -1,0 +1,19 @@
+schema do
+  input do
+    string :name
+    array :items do
+      integer :value
+    end
+  end
+
+  # Should resolve to core.length (string -> integer)
+  let :name_len, fn(:size, input.name)
+
+  # Should resolve to core.array_size (array -> integer)
+  let :items_count, fn(:size, input.items)
+
+  value :summary, {
+    name_length: name_len,
+    item_count: items_count
+  }
+end

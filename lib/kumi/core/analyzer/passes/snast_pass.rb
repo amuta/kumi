@@ -174,7 +174,9 @@ module Kumi
             # regular elementwise
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
-            out  = n.class.new(id: n.id, fn: @registry.resolve_function(n.fn), args:, opts: n.opts, loc: n.loc)
+            # Use the function ID from metadata (already resolved with type awareness in NASTDimensionalAnalyzerPass)
+            fn_id = m[:function] || @registry.resolve_function(n.fn)
+            out  = n.class.new(id: n.id, fn: fn_id.to_sym, args:, opts: n.opts, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end
 

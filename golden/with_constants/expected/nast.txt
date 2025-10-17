@@ -7,13 +7,13 @@
   )
   )
   (VALUE first_score
-    (Call :"core.at"
+    (Call :at
     (Ref scores)
     (Const 0)
   )
   )
   (VALUE second_score
-    (Call :"core.at"
+    (Call :at
     (Ref scores)
     (Const 1)
   )

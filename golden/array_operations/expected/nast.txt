@@ -1,12 +1,12 @@
 (NAST
   (VALUE subtotals
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:items, :item, :price])
     (InputRef [:items, :item, :quantity])
   )
   )
   (VALUE discounted_price
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:items, :item, :price])
     (Const 0.9)
   )

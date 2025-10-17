@@ -1,0 +1,20 @@
+(LIR
+  (Declaration name_len
+    %t1 = load_input "name" :: string
+    %t2 = call core.length(%t1) :: integer
+    yield %t2
+  )
+  (Declaration items_count
+    %t3 = load_input "items" :: array
+    %t4 = call core.array_size(%t3) :: integer
+    yield %t4
+  )
+  (Declaration summary
+    %t8 = load_input "name" :: string
+    %t9 = call core.length(%t8) :: integer
+    %t10 = load_input "items" :: array
+    %t11 = call core.array_size(%t10) :: integer
+    %t7 = make_object{name_length: %t9, item_count: %t11} :: object
+    yield %t7
+  )
+)

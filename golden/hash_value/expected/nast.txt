@@ -16,7 +16,7 @@
   )
   )
   (VALUE john_user
-    (Call :__select__
+    (Call :select
     (Ref is_john)
     (Ref users)
     (Const "NOT_JOHN")

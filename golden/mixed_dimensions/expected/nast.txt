@@ -1,11 +1,11 @@
 (NAST
   (VALUE sum_numbers
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:numbers, :num, :value])
   )
   )
   (VALUE matrix_sums
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:matrix, :m, :row, :r, :cell])
   )
   )

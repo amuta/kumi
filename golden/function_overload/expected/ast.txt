@@ -1,0 +1,29 @@
+(Root
+  inputs: [
+    (InputDeclaration :name :string)
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :value :integer)
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :name_len
+      (CallExpression :size
+        (InputReference :name)
+      )
+    )
+    (ValueDeclaration :items_count
+      (CallExpression :size
+        (InputReference :items)
+      )
+    )
+    (ValueDeclaration :summary
+      (HashExpression
+        ((Literal :name_length) (DeclarationReference :name_len))
+        ((Literal :item_count) (DeclarationReference :items_count))
+      )
+    )
+  ]
+  traits: []
+)

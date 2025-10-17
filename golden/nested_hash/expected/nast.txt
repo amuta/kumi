@@ -1,6 +1,6 @@
 (NAST
   (VALUE double
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:x, :y, :z])
     (Const 2)
   )

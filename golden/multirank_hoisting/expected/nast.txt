@@ -1,25 +1,25 @@
 (NAST
   (VALUE global_offset_plus
-    (Call :"core.add"
+    (Call :add
     (InputRef [:global_offset])
     (Const 1.0)
   )
   )
   (VALUE batch_bias
-    (Call :"core.add"
+    (Call :add
     (InputRef [:batch, :b, :mean])
     (Ref global_offset_plus)
   )
   )
   (VALUE row_scale2
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:batch, :b, :row, :r, :scale])
     (Const 2.0)
   )
   )
   (VALUE elem_affine
-    (Call :"core.add"
-    (Call :"core.mul"
+    (Call :add
+    (Call :multiply
       (InputRef [:batch, :b, :row, :r, :col, :c, :val])
       (Ref row_scale2)
     )
@@ -27,12 +27,12 @@
   )
   )
   (VALUE row_sum_affine
-    (Call :"agg.sum"
+    (Call :sum
     (Ref elem_affine)
   )
   )
   (VALUE batch_total_affine
-    (Call :"agg.sum"
+    (Call :sum
     (Ref row_sum_affine)
   )
   )

@@ -1,12 +1,12 @@
 (NAST
   (VALUE dept_total
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:depts, :dept, :teams, :team, :headcount])
   )
   )
   (VALUE company_total
-    (Call :"agg.sum"
-    (Call :"agg.sum"
+    (Call :sum
+    (Call :sum
       (InputRef [:depts, :dept, :teams, :team, :headcount])
     )
   )

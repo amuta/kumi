@@ -32,6 +32,7 @@ module Kumi
       def initialize(functions_by_id, kernels_by_key)
         @functions = functions_by_id                         # "core.mul" => Function<...>
         @alias     = build_alias(@functions)                 # "count" => "agg.count"
+        @overload_resolver = Core::Functions::OverloadResolver.new(@functions)
         @kernels   = kernels_by_key                          # [fn_id, target_sym] => Kernel
         @by_id     = @kernels.values.to_h { |k| [k.id, k] }
       end
@@ -48,6 +49,12 @@ module Kumi
         @alias.fetch(s) do
           raise "unknown function #{id}"
         end
+      end
+
+      # Type-aware function resolution for overloads
+      # Returns the function_id that best matches the given argument types
+      def resolve_function_with_types(alias_or_id, arg_types)
+        @overload_resolver.resolve(alias_or_id, arg_types)
       end
 
       def function_kind(id)        = function(id).kind
@@ -102,6 +109,16 @@ module Kumi
       def build_alias(functions)
         functions.values.each_with_object({}) do |func, acc|
           func.aliases.each { |al| acc[al] = func.id }
+        end
+      end
+
+      def build_alias_overloads(functions)
+        # Maps each alias to an array of all function_ids that have that alias
+        functions.values.each_with_object({}) do |func, acc|
+          func.aliases.each do |al|
+            acc[al] ||= []
+            acc[al] << func.id
+          end
         end
       end
     end

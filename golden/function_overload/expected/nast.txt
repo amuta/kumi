@@ -1,0 +1,22 @@
+(NAST
+  (VALUE name_len
+    (Call :size
+    (InputRef [:name])
+  )
+  )
+  (VALUE items_count
+    (Call :size
+    (InputRef [:items])
+  )
+  )
+  (VALUE summary
+    (Hash
+    (Pair name_length 
+      (Ref name_len)
+    )
+    (Pair item_count 
+      (Ref items_count)
+    )
+  )
+  )
+)

@@ -1,6 +1,6 @@
 (NAST
   (VALUE total_payroll
-    (Call :"agg.sum"
+    (Call :sum
     (InputRef [:departments, :dept, :employees, :emp, :salary])
   )
   )

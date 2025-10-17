@@ -1,20 +1,20 @@
 (NAST
   (VALUE state_tax
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:income])
     (InputRef [:state_rate])
   )
   )
   (VALUE local_tax
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:income])
     (InputRef [:local_rate])
   )
   )
   (VALUE taxable
-    (Call :"agg.max"
+    (Call :max
     (Tuple
-      (Call :"core.sub"
+      (Call :subtract
         (InputRef [:income])
         (InputRef [:statuses, :status, :std])
       )
@@ -35,7 +35,7 @@
     (Const 100000000000.0)
   )
   (VALUE hi_eff
-    (Call :__select__
+    (Call :select
     (Call :"core.eq"
       (Ref hi)
       (Const -1)
@@ -45,28 +45,28 @@
   )
   )
   (VALUE amt
-    (Call :"core.clamp"
-    (Call :"core.sub"
+    (Call :clamp
+    (Call :subtract
       (Ref taxable)
       (Ref lo)
     )
     (Const 0)
-    (Call :"core.sub"
+    (Call :subtract
       (Ref hi_eff)
       (Ref lo)
     )
   )
   )
   (VALUE fed_tax
-    (Call :"agg.sum"
-    (Call :"core.mul"
+    (Call :sum
+    (Call :multiply
       (Ref amt)
       (Ref rate)
     )
   )
   )
   (VALUE in_br
-    (Call :"core.and"
+    (Call :and
     (Call :"core.gte"
       (Ref taxable)
       (Ref lo)
@@ -87,9 +87,9 @@
   )
   )
   (VALUE fed_eff
-    (Call :"core.div"
+    (Call :divide
     (Ref fed_tax)
-    (Call :"agg.max"
+    (Call :max
       (Tuple
         (InputRef [:income])
         (Const 1.0)
@@ -104,8 +104,8 @@
     (Const 0.062)
   )
   (VALUE ss_tax
-    (Call :"core.mul"
-    (Call :"agg.min"
+    (Call :multiply
+    (Call :min
       (Tuple
         (InputRef [:income])
         (Ref ss_wage_base)
@@ -118,7 +118,7 @@
     (Const 0.0145)
   )
   (VALUE med_tax
-    (Call :"core.mul"
+    (Call :multiply
     (InputRef [:income])
     (Ref med_base_rate)
   )
@@ -127,10 +127,10 @@
     (Const 0.009)
   )
   (VALUE addl_med_tax
-    (Call :"core.mul"
-    (Call :"agg.max"
+    (Call :multiply
+    (Call :max
       (Tuple
-        (Call :"core.sub"
+        (Call :subtract
           (InputRef [:income])
           (InputRef [:statuses, :status, :addl_threshold])
         )
@@ -141,8 +141,8 @@
   )
   )
   (VALUE fica_tax
-    (Call :"core.add"
-    (Call :"core.add"
+    (Call :add
+    (Call :add
       (Ref ss_tax)
       (Ref med_tax)
     )
@@ -150,9 +150,9 @@
   )
   )
   (VALUE fica_eff
-    (Call :"core.div"
+    (Call :divide
     (Ref fica_tax)
-    (Call :"agg.max"
+    (Call :max
       (Tuple
         (InputRef [:income])
         (Const 1.0)
@@ -161,9 +161,9 @@
   )
   )
   (VALUE total_tax
-    (Call :"core.add"
-    (Call :"core.add"
-      (Call :"core.add"
+    (Call :add
+    (Call :add
+      (Call :add
         (Ref fed_tax)
         (Ref fica_tax)
       )
@@ -173,9 +173,9 @@
   )
   )
   (VALUE total_eff
-    (Call :"core.div"
+    (Call :divide
     (Ref total_tax)
-    (Call :"agg.max"
+    (Call :max
       (Tuple
         (InputRef [:income])
         (Const 1.0)
@@ -184,13 +184,13 @@
   )
   )
   (VALUE after_tax
-    (Call :"core.sub"
+    (Call :subtract
     (InputRef [:income])
     (Ref total_tax)
   )
   )
   (VALUE take_home
-    (Call :"core.sub"
+    (Call :subtract
     (Ref after_tax)
     (InputRef [:retirement_contrib])
   )

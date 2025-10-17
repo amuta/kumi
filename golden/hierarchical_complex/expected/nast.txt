@@ -26,7 +26,7 @@
         (Ref top_team)
       )
     )
-    (Call :"core.mul"
+    (Call :multiply
       (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
       (Const 0.3)
     )
@@ -35,11 +35,11 @@
         (Ref high_performer)
         (Ref top_team)
       )
-      (Call :"core.mul"
+      (Call :multiply
         (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
         (Const 0.2)
       )
-      (Call :"core.mul"
+      (Call :multiply
         (InputRef [:regions, :region, :offices, :office, :teams, :team, :employees, :employee, :salary])
         (Const 0.05)
       )

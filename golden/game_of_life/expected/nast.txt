@@ -51,7 +51,7 @@
   )
   )
   (VALUE neighbors
-    (Call :"agg.sum"
+    (Call :sum
     (Tuple
       (Ref n)
       (Ref s)
@@ -83,19 +83,19 @@
   )
   )
   (VALUE keep_alive
-    (Call :"core.and"
+    (Call :and
     (Ref n2_alive)
     (Ref alive)
   )
   )
   (VALUE next_alive
-    (Call :"core.or"
+    (Call :or
     (Ref n3_alive)
     (Ref keep_alive)
   )
   )
   (VALUE next_state
-    (Call :__select__
+    (Call :select
     (Ref next_alive)
     (Const 1)
     (Const 0)

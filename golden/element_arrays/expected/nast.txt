@@ -27,8 +27,8 @@
   )
   )
   (VALUE count_over_limit
-    (Call :"agg.sum"
-    (Call :"agg.sum"
+    (Call :sum
+    (Call :sum
       (Call :sum
         (Call :__select__
           (Ref cell_over_limit)

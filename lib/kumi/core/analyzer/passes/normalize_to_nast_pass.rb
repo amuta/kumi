@@ -75,14 +75,18 @@ module Kumi
 
           def normalize_call_expression(node, errors)
             begin
-              fn_name = FnAliases::MAP[node.fn_name] || node.fn_name
-              func = @registry.function(fn_name)
+              fn_alias = FnAliases::MAP[node.fn_name] || node.fn_name
+
+              # Try to get the function to check if it's expandable
+              # For expandable functions, we need to resolve now
+              # For regular functions, we defer resolution to NASTDimensionalAnalyzerPass
+              func = @registry.function(fn_alias) rescue nil
             rescue StandardError
               # puts "MISSING_FUNCTION: #{node.fn_name.inspect}"
               raise
             end
 
-            if func.expand
+            if func && func.expand
               # 1. Normalize the arguments FIRST.
               normalized_args = node.args.map { |arg| normalize_expr(arg, errors) }
 
@@ -91,8 +95,9 @@ module Kumi
               MacroExpander.expand(func, normalized_args, node.loc, errors)
             else
               # Regular, non-expandable function call.
+              # Keep the alias, don't resolve yet - let NASTDimensionalAnalyzerPass handle overload resolution
               args = node.args.map { |a| normalize_expr(a, errors) }
-              NAST::Call.new(fn: func.id.to_sym, args: args, opts: node.opts, loc: node.loc)
+              NAST::Call.new(fn: fn_alias.to_sym, args: args, opts: node.opts, loc: node.loc)
             end
           end
 
