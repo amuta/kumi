@@ -35,7 +35,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /impossible_doubled.*impossible/)
     end
 
     it "detects impossible reverse constraint derived through arithmetic" do
@@ -57,7 +57,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /impossible_result.*impossible/)
     end
 
     it "allows valid chained constraints within bounds" do
@@ -85,6 +85,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
       # Chain: x -> y = x + 5 -> z = y * 2
       # x ∈ [0, 10] => y ∈ [5, 15] => z ∈ [10, 30]
       # Constraint z == 100 is impossible
+      # Requires chaining reverse propagation through multiple operations
       expect do
         build_schema do
           input do
@@ -101,7 +102,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /impossible_z.*impossible/)
     end
 
     it "validates constraint feasibility with multiple operations" do
@@ -134,6 +135,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
       # Derived: y = x + 10 => y == 15
       # But we also have: trait constraining y == 20
       # This creates a contradiction: y == 15 AND y == 20
+      # Requires detecting contradictions across propagated constraints
       expect do
         build_schema do
           input do
@@ -151,7 +153,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /both_constraints.*impossible/)
     end
 
     it "allows consistent constraints across operations" do
@@ -181,6 +183,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
       # Even if input domain is [0, 10], multiplication by 20
       # creates output in [0, 200]
       # Constraint that intermediate is < 0 is impossible
+      # Requires handling inequality constraints (not just equality)
       expect do
         build_schema do
           input do
@@ -196,7 +199,7 @@ RSpec.describe "UNSAT Detection with Constraint Propagation" do
             base "Normal"
           end
         end
-      end.to raise_error(Kumi::Core::Errors::SemanticError)
+      end.to raise_error(Kumi::Core::Errors::SemanticError, /impossible_large.*impossible/)
     end
 
     it "allows constraints within expanded domain" do
