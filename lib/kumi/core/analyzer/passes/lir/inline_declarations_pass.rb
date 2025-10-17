@@ -41,22 +41,26 @@ module Kumi
               [fused, changed]
             end
 
+            # ---------------- core ----------------
+
+            Hoist = Struct.new(:ops, :target_depth, keyword_init: true)
+
             def inline_top_level_decl(ops)
               env        = Env.new
               reg_map    = {}
               rename_map = {}
-              processed, hoisted = process_and_hoist_block(ops, env, reg_map, rename_map)
-              raise "Orphaned code was hoisted to top level" unless hoisted.empty?
+              processed, hoist_pkgs = process_and_hoist_block(ops, env, reg_map, rename_map)
 
-              processed
+              top_emit, bubble = hoist_pkgs.partition { |p| p.target_depth == 0 }
+              raise "Orphaned code hoist with target depth(s): #{bubble.map(&:target_depth).uniq.inspect}" unless bubble.empty?
+
+              top_emit.flat_map(&:ops) + processed
             end
 
-            # ---------------- core ----------------
-
-            # returns [processed_ops, hoisted_ops]
+            # returns [processed_ops, hoist_pkgs]
             def process_and_hoist_block(block_ops, env, reg_map, rename_map)
               out = []
-              hoisted = []
+              hoisted_pkgs = []
               i = 0
               while i < block_ops.length
                 ins = block_ops[i]
@@ -67,110 +71,122 @@ module Kumi
 
                   env.push(ins)
                   child_rename = {}
-                  processed_body, hoisted_from_child =
+                  processed_body, child_hoists =
                     process_and_hoist_block(loop_body, env, reg_map, child_rename)
                   env.pop
 
-                  out.concat(hoisted_from_child)            # emit hoists before loop
-                  rename_map.merge!(child_rename)           # make child renames visible
+                  # Emit any hoists that belong exactly here; bubble the rest up.
+                  depth_here = env.axes.length
+                  emit, bubble = child_hoists.partition { |p| p.target_depth == depth_here }
+                  out.concat(emit.flat_map(&:ops))
+                  hoisted_pkgs.concat(bubble)
 
-                  out << rewrite(ins, reg_map, rename_map)  # loop shell
-                  out.concat(processed_body)
+                  # guard: do not let child loop el/idx escape via rename
+                  child_el = ins.attributes[:as_element]
+                  child_ix = ins.attributes[:as_index]
+                  if (child_rename.values & [child_el, child_ix]).any?
+                    raise "rename leak across loop: #{[child_el, child_ix].inspect} via #{child_rename.inspect}"
+                  end
+
+                  # Merge renames *before* we emit the body, so all uses are rewritten.
+                  rename_map.merge!(child_rename)
+
+                  # Emit loop shell and rewritten body/end with the merged rename map.
+                  out << rewrite(ins, reg_map, rename_map) # loop shell
+                  out.concat(rewrite_block(processed_body, rename_map))
                   out << rewrite(block_ops[end_idx], reg_map, rename_map)
 
                   i = end_idx
 
                 when :LoadDeclaration
-                  inline_ops, hoist_ops =
+                  inline_ops, new_pkgs =
                     handle_load_declaration(ins, env, reg_map, rename_map)
                   out.concat(inline_ops)
-                  hoisted.concat(hoist_ops)
+                  hoisted_pkgs.concat(new_pkgs)
 
                 else
                   out << rewrite(ins, reg_map, rename_map)
                 end
                 i += 1
               end
-              [out, hoisted]
+              [out, hoisted_pkgs]
             end
 
-            # returns [inline_ops, hoisted_ops]
-            def handle_load_declaration(call_ins, env, reg_map, outer_rename_map)
-              raise "LoadDeclaration missing callee" unless call_ins.immediates&.first&.respond_to?(:value)
+            # returns [inline_ops, hoist_pkgs]
+            def handle_load_declaration(ins, env, _reg_map, rename_map)
+              callee = ins.immediates.first.value.to_sym
 
-              callee = call_ins.immediates.first.value.to_sym
-              raise "LoadDeclaration callee #{callee} not found" unless @ops_by_decl.key?(callee)
+              # axes presence and agreement with callee gamma
+              decl_axes  = ins.attributes.fetch(:axes) { raise "LoadDeclaration missing :axes for #{callee}" }
+              gamma_axes = @gamma.fetch(callee).axes
+              raise "axes mismatch for #{callee}: decl=#{decl_axes.inspect} gamma=#{gamma_axes.inspect}" unless decl_axes == gamma_axes
 
-              decl_axes = fetch_decl_axes(callee, call_ins)
-              site_axes = env.axes
+              body, yield_reg, callee_regs = inline_callee_core(callee)
+              remap = remap_axes(callee_regs, env)
 
-              body, yield_reg, callee_axis_regs = inline_callee_core(callee)
-              axis_map = remap_axes(callee_axis_regs, env)
-
+              # per-callsite freshening
               local_reg_map = {}
-              _acc, fresh_ops = freshen(body, local_reg_map, pre_map: axis_map)
+              _acc, fresh_ops = freshen(body, local_reg_map, pre_map: remap)
 
-              nested_rename = {}
-              processed_inner, hoisted_inner =
-                process_and_hoist_block(fresh_ops, env, {}, nested_rename)
+              # recursively process nested calls
+              processed_inline, nested_pkgs = process_and_hoist_block(fresh_ops, env, {}, rename_map)
 
-              prelim = local_reg_map[yield_reg] || axis_map[yield_reg] || yield_reg
-              mapped_yield = resolve_rename(prelim, nested_rename)
+              # compute yielded register mapping
+              mapped_yield =
+                local_reg_map[yield_reg] || remap[yield_reg] ||
+                (raise "inliner: yielded reg #{yield_reg} not produced in inlined body for #{callee}")
 
-              # def/dominance guard
-              defs_inline  = defs_in(processed_inner)
-              defs_hoisted = defs_in(hoisted_inner)
-              unless defs_inline.include?(mapped_yield) || defs_hoisted.include?(mapped_yield)
-                msg = [
-                  "inliner: mapped yield #{mapped_yield} has no def in emitted ops for #{callee}",
-                  "  original yield: #{yield_reg}",
-                  "  prelim mapping: #{prelim}",
-                  "  nested_rename keys: #{nested_rename.keys.inspect}",
-                  "  inline defs size: #{defs_inline.size}",
-                  "  hoisted defs size: #{defs_hoisted.size}"
-                ].join("\n")
-                raise msg
+              # sanity: mapped_yield must be definable at site
+              emitted_defs = processed_inline.map(&:result_register).compact +
+                             nested_pkgs.flat_map { |p| p.ops }.map(&:result_register).compact
+              unless emitted_defs.include?(mapped_yield) || env.ambient_regs.include?(mapped_yield)
+                raise "inliner: mapped yield #{mapped_yield} has no def in emitted ops for #{callee}\n" \
+                      "original yield: #{yield_reg}\n" \
+                      "inline defs size: #{processed_inline.count { |x| x.result_register }}\n" \
+                      "nested hoist defs size: #{nested_pkgs.flat_map { |p| p.ops }.count { |x| x.result_register }}"
               end
 
-              outer_rename_map[call_ins.result_register] = mapped_yield if call_ins.result_register
+              # record rename for the callsite result (e.g., %t8 -> %t56)
+              rename_map[ins.result_register] = mapped_yield
 
-              if prefix?(decl_axes, site_axes) && decl_axes.length < site_axes.length
-                [[], hoisted_inner + processed_inner]         # hoist
-              elsif decl_axes == site_axes
-                [hoisted_inner + processed_inner, []]         # inline in place
+              # decide placement by depth
+              site_depth   = env.axes.length
+              callee_depth = decl_axes.length
+
+              if callee_depth < site_depth
+                # guard: hoisted code must not reference deeper-axis regs (check only code we hoist now)
+                forb = forbidden_ambient_after(callee_depth, env)
+                used = uses_of(processed_inline)
+                bad  = used & forb
+                unless bad.empty?
+                  raise "scope error: would hoist ops using deeper-axis regs #{bad.inspect} " \
+                        "(callee_depth=#{callee_depth}, site_depth=#{site_depth})"
+                end
+                pkgs = nested_pkgs + [Hoist.new(ops: processed_inline, target_depth: callee_depth)]
+                [[], pkgs]
+
+              elsif callee_depth == site_depth
+                emit, bubble = nested_pkgs.partition { |p| p.target_depth == site_depth }
+                [(emit.flat_map(&:ops) + processed_inline), bubble]
+
               else
-                [[rewrite(call_ins, reg_map, outer_rename_map)], []] # cannot inline
+                # cannot inline at a shallower site; keep the call
+                [[rewrite(ins, {}, rename_map)], []]
               end
             end
 
             # ---------------- helpers ----------------
-
-            def resolve_rename(reg, rename, limit: 64)
-              seen = {}
-              cur = reg
-              limit.times do
-                nxt = rename[cur]
-                break unless nxt
-                raise "inliner: rename cycle at #{cur}" if seen[nxt]
-
-                seen[nxt] = true
-                cur = nxt
-              end
-              cur
+            def rewrite_block(ops, rename)
+              # Ensure late-added renames apply to a block we built earlier.
+              ops.map { |ins| rewrite(ins, {}, rename) }
             end
 
-            def defs_in(ops)
-              ops.each_with_object(Set.new) { |ins, s| s << ins.result_register if ins.result_register }
+            def uses_of(ops)
+              ops.flat_map { |x| Array(x.inputs) }.compact
             end
 
-            def fetch_decl_axes(callee, call_ins)
-              attr_axes  = call_ins.attributes && call_ins.attributes[:axes]
-              gamma_axes = Array(@gamma.fetch(callee)&.axes || [])
-              ax = attr_axes.nil? ? gamma_axes : Array(attr_axes)
-              raise "LoadDeclaration missing :axes" if ax.nil?
-              raise "inliner: non-array axes for #{callee}: #{ax.inspect}" unless ax.is_a?(Array)
-
-              ax
+            def forbidden_ambient_after(depth, env)
+              env.frames_after(depth).flat_map { |f| [f[:el], f[:idx]] }
             end
 
             def find_matching_loop_end(ops, start_index)
@@ -195,6 +211,7 @@ module Kumi
             class Env
               def initialize = @frames = []
               def axes = @frames.map { _1[:axis] }
+              def ambient_regs = @frames.flat_map { |f| [f[:el], f[:idx]] }
 
               def push(loop_ins)
                 @frames << {
@@ -209,6 +226,10 @@ module Kumi
               def reg_for_axis(axis)
                 @frames.reverse.find { _1[:axis] == axis } ||
                   raise("no element for axis=#{axis.inspect}")
+              end
+
+              def frames_after(depth)
+                @frames[depth..] || []
               end
             end
 
@@ -240,10 +261,10 @@ module Kumi
             end
 
             def inline_callee_core(callee_name)
-              ops = Array(@ops_by_decl.fetch(callee_name)[:operations])
+              ops  = Array(@ops_by_decl.fetch(callee_name)[:operations])
               info = @gamma.fetch(callee_name)
               axes = info.axes
-              k = axes.length
+              k    = axes.length
 
               yi = ops.rindex { |x| x.opcode == :Yield } or raise "callee #{callee_name} has no Yield"
               yielded_reg = Array(ops[yi].inputs).first
