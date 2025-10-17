@@ -1,11 +1,14 @@
 {
-  "income": 100000,
-  "state_rate": 0.06,
-  "local_rate": 0.0388,
+  "income": 150000,
+  "state_rate": 0,
+  "local_rate": 0,
   "retirement_contrib": 0,
-  "fed": {
-    "single": {
+  "filing_status": "single",
+  "statuses": [
+    {
+      "name": "single",
       "std": 14600,
+      "addl_threshold": 200000,
       "rates": [
         {
           "lo": 0,
@@ -44,8 +47,10 @@
         }
       ]
     },
-    "married_joint": {
+    {
+      "name": "married_joint",
       "std": 29200,
+      "addl_threshold": 250000,
       "rates": [
         {
           "lo": 0,
@@ -84,8 +89,10 @@
         }
       ]
     },
-    "married_separate": {
+    {
+      "name": "married_separate",
       "std": 14600,
+      "addl_threshold": 125000,
       "rates": [
         {
           "lo": 0,
@@ -124,8 +131,10 @@
         }
       ]
     },
-    "head_of_household": {
+    {
+      "name": "head_of_household",
       "std": 21900,
+      "addl_threshold": 200000,
       "rates": [
         {
           "lo": 0,
@@ -164,5 +173,5 @@
         }
       ]
     }
-  }
+  ]
 }

@@ -11,84 +11,84 @@
     (InputRef [:local_rate])
   )
   )
-  (VALUE taxable_single
+  (VALUE taxable
     (Call :"agg.max"
     (Tuple
       (Call :"core.sub"
         (InputRef [:income])
-        (InputRef [:fed, :single, :std])
+        (InputRef [:statuses, :status, :std])
       )
       (Const 0)
     )
   )
   )
-  (VALUE lo_s
-    (InputRef [:fed, :single, :rates, :bracket, :lo])
+  (VALUE lo
+    (InputRef [:statuses, :status, :rates, :bracket, :lo])
   )
-  (VALUE hi_s
-    (InputRef [:fed, :single, :rates, :bracket, :hi])
+  (VALUE hi
+    (InputRef [:statuses, :status, :rates, :bracket, :hi])
   )
-  (VALUE rate_s
-    (InputRef [:fed, :single, :rates, :bracket, :rate])
+  (VALUE rate
+    (InputRef [:statuses, :status, :rates, :bracket, :rate])
   )
   (VALUE big_hi
     (Const 100000000000.0)
   )
-  (VALUE hi_s_eff
+  (VALUE hi_eff
     (Call :__select__
     (Call :"core.eq"
-      (Ref hi_s)
+      (Ref hi)
       (Const -1)
     )
     (Ref big_hi)
-    (Ref hi_s)
+    (Ref hi)
   )
   )
-  (VALUE amt_s
+  (VALUE amt
     (Call :"core.clamp"
     (Call :"core.sub"
-      (Ref taxable_single)
-      (Ref lo_s)
+      (Ref taxable)
+      (Ref lo)
     )
     (Const 0)
     (Call :"core.sub"
-      (Ref hi_s_eff)
-      (Ref lo_s)
+      (Ref hi_eff)
+      (Ref lo)
     )
   )
   )
-  (VALUE fed_tax_single
+  (VALUE fed_tax
     (Call :"agg.sum"
     (Call :"core.mul"
-      (Ref amt_s)
-      (Ref rate_s)
+      (Ref amt)
+      (Ref rate)
     )
   )
   )
-  (VALUE in_br_s
+  (VALUE in_br
     (Call :"core.and"
     (Call :"core.gte"
-      (Ref taxable_single)
-      (Ref lo_s)
+      (Ref taxable)
+      (Ref lo)
     )
     (Call :"core.lt"
-      (Ref taxable_single)
-      (Ref hi_s_eff)
+      (Ref taxable)
+      (Ref hi_eff)
     )
   )
   )
-  (VALUE fed_marginal_single
+  (VALUE fed_marg
     (Call :sum
     (Call :__select__
-      (Ref in_br_s)
-      (Ref rate_s)
+      (Ref in_br)
+      (Ref rate)
       (Const 0)
     )
   )
   )
-  (VALUE fed_eff_single
+  (VALUE fed_eff
     (Call :"core.div"
-    (Ref fed_tax_single)
+    (Ref fed_tax)
     (Call :"agg.max"
       (Tuple
         (InputRef [:income])
@@ -103,7 +103,7 @@
   (VALUE ss_rate
     (Const 0.062)
   )
-  (VALUE ss_tax_s
+  (VALUE ss_tax
     (Call :"core.mul"
     (Call :"agg.min"
       (Tuple
@@ -117,25 +117,22 @@
   (VALUE med_base_rate
     (Const 0.0145)
   )
-  (VALUE med_tax_s
+  (VALUE med_tax
     (Call :"core.mul"
     (InputRef [:income])
     (Ref med_base_rate)
   )
   )
-  (VALUE addl_threshold_single
-    (Const 200000.0)
-  )
   (VALUE addl_med_rate
     (Const 0.009)
   )
-  (VALUE addl_med_tax_s
+  (VALUE addl_med_tax
     (Call :"core.mul"
     (Call :"agg.max"
       (Tuple
         (Call :"core.sub"
           (InputRef [:income])
-          (Ref addl_threshold_single)
+          (InputRef [:statuses, :status, :addl_threshold])
         )
         (Const 0)
       )
@@ -143,18 +140,18 @@
     (Ref addl_med_rate)
   )
   )
-  (VALUE fica_tax_single
+  (VALUE fica_tax
     (Call :"core.add"
     (Call :"core.add"
-      (Ref ss_tax_s)
-      (Ref med_tax_s)
+      (Ref ss_tax)
+      (Ref med_tax)
     )
-    (Ref addl_med_tax_s)
+    (Ref addl_med_tax)
   )
   )
-  (VALUE fica_eff_single
+  (VALUE fica_eff
     (Call :"core.div"
-    (Ref fica_tax_single)
+    (Ref fica_tax)
     (Call :"agg.max"
       (Tuple
         (InputRef [:income])
@@ -163,21 +160,21 @@
     )
   )
   )
-  (VALUE total_tax_single
+  (VALUE total_tax
     (Call :"core.add"
     (Call :"core.add"
       (Call :"core.add"
-        (Ref fed_tax_single)
-        (Ref fica_tax_single)
+        (Ref fed_tax)
+        (Ref fica_tax)
       )
       (Ref state_tax)
     )
     (Ref local_tax)
   )
   )
-  (VALUE total_eff_single
+  (VALUE total_eff
     (Call :"core.div"
-    (Ref total_tax_single)
+    (Ref total_tax)
     (Call :"agg.max"
       (Tuple
         (InputRef [:income])
@@ -186,790 +183,90 @@
     )
   )
   )
-  (VALUE after_tax_single
+  (VALUE after_tax
     (Call :"core.sub"
     (InputRef [:income])
-    (Ref total_tax_single)
+    (Ref total_tax)
   )
   )
-  (VALUE take_home_single
+  (VALUE take_home
     (Call :"core.sub"
-    (Ref after_tax_single)
-    (InputRef [:retirement_contrib])
-  )
-  )
-  (VALUE taxable_mj
-    (Call :"agg.max"
-    (Tuple
-      (Call :"core.sub"
-        (InputRef [:income])
-        (InputRef [:fed, :married_joint, :std])
-      )
-      (Const 0)
-    )
-  )
-  )
-  (VALUE lo_mj
-    (InputRef [:fed, :married_joint, :rates, :bracket, :lo])
-  )
-  (VALUE hi_mj
-    (InputRef [:fed, :married_joint, :rates, :bracket, :hi])
-  )
-  (VALUE rate_mj
-    (InputRef [:fed, :married_joint, :rates, :bracket, :rate])
-  )
-  (VALUE hi_mj_eff
-    (Call :__select__
-    (Call :"core.eq"
-      (Ref hi_mj)
-      (Const -1)
-    )
-    (Ref big_hi)
-    (Ref hi_mj)
-  )
-  )
-  (VALUE amt_mj
-    (Call :"core.clamp"
-    (Call :"core.sub"
-      (Ref taxable_mj)
-      (Ref lo_mj)
-    )
-    (Const 0)
-    (Call :"core.sub"
-      (Ref hi_mj_eff)
-      (Ref lo_mj)
-    )
-  )
-  )
-  (VALUE fed_tax_mj
-    (Call :"agg.sum"
-    (Call :"core.mul"
-      (Ref amt_mj)
-      (Ref rate_mj)
-    )
-  )
-  )
-  (VALUE in_br_mj
-    (Call :"core.and"
-    (Call :"core.gte"
-      (Ref taxable_mj)
-      (Ref lo_mj)
-    )
-    (Call :"core.lt"
-      (Ref taxable_mj)
-      (Ref hi_mj_eff)
-    )
-  )
-  )
-  (VALUE fed_marginal_mj
-    (Call :sum
-    (Call :__select__
-      (Ref in_br_mj)
-      (Ref rate_mj)
-      (Const 0)
-    )
-  )
-  )
-  (VALUE fed_eff_mj
-    (Call :"core.div"
-    (Ref fed_tax_mj)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE ss_tax_mj
-    (Ref ss_tax_s)
-  )
-  (VALUE med_tax_mj
-    (Ref med_tax_s)
-  )
-  (VALUE addl_threshold_mj
-    (Const 250000.0)
-  )
-  (VALUE addl_med_tax_mj
-    (Call :"core.mul"
-    (Call :"agg.max"
-      (Tuple
-        (Call :"core.sub"
-          (InputRef [:income])
-          (Ref addl_threshold_mj)
-        )
-        (Const 0)
-      )
-    )
-    (Ref addl_med_rate)
-  )
-  )
-  (VALUE fica_tax_mj
-    (Call :"core.add"
-    (Call :"core.add"
-      (Ref ss_tax_mj)
-      (Ref med_tax_mj)
-    )
-    (Ref addl_med_tax_mj)
-  )
-  )
-  (VALUE fica_eff_mj
-    (Call :"core.div"
-    (Ref fica_tax_mj)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE total_tax_mj
-    (Call :"core.add"
-    (Call :"core.add"
-      (Call :"core.add"
-        (Ref fed_tax_mj)
-        (Ref fica_tax_mj)
-      )
-      (Ref state_tax)
-    )
-    (Ref local_tax)
-  )
-  )
-  (VALUE total_eff_mj
-    (Call :"core.div"
-    (Ref total_tax_mj)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE after_tax_mj
-    (Call :"core.sub"
-    (InputRef [:income])
-    (Ref total_tax_mj)
-  )
-  )
-  (VALUE take_home_mj
-    (Call :"core.sub"
-    (Ref after_tax_mj)
-    (InputRef [:retirement_contrib])
-  )
-  )
-  (VALUE taxable_ms
-    (Call :"agg.max"
-    (Tuple
-      (Call :"core.sub"
-        (InputRef [:income])
-        (InputRef [:fed, :married_separate, :std])
-      )
-      (Const 0)
-    )
-  )
-  )
-  (VALUE lo_ms
-    (InputRef [:fed, :married_separate, :rates, :bracket, :lo])
-  )
-  (VALUE hi_ms
-    (InputRef [:fed, :married_separate, :rates, :bracket, :hi])
-  )
-  (VALUE rate_ms
-    (InputRef [:fed, :married_separate, :rates, :bracket, :rate])
-  )
-  (VALUE hi_ms_eff
-    (Call :__select__
-    (Call :"core.eq"
-      (Ref hi_ms)
-      (Const -1)
-    )
-    (Ref big_hi)
-    (Ref hi_ms)
-  )
-  )
-  (VALUE amt_ms
-    (Call :"core.clamp"
-    (Call :"core.sub"
-      (Ref taxable_ms)
-      (Ref lo_ms)
-    )
-    (Const 0)
-    (Call :"core.sub"
-      (Ref hi_ms_eff)
-      (Ref lo_ms)
-    )
-  )
-  )
-  (VALUE fed_tax_ms
-    (Call :"agg.sum"
-    (Call :"core.mul"
-      (Ref amt_ms)
-      (Ref rate_ms)
-    )
-  )
-  )
-  (VALUE in_br_ms
-    (Call :"core.and"
-    (Call :"core.gte"
-      (Ref taxable_ms)
-      (Ref lo_ms)
-    )
-    (Call :"core.lt"
-      (Ref taxable_ms)
-      (Ref hi_ms_eff)
-    )
-  )
-  )
-  (VALUE fed_marginal_ms
-    (Call :sum
-    (Call :__select__
-      (Ref in_br_ms)
-      (Ref rate_ms)
-      (Const 0)
-    )
-  )
-  )
-  (VALUE fed_eff_ms
-    (Call :"core.div"
-    (Ref fed_tax_ms)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE ss_tax_ms
-    (Ref ss_tax_s)
-  )
-  (VALUE med_tax_ms
-    (Ref med_tax_s)
-  )
-  (VALUE addl_threshold_ms
-    (Const 125000.0)
-  )
-  (VALUE addl_med_tax_ms
-    (Call :"core.mul"
-    (Call :"agg.max"
-      (Tuple
-        (Call :"core.sub"
-          (InputRef [:income])
-          (Ref addl_threshold_ms)
-        )
-        (Const 0)
-      )
-    )
-    (Ref addl_med_rate)
-  )
-  )
-  (VALUE fica_tax_ms
-    (Call :"core.add"
-    (Call :"core.add"
-      (Ref ss_tax_ms)
-      (Ref med_tax_ms)
-    )
-    (Ref addl_med_tax_ms)
-  )
-  )
-  (VALUE fica_eff_ms
-    (Call :"core.div"
-    (Ref fica_tax_ms)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE total_tax_ms
-    (Call :"core.add"
-    (Call :"core.add"
-      (Call :"core.add"
-        (Ref fed_tax_ms)
-        (Ref fica_tax_ms)
-      )
-      (Ref state_tax)
-    )
-    (Ref local_tax)
-  )
-  )
-  (VALUE total_eff_ms
-    (Call :"core.div"
-    (Ref total_tax_ms)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE after_tax_ms
-    (Call :"core.sub"
-    (InputRef [:income])
-    (Ref total_tax_ms)
-  )
-  )
-  (VALUE take_home_ms
-    (Call :"core.sub"
-    (Ref after_tax_ms)
-    (InputRef [:retirement_contrib])
-  )
-  )
-  (VALUE taxable_hoh
-    (Call :"agg.max"
-    (Tuple
-      (Call :"core.sub"
-        (InputRef [:income])
-        (InputRef [:fed, :head_of_household, :std])
-      )
-      (Const 0)
-    )
-  )
-  )
-  (VALUE lo_h
-    (InputRef [:fed, :head_of_household, :rates, :bracket, :lo])
-  )
-  (VALUE hi_h
-    (InputRef [:fed, :head_of_household, :rates, :bracket, :hi])
-  )
-  (VALUE rate_h
-    (InputRef [:fed, :head_of_household, :rates, :bracket, :rate])
-  )
-  (VALUE hi_h_eff
-    (Call :__select__
-    (Call :"core.eq"
-      (Ref hi_h)
-      (Const -1)
-    )
-    (Ref big_hi)
-    (Ref hi_h)
-  )
-  )
-  (VALUE amt_h
-    (Call :"core.clamp"
-    (Call :"core.sub"
-      (Ref taxable_hoh)
-      (Ref lo_h)
-    )
-    (Const 0)
-    (Call :"core.sub"
-      (Ref hi_h_eff)
-      (Ref lo_h)
-    )
-  )
-  )
-  (VALUE fed_tax_hoh
-    (Call :"agg.sum"
-    (Call :"core.mul"
-      (Ref amt_h)
-      (Ref rate_h)
-    )
-  )
-  )
-  (VALUE in_br_h
-    (Call :"core.and"
-    (Call :"core.gte"
-      (Ref taxable_hoh)
-      (Ref lo_h)
-    )
-    (Call :"core.lt"
-      (Ref taxable_hoh)
-      (Ref hi_h_eff)
-    )
-  )
-  )
-  (VALUE fed_marginal_hoh
-    (Call :sum
-    (Call :__select__
-      (Ref in_br_h)
-      (Ref rate_h)
-      (Const 0)
-    )
-  )
-  )
-  (VALUE fed_eff_hoh
-    (Call :"core.div"
-    (Ref fed_tax_hoh)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE ss_tax_h
-    (Ref ss_tax_s)
-  )
-  (VALUE med_tax_h
-    (Ref med_tax_s)
-  )
-  (VALUE addl_threshold_hoh
-    (Const 200000.0)
-  )
-  (VALUE addl_med_tax_h
-    (Call :"core.mul"
-    (Call :"agg.max"
-      (Tuple
-        (Call :"core.sub"
-          (InputRef [:income])
-          (Ref addl_threshold_hoh)
-        )
-        (Const 0)
-      )
-    )
-    (Ref addl_med_rate)
-  )
-  )
-  (VALUE fica_tax_hoh
-    (Call :"core.add"
-    (Call :"core.add"
-      (Ref ss_tax_h)
-      (Ref med_tax_h)
-    )
-    (Ref addl_med_tax_h)
-  )
-  )
-  (VALUE fica_eff_hoh
-    (Call :"core.div"
-    (Ref fica_tax_hoh)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE total_tax_hoh
-    (Call :"core.add"
-    (Call :"core.add"
-      (Call :"core.add"
-        (Ref fed_tax_hoh)
-        (Ref fica_tax_hoh)
-      )
-      (Ref state_tax)
-    )
-    (Ref local_tax)
-  )
-  )
-  (VALUE total_eff_hoh
-    (Call :"core.div"
-    (Ref total_tax_hoh)
-    (Call :"agg.max"
-      (Tuple
-        (InputRef [:income])
-        (Const 1.0)
-      )
-    )
-  )
-  )
-  (VALUE after_tax_hoh
-    (Call :"core.sub"
-    (InputRef [:income])
-    (Ref total_tax_hoh)
-  )
-  )
-  (VALUE take_home_hoh
-    (Call :"core.sub"
-    (Ref after_tax_hoh)
+    (Ref after_tax)
     (InputRef [:retirement_contrib])
   )
   )
   (VALUE summary
     (Hash
-    (Pair single 
+    (Pair filing_status 
+      (InputRef [:statuses, :status, :name])
+    )
+    (Pair federal 
       (Hash
-        (Pair federal 
-          (Hash
-            (Pair marginal 
-              (Ref fed_marginal_single)
-            )
-            (Pair effective 
-              (Ref fed_eff_single)
-            )
-            (Pair tax 
-              (Ref fed_tax_single)
-            )
-          )
+        (Pair marginal 
+          (Ref fed_marg)
         )
-        (Pair fica 
-          (Hash
-            (Pair effective 
-              (Ref fica_eff_single)
-            )
-            (Pair tax 
-              (Ref fica_tax_single)
-            )
-          )
+        (Pair effective 
+          (Ref fed_eff)
         )
-        (Pair state 
-          (Hash
-            (Pair marginal 
-              (InputRef [:state_rate])
-            )
-            (Pair effective 
-              (InputRef [:state_rate])
-            )
-            (Pair tax 
-              (Ref state_tax)
-            )
-          )
-        )
-        (Pair local 
-          (Hash
-            (Pair marginal 
-              (InputRef [:local_rate])
-            )
-            (Pair effective 
-              (InputRef [:local_rate])
-            )
-            (Pair tax 
-              (Ref local_tax)
-            )
-          )
-        )
-        (Pair total 
-          (Hash
-            (Pair effective 
-              (Ref total_eff_single)
-            )
-            (Pair tax 
-              (Ref total_tax_single)
-            )
-          )
-        )
-        (Pair after_tax 
-          (Ref after_tax_single)
-        )
-        (Pair retirement_contrib 
-          (InputRef [:retirement_contrib])
-        )
-        (Pair take_home 
-          (Ref take_home_single)
+        (Pair tax 
+          (Ref fed_tax)
         )
       )
     )
-    (Pair married_joint 
+    (Pair fica 
       (Hash
-        (Pair federal 
-          (Hash
-            (Pair marginal 
-              (Ref fed_marginal_mj)
-            )
-            (Pair effective 
-              (Ref fed_eff_mj)
-            )
-            (Pair tax 
-              (Ref fed_tax_mj)
-            )
-          )
+        (Pair effective 
+          (Ref fica_eff)
         )
-        (Pair fica 
-          (Hash
-            (Pair effective 
-              (Ref fica_eff_mj)
-            )
-            (Pair tax 
-              (Ref fica_tax_mj)
-            )
-          )
-        )
-        (Pair state 
-          (Hash
-            (Pair marginal 
-              (InputRef [:state_rate])
-            )
-            (Pair effective 
-              (InputRef [:state_rate])
-            )
-            (Pair tax 
-              (Ref state_tax)
-            )
-          )
-        )
-        (Pair local 
-          (Hash
-            (Pair marginal 
-              (InputRef [:local_rate])
-            )
-            (Pair effective 
-              (InputRef [:local_rate])
-            )
-            (Pair tax 
-              (Ref local_tax)
-            )
-          )
-        )
-        (Pair total 
-          (Hash
-            (Pair effective 
-              (Ref total_eff_mj)
-            )
-            (Pair tax 
-              (Ref total_tax_mj)
-            )
-          )
-        )
-        (Pair after_tax 
-          (Ref after_tax_mj)
-        )
-        (Pair retirement_contrib 
-          (InputRef [:retirement_contrib])
-        )
-        (Pair take_home 
-          (Ref take_home_mj)
+        (Pair tax 
+          (Ref fica_tax)
         )
       )
     )
-    (Pair married_separate 
+    (Pair state 
       (Hash
-        (Pair federal 
-          (Hash
-            (Pair marginal 
-              (Ref fed_marginal_ms)
-            )
-            (Pair effective 
-              (Ref fed_eff_ms)
-            )
-            (Pair tax 
-              (Ref fed_tax_ms)
-            )
-          )
+        (Pair marginal 
+          (InputRef [:state_rate])
         )
-        (Pair fica 
-          (Hash
-            (Pair effective 
-              (Ref fica_eff_ms)
-            )
-            (Pair tax 
-              (Ref fica_tax_ms)
-            )
-          )
+        (Pair effective 
+          (InputRef [:state_rate])
         )
-        (Pair state 
-          (Hash
-            (Pair marginal 
-              (InputRef [:state_rate])
-            )
-            (Pair effective 
-              (InputRef [:state_rate])
-            )
-            (Pair tax 
-              (Ref state_tax)
-            )
-          )
-        )
-        (Pair local 
-          (Hash
-            (Pair marginal 
-              (InputRef [:local_rate])
-            )
-            (Pair effective 
-              (InputRef [:local_rate])
-            )
-            (Pair tax 
-              (Ref local_tax)
-            )
-          )
-        )
-        (Pair total 
-          (Hash
-            (Pair effective 
-              (Ref total_eff_ms)
-            )
-            (Pair tax 
-              (Ref total_tax_ms)
-            )
-          )
-        )
-        (Pair after_tax 
-          (Ref after_tax_ms)
-        )
-        (Pair retirement_contrib 
-          (InputRef [:retirement_contrib])
-        )
-        (Pair take_home 
-          (Ref take_home_ms)
+        (Pair tax 
+          (Ref state_tax)
         )
       )
     )
-    (Pair head_of_household 
+    (Pair local 
       (Hash
-        (Pair federal 
-          (Hash
-            (Pair marginal 
-              (Ref fed_marginal_hoh)
-            )
-            (Pair effective 
-              (Ref fed_eff_hoh)
-            )
-            (Pair tax 
-              (Ref fed_tax_hoh)
-            )
-          )
+        (Pair marginal 
+          (InputRef [:local_rate])
         )
-        (Pair fica 
-          (Hash
-            (Pair effective 
-              (Ref fica_eff_hoh)
-            )
-            (Pair tax 
-              (Ref fica_tax_hoh)
-            )
-          )
+        (Pair effective 
+          (InputRef [:local_rate])
         )
-        (Pair state 
-          (Hash
-            (Pair marginal 
-              (InputRef [:state_rate])
-            )
-            (Pair effective 
-              (InputRef [:state_rate])
-            )
-            (Pair tax 
-              (Ref state_tax)
-            )
-          )
-        )
-        (Pair local 
-          (Hash
-            (Pair marginal 
-              (InputRef [:local_rate])
-            )
-            (Pair effective 
-              (InputRef [:local_rate])
-            )
-            (Pair tax 
-              (Ref local_tax)
-            )
-          )
-        )
-        (Pair total 
-          (Hash
-            (Pair effective 
-              (Ref total_eff_hoh)
-            )
-            (Pair tax 
-              (Ref total_tax_hoh)
-            )
-          )
-        )
-        (Pair after_tax 
-          (Ref after_tax_hoh)
-        )
-        (Pair retirement_contrib 
-          (InputRef [:retirement_contrib])
-        )
-        (Pair take_home 
-          (Ref take_home_hoh)
+        (Pair tax 
+          (Ref local_tax)
         )
       )
+    )
+    (Pair total 
+      (Hash
+        (Pair effective 
+          (Ref total_eff)
+        )
+        (Pair tax 
+          (Ref total_tax)
+        )
+      )
+    )
+    (Pair after_tax 
+      (Ref after_tax)
+    )
+    (Pair retirement_contrib 
+      (InputRef [:retirement_contrib])
+    )
+    (Pair take_home 
+      (Ref take_home)
     )
   )
   )

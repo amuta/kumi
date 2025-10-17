@@ -11,891 +11,281 @@
     %t6 = call core.mul(%t4, %t5) :: float
     yield %t6
   )
-  (Declaration taxable_single
-    %t7 = load_input "income" :: float
-    %t8 = load_input "fed" :: any
-    %t9 = load_field t8["single"] :: any
-    %t10 = load_field t9["std"] :: float
-    %t11 = call core.sub(%t7, %t10) :: float
-    %t12 = const 0 :: integer
-    %t13 = make_tuple(%t11, %t12) :: tuple<float, integer>
-    %t14 = fold %t13 fn="agg.max" :: float
-    yield %t14
-  )
-  (Declaration lo_s
-    %t15 = load_input "fed" :: array
-    %t16 = load_field t15["single"] :: any
-    %t17 = load_field t16["rates"] :: any
-    loop rates id=L1 in %t17 as el=%rates_el_18, idx=%rates_i_19
-      %t20 = load_field rates_el_18["lo"] :: float
-      yield %t20
+  (Declaration taxable
+    %t7 = load_input "statuses" :: array
+    loop statuses id=L1 in %t7 as el=%statuses_el_8, idx=%statuses_i_9
+      %t10 = load_input "income" :: float
+      %t11 = load_field statuses_el_8["std"] :: float
+      %t12 = call core.sub(%t10, %t11) :: float
+      %t13 = const 0 :: integer
+      %t14 = make_tuple(%t12, %t13) :: tuple<float, integer>
+      %t15 = fold %t14 fn="agg.max" :: float
+      yield %t15
     end_loop
   )
-  (Declaration hi_s
-    %t21 = load_input "fed" :: array
-    %t22 = load_field t21["single"] :: any
-    %t23 = load_field t22["rates"] :: any
-    loop rates id=L2 in %t23 as el=%rates_el_24, idx=%rates_i_25
-      %t26 = load_field rates_el_24["hi"] :: float
-      yield %t26
+  (Declaration lo
+    %t16 = load_input "statuses" :: array
+    loop statuses id=L2 in %t16 as el=%statuses_el_17, idx=%statuses_i_18
+      %t19 = load_field statuses_el_17["rates"] :: any
+      loop rates id=L3 in %t19 as el=%rates_el_20, idx=%rates_i_21
+        %t22 = load_field rates_el_20["lo"] :: float
+        yield %t22
+      end_loop
     end_loop
   )
-  (Declaration rate_s
-    %t27 = load_input "fed" :: array
-    %t28 = load_field t27["single"] :: any
-    %t29 = load_field t28["rates"] :: any
-    loop rates id=L3 in %t29 as el=%rates_el_30, idx=%rates_i_31
-      %t32 = load_field rates_el_30["rate"] :: float
-      yield %t32
+  (Declaration hi
+    %t23 = load_input "statuses" :: array
+    loop statuses id=L4 in %t23 as el=%statuses_el_24, idx=%statuses_i_25
+      %t26 = load_field statuses_el_24["rates"] :: any
+      loop rates id=L5 in %t26 as el=%rates_el_27, idx=%rates_i_28
+        %t29 = load_field rates_el_27["hi"] :: float
+        yield %t29
+      end_loop
+    end_loop
+  )
+  (Declaration rate
+    %t30 = load_input "statuses" :: array
+    loop statuses id=L6 in %t30 as el=%statuses_el_31, idx=%statuses_i_32
+      %t33 = load_field statuses_el_31["rates"] :: any
+      loop rates id=L7 in %t33 as el=%rates_el_34, idx=%rates_i_35
+        %t36 = load_field rates_el_34["rate"] :: float
+        yield %t36
+      end_loop
     end_loop
   )
   (Declaration big_hi
-    %t33 = const 100000000000.0 :: float
-    yield %t33
+    %t37 = const 100000000000.0 :: float
+    yield %t37
   )
-  (Declaration hi_s_eff
-    %t34 = load_input "fed" :: array
-    %t35 = load_field t34["single"] :: any
-    %t36 = load_field t35["rates"] :: any
-    loop rates id=L4 in %t36 as el=%rates_el_37, idx=%rates_i_38
-      %t39 = load_decl hi_s axes=[rates] :: float
-      %t40 = const -1 :: integer
-      %t41 = call core.eq(%t39, %t40) :: boolean
-      %t42 = const 100000000000.0 :: float
-      %t43 = load_decl hi_s axes=[rates] :: float
-      %t44 = select %t41, %t42, %t43 :: float
-      yield %t44
+  (Declaration hi_eff
+    %t38 = load_input "statuses" :: array
+    loop statuses id=L8 in %t38 as el=%statuses_el_39, idx=%statuses_i_40
+      %t41 = load_field statuses_el_39["rates"] :: any
+      loop rates id=L9 in %t41 as el=%rates_el_42, idx=%rates_i_43
+        %t44 = load_decl hi axes=[statuses, rates] :: float
+        %t45 = const -1 :: integer
+        %t46 = call core.eq(%t44, %t45) :: boolean
+        %t47 = const 100000000000.0 :: float
+        %t48 = load_decl hi axes=[statuses, rates] :: float
+        %t49 = select %t46, %t47, %t48 :: float
+        yield %t49
+      end_loop
     end_loop
   )
-  (Declaration amt_s
-    %t45 = load_input "fed" :: array
-    %t46 = load_field t45["single"] :: any
-    %t47 = load_field t46["rates"] :: any
-    %t50 = load_decl taxable_single :: float
-    loop rates id=L5 in %t47 as el=%rates_el_48, idx=%rates_i_49
-      %t51 = load_decl lo_s axes=[rates] :: float
-      %t52 = call core.sub(%t50, %t51) :: float
-      %t53 = const 0 :: integer
-      %t54 = load_decl hi_s_eff axes=[rates] :: float
-      %t55 = load_decl lo_s axes=[rates] :: float
-      %t56 = call core.sub(%t54, %t55) :: float
-      %t57 = call core.clamp(%t52, %t53, %t56) :: float
-      yield %t57
+  (Declaration amt
+    %t50 = load_input "statuses" :: array
+    loop statuses id=L10 in %t50 as el=%statuses_el_51, idx=%statuses_i_52
+      %t53 = load_field statuses_el_51["rates"] :: any
+      loop rates id=L11 in %t53 as el=%rates_el_54, idx=%rates_i_55
+        %t56 = load_decl taxable axes=[statuses] :: float
+        %t57 = load_decl lo axes=[statuses, rates] :: float
+        %t58 = call core.sub(%t56, %t57) :: float
+        %t59 = const 0 :: integer
+        %t60 = load_decl hi_eff axes=[statuses, rates] :: float
+        %t61 = load_decl lo axes=[statuses, rates] :: float
+        %t62 = call core.sub(%t60, %t61) :: float
+        %t63 = call core.clamp(%t58, %t59, %t62) :: float
+        yield %t63
+      end_loop
     end_loop
   )
-  (Declaration fed_tax_single
-    %acc_58 = decl_acc :: float
-    %t59 = load_input "fed" :: array
-    %t60 = load_field t59["single"] :: any
-    %t61 = load_field t60["rates"] :: any
-    loop rates id=L6 in %t61 as el=%rates_el_62, idx=%rates_i_63
-      %t64 = load_decl amt_s axes=[rates] :: float
-      %t65 = load_decl rate_s axes=[rates] :: float
-      %t66 = call core.mul(%t64, %t65) :: float
-      %acc_58 = acc_add agg.sum(%acc_58, %t66) :: float
-    end_loop
-    %t67 = acc_load %acc_58 :: float
-    yield %t67
-  )
-  (Declaration in_br_s
-    %t68 = load_input "fed" :: array
-    %t69 = load_field t68["single"] :: any
-    %t70 = load_field t69["rates"] :: any
-    %t73 = load_decl taxable_single :: float
-    %t76 = load_decl taxable_single :: float
-    loop rates id=L7 in %t70 as el=%rates_el_71, idx=%rates_i_72
-      %t74 = load_decl lo_s axes=[rates] :: float
-      %t75 = call core.gte(%t73, %t74) :: boolean
-      %t77 = load_decl hi_s_eff axes=[rates] :: float
-      %t78 = call core.lt(%t76, %t77) :: boolean
-      %t79 = call core.and(%t75, %t78) :: boolean
-      yield %t79
+  (Declaration fed_tax
+    %t64 = load_input "statuses" :: array
+    loop statuses id=L12 in %t64 as el=%statuses_el_65, idx=%statuses_i_66
+      %acc_67 = decl_acc :: float
+      %t68 = load_field statuses_el_65["rates"] :: any
+      loop rates id=L13 in %t68 as el=%rates_el_69, idx=%rates_i_70
+        %t71 = load_decl amt axes=[statuses, rates] :: float
+        %t72 = load_decl rate axes=[statuses, rates] :: float
+        %t73 = call core.mul(%t71, %t72) :: float
+        %acc_67 = acc_add agg.sum(%acc_67, %t73) :: float
+      end_loop
+      %t74 = acc_load %acc_67 :: float
+      yield %t74
     end_loop
   )
-  (Declaration fed_marginal_single
-    %acc_80 = decl_acc :: float
-    %t81 = load_input "fed" :: array
-    %t82 = load_field t81["single"] :: any
-    %t83 = load_field t82["rates"] :: any
-    loop rates id=L8 in %t83 as el=%rates_el_84, idx=%rates_i_85
-      %t86 = load_decl in_br_s axes=[rates] :: boolean
-      %t87 = load_decl rate_s axes=[rates] :: float
-      %t88 = const 0 :: integer
-      %t89 = select %t86, %t87, %t88 :: float
-      %acc_80 = acc_add agg.sum(%acc_80, %t89) :: float
+  (Declaration in_br
+    %t75 = load_input "statuses" :: array
+    loop statuses id=L14 in %t75 as el=%statuses_el_76, idx=%statuses_i_77
+      %t78 = load_field statuses_el_76["rates"] :: any
+      loop rates id=L15 in %t78 as el=%rates_el_79, idx=%rates_i_80
+        %t81 = load_decl taxable axes=[statuses] :: float
+        %t82 = load_decl lo axes=[statuses, rates] :: float
+        %t83 = call core.gte(%t81, %t82) :: boolean
+        %t84 = load_decl taxable axes=[statuses] :: float
+        %t85 = load_decl hi_eff axes=[statuses, rates] :: float
+        %t86 = call core.lt(%t84, %t85) :: boolean
+        %t87 = call core.and(%t83, %t86) :: boolean
+        yield %t87
+      end_loop
     end_loop
-    %t90 = acc_load %acc_80 :: float
-    yield %t90
   )
-  (Declaration fed_eff_single
-    %t91 = load_decl fed_tax_single :: float
-    %t92 = load_input "income" :: float
-    %t93 = const 1.0 :: float
-    %t94 = make_tuple(%t92, %t93) :: tuple<float>
-    %t95 = fold %t94 fn="agg.max" :: float
-    %t96 = call core.div(%t91, %t95) :: float
-    yield %t96
+  (Declaration fed_marg
+    %t88 = load_input "statuses" :: array
+    loop statuses id=L16 in %t88 as el=%statuses_el_89, idx=%statuses_i_90
+      %acc_91 = decl_acc :: float
+      %t92 = load_field statuses_el_89["rates"] :: any
+      loop rates id=L17 in %t92 as el=%rates_el_93, idx=%rates_i_94
+        %t95 = load_decl in_br axes=[statuses, rates] :: boolean
+        %t96 = load_decl rate axes=[statuses, rates] :: float
+        %t97 = const 0 :: integer
+        %t98 = select %t95, %t96, %t97 :: float
+        %acc_91 = acc_add agg.sum(%acc_91, %t98) :: float
+      end_loop
+      %t99 = acc_load %acc_91 :: float
+      yield %t99
+    end_loop
+  )
+  (Declaration fed_eff
+    %t100 = load_input "statuses" :: array
+    loop statuses id=L18 in %t100 as el=%statuses_el_101, idx=%statuses_i_102
+      %t103 = load_decl fed_tax axes=[statuses] :: float
+      %t104 = load_input "income" :: float
+      %t105 = const 1.0 :: float
+      %t106 = make_tuple(%t104, %t105) :: tuple<float>
+      %t107 = fold %t106 fn="agg.max" :: float
+      %t108 = call core.div(%t103, %t107) :: float
+      yield %t108
+    end_loop
   )
   (Declaration ss_wage_base
-    %t97 = const 168600.0 :: float
-    yield %t97
-  )
-  (Declaration ss_rate
-    %t98 = const 0.062 :: float
-    yield %t98
-  )
-  (Declaration ss_tax_s
-    %t99 = load_input "income" :: float
-    %t100 = const 168600.0 :: float
-    %t101 = make_tuple(%t99, %t100) :: tuple<float>
-    %t102 = fold %t101 fn="agg.min" :: float
-    %t103 = const 0.062 :: float
-    %t104 = call core.mul(%t102, %t103) :: float
-    yield %t104
-  )
-  (Declaration med_base_rate
-    %t105 = const 0.0145 :: float
-    yield %t105
-  )
-  (Declaration med_tax_s
-    %t106 = load_input "income" :: float
-    %t107 = const 0.0145 :: float
-    %t108 = call core.mul(%t106, %t107) :: float
-    yield %t108
-  )
-  (Declaration addl_threshold_single
-    %t109 = const 200000.0 :: float
+    %t109 = const 168600.0 :: float
     yield %t109
   )
-  (Declaration addl_med_rate
-    %t110 = const 0.009 :: float
+  (Declaration ss_rate
+    %t110 = const 0.062 :: float
     yield %t110
   )
-  (Declaration addl_med_tax_s
+  (Declaration ss_tax
     %t111 = load_input "income" :: float
-    %t112 = const 200000.0 :: float
-    %t113 = call core.sub(%t111, %t112) :: float
-    %t114 = const 0 :: integer
-    %t115 = make_tuple(%t113, %t114) :: tuple<float, integer>
-    %t116 = fold %t115 fn="agg.max" :: float
-    %t117 = const 0.009 :: float
-    %t118 = call core.mul(%t116, %t117) :: float
-    yield %t118
+    %t112 = const 168600.0 :: float
+    %t113 = make_tuple(%t111, %t112) :: tuple<float>
+    %t114 = fold %t113 fn="agg.min" :: float
+    %t115 = const 0.062 :: float
+    %t116 = call core.mul(%t114, %t115) :: float
+    yield %t116
   )
-  (Declaration fica_tax_single
-    %t119 = load_decl ss_tax_s :: float
-    %t120 = load_decl med_tax_s :: float
-    %t121 = call core.add(%t119, %t120) :: float
-    %t122 = load_decl addl_med_tax_s :: float
-    %t123 = call core.add(%t121, %t122) :: float
-    yield %t123
+  (Declaration med_base_rate
+    %t117 = const 0.0145 :: float
+    yield %t117
   )
-  (Declaration fica_eff_single
-    %t124 = load_decl fica_tax_single :: float
-    %t125 = load_input "income" :: float
-    %t126 = const 1.0 :: float
-    %t127 = make_tuple(%t125, %t126) :: tuple<float>
-    %t128 = fold %t127 fn="agg.max" :: float
-    %t129 = call core.div(%t124, %t128) :: float
-    yield %t129
+  (Declaration med_tax
+    %t118 = load_input "income" :: float
+    %t119 = const 0.0145 :: float
+    %t120 = call core.mul(%t118, %t119) :: float
+    yield %t120
   )
-  (Declaration total_tax_single
-    %t130 = load_decl fed_tax_single :: float
-    %t131 = load_decl fica_tax_single :: float
-    %t132 = call core.add(%t130, %t131) :: float
-    %t133 = load_decl state_tax :: float
-    %t134 = call core.add(%t132, %t133) :: float
-    %t135 = load_decl local_tax :: float
-    %t136 = call core.add(%t134, %t135) :: float
-    yield %t136
+  (Declaration addl_med_rate
+    %t121 = const 0.009 :: float
+    yield %t121
   )
-  (Declaration total_eff_single
-    %t137 = load_decl total_tax_single :: float
-    %t138 = load_input "income" :: float
-    %t139 = const 1.0 :: float
-    %t140 = make_tuple(%t138, %t139) :: tuple<float>
-    %t141 = fold %t140 fn="agg.max" :: float
-    %t142 = call core.div(%t137, %t141) :: float
-    yield %t142
-  )
-  (Declaration after_tax_single
-    %t143 = load_input "income" :: float
-    %t144 = load_decl total_tax_single :: float
-    %t145 = call core.sub(%t143, %t144) :: float
-    yield %t145
-  )
-  (Declaration take_home_single
-    %t146 = load_decl after_tax_single :: float
-    %t147 = load_input "retirement_contrib" :: float
-    %t148 = call core.sub(%t146, %t147) :: float
-    yield %t148
-  )
-  (Declaration taxable_mj
-    %t149 = load_input "income" :: float
-    %t150 = load_input "fed" :: any
-    %t151 = load_field t150["married_joint"] :: any
-    %t152 = load_field t151["std"] :: float
-    %t153 = call core.sub(%t149, %t152) :: float
-    %t154 = const 0 :: integer
-    %t155 = make_tuple(%t153, %t154) :: tuple<float, integer>
-    %t156 = fold %t155 fn="agg.max" :: float
-    yield %t156
-  )
-  (Declaration lo_mj
-    %t157 = load_input "fed" :: array
-    %t158 = load_field t157["married_joint"] :: any
-    %t159 = load_field t158["rates"] :: any
-    loop rates id=L9 in %t159 as el=%rates_el_160, idx=%rates_i_161
-      %t162 = load_field rates_el_160["lo"] :: float
-      yield %t162
+  (Declaration addl_med_tax
+    %t122 = load_input "statuses" :: array
+    loop statuses id=L19 in %t122 as el=%statuses_el_123, idx=%statuses_i_124
+      %t125 = load_input "income" :: float
+      %t126 = load_field statuses_el_123["addl_threshold"] :: float
+      %t127 = call core.sub(%t125, %t126) :: float
+      %t128 = const 0 :: integer
+      %t129 = make_tuple(%t127, %t128) :: tuple<float, integer>
+      %t130 = fold %t129 fn="agg.max" :: float
+      %t131 = const 0.009 :: float
+      %t132 = call core.mul(%t130, %t131) :: float
+      yield %t132
     end_loop
   )
-  (Declaration hi_mj
-    %t163 = load_input "fed" :: array
-    %t164 = load_field t163["married_joint"] :: any
-    %t165 = load_field t164["rates"] :: any
-    loop rates id=L10 in %t165 as el=%rates_el_166, idx=%rates_i_167
-      %t168 = load_field rates_el_166["hi"] :: float
+  (Declaration fica_tax
+    %t133 = load_input "statuses" :: array
+    %t136 = load_decl ss_tax :: float
+    %t137 = load_decl med_tax :: float
+    loop statuses id=L20 in %t133 as el=%statuses_el_134, idx=%statuses_i_135
+      %t138 = call core.add(%t136, %t137) :: float
+      %t139 = load_decl addl_med_tax axes=[statuses] :: float
+      %t140 = call core.add(%t138, %t139) :: float
+      yield %t140
+    end_loop
+  )
+  (Declaration fica_eff
+    %t141 = load_input "statuses" :: array
+    loop statuses id=L21 in %t141 as el=%statuses_el_142, idx=%statuses_i_143
+      %t144 = load_decl fica_tax axes=[statuses] :: float
+      %t145 = load_input "income" :: float
+      %t146 = const 1.0 :: float
+      %t147 = make_tuple(%t145, %t146) :: tuple<float>
+      %t148 = fold %t147 fn="agg.max" :: float
+      %t149 = call core.div(%t144, %t148) :: float
+      yield %t149
+    end_loop
+  )
+  (Declaration total_tax
+    %t150 = load_input "statuses" :: array
+    %t156 = load_decl state_tax :: float
+    %t158 = load_decl local_tax :: float
+    loop statuses id=L22 in %t150 as el=%statuses_el_151, idx=%statuses_i_152
+      %t153 = load_decl fed_tax axes=[statuses] :: float
+      %t154 = load_decl fica_tax axes=[statuses] :: float
+      %t155 = call core.add(%t153, %t154) :: float
+      %t157 = call core.add(%t155, %t156) :: float
+      %t159 = call core.add(%t157, %t158) :: float
+      yield %t159
+    end_loop
+  )
+  (Declaration total_eff
+    %t160 = load_input "statuses" :: array
+    loop statuses id=L23 in %t160 as el=%statuses_el_161, idx=%statuses_i_162
+      %t163 = load_decl total_tax axes=[statuses] :: float
+      %t164 = load_input "income" :: float
+      %t165 = const 1.0 :: float
+      %t166 = make_tuple(%t164, %t165) :: tuple<float>
+      %t167 = fold %t166 fn="agg.max" :: float
+      %t168 = call core.div(%t163, %t167) :: float
       yield %t168
     end_loop
   )
-  (Declaration rate_mj
-    %t169 = load_input "fed" :: array
-    %t170 = load_field t169["married_joint"] :: any
-    %t171 = load_field t170["rates"] :: any
-    loop rates id=L11 in %t171 as el=%rates_el_172, idx=%rates_i_173
-      %t174 = load_field rates_el_172["rate"] :: float
+  (Declaration after_tax
+    %t169 = load_input "statuses" :: array
+    loop statuses id=L24 in %t169 as el=%statuses_el_170, idx=%statuses_i_171
+      %t172 = load_input "income" :: float
+      %t173 = load_decl total_tax axes=[statuses] :: float
+      %t174 = call core.sub(%t172, %t173) :: float
       yield %t174
     end_loop
   )
-  (Declaration hi_mj_eff
-    %t175 = load_input "fed" :: array
-    %t176 = load_field t175["married_joint"] :: any
-    %t177 = load_field t176["rates"] :: any
-    loop rates id=L12 in %t177 as el=%rates_el_178, idx=%rates_i_179
-      %t180 = load_decl hi_mj axes=[rates] :: float
-      %t181 = const -1 :: integer
-      %t182 = call core.eq(%t180, %t181) :: boolean
-      %t183 = const 100000000000.0 :: float
-      %t184 = load_decl hi_mj axes=[rates] :: float
-      %t185 = select %t182, %t183, %t184 :: float
-      yield %t185
+  (Declaration take_home
+    %t175 = load_input "statuses" :: array
+    loop statuses id=L25 in %t175 as el=%statuses_el_176, idx=%statuses_i_177
+      %t178 = load_decl after_tax axes=[statuses] :: float
+      %t179 = load_input "retirement_contrib" :: float
+      %t180 = call core.sub(%t178, %t179) :: float
+      yield %t180
     end_loop
-  )
-  (Declaration amt_mj
-    %t186 = load_input "fed" :: array
-    %t187 = load_field t186["married_joint"] :: any
-    %t188 = load_field t187["rates"] :: any
-    %t191 = load_decl taxable_mj :: float
-    loop rates id=L13 in %t188 as el=%rates_el_189, idx=%rates_i_190
-      %t192 = load_decl lo_mj axes=[rates] :: float
-      %t193 = call core.sub(%t191, %t192) :: float
-      %t194 = const 0 :: integer
-      %t195 = load_decl hi_mj_eff axes=[rates] :: float
-      %t196 = load_decl lo_mj axes=[rates] :: float
-      %t197 = call core.sub(%t195, %t196) :: float
-      %t198 = call core.clamp(%t193, %t194, %t197) :: float
-      yield %t198
-    end_loop
-  )
-  (Declaration fed_tax_mj
-    %acc_199 = decl_acc :: float
-    %t200 = load_input "fed" :: array
-    %t201 = load_field t200["married_joint"] :: any
-    %t202 = load_field t201["rates"] :: any
-    loop rates id=L14 in %t202 as el=%rates_el_203, idx=%rates_i_204
-      %t205 = load_decl amt_mj axes=[rates] :: float
-      %t206 = load_decl rate_mj axes=[rates] :: float
-      %t207 = call core.mul(%t205, %t206) :: float
-      %acc_199 = acc_add agg.sum(%acc_199, %t207) :: float
-    end_loop
-    %t208 = acc_load %acc_199 :: float
-    yield %t208
-  )
-  (Declaration in_br_mj
-    %t209 = load_input "fed" :: array
-    %t210 = load_field t209["married_joint"] :: any
-    %t211 = load_field t210["rates"] :: any
-    %t214 = load_decl taxable_mj :: float
-    %t217 = load_decl taxable_mj :: float
-    loop rates id=L15 in %t211 as el=%rates_el_212, idx=%rates_i_213
-      %t215 = load_decl lo_mj axes=[rates] :: float
-      %t216 = call core.gte(%t214, %t215) :: boolean
-      %t218 = load_decl hi_mj_eff axes=[rates] :: float
-      %t219 = call core.lt(%t217, %t218) :: boolean
-      %t220 = call core.and(%t216, %t219) :: boolean
-      yield %t220
-    end_loop
-  )
-  (Declaration fed_marginal_mj
-    %acc_221 = decl_acc :: float
-    %t222 = load_input "fed" :: array
-    %t223 = load_field t222["married_joint"] :: any
-    %t224 = load_field t223["rates"] :: any
-    loop rates id=L16 in %t224 as el=%rates_el_225, idx=%rates_i_226
-      %t227 = load_decl in_br_mj axes=[rates] :: boolean
-      %t228 = load_decl rate_mj axes=[rates] :: float
-      %t229 = const 0 :: integer
-      %t230 = select %t227, %t228, %t229 :: float
-      %acc_221 = acc_add agg.sum(%acc_221, %t230) :: float
-    end_loop
-    %t231 = acc_load %acc_221 :: float
-    yield %t231
-  )
-  (Declaration fed_eff_mj
-    %t232 = load_decl fed_tax_mj :: float
-    %t233 = load_input "income" :: float
-    %t234 = const 1.0 :: float
-    %t235 = make_tuple(%t233, %t234) :: tuple<float>
-    %t236 = fold %t235 fn="agg.max" :: float
-    %t237 = call core.div(%t232, %t236) :: float
-    yield %t237
-  )
-  (Declaration ss_tax_mj
-    %t238 = load_decl ss_tax_s :: float
-    yield %t238
-  )
-  (Declaration med_tax_mj
-    %t239 = load_decl med_tax_s :: float
-    yield %t239
-  )
-  (Declaration addl_threshold_mj
-    %t240 = const 250000.0 :: float
-    yield %t240
-  )
-  (Declaration addl_med_tax_mj
-    %t241 = load_input "income" :: float
-    %t242 = const 250000.0 :: float
-    %t243 = call core.sub(%t241, %t242) :: float
-    %t244 = const 0 :: integer
-    %t245 = make_tuple(%t243, %t244) :: tuple<float, integer>
-    %t246 = fold %t245 fn="agg.max" :: float
-    %t247 = const 0.009 :: float
-    %t248 = call core.mul(%t246, %t247) :: float
-    yield %t248
-  )
-  (Declaration fica_tax_mj
-    %t249 = load_decl ss_tax_mj :: float
-    %t250 = load_decl med_tax_mj :: float
-    %t251 = call core.add(%t249, %t250) :: float
-    %t252 = load_decl addl_med_tax_mj :: float
-    %t253 = call core.add(%t251, %t252) :: float
-    yield %t253
-  )
-  (Declaration fica_eff_mj
-    %t254 = load_decl fica_tax_mj :: float
-    %t255 = load_input "income" :: float
-    %t256 = const 1.0 :: float
-    %t257 = make_tuple(%t255, %t256) :: tuple<float>
-    %t258 = fold %t257 fn="agg.max" :: float
-    %t259 = call core.div(%t254, %t258) :: float
-    yield %t259
-  )
-  (Declaration total_tax_mj
-    %t260 = load_decl fed_tax_mj :: float
-    %t261 = load_decl fica_tax_mj :: float
-    %t262 = call core.add(%t260, %t261) :: float
-    %t263 = load_decl state_tax :: float
-    %t264 = call core.add(%t262, %t263) :: float
-    %t265 = load_decl local_tax :: float
-    %t266 = call core.add(%t264, %t265) :: float
-    yield %t266
-  )
-  (Declaration total_eff_mj
-    %t267 = load_decl total_tax_mj :: float
-    %t268 = load_input "income" :: float
-    %t269 = const 1.0 :: float
-    %t270 = make_tuple(%t268, %t269) :: tuple<float>
-    %t271 = fold %t270 fn="agg.max" :: float
-    %t272 = call core.div(%t267, %t271) :: float
-    yield %t272
-  )
-  (Declaration after_tax_mj
-    %t273 = load_input "income" :: float
-    %t274 = load_decl total_tax_mj :: float
-    %t275 = call core.sub(%t273, %t274) :: float
-    yield %t275
-  )
-  (Declaration take_home_mj
-    %t276 = load_decl after_tax_mj :: float
-    %t277 = load_input "retirement_contrib" :: float
-    %t278 = call core.sub(%t276, %t277) :: float
-    yield %t278
-  )
-  (Declaration taxable_ms
-    %t279 = load_input "income" :: float
-    %t280 = load_input "fed" :: any
-    %t281 = load_field t280["married_separate"] :: any
-    %t282 = load_field t281["std"] :: float
-    %t283 = call core.sub(%t279, %t282) :: float
-    %t284 = const 0 :: integer
-    %t285 = make_tuple(%t283, %t284) :: tuple<float, integer>
-    %t286 = fold %t285 fn="agg.max" :: float
-    yield %t286
-  )
-  (Declaration lo_ms
-    %t287 = load_input "fed" :: array
-    %t288 = load_field t287["married_separate"] :: any
-    %t289 = load_field t288["rates"] :: any
-    loop rates id=L17 in %t289 as el=%rates_el_290, idx=%rates_i_291
-      %t292 = load_field rates_el_290["lo"] :: float
-      yield %t292
-    end_loop
-  )
-  (Declaration hi_ms
-    %t293 = load_input "fed" :: array
-    %t294 = load_field t293["married_separate"] :: any
-    %t295 = load_field t294["rates"] :: any
-    loop rates id=L18 in %t295 as el=%rates_el_296, idx=%rates_i_297
-      %t298 = load_field rates_el_296["hi"] :: float
-      yield %t298
-    end_loop
-  )
-  (Declaration rate_ms
-    %t299 = load_input "fed" :: array
-    %t300 = load_field t299["married_separate"] :: any
-    %t301 = load_field t300["rates"] :: any
-    loop rates id=L19 in %t301 as el=%rates_el_302, idx=%rates_i_303
-      %t304 = load_field rates_el_302["rate"] :: float
-      yield %t304
-    end_loop
-  )
-  (Declaration hi_ms_eff
-    %t305 = load_input "fed" :: array
-    %t306 = load_field t305["married_separate"] :: any
-    %t307 = load_field t306["rates"] :: any
-    loop rates id=L20 in %t307 as el=%rates_el_308, idx=%rates_i_309
-      %t310 = load_decl hi_ms axes=[rates] :: float
-      %t311 = const -1 :: integer
-      %t312 = call core.eq(%t310, %t311) :: boolean
-      %t313 = const 100000000000.0 :: float
-      %t314 = load_decl hi_ms axes=[rates] :: float
-      %t315 = select %t312, %t313, %t314 :: float
-      yield %t315
-    end_loop
-  )
-  (Declaration amt_ms
-    %t316 = load_input "fed" :: array
-    %t317 = load_field t316["married_separate"] :: any
-    %t318 = load_field t317["rates"] :: any
-    %t321 = load_decl taxable_ms :: float
-    loop rates id=L21 in %t318 as el=%rates_el_319, idx=%rates_i_320
-      %t322 = load_decl lo_ms axes=[rates] :: float
-      %t323 = call core.sub(%t321, %t322) :: float
-      %t324 = const 0 :: integer
-      %t325 = load_decl hi_ms_eff axes=[rates] :: float
-      %t326 = load_decl lo_ms axes=[rates] :: float
-      %t327 = call core.sub(%t325, %t326) :: float
-      %t328 = call core.clamp(%t323, %t324, %t327) :: float
-      yield %t328
-    end_loop
-  )
-  (Declaration fed_tax_ms
-    %acc_329 = decl_acc :: float
-    %t330 = load_input "fed" :: array
-    %t331 = load_field t330["married_separate"] :: any
-    %t332 = load_field t331["rates"] :: any
-    loop rates id=L22 in %t332 as el=%rates_el_333, idx=%rates_i_334
-      %t335 = load_decl amt_ms axes=[rates] :: float
-      %t336 = load_decl rate_ms axes=[rates] :: float
-      %t337 = call core.mul(%t335, %t336) :: float
-      %acc_329 = acc_add agg.sum(%acc_329, %t337) :: float
-    end_loop
-    %t338 = acc_load %acc_329 :: float
-    yield %t338
-  )
-  (Declaration in_br_ms
-    %t339 = load_input "fed" :: array
-    %t340 = load_field t339["married_separate"] :: any
-    %t341 = load_field t340["rates"] :: any
-    %t344 = load_decl taxable_ms :: float
-    %t347 = load_decl taxable_ms :: float
-    loop rates id=L23 in %t341 as el=%rates_el_342, idx=%rates_i_343
-      %t345 = load_decl lo_ms axes=[rates] :: float
-      %t346 = call core.gte(%t344, %t345) :: boolean
-      %t348 = load_decl hi_ms_eff axes=[rates] :: float
-      %t349 = call core.lt(%t347, %t348) :: boolean
-      %t350 = call core.and(%t346, %t349) :: boolean
-      yield %t350
-    end_loop
-  )
-  (Declaration fed_marginal_ms
-    %acc_351 = decl_acc :: float
-    %t352 = load_input "fed" :: array
-    %t353 = load_field t352["married_separate"] :: any
-    %t354 = load_field t353["rates"] :: any
-    loop rates id=L24 in %t354 as el=%rates_el_355, idx=%rates_i_356
-      %t357 = load_decl in_br_ms axes=[rates] :: boolean
-      %t358 = load_decl rate_ms axes=[rates] :: float
-      %t359 = const 0 :: integer
-      %t360 = select %t357, %t358, %t359 :: float
-      %acc_351 = acc_add agg.sum(%acc_351, %t360) :: float
-    end_loop
-    %t361 = acc_load %acc_351 :: float
-    yield %t361
-  )
-  (Declaration fed_eff_ms
-    %t362 = load_decl fed_tax_ms :: float
-    %t363 = load_input "income" :: float
-    %t364 = const 1.0 :: float
-    %t365 = make_tuple(%t363, %t364) :: tuple<float>
-    %t366 = fold %t365 fn="agg.max" :: float
-    %t367 = call core.div(%t362, %t366) :: float
-    yield %t367
-  )
-  (Declaration ss_tax_ms
-    %t368 = load_decl ss_tax_s :: float
-    yield %t368
-  )
-  (Declaration med_tax_ms
-    %t369 = load_decl med_tax_s :: float
-    yield %t369
-  )
-  (Declaration addl_threshold_ms
-    %t370 = const 125000.0 :: float
-    yield %t370
-  )
-  (Declaration addl_med_tax_ms
-    %t371 = load_input "income" :: float
-    %t372 = const 125000.0 :: float
-    %t373 = call core.sub(%t371, %t372) :: float
-    %t374 = const 0 :: integer
-    %t375 = make_tuple(%t373, %t374) :: tuple<float, integer>
-    %t376 = fold %t375 fn="agg.max" :: float
-    %t377 = const 0.009 :: float
-    %t378 = call core.mul(%t376, %t377) :: float
-    yield %t378
-  )
-  (Declaration fica_tax_ms
-    %t379 = load_decl ss_tax_ms :: float
-    %t380 = load_decl med_tax_ms :: float
-    %t381 = call core.add(%t379, %t380) :: float
-    %t382 = load_decl addl_med_tax_ms :: float
-    %t383 = call core.add(%t381, %t382) :: float
-    yield %t383
-  )
-  (Declaration fica_eff_ms
-    %t384 = load_decl fica_tax_ms :: float
-    %t385 = load_input "income" :: float
-    %t386 = const 1.0 :: float
-    %t387 = make_tuple(%t385, %t386) :: tuple<float>
-    %t388 = fold %t387 fn="agg.max" :: float
-    %t389 = call core.div(%t384, %t388) :: float
-    yield %t389
-  )
-  (Declaration total_tax_ms
-    %t390 = load_decl fed_tax_ms :: float
-    %t391 = load_decl fica_tax_ms :: float
-    %t392 = call core.add(%t390, %t391) :: float
-    %t393 = load_decl state_tax :: float
-    %t394 = call core.add(%t392, %t393) :: float
-    %t395 = load_decl local_tax :: float
-    %t396 = call core.add(%t394, %t395) :: float
-    yield %t396
-  )
-  (Declaration total_eff_ms
-    %t397 = load_decl total_tax_ms :: float
-    %t398 = load_input "income" :: float
-    %t399 = const 1.0 :: float
-    %t400 = make_tuple(%t398, %t399) :: tuple<float>
-    %t401 = fold %t400 fn="agg.max" :: float
-    %t402 = call core.div(%t397, %t401) :: float
-    yield %t402
-  )
-  (Declaration after_tax_ms
-    %t403 = load_input "income" :: float
-    %t404 = load_decl total_tax_ms :: float
-    %t405 = call core.sub(%t403, %t404) :: float
-    yield %t405
-  )
-  (Declaration take_home_ms
-    %t406 = load_decl after_tax_ms :: float
-    %t407 = load_input "retirement_contrib" :: float
-    %t408 = call core.sub(%t406, %t407) :: float
-    yield %t408
-  )
-  (Declaration taxable_hoh
-    %t409 = load_input "income" :: float
-    %t410 = load_input "fed" :: any
-    %t411 = load_field t410["head_of_household"] :: any
-    %t412 = load_field t411["std"] :: float
-    %t413 = call core.sub(%t409, %t412) :: float
-    %t414 = const 0 :: integer
-    %t415 = make_tuple(%t413, %t414) :: tuple<float, integer>
-    %t416 = fold %t415 fn="agg.max" :: float
-    yield %t416
-  )
-  (Declaration lo_h
-    %t417 = load_input "fed" :: array
-    %t418 = load_field t417["head_of_household"] :: any
-    %t419 = load_field t418["rates"] :: any
-    loop rates id=L25 in %t419 as el=%rates_el_420, idx=%rates_i_421
-      %t422 = load_field rates_el_420["lo"] :: float
-      yield %t422
-    end_loop
-  )
-  (Declaration hi_h
-    %t423 = load_input "fed" :: array
-    %t424 = load_field t423["head_of_household"] :: any
-    %t425 = load_field t424["rates"] :: any
-    loop rates id=L26 in %t425 as el=%rates_el_426, idx=%rates_i_427
-      %t428 = load_field rates_el_426["hi"] :: float
-      yield %t428
-    end_loop
-  )
-  (Declaration rate_h
-    %t429 = load_input "fed" :: array
-    %t430 = load_field t429["head_of_household"] :: any
-    %t431 = load_field t430["rates"] :: any
-    loop rates id=L27 in %t431 as el=%rates_el_432, idx=%rates_i_433
-      %t434 = load_field rates_el_432["rate"] :: float
-      yield %t434
-    end_loop
-  )
-  (Declaration hi_h_eff
-    %t435 = load_input "fed" :: array
-    %t436 = load_field t435["head_of_household"] :: any
-    %t437 = load_field t436["rates"] :: any
-    loop rates id=L28 in %t437 as el=%rates_el_438, idx=%rates_i_439
-      %t440 = load_decl hi_h axes=[rates] :: float
-      %t441 = const -1 :: integer
-      %t442 = call core.eq(%t440, %t441) :: boolean
-      %t443 = const 100000000000.0 :: float
-      %t444 = load_decl hi_h axes=[rates] :: float
-      %t445 = select %t442, %t443, %t444 :: float
-      yield %t445
-    end_loop
-  )
-  (Declaration amt_h
-    %t446 = load_input "fed" :: array
-    %t447 = load_field t446["head_of_household"] :: any
-    %t448 = load_field t447["rates"] :: any
-    %t451 = load_decl taxable_hoh :: float
-    loop rates id=L29 in %t448 as el=%rates_el_449, idx=%rates_i_450
-      %t452 = load_decl lo_h axes=[rates] :: float
-      %t453 = call core.sub(%t451, %t452) :: float
-      %t454 = const 0 :: integer
-      %t455 = load_decl hi_h_eff axes=[rates] :: float
-      %t456 = load_decl lo_h axes=[rates] :: float
-      %t457 = call core.sub(%t455, %t456) :: float
-      %t458 = call core.clamp(%t453, %t454, %t457) :: float
-      yield %t458
-    end_loop
-  )
-  (Declaration fed_tax_hoh
-    %acc_459 = decl_acc :: float
-    %t460 = load_input "fed" :: array
-    %t461 = load_field t460["head_of_household"] :: any
-    %t462 = load_field t461["rates"] :: any
-    loop rates id=L30 in %t462 as el=%rates_el_463, idx=%rates_i_464
-      %t465 = load_decl amt_h axes=[rates] :: float
-      %t466 = load_decl rate_h axes=[rates] :: float
-      %t467 = call core.mul(%t465, %t466) :: float
-      %acc_459 = acc_add agg.sum(%acc_459, %t467) :: float
-    end_loop
-    %t468 = acc_load %acc_459 :: float
-    yield %t468
-  )
-  (Declaration in_br_h
-    %t469 = load_input "fed" :: array
-    %t470 = load_field t469["head_of_household"] :: any
-    %t471 = load_field t470["rates"] :: any
-    %t474 = load_decl taxable_hoh :: float
-    %t477 = load_decl taxable_hoh :: float
-    loop rates id=L31 in %t471 as el=%rates_el_472, idx=%rates_i_473
-      %t475 = load_decl lo_h axes=[rates] :: float
-      %t476 = call core.gte(%t474, %t475) :: boolean
-      %t478 = load_decl hi_h_eff axes=[rates] :: float
-      %t479 = call core.lt(%t477, %t478) :: boolean
-      %t480 = call core.and(%t476, %t479) :: boolean
-      yield %t480
-    end_loop
-  )
-  (Declaration fed_marginal_hoh
-    %acc_481 = decl_acc :: float
-    %t482 = load_input "fed" :: array
-    %t483 = load_field t482["head_of_household"] :: any
-    %t484 = load_field t483["rates"] :: any
-    loop rates id=L32 in %t484 as el=%rates_el_485, idx=%rates_i_486
-      %t487 = load_decl in_br_h axes=[rates] :: boolean
-      %t488 = load_decl rate_h axes=[rates] :: float
-      %t489 = const 0 :: integer
-      %t490 = select %t487, %t488, %t489 :: float
-      %acc_481 = acc_add agg.sum(%acc_481, %t490) :: float
-    end_loop
-    %t491 = acc_load %acc_481 :: float
-    yield %t491
-  )
-  (Declaration fed_eff_hoh
-    %t492 = load_decl fed_tax_hoh :: float
-    %t493 = load_input "income" :: float
-    %t494 = const 1.0 :: float
-    %t495 = make_tuple(%t493, %t494) :: tuple<float>
-    %t496 = fold %t495 fn="agg.max" :: float
-    %t497 = call core.div(%t492, %t496) :: float
-    yield %t497
-  )
-  (Declaration ss_tax_h
-    %t498 = load_decl ss_tax_s :: float
-    yield %t498
-  )
-  (Declaration med_tax_h
-    %t499 = load_decl med_tax_s :: float
-    yield %t499
-  )
-  (Declaration addl_threshold_hoh
-    %t500 = const 200000.0 :: float
-    yield %t500
-  )
-  (Declaration addl_med_tax_h
-    %t501 = load_input "income" :: float
-    %t502 = const 200000.0 :: float
-    %t503 = call core.sub(%t501, %t502) :: float
-    %t504 = const 0 :: integer
-    %t505 = make_tuple(%t503, %t504) :: tuple<float, integer>
-    %t506 = fold %t505 fn="agg.max" :: float
-    %t507 = const 0.009 :: float
-    %t508 = call core.mul(%t506, %t507) :: float
-    yield %t508
-  )
-  (Declaration fica_tax_hoh
-    %t509 = load_decl ss_tax_h :: float
-    %t510 = load_decl med_tax_h :: float
-    %t511 = call core.add(%t509, %t510) :: float
-    %t512 = load_decl addl_med_tax_h :: float
-    %t513 = call core.add(%t511, %t512) :: float
-    yield %t513
-  )
-  (Declaration fica_eff_hoh
-    %t514 = load_decl fica_tax_hoh :: float
-    %t515 = load_input "income" :: float
-    %t516 = const 1.0 :: float
-    %t517 = make_tuple(%t515, %t516) :: tuple<float>
-    %t518 = fold %t517 fn="agg.max" :: float
-    %t519 = call core.div(%t514, %t518) :: float
-    yield %t519
-  )
-  (Declaration total_tax_hoh
-    %t520 = load_decl fed_tax_hoh :: float
-    %t521 = load_decl fica_tax_hoh :: float
-    %t522 = call core.add(%t520, %t521) :: float
-    %t523 = load_decl state_tax :: float
-    %t524 = call core.add(%t522, %t523) :: float
-    %t525 = load_decl local_tax :: float
-    %t526 = call core.add(%t524, %t525) :: float
-    yield %t526
-  )
-  (Declaration total_eff_hoh
-    %t527 = load_decl total_tax_hoh :: float
-    %t528 = load_input "income" :: float
-    %t529 = const 1.0 :: float
-    %t530 = make_tuple(%t528, %t529) :: tuple<float>
-    %t531 = fold %t530 fn="agg.max" :: float
-    %t532 = call core.div(%t527, %t531) :: float
-    yield %t532
-  )
-  (Declaration after_tax_hoh
-    %t533 = load_input "income" :: float
-    %t534 = load_decl total_tax_hoh :: float
-    %t535 = call core.sub(%t533, %t534) :: float
-    yield %t535
-  )
-  (Declaration take_home_hoh
-    %t536 = load_decl after_tax_hoh :: float
-    %t537 = load_input "retirement_contrib" :: float
-    %t538 = call core.sub(%t536, %t537) :: float
-    yield %t538
   )
   (Declaration summary
-    %t539 = load_decl fed_marginal_single :: float
-    %t540 = load_decl fed_eff_single :: float
-    %t541 = load_decl fed_tax_single :: float
-    %t542 = make_object{marginal: %t539, effective: %t540, tax: %t541} :: object
-    %t543 = load_decl fica_eff_single :: float
-    %t544 = load_decl fica_tax_single :: float
-    %t545 = make_object{effective: %t543, tax: %t544} :: object
-    %t546 = load_input "state_rate" :: float
-    %t547 = load_input "state_rate" :: float
-    %t548 = load_decl state_tax :: float
-    %t549 = make_object{marginal: %t546, effective: %t547, tax: %t548} :: object
-    %t550 = load_input "local_rate" :: float
-    %t551 = load_input "local_rate" :: float
-    %t552 = load_decl local_tax :: float
-    %t553 = make_object{marginal: %t550, effective: %t551, tax: %t552} :: object
-    %t554 = load_decl total_eff_single :: float
-    %t555 = load_decl total_tax_single :: float
-    %t556 = make_object{effective: %t554, tax: %t555} :: object
-    %t557 = load_decl after_tax_single :: float
-    %t558 = load_input "retirement_contrib" :: float
-    %t559 = load_decl take_home_single :: float
-    %t560 = make_object{federal: %t542, fica: %t545, state: %t549, local: %t553, total: %t556, after_tax: %t557, retirement_contrib: %t558, take_home: %t559} :: object
-    %t561 = load_decl fed_marginal_mj :: float
-    %t562 = load_decl fed_eff_mj :: float
-    %t563 = load_decl fed_tax_mj :: float
-    %t564 = make_object{marginal: %t561, effective: %t562, tax: %t563} :: object
-    %t565 = load_decl fica_eff_mj :: float
-    %t566 = load_decl fica_tax_mj :: float
-    %t567 = make_object{effective: %t565, tax: %t566} :: object
-    %t568 = load_input "state_rate" :: float
-    %t569 = load_input "state_rate" :: float
-    %t570 = load_decl state_tax :: float
-    %t571 = make_object{marginal: %t568, effective: %t569, tax: %t570} :: object
-    %t572 = load_input "local_rate" :: float
-    %t573 = load_input "local_rate" :: float
-    %t574 = load_decl local_tax :: float
-    %t575 = make_object{marginal: %t572, effective: %t573, tax: %t574} :: object
-    %t576 = load_decl total_eff_mj :: float
-    %t577 = load_decl total_tax_mj :: float
-    %t578 = make_object{effective: %t576, tax: %t577} :: object
-    %t579 = load_decl after_tax_mj :: float
-    %t580 = load_input "retirement_contrib" :: float
-    %t581 = load_decl take_home_mj :: float
-    %t582 = make_object{federal: %t564, fica: %t567, state: %t571, local: %t575, total: %t578, after_tax: %t579, retirement_contrib: %t580, take_home: %t581} :: object
-    %t583 = load_decl fed_marginal_ms :: float
-    %t584 = load_decl fed_eff_ms :: float
-    %t585 = load_decl fed_tax_ms :: float
-    %t586 = make_object{marginal: %t583, effective: %t584, tax: %t585} :: object
-    %t587 = load_decl fica_eff_ms :: float
-    %t588 = load_decl fica_tax_ms :: float
-    %t589 = make_object{effective: %t587, tax: %t588} :: object
-    %t590 = load_input "state_rate" :: float
-    %t591 = load_input "state_rate" :: float
-    %t592 = load_decl state_tax :: float
-    %t593 = make_object{marginal: %t590, effective: %t591, tax: %t592} :: object
-    %t594 = load_input "local_rate" :: float
-    %t595 = load_input "local_rate" :: float
-    %t596 = load_decl local_tax :: float
-    %t597 = make_object{marginal: %t594, effective: %t595, tax: %t596} :: object
-    %t598 = load_decl total_eff_ms :: float
-    %t599 = load_decl total_tax_ms :: float
-    %t600 = make_object{effective: %t598, tax: %t599} :: object
-    %t601 = load_decl after_tax_ms :: float
-    %t602 = load_input "retirement_contrib" :: float
-    %t603 = load_decl take_home_ms :: float
-    %t604 = make_object{federal: %t586, fica: %t589, state: %t593, local: %t597, total: %t600, after_tax: %t601, retirement_contrib: %t602, take_home: %t603} :: object
-    %t605 = load_decl fed_marginal_hoh :: float
-    %t606 = load_decl fed_eff_hoh :: float
-    %t607 = load_decl fed_tax_hoh :: float
-    %t608 = make_object{marginal: %t605, effective: %t606, tax: %t607} :: object
-    %t609 = load_decl fica_eff_hoh :: float
-    %t610 = load_decl fica_tax_hoh :: float
-    %t611 = make_object{effective: %t609, tax: %t610} :: object
-    %t612 = load_input "state_rate" :: float
-    %t613 = load_input "state_rate" :: float
-    %t614 = load_decl state_tax :: float
-    %t615 = make_object{marginal: %t612, effective: %t613, tax: %t614} :: object
-    %t616 = load_input "local_rate" :: float
-    %t617 = load_input "local_rate" :: float
-    %t618 = load_decl local_tax :: float
-    %t619 = make_object{marginal: %t616, effective: %t617, tax: %t618} :: object
-    %t620 = load_decl total_eff_hoh :: float
-    %t621 = load_decl total_tax_hoh :: float
-    %t622 = make_object{effective: %t620, tax: %t621} :: object
-    %t623 = load_decl after_tax_hoh :: float
-    %t624 = load_input "retirement_contrib" :: float
-    %t625 = load_decl take_home_hoh :: float
-    %t626 = make_object{federal: %t608, fica: %t611, state: %t615, local: %t619, total: %t622, after_tax: %t623, retirement_contrib: %t624, take_home: %t625} :: object
-    %t627 = make_object{single: %t560, married_joint: %t582, married_separate: %t604, head_of_household: %t626} :: object
-    yield %t627
+    %t181 = load_input "statuses" :: array
+    %t194 = load_decl state_tax :: float
+    %t198 = load_decl local_tax :: float
+    loop statuses id=L26 in %t181 as el=%statuses_el_182, idx=%statuses_i_183
+      %t184 = load_field statuses_el_182["name"] :: string
+      %t185 = load_decl fed_marg axes=[statuses] :: float
+      %t186 = load_decl fed_eff axes=[statuses] :: float
+      %t187 = load_decl fed_tax axes=[statuses] :: float
+      %t188 = make_object{marginal: %t185, effective: %t186, tax: %t187} :: object
+      %t189 = load_decl fica_eff axes=[statuses] :: float
+      %t190 = load_decl fica_tax axes=[statuses] :: float
+      %t191 = make_object{effective: %t189, tax: %t190} :: object
+      %t192 = load_input "state_rate" :: float
+      %t193 = load_input "state_rate" :: float
+      %t195 = make_object{marginal: %t192, effective: %t193, tax: %t194} :: object
+      %t196 = load_input "local_rate" :: float
+      %t197 = load_input "local_rate" :: float
+      %t199 = make_object{marginal: %t196, effective: %t197, tax: %t198} :: object
+      %t200 = load_decl total_eff axes=[statuses] :: float
+      %t201 = load_decl total_tax axes=[statuses] :: float
+      %t202 = make_object{effective: %t200, tax: %t201} :: object
+      %t203 = load_decl after_tax axes=[statuses] :: float
+      %t204 = load_input "retirement_contrib" :: float
+      %t205 = load_decl take_home axes=[statuses] :: float
+      %t206 = make_object{filing_status: %t184, federal: %t188, fica: %t191, state: %t195, local: %t199, total: %t202, after_tax: %t203, retirement_contrib: %t204, take_home: %t205} :: object
+      yield %t206
+    end_loop
   )
 )

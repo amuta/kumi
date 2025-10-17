@@ -1,1 +1,120 @@
-{"summary": {"single": {"federal": {"marginal": 0.22, "effective": 0.13841, "tax": 13841.0}, "fica": {"effective": 0.0765, "tax": 7650.0}, "state": {"marginal": 0.06, "effective": 0.06, "tax": 6000.0}, "local": {"marginal": 0.0388, "effective": 0.0388, "tax": 3880.0}, "total": {"effective": 0.31371, "tax": 31371.0}, "after_tax": 68629.0, "retirement_contrib": 0, "take_home": 68629.0}, "married_joint": {"federal": {"marginal": 0.12, "effective": 0.08032, "tax": 8032.0}, "fica": {"effective": 0.0765, "tax": 7650.0}, "state": {"marginal": 0.06, "effective": 0.06, "tax": 6000.0}, "local": {"marginal": 0.0388, "effective": 0.0388, "tax": 3880.0}, "total": {"effective": 0.25562, "tax": 25562.0}, "after_tax": 74438.0, "retirement_contrib": 0, "take_home": 74438.0}, "married_separate": {"federal": {"marginal": 0.22, "effective": 0.13841, "tax": 13841.0}, "fica": {"effective": 0.0765, "tax": 7650.0}, "state": {"marginal": 0.06, "effective": 0.06, "tax": 6000.0}, "local": {"marginal": 0.0388, "effective": 0.0388, "tax": 3880.0}, "total": {"effective": 0.31371, "tax": 31371.0}, "after_tax": 68629.0, "retirement_contrib": 0, "take_home": 68629.0}, "head_of_household": {"federal": {"marginal": 0.22, "effective": 0.10541, "tax": 10541.0}, "fica": {"effective": 0.0765, "tax": 7650.0}, "state": {"marginal": 0.06, "effective": 0.06, "tax": 6000.0}, "local": {"marginal": 0.0388, "effective": 0.0388, "tax": 3880.0}, "total": {"effective": 0.28071, "tax": 28071.0}, "after_tax": 71929.0, "retirement_contrib": 0, "take_home": 71929.0}}}
+{
+  "summary": [
+    {
+      "filing_status": "single",
+      "federal": {
+        "marginal": 0.24,
+        "effective": 0.17025666666666667,
+        "tax": 25538.5
+      },
+      "fica": {
+        "effective": 0.0765,
+        "tax": 11475
+      },
+      "state": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "local": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "total": {
+        "effective": 0.24675666666666668,
+        "tax": 37013.5
+      },
+      "after_tax": 112986.5,
+      "retirement_contrib": 0,
+      "take_home": 112986.5
+    },
+    {
+      "filing_status": "married_joint",
+      "federal": {
+        "marginal": 0.22,
+        "effective": 0.11121333333333333,
+        "tax": 16682
+      },
+      "fica": {
+        "effective": 0.0765,
+        "tax": 11475
+      },
+      "state": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "local": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "total": {
+        "effective": 0.18771333333333334,
+        "tax": 28157
+      },
+      "after_tax": 121843,
+      "retirement_contrib": 0,
+      "take_home": 121843
+    },
+    {
+      "filing_status": "married_separate",
+      "federal": {
+        "marginal": 0.24,
+        "effective": 0.17025666666666667,
+        "tax": 25538.5
+      },
+      "fica": {
+        "effective": 0.078,
+        "tax": 11700
+      },
+      "state": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "local": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "total": {
+        "effective": 0.24825666666666665,
+        "tax": 37238.5
+      },
+      "after_tax": 112761.5,
+      "retirement_contrib": 0,
+      "take_home": 112761.5
+    },
+    {
+      "filing_status": "head_of_household",
+      "federal": {
+        "marginal": 0.24,
+        "effective": 0.14728666666666668,
+        "tax": 22093
+      },
+      "fica": {
+        "effective": 0.0765,
+        "tax": 11475
+      },
+      "state": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "local": {
+        "marginal": 0,
+        "effective": 0,
+        "tax": 0
+      },
+      "total": {
+        "effective": 0.22378666666666666,
+        "tax": 33568
+      },
+      "after_tax": 116432,
+      "retirement_contrib": 0,
+      "take_home": 116432
+    }
+  ]
+}

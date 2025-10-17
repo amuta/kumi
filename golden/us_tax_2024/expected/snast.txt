@@ -11,99 +11,99 @@
       (InputRef local_rate key_chain=[]) :: [] -> float
     ) :: [] -> float
   ) :: [] -> float
-  (VALUE taxable_single
+  (VALUE taxable
     (Fold :agg.max
       (Tuple
         (Call :core.sub
           (InputRef income key_chain=[]) :: [] -> float
-          (InputRef fed.single.std key_chain=[]) :: [] -> float
-        ) :: [] -> float
+          (InputRef statuses.status.std key_chain=[]) :: [statuses] -> float
+        ) :: [statuses] -> float
         (Const 0) :: [] -> integer
-      ) :: [] -> tuple<float, integer>
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE lo_s
-    (InputRef fed.single.rates.bracket.lo key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_s
-    (InputRef fed.single.rates.bracket.hi key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE rate_s
-    (InputRef fed.single.rates.bracket.rate key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
+      ) :: [statuses] -> tuple<float, integer>
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE lo
+    (InputRef statuses.status.rates.bracket.lo key_chain=[]) :: [statuses, rates] -> float
+  ) :: [statuses, rates] -> float
+  (VALUE hi
+    (InputRef statuses.status.rates.bracket.hi key_chain=[]) :: [statuses, rates] -> float
+  ) :: [statuses, rates] -> float
+  (VALUE rate
+    (InputRef statuses.status.rates.bracket.rate key_chain=[]) :: [statuses, rates] -> float
+  ) :: [statuses, rates] -> float
   (VALUE big_hi
     (Const 100000000000.0) :: [] -> float
   ) :: [] -> float
-  (VALUE hi_s_eff
+  (VALUE hi_eff
     (Select
       (Call :core.eq
-        (Ref hi_s) :: [rates] -> float
+        (Ref hi) :: [statuses, rates] -> float
         (Const -1) :: [] -> integer
-      ) :: [rates] -> boolean
+      ) :: [statuses, rates] -> boolean
       (Const 100000000000.0) :: [] -> float
-      (Ref hi_s) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE amt_s
+      (Ref hi) :: [statuses, rates] -> float
+    ) :: [statuses, rates] -> float
+  ) :: [statuses, rates] -> float
+  (VALUE amt
     (Call :core.clamp
       (Call :core.sub
-        (Ref taxable_single) :: [] -> float
-        (Ref lo_s) :: [rates] -> float
-      ) :: [rates] -> float
+        (Ref taxable) :: [statuses] -> float
+        (Ref lo) :: [statuses, rates] -> float
+      ) :: [statuses, rates] -> float
       (Const 0) :: [] -> integer
       (Call :core.sub
-        (Ref hi_s_eff) :: [rates] -> float
-        (Ref lo_s) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE fed_tax_single
+        (Ref hi_eff) :: [statuses, rates] -> float
+        (Ref lo) :: [statuses, rates] -> float
+      ) :: [statuses, rates] -> float
+    ) :: [statuses, rates] -> float
+  ) :: [statuses, rates] -> float
+  (VALUE fed_tax
     (Reduce :agg.sum over [rates]
       (Call :core.mul
-        (Ref amt_s) :: [rates] -> float
-        (Ref rate_s) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (TRAIT in_br_s
+        (Ref amt) :: [statuses, rates] -> float
+        (Ref rate) :: [statuses, rates] -> float
+      ) :: [statuses, rates] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (TRAIT in_br
     (Call :core.and
       (Call :core.gte
-        (Ref taxable_single) :: [] -> float
-        (Ref lo_s) :: [rates] -> float
-      ) :: [rates] -> boolean
+        (Ref taxable) :: [statuses] -> float
+        (Ref lo) :: [statuses, rates] -> float
+      ) :: [statuses, rates] -> boolean
       (Call :core.lt
-        (Ref taxable_single) :: [] -> float
-        (Ref hi_s_eff) :: [rates] -> float
-      ) :: [rates] -> boolean
-    ) :: [rates] -> boolean
-  ) :: [rates] -> boolean
-  (VALUE fed_marginal_single
+        (Ref taxable) :: [statuses] -> float
+        (Ref hi_eff) :: [statuses, rates] -> float
+      ) :: [statuses, rates] -> boolean
+    ) :: [statuses, rates] -> boolean
+  ) :: [statuses, rates] -> boolean
+  (VALUE fed_marg
     (Reduce :agg.sum over [rates]
       (Select
-        (Ref in_br_s) :: [rates] -> boolean
-        (Ref rate_s) :: [rates] -> float
+        (Ref in_br) :: [statuses, rates] -> boolean
+        (Ref rate) :: [statuses, rates] -> float
         (Const 0) :: [] -> integer
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fed_eff_single
+      ) :: [statuses, rates] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE fed_eff
     (Call :core.div
-      (Ref fed_tax_single) :: [] -> float
+      (Ref fed_tax) :: [statuses] -> float
       (Fold :agg.max
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
         ) :: [] -> tuple<float>
       ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
   (VALUE ss_wage_base
     (Const 168600.0) :: [] -> float
   ) :: [] -> float
   (VALUE ss_rate
     (Const 0.062) :: [] -> float
   ) :: [] -> float
-  (VALUE ss_tax_s
+  (VALUE ss_tax
     (Call :core.mul
       (Fold :agg.min
         (Tuple
@@ -117,860 +117,157 @@
   (VALUE med_base_rate
     (Const 0.0145) :: [] -> float
   ) :: [] -> float
-  (VALUE med_tax_s
+  (VALUE med_tax
     (Call :core.mul
       (InputRef income key_chain=[]) :: [] -> float
       (Const 0.0145) :: [] -> float
     ) :: [] -> float
   ) :: [] -> float
-  (VALUE addl_threshold_single
-    (Const 200000.0) :: [] -> float
-  ) :: [] -> float
   (VALUE addl_med_rate
     (Const 0.009) :: [] -> float
   ) :: [] -> float
-  (VALUE addl_med_tax_s
+  (VALUE addl_med_tax
     (Call :core.mul
       (Fold :agg.max
         (Tuple
           (Call :core.sub
             (InputRef income key_chain=[]) :: [] -> float
-            (Const 200000.0) :: [] -> float
-          ) :: [] -> float
+            (InputRef statuses.status.addl_threshold key_chain=[]) :: [statuses] -> float
+          ) :: [statuses] -> float
           (Const 0) :: [] -> integer
-        ) :: [] -> tuple<float, integer>
-      ) :: [] -> float
+        ) :: [statuses] -> tuple<float, integer>
+      ) :: [statuses] -> float
       (Const 0.009) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_tax_single
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE fica_tax
     (Call :core.add
       (Call :core.add
-        (Ref ss_tax_s) :: [] -> float
-        (Ref med_tax_s) :: [] -> float
+        (Ref ss_tax) :: [] -> float
+        (Ref med_tax) :: [] -> float
       ) :: [] -> float
-      (Ref addl_med_tax_s) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_eff_single
+      (Ref addl_med_tax) :: [statuses] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE fica_eff
     (Call :core.div
-      (Ref fica_tax_single) :: [] -> float
+      (Ref fica_tax) :: [statuses] -> float
       (Fold :agg.max
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
         ) :: [] -> tuple<float>
       ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_tax_single
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE total_tax
     (Call :core.add
       (Call :core.add
         (Call :core.add
-          (Ref fed_tax_single) :: [] -> float
-          (Ref fica_tax_single) :: [] -> float
-        ) :: [] -> float
+          (Ref fed_tax) :: [statuses] -> float
+          (Ref fica_tax) :: [statuses] -> float
+        ) :: [statuses] -> float
         (Ref state_tax) :: [] -> float
-      ) :: [] -> float
+      ) :: [statuses] -> float
       (Ref local_tax) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_eff_single
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE total_eff
     (Call :core.div
-      (Ref total_tax_single) :: [] -> float
+      (Ref total_tax) :: [statuses] -> float
       (Fold :agg.max
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
           (Const 1.0) :: [] -> float
         ) :: [] -> tuple<float>
       ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE after_tax_single
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE after_tax
     (Call :core.sub
       (InputRef income key_chain=[]) :: [] -> float
-      (Ref total_tax_single) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE take_home_single
+      (Ref total_tax) :: [statuses] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
+  (VALUE take_home
     (Call :core.sub
-      (Ref after_tax_single) :: [] -> float
+      (Ref after_tax) :: [statuses] -> float
       (InputRef retirement_contrib key_chain=[]) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE taxable_mj
-    (Fold :agg.max
-      (Tuple
-        (Call :core.sub
-          (InputRef income key_chain=[]) :: [] -> float
-          (InputRef fed.married_joint.std key_chain=[]) :: [] -> float
-        ) :: [] -> float
-        (Const 0) :: [] -> integer
-      ) :: [] -> tuple<float, integer>
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE lo_mj
-    (InputRef fed.married_joint.rates.bracket.lo key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_mj
-    (InputRef fed.married_joint.rates.bracket.hi key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE rate_mj
-    (InputRef fed.married_joint.rates.bracket.rate key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_mj_eff
-    (Select
-      (Call :core.eq
-        (Ref hi_mj) :: [rates] -> float
-        (Const -1) :: [] -> integer
-      ) :: [rates] -> boolean
-      (Const 100000000000.0) :: [] -> float
-      (Ref hi_mj) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE amt_mj
-    (Call :core.clamp
-      (Call :core.sub
-        (Ref taxable_mj) :: [] -> float
-        (Ref lo_mj) :: [rates] -> float
-      ) :: [rates] -> float
-      (Const 0) :: [] -> integer
-      (Call :core.sub
-        (Ref hi_mj_eff) :: [rates] -> float
-        (Ref lo_mj) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE fed_tax_mj
-    (Reduce :agg.sum over [rates]
-      (Call :core.mul
-        (Ref amt_mj) :: [rates] -> float
-        (Ref rate_mj) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (TRAIT in_br_mj
-    (Call :core.and
-      (Call :core.gte
-        (Ref taxable_mj) :: [] -> float
-        (Ref lo_mj) :: [rates] -> float
-      ) :: [rates] -> boolean
-      (Call :core.lt
-        (Ref taxable_mj) :: [] -> float
-        (Ref hi_mj_eff) :: [rates] -> float
-      ) :: [rates] -> boolean
-    ) :: [rates] -> boolean
-  ) :: [rates] -> boolean
-  (VALUE fed_marginal_mj
-    (Reduce :agg.sum over [rates]
-      (Select
-        (Ref in_br_mj) :: [rates] -> boolean
-        (Ref rate_mj) :: [rates] -> float
-        (Const 0) :: [] -> integer
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fed_eff_mj
-    (Call :core.div
-      (Ref fed_tax_mj) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE ss_tax_mj
-    (Ref ss_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE med_tax_mj
-    (Ref med_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_threshold_mj
-    (Const 250000.0) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_med_tax_mj
-    (Call :core.mul
-      (Fold :agg.max
-        (Tuple
-          (Call :core.sub
-            (InputRef income key_chain=[]) :: [] -> float
-            (Const 250000.0) :: [] -> float
-          ) :: [] -> float
-          (Const 0) :: [] -> integer
-        ) :: [] -> tuple<float, integer>
-      ) :: [] -> float
-      (Const 0.009) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_tax_mj
-    (Call :core.add
-      (Call :core.add
-        (Ref ss_tax_mj) :: [] -> float
-        (Ref med_tax_mj) :: [] -> float
-      ) :: [] -> float
-      (Ref addl_med_tax_mj) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_eff_mj
-    (Call :core.div
-      (Ref fica_tax_mj) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_tax_mj
-    (Call :core.add
-      (Call :core.add
-        (Call :core.add
-          (Ref fed_tax_mj) :: [] -> float
-          (Ref fica_tax_mj) :: [] -> float
-        ) :: [] -> float
-        (Ref state_tax) :: [] -> float
-      ) :: [] -> float
-      (Ref local_tax) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_eff_mj
-    (Call :core.div
-      (Ref total_tax_mj) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE after_tax_mj
-    (Call :core.sub
-      (InputRef income key_chain=[]) :: [] -> float
-      (Ref total_tax_mj) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE take_home_mj
-    (Call :core.sub
-      (Ref after_tax_mj) :: [] -> float
-      (InputRef retirement_contrib key_chain=[]) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE taxable_ms
-    (Fold :agg.max
-      (Tuple
-        (Call :core.sub
-          (InputRef income key_chain=[]) :: [] -> float
-          (InputRef fed.married_separate.std key_chain=[]) :: [] -> float
-        ) :: [] -> float
-        (Const 0) :: [] -> integer
-      ) :: [] -> tuple<float, integer>
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE lo_ms
-    (InputRef fed.married_separate.rates.bracket.lo key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_ms
-    (InputRef fed.married_separate.rates.bracket.hi key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE rate_ms
-    (InputRef fed.married_separate.rates.bracket.rate key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_ms_eff
-    (Select
-      (Call :core.eq
-        (Ref hi_ms) :: [rates] -> float
-        (Const -1) :: [] -> integer
-      ) :: [rates] -> boolean
-      (Const 100000000000.0) :: [] -> float
-      (Ref hi_ms) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE amt_ms
-    (Call :core.clamp
-      (Call :core.sub
-        (Ref taxable_ms) :: [] -> float
-        (Ref lo_ms) :: [rates] -> float
-      ) :: [rates] -> float
-      (Const 0) :: [] -> integer
-      (Call :core.sub
-        (Ref hi_ms_eff) :: [rates] -> float
-        (Ref lo_ms) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE fed_tax_ms
-    (Reduce :agg.sum over [rates]
-      (Call :core.mul
-        (Ref amt_ms) :: [rates] -> float
-        (Ref rate_ms) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (TRAIT in_br_ms
-    (Call :core.and
-      (Call :core.gte
-        (Ref taxable_ms) :: [] -> float
-        (Ref lo_ms) :: [rates] -> float
-      ) :: [rates] -> boolean
-      (Call :core.lt
-        (Ref taxable_ms) :: [] -> float
-        (Ref hi_ms_eff) :: [rates] -> float
-      ) :: [rates] -> boolean
-    ) :: [rates] -> boolean
-  ) :: [rates] -> boolean
-  (VALUE fed_marginal_ms
-    (Reduce :agg.sum over [rates]
-      (Select
-        (Ref in_br_ms) :: [rates] -> boolean
-        (Ref rate_ms) :: [rates] -> float
-        (Const 0) :: [] -> integer
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fed_eff_ms
-    (Call :core.div
-      (Ref fed_tax_ms) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE ss_tax_ms
-    (Ref ss_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE med_tax_ms
-    (Ref med_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_threshold_ms
-    (Const 125000.0) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_med_tax_ms
-    (Call :core.mul
-      (Fold :agg.max
-        (Tuple
-          (Call :core.sub
-            (InputRef income key_chain=[]) :: [] -> float
-            (Const 125000.0) :: [] -> float
-          ) :: [] -> float
-          (Const 0) :: [] -> integer
-        ) :: [] -> tuple<float, integer>
-      ) :: [] -> float
-      (Const 0.009) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_tax_ms
-    (Call :core.add
-      (Call :core.add
-        (Ref ss_tax_ms) :: [] -> float
-        (Ref med_tax_ms) :: [] -> float
-      ) :: [] -> float
-      (Ref addl_med_tax_ms) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_eff_ms
-    (Call :core.div
-      (Ref fica_tax_ms) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_tax_ms
-    (Call :core.add
-      (Call :core.add
-        (Call :core.add
-          (Ref fed_tax_ms) :: [] -> float
-          (Ref fica_tax_ms) :: [] -> float
-        ) :: [] -> float
-        (Ref state_tax) :: [] -> float
-      ) :: [] -> float
-      (Ref local_tax) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_eff_ms
-    (Call :core.div
-      (Ref total_tax_ms) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE after_tax_ms
-    (Call :core.sub
-      (InputRef income key_chain=[]) :: [] -> float
-      (Ref total_tax_ms) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE take_home_ms
-    (Call :core.sub
-      (Ref after_tax_ms) :: [] -> float
-      (InputRef retirement_contrib key_chain=[]) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE taxable_hoh
-    (Fold :agg.max
-      (Tuple
-        (Call :core.sub
-          (InputRef income key_chain=[]) :: [] -> float
-          (InputRef fed.head_of_household.std key_chain=[]) :: [] -> float
-        ) :: [] -> float
-        (Const 0) :: [] -> integer
-      ) :: [] -> tuple<float, integer>
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE lo_h
-    (InputRef fed.head_of_household.rates.bracket.lo key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_h
-    (InputRef fed.head_of_household.rates.bracket.hi key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE rate_h
-    (InputRef fed.head_of_household.rates.bracket.rate key_chain=[]) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE hi_h_eff
-    (Select
-      (Call :core.eq
-        (Ref hi_h) :: [rates] -> float
-        (Const -1) :: [] -> integer
-      ) :: [rates] -> boolean
-      (Const 100000000000.0) :: [] -> float
-      (Ref hi_h) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE amt_h
-    (Call :core.clamp
-      (Call :core.sub
-        (Ref taxable_hoh) :: [] -> float
-        (Ref lo_h) :: [rates] -> float
-      ) :: [rates] -> float
-      (Const 0) :: [] -> integer
-      (Call :core.sub
-        (Ref hi_h_eff) :: [rates] -> float
-        (Ref lo_h) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [rates] -> float
-  ) :: [rates] -> float
-  (VALUE fed_tax_hoh
-    (Reduce :agg.sum over [rates]
-      (Call :core.mul
-        (Ref amt_h) :: [rates] -> float
-        (Ref rate_h) :: [rates] -> float
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (TRAIT in_br_h
-    (Call :core.and
-      (Call :core.gte
-        (Ref taxable_hoh) :: [] -> float
-        (Ref lo_h) :: [rates] -> float
-      ) :: [rates] -> boolean
-      (Call :core.lt
-        (Ref taxable_hoh) :: [] -> float
-        (Ref hi_h_eff) :: [rates] -> float
-      ) :: [rates] -> boolean
-    ) :: [rates] -> boolean
-  ) :: [rates] -> boolean
-  (VALUE fed_marginal_hoh
-    (Reduce :agg.sum over [rates]
-      (Select
-        (Ref in_br_h) :: [rates] -> boolean
-        (Ref rate_h) :: [rates] -> float
-        (Const 0) :: [] -> integer
-      ) :: [rates] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fed_eff_hoh
-    (Call :core.div
-      (Ref fed_tax_hoh) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE ss_tax_h
-    (Ref ss_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE med_tax_h
-    (Ref med_tax_s) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_threshold_hoh
-    (Const 200000.0) :: [] -> float
-  ) :: [] -> float
-  (VALUE addl_med_tax_h
-    (Call :core.mul
-      (Fold :agg.max
-        (Tuple
-          (Call :core.sub
-            (InputRef income key_chain=[]) :: [] -> float
-            (Const 200000.0) :: [] -> float
-          ) :: [] -> float
-          (Const 0) :: [] -> integer
-        ) :: [] -> tuple<float, integer>
-      ) :: [] -> float
-      (Const 0.009) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_tax_hoh
-    (Call :core.add
-      (Call :core.add
-        (Ref ss_tax_h) :: [] -> float
-        (Ref med_tax_h) :: [] -> float
-      ) :: [] -> float
-      (Ref addl_med_tax_h) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE fica_eff_hoh
-    (Call :core.div
-      (Ref fica_tax_hoh) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_tax_hoh
-    (Call :core.add
-      (Call :core.add
-        (Call :core.add
-          (Ref fed_tax_hoh) :: [] -> float
-          (Ref fica_tax_hoh) :: [] -> float
-        ) :: [] -> float
-        (Ref state_tax) :: [] -> float
-      ) :: [] -> float
-      (Ref local_tax) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE total_eff_hoh
-    (Call :core.div
-      (Ref total_tax_hoh) :: [] -> float
-      (Fold :agg.max
-        (Tuple
-          (InputRef income key_chain=[]) :: [] -> float
-          (Const 1.0) :: [] -> float
-        ) :: [] -> tuple<float>
-      ) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE after_tax_hoh
-    (Call :core.sub
-      (InputRef income key_chain=[]) :: [] -> float
-      (Ref total_tax_hoh) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
-  (VALUE take_home_hoh
-    (Call :core.sub
-      (Ref after_tax_hoh) :: [] -> float
-      (InputRef retirement_contrib key_chain=[]) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+    ) :: [statuses] -> float
+  ) :: [statuses] -> float
   (VALUE summary
     (Hash
-      (Pair single
+      (Pair filing_status
+        (InputRef statuses.status.name key_chain=[]) :: [statuses] -> string
+      ) :: [statuses] -> pair
+      (Pair federal
         (Hash
-          (Pair federal
-            (Hash
-              (Pair marginal
-                (Ref fed_marginal_single) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (Ref fed_eff_single) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fed_tax_single) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
+          (Pair marginal
+            (Ref fed_marg) :: [statuses] -> float
+          ) :: [statuses] -> pair
+          (Pair effective
+            (Ref fed_eff) :: [statuses] -> float
+          ) :: [statuses] -> pair
+          (Pair tax
+            (Ref fed_tax) :: [statuses] -> float
+          ) :: [statuses] -> pair
+        ) :: [statuses] -> hash
+      ) :: [statuses] -> pair
+      (Pair fica
+        (Hash
+          (Pair effective
+            (Ref fica_eff) :: [statuses] -> float
+          ) :: [statuses] -> pair
+          (Pair tax
+            (Ref fica_tax) :: [statuses] -> float
+          ) :: [statuses] -> pair
+        ) :: [statuses] -> hash
+      ) :: [statuses] -> pair
+      (Pair state
+        (Hash
+          (Pair marginal
+            (InputRef state_rate key_chain=[]) :: [] -> float
           ) :: [] -> pair
-          (Pair fica
-            (Hash
-              (Pair effective
-                (Ref fica_eff_single) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fica_tax_single) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
+          (Pair effective
+            (InputRef state_rate key_chain=[]) :: [] -> float
           ) :: [] -> pair
-          (Pair state
-            (Hash
-              (Pair marginal
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref state_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair local
-            (Hash
-              (Pair marginal
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref local_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair total
-            (Hash
-              (Pair effective
-                (Ref total_eff_single) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref total_tax_single) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair after_tax
-            (Ref after_tax_single) :: [] -> float
-          ) :: [] -> pair
-          (Pair retirement_contrib
-            (InputRef retirement_contrib key_chain=[]) :: [] -> float
-          ) :: [] -> pair
-          (Pair take_home
-            (Ref take_home_single) :: [] -> float
+          (Pair tax
+            (Ref state_tax) :: [] -> float
           ) :: [] -> pair
         ) :: [] -> hash
       ) :: [] -> pair
-      (Pair married_joint
+      (Pair local
         (Hash
-          (Pair federal
-            (Hash
-              (Pair marginal
-                (Ref fed_marginal_mj) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (Ref fed_eff_mj) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fed_tax_mj) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
+          (Pair marginal
+            (InputRef local_rate key_chain=[]) :: [] -> float
           ) :: [] -> pair
-          (Pair fica
-            (Hash
-              (Pair effective
-                (Ref fica_eff_mj) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fica_tax_mj) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
+          (Pair effective
+            (InputRef local_rate key_chain=[]) :: [] -> float
           ) :: [] -> pair
-          (Pair state
-            (Hash
-              (Pair marginal
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref state_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair local
-            (Hash
-              (Pair marginal
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref local_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair total
-            (Hash
-              (Pair effective
-                (Ref total_eff_mj) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref total_tax_mj) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair after_tax
-            (Ref after_tax_mj) :: [] -> float
-          ) :: [] -> pair
-          (Pair retirement_contrib
-            (InputRef retirement_contrib key_chain=[]) :: [] -> float
-          ) :: [] -> pair
-          (Pair take_home
-            (Ref take_home_mj) :: [] -> float
+          (Pair tax
+            (Ref local_tax) :: [] -> float
           ) :: [] -> pair
         ) :: [] -> hash
       ) :: [] -> pair
-      (Pair married_separate
+      (Pair total
         (Hash
-          (Pair federal
-            (Hash
-              (Pair marginal
-                (Ref fed_marginal_ms) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (Ref fed_eff_ms) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fed_tax_ms) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair fica
-            (Hash
-              (Pair effective
-                (Ref fica_eff_ms) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fica_tax_ms) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair state
-            (Hash
-              (Pair marginal
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref state_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair local
-            (Hash
-              (Pair marginal
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref local_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair total
-            (Hash
-              (Pair effective
-                (Ref total_eff_ms) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref total_tax_ms) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair after_tax
-            (Ref after_tax_ms) :: [] -> float
-          ) :: [] -> pair
-          (Pair retirement_contrib
-            (InputRef retirement_contrib key_chain=[]) :: [] -> float
-          ) :: [] -> pair
-          (Pair take_home
-            (Ref take_home_ms) :: [] -> float
-          ) :: [] -> pair
-        ) :: [] -> hash
+          (Pair effective
+            (Ref total_eff) :: [statuses] -> float
+          ) :: [statuses] -> pair
+          (Pair tax
+            (Ref total_tax) :: [statuses] -> float
+          ) :: [statuses] -> pair
+        ) :: [statuses] -> hash
+      ) :: [statuses] -> pair
+      (Pair after_tax
+        (Ref after_tax) :: [statuses] -> float
+      ) :: [statuses] -> pair
+      (Pair retirement_contrib
+        (InputRef retirement_contrib key_chain=[]) :: [] -> float
       ) :: [] -> pair
-      (Pair head_of_household
-        (Hash
-          (Pair federal
-            (Hash
-              (Pair marginal
-                (Ref fed_marginal_hoh) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (Ref fed_eff_hoh) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fed_tax_hoh) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair fica
-            (Hash
-              (Pair effective
-                (Ref fica_eff_hoh) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref fica_tax_hoh) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair state
-            (Hash
-              (Pair marginal
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef state_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref state_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair local
-            (Hash
-              (Pair marginal
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair effective
-                (InputRef local_rate key_chain=[]) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref local_tax) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair total
-            (Hash
-              (Pair effective
-                (Ref total_eff_hoh) :: [] -> float
-              ) :: [] -> pair
-              (Pair tax
-                (Ref total_tax_hoh) :: [] -> float
-              ) :: [] -> pair
-            ) :: [] -> hash
-          ) :: [] -> pair
-          (Pair after_tax
-            (Ref after_tax_hoh) :: [] -> float
-          ) :: [] -> pair
-          (Pair retirement_contrib
-            (InputRef retirement_contrib key_chain=[]) :: [] -> float
-          ) :: [] -> pair
-          (Pair take_home
-            (Ref take_home_hoh) :: [] -> float
-          ) :: [] -> pair
-        ) :: [] -> hash
-      ) :: [] -> pair
-    ) :: [] -> hash
-  ) :: [] -> hash
+      (Pair take_home
+        (Ref take_home) :: [statuses] -> float
+      ) :: [statuses] -> pair
+    ) :: [statuses] -> hash
+  ) :: [statuses] -> hash
 )

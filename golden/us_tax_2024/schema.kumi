@@ -1,14 +1,17 @@
 schema do
   input do
-    float :income
-    float :state_rate
-    float :local_rate
-    float :retirement_contrib
+    float  :income
+    float  :state_rate
+    float  :local_rate
+    float  :retirement_contrib
+    string :filing_status
 
-    hash :fed do
-      hash :single do
-        float :std
-        array :rates do
+    array :statuses do
+      hash :status do
+        string :name
+        float  :std
+        float  :addl_threshold
+        array  :rates do
           hash :bracket do
             float :lo
             float :hi # -1 = open-ended
@@ -16,40 +19,10 @@ schema do
           end
         end
       end
-      hash :married_joint do
-        float :std
-        array :rates do
-          hash :bracket do
-            float :lo
-            float :hi
-            float :rate
-          end
-        end
-      end
-      hash :married_separate do
-        float :std
-        array :rates do
-          hash :bracket do
-            float :lo
-            float :hi
-            float :rate
-          end
-        end
-      end
-      hash :head_of_household do
-        float :std
-        array :rates do
-          hash :bracket do
-            float :lo
-            float :hi
-            float :rate
-          end
-        end
-      end
     end
   end
 
-  # ——— shared helpers ———
+  # shared
   let :big_hi, 100_000_000_000.0
   let :state_tax, input.income * input.state_rate
   let :local_tax, input.income * input.local_rate
@@ -60,144 +33,41 @@ schema do
   let :med_base_rate, 0.0145
   let :addl_med_rate, 0.009
 
-  # thresholds differ by filing status
-  let :addl_threshold_single, 200_000.0
-  let :addl_threshold_mj,     250_000.0
-  let :addl_threshold_ms,     125_000.0
-  let :addl_threshold_hoh,    200_000.0
+  # per-status federal
+  let :taxable,   fn(:max, [input.income - input.statuses.status.std, 0])
+  let :lo,        input.statuses.status.rates.bracket.lo
+  let :hi,        input.statuses.status.rates.bracket.hi
+  let :rate,      input.statuses.status.rates.bracket.rate
+  let :hi_eff,    select(hi == -1, big_hi, hi)
+  let :amt,       fn(:clamp, taxable - lo, 0, hi_eff - lo)
+  let :fed_tax,   fn(:sum, amt * rate)
+  let :in_br,     (taxable >= lo) & (taxable < hi_eff)
+  let :fed_marg,  fn(:sum_if, rate, in_br)
+  let :fed_eff,   fed_tax / fn(:max, [input.income, 1.0])
 
-  # ——— SINGLE ———
-  let :taxable_single, fn(:max, [input.income - input.fed.single.std, 0])
-  let :lo_s,   input.fed.single.rates.bracket.lo
-  let :hi_s,   input.fed.single.rates.bracket.hi
-  let :rate_s, input.fed.single.rates.bracket.rate
-  let   :hi_s_eff, select(hi_s == -1, big_hi, hi_s)
-  let   :amt_s, fn(:clamp, taxable_single - lo_s, 0, hi_s_eff - lo_s)
-  let :fed_tax_single, fn(:sum, amt_s * rate_s)
-  let :in_br_s, (taxable_single >= lo_s) & (taxable_single < hi_s_eff)
-  let :fed_marginal_single, fn(:sum_if, rate_s, in_br_s)
-  let :fed_eff_single, fed_tax_single / fn(:max, [input.income, 1.0])
+  # per-status FICA
+  let :ss_tax,         fn(:min, [input.income, ss_wage_base]) * ss_rate
+  let :med_tax,        input.income * med_base_rate
+  let :addl_med_tax,   fn(:max, [input.income - input.statuses.status.addl_threshold, 0]) * addl_med_rate
+  let :fica_tax,       ss_tax + med_tax + addl_med_tax
+  let :fica_eff,       fica_tax / fn(:max, [input.income, 1.0])
 
-  let :ss_tax_s,       fn(:min, [input.income, ss_wage_base]) * ss_rate
-  let :med_tax_s,      input.income * med_base_rate
-  let :addl_med_tax_s, fn(:max, [input.income - addl_threshold_single, 0]) * addl_med_rate
-  let :fica_tax_single, ss_tax_s + med_tax_s + addl_med_tax_s
-  let :fica_eff_single, fica_tax_single / fn(:max, [input.income, 1.0])
+  # totals per status
+  let :total_tax,  fed_tax + fica_tax + state_tax + local_tax
+  let :total_eff,  total_tax / fn(:max, [input.income, 1.0])
+  let :after_tax,  input.income - total_tax
+  let :take_home,  after_tax - input.retirement_contrib
 
-  let :total_tax_single, fed_tax_single + fica_tax_single + state_tax + local_tax
-  let :total_eff_single, total_tax_single / fn(:max, [input.income, 1.0])
-  let :after_tax_single, input.income - total_tax_single
-  let :take_home_single, after_tax_single - input.retirement_contrib
-
-  # ——— MARRIED JOINT ———
-  let :taxable_mj, fn(:max, [input.income - input.fed.married_joint.std, 0])
-  let :lo_mj,   input.fed.married_joint.rates.bracket.lo
-  let :hi_mj,   input.fed.married_joint.rates.bracket.hi
-  let :rate_mj, input.fed.married_joint.rates.bracket.rate
-  let   :hi_mj_eff, select(hi_mj == -1, big_hi, hi_mj)
-  let   :amt_mj, fn(:clamp, taxable_mj - lo_mj, 0, hi_mj_eff - lo_mj)
-  let :fed_tax_mj, fn(:sum, amt_mj * rate_mj)
-  let :in_br_mj, (taxable_mj >= lo_mj) & (taxable_mj < hi_mj_eff)
-  let :fed_marginal_mj, fn(:sum_if, rate_mj, in_br_mj)
-  let :fed_eff_mj, fed_tax_mj / fn(:max, [input.income, 1.0])
-
-  let :ss_tax_mj,       ss_tax_s
-  let :med_tax_mj,      med_tax_s
-  let :addl_med_tax_mj, fn(:max, [input.income - addl_threshold_mj, 0]) * addl_med_rate
-  let :fica_tax_mj, ss_tax_mj + med_tax_mj + addl_med_tax_mj
-  let :fica_eff_mj, fica_tax_mj / fn(:max, [input.income, 1.0])
-
-  let :total_tax_mj, fed_tax_mj + fica_tax_mj + state_tax + local_tax
-  let :total_eff_mj, total_tax_mj / fn(:max, [input.income, 1.0])
-  let :after_tax_mj, input.income - total_tax_mj
-  let :take_home_mj, after_tax_mj - input.retirement_contrib
-
-  # ——— MARRIED SEPARATE ———
-  let :taxable_ms, fn(:max, [input.income - input.fed.married_separate.std, 0])
-  let :lo_ms,   input.fed.married_separate.rates.bracket.lo
-  let :hi_ms,   input.fed.married_separate.rates.bracket.hi
-  let :rate_ms, input.fed.married_separate.rates.bracket.rate
-  let   :hi_ms_eff, select(hi_ms == -1, big_hi, hi_ms)
-  let   :amt_ms, fn(:clamp, taxable_ms - lo_ms, 0, hi_ms_eff - lo_ms)
-  let :fed_tax_ms, fn(:sum, amt_ms * rate_ms)
-  let :in_br_ms, (taxable_ms >= lo_ms) & (taxable_ms < hi_ms_eff)
-  let :fed_marginal_ms, fn(:sum_if, rate_ms, in_br_ms)
-  let :fed_eff_ms, fed_tax_ms / fn(:max, [input.income, 1.0])
-
-  let :ss_tax_ms,       ss_tax_s
-  let :med_tax_ms,      med_tax_s
-  let :addl_med_tax_ms, fn(:max, [input.income - addl_threshold_ms, 0]) * addl_med_rate
-  let :fica_tax_ms, ss_tax_ms + med_tax_ms + addl_med_tax_ms
-  let :fica_eff_ms, fica_tax_ms / fn(:max, [input.income, 1.0])
-
-  let :total_tax_ms, fed_tax_ms + fica_tax_ms + state_tax + local_tax
-  let :total_eff_ms, total_tax_ms / fn(:max, [input.income, 1.0])
-  let :after_tax_ms, input.income - total_tax_ms
-  let :take_home_ms, after_tax_ms - input.retirement_contrib
-
-  # ——— HEAD OF HOUSEHOLD ———
-  let :taxable_hoh, fn(:max, [input.income - input.fed.head_of_household.std, 0])
-  let :lo_h,   input.fed.head_of_household.rates.bracket.lo
-  let :hi_h,   input.fed.head_of_household.rates.bracket.hi
-  let :rate_h, input.fed.head_of_household.rates.bracket.rate
-  let   :hi_h_eff, select(hi_h == -1, big_hi, hi_h)
-  let   :amt_h, fn(:clamp, taxable_hoh - lo_h, 0, hi_h_eff - lo_h)
-  let :fed_tax_hoh, fn(:sum, amt_h * rate_h)
-  let :in_br_h, (taxable_hoh >= lo_h) & (taxable_hoh < hi_h_eff)
-  let :fed_marginal_hoh, fn(:sum_if, rate_h, in_br_h)
-  let :fed_eff_hoh, fed_tax_hoh / fn(:max, [input.income, 1.0])
-
-  let :ss_tax_h,       ss_tax_s
-  let :med_tax_h,      med_tax_s
-  let :addl_med_tax_h, fn(:max, [input.income - addl_threshold_hoh, 0]) * addl_med_rate
-  let :fica_tax_hoh, ss_tax_h + med_tax_h + addl_med_tax_h
-  let :fica_eff_hoh, fica_tax_hoh / fn(:max, [input.income, 1.0])
-
-  let :total_tax_hoh, fed_tax_hoh + fica_tax_hoh + state_tax + local_tax
-  let :total_eff_hoh, total_tax_hoh / fn(:max, [input.income, 1.0])
-  let :after_tax_hoh, input.income - total_tax_hoh
-  let :take_home_hoh, after_tax_hoh - input.retirement_contrib
-
+  # array of result objects, one per status
   value :summary, {
-    single: {
-      federal: { marginal: fed_marginal_single, effective: fed_eff_single, tax: fed_tax_single },
-      fica: { effective: fica_eff_single, tax: fica_tax_single },
-      state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
-      local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
-      total: { effective: total_eff_single, tax: total_tax_single },
-      after_tax: after_tax_single,
-      retirement_contrib: input.retirement_contrib,
-      take_home: take_home_single
-    },
-    married_joint: {
-      federal: { marginal: fed_marginal_mj, effective: fed_eff_mj, tax: fed_tax_mj },
-      fica: { effective: fica_eff_mj, tax: fica_tax_mj },
-      state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
-      local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
-      total: { effective: total_eff_mj, tax: total_tax_mj },
-      after_tax: after_tax_mj,
-      retirement_contrib: input.retirement_contrib,
-      take_home: take_home_mj
-    },
-    married_separate: {
-      federal: { marginal: fed_marginal_ms, effective: fed_eff_ms, tax: fed_tax_ms },
-      fica: { effective: fica_eff_ms, tax: fica_tax_ms },
-      state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
-      local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
-      total: { effective: total_eff_ms, tax: total_tax_ms },
-      after_tax: after_tax_ms,
-      retirement_contrib: input.retirement_contrib,
-      take_home: take_home_ms
-    },
-    head_of_household: {
-      federal: { marginal: fed_marginal_hoh, effective: fed_eff_hoh, tax: fed_tax_hoh },
-      fica: { effective: fica_eff_hoh, tax: fica_tax_hoh },
-      state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
-      local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
-      total: { effective: total_eff_hoh, tax: total_tax_hoh },
-      after_tax: after_tax_hoh,
-      retirement_contrib: input.retirement_contrib,
-      take_home: take_home_hoh
-    }
+    filing_status: input.statuses.status.name,
+    federal: { marginal: fed_marg, effective: fed_eff, tax: fed_tax },
+    fica: { effective: fica_eff, tax: fica_tax },
+    state: { marginal: input.state_rate, effective: input.state_rate, tax: state_tax },
+    local: { marginal: input.local_rate, effective: input.local_rate, tax: local_tax },
+    total: { effective: total_eff, tax: total_tax },
+    after_tax: after_tax,
+    retirement_contrib: input.retirement_contrib,
+    take_home: take_home
   }
 end
