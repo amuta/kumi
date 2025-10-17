@@ -7,18 +7,14 @@
 
 ---
 
-**Status**: experimental. Public API may change. Typing and some static checks are still evolving.
-
-**Feedback**: have a use case or a paper cut? Open an issue or reach out.
+**Declarative, typed, vectorized calculation DSL (Ruby-embedded) that builds a deterministic dependency graph.**  
+Normalized, typed **AST → IR → LIR**. Static checks and **constraint UNSAT** at compile time. Codegen is thin.
 
 ---
 
+**Status**: experimental. Public API may change. Typing and some static checks are still evolving.
 
-**Declarative calculation DSL for Ruby.** Write business rules once, run them anywhere.
-
-Kumi compiles high-level schemas into standalone Ruby and JavaScript with no runtime dependencies. Includes static analysis to catch typing errors and impossible constraints before runtime.
-
-**Built for:** finance, tax, pricing, insurance, payroll, analytics—domains where correctness and transparency matter.
+**Feedback**: have a use case or a paper cut? Open an issue or reach out.
 
 ---
 
