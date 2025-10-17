@@ -4,7 +4,12 @@ require "spec_helper"
 
 RSpec.describe Kumi::Core::Analyzer::Passes::FormalConstraintPropagator do
   let(:registry) { Kumi::Core::Functions::Loader.load_minimal_functions }
-  let(:schema) { build_schema { input { integer :x }; value :result, input.x } }
+  let(:schema) do
+    build_schema do
+      input { integer :x }
+      value :result, input.x
+    end
+  end
   let(:state) do
     {
       declarations: {},
@@ -18,7 +23,6 @@ RSpec.describe Kumi::Core::Analyzer::Passes::FormalConstraintPropagator do
     it "propagates exact equality through pass-through" do
       # When result is just assigned the input directly
       constraint = { variable: :x, op: :==, value: 10 }
-      propagator = described_class.new(schema, state)
       # For identity (no operation), constraint remains the same
       result = constraint
 
