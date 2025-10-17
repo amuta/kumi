@@ -34,14 +34,14 @@ export function _avg_headcount_per_dept(input) {
   t19.forEach((departments_el_20, departments_i_21) => {
     let acc36 = 0;
     let t37 = departments_el_20["teams"];
-    let acc42 = 0;
-    t37.forEach((teams_el_6, teams_i_7) => {
-      let t38 = teams_el_6["headcount"];
-      acc36 += t38;
-      let t44 = teams_el_6["team_name"];
-      acc42 += 1;
+    let acc44 = 0;
+    t37.forEach((t38, t39) => {
+      let t40 = t38["headcount"];
+      acc36 += t40;
+      let t48 = t38["team_name"];
+      acc44 += 1;
     });
-    let t24 = acc36 / acc42;
+    let t24 = acc36 / acc44;
     out.push(t24);
   });
   return out;
@@ -53,18 +53,18 @@ export function _is_above_average_team(input) {
   t25.forEach((departments_el_26, departments_i_27) => {
     let out_1 = [];
     let t28 = departments_el_26["teams"];
-    let acc52 = 0;
-    let acc58 = 0;
-    t28.forEach((teams_el_6, teams_i_7) => {
-      let t54 = teams_el_6["headcount"];
-      acc52 += t54;
-      let t60 = teams_el_6["team_name"];
-      acc58 += 1;
+    let acc56 = 0;
+    let acc64 = 0;
+    t28.forEach((t58, t59) => {
+      let t60 = t58["headcount"];
+      acc56 += t60;
+      let t68 = t58["team_name"];
+      acc64 += 1;
     });
-    let t49 = acc52 / acc58;
+    let t53 = acc56 / acc64;
     t28.forEach((teams_el_29, teams_i_30) => {
       let t31 = teams_el_29["headcount"];
-      let t33 = t31 > t49;
+      let t33 = t31 > t53;
       out_1.push(t33);
     });
     out.push(out_1);

@@ -39,15 +39,15 @@ export function _row_scale2(input) {
 export function _elem_affine(input) {
   let out = [];
   let t19 = input["batch"];
-  let t81 = input["global_offset"];
-  const t82 = 1.0;
+  let t66 = input["global_offset"];
+  const t67 = 1.0;
+  let t68 = t66 + t67;
   const t60 = 2.0;
-  let t83 = t81 + t82;
   t19.forEach((batch_el_20, batch_i_21) => {
     let out_1 = [];
     let t22 = batch_el_20["row"];
     let t64 = batch_el_20["mean"];
-    let t65 = t64 + t83;
+    let t65 = t64 + t68;
     t22.forEach((row_el_23, row_i_24) => {
       let out_2 = [];
       let t25 = row_el_23["col"];
@@ -69,25 +69,25 @@ export function _elem_affine(input) {
 export function _row_sum_affine(input) {
   let out = [];
   let t33 = input["batch"];
-  const t87 = 2.0;
-  let t90 = input["global_offset"];
-  const t91 = 1.0;
-  let t92 = t90 + t91;
+  let t86 = input["global_offset"];
+  const t87 = 1.0;
+  let t88 = t86 + t87;
+  const t80 = 2.0;
   t33.forEach((batch_el_34, batch_i_35) => {
     let out_1 = [];
     let t36 = batch_el_34["row"];
-    let t93 = batch_el_34["mean"];
-    let t94 = t93 + t92;
+    let t84 = batch_el_34["mean"];
+    let t85 = t84 + t88;
     t36.forEach((row_el_37, row_i_38) => {
       let acc_39 = 0.0;
       let t40 = row_el_37["col"];
-      let t86 = row_el_37["scale"];
-      let t88 = t86 * t87;
+      let t79 = row_el_37["scale"];
+      let t81 = t79 * t80;
       t40.forEach((col_el_41, col_i_42) => {
-        let t69 = col_el_41["val"];
-        let t71 = t69 * t88;
-        let t73 = t71 + t94;
-        acc_39 += t73;
+        let t72 = col_el_41["val"];
+        let t74 = t72 * t81;
+        let t76 = t74 + t85;
+        acc_39 += t76;
       });
       out_1.push(acc_39);
     });
@@ -99,27 +99,27 @@ export function _row_sum_affine(input) {
 export function _batch_total_affine(input) {
   let out = [];
   let t45 = input["batch"];
-  let t110 = input["global_offset"];
-  const t111 = 1.0;
-  const t101 = 2.0;
-  let t112 = t110 + t111;
+  let t115 = input["global_offset"];
+  const t116 = 1.0;
+  let t117 = t115 + t116;
+  const t109 = 2.0;
   t45.forEach((batch_el_46, batch_i_47) => {
     let acc_48 = 0.0;
     let t49 = batch_el_46["row"];
-    let t105 = batch_el_46["mean"];
-    let t106 = t105 + t112;
+    let t113 = batch_el_46["mean"];
+    let t114 = t113 + t117;
     t49.forEach((row_el_50, row_i_51) => {
-      let acc77 = 0.0;
-      let t78 = row_el_50["col"];
-      let t100 = row_el_50["scale"];
-      let t102 = t100 * t101;
-      t78.forEach((col_el_41, col_i_42) => {
-        let t107 = col_el_41["val"];
-        let t108 = t107 * t102;
-        let t109 = t108 + t106;
-        acc77 += t109;
+      let acc92 = 0.0;
+      let t93 = row_el_50["col"];
+      let t108 = row_el_50["scale"];
+      let t110 = t108 * t109;
+      t93.forEach((t94, t95) => {
+        let t101 = t94["val"];
+        let t103 = t101 * t110;
+        let t105 = t103 + t114;
+        acc92 += t105;
       });
-      acc_48 += acc77;
+      acc_48 += acc92;
     });
     out.push(acc_48);
   });

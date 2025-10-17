@@ -27,13 +27,13 @@ export function _selected_value(input) {
 export function _final_value_per_point(input) {
   let out = [];
   let t14 = input["points"];
-  const t43 = 100;
+  const t38 = 100;
   t14.forEach((points_el_15, points_i_16) => {
-    let t42 = points_el_15["x"];
+    let t37 = points_el_15["x"];
     let t34 = points_el_15["y"];
-    let t44 = t42 > t43;
-    let t35 = t44 ? t42 : t34;
-    let t19 = [t35, t42];
+    let t39 = t37 > t38;
+    let t35 = t39 ? t37 : t34;
+    let t19 = [t35, t37];
     let t20 = Math.max(...t19);
     out.push(t20);
   });
@@ -43,15 +43,15 @@ export function _final_value_per_point(input) {
 export function _grand_total(input) {
   let acc_21 = 0;
   let t22 = input["points"];
-  const t48 = 100;
+  const t52 = 100;
   t22.forEach((points_el_23, points_i_24) => {
-    let t47 = points_el_23["x"];
-    let t51 = points_el_23["y"];
-    let t49 = t47 > t48;
-    let t52 = t49 ? t47 : t51;
-    let t39 = [t52, t47];
-    let t40 = Math.max(...t39);
-    acc_21 += t40;
+    let t51 = points_el_23["x"];
+    let t48 = points_el_23["y"];
+    let t53 = t51 > t52;
+    let t49 = t53 ? t51 : t48;
+    let t43 = [t49, t51];
+    let t44 = Math.max(...t43);
+    acc_21 += t44;
   });
   return acc_21;
 }

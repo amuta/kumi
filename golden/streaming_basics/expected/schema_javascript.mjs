@@ -67,10 +67,10 @@ export function _cart_total(input) {
   let acc_36 = 0.0;
   let t37 = input["items"];
   t37.forEach((items_el_38, items_i_39) => {
-    let t57 = items_el_38["price"];
-    let t58 = items_el_38["qty"];
-    let t59 = t57 * t58;
-    acc_36 += t59;
+    let t61 = items_el_38["price"];
+    let t62 = items_el_38["qty"];
+    let t63 = t61 * t62;
+    acc_36 += t63;
   });
   return acc_36;
 }
@@ -78,16 +78,16 @@ export function _cart_total(input) {
 export function _cart_total_effective(input) {
   let acc_42 = 0.0;
   let t43 = input["items"];
-  const t69 = 100.0;
-  const t63 = 0.9;
+  const t73 = 100.0;
+  const t67 = 0.9;
   t43.forEach((items_el_44, items_i_45) => {
-    let t68 = items_el_44["price"];
-    let t73 = items_el_44["qty"];
-    let t70 = t68 > t69;
-    let t74 = t68 * t73;
-    let t64 = t74 * t63;
-    let t66 = t70 ? t64 : t74;
-    acc_42 += t66;
+    let t72 = items_el_44["price"];
+    let t77 = items_el_44["qty"];
+    let t74 = t72 > t73;
+    let t78 = t72 * t77;
+    let t68 = t78 * t67;
+    let t70 = t74 ? t68 : t78;
+    acc_42 += t70;
   });
   return acc_42;
 }

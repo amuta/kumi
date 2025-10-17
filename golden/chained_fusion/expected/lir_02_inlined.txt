@@ -68,46 +68,46 @@
       %t56 = load_input "departments" :: array
       %acc58 = decl_acc :: integer
       %t59 = load_field departments_el_48["employees"] :: any
-      loop employees id=L10 in %t59 as el=%employees_el_6, idx=%employees_i_7
-        %t60 = load_field employees_el_6["salary"] :: integer
-        %acc58 = acc_add agg.sum(%acc58, %t60) :: integer
+      loop employees id=L10 in %t59 as el=%t60, idx=%t61
+        %t62 = load_field t60["salary"] :: integer
+        %acc58 = acc_add agg.sum(%acc58, %t62) :: integer
       end_loop
-      %t61 = acc_load %acc58 :: integer
-      %t62 = load_input "departments" :: array
-      %acc64 = decl_acc :: integer
-      %t65 = load_field departments_el_48["employees"] :: any
-      loop employees id=L11 in %t65 as el=%employees_el_15, idx=%employees_i_16
-        %t66 = load_field employees_el_15["role"] :: string
-        %t67 = const "manager" :: string
-        %t68 = call core.eq(%t66, %t67) :: boolean
-        %t69 = const 1 :: integer
-        %t70 = const 0 :: integer
-        %t71 = select %t68, %t69, %t70 :: integer
-        %acc64 = acc_add agg.sum(%acc64, %t71) :: integer
+      %t63 = acc_load %acc58 :: integer
+      %t64 = load_input "departments" :: array
+      %acc66 = decl_acc :: integer
+      %t67 = load_field departments_el_48["employees"] :: any
+      loop employees id=L11 in %t67 as el=%t68, idx=%t69
+        %t70 = load_field t68["role"] :: string
+        %t71 = const "manager" :: string
+        %t72 = call core.eq(%t70, %t71) :: boolean
+        %t73 = const 1 :: integer
+        %t74 = const 0 :: integer
+        %t75 = select %t72, %t73, %t74 :: integer
+        %acc66 = acc_add agg.sum(%acc66, %t75) :: integer
       end_loop
-      %t72 = acc_load %acc64 :: integer
-      %t73 = load_input "departments" :: array
-      %acc75 = decl_acc :: integer
-      %t76 = load_field departments_el_48["employees"] :: any
-      loop employees id=L12 in %t76 as el=%employees_el_29, idx=%employees_i_30
-        %t77 = load_field employees_el_29["role"] :: string
-        %t78 = const "senior" :: string
-        %t79 = call core.eq(%t77, %t78) :: boolean
-        %t80 = const 1 :: integer
-        %t81 = const 0 :: integer
-        %t82 = select %t79, %t80, %t81 :: integer
-        %acc75 = acc_add agg.sum(%acc75, %t82) :: integer
+      %t76 = acc_load %acc66 :: integer
+      %t77 = load_input "departments" :: array
+      %acc79 = decl_acc :: integer
+      %t80 = load_field departments_el_48["employees"] :: any
+      loop employees id=L12 in %t80 as el=%t81, idx=%t82
+        %t83 = load_field t81["role"] :: string
+        %t84 = const "senior" :: string
+        %t85 = call core.eq(%t83, %t84) :: boolean
+        %t86 = const 1 :: integer
+        %t87 = const 0 :: integer
+        %t88 = select %t85, %t86, %t87 :: integer
+        %acc79 = acc_add agg.sum(%acc79, %t88) :: integer
       end_loop
-      %t83 = acc_load %acc75 :: integer
-      %t84 = load_input "departments" :: array
-      %acc86 = decl_acc :: integer
-      %t87 = load_field departments_el_48["employees"] :: any
-      loop employees id=L13 in %t87 as el=%employees_el_43, idx=%employees_i_44
-        %t88 = load_field employees_el_43["salary"] :: integer
-        %acc86 = acc_add agg.max(%acc86, %t88) :: integer
+      %t89 = acc_load %acc79 :: integer
+      %t90 = load_input "departments" :: array
+      %acc92 = decl_acc :: integer
+      %t93 = load_field departments_el_48["employees"] :: any
+      loop employees id=L13 in %t93 as el=%t94, idx=%t95
+        %t96 = load_field t94["salary"] :: integer
+        %acc92 = acc_add agg.max(%acc92, %t96) :: integer
       end_loop
-      %t89 = acc_load %acc86 :: integer
-      %t55 = make_object{name: %t50, total_payroll: %t61, manager_count: %t72, senior_count: %t83, top_salary: %t89} :: object
+      %t97 = acc_load %acc92 :: integer
+      %t55 = make_object{name: %t50, total_payroll: %t63, manager_count: %t76, senior_count: %t89, top_salary: %t97} :: object
       yield %t55
     end_loop
   )

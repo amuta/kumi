@@ -28,9 +28,9 @@ export function _mixed_array(input) {
   let t16 = input["matrix"];
   let acc28 = 0;
   let t29 = input["numbers"];
-  t29.forEach((numbers_el_3, numbers_i_4) => {
-    let t30 = numbers_el_3["value"];
-    acc28 += t30;
+  t29.forEach((t30, t31) => {
+    let t32 = t30["value"];
+    acc28 += t32;
   });
   let t22 = input["scalar_val"];
   t16.forEach((matrix_el_17, matrix_i_18) => {

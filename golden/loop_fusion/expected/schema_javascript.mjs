@@ -36,26 +36,26 @@ export function _manager_count(input) {
 export function _department_summary(input) {
   let out = [];
   let t24 = input["departments"];
-  const t42 = "manager";
-  const t44 = 1;
-  const t45 = 0;
+  const t46 = "manager";
+  const t48 = 1;
+  const t49 = 0;
   t24.forEach((departments_el_25, departments_i_26) => {
     let t27 = departments_el_25["name"];
     let acc33 = 0;
     let t34 = departments_el_25["employees"];
-    let acc39 = 0;
-    t34.forEach((employees_el_6, employees_i_7) => {
-      let t35 = employees_el_6["salary"];
-      acc33 += t35;
-      let t41 = employees_el_6["role"];
-      let t43 = t41 == t42;
-      let t46 = t43 ? t44 : t45;
-      acc39 += t46;
+    let acc41 = 0;
+    t34.forEach((t35, t36) => {
+      let t37 = t35["salary"];
+      acc33 += t37;
+      let t45 = t35["role"];
+      let t47 = t45 == t46;
+      let t50 = t47 ? t48 : t49;
+      acc41 += t50;
     });
     let t30 = {
       "name": t27,
       "total_payroll": acc33,
-      "manager_count": acc39
+      "manager_count": acc41
     };
     out.push(t30);
   });

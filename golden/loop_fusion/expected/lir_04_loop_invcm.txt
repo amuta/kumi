@@ -32,25 +32,25 @@
   )
   (Declaration department_summary
     %t24 = load_input "departments" :: array
-    %t42 = const "manager" :: string
-    %t44 = const 1 :: integer
-    %t45 = const 0 :: integer
+    %t46 = const "manager" :: string
+    %t48 = const 1 :: integer
+    %t49 = const 0 :: integer
     loop departments id=L5 in %t24 as el=%departments_el_25, idx=%departments_i_26
       %t27 = load_field departments_el_25["name"] :: string
       %acc33 = decl_acc :: integer
       %t34 = load_field departments_el_25["employees"] :: any
-      %acc39 = decl_acc :: integer
-      loop employees id=L6 in %t34 as el=%employees_el_6, idx=%employees_i_7
-        %t35 = load_field employees_el_6["salary"] :: integer
-        %acc33 = acc_add agg.sum(%acc33, %t35) :: integer
-        %t41 = load_field employees_el_6["role"] :: string
-        %t43 = call core.eq(%t41, %t42) :: boolean
-        %t46 = select %t43, %t44, %t45 :: integer
-        %acc39 = acc_add agg.sum(%acc39, %t46) :: integer
+      %acc41 = decl_acc :: integer
+      loop employees id=L6 in %t34 as el=%t35, idx=%t36
+        %t37 = load_field t35["salary"] :: integer
+        %acc33 = acc_add agg.sum(%acc33, %t37) :: integer
+        %t45 = load_field t35["role"] :: string
+        %t47 = call core.eq(%t45, %t46) :: boolean
+        %t50 = select %t47, %t48, %t49 :: integer
+        %acc41 = acc_add agg.sum(%acc41, %t50) :: integer
       end_loop
-      %t36 = acc_load %acc33 :: integer
-      %t47 = acc_load %acc39 :: integer
-      %t30 = make_object{name: %t27, total_payroll: %t36, manager_count: %t47} :: object
+      %t38 = acc_load %acc33 :: integer
+      %t51 = acc_load %acc41 :: integer
+      %t30 = make_object{name: %t27, total_payroll: %t38, manager_count: %t51} :: object
       yield %t30
     end_loop
   )

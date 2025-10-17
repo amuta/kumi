@@ -22,12 +22,12 @@
   (Declaration final_value_per_point
     %t14 = load_input "points" :: array
     loop points id=L3 in %t14 as el=%points_el_15, idx=%points_i_16
-      %t42 = load_field points_el_15["x"] :: integer
-      %t43 = const 100 :: integer
+      %t37 = load_field points_el_15["x"] :: integer
+      %t38 = const 100 :: integer
       %t34 = load_field points_el_15["y"] :: integer
-      %t44 = call core.gt(%t42, %t43) :: boolean
-      %t35 = select %t44, %t42, %t34 :: integer
-      %t19 = make_tuple(%t35, %t42) :: tuple<integer>
+      %t39 = call core.gt(%t37, %t38) :: boolean
+      %t35 = select %t39, %t37, %t34 :: integer
+      %t19 = make_tuple(%t35, %t37) :: tuple<integer>
       %t20 = fold %t19 fn="agg.max" :: integer
       yield %t20
     end_loop
@@ -36,14 +36,14 @@
     %acc_21 = decl_acc :: integer
     %t22 = load_input "points" :: array
     loop points id=L4 in %t22 as el=%points_el_23, idx=%points_i_24
-      %t47 = load_field points_el_23["x"] :: integer
-      %t48 = const 100 :: integer
-      %t51 = load_field points_el_23["y"] :: integer
-      %t49 = call core.gt(%t47, %t48) :: boolean
-      %t52 = select %t49, %t47, %t51 :: integer
-      %t39 = make_tuple(%t52, %t47) :: tuple<integer>
-      %t40 = fold %t39 fn="agg.max" :: integer
-      %acc_21 = acc_add agg.sum(%acc_21, %t40) :: integer
+      %t51 = load_field points_el_23["x"] :: integer
+      %t52 = const 100 :: integer
+      %t48 = load_field points_el_23["y"] :: integer
+      %t53 = call core.gt(%t51, %t52) :: boolean
+      %t49 = select %t53, %t51, %t48 :: integer
+      %t43 = make_tuple(%t49, %t51) :: tuple<integer>
+      %t44 = fold %t43 fn="agg.max" :: integer
+      %acc_21 = acc_add agg.sum(%acc_21, %t44) :: integer
     end_loop
     %t26 = acc_load %acc_21 :: integer
     yield %t26

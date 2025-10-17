@@ -20,9 +20,9 @@ export function _payroll_tax(input) {
   t10.forEach((departments_el_11, departments_i_12) => {
     let acc40 = 0;
     let t41 = departments_el_11["employees"];
-    t41.forEach((employees_el_6, employees_i_7) => {
-      let t42 = employees_el_6["salary"];
-      acc40 += t42;
+    t41.forEach((t42, t43) => {
+      let t44 = t42["salary"];
+      acc40 += t44;
     });
     let t15 = acc40 * t14;
     out.push(t15);
@@ -53,31 +53,31 @@ export function _manager_count(input) {
 export function _department_summary(input) {
   let out = [];
   let t30 = input["departments"];
-  const t52 = 0.15;
-  const t59 = "manager";
-  const t61 = 1;
-  const t62 = 0;
+  const t56 = 0.15;
+  const t73 = "manager";
+  const t75 = 1;
+  const t76 = 0;
   t30.forEach((departments_el_31, departments_i_32) => {
     let t33 = departments_el_31["name"];
-    let acc46 = 0;
-    let t47 = departments_el_31["employees"];
-    let acc67 = 0;
-    let acc56 = 0;
-    t47.forEach((employees_el_6, employees_i_7) => {
-      let t48 = employees_el_6["salary"];
-      acc46 += t48;
-      let t58 = employees_el_6["role"];
-      let t60 = t58 == t59;
-      let t63 = t60 ? t61 : t62;
-      acc56 += t63;
-      acc67 += t48;
+    let acc48 = 0;
+    let t49 = departments_el_31["employees"];
+    let acc60 = 0;
+    let acc68 = 0;
+    t49.forEach((t50, t51) => {
+      let t52 = t50["salary"];
+      acc48 += t52;
+      acc60 += t52;
+      let t72 = t50["role"];
+      let t74 = t72 == t73;
+      let t77 = t74 ? t75 : t76;
+      acc68 += t77;
     });
-    let t53 = acc67 * t52;
+    let t57 = acc60 * t56;
     let t37 = {
       "name": t33,
-      "payroll": acc46,
-      "tax": t53,
-      "managers": acc56
+      "payroll": acc48,
+      "tax": t57,
+      "managers": acc68
     };
     out.push(t37);
   });

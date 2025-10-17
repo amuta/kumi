@@ -75,39 +75,39 @@ export function _max_salary(input) {
 export function _department_summary(input) {
   let out = [];
   let t47 = input["departments"];
-  const t67 = "manager";
-  const t69 = 1;
-  const t70 = 0;
-  const t78 = "senior";
+  const t71 = "manager";
+  const t73 = 1;
+  const t74 = 0;
+  const t84 = "senior";
   t47.forEach((departments_el_48, departments_i_49) => {
     let t50 = departments_el_48["name"];
     let acc58 = 0;
     let t59 = departments_el_48["employees"];
-    let acc64 = 0;
-    let acc75 = 0;
-    let acc86 = null;
-    t59.forEach((employees_el_6, employees_i_7) => {
-      let t60 = employees_el_6["salary"];
-      acc58 += t60;
-      let t66 = employees_el_6["role"];
-      let t68 = t66 == t67;
-      let t71 = t68 ? t69 : t70;
-      acc64 += t71;
-      if (acc86 === null || acc86 === undefined) {
-        acc86 = t60;
+    let acc66 = 0;
+    let acc79 = 0;
+    let acc92 = null;
+    t59.forEach((t60, t61) => {
+      let t62 = t60["salary"];
+      acc58 += t62;
+      let t70 = t60["role"];
+      let t72 = t70 == t71;
+      let t75 = t72 ? t73 : t74;
+      acc66 += t75;
+      if (acc92 === null || acc92 === undefined) {
+        acc92 = t62;
       } else {
-        acc86 = (acc86 === null || t60 > acc86) ? t60 : acc86;
+        acc92 = (acc92 === null || t62 > acc92) ? t62 : acc92;
       }
-      let t79 = t66 == t78;
-      let t82 = t79 ? t69 : t70;
-      acc75 += t82;
+      let t85 = t70 == t84;
+      let t88 = t85 ? t73 : t74;
+      acc79 += t88;
     });
     let t55 = {
       "name": t50,
       "total_payroll": acc58,
-      "manager_count": acc64,
-      "senior_count": acc75,
-      "top_salary": acc86
+      "manager_count": acc66,
+      "senior_count": acc79,
+      "top_salary": acc92
     };
     out.push(t55);
   });

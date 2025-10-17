@@ -18,32 +18,32 @@
     loop regions id=L3 in %t11 as el=%regions_el_12, idx=%regions_i_13
       %acc21 = decl_acc :: integer
       %t22 = load_field regions_el_12["sales"] :: any
-      loop sales id=L4 in %t22 as el=%sales_el_6, idx=%sales_i_7
-        %t23 = load_field sales_el_6["amount"] :: integer
-        %acc21 = acc_add agg.sum(%acc21, %t23) :: integer
+      loop sales id=L4 in %t22 as el=%t23, idx=%t24
+        %t25 = load_field t23["amount"] :: integer
+        %acc21 = acc_add agg.sum(%acc21, %t25) :: integer
       end_loop
-      %t24 = acc_load %acc21 :: integer
-      %acc_10 = acc_add agg.sum(%acc_10, %t24) :: integer
+      %t26 = acc_load %acc21 :: integer
+      %acc_10 = acc_add agg.sum(%acc_10, %t26) :: integer
     end_loop
     %t15 = acc_load %acc_10 :: integer
     yield %t15
   )
   (Declaration adjusted_total
-    %acc26 = decl_acc :: integer
-    %t27 = load_input "regions" :: array
-    loop regions id=L5 in %t27 as el=%regions_el_12, idx=%regions_i_13
-      %acc32 = decl_acc :: integer
-      %t33 = load_field regions_el_12["sales"] :: any
-      loop sales id=L6 in %t33 as el=%sales_el_6, idx=%sales_i_7
-        %t34 = load_field sales_el_6["amount"] :: integer
-        %acc32 = acc_add agg.sum(%acc32, %t34) :: integer
+    %acc28 = decl_acc :: integer
+    %t29 = load_input "regions" :: array
+    loop regions id=L5 in %t29 as el=%t30, idx=%t31
+      %acc36 = decl_acc :: integer
+      %t37 = load_field t30["sales"] :: any
+      loop sales id=L6 in %t37 as el=%t38, idx=%t39
+        %t40 = load_field t38["amount"] :: integer
+        %acc36 = acc_add agg.sum(%acc36, %t40) :: integer
       end_loop
-      %t35 = acc_load %acc32 :: integer
-      %acc26 = acc_add agg.sum(%acc26, %t35) :: integer
+      %t41 = acc_load %acc36 :: integer
+      %acc28 = acc_add agg.sum(%acc28, %t41) :: integer
     end_loop
-    %t29 = acc_load %acc26 :: integer
+    %t33 = acc_load %acc28 :: integer
     %t17 = load_input "adjustment" :: integer
-    %t18 = call core.add(%t29, %t17) :: integer
+    %t18 = call core.add(%t33, %t17) :: integer
     yield %t18
   )
 )

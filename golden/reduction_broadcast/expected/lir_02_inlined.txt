@@ -31,20 +31,20 @@
       %t34 = load_input "departments" :: array
       %acc36 = decl_acc :: integer
       %t37 = load_field departments_el_20["teams"] :: any
-      loop teams id=L8 in %t37 as el=%teams_el_6, idx=%teams_i_7
-        %t38 = load_field teams_el_6["headcount"] :: integer
-        %acc36 = acc_add agg.sum(%acc36, %t38) :: integer
+      loop teams id=L8 in %t37 as el=%t38, idx=%t39
+        %t40 = load_field t38["headcount"] :: integer
+        %acc36 = acc_add agg.sum(%acc36, %t40) :: integer
       end_loop
-      %t39 = acc_load %acc36 :: integer
-      %t40 = load_input "departments" :: array
-      %acc42 = decl_acc :: integer
-      %t43 = load_field departments_el_20["teams"] :: any
-      loop teams id=L9 in %t43 as el=%teams_el_15, idx=%teams_i_16
-        %t44 = load_field teams_el_15["team_name"] :: string
-        %acc42 = acc_add agg.count(%acc42, %t44) :: integer
+      %t41 = acc_load %acc36 :: integer
+      %t42 = load_input "departments" :: array
+      %acc44 = decl_acc :: integer
+      %t45 = load_field departments_el_20["teams"] :: any
+      loop teams id=L9 in %t45 as el=%t46, idx=%t47
+        %t48 = load_field t46["team_name"] :: string
+        %acc44 = acc_add agg.count(%acc44, %t48) :: integer
       end_loop
-      %t45 = acc_load %acc42 :: integer
-      %t24 = call core.div(%t39, %t45) :: float
+      %t49 = acc_load %acc44 :: integer
+      %t24 = call core.div(%t41, %t49) :: float
       yield %t24
     end_loop
   )
@@ -52,27 +52,27 @@
     %t25 = load_input "departments" :: array
     loop departments id=L6 in %t25 as el=%departments_el_26, idx=%departments_i_27
       %t28 = load_field departments_el_26["teams"] :: any
-      %t46 = load_input "departments" :: array
+      %t54 = load_input "departments" :: array
+      %acc56 = decl_acc :: integer
+      %t57 = load_field departments_el_26["teams"] :: any
+      loop teams id=L10 in %t57 as el=%t58, idx=%t59
+        %t60 = load_field t58["headcount"] :: integer
+        %acc56 = acc_add agg.sum(%acc56, %t60) :: integer
+      end_loop
+      %t61 = acc_load %acc56 :: integer
+      %t62 = load_input "departments" :: array
+      %acc64 = decl_acc :: integer
+      %t65 = load_field departments_el_26["teams"] :: any
+      loop teams id=L11 in %t65 as el=%t66, idx=%t67
+        %t68 = load_field t66["team_name"] :: string
+        %acc64 = acc_add agg.count(%acc64, %t68) :: integer
+      end_loop
+      %t69 = acc_load %acc64 :: integer
       %t50 = load_input "departments" :: array
-      %acc52 = decl_acc :: integer
-      %t53 = load_field departments_el_26["teams"] :: any
-      loop teams id=L10 in %t53 as el=%teams_el_6, idx=%teams_i_7
-        %t54 = load_field teams_el_6["headcount"] :: integer
-        %acc52 = acc_add agg.sum(%acc52, %t54) :: integer
-      end_loop
-      %t55 = acc_load %acc52 :: integer
-      %t56 = load_input "departments" :: array
-      %acc58 = decl_acc :: integer
-      %t59 = load_field departments_el_26["teams"] :: any
-      loop teams id=L11 in %t59 as el=%teams_el_15, idx=%teams_i_16
-        %t60 = load_field teams_el_15["team_name"] :: string
-        %acc58 = acc_add agg.count(%acc58, %t60) :: integer
-      end_loop
-      %t61 = acc_load %acc58 :: integer
-      %t49 = call core.div(%t55, %t61) :: float
+      %t53 = call core.div(%t61, %t69) :: float
       loop teams id=L7 in %t28 as el=%teams_el_29, idx=%teams_i_30
         %t31 = load_field teams_el_29["headcount"] :: integer
-        %t33 = call core.gt(%t31, %t49) :: boolean
+        %t33 = call core.gt(%t31, %t53) :: boolean
         yield %t33
       end_loop
     end_loop

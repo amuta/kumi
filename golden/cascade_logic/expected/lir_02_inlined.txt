@@ -20,17 +20,17 @@
     %t24 = call core.gt(%t22, %t23) :: boolean
     %t9 = call core.and(%t21, %t24) :: boolean
     %t10 = const "both positive" :: string
-    %t22 = load_input "x" :: integer
-    %t23 = const 0 :: integer
-    %t24 = call core.gt(%t22, %t23) :: boolean
+    %t25 = load_input "x" :: integer
+    %t26 = const 0 :: integer
+    %t27 = call core.gt(%t25, %t26) :: boolean
     %t12 = const "x positive" :: string
-    %t19 = load_input "y" :: integer
-    %t20 = const 0 :: integer
-    %t21 = call core.gt(%t19, %t20) :: boolean
+    %t28 = load_input "y" :: integer
+    %t29 = const 0 :: integer
+    %t30 = call core.gt(%t28, %t29) :: boolean
     %t14 = const "y positive" :: string
     %t15 = const "neither positive" :: string
-    %t16 = select %t21, %t14, %t15 :: string
-    %t17 = select %t24, %t12, %t16 :: string
+    %t16 = select %t30, %t14, %t15 :: string
+    %t17 = select %t27, %t12, %t16 :: string
     %t18 = select %t9, %t10, %t17 :: string
     yield %t18
   )

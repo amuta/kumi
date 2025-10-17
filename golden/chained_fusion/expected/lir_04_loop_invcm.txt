@@ -63,34 +63,34 @@
   )
   (Declaration department_summary
     %t47 = load_input "departments" :: array
-    %t67 = const "manager" :: string
-    %t69 = const 1 :: integer
-    %t70 = const 0 :: integer
-    %t78 = const "senior" :: string
+    %t71 = const "manager" :: string
+    %t73 = const 1 :: integer
+    %t74 = const 0 :: integer
+    %t84 = const "senior" :: string
     loop departments id=L9 in %t47 as el=%departments_el_48, idx=%departments_i_49
       %t50 = load_field departments_el_48["name"] :: string
       %acc58 = decl_acc :: integer
       %t59 = load_field departments_el_48["employees"] :: any
-      %acc64 = decl_acc :: integer
-      %acc75 = decl_acc :: integer
-      %acc86 = decl_acc :: integer
-      loop employees id=L10 in %t59 as el=%employees_el_6, idx=%employees_i_7
-        %t60 = load_field employees_el_6["salary"] :: integer
-        %acc58 = acc_add agg.sum(%acc58, %t60) :: integer
-        %t66 = load_field employees_el_6["role"] :: string
-        %t68 = call core.eq(%t66, %t67) :: boolean
-        %t71 = select %t68, %t69, %t70 :: integer
-        %acc64 = acc_add agg.sum(%acc64, %t71) :: integer
-        %acc86 = acc_add agg.max(%acc86, %t60) :: integer
-        %t79 = call core.eq(%t66, %t78) :: boolean
-        %t82 = select %t79, %t69, %t70 :: integer
-        %acc75 = acc_add agg.sum(%acc75, %t82) :: integer
+      %acc66 = decl_acc :: integer
+      %acc79 = decl_acc :: integer
+      %acc92 = decl_acc :: integer
+      loop employees id=L10 in %t59 as el=%t60, idx=%t61
+        %t62 = load_field t60["salary"] :: integer
+        %acc58 = acc_add agg.sum(%acc58, %t62) :: integer
+        %t70 = load_field t60["role"] :: string
+        %t72 = call core.eq(%t70, %t71) :: boolean
+        %t75 = select %t72, %t73, %t74 :: integer
+        %acc66 = acc_add agg.sum(%acc66, %t75) :: integer
+        %acc92 = acc_add agg.max(%acc92, %t62) :: integer
+        %t85 = call core.eq(%t70, %t84) :: boolean
+        %t88 = select %t85, %t73, %t74 :: integer
+        %acc79 = acc_add agg.sum(%acc79, %t88) :: integer
       end_loop
-      %t61 = acc_load %acc58 :: integer
-      %t72 = acc_load %acc64 :: integer
-      %t89 = acc_load %acc86 :: integer
-      %t83 = acc_load %acc75 :: integer
-      %t55 = make_object{name: %t50, total_payroll: %t61, manager_count: %t72, senior_count: %t83, top_salary: %t89} :: object
+      %t63 = acc_load %acc58 :: integer
+      %t76 = acc_load %acc66 :: integer
+      %t97 = acc_load %acc92 :: integer
+      %t89 = acc_load %acc79 :: integer
+      %t55 = make_object{name: %t50, total_payroll: %t63, manager_count: %t76, senior_count: %t89, top_salary: %t97} :: object
       yield %t55
     end_loop
   )
