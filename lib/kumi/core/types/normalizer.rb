@@ -52,37 +52,6 @@ module Kumi
             end
           end
         end
-
-        # Legacy compatibility - coerce old constants to Type objects
-        def self.coerce(type_input)
-          # Handle legacy constant usage
-          if type_input.is_a?(Symbol) && Validator.valid_kind?(type_input)
-            return Kumi::Core::Types.scalar(type_input)
-          end
-
-          # Handle Type objects
-          if type_input.is_a?(Type)
-            return type_input
-          end
-
-          # Handle legacy constant objects
-          kind = case type_input
-                 when STRING then :string
-                 when INT then :integer
-                 when FLOAT, NUMERIC then :float # Both FLOAT and NUMERIC map to :float
-                 when BOOL then :boolean
-                 when ANY then :any
-                 when SYMBOL then :symbol
-                 when REGEXP then :regexp
-                 when TIME then :time
-                 when DATE then :date
-                 when DATETIME then :datetime
-                 else
-                   # Fall through to normalize
-                   return normalize(type_input)
-                 end
-          Kumi::Core::Types.scalar(kind)
-        end
       end
     end
   end

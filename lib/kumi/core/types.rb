@@ -13,15 +13,11 @@ module Kumi
       end
 
       def self.tuple?(dtype)
-        return dtype.is_a?(TupleType) if dtype.is_a?(Type)
-        # Legacy string/symbol support for backwards compatibility
-        dtype == :tuple || dtype.to_s.match?(/^tuple</)
+        dtype.is_a?(TupleType)
       end
 
       def self.array?(dtype)
-        return dtype.is_a?(ArrayType) if dtype.is_a?(Type)
-        # Legacy string/symbol support for backwards compatibility
-        dtype == :array || dtype.to_s.match?(/^array</)
+        dtype.is_a?(ArrayType)
       end
 
       # Validation methods
@@ -76,28 +72,10 @@ module Kumi
         Normalizer.normalize(type_input)
       end
 
-      def self.coerce(type_input)
-        Normalizer.coerce(type_input)
-      end
-
       # Type inference
       def self.infer_from_value(value)
         Inference.infer_from_value(value)
       end
-
-      # Legacy compatibility constants (will be phased out)
-      # These should be replaced with symbols in user code over time
-      STRING = :string
-      INT = :integer # NOTE: using :integer instead of :int for clarity
-      FLOAT = :float
-      BOOL = :boolean
-      ANY = :any
-      SYMBOL = :symbol
-      REGEXP = :regexp
-      TIME = :time
-      DATE = :date
-      DATETIME = :datetime
-      NUMERIC = :float # Legacy: represents numeric compatibility
     end
   end
 end

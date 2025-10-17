@@ -111,47 +111,4 @@ RSpec.describe Kumi::Core::Types::Normalizer do
     end
   end
 
-  describe ".coerce" do
-    let(:string_type) { Kumi::Core::Types.scalar(:string) }
-    let(:integer_type) { Kumi::Core::Types.scalar(:integer) }
-    let(:float_type) { Kumi::Core::Types.scalar(:float) }
-    let(:boolean_type) { Kumi::Core::Types.scalar(:boolean) }
-    let(:any_type) { Kumi::Core::Types.scalar(:any) }
-
-    it "returns valid symbols as Type objects" do
-      expect(described_class.coerce(:string)).to eq(string_type)
-      expect(described_class.coerce(:integer)).to eq(integer_type)
-    end
-
-    context "with legacy constants" do
-      it "converts STRING constant to string Type object" do
-        expect(described_class.coerce(Kumi::Core::Types::STRING)).to eq(string_type)
-      end
-
-      it "converts INT constant to integer Type object" do
-        expect(described_class.coerce(Kumi::Core::Types::INT)).to eq(integer_type)
-      end
-
-      it "converts FLOAT constant to float Type object" do
-        expect(described_class.coerce(Kumi::Core::Types::FLOAT)).to eq(float_type)
-      end
-
-      it "converts NUMERIC constant to float Type object" do
-        expect(described_class.coerce(Kumi::Core::Types::NUMERIC)).to eq(float_type)
-      end
-
-      it "converts BOOL constant to boolean Type object" do
-        expect(described_class.coerce(Kumi::Core::Types::BOOL)).to eq(boolean_type)
-      end
-
-      it "converts other legacy constants" do
-        expect(described_class.coerce(Kumi::Core::Types::ANY)).to eq(any_type)
-      end
-    end
-
-    it "falls back to normalize for non-legacy inputs" do
-      expect(described_class.coerce("string")).to eq(string_type)
-      expect(described_class.coerce(Integer)).to eq(integer_type)
-    end
-  end
 end
