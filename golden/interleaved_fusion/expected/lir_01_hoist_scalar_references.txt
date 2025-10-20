@@ -17,7 +17,7 @@
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %t13 = load_decl total_payroll axes=[departments] :: integer
       %t14 = const 0.15 :: float
-      %t15 = call core.mul(%t13, %t14) :: float
+      %t15 = call core.mul:numeric(%t13, %t14) :: float
       yield %t15
     end_loop
   )

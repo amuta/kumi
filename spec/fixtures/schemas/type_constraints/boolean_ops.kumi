@@ -1,0 +1,14 @@
+schema do
+  input do
+    boolean :a
+    boolean :b
+    integer :num
+  end
+
+  trait :and_result, input.a & input.b
+  trait :or_result, input.a | input.b
+  trait :not_result, fn(:not, input.a)
+
+  trait :comparison_result, input.num > 0
+  trait :combined, (input.num > 0) & input.a
+end

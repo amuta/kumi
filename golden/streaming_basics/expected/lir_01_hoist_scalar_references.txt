@@ -4,7 +4,7 @@
     loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
       %t4 = load_field items_el_2["price"] :: float
       %t5 = load_field items_el_2["qty"] :: integer
-      %t6 = call core.mul(%t4, %t5) :: float
+      %t6 = call core.mul:numeric(%t4, %t5) :: float
       yield %t6
     end_loop
   )
@@ -15,7 +15,7 @@
       %t11 = const 1.0 :: float
       %t12 = load_input "discount" :: float
       %t13 = call core.sub(%t11, %t12) :: float
-      %t14 = call core.mul(%t10, %t13) :: float
+      %t14 = call core.mul:numeric(%t10, %t13) :: float
       yield %t14
     end_loop
   )
@@ -34,7 +34,7 @@
       %t24 = load_decl items_is_big axes=[items] :: boolean
       %t25 = load_decl items_subtotal axes=[items] :: float
       %t26 = const 0.9 :: float
-      %t27 = call core.mul(%t25, %t26) :: float
+      %t27 = call core.mul:numeric(%t25, %t26) :: float
       %t28 = load_decl items_subtotal axes=[items] :: float
       %t29 = select %t24, %t27, %t28 :: float
       yield %t29

@@ -2,13 +2,13 @@
   (Declaration state_tax
     %t1 = load_input "income" :: float
     %t2 = load_input "state_rate" :: float
-    %t3 = call core.mul(%t1, %t2) :: float
+    %t3 = call core.mul:numeric(%t1, %t2) :: float
     yield %t3
   )
   (Declaration local_tax
     %t4 = load_input "income" :: float
     %t5 = load_input "local_rate" :: float
-    %t6 = call core.mul(%t4, %t5) :: float
+    %t6 = call core.mul:numeric(%t4, %t5) :: float
     yield %t6
   )
   (Declaration taxable
@@ -154,7 +154,7 @@
         %t277 = load_input "statuses" :: array
         %t278 = load_field statuses_el_65["rates"] :: any
         %t279 = load_field rates_el_69["rate"] :: float
-        %t73 = call core.mul(%t249, %t279) :: float
+        %t73 = call core.mul:numeric(%t249, %t279) :: float
         %acc_67 = acc_add agg.sum(%acc_67, %t73) :: float
       end_loop
       %t74 = acc_load %acc_67 :: float
@@ -294,7 +294,7 @@
         %t401 = load_input "statuses" :: array
         %t402 = load_field statuses_el_101["rates"] :: any
         %t403 = load_field t358["rate"] :: float
-        %t362 = call core.mul(%t373, %t403) :: float
+        %t362 = call core.mul:numeric(%t373, %t403) :: float
         %acc356 = acc_add agg.sum(%acc356, %t362) :: float
       end_loop
       %t363 = acc_load %acc356 :: float
@@ -320,7 +320,7 @@
     %t113 = make_tuple(%t111, %t112) :: tuple<float, float>
     %t114 = fold %t113 fn="agg.min" :: float
     %t115 = const 0.062 :: float
-    %t116 = call core.mul(%t114, %t115) :: float
+    %t116 = call core.mul:numeric(%t114, %t115) :: float
     yield %t116
   )
   (Declaration med_base_rate
@@ -330,7 +330,7 @@
   (Declaration med_tax
     %t118 = load_input "income" :: float
     %t119 = const 0.0145 :: float
-    %t120 = call core.mul(%t118, %t119) :: float
+    %t120 = call core.mul:numeric(%t118, %t119) :: float
     yield %t120
   )
   (Declaration addl_med_rate
@@ -347,7 +347,7 @@
       %t129 = make_tuple(%t127, %t128) :: tuple<float, integer>
       %t130 = fold %t129 fn="agg.max" :: float
       %t131 = const 0.009 :: float
-      %t132 = call core.mul(%t130, %t131) :: float
+      %t132 = call core.mul:numeric(%t130, %t131) :: float
       yield %t132
     end_loop
   )
@@ -358,10 +358,10 @@
     %t406 = make_tuple(%t404, %t405) :: tuple<float, float>
     %t407 = fold %t406 fn="agg.min" :: float
     %t408 = const 0.062 :: float
-    %t409 = call core.mul(%t407, %t408) :: float
+    %t409 = call core.mul:numeric(%t407, %t408) :: float
     %t410 = load_input "income" :: float
     %t411 = const 0.0145 :: float
-    %t412 = call core.mul(%t410, %t411) :: float
+    %t412 = call core.mul:numeric(%t410, %t411) :: float
     loop statuses id=L20 in %t133 as el=%statuses_el_134, idx=%statuses_i_135
       %t138 = call core.add(%t409, %t412) :: float
       %t413 = load_input "statuses" :: array
@@ -372,7 +372,7 @@
       %t418 = make_tuple(%t416, %t417) :: tuple<float, integer>
       %t419 = fold %t418 fn="agg.max" :: float
       %t420 = const 0.009 :: float
-      %t421 = call core.mul(%t419, %t420) :: float
+      %t421 = call core.mul:numeric(%t419, %t420) :: float
       %t140 = call core.add(%t138, %t421) :: float
       yield %t140
     end_loop
@@ -383,10 +383,10 @@
     %t430 = make_tuple(%t428, %t429) :: tuple<float, float>
     %t431 = fold %t430 fn="agg.min" :: float
     %t432 = const 0.062 :: float
-    %t433 = call core.mul(%t431, %t432) :: float
+    %t433 = call core.mul:numeric(%t431, %t432) :: float
     %t434 = load_input "income" :: float
     %t435 = const 0.0145 :: float
-    %t436 = call core.mul(%t434, %t435) :: float
+    %t436 = call core.mul:numeric(%t434, %t435) :: float
     %t141 = load_input "statuses" :: array
     loop statuses id=L21 in %t141 as el=%statuses_el_142, idx=%statuses_i_143
       %t422 = load_input "statuses" :: array
@@ -399,7 +399,7 @@
       %t442 = make_tuple(%t440, %t441) :: tuple<float, integer>
       %t443 = fold %t442 fn="agg.max" :: float
       %t444 = const 0.009 :: float
-      %t445 = call core.mul(%t443, %t444) :: float
+      %t445 = call core.mul:numeric(%t443, %t444) :: float
       %t427 = call core.add(%t425, %t445) :: float
       %t145 = load_input "income" :: float
       %t146 = const 1.0 :: float
@@ -415,17 +415,17 @@
     %t510 = make_tuple(%t508, %t509) :: tuple<float, float>
     %t511 = fold %t510 fn="agg.min" :: float
     %t512 = const 0.062 :: float
-    %t513 = call core.mul(%t511, %t512) :: float
+    %t513 = call core.mul:numeric(%t511, %t512) :: float
     %t514 = load_input "income" :: float
     %t515 = const 0.0145 :: float
-    %t516 = call core.mul(%t514, %t515) :: float
+    %t516 = call core.mul:numeric(%t514, %t515) :: float
     %t150 = load_input "statuses" :: array
     %t446 = load_input "income" :: float
     %t447 = load_input "state_rate" :: float
-    %t448 = call core.mul(%t446, %t447) :: float
+    %t448 = call core.mul:numeric(%t446, %t447) :: float
     %t449 = load_input "income" :: float
     %t450 = load_input "local_rate" :: float
-    %t451 = call core.mul(%t449, %t450) :: float
+    %t451 = call core.mul:numeric(%t449, %t450) :: float
     loop statuses id=L22 in %t150 as el=%statuses_el_151, idx=%statuses_i_152
       %t472 = load_input "statuses" :: array
       %t473 = load_input "income" :: float
@@ -465,7 +465,7 @@
         %t499 = load_input "statuses" :: array
         %t500 = load_field statuses_el_151["rates"] :: any
         %t501 = load_field t456["rate"] :: float
-        %t460 = call core.mul(%t471, %t501) :: float
+        %t460 = call core.mul:numeric(%t471, %t501) :: float
         %acc454 = acc_add agg.sum(%acc454, %t460) :: float
       end_loop
       %t461 = acc_load %acc454 :: float
@@ -479,7 +479,7 @@
       %t522 = make_tuple(%t520, %t521) :: tuple<float, integer>
       %t523 = fold %t522 fn="agg.max" :: float
       %t524 = const 0.009 :: float
-      %t525 = call core.mul(%t523, %t524) :: float
+      %t525 = call core.mul:numeric(%t523, %t524) :: float
       %t507 = call core.add(%t505, %t525) :: float
       %t155 = call core.add(%t461, %t507) :: float
       %t157 = call core.add(%t155, %t448) :: float
@@ -490,19 +490,19 @@
   (Declaration total_eff
     %t534 = load_input "income" :: float
     %t535 = load_input "state_rate" :: float
-    %t536 = call core.mul(%t534, %t535) :: float
+    %t536 = call core.mul:numeric(%t534, %t535) :: float
     %t537 = load_input "income" :: float
     %t538 = load_input "local_rate" :: float
-    %t539 = call core.mul(%t537, %t538) :: float
+    %t539 = call core.mul:numeric(%t537, %t538) :: float
     %t596 = load_input "income" :: float
     %t597 = const 168600.0 :: float
     %t598 = make_tuple(%t596, %t597) :: tuple<float, float>
     %t599 = fold %t598 fn="agg.min" :: float
     %t600 = const 0.062 :: float
-    %t601 = call core.mul(%t599, %t600) :: float
+    %t601 = call core.mul:numeric(%t599, %t600) :: float
     %t602 = load_input "income" :: float
     %t603 = const 0.0145 :: float
-    %t604 = call core.mul(%t602, %t603) :: float
+    %t604 = call core.mul:numeric(%t602, %t603) :: float
     %t160 = load_input "statuses" :: array
     loop statuses id=L23 in %t160 as el=%statuses_el_161, idx=%statuses_i_162
       %t526 = load_input "statuses" :: array
@@ -544,7 +544,7 @@
         %t587 = load_input "statuses" :: array
         %t588 = load_field statuses_el_161["rates"] :: any
         %t589 = load_field t544["rate"] :: float
-        %t548 = call core.mul(%t559, %t589) :: float
+        %t548 = call core.mul:numeric(%t559, %t589) :: float
         %acc542 = acc_add agg.sum(%acc542, %t548) :: float
       end_loop
       %t549 = acc_load %acc542 :: float
@@ -558,7 +558,7 @@
       %t610 = make_tuple(%t608, %t609) :: tuple<float, integer>
       %t611 = fold %t610 fn="agg.max" :: float
       %t612 = const 0.009 :: float
-      %t613 = call core.mul(%t611, %t612) :: float
+      %t613 = call core.mul:numeric(%t611, %t612) :: float
       %t595 = call core.add(%t593, %t613) :: float
       %t531 = call core.add(%t549, %t595) :: float
       %t532 = call core.add(%t531, %t536) :: float
@@ -574,19 +574,19 @@
   (Declaration after_tax
     %t622 = load_input "income" :: float
     %t623 = load_input "state_rate" :: float
-    %t624 = call core.mul(%t622, %t623) :: float
+    %t624 = call core.mul:numeric(%t622, %t623) :: float
     %t625 = load_input "income" :: float
     %t626 = load_input "local_rate" :: float
-    %t627 = call core.mul(%t625, %t626) :: float
+    %t627 = call core.mul:numeric(%t625, %t626) :: float
     %t684 = load_input "income" :: float
     %t685 = const 168600.0 :: float
     %t686 = make_tuple(%t684, %t685) :: tuple<float, float>
     %t687 = fold %t686 fn="agg.min" :: float
     %t688 = const 0.062 :: float
-    %t689 = call core.mul(%t687, %t688) :: float
+    %t689 = call core.mul:numeric(%t687, %t688) :: float
     %t690 = load_input "income" :: float
     %t691 = const 0.0145 :: float
-    %t692 = call core.mul(%t690, %t691) :: float
+    %t692 = call core.mul:numeric(%t690, %t691) :: float
     %t169 = load_input "statuses" :: array
     loop statuses id=L24 in %t169 as el=%statuses_el_170, idx=%statuses_i_171
       %t172 = load_input "income" :: float
@@ -629,7 +629,7 @@
         %t675 = load_input "statuses" :: array
         %t676 = load_field statuses_el_170["rates"] :: any
         %t677 = load_field t632["rate"] :: float
-        %t636 = call core.mul(%t647, %t677) :: float
+        %t636 = call core.mul:numeric(%t647, %t677) :: float
         %acc630 = acc_add agg.sum(%acc630, %t636) :: float
       end_loop
       %t637 = acc_load %acc630 :: float
@@ -643,7 +643,7 @@
       %t698 = make_tuple(%t696, %t697) :: tuple<float, integer>
       %t699 = fold %t698 fn="agg.max" :: float
       %t700 = const 0.009 :: float
-      %t701 = call core.mul(%t699, %t700) :: float
+      %t701 = call core.mul:numeric(%t699, %t700) :: float
       %t683 = call core.add(%t681, %t701) :: float
       %t619 = call core.add(%t637, %t683) :: float
       %t620 = call core.add(%t619, %t624) :: float
@@ -655,19 +655,19 @@
   (Declaration take_home
     %t714 = load_input "income" :: float
     %t715 = load_input "state_rate" :: float
-    %t716 = call core.mul(%t714, %t715) :: float
+    %t716 = call core.mul:numeric(%t714, %t715) :: float
     %t717 = load_input "income" :: float
     %t718 = load_input "local_rate" :: float
-    %t719 = call core.mul(%t717, %t718) :: float
+    %t719 = call core.mul:numeric(%t717, %t718) :: float
     %t776 = load_input "income" :: float
     %t777 = const 168600.0 :: float
     %t778 = make_tuple(%t776, %t777) :: tuple<float, float>
     %t779 = fold %t778 fn="agg.min" :: float
     %t780 = const 0.062 :: float
-    %t781 = call core.mul(%t779, %t780) :: float
+    %t781 = call core.mul:numeric(%t779, %t780) :: float
     %t782 = load_input "income" :: float
     %t783 = const 0.0145 :: float
-    %t784 = call core.mul(%t782, %t783) :: float
+    %t784 = call core.mul:numeric(%t782, %t783) :: float
     %t175 = load_input "statuses" :: array
     loop statuses id=L25 in %t175 as el=%statuses_el_176, idx=%statuses_i_177
       %t702 = load_input "statuses" :: array
@@ -711,7 +711,7 @@
         %t767 = load_input "statuses" :: array
         %t768 = load_field statuses_el_176["rates"] :: any
         %t769 = load_field t724["rate"] :: float
-        %t728 = call core.mul(%t739, %t769) :: float
+        %t728 = call core.mul:numeric(%t739, %t769) :: float
         %acc722 = acc_add agg.sum(%acc722, %t728) :: float
       end_loop
       %t729 = acc_load %acc722 :: float
@@ -725,7 +725,7 @@
       %t790 = make_tuple(%t788, %t789) :: tuple<float, integer>
       %t791 = fold %t790 fn="agg.max" :: float
       %t792 = const 0.009 :: float
-      %t793 = call core.mul(%t791, %t792) :: float
+      %t793 = call core.mul:numeric(%t791, %t792) :: float
       %t775 = call core.add(%t773, %t793) :: float
       %t711 = call core.add(%t729, %t775) :: float
       %t712 = call core.add(%t711, %t716) :: float
@@ -742,86 +742,86 @@
     %t976 = make_tuple(%t974, %t975) :: tuple<float, float>
     %t977 = fold %t976 fn="agg.min" :: float
     %t978 = const 0.062 :: float
-    %t979 = call core.mul(%t977, %t978) :: float
+    %t979 = call core.mul:numeric(%t977, %t978) :: float
     %t980 = load_input "income" :: float
     %t981 = const 0.0145 :: float
-    %t982 = call core.mul(%t980, %t981) :: float
+    %t982 = call core.mul:numeric(%t980, %t981) :: float
     %t998 = load_input "income" :: float
     %t999 = const 168600.0 :: float
     %t1000 = make_tuple(%t998, %t999) :: tuple<float, float>
     %t1001 = fold %t1000 fn="agg.min" :: float
     %t1002 = const 0.062 :: float
-    %t1003 = call core.mul(%t1001, %t1002) :: float
+    %t1003 = call core.mul:numeric(%t1001, %t1002) :: float
     %t1004 = load_input "income" :: float
     %t1005 = const 0.0145 :: float
-    %t1006 = call core.mul(%t1004, %t1005) :: float
+    %t1006 = call core.mul:numeric(%t1004, %t1005) :: float
     %t1031 = load_input "income" :: float
     %t1032 = load_input "state_rate" :: float
-    %t1033 = call core.mul(%t1031, %t1032) :: float
+    %t1033 = call core.mul:numeric(%t1031, %t1032) :: float
     %t1034 = load_input "income" :: float
     %t1035 = load_input "local_rate" :: float
-    %t1036 = call core.mul(%t1034, %t1035) :: float
+    %t1036 = call core.mul:numeric(%t1034, %t1035) :: float
     %t1093 = load_input "income" :: float
     %t1094 = const 168600.0 :: float
     %t1095 = make_tuple(%t1093, %t1094) :: tuple<float, float>
     %t1096 = fold %t1095 fn="agg.min" :: float
     %t1097 = const 0.062 :: float
-    %t1098 = call core.mul(%t1096, %t1097) :: float
+    %t1098 = call core.mul:numeric(%t1096, %t1097) :: float
     %t1099 = load_input "income" :: float
     %t1100 = const 0.0145 :: float
-    %t1101 = call core.mul(%t1099, %t1100) :: float
+    %t1101 = call core.mul:numeric(%t1099, %t1100) :: float
     %t1119 = load_input "income" :: float
     %t1120 = load_input "state_rate" :: float
-    %t1121 = call core.mul(%t1119, %t1120) :: float
+    %t1121 = call core.mul:numeric(%t1119, %t1120) :: float
     %t1122 = load_input "income" :: float
     %t1123 = load_input "local_rate" :: float
-    %t1124 = call core.mul(%t1122, %t1123) :: float
+    %t1124 = call core.mul:numeric(%t1122, %t1123) :: float
     %t1181 = load_input "income" :: float
     %t1182 = const 168600.0 :: float
     %t1183 = make_tuple(%t1181, %t1182) :: tuple<float, float>
     %t1184 = fold %t1183 fn="agg.min" :: float
     %t1185 = const 0.062 :: float
-    %t1186 = call core.mul(%t1184, %t1185) :: float
+    %t1186 = call core.mul:numeric(%t1184, %t1185) :: float
     %t1187 = load_input "income" :: float
     %t1188 = const 0.0145 :: float
-    %t1189 = call core.mul(%t1187, %t1188) :: float
+    %t1189 = call core.mul:numeric(%t1187, %t1188) :: float
     %t1211 = load_input "income" :: float
     %t1212 = load_input "state_rate" :: float
-    %t1213 = call core.mul(%t1211, %t1212) :: float
+    %t1213 = call core.mul:numeric(%t1211, %t1212) :: float
     %t1214 = load_input "income" :: float
     %t1215 = load_input "local_rate" :: float
-    %t1216 = call core.mul(%t1214, %t1215) :: float
+    %t1216 = call core.mul:numeric(%t1214, %t1215) :: float
     %t1273 = load_input "income" :: float
     %t1274 = const 168600.0 :: float
     %t1275 = make_tuple(%t1273, %t1274) :: tuple<float, float>
     %t1276 = fold %t1275 fn="agg.min" :: float
     %t1277 = const 0.062 :: float
-    %t1278 = call core.mul(%t1276, %t1277) :: float
+    %t1278 = call core.mul:numeric(%t1276, %t1277) :: float
     %t1279 = load_input "income" :: float
     %t1280 = const 0.0145 :: float
-    %t1281 = call core.mul(%t1279, %t1280) :: float
+    %t1281 = call core.mul:numeric(%t1279, %t1280) :: float
     %t1307 = load_input "income" :: float
     %t1308 = load_input "state_rate" :: float
-    %t1309 = call core.mul(%t1307, %t1308) :: float
+    %t1309 = call core.mul:numeric(%t1307, %t1308) :: float
     %t1310 = load_input "income" :: float
     %t1311 = load_input "local_rate" :: float
-    %t1312 = call core.mul(%t1310, %t1311) :: float
+    %t1312 = call core.mul:numeric(%t1310, %t1311) :: float
     %t1369 = load_input "income" :: float
     %t1370 = const 168600.0 :: float
     %t1371 = make_tuple(%t1369, %t1370) :: tuple<float, float>
     %t1372 = fold %t1371 fn="agg.min" :: float
     %t1373 = const 0.062 :: float
-    %t1374 = call core.mul(%t1372, %t1373) :: float
+    %t1374 = call core.mul:numeric(%t1372, %t1373) :: float
     %t1375 = load_input "income" :: float
     %t1376 = const 0.0145 :: float
-    %t1377 = call core.mul(%t1375, %t1376) :: float
+    %t1377 = call core.mul:numeric(%t1375, %t1376) :: float
     %t181 = load_input "statuses" :: array
     %t794 = load_input "income" :: float
     %t795 = load_input "state_rate" :: float
-    %t796 = call core.mul(%t794, %t795) :: float
+    %t796 = call core.mul:numeric(%t794, %t795) :: float
     %t797 = load_input "income" :: float
     %t798 = load_input "local_rate" :: float
-    %t799 = call core.mul(%t797, %t798) :: float
+    %t799 = call core.mul:numeric(%t797, %t798) :: float
     loop statuses id=L26 in %t181 as el=%statuses_el_182, idx=%statuses_i_183
       %t184 = load_field statuses_el_182["name"] :: string
       %t820 = load_input "statuses" :: array
@@ -909,7 +909,7 @@
         %t908 = load_input "statuses" :: array
         %t909 = load_field statuses_el_182["rates"] :: any
         %t910 = load_field t865["rate"] :: float
-        %t869 = call core.mul(%t880, %t910) :: float
+        %t869 = call core.mul:numeric(%t880, %t910) :: float
         %acc863 = acc_add agg.sum(%acc863, %t869) :: float
       end_loop
       %t870 = acc_load %acc863 :: float
@@ -956,7 +956,7 @@
         %t958 = load_input "statuses" :: array
         %t959 = load_field statuses_el_182["rates"] :: any
         %t960 = load_field t915["rate"] :: float
-        %t919 = call core.mul(%t930, %t960) :: float
+        %t919 = call core.mul:numeric(%t930, %t960) :: float
         %acc913 = acc_add agg.sum(%acc913, %t919) :: float
       end_loop
       %t920 = acc_load %acc913 :: float
@@ -972,7 +972,7 @@
       %t988 = make_tuple(%t986, %t987) :: tuple<float, integer>
       %t989 = fold %t988 fn="agg.max" :: float
       %t990 = const 0.009 :: float
-      %t991 = call core.mul(%t989, %t990) :: float
+      %t991 = call core.mul:numeric(%t989, %t990) :: float
       %t973 = call core.add(%t971, %t991) :: float
       %t963 = load_input "income" :: float
       %t964 = const 1.0 :: float
@@ -989,7 +989,7 @@
       %t1012 = make_tuple(%t1010, %t1011) :: tuple<float, integer>
       %t1013 = fold %t1012 fn="agg.max" :: float
       %t1014 = const 0.009 :: float
-      %t1015 = call core.mul(%t1013, %t1014) :: float
+      %t1015 = call core.mul:numeric(%t1013, %t1014) :: float
       %t997 = call core.add(%t995, %t1015) :: float
       %t191 = make_object{effective: %t967, tax: %t997} :: object
       %t192 = load_input "state_rate" :: float
@@ -1038,7 +1038,7 @@
         %t1084 = load_input "statuses" :: array
         %t1085 = load_field statuses_el_182["rates"] :: any
         %t1086 = load_field t1041["rate"] :: float
-        %t1045 = call core.mul(%t1056, %t1086) :: float
+        %t1045 = call core.mul:numeric(%t1056, %t1086) :: float
         %acc1039 = acc_add agg.sum(%acc1039, %t1045) :: float
       end_loop
       %t1046 = acc_load %acc1039 :: float
@@ -1052,7 +1052,7 @@
       %t1107 = make_tuple(%t1105, %t1106) :: tuple<float, integer>
       %t1108 = fold %t1107 fn="agg.max" :: float
       %t1109 = const 0.009 :: float
-      %t1110 = call core.mul(%t1108, %t1109) :: float
+      %t1110 = call core.mul:numeric(%t1108, %t1109) :: float
       %t1092 = call core.add(%t1090, %t1110) :: float
       %t1028 = call core.add(%t1046, %t1092) :: float
       %t1029 = call core.add(%t1028, %t1033) :: float
@@ -1101,7 +1101,7 @@
         %t1172 = load_input "statuses" :: array
         %t1173 = load_field statuses_el_182["rates"] :: any
         %t1174 = load_field t1129["rate"] :: float
-        %t1133 = call core.mul(%t1144, %t1174) :: float
+        %t1133 = call core.mul:numeric(%t1144, %t1174) :: float
         %acc1127 = acc_add agg.sum(%acc1127, %t1133) :: float
       end_loop
       %t1134 = acc_load %acc1127 :: float
@@ -1115,7 +1115,7 @@
       %t1195 = make_tuple(%t1193, %t1194) :: tuple<float, integer>
       %t1196 = fold %t1195 fn="agg.max" :: float
       %t1197 = const 0.009 :: float
-      %t1198 = call core.mul(%t1196, %t1197) :: float
+      %t1198 = call core.mul:numeric(%t1196, %t1197) :: float
       %t1180 = call core.add(%t1178, %t1198) :: float
       %t1116 = call core.add(%t1134, %t1180) :: float
       %t1117 = call core.add(%t1116, %t1121) :: float
@@ -1162,7 +1162,7 @@
         %t1264 = load_input "statuses" :: array
         %t1265 = load_field statuses_el_182["rates"] :: any
         %t1266 = load_field t1221["rate"] :: float
-        %t1225 = call core.mul(%t1236, %t1266) :: float
+        %t1225 = call core.mul:numeric(%t1236, %t1266) :: float
         %acc1219 = acc_add agg.sum(%acc1219, %t1225) :: float
       end_loop
       %t1226 = acc_load %acc1219 :: float
@@ -1176,7 +1176,7 @@
       %t1287 = make_tuple(%t1285, %t1286) :: tuple<float, integer>
       %t1288 = fold %t1287 fn="agg.max" :: float
       %t1289 = const 0.009 :: float
-      %t1290 = call core.mul(%t1288, %t1289) :: float
+      %t1290 = call core.mul:numeric(%t1288, %t1289) :: float
       %t1272 = call core.add(%t1270, %t1290) :: float
       %t1208 = call core.add(%t1226, %t1272) :: float
       %t1209 = call core.add(%t1208, %t1213) :: float
@@ -1225,7 +1225,7 @@
         %t1360 = load_input "statuses" :: array
         %t1361 = load_field statuses_el_182["rates"] :: any
         %t1362 = load_field t1317["rate"] :: float
-        %t1321 = call core.mul(%t1332, %t1362) :: float
+        %t1321 = call core.mul:numeric(%t1332, %t1362) :: float
         %acc1315 = acc_add agg.sum(%acc1315, %t1321) :: float
       end_loop
       %t1322 = acc_load %acc1315 :: float
@@ -1239,7 +1239,7 @@
       %t1383 = make_tuple(%t1381, %t1382) :: tuple<float, integer>
       %t1384 = fold %t1383 fn="agg.max" :: float
       %t1385 = const 0.009 :: float
-      %t1386 = call core.mul(%t1384, %t1385) :: float
+      %t1386 = call core.mul:numeric(%t1384, %t1385) :: float
       %t1368 = call core.add(%t1366, %t1386) :: float
       %t1304 = call core.add(%t1322, %t1368) :: float
       %t1305 = call core.add(%t1304, %t1309) :: float

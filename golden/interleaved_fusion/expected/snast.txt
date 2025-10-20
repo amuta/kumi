@@ -5,7 +5,7 @@
     ) :: [departments] -> integer
   ) :: [departments] -> integer
   (VALUE payroll_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (Ref total_payroll) :: [departments] -> integer
       (Const 0.15) :: [] -> float
     ) :: [departments] -> float

@@ -1,6 +1,6 @@
 (SNAST
   (VALUE double
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef x.y.z key_chain=[]) :: [] -> integer
       (Const 2) :: [] -> integer
     ) :: [] -> integer

@@ -1,0 +1,8 @@
+schema do
+  input do
+    string :text
+    float :factor
+  end
+
+  value :result, input.text * input.factor
+end

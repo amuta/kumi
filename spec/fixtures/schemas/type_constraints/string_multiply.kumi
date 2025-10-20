@@ -1,0 +1,8 @@
+schema do
+  input do
+    string :text
+    integer :count
+  end
+
+  value :repeated, input.text * input.count
+end

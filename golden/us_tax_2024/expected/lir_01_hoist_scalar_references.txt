@@ -2,13 +2,13 @@
   (Declaration state_tax
     %t1 = load_input "income" :: float
     %t2 = load_input "state_rate" :: float
-    %t3 = call core.mul(%t1, %t2) :: float
+    %t3 = call core.mul:numeric(%t1, %t2) :: float
     yield %t3
   )
   (Declaration local_tax
     %t4 = load_input "income" :: float
     %t5 = load_input "local_rate" :: float
-    %t6 = call core.mul(%t4, %t5) :: float
+    %t6 = call core.mul:numeric(%t4, %t5) :: float
     yield %t6
   )
   (Declaration taxable
@@ -97,7 +97,7 @@
       loop rates id=L13 in %t68 as el=%rates_el_69, idx=%rates_i_70
         %t71 = load_decl amt axes=[statuses, rates] :: float
         %t72 = load_decl rate axes=[statuses, rates] :: float
-        %t73 = call core.mul(%t71, %t72) :: float
+        %t73 = call core.mul:numeric(%t71, %t72) :: float
         %acc_67 = acc_add agg.sum(%acc_67, %t73) :: float
       end_loop
       %t74 = acc_load %acc_67 :: float
@@ -162,7 +162,7 @@
     %t113 = make_tuple(%t111, %t112) :: tuple<float, float>
     %t114 = fold %t113 fn="agg.min" :: float
     %t115 = const 0.062 :: float
-    %t116 = call core.mul(%t114, %t115) :: float
+    %t116 = call core.mul:numeric(%t114, %t115) :: float
     yield %t116
   )
   (Declaration med_base_rate
@@ -172,7 +172,7 @@
   (Declaration med_tax
     %t118 = load_input "income" :: float
     %t119 = const 0.0145 :: float
-    %t120 = call core.mul(%t118, %t119) :: float
+    %t120 = call core.mul:numeric(%t118, %t119) :: float
     yield %t120
   )
   (Declaration addl_med_rate
@@ -189,7 +189,7 @@
       %t129 = make_tuple(%t127, %t128) :: tuple<float, integer>
       %t130 = fold %t129 fn="agg.max" :: float
       %t131 = const 0.009 :: float
-      %t132 = call core.mul(%t130, %t131) :: float
+      %t132 = call core.mul:numeric(%t130, %t131) :: float
       yield %t132
     end_loop
   )

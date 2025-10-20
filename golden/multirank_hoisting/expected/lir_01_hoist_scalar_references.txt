@@ -21,7 +21,7 @@
       loop row id=L3 in %t13 as el=%row_el_14, idx=%row_i_15
         %t16 = load_field row_el_14["scale"] :: float
         %t17 = const 2.0 :: float
-        %t18 = call core.mul(%t16, %t17) :: float
+        %t18 = call core.mul:numeric(%t16, %t17) :: float
         yield %t18
       end_loop
     end_loop
@@ -35,7 +35,7 @@
         loop col id=L6 in %t25 as el=%col_el_26, idx=%col_i_27
           %t28 = load_field col_el_26["val"] :: float
           %t29 = load_decl row_scale2 axes=[batch, row] :: float
-          %t30 = call core.mul(%t28, %t29) :: float
+          %t30 = call core.mul:numeric(%t28, %t29) :: float
           %t31 = load_decl batch_bias axes=[batch] :: float
           %t32 = call core.add(%t30, %t31) :: float
           yield %t32

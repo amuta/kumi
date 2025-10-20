@@ -1,0 +1,20 @@
+schema do
+  input do
+    integer :num_a
+    integer :num_b
+    string :str_a
+    string :str_b
+  end
+
+  trait :num_gt, input.num_a > input.num_b
+  trait :num_lt, input.num_a < input.num_b
+  trait :num_gte, input.num_a >= input.num_b
+  trait :num_lte, input.num_a <= input.num_b
+
+  trait :str_gt, input.str_a > input.str_b
+  trait :str_lt, input.str_a < input.str_b
+
+  trait :num_eq, input.num_a == input.num_b
+  trait :str_eq, input.str_a == input.str_b
+  trait :cross_eq, input.num_a == 42
+end

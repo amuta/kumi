@@ -26,10 +26,19 @@ module Kumi
         def resolve(alias_or_id, arg_types)
           s = alias_or_id.to_s
 
-          # If it's already a full function ID, validate and return it
+          # If it's already a full function ID, validate arity and type constraints
           if @functions.key?(s)
             validate_arity!(s, arg_types)
-            return s
+            fn = @functions[s]
+            score = match_score(fn.params, arg_types)
+            if score > 0
+              return s
+            else
+              # Type constraints failed
+              raise ResolutionError,
+                    "no overload of '#{alias_or_id}' matches argument types #{arg_types.inspect}. " \
+                    "Available overloads: #{fn.id}"
+            end
           end
 
           # Get all candidate overloads for this alias
@@ -109,7 +118,7 @@ module Kumi
 
         def match_score(params, arg_types)
           # Returns match quality: higher is better
-          # 0 = no match, 1 = matches with unconstrained params, 2 = exact match
+          # 0 = no match, 1+ = match (1 for unconstrained params, higher for exact matches)
           return 0 unless params_match?(params, arg_types)
 
           # Count exact constraint matches (all arg_types are Type objects now)
@@ -118,11 +127,22 @@ module Kumi
             score_type_object_match(param_dtype, arg_type)
           end
 
-          exact_matches
+          # Return exact_matches + 1 so that: unconstrained=1, one exact=2, all exact=N+1
+          exact_matches + 1
         end
 
         def score_type_object_match(param_dtype, type_obj)
-          case param_dtype&.to_s
+          constraint = param_dtype&.to_s
+          return false unless constraint
+
+          # Check if it's a type category
+          if TypeCategories.category?(constraint)
+            return false unless type_obj.is_a?(Kumi::Core::Types::ScalarType)
+            return TypeCategories.includes?(constraint, type_obj.kind)
+          end
+
+          # Individual scalar type constraints
+          case constraint
           when "string"
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :string
           when "array"
@@ -131,8 +151,6 @@ module Kumi
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :integer
           when "float"
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :float
-          when "numeric"
-            type_obj.is_a?(Kumi::Core::Types::ScalarType) && [:integer, :float, :decimal].include?(type_obj.kind)
           when "hash"
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :hash
           else
@@ -143,6 +161,13 @@ module Kumi
         def type_compatible?(param_dtype_str, arg_type)
           raise ArgumentError, "arg_type must be a Type object, got #{arg_type.inspect}" unless arg_type.is_a?(Kumi::Core::Types::Type)
 
+          # Check if it's a type category
+          if TypeCategories.category?(param_dtype_str)
+            return false unless arg_type.is_a?(Kumi::Core::Types::ScalarType)
+            return TypeCategories.includes?(param_dtype_str, arg_type.kind)
+          end
+
+          # Individual scalar type constraints
           case param_dtype_str
           when "string"
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :string
@@ -152,8 +177,6 @@ module Kumi
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :integer
           when "float"
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :float
-          when "numeric"
-            arg_type.is_a?(Kumi::Core::Types::ScalarType) && [:integer, :float, :decimal].include?(arg_type.kind)
           when "hash"
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :hash
           else

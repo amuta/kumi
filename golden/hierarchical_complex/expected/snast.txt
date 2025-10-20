@@ -26,7 +26,7 @@
           (Ref top_team) :: [regions, offices, teams] -> boolean
         ) :: [regions, offices, teams, employees] -> boolean
       ) :: [regions, offices, teams, employees] -> boolean
-      (Call :core.mul
+      (Call :core.mul:numeric
         (InputRef regions.region.offices.office.teams.team.employees.employee.salary key_chain=[]) :: [regions, offices, teams, employees] -> float
         (Const 0.3) :: [] -> float
       ) :: [regions, offices, teams, employees] -> float
@@ -35,11 +35,11 @@
           (Ref high_performer) :: [regions, offices, teams, employees] -> boolean
           (Ref top_team) :: [regions, offices, teams] -> boolean
         ) :: [regions, offices, teams, employees] -> boolean
-        (Call :core.mul
+        (Call :core.mul:numeric
           (InputRef regions.region.offices.office.teams.team.employees.employee.salary key_chain=[]) :: [regions, offices, teams, employees] -> float
           (Const 0.2) :: [] -> float
         ) :: [regions, offices, teams, employees] -> float
-        (Call :core.mul
+        (Call :core.mul:numeric
           (InputRef regions.region.offices.office.teams.team.employees.employee.salary key_chain=[]) :: [regions, offices, teams, employees] -> float
           (Const 0.05) :: [] -> float
         ) :: [regions, offices, teams, employees] -> float

@@ -1,12 +1,12 @@
 (SNAST
   (VALUE x_sq
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef x key_chain=[]) :: [] -> integer
       (InputRef x key_chain=[]) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE y_sq
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef y key_chain=[]) :: [] -> integer
       (InputRef y key_chain=[]) :: [] -> integer
     ) :: [] -> integer

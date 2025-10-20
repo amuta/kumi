@@ -10,13 +10,13 @@
     ) :: [] -> decimal
   ) :: [] -> decimal
   (VALUE subtotal
-    (Call :core.mul
+    (Call :core.mul:numeric
       (Ref price) :: [] -> decimal
       (InputRef quantity key_chain=[]) :: [] -> integer
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE tax_amount
-    (Call :core.mul
+    (Call :core.mul:numeric
       (Ref subtotal) :: [] -> integer
       (Ref rate) :: [] -> decimal
     ) :: [] -> integer

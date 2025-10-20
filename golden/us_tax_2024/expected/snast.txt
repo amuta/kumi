@@ -1,12 +1,12 @@
 (SNAST
   (VALUE state_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef income key_chain=[]) :: [] -> float
       (InputRef state_rate key_chain=[]) :: [] -> float
     ) :: [] -> float
   ) :: [] -> float
   (VALUE local_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef income key_chain=[]) :: [] -> float
       (InputRef local_rate key_chain=[]) :: [] -> float
     ) :: [] -> float
@@ -59,7 +59,7 @@
   ) :: [statuses, rates] -> float
   (VALUE fed_tax
     (Reduce :agg.sum over [rates]
-      (Call :core.mul
+      (Call :core.mul:numeric
         (Ref amt) :: [statuses, rates] -> float
         (Ref rate) :: [statuses, rates] -> float
       ) :: [statuses, rates] -> float
@@ -104,7 +104,7 @@
     (Const 0.062) :: [] -> float
   ) :: [] -> float
   (VALUE ss_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (Fold :agg.min
         (Tuple
           (InputRef income key_chain=[]) :: [] -> float
@@ -118,7 +118,7 @@
     (Const 0.0145) :: [] -> float
   ) :: [] -> float
   (VALUE med_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef income key_chain=[]) :: [] -> float
       (Const 0.0145) :: [] -> float
     ) :: [] -> float
@@ -127,7 +127,7 @@
     (Const 0.009) :: [] -> float
   ) :: [] -> float
   (VALUE addl_med_tax
-    (Call :core.mul
+    (Call :core.mul:numeric
       (Fold :agg.max
         (Tuple
           (Call :core.sub

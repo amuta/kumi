@@ -1,7 +1,9 @@
 functions:
   - id: core.and
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: boolean }
+      - { name: right_operand, dtype: boolean }
     dtype:
       rule: scalar
       kind: boolean
@@ -9,7 +11,9 @@ functions:
 
   - id: core.or
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: boolean }
+      - { name: right_operand, dtype: boolean }
     dtype:
       rule: scalar
       kind: boolean
@@ -17,7 +21,8 @@ functions:
 
   - id: core.not
     kind: elementwise
-    params: [{ name: operand }]
+    params:
+      - { name: operand, dtype: boolean }
     dtype:
       rule: scalar
       kind: boolean

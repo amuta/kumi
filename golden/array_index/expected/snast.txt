@@ -6,7 +6,7 @@
   ) :: [x] -> integer
   (VALUE box
     (Call :core.add
-      (Call :core.mul
+      (Call :core.mul:numeric
         (IndexRef i input=x.__index(i)) :: [x] -> integer
         (Ref W) :: [x] -> integer
       ) :: [x] -> integer
@@ -15,7 +15,7 @@
   ) :: [x, y] -> integer
   (VALUE col_major
     (Call :core.add
-      (Call :core.mul
+      (Call :core.mul:numeric
         (IndexRef j input=x.y.__index(j)) :: [x, y] -> integer
         (Call :core.array_size
           (InputRef x key_chain=[]) :: [] -> array

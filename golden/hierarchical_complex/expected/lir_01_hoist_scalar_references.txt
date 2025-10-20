@@ -66,16 +66,16 @@
             %t59 = call core.and(%t55, %t58) :: boolean
             %t60 = load_field employees_el_53["salary"] :: float
             %t61 = const 0.3 :: float
-            %t62 = call core.mul(%t60, %t61) :: float
+            %t62 = call core.mul:numeric(%t60, %t61) :: float
             %t63 = load_decl high_performer axes=[regions, offices, teams, employees] :: boolean
             %t64 = load_decl top_team axes=[regions, offices, teams] :: boolean
             %t65 = call core.and(%t63, %t64) :: boolean
             %t66 = load_field employees_el_53["salary"] :: float
             %t67 = const 0.2 :: float
-            %t68 = call core.mul(%t66, %t67) :: float
+            %t68 = call core.mul:numeric(%t66, %t67) :: float
             %t69 = load_field employees_el_53["salary"] :: float
             %t70 = const 0.05 :: float
-            %t71 = call core.mul(%t69, %t70) :: float
+            %t71 = call core.mul:numeric(%t69, %t70) :: float
             %t72 = select %t65, %t68, %t71 :: float
             %t73 = select %t59, %t62, %t72 :: float
             yield %t73

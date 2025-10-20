@@ -23,7 +23,7 @@
       loop row id=L3 in %t13 as el=%row_el_14, idx=%row_i_15
         %t16 = load_field row_el_14["scale"] :: float
         %t17 = const 2.0 :: float
-        %t18 = call core.mul(%t16, %t17) :: float
+        %t18 = call core.mul:numeric(%t16, %t17) :: float
         yield %t18
       end_loop
     end_loop
@@ -43,11 +43,11 @@
         %t58 = load_field batch_el_20["row"] :: any
         %t59 = load_field row_el_23["scale"] :: float
         %t60 = const 2.0 :: float
-        %t61 = call core.mul(%t59, %t60) :: float
+        %t61 = call core.mul:numeric(%t59, %t60) :: float
         %t25 = load_field row_el_23["col"] :: any
         loop col id=L6 in %t25 as el=%col_el_26, idx=%col_i_27
           %t28 = load_field col_el_26["val"] :: float
-          %t30 = call core.mul(%t28, %t61) :: float
+          %t30 = call core.mul:numeric(%t28, %t61) :: float
           %t32 = call core.add(%t30, %t65) :: float
           yield %t32
         end_loop
@@ -69,7 +69,7 @@
         %t78 = load_field batch_el_34["row"] :: any
         %t79 = load_field row_el_37["scale"] :: float
         %t80 = const 2.0 :: float
-        %t81 = call core.mul(%t79, %t80) :: float
+        %t81 = call core.mul:numeric(%t79, %t80) :: float
         %acc_39 = decl_acc :: float
         %t40 = load_field row_el_37["col"] :: any
         loop col id=L9 in %t40 as el=%col_el_41, idx=%col_i_42
@@ -77,7 +77,7 @@
           %t70 = load_field batch_el_34["row"] :: any
           %t71 = load_field row_el_37["col"] :: any
           %t72 = load_field col_el_41["val"] :: float
-          %t74 = call core.mul(%t72, %t81) :: float
+          %t74 = call core.mul:numeric(%t72, %t81) :: float
           %t76 = call core.add(%t74, %t85) :: float
           %acc_39 = acc_add agg.sum(%acc_39, %t76) :: float
         end_loop
@@ -102,7 +102,7 @@
         %t107 = load_field batch_el_46["row"] :: any
         %t108 = load_field row_el_50["scale"] :: float
         %t109 = const 2.0 :: float
-        %t110 = call core.mul(%t108, %t109) :: float
+        %t110 = call core.mul:numeric(%t108, %t109) :: float
         %t89 = load_input "batch" :: array
         %t90 = load_field batch_el_46["row"] :: any
         %acc92 = decl_acc :: float
@@ -112,7 +112,7 @@
           %t99 = load_field batch_el_46["row"] :: any
           %t100 = load_field row_el_50["col"] :: any
           %t101 = load_field t94["val"] :: float
-          %t103 = call core.mul(%t101, %t110) :: float
+          %t103 = call core.mul:numeric(%t101, %t110) :: float
           %t105 = call core.add(%t103, %t114) :: float
           %acc92 = acc_add agg.sum(%acc92, %t105) :: float
         end_loop

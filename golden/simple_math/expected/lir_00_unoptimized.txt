@@ -8,7 +8,7 @@
   (Declaration product
     %t4 = load_input "x" :: integer
     %t5 = load_input "y" :: integer
-    %t6 = call core.mul(%t4, %t5) :: integer
+    %t6 = call core.mul:numeric(%t4, %t5) :: integer
     yield %t6
   )
   (Declaration difference
@@ -24,7 +24,7 @@
     %t13 = call core.add(%t11, %t12) :: integer
     %t14 = load_input "y" :: integer
     %t15 = const 2 :: integer
-    %t16 = call core.mul(%t14, %t15) :: integer
+    %t16 = call core.mul:numeric(%t14, %t15) :: integer
     %t17 = make_tuple(%t10, %t13, %t16) :: tuple<integer, integer, integer>
     yield %t17
   )

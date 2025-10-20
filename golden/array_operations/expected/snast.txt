@@ -1,12 +1,12 @@
 (SNAST
   (VALUE subtotals
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef items.item.price key_chain=[]) :: [items] -> float
       (InputRef items.item.quantity key_chain=[]) :: [items] -> integer
     ) :: [items] -> float
   ) :: [items] -> float
   (VALUE discounted_price
-    (Call :core.mul
+    (Call :core.mul:numeric
       (InputRef items.item.price key_chain=[]) :: [items] -> float
       (Const 0.9) :: [] -> float
     ) :: [items] -> float

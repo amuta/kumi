@@ -9,7 +9,9 @@ functions:
 
   - id: core.add
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
     dtype:
       rule: promote
       params: [left_operand, right_operand]
@@ -33,7 +35,9 @@ functions:
 
   - id: core.sub
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
     dtype:
       rule: promote
       params: [left_operand, right_operand]
@@ -77,7 +81,9 @@ functions:
 
   - id: core.pow
     kind: elementwise
-    params: [{ name: base }, { name: exponent }]
+    params:
+      - { name: base, dtype: numeric }
+      - { name: exponent, dtype: numeric }
     dtype:
       rule: promote
       params: [base, exponent]
@@ -85,7 +91,9 @@ functions:
 
   - id: core.div
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
     dtype:
       rule: scalar
       kind: float
@@ -94,8 +102,8 @@ functions:
   - id: core.mod
     kind: elementwise
     params:
-      - { name: left_operand }
-      - { name: right_operand }
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
     dtype:
       rule: promote
       params: [left_operand, right_operand]

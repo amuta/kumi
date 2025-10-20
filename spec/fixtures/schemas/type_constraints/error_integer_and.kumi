@@ -1,0 +1,8 @@
+schema do
+  input do
+    integer :a
+    integer :b
+  end
+
+  trait :result, input.a & input.b
+end

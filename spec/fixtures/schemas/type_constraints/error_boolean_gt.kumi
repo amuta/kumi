@@ -1,0 +1,8 @@
+schema do
+  input do
+    boolean :a
+    boolean :b
+  end
+
+  trait :result, input.a > input.b
+end

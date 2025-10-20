@@ -23,7 +23,7 @@
         %acc40 = acc_add agg.sum(%acc40, %t44) :: integer
       end_loop
       %t45 = acc_load %acc40 :: integer
-      %t15 = call core.mul(%t45, %t14) :: float
+      %t15 = call core.mul:numeric(%t45, %t14) :: float
       yield %t15
     end_loop
   )
@@ -70,7 +70,7 @@
       %t53 = acc_load %acc48 :: integer
       %t65 = acc_load %acc60 :: integer
       %t78 = acc_load %acc68 :: integer
-      %t57 = call core.mul(%t65, %t56) :: float
+      %t57 = call core.mul:numeric(%t65, %t56) :: float
       %t37 = make_object{name: %t33, payroll: %t53, tax: %t57, managers: %t78} :: object
       yield %t37
     end_loop

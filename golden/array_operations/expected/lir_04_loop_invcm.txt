@@ -4,7 +4,7 @@
     loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
       %t4 = load_field items_el_2["price"] :: float
       %t5 = load_field items_el_2["quantity"] :: integer
-      %t6 = call core.mul(%t4, %t5) :: float
+      %t6 = call core.mul:numeric(%t4, %t5) :: float
       yield %t6
     end_loop
   )
@@ -13,7 +13,7 @@
     %t11 = const 0.9 :: float
     loop items id=L2 in %t7 as el=%items_el_8, idx=%items_i_9
       %t10 = load_field items_el_8["price"] :: float
-      %t12 = call core.mul(%t10, %t11) :: float
+      %t12 = call core.mul:numeric(%t10, %t11) :: float
       yield %t12
     end_loop
   )

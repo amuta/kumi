@@ -1,0 +1,15 @@
+schema do
+  input do
+    integer :a
+    integer :b
+    float :c
+  end
+
+  value :sum, input.a + input.b
+  value :difference, input.a - input.b
+  value :product_int, input.a * input.b
+  value :product_mixed, input.a * input.c
+  value :quotient, input.a / input.c
+  value :power, input.a ** 2
+  value :modulo, input.a % input.b
+end

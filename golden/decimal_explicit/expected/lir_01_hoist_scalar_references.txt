@@ -12,13 +12,13 @@
   (Declaration subtotal
     %t5 = load_decl price :: decimal
     %t6 = load_input "quantity" :: integer
-    %t7 = call core.mul(%t5, %t6) :: integer
+    %t7 = call core.mul:numeric(%t5, %t6) :: integer
     yield %t7
   )
   (Declaration tax_amount
     %t8 = load_decl subtotal :: integer
     %t9 = load_decl rate :: decimal
-    %t10 = call core.mul(%t8, %t9) :: integer
+    %t10 = call core.mul:numeric(%t8, %t9) :: integer
     yield %t10
   )
   (Declaration total

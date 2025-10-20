@@ -24,7 +24,7 @@
       end_loop
       %t45 = acc_load %acc40 :: integer
       %t14 = const 0.15 :: float
-      %t15 = call core.mul(%t45, %t14) :: float
+      %t15 = call core.mul:numeric(%t45, %t14) :: float
       yield %t15
     end_loop
   )
@@ -68,7 +68,7 @@
       end_loop
       %t65 = acc_load %acc60 :: integer
       %t56 = const 0.15 :: float
-      %t57 = call core.mul(%t65, %t56) :: float
+      %t57 = call core.mul:numeric(%t65, %t56) :: float
       %t66 = load_input "departments" :: array
       %acc68 = decl_acc :: integer
       %t69 = load_field departments_el_31["employees"] :: any

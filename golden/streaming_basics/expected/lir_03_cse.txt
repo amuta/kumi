@@ -4,7 +4,7 @@
     loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
       %t4 = load_field items_el_2["price"] :: float
       %t5 = load_field items_el_2["qty"] :: integer
-      %t6 = call core.mul(%t4, %t5) :: float
+      %t6 = call core.mul:numeric(%t4, %t5) :: float
       yield %t6
     end_loop
   )
@@ -15,7 +15,7 @@
       %t11 = const 1.0 :: float
       %t12 = load_input "discount" :: float
       %t13 = call core.sub(%t11, %t12) :: float
-      %t14 = call core.mul(%t10, %t13) :: float
+      %t14 = call core.mul:numeric(%t10, %t13) :: float
       yield %t14
     end_loop
   )
@@ -36,8 +36,8 @@
       %t54 = load_field items_el_22["qty"] :: integer
       %t26 = const 0.9 :: float
       %t51 = call core.gt(%t49, %t50) :: boolean
-      %t55 = call core.mul(%t49, %t54) :: float
-      %t27 = call core.mul(%t55, %t26) :: float
+      %t55 = call core.mul:numeric(%t49, %t54) :: float
+      %t27 = call core.mul:numeric(%t55, %t26) :: float
       %t29 = select %t51, %t27, %t55 :: float
       yield %t29
     end_loop
@@ -58,7 +58,7 @@
     loop items id=L6 in %t37 as el=%items_el_38, idx=%items_i_39
       %t61 = load_field items_el_38["price"] :: float
       %t62 = load_field items_el_38["qty"] :: integer
-      %t63 = call core.mul(%t61, %t62) :: float
+      %t63 = call core.mul:numeric(%t61, %t62) :: float
       %acc_36 = acc_add agg.sum(%acc_36, %t63) :: float
     end_loop
     %t41 = acc_load %acc_36 :: float
@@ -73,8 +73,8 @@
       %t77 = load_field items_el_44["qty"] :: integer
       %t67 = const 0.9 :: float
       %t74 = call core.gt(%t72, %t73) :: boolean
-      %t78 = call core.mul(%t72, %t77) :: float
-      %t68 = call core.mul(%t78, %t67) :: float
+      %t78 = call core.mul:numeric(%t72, %t77) :: float
+      %t68 = call core.mul:numeric(%t78, %t67) :: float
       %t70 = select %t74, %t68, %t78 :: float
       %acc_42 = acc_add agg.sum(%acc_42, %t70) :: float
     end_loop
