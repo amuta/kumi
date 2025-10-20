@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+## [0.0.28] – 2025-10-20
+### Changed
+- Error location formatting now uses explicit `line=` and `column=` keywords for clarity
+- Location extraction prioritizes structured Location objects over message parsing
+- Default file label changed from "(string)" to "schema" for better UX
+
+### Fixed
+- Removed redundant location information from error messages
+- Parse error messages now properly format location details
+
 ## [0.0.27] – 2025-10-20
 ### Added
 - Decimal type system for precise money/bignum calculations
