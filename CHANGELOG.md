@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [0.0.27] – 2025-10-20
+### Added
+- Decimal type system for precise money/bignum calculations
+- Conversion functions (to_decimal, to_integer, to_float, to_string)
+- Automatic documentation generation system for IDE support
+- VSCode extension with schema block detection
+
 ## [0.0.26] – 2025-10-17
 ### Added
 - UNSAT detection via constraint propagation through operations
