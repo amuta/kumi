@@ -469,4 +469,41 @@ RSpec.describe "Edge Cases" do
       expect(TestSchema18.from(inputs)[:dates]).to eq([true, false])
     end
   end
+
+  describe "Type constraint validation" do
+    it "rejects string * float at compile time (float cannot be used for repetition)" do
+      expect do
+        module TestSchema19
+          extend Kumi::Schema
+
+          schema do
+            input do
+              string :text
+              float :factor
+            end
+
+            value :repeated, input.text * input.factor
+          end
+        end
+      end.to raise_error(Kumi::Errors::Error, /string.*float|type mismatch|incompatible.*string.*float/)
+    end
+
+    it "allows string * integer (proper string repetition)" do
+      module TestSchema20
+        extend Kumi::Schema
+
+        schema do
+          input do
+            string :text
+            integer :count
+          end
+
+          value :repeated, input.text * input.count
+        end
+      end
+
+      result = TestSchema20.from(text: "ab", count: 3)
+      expect(result[:repeated]).to eq("ababab")
+    end
+  end
 end

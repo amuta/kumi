@@ -15,9 +15,13 @@ kernels:
     fn: core.sub
     inline: "= $0 - $1"
 
-  - id: mul:javascript:v1
-    fn: core.mul
+  - id: mul:numeric:javascript:v1
+    fn: core.mul:numeric
     inline: "= $0 * $1"
+
+  - id: mul:string_repeat:javascript:v1
+    fn: core.mul:string_repeat
+    inline: "= $0.repeat($1)"
 
   - id: pow:javascript:v1
     fn: core.pow

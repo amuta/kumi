@@ -36,10 +36,20 @@ module Kumi
           candidates = @alias_overloads[s]
           raise ResolutionError, "unknown function #{alias_or_id}" if candidates.nil?
 
-          # Single overload - use it directly
+          # Single overload - validate type constraints too
           if candidates.size == 1
-            validate_arity!(candidates.first, arg_types)
-            return candidates.first
+            fn_id = candidates.first
+            validate_arity!(fn_id, arg_types)
+            fn = @functions[fn_id]
+            score = match_score(fn.params, arg_types)
+            if score > 0
+              return fn_id
+            else
+              # Type constraints failed for the only overload
+              raise ResolutionError,
+                    "no overload of '#{alias_or_id}' matches argument types #{arg_types.inspect}. " \
+                    "Available overloads: #{fn.id}"
+            end
           end
 
           # Multiple overloads - find best match by type constraints (prefer exact matches)
@@ -121,6 +131,8 @@ module Kumi
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :integer
           when "float"
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :float
+          when "numeric"
+            type_obj.is_a?(Kumi::Core::Types::ScalarType) && [:integer, :float, :decimal].include?(type_obj.kind)
           when "hash"
             type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :hash
           else
@@ -140,6 +152,8 @@ module Kumi
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :integer
           when "float"
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :float
+          when "numeric"
+            arg_type.is_a?(Kumi::Core::Types::ScalarType) && [:integer, :float, :decimal].include?(arg_type.kind)
           when "hash"
             arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :hash
           else

@@ -17,10 +17,15 @@ kernels:
     inline: "= $0 - $1"
     impl: "(a, b)\n  a - b"
 
-  - id: mul:ruby:v1
-    fn: core.mul
+  - id: mul:numeric:ruby:v1
+    fn: core.mul:numeric
     inline: "= $0 * $1"
     impl: "(a, b)\n  a * b"
+
+  - id: mul:string_repeat:ruby:v1
+    fn: core.mul:string_repeat
+    inline: "= $0 * $1"
+    impl: "(str, count)\n  str * count"
 
   - id: pow:ruby:v1
     fn: core.pow

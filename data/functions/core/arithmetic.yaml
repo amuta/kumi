@@ -39,9 +39,11 @@ functions:
       params: [left_operand, right_operand]
     aliases: ["sub", "subtract"]
 
-  - id: core.mul
+  - id: core.mul:numeric
     kind: elementwise
-    params: [{ name: left_operand }, { name: right_operand }]
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
     dtype:
       rule: promote
       params: [left_operand, right_operand]
@@ -62,6 +64,16 @@ functions:
         equality: "left = result / right (if right != 0); right = result / left (if left != 0)"
         # For multiplication: divide by absolute values considering sign changes
         range: "derive from result bounds and operand bounds considering sign combinations"
+
+  - id: core.mul:string_repeat
+    kind: elementwise
+    params:
+      - { name: string_value, dtype: string }
+      - { name: repeat_count, dtype: integer }
+    dtype:
+      rule: scalar
+      kind: string
+    aliases: ["mul", "multiply"]
 
   - id: core.pow
     kind: elementwise

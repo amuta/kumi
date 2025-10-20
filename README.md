@@ -7,20 +7,37 @@
 
 ---
 
-**Declarative, typed, vectorized calculation DSL (Ruby-embedded) that builds a deterministic dependency graph.**  
-Normalized, typed **AST → IR → LIR**. Static checks and **constraint UNSAT** at compile time. Codegen is thin.
+## What is Kumi?
+
+Kumi is a **declarative DSL for building calculation systems** that are:
+- **Typed & verifiable at compile time** (catch errors before they hit production)
+- **Vectorized** (arrays and nested data structures work naturally)
+- **Transparent** (inspect generated code and execution order)
+- **Portable** (compile the same schema to Ruby or JavaScript)
+
+Instead of writing procedural formulas, you declare *what* values depend on *what*, and Kumi figures out the computation order, validates types, detects impossible constraints, and generates efficient code.
+
+## Why Kumi Exists
+
+Calculation systems are everywhere: tax engines, pricing models, financial projections, compliance checks. They're usually:
+- Hard to verify (logic spread across multiple files)
+- Fragile (changing one formula breaks hidden dependencies)
+- Duplicated (same logic needed in backend and frontend)
+- Opaque (hard to audit which rules applied to which data)
+
+Kumi makes them explicit, testable, and portable.
 
 ---
 
 **Status**: experimental. Public API may change. Typing and some static checks are still evolving.
 
-**Feedback**: have a use case or a paper cut? Open an issue or reach out.
+**Feedback**: have a use case or hit a rough edge? Open an issue or reach out.
 
 ---
 
 ## Example: US Tax Calculator (2024)
 
-See the [interactive demo](https://kumi-play-web.fly.dev/) or browse the [golden test files](golden/us_tax_2024/) (schema, input, expected output, generated code).
+A single schema computes federal, state, FICA taxes across multiple filing statuses—all types verified at compile time. Try it in the [interactive demo](https://kumi-play-web.fly.dev/) or inspect the [full schema, input, output, and generated code](golden/us_tax_2024/).
 
 <details>
 <summary><strong>Schema</strong></summary>
@@ -118,10 +135,6 @@ Requires Ruby 3.1+. No external dependencies.
 ```ruby
 require 'kumi'
 
-Kumi.configure do |config|
-  config.compilation_mode = :jit
-end
-
 module Double
   extend Kumi::Schema
 
@@ -135,9 +148,11 @@ end
 result = Double.from(x: 5)
 result[:doubled]  # => 10
 
-# Export to JavaScript
+# Export to JavaScript (same logic)
 Double.write_source("output.mjs", platform: :javascript)
 ```
+
+Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
 
 ---
 
