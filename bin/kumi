@@ -81,6 +81,9 @@ when "golden"
     if names&.any?
       Kumi::Dev::Golden.update!(*names)
       Kumi::Dev::Golden.test_all_codegen!(*names)
+    else
+      Kumi::Dev::Golden.update!
+      exit(Kumi::Dev::Golden.test_all_codegen! ? 0 : 1)
     end
   when "test_lir"
     if names&.any?
