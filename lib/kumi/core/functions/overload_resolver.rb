@@ -36,8 +36,7 @@ module Kumi
             else
               # Type constraints failed
               raise ResolutionError,
-                    "no overload of '#{alias_or_id}' matches argument types #{arg_types.inspect}. " \
-                    "Available overloads: #{fn.id}"
+                    "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
             end
           end
 
@@ -56,8 +55,7 @@ module Kumi
             else
               # Type constraints failed for the only overload
               raise ResolutionError,
-                    "no overload of '#{alias_or_id}' matches argument types #{arg_types.inspect}. " \
-                    "Available overloads: #{fn.id}"
+                    "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
             end
           end
 
@@ -75,10 +73,8 @@ module Kumi
           end
 
           # No match found - provide helpful error
-          available = candidates.map { |id| @functions[id].id }.join(", ")
           raise ResolutionError,
-                "no overload of '#{alias_or_id}' matches argument types #{arg_types.inspect}. " \
-                "Available overloads: #{available}"
+                "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
         end
 
         # Get function object by ID (already resolved)
@@ -191,6 +187,19 @@ module Kumi
 
           raise ResolutionError,
                 "function #{fn_id} expects #{fn.params.size} arguments, got #{arg_types.size}"
+        end
+
+        private
+
+        def format_types(arg_types)
+          arg_types.map(&:to_s).join(", ")
+        end
+
+        def format_param_constraints(params)
+          params.map do |param|
+            dtype = param["dtype"]
+            dtype || "any"
+          end.join(", ")
         end
 
         # Custom error for function resolution failures
