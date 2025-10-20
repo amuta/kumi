@@ -141,6 +141,19 @@ Double.write_source("output.mjs", platform: :javascript)
 
 ---
 
+## Documentation
+
+Auto-generated reference for all functions and kernels:
+
+- **[Functions Reference](docs/FUNCTIONS.md)** - Human-readable docs with parameters and kernels
+- **[functions-reference.json](docs/functions-reference.json)** - Machine-readable format for IDEs (VSCode, Monaco, etc.)
+
+To regenerate: `bin/kumi-doc-gen`
+
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development workflows.
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

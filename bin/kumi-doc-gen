@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+# Load Kumi and the doc generator
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+require 'kumi'
+
+options = {
+  functions_dir: File.expand_path('../data/functions', __dir__),
+  kernels_dir: File.expand_path('../data/kernels/ruby', __dir__),
+  output_json: File.expand_path('../docs/functions-reference.json', __dir__),
+  output_markdown: File.expand_path('../docs/FUNCTIONS.md', __dir__)
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: kumi-doc-gen [options]"
+
+  opts.on("--functions DIR", "Path to functions directory") do |dir|
+    options[:functions_dir] = File.expand_path(dir)
+  end
+
+  opts.on("--kernels DIR", "Path to kernels directory") do |dir|
+    options[:kernels_dir] = File.expand_path(dir)
+  end
+
+  opts.on("--output-json FILE", "Output JSON file path") do |file|
+    options[:output_json] = File.expand_path(file)
+  end
+
+  opts.on("--output-markdown FILE", "Output Markdown file path") do |file|
+    options[:output_markdown] = File.expand_path(file)
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+end.parse!
+
+loader = Kumi::DocGenerator::Loader.new(
+  functions_dir: options[:functions_dir],
+  kernels_dir: options[:kernels_dir]
+)
+
+merger = Kumi::DocGenerator::Merger.new(loader)
+docs = merger.merge
+
+# Generate JSON
+json_formatter = Kumi::DocGenerator::Formatters::Json.new(docs)
+File.write(options[:output_json], json_formatter.format)
+puts "✓ Generated JSON: #{options[:output_json]}"
+
+# Generate Markdown
+markdown_formatter = Kumi::DocGenerator::Formatters::Markdown.new(docs)
+File.write(options[:output_markdown], markdown_formatter.format)
+puts "✓ Generated Markdown: #{options[:output_markdown]}"

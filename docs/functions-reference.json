@@ -1,0 +1,1821 @@
+{
+  "any": {
+    "id": "agg.any",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "any:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "any",
+      "any?"
+    ],
+    "reduction_strategy": null
+  },
+  "any?": {
+    "id": "agg.any",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "any:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "any",
+      "any?"
+    ],
+    "reduction_strategy": null
+  },
+  "all": {
+    "id": "agg.all",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "all:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "all",
+      "all?"
+    ],
+    "reduction_strategy": null
+  },
+  "all?": {
+    "id": "agg.all",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "all:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "all",
+      "all?"
+    ],
+    "reduction_strategy": null
+  },
+  "sum": {
+    "id": "agg.sum",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "agg.sum:ruby:v1"
+    },
+    "dtype": {
+      "rule": "same_as",
+      "param": "source_value"
+    },
+    "aliases": [
+      "sum"
+    ],
+    "reduction_strategy": "identity"
+  },
+  "count": {
+    "id": "agg.count",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "agg.count:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "count"
+    ],
+    "reduction_strategy": "identity"
+  },
+  "min": {
+    "id": "agg.min",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "agg.min:ruby:v1"
+    },
+    "dtype": {
+      "rule": "element_of",
+      "param": "source_value"
+    },
+    "aliases": [
+      "min"
+    ],
+    "reduction_strategy": "first_element"
+  },
+  "max": {
+    "id": "agg.max",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {
+      "ruby": "agg.max:ruby:v1"
+    },
+    "dtype": {
+      "rule": "element_of",
+      "param": "source_value"
+    },
+    "aliases": [
+      "max"
+    ],
+    "reduction_strategy": "first_element"
+  },
+  "mean": {
+    "id": "agg.mean",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "mean",
+      "avg"
+    ],
+    "reduction_strategy": null
+  },
+  "avg": {
+    "id": "agg.mean",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "mean",
+      "avg"
+    ],
+    "reduction_strategy": null
+  },
+  "sum_if": {
+    "id": "agg.sum_if",
+    "kind": "reduce",
+    "arity": 2,
+    "params": [
+      {
+        "name": "source_value"
+      },
+      {
+        "name": "condition"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "same_as",
+      "param": "source_value"
+    },
+    "aliases": [
+      "sum_if"
+    ],
+    "reduction_strategy": null
+  },
+  "count_if": {
+    "id": "agg.count_if",
+    "kind": "reduce",
+    "arity": 2,
+    "params": [
+      {
+        "name": "condition"
+      },
+      {
+        "name": "source_value"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "count_if"
+    ],
+    "reduction_strategy": null
+  },
+  "avg_if": {
+    "id": "agg.mean_if",
+    "kind": "reduce",
+    "arity": 2,
+    "params": [
+      {
+        "name": "source_value"
+      },
+      {
+        "name": "condition"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "avg_if",
+      "mean_if"
+    ],
+    "reduction_strategy": null
+  },
+  "mean_if": {
+    "id": "agg.mean_if",
+    "kind": "reduce",
+    "arity": 2,
+    "params": [
+      {
+        "name": "source_value"
+      },
+      {
+        "name": "condition"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "avg_if",
+      "mean_if"
+    ],
+    "reduction_strategy": null
+  },
+  "join": {
+    "id": "agg.join",
+    "kind": "reduce",
+    "arity": 1,
+    "params": [
+      {
+        "name": "source_value",
+        "dtype": "string"
+      }
+    ],
+    "kernels": {
+      "ruby": "agg.join:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "join"
+    ],
+    "reduction_strategy": "first_element"
+  },
+  "abs": {
+    "id": "core.abs",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "number"
+      }
+    ],
+    "kernels": {
+      "ruby": "abs:ruby:v1"
+    },
+    "dtype": {
+      "rule": "same_as",
+      "param": "number"
+    },
+    "aliases": [
+      "abs"
+    ],
+    "reduction_strategy": null
+  },
+  "add": {
+    "id": "core.add",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "add:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "add"
+    ],
+    "reduction_strategy": null
+  },
+  "sub": {
+    "id": "core.sub",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "sub:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "sub",
+      "subtract"
+    ],
+    "reduction_strategy": null
+  },
+  "subtract": {
+    "id": "core.sub",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "sub:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "sub",
+      "subtract"
+    ],
+    "reduction_strategy": null
+  },
+  "mul": {
+    "id": "core.mul",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "mul:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "mul",
+      "multiply"
+    ],
+    "reduction_strategy": null
+  },
+  "multiply": {
+    "id": "core.mul",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "mul:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "mul",
+      "multiply"
+    ],
+    "reduction_strategy": null
+  },
+  "pow": {
+    "id": "core.pow",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "base"
+      },
+      {
+        "name": "exponent"
+      }
+    ],
+    "kernels": {
+      "ruby": "pow:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "base",
+        "exponent"
+      ]
+    },
+    "aliases": [
+      "pow",
+      "power"
+    ],
+    "reduction_strategy": null
+  },
+  "power": {
+    "id": "core.pow",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "base"
+      },
+      {
+        "name": "exponent"
+      }
+    ],
+    "kernels": {
+      "ruby": "pow:ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "base",
+        "exponent"
+      ]
+    },
+    "aliases": [
+      "pow",
+      "power"
+    ],
+    "reduction_strategy": null
+  },
+  "div": {
+    "id": "core.div",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "div:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "div",
+      "divide"
+    ],
+    "reduction_strategy": null
+  },
+  "divide": {
+    "id": "core.div",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "div:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "div",
+      "divide"
+    ],
+    "reduction_strategy": null
+  },
+  "mod": {
+    "id": "core.mod",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "v1": "mod.ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "mod",
+      "modulo",
+      "%"
+    ],
+    "reduction_strategy": null
+  },
+  "modulo": {
+    "id": "core.mod",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "v1": "mod.ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "mod",
+      "modulo",
+      "%"
+    ],
+    "reduction_strategy": null
+  },
+  "%": {
+    "id": "core.mod",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "v1": "mod.ruby:v1"
+    },
+    "dtype": {
+      "rule": "promote",
+      "params": [
+        "left_operand",
+        "right_operand"
+      ]
+    },
+    "aliases": [
+      "mod",
+      "modulo",
+      "%"
+    ],
+    "reduction_strategy": null
+  },
+  "clamp": {
+    "id": "core.clamp",
+    "kind": "elementwise",
+    "arity": 3,
+    "params": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "lo"
+      },
+      {
+        "name": "hi"
+      }
+    ],
+    "kernels": {
+      "ruby": "clamp:ruby:v1"
+    },
+    "dtype": {
+      "rule": "same_as",
+      "param": "x"
+    },
+    "aliases": [
+      "clamp"
+    ],
+    "reduction_strategy": null
+  },
+  "and": {
+    "id": "core.and",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "and:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "and",
+      "&"
+    ],
+    "reduction_strategy": null
+  },
+  "&": {
+    "id": "core.and",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "and:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "and",
+      "&"
+    ],
+    "reduction_strategy": null
+  },
+  "or": {
+    "id": "core.or",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "or:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "or",
+      "|"
+    ],
+    "reduction_strategy": null
+  },
+  "|": {
+    "id": "core.or",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "or:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "or",
+      "|"
+    ],
+    "reduction_strategy": null
+  },
+  "not": {
+    "id": "core.not",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "not:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "not",
+      "!"
+    ],
+    "reduction_strategy": null
+  },
+  "!": {
+    "id": "core.not",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "not:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "not",
+      "!"
+    ],
+    "reduction_strategy": null
+  },
+  "gte": {
+    "id": "core.gte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gte",
+      "ge",
+      "greater_than_or_equal",
+      ">="
+    ],
+    "reduction_strategy": null
+  },
+  "ge": {
+    "id": "core.gte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gte",
+      "ge",
+      "greater_than_or_equal",
+      ">="
+    ],
+    "reduction_strategy": null
+  },
+  "greater_than_or_equal": {
+    "id": "core.gte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gte",
+      "ge",
+      "greater_than_or_equal",
+      ">="
+    ],
+    "reduction_strategy": null
+  },
+  ">=": {
+    "id": "core.gte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gte",
+      "ge",
+      "greater_than_or_equal",
+      ">="
+    ],
+    "reduction_strategy": null
+  },
+  "gt": {
+    "id": "core.gt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gt",
+      "greater_than",
+      ">"
+    ],
+    "reduction_strategy": null
+  },
+  "greater_than": {
+    "id": "core.gt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gt",
+      "greater_than",
+      ">"
+    ],
+    "reduction_strategy": null
+  },
+  ">": {
+    "id": "core.gt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "gt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "gt",
+      "greater_than",
+      ">"
+    ],
+    "reduction_strategy": null
+  },
+  "lte": {
+    "id": "core.lte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lte",
+      "le",
+      "less_than_or_equal",
+      "<="
+    ],
+    "reduction_strategy": null
+  },
+  "le": {
+    "id": "core.lte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lte",
+      "le",
+      "less_than_or_equal",
+      "<="
+    ],
+    "reduction_strategy": null
+  },
+  "less_than_or_equal": {
+    "id": "core.lte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lte",
+      "le",
+      "less_than_or_equal",
+      "<="
+    ],
+    "reduction_strategy": null
+  },
+  "<=": {
+    "id": "core.lte",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lte:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lte",
+      "le",
+      "less_than_or_equal",
+      "<="
+    ],
+    "reduction_strategy": null
+  },
+  "lt": {
+    "id": "core.lt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lt",
+      "less_than",
+      "<"
+    ],
+    "reduction_strategy": null
+  },
+  "less_than": {
+    "id": "core.lt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lt",
+      "less_than",
+      "<"
+    ],
+    "reduction_strategy": null
+  },
+  "<": {
+    "id": "core.lt",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "lt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "lt",
+      "less_than",
+      "<"
+    ],
+    "reduction_strategy": null
+  },
+  "eq": {
+    "id": "core.eq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "eq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "eq",
+      "equal",
+      "=="
+    ],
+    "reduction_strategy": null
+  },
+  "equal": {
+    "id": "core.eq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "eq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "eq",
+      "equal",
+      "=="
+    ],
+    "reduction_strategy": null
+  },
+  "==": {
+    "id": "core.eq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "eq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "eq",
+      "equal",
+      "=="
+    ],
+    "reduction_strategy": null
+  },
+  "neq": {
+    "id": "core.neq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "neq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "neq",
+      "not_equal",
+      "!="
+    ],
+    "reduction_strategy": null
+  },
+  "not_equal": {
+    "id": "core.neq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "neq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "neq",
+      "not_equal",
+      "!="
+    ],
+    "reduction_strategy": null
+  },
+  "!=": {
+    "id": "core.neq",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_operand"
+      },
+      {
+        "name": "right_operand"
+      }
+    ],
+    "kernels": {
+      "ruby": "neq:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "boolean"
+    },
+    "aliases": [
+      "neq",
+      "not_equal",
+      "!="
+    ],
+    "reduction_strategy": null
+  },
+  "length": {
+    "id": "core.length",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "collection",
+        "dtype": "string"
+      }
+    ],
+    "kernels": {
+      "ruby": "length:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "length",
+      "len",
+      "size"
+    ],
+    "reduction_strategy": null
+  },
+  "len": {
+    "id": "core.length",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "collection",
+        "dtype": "string"
+      }
+    ],
+    "kernels": {
+      "ruby": "length:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "length",
+      "len",
+      "size"
+    ],
+    "reduction_strategy": null
+  },
+  "size": {
+    "id": "core.array_size",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "collection",
+        "dtype": "array"
+      }
+    ],
+    "kernels": {
+      "ruby": "size:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "array_size",
+      "size"
+    ],
+    "reduction_strategy": null
+  },
+  "array_size": {
+    "id": "core.array_size",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "collection",
+        "dtype": "array"
+      }
+    ],
+    "kernels": {
+      "ruby": "size:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "array_size",
+      "size"
+    ],
+    "reduction_strategy": null
+  },
+  "at": {
+    "id": "core.at",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "collection"
+      },
+      {
+        "name": "index",
+        "dtype": "integer"
+      }
+    ],
+    "kernels": {
+      "ruby": "at:ruby:v1"
+    },
+    "dtype": {
+      "rule": "element_of",
+      "param": "collection"
+    },
+    "aliases": [
+      "at",
+      "get",
+      "[]"
+    ],
+    "reduction_strategy": null
+  },
+  "get": {
+    "id": "core.at",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "collection"
+      },
+      {
+        "name": "index",
+        "dtype": "integer"
+      }
+    ],
+    "kernels": {
+      "ruby": "at:ruby:v1"
+    },
+    "dtype": {
+      "rule": "element_of",
+      "param": "collection"
+    },
+    "aliases": [
+      "at",
+      "get",
+      "[]"
+    ],
+    "reduction_strategy": null
+  },
+  "[]": {
+    "id": "core.at",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "collection"
+      },
+      {
+        "name": "index",
+        "dtype": "integer"
+      }
+    ],
+    "kernels": {
+      "ruby": "at:ruby:v1"
+    },
+    "dtype": {
+      "rule": "element_of",
+      "param": "collection"
+    },
+    "aliases": [
+      "at",
+      "get",
+      "[]"
+    ],
+    "reduction_strategy": null
+  },
+  "fetch": {
+    "id": "core.hash_fetch",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "key",
+        "dtype": "hash"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "scalar",
+      "kind": "any"
+    },
+    "aliases": [
+      "fetch"
+    ],
+    "reduction_strategy": null
+  },
+  "to_decimal": {
+    "id": "core.to_decimal",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_decimal:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "decimal"
+    },
+    "aliases": [
+      "to_decimal"
+    ],
+    "reduction_strategy": null
+  },
+  "to_integer": {
+    "id": "core.to_integer",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_integer:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "to_integer",
+      "to_int"
+    ],
+    "reduction_strategy": null
+  },
+  "to_int": {
+    "id": "core.to_integer",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_integer:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "integer"
+    },
+    "aliases": [
+      "to_integer",
+      "to_int"
+    ],
+    "reduction_strategy": null
+  },
+  "to_float": {
+    "id": "core.to_float",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_float:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "to_float"
+    ],
+    "reduction_strategy": null
+  },
+  "to_string": {
+    "id": "core.to_string",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_string:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "to_string",
+      "to_str"
+    ],
+    "reduction_strategy": null
+  },
+  "to_str": {
+    "id": "core.to_string",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "to_string:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "to_string",
+      "to_str"
+    ],
+    "reduction_strategy": null
+  },
+  "select": {
+    "id": "__select__",
+    "kind": "elementwise",
+    "arity": 3,
+    "params": [
+      {
+        "name": "condition_mask"
+      },
+      {
+        "name": "value_when_true"
+      },
+      {
+        "name": "value_when_false"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "same_as",
+      "param": "value_when_true"
+    },
+    "aliases": [
+      "select",
+      "if"
+    ],
+    "reduction_strategy": null
+  },
+  "if": {
+    "id": "__select__",
+    "kind": "elementwise",
+    "arity": 3,
+    "params": [
+      {
+        "name": "condition_mask"
+      },
+      {
+        "name": "value_when_true"
+      },
+      {
+        "name": "value_when_false"
+      }
+    ],
+    "kernels": {},
+    "dtype": {
+      "rule": "same_as",
+      "param": "value_when_true"
+    },
+    "aliases": [
+      "select",
+      "if"
+    ],
+    "reduction_strategy": null
+  },
+  "concat": {
+    "id": "core.concat",
+    "kind": "elementwise",
+    "arity": 2,
+    "params": [
+      {
+        "name": "left_string"
+      },
+      {
+        "name": "right_string"
+      }
+    ],
+    "kernels": {
+      "ruby": "concat:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "concat"
+    ],
+    "reduction_strategy": null
+  },
+  "upcase": {
+    "id": "core.upcase",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "string"
+      }
+    ],
+    "kernels": {
+      "ruby": "upcase:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "upcase"
+    ],
+    "reduction_strategy": null
+  },
+  "downcase": {
+    "id": "core.downcase",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "string"
+      }
+    ],
+    "kernels": {
+      "ruby": "downcase:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "string"
+    },
+    "aliases": [
+      "downcase"
+    ],
+    "reduction_strategy": null
+  }
+}

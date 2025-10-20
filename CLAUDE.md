@@ -25,6 +25,10 @@ Axes align by identity (lineage), not by name
 `bin/kumi golden verify [name]` - Verify current vs expected
 `bin/kumi golden diff <name>` - Show diffs when verification fails
 
+# Documentation Generation
+`bin/kumi-doc-gen` - Generate IDE-friendly JSON + Markdown docs from function/kernel definitions
+See docs/DEVELOPMENT.md for details
+
 # Kernels Invariants
 All reducers are pure binary combiner f : T × T → T applied over the last axis of a value. Example: agg.sum(a,b) = a+b.
 

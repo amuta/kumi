@@ -1,0 +1,51 @@
+{
+  "name": "kumi-language-support",
+  "displayName": "Kumi Language Support",
+  "description": "Language support for Kumi DSL with autocomplete and hover information",
+  "version": "0.1.0",
+  "publisher": "kumi",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onLanguage:ruby",
+    "onLanguage:kumi"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "kumi",
+        "aliases": [
+          "Kumi",
+          "kumi"
+        ],
+        "extensions": [
+          ".kumi"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "kumi",
+        "scopeName": "source.kumi",
+        "path": "./syntaxes/kumi.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}
