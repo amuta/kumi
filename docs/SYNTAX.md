@@ -17,6 +17,7 @@ end
 ```kumi
 integer    # Integer numbers
 float      # Floating point numbers
+decimal    # Precise decimal numbers (money, bignum calculations)
 string     # Text strings
 array      # Sequential collections
 hash       # Structured objects
@@ -57,6 +58,12 @@ trait :name, expr    # Boolean mask
 **Arithmetic:**
 - `fn(:abs, x)` — Absolute value
 - `fn(:clamp, x, lo, hi)` — Clamp to range
+
+**Type Conversion:**
+- `fn(:to_decimal, x)` — Convert to decimal
+- `fn(:to_integer, x)` — Convert to integer
+- `fn(:to_float, x)` — Convert to float
+- `fn(:to_string, x)` — Convert to string
 
 **String:**
 - `fn(:concat, s1, s2)` — Concatenate strings
@@ -140,6 +147,7 @@ Scalar inputs represent single values:
 input do
   integer :x
   float :rate
+  decimal :price        # Precise decimal for money calculations
   string :name
 end
 ```
