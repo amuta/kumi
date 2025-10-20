@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require "bigdecimal"
 
 RSpec.describe Kumi::Core::Types::Normalizer do
   describe ".normalize" do
     let(:string_type) { Kumi::Core::Types.scalar(:string) }
     let(:integer_type) { Kumi::Core::Types.scalar(:integer) }
     let(:float_type) { Kumi::Core::Types.scalar(:float) }
+    let(:decimal_type) { Kumi::Core::Types.scalar(:decimal) }
     let(:boolean_type) { Kumi::Core::Types.scalar(:boolean) }
     let(:any_type) { Kumi::Core::Types.scalar(:any) }
 
@@ -15,6 +17,7 @@ RSpec.describe Kumi::Core::Types::Normalizer do
         expect(described_class.normalize(:string)).to eq(string_type)
         expect(described_class.normalize(:integer)).to eq(integer_type)
         expect(described_class.normalize(:float)).to eq(float_type)
+        expect(described_class.normalize(:decimal)).to eq(decimal_type)
         expect(described_class.normalize(:boolean)).to eq(boolean_type)
         expect(described_class.normalize(:any)).to eq(any_type)
       end
@@ -30,6 +33,7 @@ RSpec.describe Kumi::Core::Types::Normalizer do
       it "converts valid type strings to Type objects" do
         expect(described_class.normalize("string")).to eq(string_type)
         expect(described_class.normalize("integer")).to eq(integer_type)
+        expect(described_class.normalize("decimal")).to eq(decimal_type)
         expect(described_class.normalize("boolean")).to eq(boolean_type)
       end
 
@@ -59,6 +63,10 @@ RSpec.describe Kumi::Core::Types::Normalizer do
 
       it "converts Float class to float Type object" do
         expect(described_class.normalize(Float)).to eq(float_type)
+      end
+
+      it "converts BigDecimal class to decimal Type object" do
+        expect(described_class.normalize(BigDecimal)).to eq(decimal_type)
       end
 
       it "converts TrueClass and FalseClass to boolean Type objects" do

@@ -1,0 +1,30 @@
+(LIR
+  (Declaration price
+    %t1 = load_input "unit_price" :: string
+    %t2 = call core.to_decimal(%t1) :: decimal
+    yield %t2
+  )
+  (Declaration rate
+    %t3 = load_input "tax_rate" :: string
+    %t4 = call core.to_decimal(%t3) :: decimal
+    yield %t4
+  )
+  (Declaration subtotal
+    %t5 = load_decl price :: decimal
+    %t6 = load_input "quantity" :: integer
+    %t7 = call core.mul(%t5, %t6) :: integer
+    yield %t7
+  )
+  (Declaration tax_amount
+    %t8 = load_decl subtotal :: integer
+    %t9 = load_decl rate :: decimal
+    %t10 = call core.mul(%t8, %t9) :: integer
+    yield %t10
+  )
+  (Declaration total
+    %t11 = load_decl subtotal :: integer
+    %t12 = load_decl tax_amount :: integer
+    %t13 = call core.add(%t11, %t12) :: integer
+    yield %t13
+  )
+)

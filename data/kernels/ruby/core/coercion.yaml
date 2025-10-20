@@ -1,0 +1,20 @@
+kernels:
+  - id: to_decimal:ruby:v1
+    fn: core.to_decimal
+    inline: "= $0.is_a?(BigDecimal) ? $0 : BigDecimal($0.to_s)"
+    impl: "(value)\n  case value\n  when BigDecimal then value\n  when String then BigDecimal(value)\n  when Numeric then BigDecimal(value.to_s)\n  else raise TypeError, \"Cannot coerce #{value.class} to Decimal\"\n  end"
+
+  - id: to_integer:ruby:v1
+    fn: core.to_integer
+    inline: "= $0.to_i"
+    impl: "(value)\n  value.to_i"
+
+  - id: to_float:ruby:v1
+    fn: core.to_float
+    inline: "= $0.to_f"
+    impl: "(value)\n  value.to_f"
+
+  - id: to_string:ruby:v1
+    fn: core.to_string
+    inline: "= $0.to_s"
+    impl: "(value)\n  value.to_s"

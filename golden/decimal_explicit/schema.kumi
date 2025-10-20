@@ -1,0 +1,14 @@
+schema do
+  input do
+    string :unit_price
+    integer :quantity
+    string :tax_rate
+  end
+
+  let :price, to_decimal(input.unit_price)
+  let :rate, to_decimal(input.tax_rate)
+
+  value :subtotal, price * input.quantity
+  value :tax_amount, subtotal * rate
+  value :total, subtotal + tax_amount
+end

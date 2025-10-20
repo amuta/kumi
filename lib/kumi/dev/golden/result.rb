@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'value_normalizer'
+
 module Kumi
   module Dev
     module Golden
@@ -60,7 +62,7 @@ module Kumi
         end
 
         def passed?
-          actual == expected
+          ValueNormalizer.values_equal?(actual, expected, language: language)
         end
 
         def failed?

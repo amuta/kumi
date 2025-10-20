@@ -1,0 +1,32 @@
+functions:
+  - id: core.to_decimal
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: decimal
+    aliases: ["to_decimal"]
+
+  - id: core.to_integer
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: integer
+    aliases: ["to_integer", "to_int"]
+
+  - id: core.to_float
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["to_float"]
+
+  - id: core.to_string
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: string
+    aliases: ["to_string", "to_str"]

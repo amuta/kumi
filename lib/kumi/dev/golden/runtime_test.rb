@@ -2,6 +2,8 @@
 
 require "json"
 require "open3"
+require "bigdecimal"
+require_relative "value_normalizer"
 
 module Kumi
   module Dev
@@ -64,12 +66,35 @@ module Kumi
           code = File.read(code_file)
           input_data = JSON.parse(File.read(input_file))
 
+          # Convert decimal string inputs to BigDecimal
+          input_data = convert_decimal_strings(input_data)
+
           module_name = code.match(/module (Kumi::Compiled::\S+)/)[1]
           eval(code)
           module_const = Object.const_get(module_name)
           instance = module_const.from(input_data)
 
           decl_names.to_h { |name| [name, instance[name.to_sym]] }
+        end
+
+        private
+
+        def convert_decimal_strings(value)
+          case value
+          when Hash
+            value.transform_values { |v| convert_decimal_strings(v) }
+          when Array
+            value.map { |v| convert_decimal_strings(v) }
+          when String
+            # Convert decimal-like strings to BigDecimal
+            if value.match?(/\A-?\d+(\.\d+)?\z/)
+              BigDecimal(value)
+            else
+              value
+            end
+          else
+            value
+          end
         end
 
         def execute_javascript(base_dir, decl_names)

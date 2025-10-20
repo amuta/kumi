@@ -1,0 +1,30 @@
+(SNAST
+  (VALUE price
+    (Call :core.to_decimal
+      (InputRef unit_price key_chain=[]) :: [] -> string
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE rate
+    (Call :core.to_decimal
+      (InputRef tax_rate key_chain=[]) :: [] -> string
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE subtotal
+    (Call :core.mul
+      (Ref price) :: [] -> decimal
+      (InputRef quantity key_chain=[]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE tax_amount
+    (Call :core.mul
+      (Ref subtotal) :: [] -> integer
+      (Ref rate) :: [] -> decimal
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE total
+    (Call :core.add
+      (Ref subtotal) :: [] -> integer
+      (Ref tax_amount) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

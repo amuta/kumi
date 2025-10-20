@@ -1,0 +1,3 @@
+unit_price: string
+quantity: integer
+tax_rate: string

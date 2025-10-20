@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'bigdecimal'
+
 module Kumi
   module Core
     module Input
@@ -10,6 +12,8 @@ module Kumi
             value.is_a?(Integer)
           when :float
             value.is_a?(Float) || value.is_a?(Integer) # Allow integer for float
+          when :decimal
+            value.is_a?(BigDecimal) || value.is_a?(Float) || value.is_a?(Integer)
           when :string
             value.is_a?(String)
           when :boolean
@@ -36,7 +40,10 @@ module Kumi
           when Symbol then :symbol
           when Array then { array: :mixed }
           when Hash then { hash: %i[mixed mixed] }
-          else :unknown
+          else
+            return :decimal if value.is_a?(BigDecimal)
+
+            :unknown
           end
         end
 

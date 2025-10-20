@@ -1,0 +1,20 @@
+kernels:
+  - id: to_decimal:javascript:v1
+    fn: core.to_decimal
+    inline: "= typeof $0 === 'string' ? parseFloat($0) : Number($0)"
+    impl: "(value) {\n  if (typeof value === 'string') return parseFloat(value);\n  return Number(value);\n}"
+
+  - id: to_integer:javascript:v1
+    fn: core.to_integer
+    inline: "= parseInt($0)"
+    impl: "(value) { return parseInt(value); }"
+
+  - id: to_float:javascript:v1
+    fn: core.to_float
+    inline: "= parseFloat($0)"
+    impl: "(value) { return parseFloat(value); }"
+
+  - id: to_string:javascript:v1
+    fn: core.to_string
+    inline: "= String($0)"
+    impl: "(value) { return String(value); }"

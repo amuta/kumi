@@ -60,24 +60,33 @@ when "pp"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> ..."
-  name = ARGV.shift if %w[update verify diff test].include?(sub)
+  sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> [name1 name2 ...]"
   opts = {}
   OptionParser.new do |o|
     o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
   end.parse!(ARGV)
-  
+  names = ARGV.dup if %w[update verify diff test].include?(sub)
+
   case sub
   when "list"   then Kumi::Dev::Golden.list
-  when "update" then Kumi::Dev::Golden.update!(name)
-  when "verify" then exit(Kumi::Dev::Golden.verify!(name) ? 0 : 1)
-  when "diff"   then Kumi::Dev::Golden.diff!(name)
+  when "update" then Kumi::Dev::Golden.update!(*names) if names&.any?
+  when "verify"
+    if names&.any?
+      exit(Kumi::Dev::Golden.verify!(*names) ? 0 : 1)
+    else
+      exit(Kumi::Dev::Golden.verify! ? 0 : 1)
+    end
+  when "diff"   then Kumi::Dev::Golden.diff!(*names) if names&.any?
   when "test"
-    Kumi::Dev::Golden.update!(name)
-    Kumi::Dev::Golden.test_all_codegen!(name)
+    if names&.any?
+      Kumi::Dev::Golden.update!(*names)
+      Kumi::Dev::Golden.test_all_codegen!(*names)
+    end
   when "test_lir"
-    Kumi::Dev::Golden.update!(name)
-    exit(Kumi::Dev::Golden.test_lir_codegen!(name) ? 0 : 1)
+    if names&.any?
+      Kumi::Dev::Golden.update!(*names)
+      exit(Kumi::Dev::Golden.test_lir_codegen!(*names) ? 0 : 1)
+    end
   else
     abort "kumi golden <list|update|verify|diff|test>"
   end

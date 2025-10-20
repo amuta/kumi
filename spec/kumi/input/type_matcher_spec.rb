@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require "bigdecimal"
 
 RSpec.describe Kumi::Core::Input::TypeMatcher do
   describe ".matches?" do
@@ -52,6 +53,33 @@ RSpec.describe Kumi::Core::Input::TypeMatcher do
           expect(described_class.matches?(:symbol, :string)).to be false
           expect(described_class.matches?(true, :string)).to be false
           expect(described_class.matches?(nil, :string)).to be false
+        end
+      end
+
+      describe "decimal type" do
+        it "matches BigDecimal values" do
+          expect(described_class.matches?(BigDecimal("10.50"), :decimal)).to be true
+          expect(described_class.matches?(BigDecimal("-5.25"), :decimal)).to be true
+          expect(described_class.matches?(BigDecimal("0"), :decimal)).to be true
+        end
+
+        it "matches floats as valid decimals" do
+          expect(described_class.matches?(10.50, :decimal)).to be true
+          expect(described_class.matches?(-5.25, :decimal)).to be true
+          expect(described_class.matches?(0.0, :decimal)).to be true
+        end
+
+        it "matches integers as valid decimals" do
+          expect(described_class.matches?(10, :decimal)).to be true
+          expect(described_class.matches?(-5, :decimal)).to be true
+          expect(described_class.matches?(0, :decimal)).to be true
+        end
+
+        it "does not match non-numeric types" do
+          expect(described_class.matches?("10.50", :decimal)).to be false
+          expect(described_class.matches?(true, :decimal)).to be false
+          expect(described_class.matches?(nil, :decimal)).to be false
+          expect(described_class.matches?(:decimal, :decimal)).to be false
         end
       end
 
@@ -256,6 +284,12 @@ RSpec.describe Kumi::Core::Input::TypeMatcher do
         expect(described_class.infer_type(0.0)).to eq(:float)
       end
 
+      it "infers decimal type" do
+        expect(described_class.infer_type(BigDecimal("10.50"))).to eq(:decimal)
+        expect(described_class.infer_type(BigDecimal("-5.25"))).to eq(:decimal)
+        expect(described_class.infer_type(BigDecimal("0"))).to eq(:decimal)
+      end
+
       it "infers string type" do
         expect(described_class.infer_type("hello")).to eq(:string)
         expect(described_class.infer_type("")).to eq(:string)
@@ -305,6 +339,7 @@ RSpec.describe Kumi::Core::Input::TypeMatcher do
       it "formats symbol types as strings" do
         expect(described_class.format_type(:integer)).to eq("integer")
         expect(described_class.format_type(:string)).to eq("string")
+        expect(described_class.format_type(:decimal)).to eq("decimal")
         expect(described_class.format_type(:boolean)).to eq("boolean")
         expect(described_class.format_type(:any)).to eq("any")
       end

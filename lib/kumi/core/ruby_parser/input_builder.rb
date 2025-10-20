@@ -16,7 +16,7 @@ module Kumi
           @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, normalized_type, [], nil, loc: @context.current_location)
         end
 
-        %i[integer float string boolean any scalar].each do |type_name|
+        %i[integer float decimal string boolean any scalar].each do |type_name|
           define_method(type_name) do |name, type: nil, domain: nil|
             actual_type = type || (type_name == :scalar ? :any : type_name)
             @context.inputs << Kumi::Syntax::InputDeclaration.new(name, domain, actual_type, [], nil, loc: @context.current_location)
@@ -44,7 +44,7 @@ module Kumi
         end
 
         def method_missing(method_name, *_args)
-          allowed_methods = "'key', 'integer', 'float', 'string', 'boolean', 'any', 'scalar', 'array', 'hash', and 'element'"
+          allowed_methods = "'key', 'integer', 'float', 'decimal', 'string', 'boolean', 'any', 'scalar', 'array', 'hash', and 'element'"
           raise_syntax_error("Unknown method '#{method_name}' in input block. Only #{allowed_methods} are allowed.",
                              location: @context.current_location)
         end

@@ -1,0 +1,30 @@
+(NAST
+  (VALUE price
+    (Call :to_decimal
+    (InputRef [:unit_price])
+  )
+  )
+  (VALUE rate
+    (Call :to_decimal
+    (InputRef [:tax_rate])
+  )
+  )
+  (VALUE subtotal
+    (Call :multiply
+    (Ref price)
+    (InputRef [:quantity])
+  )
+  )
+  (VALUE tax_amount
+    (Call :multiply
+    (Ref subtotal)
+    (Ref rate)
+  )
+  )
+  (VALUE total
+    (Call :add
+    (Ref subtotal)
+    (Ref tax_amount)
+  )
+  )
+)

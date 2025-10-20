@@ -1,0 +1,38 @@
+(Root
+  inputs: [
+    (InputDeclaration :unit_price :string)
+    (InputDeclaration :quantity :integer)
+    (InputDeclaration :tax_rate :string)
+  ]
+  values: [
+    (ValueDeclaration :price
+      (CallExpression :to_decimal
+        (InputReference :unit_price)
+      )
+    )
+    (ValueDeclaration :rate
+      (CallExpression :to_decimal
+        (InputReference :tax_rate)
+      )
+    )
+    (ValueDeclaration :subtotal
+      (CallExpression :multiply
+        (DeclarationReference :price)
+        (InputReference :quantity)
+      )
+    )
+    (ValueDeclaration :tax_amount
+      (CallExpression :multiply
+        (DeclarationReference :subtotal)
+        (DeclarationReference :rate)
+      )
+    )
+    (ValueDeclaration :total
+      (CallExpression :add
+        (DeclarationReference :subtotal)
+        (DeclarationReference :tax_amount)
+      )
+    )
+  ]
+  traits: []
+)

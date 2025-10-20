@@ -22,11 +22,17 @@ module Kumi
     # Useful for debugging the compiler itself.
     attr_accessor :force_recompile
 
+    # Decimal coercion behavior for inputs declared as `decimal` type.
+    # :automatic (default): Automatically coerce inputs to BigDecimal in Ruby
+    # :explicit: User must explicitly call to_decimal() in the schema
+    attr_accessor :decimal_coercion_mode
+
     def initialize
       # Set smart, environment-aware defaults.
       @cache_path = default_cache_path
       @compilation_mode = default_compilation_mode
       @force_recompile = false
+      @decimal_coercion_mode = :automatic
     end
 
     private

@@ -35,6 +35,7 @@ module Kumi
                    when "Integer" then :integer
                    when "String" then :string
                    when "Float" then :float
+                   when "Decimal", "BigDecimal" then :decimal
                    when "Symbol" then :symbol
                    when "TrueClass", "FalseClass" then :boolean
                    when "Array" then raise ArgumentError, "Use array(:type) helper for array types"

@@ -40,12 +40,14 @@ module Kumi
 
         def report_verify(results_by_schema)
           success = true
+          results_presented = false
 
           results_by_schema.each do |schema_name, results|
             failed_reprs = results.select { |r| !r.passed? }
 
             if failed_reprs.empty?
               puts "✓ #{schema_name}"
+              results_presented = true
             else
               success = false
               failed_msgs = failed_reprs.map do |r|
@@ -61,7 +63,14 @@ module Kumi
                 end
               end
               puts "✗ #{schema_name} (#{failed_msgs.join(', ')})"
+              results_presented = true
             end
+          end
+
+          # If nothing was shown, report that results were empty
+          unless results_presented
+            puts "⚠ No test results to report - check that schema files exist"
+            success = false
           end
 
           success

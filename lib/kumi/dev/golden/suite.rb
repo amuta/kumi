@@ -16,25 +16,25 @@ module Kumi
         end
 
         def update(name = nil)
-          names = name ? [name] : schema_names
+          names = name ? (name.is_a?(Array) ? name : [name]) : schema_names
           results = update_schemas(names)
           Reporter.new.report_update(results)
         end
 
         def verify(name = nil)
-          names = name ? [name] : schema_names
+          names = name ? (name.is_a?(Array) ? name : [name]) : schema_names
           results = verify_schemas(names)
           Reporter.new.report_verify(results)
         end
 
         def diff(name = nil)
-          names = name ? [name] : schema_names
+          names = name ? (name.is_a?(Array) ? name : [name]) : schema_names
           results = diff_schemas(names)
           Reporter.new.report_diff(results)
         end
 
         def test(name = nil)
-          names = name ? [name] : schema_names
+          names = name ? (name.is_a?(Array) ? name : [name]) : schema_names
 
           update_schemas(names)
 

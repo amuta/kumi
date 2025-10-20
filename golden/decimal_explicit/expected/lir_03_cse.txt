@@ -1,0 +1,40 @@
+(LIR
+  (Declaration price
+    %t1 = load_input "unit_price" :: string
+    %t2 = call core.to_decimal(%t1) :: decimal
+    yield %t2
+  )
+  (Declaration rate
+    %t3 = load_input "tax_rate" :: string
+    %t4 = call core.to_decimal(%t3) :: decimal
+    yield %t4
+  )
+  (Declaration subtotal
+    %t14 = load_input "unit_price" :: string
+    %t15 = call core.to_decimal(%t14) :: decimal
+    %t6 = load_input "quantity" :: integer
+    %t7 = call core.mul(%t15, %t6) :: integer
+    yield %t7
+  )
+  (Declaration tax_amount
+    %t19 = load_input "unit_price" :: string
+    %t20 = call core.to_decimal(%t19) :: decimal
+    %t17 = load_input "quantity" :: integer
+    %t18 = call core.mul(%t20, %t17) :: integer
+    %t21 = load_input "tax_rate" :: string
+    %t22 = call core.to_decimal(%t21) :: decimal
+    %t10 = call core.mul(%t18, %t22) :: integer
+    yield %t10
+  )
+  (Declaration total
+    %t26 = load_input "unit_price" :: string
+    %t27 = call core.to_decimal(%t26) :: decimal
+    %t24 = load_input "quantity" :: integer
+    %t25 = call core.mul(%t27, %t24) :: integer
+    %t36 = load_input "tax_rate" :: string
+    %t37 = call core.to_decimal(%t36) :: decimal
+    %t30 = call core.mul(%t25, %t37) :: integer
+    %t13 = call core.add(%t25, %t30) :: integer
+    yield %t13
+  )
+)

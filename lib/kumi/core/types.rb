@@ -34,7 +34,7 @@ module Kumi
         elem_obj = case element_type
                    when Type
                      element_type
-                   when :string, :integer, :float, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
+                   when :string, :integer, :float, :decimal, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
                      scalar(element_type)
                    else
                      raise ArgumentError,
@@ -53,7 +53,7 @@ module Kumi
           case t
           when Type
             t
-          when :string, :integer, :float, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
+          when :string, :integer, :float, :decimal, :boolean, :hash, :any, :symbol, :regexp, :time, :date, :datetime, :null
             scalar(t)
           else
             raise ArgumentError, "tuple element must be Type or scalar kind, got #{t.inspect}"

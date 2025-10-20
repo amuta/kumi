@@ -14,6 +14,7 @@ gemspec
 
 gem "benchmark"
 gem "benchmark-ips", "~> 2.14"
+gem "bigdecimal", "~> 3.1.0"
 gem "csv"
 gem "mutex_m", "~> 0.3.0"
 gem "parslet", "~> 2.0"
