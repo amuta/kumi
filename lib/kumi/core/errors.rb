@@ -39,7 +39,7 @@ module Kumi
         # Format location for error messages
         def format_location
           if @location
-            "at #{@location.file}:#{@location.line}:#{@location.column}"
+            "at #{@location.file} line=#{@location.line} column=#{@location.column}"
           else
             "at ?"
           end

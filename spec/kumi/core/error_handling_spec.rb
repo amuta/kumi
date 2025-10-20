@@ -226,7 +226,7 @@ RSpec.describe "Error Handling with Location Information" do
       location = Kumi::Syntax::Location.new(file: "schema.rb", line: 10, column: 5)
       entry = Kumi::Core::ErrorReporter.create_error("Test error", location: location)
 
-      expect(entry.to_s).to include("schema.rb:10:5")
+      expect(entry.to_s).to include("schema.rb line=10 column=5")
       expect(entry.to_s).to include("Test error")
     end
 

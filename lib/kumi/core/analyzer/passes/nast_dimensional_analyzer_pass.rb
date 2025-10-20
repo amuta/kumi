@@ -110,7 +110,7 @@ module Kumi
                   arg_types: arg_types
                 }
               )
-              raise Kumi::Core::Errors::TypeError, e.message
+              raise Kumi::Core::Errors::TypeError.new(e.message, call.loc)
             rescue StandardError => e
               # Other function resolution errors
               report_semantic_error(

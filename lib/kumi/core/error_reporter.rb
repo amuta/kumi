@@ -66,7 +66,7 @@ module Kumi
           when Symbol
             "at #{loc}"
           when Syntax::Location
-            "at #{loc.file}:#{loc.line}:#{loc.column}"
+            "at #{loc.file} line=#{loc.line} column=#{loc.column}"
           else
             "at <unknown>"
           end
