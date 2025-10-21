@@ -104,6 +104,17 @@ module Kumi
 
       result = manager.run(schema, state, errors, options)
 
+      # Convert PassFailure errors back to ErrorEntry for consistency
+      if result.failed?
+        result.errors.each do |pass_failure|
+          errors << Core::ErrorReporter.create_error(
+            pass_failure.message,
+            location: pass_failure.location,
+            type: :semantic
+          )
+        end
+      end
+
       [result.final_state, result.stopped || false]
     end
 

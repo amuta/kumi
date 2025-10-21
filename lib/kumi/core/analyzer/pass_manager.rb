@@ -55,7 +55,19 @@ module Kumi
                 )
               end
 
-              raise
+              # Return failure result instead of raising - let caller decide what to do
+              phase = ExecutionPhase.new(pass_class: pass_class, index: phase_index)
+              converted_error = PassFailure.new(
+                message: error_obj.message,
+                phase: phase_index,
+                pass_name: phase.pass_name,
+                location: error_obj.location
+              )
+              return ExecutionResult.failure(
+                final_state: state,
+                errors: [converted_error],
+                failed_at_phase: phase_index
+              )
             end
 
             # Type checking (PassManager enforces AnalysisState)
