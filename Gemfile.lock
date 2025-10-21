@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kumi (0.0.29)
+    kumi (0.0.30)
       mutex_m (~> 0.3.0)
       zeitwerk (~> 2.6.0)
 
