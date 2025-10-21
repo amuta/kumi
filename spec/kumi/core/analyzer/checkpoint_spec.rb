@@ -37,12 +37,12 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
     end
 
     it "returns true when resume_at is set" do
-      ENV["KUMI_RESUME_AT"] = "TypeChecker"
+      ENV["KUMI_RESUME_AT"] = "NormalizeToNASTPass"
       expect(described_class.enabled?).to be true
     end
 
     it "returns true when stop_after is set" do
-      ENV["KUMI_STOP_AFTER"] = "LowerToIRPass"
+      ENV["KUMI_STOP_AFTER"] = "SNASTPass"
       expect(described_class.enabled?).to be true
     end
   end
@@ -210,30 +210,31 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
 
   describe "pass skipping logic integration" do
     it "correctly implements skipping logic when KUMI_RESUME_AT is set" do
-      # Test the actual skipping logic from analyzer.rb:47-50
-      resume_at = "TypeChecker"
+      # Test the actual skipping logic from analyzer.rb:94-97
+      resume_at = "SNASTPass"
       skipping = !!resume_at
 
-      # Simulate the pass loop from analyzer.rb
+      # Simulate the pass loop from analyzer.rb with actual current passes
+      # Note: DEFAULT_PASSES and HIR_TO_LIR_PASSES are run separately
       passes = %w[
         NameIndexer
         InputCollector
+        InputFormSchemaPass
         DeclarationValidator
         SemanticConstraintValidator
         DependencyResolver
-        UnsatDetector
         Toposorter
-        BroadcastDetector
-        TypeInferencerPass
-        FunctionSignaturePass
-        TypeChecker
         InputAccessPlannerPass
+        NormalizeToNASTPass
+        ConstantFoldingPass
+        NASTDimensionalAnalyzerPass
+        SNASTPass
       ]
 
       executed_passes = []
 
       passes.each do |pass_name|
-        # This is the logic from analyzer.rb:47-50
+        # This is the logic from analyzer.rb:94-97
         if skipping
           skipping = false if pass_name == resume_at
           next if skipping
@@ -242,29 +243,28 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
         executed_passes << pass_name
       end
 
-      # Should have skipped everything before TypeChecker
+      # Should have skipped everything before SNASTPass
       expect(executed_passes).not_to include("NameIndexer")
       expect(executed_passes).not_to include("InputCollector")
       expect(executed_passes).not_to include("DeclarationValidator")
       expect(executed_passes).not_to include("SemanticConstraintValidator")
       expect(executed_passes).not_to include("DependencyResolver")
-      expect(executed_passes).not_to include("UnsatDetector")
       expect(executed_passes).not_to include("Toposorter")
-      expect(executed_passes).not_to include("BroadcastDetector")
-      expect(executed_passes).not_to include("TypeInferencerPass")
-      expect(executed_passes).not_to include("TypeConsistencyChecker")
-      expect(executed_passes).not_to include("FunctionSignaturePass")
+      expect(executed_passes).not_to include("InputAccessPlannerPass")
+      expect(executed_passes).not_to include("NormalizeToNASTPass")
+      expect(executed_passes).not_to include("ConstantFoldingPass")
+      expect(executed_passes).not_to include("NASTDimensionalAnalyzerPass")
 
-      # Should execute TypeChecker and everything after
-      expect(executed_passes).to include("TypeChecker")
-      expect(executed_passes).to include("InputAccessPlannerPass")
+      # When resuming at SNASTPass, only SNASTPass and passes after it in the same list execute
+      # Since SNASTPass is the last in this simulated list, only it executes
+      expect(executed_passes).to eq(["SNASTPass"])
     end
 
     it "executes all passes when resume_at is nil" do
       resume_at = nil
       skipping = !!resume_at  # false
 
-      passes = %w[NameIndexer InputCollector TypeChecker]
+      passes = %w[NameIndexer InputCollector InputFormSchemaPass]
       executed_passes = []
 
       passes.each do |pass_name|
@@ -276,14 +276,14 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
         executed_passes << pass_name
       end
 
-      expect(executed_passes).to eq(%w[NameIndexer InputCollector TypeChecker])
+      expect(executed_passes).to eq(%w[NameIndexer InputCollector InputFormSchemaPass])
     end
 
     it "starts from the first pass if resume_at matches the first pass" do
       resume_at = "NameIndexer"
       skipping = !!resume_at  # true
 
-      passes = %w[NameIndexer InputCollector TypeChecker]
+      passes = %w[NameIndexer InputCollector InputFormSchemaPass]
       executed_passes = []
 
       passes.each do |pass_name|
@@ -295,14 +295,14 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
         executed_passes << pass_name
       end
 
-      expect(executed_passes).to eq(%w[NameIndexer InputCollector TypeChecker])
+      expect(executed_passes).to eq(%w[NameIndexer InputCollector InputFormSchemaPass])
     end
 
     it "handles the case where resume_at doesn't match any pass" do
       resume_at = "NonExistentPass"
       skipping = !!resume_at  # true
 
-      passes = %w[NameIndexer InputCollector TypeChecker]
+      passes = %w[NameIndexer InputCollector InputFormSchemaPass]
       executed_passes = []
 
       passes.each do |pass_name|

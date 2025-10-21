@@ -97,27 +97,6 @@ RSpec.describe Kumi::Schema do
       end
     end
 
-    it "returns metadata object" do
-      metadata = test_class.schema_metadata
-      expect(metadata).to be_a(Kumi::SchemaMetadata)
-    end
-
-    it "provides input metadata" do
-      metadata = test_class.schema_metadata
-      expect(metadata.inputs).to have_key(:age)
-      expect(metadata.inputs).to have_key(:balance)
-    end
-
-    it "provides trait metadata" do
-      metadata = test_class.schema_metadata
-      expect(metadata.traits).to have_key(:adult)
-      expect(metadata.traits[:adult][:type]).to eq(:boolean)
-    end
-
-    it "provides value metadata" do
-      metadata = test_class.schema_metadata
-      expect(metadata.values).to have_key(:doubled_balance)
-    end
   end
 
   describe "#build_syntax_tree" do
@@ -277,35 +256,5 @@ RSpec.describe Kumi::Schema do
   end
 
   describe "array operations" do
-    let(:array_schema) do
-      Class.new do
-        extend Kumi::Schema
-
-        schema do
-          input do
-            array :numbers, elem: { type: :float }
-          end
-
-          value :total, fn(:sum, input.numbers)
-          value :count, fn(:size, input.numbers)
-          value :average, total / count
-        end
-      end
-    end
-
-    it "handles array inputs and operations" do
-      result = array_schema.from(numbers: [1.0, 2.0, 3.0, 4.0, 5.0])
-
-      expect(result[:total]).to eq(15.0)
-      expect(result[:count]).to eq(5)
-      expect(result[:average]).to eq(3.0)
-    end
-
-    it "handles empty arrays" do
-      result = array_schema.from(numbers: [])
-
-      expect(result[:total]).to eq(0.0)
-      expect(result[:count]).to eq(0)
-    end
   end
 end

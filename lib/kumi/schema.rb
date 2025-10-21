@@ -11,6 +11,7 @@ module Kumi
   module Schema
     # The `__syntax_tree__` is available on the class for introspection.
     attr_reader :__kumi_syntax_tree__, :__kumi_compiled_module__
+    alias_method :__syntax_tree__, :__kumi_syntax_tree__
 
     def build_syntax_tree(&)
       @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)

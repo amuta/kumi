@@ -22,8 +22,6 @@ module DebugPrinters
 
       # Analyzer objects and structs
       when Kumi::Core::Analyzer::Passes::NameIndexer then "NameIndexer"
-      when Kumi::Core::Analyzer::Passes::TypeChecker then "TypeChecker"
-      when Kumi::Core::Analyzer::Passes::BroadcastDetector then "BroadcastDetector"
       when Kumi::Core::Analyzer::Structs::InputMeta then print_input_meta(obj)
       when Kumi::Core::Analyzer::Structs::AccessPlan then print_access_plan(obj)
       when Kumi::Core::Analyzer::Plans::Scope then print_scope_plan(obj)

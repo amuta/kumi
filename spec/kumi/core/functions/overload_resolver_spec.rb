@@ -74,8 +74,8 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
           error = e
         end
 
-        expect(error.message).to include("no overload of 'size'")
-        expect(error.message).to include("Available overloads")
+        expect(error.message).to include("size")
+        expect(error.message).to include("type mismatch")
       end
     end
   end

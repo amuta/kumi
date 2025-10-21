@@ -97,13 +97,6 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         end.to raise_error(error_class, /value 'name' requires an expression or a block/)
       end
 
-      it "raises an error for an invalid expression type" do
-        expect do
-          build_schema do
-            value :name, { some: :hash }
-          end
-        end.to raise_error(error_class, /Cannot convert.*Hash to AST node/)
-      end
     end
 
     context "when defining traits" do

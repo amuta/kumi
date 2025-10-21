@@ -14,16 +14,7 @@ module Kumi
       Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
       Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
       Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      # Passes::BroadcastDetector,               # 8. Detects which operations should be broadcast over arrays.
-      # Passes::TypeInferencerPass,              # 9. Infers types for all declarations (uses vectorization metadata).
-      # Passes::TypeChecker,                     # 10. Validates types using inferred information.
-      Passes::InputAccessPlannerPass # 11. Plans access strategies for input fields.
-      # Passes::ScopeResolutionPass,             # 12. Plans execution scope and lifting needs for declarations.
-      # Passes::JoinReducePlanningPass,          # 13. Plans join/reduce operations (Generates IR Structs)
-      # Passes::LowerToIRPass,                   # 14. Lowers the schema to IR (Generates IR Structs)
-      # Passes::LoadInputCSE,                    # 15. Eliminates redundant load_input operations
-      # Passes::IRDependencyPass,                # 16. Extracts IR-level dependencies for VM execution optimization
-      # Passes::IRExecutionSchedulePass          # 17. Builds a precomputed execution schedule.
+      Passes::InputAccessPlannerPass           # 8. Plans access strategies for input fields.
     ].freeze
 
     # Pipeline passes for the determinisitic NAST->LIR approach

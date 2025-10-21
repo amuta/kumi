@@ -3,7 +3,7 @@
 module AnalyzerStateHelper
   # Helper to run analyzer passes up to a certain point and get the state
   # Usage:
-  #   state = analyze_up_to(:broadcasts) do
+  #   state = analyze_up_to(:access_plans) do
   #     input do
   #       array :items do
   #         float :price
@@ -12,32 +12,20 @@ module AnalyzerStateHelper
   #     value :total, fn(:sum, input.items.price)
   #   end
   #
-  #   state[:broadcasts] # => broadcasts metadata
+  #   state[:access_plans] # => access plan metadata
   def analyze_up_to(target_state, &schema_block)
     syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&schema_block)
 
-    # Map state names to pass indices
+    # Map state names to pass indices (mapped to DEFAULT_PASSES only)
     state_to_pass = {
       name_index: 0,             # NameIndexer
       input_metadata: 1,         # InputCollector
       declarations: 1,           # InputCollector also produces declarations
-      validated: 2,              # DeclarationValidator
-      semantic_valid: 3,         # SemanticConstraintValidator
+      validated: 2,              # InputFormSchemaPass
+      semantic_valid: 3,         # DeclarationValidator
       dependencies: 4,           # DependencyResolver
-      unsat_detected: 5,         # UnsatDetector
-      evaluation_order: 6,       # Toposorter
-      broadcasts: 7,             # BroadcastDetector
-      types_inferred: 8,         # TypeInferencerPass
-      signatures: 10,            # FunctionSignaturePass
-      types_checked: 10,         # TypeChecker
-      access_plans: 11,          # InputAccessPlannerPass
-      scope_plans: 12,           # ScopeResolutionPass
-      join_reduce_plans: 13,     # JoinReducePlanningPass
-      ir_module: 14,             # LowerToIRPass
-      optimized_ir: 15,          # LoadInputCSE
-      ir_dependencies: 16,       # IRDependencyPass
-      ir_name_index: 16,         #
-      ir_execution_schedules: 17 # IRExecutionSchedulePass
+      evaluation_order: 5,       # Toposorter
+      access_plans: 6            # InputAccessPlannerPass
     }
 
     target_pass_index = state_to_pass[target_state]
@@ -77,7 +65,7 @@ module AnalyzerStateHelper
 
   # Helper to inspect multiple states at once
   # Usage:
-  #   states = inspect_analyzer_states([:input_metadata, :broadcasts]) do
+  #   states = inspect_analyzer_states([:input_metadata, :access_plans]) do
   #     input do
   #       array :items do
   #         float :price
@@ -88,9 +76,7 @@ module AnalyzerStateHelper
   def inspect_analyzer_states(state_names, &)
     # Find the latest state we need
     state_order = %i[name_index input_metadata declarations validated semantic_valid
-                     dependencies unsat_detected evaluation_order broadcasts
-                     types_inferred types_consistent signatures types_checked access_plans
-                     scope_plans join_reduce_plans ir_module optimized_ir ir_dependencies]
+                     dependencies evaluation_order access_plans]
 
     latest_index = state_names.map { |s| state_order.index(s) }.compact.max
     latest_state = state_order[latest_index]
