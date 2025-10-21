@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         class OutputSchemaPass < PassBase
-          def run(errors)
+          def run(_errors)
             snast_module = get_state(:snast_module)
             return state unless snast_module
 
@@ -19,6 +19,7 @@ module Kumi
           def build_output_schema(snast_module, hints)
             snast_module.decls.each_with_object({}) do |(name, decl), acc|
               next if hints[name][:inline]
+
               acc[name] = build_output_field(decl)
             end
           end

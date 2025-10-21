@@ -77,8 +77,6 @@ module Kumi
           decl_names.to_h { |name| [name, instance[name.to_sym]] }
         end
 
-        private
-
         def convert_decimal_strings(value)
           case value
           when Hash

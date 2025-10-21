@@ -30,9 +30,9 @@ module Kumi
           # Strip file:line:col prefix from e.message if it exists (from parser)
           # Also strip embedded "at FILE line=N column=M" to avoid duplication
           error_message = e.message
-            .sub(/^\S+:\d+:\d+:\s+/, '')
-            .gsub(/\s+at\s+\S+\s+line=\d+\s+column=\d+/, '')
-            .strip
+                           .sub(/^\S+:\d+:\d+:\s+/, "")
+                           .gsub(/\s+at\s+\S+\s+line=\d+\s+column=\d+/, "")
+                           .strip
           raise StandardError, "#{file_label}:#{line || '?'}:#{col || '?'}: #{error_message}\n#{snippet}"
         end
       end
@@ -41,9 +41,7 @@ module Kumi
         # Try to access Location object from exception
         if exception.respond_to?(:location) && exception.location
           loc = exception.location
-          if loc.respond_to?(:line) && loc.respond_to?(:column)
-            return [loc.line, loc.column]
-          end
+          return [loc.line, loc.column] if loc.respond_to?(:line) && loc.respond_to?(:column)
         end
 
         # Fall back to parsing error message if no Location object

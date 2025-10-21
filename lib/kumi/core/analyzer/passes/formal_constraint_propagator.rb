@@ -25,8 +25,6 @@ module Kumi
               propagate_equality_forward(constraint, operation_spec, operand_map)
             when :range
               propagate_range_forward(constraint, operation_spec, operand_map)
-            else
-              nil
             end
           end
 
@@ -37,8 +35,6 @@ module Kumi
               propagate_equality_reverse(constraint, operation_spec, operand_map)
             when :range
               propagate_range_reverse(constraint, operation_spec, operand_map)
-            else
-              nil
             end
           end
 
@@ -47,7 +43,7 @@ module Kumi
           # FORWARD PROPAGATION: Compute output value from input constraints
           def propagate_equality_forward(constraint, operation_spec, operand_map)
             result_var = operand_map[:result]
-            input_var = constraint[:variable]
+            constraint[:variable]
             input_value = constraint[:value]
 
             case operation_spec.id
@@ -75,8 +71,6 @@ module Kumi
               output_value = input_value - other_operand
               { variable: result_var, op: :==, value: output_value }
 
-            else
-              nil
             end
           end
 
@@ -122,14 +116,12 @@ module Kumi
               output_max = input_max - other
               { variable: result_var, op: :range, min: output_min, max: output_max }
 
-            else
-              nil
             end
           end
 
           # REVERSE PROPAGATION: Derive input equality from output equality
           def propagate_equality_reverse(constraint, operation_spec, operand_map)
-            result_var = constraint[:variable]
+            constraint[:variable]
             result_value = constraint[:value]
             left_var = operand_map[:left_operand]
             right_var = operand_map[:right_operand]
@@ -141,20 +133,18 @@ module Kumi
                 { variable: left_var, op: :==, value: result_value - right_var }
               elsif right_var.is_a?(Symbol) && left_var.is_a?(Numeric)
                 { variable: right_var, op: :==, value: result_value - left_var }
-              else
-                nil
               end
 
             when "core.mul"
               # result == V, result = x * C => x == V / C (if C != 0)
               if left_var.is_a?(Symbol) && right_var.is_a?(Numeric) && right_var != 0
                 return nil unless (result_value % right_var).zero?
+
                 { variable: left_var, op: :==, value: result_value / right_var }
               elsif right_var.is_a?(Symbol) && left_var.is_a?(Numeric) && left_var != 0
                 return nil unless (result_value % left_var).zero?
+
                 { variable: right_var, op: :==, value: result_value / left_var }
-              else
-                nil
               end
 
             when "core.sub"
@@ -163,12 +153,8 @@ module Kumi
                 { variable: left_var, op: :==, value: result_value + right_var }
               elsif right_var.is_a?(Symbol) && left_var.is_a?(Numeric)
                 { variable: right_var, op: :==, value: left_var - result_value }
-              else
-                nil
               end
 
-            else
-              nil
             end
           end
 
@@ -191,17 +177,15 @@ module Kumi
             when "core.mul"
               # result in [min, max], result = x * C => x in [min/C, max/C] (depends on sign)
               if left_var.is_a?(Symbol) && right_var.is_a?(Numeric) && right_var != 0
-                if right_var > 0
-                  return { variable: left_var, op: :range, min: result_min / right_var, max: result_max / right_var }
-                else
-                  return { variable: left_var, op: :range, min: result_max / right_var, max: result_min / right_var }
-                end
+                return { variable: left_var, op: :range, min: result_min / right_var, max: result_max / right_var } if right_var > 0
+
+                return { variable: left_var, op: :range, min: result_max / right_var, max: result_min / right_var }
+
               elsif right_var.is_a?(Symbol) && left_var.is_a?(Numeric) && left_var != 0
-                if left_var > 0
-                  return { variable: right_var, op: :range, min: result_min / left_var, max: result_max / left_var }
-                else
-                  return { variable: right_var, op: :range, min: result_max / left_var, max: result_min / left_var }
-                end
+                return { variable: right_var, op: :range, min: result_min / left_var, max: result_max / left_var } if left_var > 0
+
+                return { variable: right_var, op: :range, min: result_max / left_var, max: result_min / left_var }
+
               end
 
             when "core.sub"
@@ -216,7 +200,7 @@ module Kumi
             nil
           end
 
-          def get_other_operand_value(constraint, operand_map, operation)
+          def get_other_operand_value(constraint, operand_map, _operation)
             input_var = constraint[:variable]
             left_var = operand_map[:left_operand] || operand_map.values[0]
             right_var = operand_map[:right_operand] || operand_map.values[1]
@@ -225,8 +209,6 @@ module Kumi
               right_var
             elsif input_var == right_var && left_var.is_a?(Numeric)
               left_var
-            else
-              nil
             end
           end
         end

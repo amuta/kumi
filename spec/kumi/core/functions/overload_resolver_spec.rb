@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'kumi/core/types/value_objects'
+require "kumi/core/types/value_objects"
 
 RSpec.describe Kumi::Core::Functions::OverloadResolver do
   let(:registry) { Kumi::RegistryV2.load }
@@ -49,21 +49,21 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
 
     describe "error handling" do
       it "raises ResolutionError for unknown function" do
-        expect {
+        expect do
           resolver.resolve("nonexistent", [int_type])
-        }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
+        end.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "raises ResolutionError when no overload matches types" do
-        expect {
-          resolver.resolve("size", [int_type])  # integers don't have a "size" function
-        }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
+        expect do
+          resolver.resolve("size", [int_type]) # integers don't have a "size" function
+        end.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "raises ResolutionError for arity mismatch" do
-        expect {
-          resolver.resolve("core.add", [int_type])  # add needs 2 args
-        }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
+        expect do
+          resolver.resolve("core.add", [int_type]) # add needs 2 args
+        end.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
       end
 
       it "provides helpful error messages with available overloads" do
@@ -87,9 +87,9 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
     end
 
     it "raises ResolutionError for unknown function ID" do
-      expect {
+      expect do
         resolver.function("nonexistent.fn")
-      }.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
+      end.to raise_error(Kumi::Core::Functions::OverloadResolver::ResolutionError)
     end
   end
 
@@ -130,7 +130,7 @@ RSpec.describe Kumi::Core::Functions::OverloadResolver do
         expect(resolved).to eq("core.array_size")
       end
 
-      # Note: 'size' is an alias for both core.length (string) and core.array_size (array)
+      # NOTE: 'size' is an alias for both core.length (string) and core.array_size (array)
       # When given different types, it should pick the right overload
       it "picks correct overload for shared aliases" do
         # With string, should pick core.length

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'bigdecimal'
+require "bigdecimal"
 
 module Kumi
   module Dev
@@ -31,8 +31,6 @@ module Kumi
 
           compare_values(norm_actual, norm_expected, language: language)
         end
-
-        private
 
         def self.decimal_string?(str)
           # Match decimal number strings like "10.50", "123", "-45.67"

@@ -44,8 +44,6 @@ module Kumi
           when NAST::Tuple
             values = node.args.map { |arg| resolve_constant_value(arg) }
             values.all? ? values : nil
-          else
-            nil
           end
         end
       end

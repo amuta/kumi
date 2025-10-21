@@ -17,9 +17,7 @@ module Kumi
         end
 
         def generate(schema_path)
-          unless PrettyPrinter.respond_to?(generator_method)
-            raise "Unknown generator method: #{generator_method}"
-          end
+          raise "Unknown generator method: #{generator_method}" unless PrettyPrinter.respond_to?(generator_method)
 
           PrettyPrinter.send(generator_method, schema_path)
         end

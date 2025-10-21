@@ -231,8 +231,6 @@ module Kumi
               when NAST::Ref
                 decl = @snast.decls.fetch(node.name) { return nil }
                 resolve_call(decl.body)
-              else
-                nil
               end
             end
           end

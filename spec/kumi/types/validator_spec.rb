@@ -45,9 +45,9 @@ RSpec.describe Kumi::Core::Types::Validator do
 
       it "validates TupleType objects" do
         tuple_type = Kumi::Core::Types.tuple([
-          Kumi::Core::Types.scalar(:string),
-          Kumi::Core::Types.scalar(:integer)
-        ])
+                                               Kumi::Core::Types.scalar(:string),
+                                               Kumi::Core::Types.scalar(:integer)
+                                             ])
         expect(described_class.valid_type?(tuple_type)).to be true
       end
     end

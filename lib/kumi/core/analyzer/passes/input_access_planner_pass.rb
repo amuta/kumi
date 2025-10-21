@@ -5,7 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         class InputAccessPlannerPass < PassBase
-          def run(errors)
+          def run(_errors)
             input_metadata = get_state(:input_metadata)
 
             options = {

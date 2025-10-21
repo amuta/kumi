@@ -1,4 +1,4 @@
-require 'yaml'
+require "yaml"
 
 module Kumi
   module DocGenerator
@@ -10,11 +10,13 @@ module Kumi
 
       def load_functions
         return [] unless @functions_dir
+
         load_yaml_dir(@functions_dir)
       end
 
       def load_kernels
         return [] unless @kernels_dir
+
         load_yaml_dir(@kernels_dir)
       end
 
@@ -22,12 +24,12 @@ module Kumi
 
       def load_yaml_dir(dir_path)
         result = []
-        Dir.glob(File.join(dir_path, '**/*.yaml')).each do |file|
+        Dir.glob(File.join(dir_path, "**/*.yaml")).each do |file|
           data = YAML.load_file(file)
-          if data && data['functions']
-            result.concat(data['functions'])
-          elsif data && data['kernels']
-            result.concat(data['kernels'])
+          if data && data["functions"]
+            result.concat(data["functions"])
+          elsif data && data["kernels"]
+            result.concat(data["kernels"])
           end
         end
         result

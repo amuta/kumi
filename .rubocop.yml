@@ -7,12 +7,13 @@ AllCops:
   TargetRubyVersion: 3.1
   SuggestExtensions: false
   Exclude:
-    - 'bin/*'          
+    - 'bin/*'
     - 'spec/fixtures/**/*'
     - 'examples/**/*'  # Examples may use deprecated syntax
     - '*.txt'
     - 'test_*.rb'      # Temporary test files
     - 'spec/integration/performance_spec.rb'
+    - 'golden/**/*'    # Golden test files are generated/expected outputs
 
 # Common stylistic choices
 Style/StringLiterals:

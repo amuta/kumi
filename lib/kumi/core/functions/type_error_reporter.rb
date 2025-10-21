@@ -103,14 +103,12 @@ module Kumi
           error
         end
 
-        private
-
         def self.format_overload_error(alias_or_id, arg_types, available_overloads)
           arg_types_str = arg_types.map(&:inspect).join(", ")
           available_str = available_overloads.map { |id| "'#{id}'" }.join(", ")
 
           "no overload of '#{alias_or_id}' matches argument types (#{arg_types_str}). " \
-          "Available overloads: #{available_str}"
+            "Available overloads: #{available_str}"
         end
       end
     end

@@ -11,7 +11,7 @@ module Kumi
   module Schema
     # The `__syntax_tree__` is available on the class for introspection.
     attr_reader :__kumi_syntax_tree__, :__kumi_compiled_module__
-    alias_method :__syntax_tree__, :__kumi_syntax_tree__
+    alias __syntax_tree__ __kumi_syntax_tree__
 
     def build_syntax_tree(&)
       @__kumi_syntax_tree__ = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
@@ -98,7 +98,7 @@ module Kumi
       end
     end
 
-    def compile_and_write_cache(cache_path, digest)
+    def compile_and_write_cache(cache_path, _digest)
       # 1. Extract the generated code from the final state object.
       compiler_output = @__kumi_analyzer_result__.state[:ruby_codegen_files]["codegen.rb"]
       raise "Compiler did not produce ruby_codegen_files" unless compiler_output

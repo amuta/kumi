@@ -7,7 +7,7 @@ module Kumi
         class ConstantFoldingPass < PassBase
           NAST = Kumi::Core::NAST
 
-          def run(errors)
+          def run(_errors)
             nast_module = get_state(:nast_module, required: true)
             order = get_state(:evaluation_order, required: true)
             @registry = get_state(:registry, required: true)

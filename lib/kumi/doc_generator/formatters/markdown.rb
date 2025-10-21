@@ -29,7 +29,7 @@ module Kumi
         def group_by_id(docs)
           result = {}
           docs.each do |alias_name, entry|
-            id = entry['id']
+            id = entry["id"]
             result[id] ||= []
             result[id] << alias_name
           end
@@ -49,30 +49,28 @@ module Kumi
 
           lines << "- **Arity:** #{entry['arity']}"
 
-          if entry['dtype']
-            dtype_str = format_dtype(entry['dtype'])
+          if entry["dtype"]
+            dtype_str = format_dtype(entry["dtype"])
             lines << "- **Type:** #{dtype_str}"
           end
 
-          if is_reducer?(entry)
-            lines << "- **Behavior:** Reduces a dimension `[D] -> T`"
-          end
+          lines << "- **Behavior:** Reduces a dimension `[D] -> T`" if is_reducer?(entry)
           lines << ""
 
-          if entry['params'] && !entry['params'].empty?
+          if entry["params"] && !entry["params"].empty?
             lines << "### Parameters"
             lines << ""
-            entry['params'].each do |param|
-              lines << "- `#{param['name']}`#{param['description'] ? ": #{param['description']}" : ""}"
+            entry["params"].each do |param|
+              lines << "- `#{param['name']}`#{": #{param['description']}" if param['description']}"
             end
             lines << ""
           end
 
-          if entry['kernels'] && !entry['kernels'].empty?
+          if entry["kernels"] && !entry["kernels"].empty?
             lines << "### Implementations"
             lines << ""
-            entry['kernels'].each do |target, kernel|
-              lines.concat(format_kernel(target, kernel, entry['reduction_strategy']))
+            entry["kernels"].each do |target, kernel|
+              lines.concat(format_kernel(target, kernel, entry["reduction_strategy"]))
             end
           end
 
@@ -88,48 +86,48 @@ module Kumi
             lines << "`#{kernel['id']}`"
             lines << ""
 
-            has_identity = kernel['identity'] && !kernel['identity'].empty?
+            has_identity = kernel["identity"] && !kernel["identity"].empty?
 
-            if kernel['inline'] && has_identity
+            if kernel["inline"] && has_identity
               lines << "**Inline:** `#{escape_backticks(kernel['inline'])}` (`$0` = accumulator, `$1` = element)"
               lines << ""
             end
 
-            if kernel['impl']
+            if kernel["impl"]
               lines << "**Implementation:**"
               lines << ""
               lines << "```ruby"
-              lines << format_impl(kernel['impl'])
+              lines << format_impl(kernel["impl"])
               lines << "```"
               lines << ""
             end
 
-            if kernel['fold_inline']
+            if kernel["fold_inline"]
               lines << "**Fold:** `#{escape_backticks(kernel['fold_inline'])}`"
               lines << ""
             end
 
             if has_identity
               lines << "**Identity:**"
-              kernel['identity'].each do |type, value|
+              kernel["identity"].each do |type, value|
                 lines << "- #{type}: `#{value}`"
               end
               lines << ""
-            elsif kernel['inline']
+            elsif kernel["inline"]
               lines << "_Note: No identity value. First element initializes accumulator._"
               lines << ""
             end
 
             # Show reduction strategy if available
             if reduction_strategy
-              case reduction_strategy
-              when 'identity'
-                lines << "**Reduction:** Monoid operation with identity element"
-              when 'first_element'
-                lines << "**Reduction:** First element is initial value (no identity)"
-              else
-                lines << "**Reduction:** #{reduction_strategy}"
-              end
+              lines << case reduction_strategy
+                       when "identity"
+                         "**Reduction:** Monoid operation with identity element"
+                       when "first_element"
+                         "**Reduction:** First element is initial value (no identity)"
+                       else
+                         "**Reduction:** #{reduction_strategy}"
+                       end
               lines << ""
             end
           else
@@ -142,18 +140,18 @@ module Kumi
         def format_dtype(dtype)
           return "any" if dtype.nil?
 
-          case dtype['rule']
-          when 'same_as'
+          case dtype["rule"]
+          when "same_as"
             "same as `#{dtype['param']}`"
-          when 'scalar'
-            dtype['kind'] || 'scalar'
-          when 'promote'
-            params = Array(dtype['params']).join('`, `')
+          when "scalar"
+            dtype["kind"] || "scalar"
+          when "promote"
+            params = Array(dtype["params"]).join("`, `")
             "promoted from `#{params}`"
-          when 'element_of'
+          when "element_of"
             "element of `#{dtype['param']}`"
           else
-            dtype['rule']
+            dtype["rule"]
           end
         end
 
@@ -163,11 +161,11 @@ module Kumi
         end
 
         def escape_backticks(str)
-          str.gsub('`', '\`')
+          str.gsub("`", '\`')
         end
 
         def is_reducer?(entry)
-          entry['kind'] == 'reduce'
+          entry["kind"] == "reduce"
         end
       end
     end

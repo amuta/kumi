@@ -31,13 +31,12 @@ module Kumi
             validate_arity!(s, arg_types)
             fn = @functions[s]
             score = match_score(fn.params, arg_types)
-            if score > 0
-              return s
-            else
-              # Type constraints failed
-              raise ResolutionError,
-                    "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
-            end
+            return s if score > 0
+
+            # Type constraints failed
+            raise ResolutionError,
+                  "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
+
           end
 
           # Get all candidate overloads for this alias
@@ -50,13 +49,12 @@ module Kumi
             validate_arity!(fn_id, arg_types)
             fn = @functions[fn_id]
             score = match_score(fn.params, arg_types)
-            if score > 0
-              return fn_id
-            else
-              # Type constraints failed for the only overload
-              raise ResolutionError,
-                    "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
-            end
+            return fn_id if score > 0
+
+            # Type constraints failed for the only overload
+            raise ResolutionError,
+                  "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
+
           end
 
           # Multiple overloads - find best match by type constraints (prefer exact matches)
@@ -68,9 +66,7 @@ module Kumi
 
           best_match, score = candidates_with_scores.max_by { |_, s| s }
 
-          if score > 0
-            return best_match
-          end
+          return best_match if score > 0
 
           # No match found - provide helpful error
           raise ResolutionError,
@@ -134,6 +130,7 @@ module Kumi
           # Check if it's a type category
           if TypeCategories.category?(constraint)
             return false unless type_obj.is_a?(Kumi::Core::Types::ScalarType)
+
             return TypeCategories.includes?(constraint, type_obj.kind)
           end
 
@@ -160,6 +157,7 @@ module Kumi
           # Check if it's a type category
           if TypeCategories.category?(param_dtype_str)
             return false unless arg_type.is_a?(Kumi::Core::Types::ScalarType)
+
             return TypeCategories.includes?(param_dtype_str, arg_type.kind)
           end
 
@@ -188,8 +186,6 @@ module Kumi
           raise ResolutionError,
                 "function #{fn_id} expects #{fn.params.size} arguments, got #{arg_types.size}"
         end
-
-        private
 
         def format_types(arg_types)
           arg_types.map(&:to_s).join(", ")

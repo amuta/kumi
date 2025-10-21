@@ -9,21 +9,17 @@ RSpec.describe "Type Error Reporting" do
 
   describe "overload resolution errors" do
     it "reports type errors with proper location information" do
-      errors = []
-
-      begin
-        schema_module.schema do
-          input do
-            integer :number
-          end
-
-          # This should fail: upcase is only for strings, not integers
-          value :result, fn(:upcase, input.number)
+      schema_module.schema do
+        input do
+          integer :number
         end
-      rescue Kumi::Core::Errors::TypeError => e
-        expect(e.message).to include("upcase")
-        expect(e.message).to include("no overload")
+
+        # This should fail: upcase is only for strings, not integers
+        value :result, fn(:upcase, input.number)
       end
+    rescue Kumi::Core::Errors::TypeError => e
+      expect(e.message).to include("upcase")
+      expect(e.message).to include("no overload")
     end
   end
 
@@ -54,7 +50,7 @@ RSpec.describe "Type Error Reporting" do
       end
 
       # Should compile without errors
-      result = schema_module.from(items: [{value: 1}, {value: 2}])
+      result = schema_module.from(items: [{ value: 1 }, { value: 2 }])
       expect(result[:result]).to eq(2)
     end
   end
@@ -76,7 +72,7 @@ RSpec.describe "Type Error Reporting" do
 
       result = schema_module.from(
         name: "hello",
-        items: [{value: 1}, {value: 2}, {value: 3}]
+        items: [{ value: 1 }, { value: 2 }, { value: 3 }]
       )
 
       expect(result[:name_len]).to eq(5)

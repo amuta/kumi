@@ -110,7 +110,7 @@ module Kumi
         schema, = Kumi::Frontends.load(path: schema_path)
         result = Kumi::Analyzer.analyze!(schema)
 
-        code = result.state[:ruby_codegen_files]["codegen.rb"]
+        result.state[:ruby_codegen_files]["codegen.rb"]
 
         File.write("#{output_dir}/schema_ruby.rb", ruby_code)
         puts "  ✓ Ruby code generated"

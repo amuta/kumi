@@ -80,7 +80,11 @@ module Kumi
               # Try to get the function to check if it's expandable
               # For expandable functions, we need to resolve now
               # For regular functions, we defer resolution to NASTDimensionalAnalyzerPass
-              func = @registry.function(fn_alias) rescue nil
+              func = begin
+                @registry.function(fn_alias)
+              rescue StandardError
+                nil
+              end
             rescue StandardError
               # puts "MISSING_FUNCTION: #{node.fn_name.inspect}"
               raise

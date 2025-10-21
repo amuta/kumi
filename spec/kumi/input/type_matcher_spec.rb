@@ -60,7 +60,7 @@ RSpec.describe Kumi::Core::Input::TypeMatcher do
         it "matches BigDecimal values" do
           expect(described_class.matches?(BigDecimal("10.50"), :decimal)).to be true
           expect(described_class.matches?(BigDecimal("-5.25"), :decimal)).to be true
-          expect(described_class.matches?(BigDecimal("0"), :decimal)).to be true
+          expect(described_class.matches?(BigDecimal(0), :decimal)).to be true
         end
 
         it "matches floats as valid decimals" do
@@ -287,7 +287,7 @@ RSpec.describe Kumi::Core::Input::TypeMatcher do
       it "infers decimal type" do
         expect(described_class.infer_type(BigDecimal("10.50"))).to eq(:decimal)
         expect(described_class.infer_type(BigDecimal("-5.25"))).to eq(:decimal)
-        expect(described_class.infer_type(BigDecimal("0"))).to eq(:decimal)
+        expect(described_class.infer_type(BigDecimal(0))).to eq(:decimal)
       end
 
       it "infers string type" do

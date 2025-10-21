@@ -18,7 +18,7 @@ module Kumi
               # The codegen pass no longer needs direct access to the registry
               emitter = Codegen::Ruby::Emitter.new(manifest["kernels"], manifest["bindings"])
 
-              decls = decls.reject { |n, v| hints[n][:inline] }
+              decls = decls.reject { |n, _v| hints[n][:inline] }
               src = emitter.emit(decls, schema_digest:)
 
               files = { "codegen.rb" => src }

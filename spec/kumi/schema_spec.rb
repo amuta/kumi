@@ -96,7 +96,6 @@ RSpec.describe Kumi::Schema do
         value :doubled_balance, input.balance * 2
       end
     end
-
   end
 
   describe "#build_syntax_tree" do

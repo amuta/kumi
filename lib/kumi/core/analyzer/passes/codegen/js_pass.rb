@@ -12,7 +12,7 @@ module Kumi
               schema_digest = get_state(:schema_digest)
               hints = get_state(:hints)
 
-              decls = decls.reject { |n, v| hints[n][:inline] }
+              decls = decls.reject { |n, _v| hints[n][:inline] }
               emitter = Codegen::Js::Emitter.new(manifest["kernels"], manifest["bindings"])
               src = emitter.emit(decls, schema_digest: schema_digest)
 

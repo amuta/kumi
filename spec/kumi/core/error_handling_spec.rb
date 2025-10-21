@@ -38,7 +38,7 @@ RSpec.describe "Error Handling with Location Information" do
       without_location = Kumi::Core::Errors::SemanticError.new("Error without location")
 
       expect(with_location.has_location?).to be true
-      expect(without_location.has_location?).to be_falsy  # Could be nil or false
+      expect(without_location.has_location?).to be_falsy # Could be nil or false
     end
 
     it "handles nil location gracefully" do
@@ -47,7 +47,7 @@ RSpec.describe "Error Handling with Location Information" do
       expect(error.location_file).to be_nil
       expect(error.location_line).to be_nil
       expect(error.location_column).to be_nil
-      expect(error.has_location?).to be_falsy  # Could be nil or false
+      expect(error.has_location?).to be_falsy # Could be nil or false
     end
   end
 
@@ -83,7 +83,7 @@ RSpec.describe "Error Handling with Location Information" do
       expect(entry.file).to be_nil
       expect(entry.line).to be_nil
       expect(entry.column).to be_nil
-      expect(entry.valid_location?).to be_falsy  # Could be nil or false
+      expect(entry.valid_location?).to be_falsy # Could be nil or false
       expect(entry.location?).to be_falsy
     end
   end
@@ -99,16 +99,16 @@ RSpec.describe "Error Handling with Location Information" do
           "Error 2",
           location: Kumi::Syntax::Location.new(file: "b.rb", line: 20, column: 5)
         ),
-        Kumi::Core::ErrorReporter.create_error("Error 3")  # no location
+        Kumi::Core::ErrorReporter.create_error("Error 3") # no location
       ]
 
       locations = errors.map { |e| { file: e.file, line: e.line, column: e.column } }
 
       expect(locations).to eq([
-        { file: "a.rb", line: 10, column: 0 },
-        { file: "b.rb", line: 20, column: 5 },
-        { file: nil, line: nil, column: nil }
-      ])
+                                { file: "a.rb", line: 10, column: 0 },
+                                { file: "b.rb", line: 20, column: 5 },
+                                { file: nil, line: nil, column: nil }
+                              ])
     end
 
     it "filters errors by location presence" do
@@ -189,13 +189,13 @@ RSpec.describe "Error Handling with Location Information" do
             base "Good"
           end
         end
-      end.to raise_error { |e|
+      end.to(raise_error do |e|
         expect(e).to be_a(Kumi::Core::Errors::SemanticError)
         expect(e.has_location?).to be true
         expect(e.location_file).to include("error_handling_spec")
         expect(e.location_line).to be > 0
         expect(e.location_column).to be >= 0
-      }
+      end)
     end
 
     it "provides clean error information for logging" do
@@ -212,12 +212,12 @@ RSpec.describe "Error Handling with Location Information" do
       }
 
       expect(log_entry).to eq({
-        type: "TypeError",
-        file: "/home/user/app/schema.rb",
-        line: 42,
-        column: 8,
-        has_location: true
-      })
+                                type: "TypeError",
+                                file: "/home/user/app/schema.rb",
+                                line: 42,
+                                column: 8,
+                                has_location: true
+                              })
     end
   end
 

@@ -36,6 +36,7 @@ module Kumi
 
         def ==(other)
           return false unless other.is_a?(ScalarType)
+
           @kind == other.kind
         end
 
@@ -61,11 +62,12 @@ module Kumi
         end
 
         def inspect
-          "#<ArrayType:#{to_s}>"
+          "#<ArrayType:#{self}>"
         end
 
         def ==(other)
           return false unless other.is_a?(ArrayType)
+
           @element_type == other.element_type
         end
 
@@ -91,11 +93,12 @@ module Kumi
         end
 
         def inspect
-          "#<TupleType:#{to_s}>"
+          "#<TupleType:#{self}>"
         end
 
         def ==(other)
           return false unless other.is_a?(TupleType)
+
           @element_types == other.element_types
         end
 

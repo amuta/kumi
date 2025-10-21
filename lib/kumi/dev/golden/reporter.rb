@@ -79,11 +79,11 @@ module Kumi
         def report_diff(results_by_schema)
           results_by_schema.each do |schema_name, results|
             results.each do |result|
-              if result.failed? && result.diff
-                puts "=== #{schema_name}/#{result.representation}.* ==="
-                puts result.diff
-                puts
-              end
+              next unless result.failed? && result.diff
+
+              puts "=== #{schema_name}/#{result.representation}.* ==="
+              puts result.diff
+              puts
             end
           end
         end

@@ -97,7 +97,7 @@ module Kumi
               new_ops
             end
 
-            def is_invariant(ins, defs_in_loop, prefix, depth)
+            def is_invariant(ins, defs_in_loop, prefix, _depth)
               prefix_inner = "#{prefix}      "
               debug "#{prefix_inner}- Checking: #{ins.result_register || '(no result)'} = #{ins.opcode}(#{ins.inputs.join(', ')})"
 

@@ -34,11 +34,13 @@ module Kumi
 
         def update_representation(repr)
           output = generate_output(repr)
-          return GenerationResult.new(
-            schema_name: schema_name,
-            representation: repr.name,
-            status: :skipped
-          ) unless output
+          unless output
+            return GenerationResult.new(
+              schema_name: schema_name,
+              representation: repr.name,
+              status: :skipped
+            )
+          end
 
           expected_file = File.join(expected_dir, repr.filename)
 
@@ -73,11 +75,13 @@ module Kumi
 
         def generate_representation(repr, output_dir)
           output = generate_output(repr)
-          return GenerationResult.new(
-            schema_name: schema_name,
-            representation: repr.name,
-            status: :skipped
-          ) unless output
+          unless output
+            return GenerationResult.new(
+              schema_name: schema_name,
+              representation: repr.name,
+              status: :skipped
+            )
+          end
 
           output_file = File.join(output_dir, repr.filename)
           File.write(output_file, output)

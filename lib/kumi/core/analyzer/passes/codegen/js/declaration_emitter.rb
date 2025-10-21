@@ -73,7 +73,7 @@ module Kumi
                 write "let #{container} = [];"
               end
 
-              def emit_loopend(ins, i)
+              def emit_loopend(_ins, i)
                 start_index = find_loop_start_for_end(i)
                 is_yield_container_loop = @stack.length < @yield_depth && loop_contain_yield?(start_index)
 

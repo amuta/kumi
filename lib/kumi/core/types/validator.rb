@@ -20,7 +20,7 @@ module Kumi
           when ScalarType
             valid_kind?(type.kind)
           when ArrayType, TupleType
-            true  # If constructed, it's valid
+            true # If constructed, it's valid
           when Symbol
             valid_kind?(type)
           else

@@ -14,18 +14,16 @@ module Kumi
             # Already a Type object, return as-is
             type_input
           when Symbol
-            if Validator.valid_kind?(type_input)
-              Kumi::Core::Types.scalar(type_input)
-            else
-              raise ArgumentError, "Invalid type symbol: #{type_input}"
-            end
+            raise ArgumentError, "Invalid type symbol: #{type_input}" unless Validator.valid_kind?(type_input)
+
+            Kumi::Core::Types.scalar(type_input)
+
           when String
             symbol_type = type_input.to_sym
-            if Validator.valid_kind?(symbol_type)
-              Kumi::Core::Types.scalar(symbol_type)
-            else
-              raise ArgumentError, "Invalid type string: #{type_input}"
-            end
+            raise ArgumentError, "Invalid type string: #{type_input}" unless Validator.valid_kind?(symbol_type)
+
+            Kumi::Core::Types.scalar(symbol_type)
+
           when Hash
             raise ArgumentError, "Hash-based types no longer supported, use Type objects instead"
           when Class

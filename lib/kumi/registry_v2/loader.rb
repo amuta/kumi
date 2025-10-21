@@ -23,52 +23,52 @@ module Kumi
 
       # Build dtype rule from structured hash
       def build_dtype_rule_from_hash(spec)
-        rule_type = spec.fetch('rule') { raise "dtype hash requires 'rule' key" }
+        rule_type = spec.fetch("rule") { raise "dtype hash requires 'rule' key" }
 
         case rule_type
-        when 'same_as'
-          param = spec.fetch('param') { raise "same_as rule requires 'param' key" }
+        when "same_as"
+          param = spec.fetch("param") { raise "same_as rule requires 'param' key" }
           Kumi::Core::Functions::TypeRules.build_same_as(param.to_sym)
 
-        when 'promote'
-          params = spec.fetch('params') { raise "promote rule requires 'params' key" }
+        when "promote"
+          params = spec.fetch("params") { raise "promote rule requires 'params' key" }
           param_syms = Array(params).map { |p| p.to_sym }
           Kumi::Core::Functions::TypeRules.build_promote(*param_syms)
 
-        when 'element_of'
-          param = spec.fetch('param') { raise "element_of rule requires 'param' key" }
+        when "element_of"
+          param = spec.fetch("param") { raise "element_of rule requires 'param' key" }
           Kumi::Core::Functions::TypeRules.build_element_of(param.to_sym)
 
-        when 'unify'
-          param1 = spec.fetch('param1') { raise "unify rule requires 'param1' key" }
-          param2 = spec.fetch('param2') { raise "unify rule requires 'param2' key" }
+        when "unify"
+          param1 = spec.fetch("param1") { raise "unify rule requires 'param1' key" }
+          param2 = spec.fetch("param2") { raise "unify rule requires 'param2' key" }
           Kumi::Core::Functions::TypeRules.build_unify(param1.to_sym, param2.to_sym)
 
-        when 'common_type'
-          param = spec.fetch('param') { raise "common_type rule requires 'param' key" }
+        when "common_type"
+          param = spec.fetch("param") { raise "common_type rule requires 'param' key" }
           Kumi::Core::Functions::TypeRules.build_common_type(param.to_sym)
 
-        when 'array'
-          if spec.key?('element_type')
-            element_type_spec = spec['element_type']
+        when "array"
+          if spec.key?("element_type")
+            element_type_spec = spec["element_type"]
             element_type = if element_type_spec.is_a?(Hash)
-                            # Nested structured format
-                            build_dtype_rule_from_hash(element_type_spec).call({})
-                          else
-                            # String or symbol
-                            element_type_spec.to_sym
-                          end
+                             # Nested structured format
+                             build_dtype_rule_from_hash(element_type_spec).call({})
+                           else
+                             # String or symbol
+                             element_type_spec.to_sym
+                           end
             Kumi::Core::Functions::TypeRules.build_array(element_type)
-          elsif spec.key?('element_type_param')
-            element_type_param = spec['element_type_param'].to_sym
+          elsif spec.key?("element_type_param")
+            element_type_param = spec["element_type_param"].to_sym
             Kumi::Core::Functions::TypeRules.build_array(element_type_param)
           else
             raise "array rule requires either 'element_type' or 'element_type_param' key"
           end
 
-        when 'tuple'
-          if spec.key?('element_types')
-            element_types_spec = spec['element_types']
+        when "tuple"
+          if spec.key?("element_types")
+            element_types_spec = spec["element_types"]
             element_types = Array(element_types_spec).map do |et|
               if et.is_a?(Hash)
                 build_dtype_rule_from_hash(et).call({})
@@ -77,19 +77,18 @@ module Kumi
               end
             end
             Kumi::Core::Functions::TypeRules.build_tuple(*element_types)
-          elsif spec.key?('element_types_param')
-            element_types_param = spec['element_types_param'].to_sym
+          elsif spec.key?("element_types_param")
+            element_types_param = spec["element_types_param"].to_sym
             Kumi::Core::Functions::TypeRules.build_tuple(element_types_param)
           else
             raise "tuple rule requires either 'element_types' or 'element_types_param' key"
           end
 
-        when 'scalar'
-          kind = spec.fetch('kind') { raise "scalar rule requires 'kind' key" }
+        when "scalar"
+          kind = spec.fetch("kind") { raise "scalar rule requires 'kind' key" }
           kind_sym = kind.to_sym
-          unless Kumi::Core::Types::Validator.valid_kind?(kind_sym)
-            raise "scalar rule has unknown kind: #{kind}"
-          end
+          raise "scalar rule has unknown kind: #{kind}" unless Kumi::Core::Types::Validator.valid_kind?(kind_sym)
+
           Kumi::Core::Functions::TypeRules.build_scalar(kind_sym)
 
         else

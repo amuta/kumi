@@ -96,7 +96,6 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
           end
         end.to raise_error(error_class, /value 'name' requires an expression or a block/)
       end
-
     end
 
     context "when defining traits" do

@@ -29,8 +29,7 @@ module Kumi
               axes  << root_name.to_sym
             end
 
-            # Emit normal plan for the root node
-            node_axes = [] # The root axes are always [], e.g. array :x (the container :x opens [:x], but is not inside that dim)
+            # Emit normal plan for the root node # The root axes are always [], e.g. array :x (the container :x opens [:x], but is not inside that dim)
             walk([root_name.to_s], node, steps, axes, steps, [])
 
             # If the root array defines an index, emit a *synthetic* index plan now

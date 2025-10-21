@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'value_normalizer'
+require_relative "value_normalizer"
 
 module Kumi
   module Dev

@@ -108,7 +108,7 @@ module Kumi
             when Kumi::Core::Types::ArrayType
               :array
             when Kumi::Core::Types::TupleType
-              :array  # Tuples behave like arrays for input access
+              :array # Tuples behave like arrays for input access
             when :array, Kumi::Core::Types::ScalarType
               # Check if it's a hash scalar or :hash symbol
               if t.is_a?(Kumi::Core::Types::ScalarType) && t.kind == :hash

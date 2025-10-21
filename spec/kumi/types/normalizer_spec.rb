@@ -118,5 +118,4 @@ RSpec.describe Kumi::Core::Types::Normalizer do
       end
     end
   end
-
 end

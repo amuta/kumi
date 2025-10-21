@@ -51,7 +51,7 @@ module Kumi
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
       schema_digest = schema.digest
-      stop_after = Core::Analyzer::Checkpoint.stop_after
+      Core::Analyzer::Checkpoint.stop_after
 
       registry ||= Kumi::RegistryV2.load
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
@@ -61,7 +61,7 @@ module Kumi
       state, stopped = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
       return create_analysis_result(state) if stopped
 
-      state, stopped = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
+      state, = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
 
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)

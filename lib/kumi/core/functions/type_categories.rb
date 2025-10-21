@@ -9,11 +9,11 @@ module Kumi
       class TypeCategories
         # Define type categories as unions of scalar kinds
         CATEGORIES = {
-          numeric: [:integer, :float, :decimal],
-          comparable: [:integer, :float, :decimal, :string],
+          numeric: %i[integer float decimal],
+          comparable: %i[integer float decimal string],
           boolean: [:boolean],
           stringable: [:string],
-          orderable: [:integer, :float, :decimal, :string]
+          orderable: %i[integer float decimal string]
         }.freeze
 
         def self.expand(dtype_constraint)

@@ -32,14 +32,14 @@ module Kumi
               next if atoms.empty?
 
               # Check for formal, obvious contradictions
-              if contradicting_equalities?(atoms) || domain_violations?(atoms, input_meta) ||
-                 propagated_violations?(atoms, definitions, input_meta, registry)
-                report_error(
-                  errors,
-                  "conjunction `#{decl.name}` is impossible",
-                  location: decl.loc
-                )
-              end
+              next unless contradicting_equalities?(atoms) || domain_violations?(atoms, input_meta) ||
+                          propagated_violations?(atoms, definitions, input_meta, registry)
+
+              report_error(
+                errors,
+                "conjunction `#{decl.name}` is impossible",
+                location: decl.loc
+              )
             end
 
             state
@@ -90,8 +90,6 @@ module Kumi
               val == :unknown ? node.name : val
             when InputReference
               node.name
-            else
-              nil
             end
           end
 

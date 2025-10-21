@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'types/value_objects'
+require_relative "types/value_objects"
 
 module Kumi
   module Core
@@ -44,9 +44,7 @@ module Kumi
       end
 
       def self.tuple(element_types)
-        unless element_types.is_a?(Array)
-          raise ArgumentError, "tuple expects array of Type objects, got #{element_types.class}"
-        end
+        raise ArgumentError, "tuple expects array of Type objects, got #{element_types.class}" unless element_types.is_a?(Array)
 
         # Convert any non-Type elements to Type objects
         converted = element_types.map do |t|
