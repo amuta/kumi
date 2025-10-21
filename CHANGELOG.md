@@ -1,4 +1,8 @@
 ## [Unreleased]
+## [0.0.29] – 2025-10-21
+### Changed
+- Tests and development cleanup
+
 
 ## [0.0.28] – 2025-10-20
 ### Changed
