@@ -159,14 +159,12 @@ Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
 
 ## Documentation
 
-Auto-generated reference for all functions and kernels:
-
-- **[Functions Reference](docs/FUNCTIONS.md)** - Human-readable docs with parameters and kernels
+- **[Syntax Reference](docs/SYNTAX.md)** - DSL syntax, types, operators, and functions
+- **[Functions Reference](docs/FUNCTIONS.md)** - Auto-generated docs for all functions and kernels
 - **[functions-reference.json](docs/functions-reference.json)** - Machine-readable format for IDEs (VSCode, Monaco, etc.)
+- **[Development Guide](docs/DEVELOPMENT.md)** - Testing, debugging, and contributing
 
-To regenerate: `bin/kumi-doc-gen`
-
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development workflows.
+To regenerate function docs: `bin/kumi-doc-gen`
 
 ---
 
