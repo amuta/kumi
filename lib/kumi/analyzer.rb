@@ -8,13 +8,14 @@ module Kumi
 
     DEFAULT_PASSES = [
       Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
-      Passes::InputCollector,                  # 2. Collects field metadata from input declarations.
-      Passes::InputFormSchemaPass,             # 3. Builds minimal form schema from input metadata.
-      Passes::DeclarationValidator,            # 4. Checks the basic structure of each rule.
-      Passes::SemanticConstraintValidator,     # 5. Validates DSL semantic constraints at AST level.
-      Passes::DependencyResolver,              # 6. Builds the dependency graph with conditional dependencies.
-      Passes::Toposorter,                      # 7. Creates the final evaluation order, allowing safe cycles.
-      Passes::InputAccessPlannerPass           # 8. Plans access strategies for input fields.
+      Passes::ImportAnalysisPass,              # 2. Loads source schemas for imports (NEW).
+      Passes::InputCollector,                  # 3. Collects field metadata from input declarations.
+      Passes::InputFormSchemaPass,             # 4. Builds minimal form schema from input metadata.
+      Passes::DeclarationValidator,            # 5. Checks the basic structure of each rule.
+      Passes::SemanticConstraintValidator,     # 6. Validates DSL semantic constraints at AST level.
+      Passes::DependencyResolver,              # 7. Builds the dependency graph with conditional dependencies.
+      Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
+      Passes::InputAccessPlannerPass           # 9. Plans access strategies for input fields.
     ].freeze
 
     # Pipeline passes for the determinisitic NAST->LIR approach
