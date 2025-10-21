@@ -19,6 +19,8 @@ module Kumi
           @data.key?(key)
         end
 
+        alias has_key? key?
+
         # Get all keys (same as hash)
         def keys
           @data.keys
