@@ -27,8 +27,13 @@ RSpec.describe "Analyzer Phase 1: Import Name Indexing" do
           @input_metadata
         end
 
+        def schema_obj.analyzed_state
+          @analyzed_state
+        end
+
         schema_obj.instance_variable_set(:@root_ast, root_ast)
         schema_obj.instance_variable_set(:@input_metadata, {amount: {type: :decimal}})
+        schema_obj.instance_variable_set(:@analyzed_state, {})  # Empty for now, but represents full analysis
         schema_obj
       end
     end
@@ -58,8 +63,13 @@ RSpec.describe "Analyzer Phase 1: Import Name Indexing" do
           @input_metadata
         end
 
+        def schema_obj.analyzed_state
+          @analyzed_state
+        end
+
         schema_obj.instance_variable_set(:@root_ast, root_ast)
         schema_obj.instance_variable_set(:@input_metadata, {price: {type: :decimal}, category: {type: :integer}})
+        schema_obj.instance_variable_set(:@analyzed_state, {})  # Empty for now, but represents full analysis
         schema_obj
       end
     end
@@ -146,10 +156,11 @@ RSpec.describe "Analyzer Phase 1: Import Name Indexing" do
       expect(state[:imported_schemas]).to have_key(:tax)
       expect(state[:imported_schemas][:tax]).to have_key(:decl)
       expect(state[:imported_schemas][:tax]).to have_key(:source_module)
+      expect(state[:imported_schemas][:tax]).to have_key(:analyzed_state)
       expect(state[:imported_schemas][:tax][:source_module]).to eq(MockSchemas::Tax)
     end
 
-    it "stores source declaration with import metadata" do
+    it "stores source declaration with rich analyzed data" do
       passes = [
         Kumi::Core::Analyzer::Passes::NameIndexer,
         Kumi::Core::Analyzer::Passes::ImportAnalysisPass
@@ -161,9 +172,14 @@ RSpec.describe "Analyzer Phase 1: Import Name Indexing" do
         value :result, ref(:result)
       end
 
-      source_decl = state[:imported_schemas][:tax][:decl]
+      import_meta = state[:imported_schemas][:tax]
+      source_decl = import_meta[:decl]
       expect(source_decl).to be_a(Kumi::Syntax::ValueDeclaration)
       expect(source_decl.name).to eq(:tax)
+
+      # Check for rich analyzed data
+      expect(import_meta).to have_key(:analyzed_state)
+      expect(import_meta).to have_key(:input_metadata)
     end
 
     it "handles multiple imports" do
