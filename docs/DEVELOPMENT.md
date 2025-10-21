@@ -57,6 +57,28 @@ The extension reads from `docs/functions-reference.json`, so always regenerate d
 bin/kumi-doc-gen
 ```
 
+## Testing: Golden Tests
+
+Kumi uses "golden tests" to verify correct behavior across all compilation stages. Each golden test captures:
+- Schema definition (schema.kumi)
+- Sample input (input.json)
+- Expected output (expected.json)
+- Expected intermediate representations (expected/ directory)
+
+See [GOLDEN_TESTS.md](GOLDEN_TESTS.md) for a comprehensive guide to:
+- Creating new golden tests
+- Understanding test structure
+- Verifying tests pass
+- Common patterns and best practices
+
+Quick start:
+```bash
+bin/kumi golden list           # See all tests
+bin/kumi golden test EXAMPLE   # Run specific test
+bin/kumi golden test           # Run all tests
+bin/kumi golden update EXAMPLE # Regenerate expected files
+```
+
 ---
 
-*More development guides coming soon.*
+*For more development documentation, see the other guides in this directory.*

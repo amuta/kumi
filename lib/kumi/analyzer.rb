@@ -71,91 +71,51 @@ module Kumi
       # Resume from a saved state if configured
       state = Core::Analyzer::Checkpoint.load_initial_state(state)
 
+      # Prepare options for PassManager
       debug_on = Core::Analyzer::Debug.enabled?
       resume_at  = Core::Analyzer::Checkpoint.resume_at
       stop_after = Core::Analyzer::Checkpoint.stop_after
-      skipping   = !!resume_at
-      stopped    = false
 
-      passes.each_with_index do |pass_class, idx|
-        raise handle_analysis_errors(errors) if !errors.empty? && (ERROR_THRESHOLD_PASS == pass_class)
+      # Filter passes based on checkpoint resume point
+      filtered_passes = if resume_at
+                          passes.each_with_index do |pass_class, idx|
+                            pass_name = pass_class.name.split("::").last
+                            if pass_name == resume_at
+                              break passes[idx..]
+                            end
+                          end.flatten.compact
+                        else
+                          passes
+                        end
 
-        pass_name = pass_class.name.split("::").last
+      # Check for error threshold pass
+      if !errors.empty? && filtered_passes.include?(ERROR_THRESHOLD_PASS)
+        raise handle_analysis_errors(errors)
+      end
 
-        if skipping
-          skipping = false if pass_name == resume_at
-          next if skipping
-        end
+      # Use PassManager for orchestration
+      manager = Core::Analyzer::PassManager.new(filtered_passes)
+      options = {
+        checkpoint_enabled: true,
+        debug_enabled: debug_on,
+        profiling_enabled: true,
+        stop_after: stop_after
+      }
 
-        Core::Analyzer::Checkpoint.entering(pass_name:, idx:, state:)
+      result = manager.run(schema, state, errors, options)
 
-        before = state.to_h if debug_on
-        Core::Analyzer::Debug.reset_log(pass: pass_name) if debug_on
-
-        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        pass_instance = pass_class.new(schema, state)
-        begin
-          state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
-            pass_instance.run(errors)
-          end
-        rescue StandardError => e
-          # TODO: - GREATLY improve this, need to capture the context of the error
-          # and the pass that failed and line number if relevant
-          message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
-          errors << Core::ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
-
-          if debug_on
-            logs = Core::Analyzer::Debug.drain_log
-            elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
-
-            Core::Analyzer::Debug.emit(
-              pass: pass_name,
-              diff: {},
-              elapsed_ms: elapsed_ms,
-              logs: logs + [{ level: :error, id: :exception, message: e.message, error_class: e.class.name }]
-            )
-          end
-
-          raise
-        end
-        unless state.is_a? Kumi::Core::Analyzer::AnalysisState
-          raise "Pass #{pass_name} returned a '#{state.class}', expected 'AnalysisState'"
-        end
-
-        elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round(2)
-
-        if debug_on
-          after = state.to_h
-
-          # Optional immutability guard
-          if ENV["KUMI_DEBUG_REQUIRE_FROZEN"] == "1"
-            (after || {}).each do |k, v|
-              if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) || (v.is_a?(String) && v.frozen?)
-                next
-              end
-              raise "State[#{k}] not frozen: #{v.class}" unless v.frozen?
-            end
-          end
-
-          diff = Core::Analyzer::Debug.diff_state(before, after)
-          logs = Core::Analyzer::Debug.drain_log
-
-          Core::Analyzer::Debug.emit(
-            pass: pass_name,
-            diff: diff,
-            elapsed_ms: elapsed_ms,
-            logs: logs
+      # Convert PassFailure errors back to ErrorEntry for consistency
+      if result.failed?
+        result.errors.each do |pass_failure|
+          errors << Core::ErrorReporter.create_error(
+            pass_failure.message,
+            location: pass_failure.location,
+            type: :semantic
           )
         end
-
-        Core::Analyzer::Checkpoint.leaving(pass_name:, idx:, state:)
-
-        if stop_after && pass_name == stop_after
-          stopped = true
-          break
-        end
       end
-      [state, stopped]
+
+      [result.final_state, result.stopped || false]
     end
 
     def self.handle_analysis_errors(errors)

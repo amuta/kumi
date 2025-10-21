@@ -1,4 +1,16 @@
 ## [Unreleased]
+## [0.0.30] – 2025-10-21
+### Changed
+- **Analyzer Refactoring:** PassManager now centralizes pass orchestration, replacing manual orchestration in Analyzer.run_analysis_passes
+- Removed unused API surface: batch_update, .phases, with_phase, recoverable, phase_id methods
+
+### Added
+- ExecutionPhase, ExecutionResult, PassFailure for structured pass execution metadata
+- PassManager handles checkpoint integration, debug logging, profiling, and error handling
+
+### Fixed
+- PassManager error handling now returns failures instead of raising, allowing proper error threshold checks
+
 ## [0.0.29] – 2025-10-21
 ### Changed
 - Tests and development cleanup
