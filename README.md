@@ -10,23 +10,22 @@
 
 ## What is Kumi?
 
-Kumi is a **declarative DSL for building calculation systems** that are:
-- **Typed & verifiable at compile time** (catch errors before they hit production)
-- **Vectorized** (arrays and nested data structures work naturally)
-- **Transparent** (inspect generated code and execution order)
-- **Portable** (compile the same schema to Ruby or JavaScript)
+Kumi is a **declarative DSL for building calculation systems**.
 
-Instead of writing procedural formulas, you declare *what* values depend on *what*, and Kumi figures out the computation order, validates types, detects impossible constraints, and generates efficient code.
+Schemas define:
+- Input shape (scalars, arrays, nested structures)
+- Declarations (computed values and boolean conditions)
+- Dependencies between declarations
 
-## Why Kumi Exists
+The compiler:
+- Performs type checking
+- Detects unsatisfiable constraints
+- Determines evaluation order
+- Generates code for Ruby or JavaScript
 
-Calculation systems are everywhere: tax engines, pricing models, financial projections, compliance checks. They're usually:
-- Hard to verify (logic spread across multiple files)
-- Fragile (changing one formula breaks hidden dependencies)
-- Duplicated (same logic needed in backend and frontend)
-- Opaque (hard to audit which rules applied to which data)
+## Use Cases
 
-Kumi makes them explicit, testable, and portable.
+Calculation systems appear in: tax engines, pricing models, financial projections, compliance systems, insurance underwriting, shipping rate calculators.
 
 ---
 
@@ -38,7 +37,7 @@ Kumi makes them explicit, testable, and portable.
 
 ## Example: US Tax Calculator (2024)
 
-A single schema computes federal, state, FICA taxes across multiple filing statuses—all types verified at compile time. Try it in the [interactive demo](https://kumi-play-web.fly.dev/) or inspect the [full schema, input, output, and generated code](golden/us_tax_2024/).
+A single schema computes federal, state, FICA taxes across multiple filing statuses. See the [interactive demo](https://kumi-play-web.fly.dev/) or inspect the [full schema, input, output, and generated code](golden/us_tax_2024/).
 
 <details>
 <summary><strong>Schema</strong></summary>
