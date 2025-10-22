@@ -15,7 +15,6 @@ module Kumi
               begin
                 source_module =
                   if source_module_ref.is_a?(String)
-                    ensure_shared_constants_available!(source_module_ref)
                     Object.const_get(source_module_ref)
                   else
                     source_module_ref
@@ -57,27 +56,6 @@ module Kumi
           end
 
           private
-
-          # Try to make GoldenSchemas available when resolving string refs during tests/CI.
-          def ensure_shared_constants_available!(ref)
-            return if ref.to_s.empty?
-            return if Object.const_defined?(ref)
-
-            # Only attempt special handling for our known shared namespace
-            if ref.start_with?("GoldenSchemas::")
-              # Prefer the dev loader if present
-              if defined?(Kumi::Dev::Golden) && Kumi::Dev::Golden.respond_to?(:load_shared_schemas!)
-                Kumi::Dev::Golden.load_shared_schemas!
-                return if Object.const_defined?(ref)
-              end
-
-              # Fallback: require from repo root if possible
-              shared_dir = File.expand_path("../../../../golden/_shared", __dir__)
-              if File.directory?(shared_dir)
-                Dir.glob(File.join(shared_dir, "*.rb")).sort.each { |f| require f }
-              end
-            end
-          end
 
           def qualified_ref(ref, mod = nil)
             return mod if mod
