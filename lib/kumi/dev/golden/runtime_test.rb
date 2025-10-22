@@ -55,7 +55,7 @@ module Kumi
         def has_imports?(base_dir)
           schema_file = File.join(base_dir, "schema.kumi")
           return false unless File.exist?(schema_file)
-          File.read(schema_file).match?(/^\s*import\s+/)
+          File.read(schema_file).match?(/\bimport\s+/)
         end
 
         def load_expected_outputs(base_dir)

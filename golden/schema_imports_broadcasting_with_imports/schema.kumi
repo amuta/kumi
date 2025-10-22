@@ -1,6 +1,6 @@
-import :tax, from: GoldenSchemas::Tax
-
 schema do
+  import :tax, from: GoldenSchemas::Tax
+
   input do
     array :items do
       hash :item do

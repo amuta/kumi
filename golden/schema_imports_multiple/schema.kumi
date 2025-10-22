@@ -1,7 +1,7 @@
-import :tax, from: GoldenSchemas::Tax
-import :discounted, :savings, from: GoldenSchemas::Discount
-
 schema do
+  import :tax, from: GoldenSchemas::Tax
+  import :discounted, :savings, from: GoldenSchemas::Discount
+
   input do
     decimal :amount
     decimal :discount_rate

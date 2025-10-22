@@ -1,6 +1,6 @@
-import :annual_interest, from: GoldenSchemas::Compound
-
 schema do
+  import :annual_interest, from: GoldenSchemas::Compound
+
   input do
     decimal :amount
     decimal :rate
