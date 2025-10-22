@@ -3,6 +3,12 @@
 RSpec.describe "Analyzer Phase 1: Import Name Indexing" do
   include AnalyzerStateHelper
 
+  after(:all) do
+    # Clear cached instances
+    MockSchemas::Tax.instance_variable_set(:@instance, nil)
+    MockSchemas::Discount.instance_variable_set(:@instance, nil)
+  end
+
   # Mock modules for testing
   module MockSchemas
     module Tax

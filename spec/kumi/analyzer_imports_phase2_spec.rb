@@ -3,6 +3,12 @@
 RSpec.describe "Analyzer Phase 2: Import Dependency Resolution" do
   include AnalyzerStateHelper
 
+  before(:each) do
+    # Reset cached instances for each test to avoid pollution
+    MockSchemas::Tax.instance_variable_set(:@instance, nil) if defined?(MockSchemas::Tax)
+    MockSchemas::Discount.instance_variable_set(:@instance, nil) if defined?(MockSchemas::Discount)
+  end
+
   module MockSchemas
     module Tax
       def self.kumi_schema_instance

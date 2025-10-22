@@ -42,6 +42,9 @@ module Kumi
             when Kumi::Syntax::DeclarationReference
               NAST::Ref.new(name: node.name, loc: node.loc)
 
+            when Kumi::Syntax::ImportCall
+              normalize_import_call(node, errors)
+
             when Kumi::Syntax::CallExpression
               # Special handling section - very clear what's happening
               case node.fn_name
@@ -157,6 +160,98 @@ module Kumi
             normalized_args.reverse.reduce do |right, left|
               NAST::Call.new(fn: :"core.and", args: [left, right], loc: loc)
             end
+          end
+
+          def normalize_import_call(node, errors)
+            imported_schemas = get_state(:imported_schemas, required: false) || {}
+
+            import_meta = imported_schemas[node.fn_name]
+            unless import_meta
+              add_error(errors, node.loc, "imported function `#{node.fn_name}` not found in imported_schemas")
+              return NAST::Const.new(value: nil, loc: node.loc)
+            end
+
+            source_decl = import_meta[:decl]
+            source_expr = source_decl.expression
+
+            substitution_map = build_substitution_map(node.input_mapping, errors, node.loc)
+
+            normalize_with_substitution(source_expr, substitution_map, errors, node.loc)
+          end
+
+          def build_substitution_map(input_mapping, errors, loc)
+            map = {}
+            input_mapping.each do |param_name, caller_expr|
+              normalized_expr = normalize_expr(caller_expr, errors)
+              map[param_name] = normalized_expr
+            end
+            map
+          end
+
+          def normalize_with_substitution(node, substitution_map, errors, loc)
+            case node
+            when Kumi::Syntax::InputReference
+              sub_expr = substitution_map[node.name]
+              if sub_expr
+                sub_expr
+              else
+                add_error(errors, node.loc, "input field `#{node.name}` not mapped in ImportCall")
+                NAST::Const.new(value: nil, loc: node.loc)
+              end
+
+            when Kumi::Syntax::InputElementReference
+              root_field = node.path.first
+              sub_expr = substitution_map[root_field]
+              if sub_expr
+                sub_expr
+              else
+                add_error(errors, node.loc, "input field `#{root_field}` not mapped in ImportCall")
+                NAST::Const.new(value: nil, loc: node.loc)
+              end
+
+            when Kumi::Syntax::DeclarationReference
+              normalize_expr(node, errors)
+
+            when Kumi::Syntax::CallExpression
+              args = node.args.map { |arg| normalize_with_substitution(arg, substitution_map, errors, node.loc) }
+              NAST::Call.new(fn: node.fn_name, args: args, loc: node.loc)
+
+            when Kumi::Syntax::Literal
+              NAST::Const.new(value: node.value, loc: node.loc)
+
+            when Kumi::Syntax::CascadeExpression
+              normalize_cascade_with_substitution(node, substitution_map, errors)
+
+            when Kumi::Syntax::ArrayExpression
+              args = node.elements.map { |a| normalize_with_substitution(a, substitution_map, errors, node.loc) }
+              NAST::Tuple.new(args: args, loc: node.loc)
+
+            when Kumi::Syntax::HashExpression
+              pairs = node.pairs.map do |k, v|
+                NAST::Pair.new(
+                  key: k.value,
+                  value: normalize_with_substitution(v, substitution_map, errors, node.loc)
+                )
+              end
+              NAST::Hash.new(pairs:, loc: node.loc)
+
+            else
+              add_error(errors, node&.loc, "Unsupported AST node in import substitution: #{node&.class}")
+              NAST::Const.new(value: nil, loc: node&.loc)
+            end
+          end
+
+          def normalize_cascade_with_substitution(node, substitution_map, errors)
+            cases = node.cases[0..-1]
+            default_expr = node.cases.last&.result || Kumi::Syntax::Literal.new(value: nil, loc: node.loc)
+            else_n = normalize_with_substitution(default_expr, substitution_map, errors, node.loc)
+
+            cases.reverse_each do |br|
+              cond = normalize_with_substitution(br.condition, substitution_map, errors, node.loc) if br.condition
+              val = normalize_with_substitution(br.result, substitution_map, errors, node.loc)
+              else_n = NAST::Call.new(fn: SELECT_ID, args: [cond, val, else_n], loc: br.condition&.loc || node.loc)
+            end
+            else_n
           end
         end
       end
