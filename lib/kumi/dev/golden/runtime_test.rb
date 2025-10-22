@@ -84,12 +84,21 @@ module Kumi
           # Convert decimal string inputs to BigDecimal
           input_data = convert_decimal_strings(input_data)
 
+          # Ensure shared schemas are loaded before eval'ing the generated code
+          ensure_golden_schemas_loaded!
+
           module_name = code.match(/module (Kumi::Compiled::\S+)/)[1]
           eval(code)
           module_const = Object.const_get(module_name)
           instance = Kumi::CompiledSchemaWrapper.new(module_const, input_data)
 
           decl_names.to_h { |name| [name, instance[name.to_sym]] }
+        end
+
+        def ensure_golden_schemas_loaded!
+          shared_dir = File.expand_path("../../../golden/_shared", __dir__)
+          return unless File.directory?(shared_dir)
+          Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
         end
 
         def convert_decimal_strings(value)
