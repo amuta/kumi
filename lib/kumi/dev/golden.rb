@@ -22,11 +22,15 @@ module Kumi
       # Load shared golden schemas for import support (only when using golden tests)
       shared_dir = File.expand_path("../../../golden/_shared", __dir__)
       if File.directory?(shared_dir)
-        Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
+        Dir.glob("#{shared_dir}/*.rb").sort.each do |f|
+          require f
+        end
         # Compile all shared schemas so imports can find their syntax trees
         GoldenSchemas.constants.each do |const|
           schema_module = GoldenSchemas.const_get(const)
-          schema_module.runner if schema_module.is_a?(Module) && schema_module.respond_to?(:runner)
+          if schema_module.is_a?(Module) && schema_module.respond_to?(:runner)
+            schema_module.runner
+          end
         end
       end
 
