@@ -2,7 +2,7 @@
 
 ## Overview
 
-Schema imports allow you to reuse declarations (values and traits) from one schema in another schema. Instead of duplicating logic, you can import a pure function from a shared schema and use it in your own schema.
+Schema imports allow you to reuse declarations (values and traits) from one schema in another schema by importing them from a source module.
 
 ## How It Works
 
@@ -25,10 +25,10 @@ Imports are **NOT function calls at runtime**. Instead:
 3. Substitutes it into the calling schema with parameter mapping
 4. Inlines the result into the generated code
 
-This enables:
-- Zero runtime overhead
-- Whole-program optimization across schema boundaries
-- Automatic broadcasting and expression evaluation
+**Behavior:**
+- Imported expressions are substituted into the calling schema at compile time
+- Broadcasting works on imported expressions the same way it works on local expressions
+- The full optimizer pipeline runs on the inlined code
 
 ### Example: Tax Calculation
 
@@ -100,7 +100,7 @@ Both create an `ImportCall` node which gets substituted during normalization.
 
 ## Broadcasting with Imports
 
-Imports work seamlessly with broadcasting. When you pass an array to an imported function, it broadcasts across the array:
+When you pass an array to an imported function, the substituted expression broadcasts across the array:
 
 ```kumi
 import :tax, from: GoldenSchemas::Tax
@@ -123,7 +123,7 @@ With input `items: [{amount: 100}, {amount: 200}, {amount: 300}]`:
 - `item_taxes` broadcasts to `[15, 30, 45]` (each computed with tax = amount * 0.15)
 - `total_tax` sums to `90`
 
-The generated code handles the broadcasting automatically through loop fusion and vectorization.
+The generated code applies loop fusion and vectorization optimizations to the inlined expression.
 
 ## Parameter Substitution
 
@@ -166,9 +166,9 @@ Multiple parameters work similarly:
    - Imports subtotal and applies it to nested order structure
    - Tests broadcasting imports through multiple levels
 
-6. **`schema_imports_complex_order_calc`** - Full production-like example
+6. **`schema_imports_complex_order_calc`** - Multiple imports with nested arrays
    - Imports tax, discount, and subtotal functions
-   - Demonstrates complete order processing pipeline with taxes, discounts, and summaries across multiple orders
+   - Tests order processing with taxes, discounts, and summaries across multiple orders
 
 ## Creating Reusable Schemas
 
@@ -248,13 +248,7 @@ Imported schema defines: `value :tax, input.amount * 0.15`
 
 Your schema calls: `tax(amount: input.price)`
 
-Compiler produces: `input.price * 0.15` (inlined directly, no function call overhead)
-
-**Benefits:**
-- **Zero runtime overhead** - imported expressions are inlined, not called at runtime
-- **Whole-program optimization** - the optimizer sees the inlined code and can apply CSE, constant folding, etc. across schema boundaries
-- **Broadcasting works naturally** - when you pass an array, the inlined expression broadcasts automatically
-- **Clean separation** - importing schema doesn't need to know about imported schema's internal implementation
+Compiler produces: `input.price * 0.15`
 
 ## Testing Strategy
 
