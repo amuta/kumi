@@ -1,0 +1,5 @@
+items: array (array) access_mode=element
+  └─> item: element_access
+  item: hash (hash)
+    └─> price: property_access
+    price: decimal

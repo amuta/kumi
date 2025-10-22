@@ -1,0 +1,25 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :price :decimal)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :tax_rate
+      (Literal 0.15)
+    )
+    (ValueDeclaration :item_taxes
+      (CallExpression :multiply
+        (InputElementReference items.item.price)
+        (DeclarationReference :tax_rate)
+      )
+    )
+  ]
+  traits: []
+)

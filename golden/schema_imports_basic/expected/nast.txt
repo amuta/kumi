@@ -1,0 +1,17 @@
+(NAST
+  (VALUE tax_rate
+    (Const 0.15)
+  )
+  (VALUE tax
+    (Call :multiply
+    (InputRef [:amount])
+    (Ref tax_rate)
+  )
+  )
+  (VALUE final_total
+    (Call :add
+    (InputRef [:price])
+    (Ref tax)
+  )
+  )
+)

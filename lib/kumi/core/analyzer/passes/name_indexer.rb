@@ -17,7 +17,7 @@ module Kumi
             hints = {}
 
             # Phase 1: Register imports as lazy references
-            schema.imports.each do |import_decl|
+            (schema.imports || []).each do |import_decl|
               import_decl.names.each do |name|
                 imported_declarations[name] = {
                   type: :import,

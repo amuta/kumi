@@ -1,0 +1,2 @@
+amount: decimal
+price: decimal

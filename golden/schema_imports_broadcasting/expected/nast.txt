@@ -1,0 +1,11 @@
+(NAST
+  (VALUE tax_rate
+    (Const 0.15)
+  )
+  (VALUE item_taxes
+    (Call :multiply
+    (InputRef [:items, :item, :price])
+    (Ref tax_rate)
+  )
+  )
+)
