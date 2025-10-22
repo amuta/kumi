@@ -13,9 +13,6 @@ require_relative "golden/suite"
 module Kumi
   module Dev
     module Golden
-      # Ensure JIT for golden tests
-      Kumi.configure { |c| c.compilation_mode = :jit }
-
       # Precompile shared schemas so __kumi_syntax_tree__ is available for imports
       def self.precompile_schemas!
         if defined?(Kumi::TestSharedSchemas)

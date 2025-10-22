@@ -63,6 +63,9 @@ module Kumi
 
   # Load shared schemas only when explicitly requested (for golden tests)
   def self.load_shared_schemas!
+    # Ensure JIT compilation mode for schemas being loaded
+    Kumi.configure { |c| c.compilation_mode = :jit }
+
     AUTOLOADER.eager_load_dir("#{__dir__}/kumi/test_shared_schemas")
     # Populate GoldenSchemas module (already defined in golden_schema_modules.rb)
     Kumi::TestSharedSchemas.constants.each do |const|
