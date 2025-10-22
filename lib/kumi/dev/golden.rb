@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "pathname"
-
 # Load Schema first so CompiledSchemaWrapper is available
 require_relative "../schema"
 
@@ -22,21 +20,15 @@ module Kumi
       end
 
       # Load shared golden schemas for import support (only when using golden tests)
-      # Use relative path from this file to ensure it works in all environments
       shared_dir = File.expand_path("../../../golden/_shared", __dir__)
       if File.directory?(shared_dir)
-        # Load files using require_relative to avoid path caching issues
-        Dir.glob("#{shared_dir}/*.rb").sort.each do |f|
-          # Get relative path from this file location
-          rel_path = Pathname.new(f).relative_path_from(Pathname.new(__dir__)).to_s
-          require_relative rel_path
-        end
+        # Load files using absolute require
+        Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
+
         # Compile all shared schemas so imports can find their syntax trees
         GoldenSchemas.constants.each do |const|
           schema_module = GoldenSchemas.const_get(const)
-          if schema_module.is_a?(Module) && schema_module.respond_to?(:runner)
-            schema_module.runner
-          end
+          schema_module.runner if schema_module.is_a?(Module) && schema_module.respond_to?(:runner)
         end
       end
 
