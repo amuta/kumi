@@ -158,7 +158,7 @@ Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
 
 ## Documentation
 
-- **[Syntax Reference](docs/SYNTAX.md)** - DSL syntax, types, operators, and functions
+- **[Syntax Reference](docs/SYNTAX.md)** - DSL syntax, types, operators, functions, and schema imports
 - **[Functions Reference](docs/FUNCTIONS.md)** - Auto-generated docs for all functions and kernels
 - **[functions-reference.json](docs/functions-reference.json)** - Machine-readable format for IDEs (VSCode, Monaco, etc.)
 - **[Development Guide](docs/DEVELOPMENT.md)** - Testing, debugging, and contributing

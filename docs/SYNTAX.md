@@ -328,6 +328,54 @@ trait :eligible, is_member | is_trial
 trait :not_active, !is_active
 ```
 
+### 3) Schema Imports
+
+Reuse declarations from other schemas without duplicating code.
+
+#### Basic Import
+
+```kumi
+import :tax, from: MySchemas::TaxCalculator
+
+schema do
+  input do
+    decimal :amount
+  end
+
+  # Call imported declaration with input mapping
+  value :total, tax(amount: input.amount)
+end
+```
+
+#### Multiple Imports
+
+```kumi
+import :tax, :discount, from: MySchemas::Utilities
+
+schema do
+  input do
+    decimal :price
+  end
+
+  value :after_tax, tax(amount: input.price)
+  value :final, discount(amount: after_tax)
+end
+```
+
+#### Nested Imports
+
+Imported schemas can themselves import from other schemas. The compiler resolves the full chain automatically.
+
+```kumi
+# PriceSchema imports TaxSchema internally
+import :final_price, from: MySchemas::PriceSchema
+```
+
+**Key Rules:**
+- All imported declarations must be available when the schema loads
+- Input parameters are mapped by name (no positional arguments)
+- Imports work with reductions, broadcasts, and cascades like normal declarations
+
 ### 4) Functions
 
 All functions use `fn(:name, args...)` syntax.
