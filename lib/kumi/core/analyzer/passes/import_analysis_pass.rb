@@ -4,13 +4,6 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Load and analyze source schemas for imports
-        # DEPENDENCIES: :imported_declarations from NameIndexer
-        # PRODUCES: :imported_schemas - Fully analyzed source schema information with rich data:
-        #           - decl: The declaration AST node
-        #           - source_module: The module reference
-        #           - analyzed_state: Full analyzer state of source schema (types, dependencies, etc.)
-        # INTERFACE: new(schema, state).run(errors)
         class ImportAnalysisPass < PassBase
           def run(errors)
             imported_decls = get_state(:imported_declarations)
@@ -20,34 +13,30 @@ module Kumi
               source_module_ref = meta[:from_module]
 
               begin
-                # Resolve module reference (can be a Module or a string constant name)
-                source_module = if source_module_ref.is_a?(String)
-                                  # Text parser provides constant names as strings (e.g., "GoldenSchemas::Tax")
-                                  Object.const_get(source_module_ref)
-                                else
-                                  # Ruby DSL provides modules directly
-                                  source_module_ref
-                                end
+                source_module =
+                  if source_module_ref.is_a?(String)
+                    ensure_shared_constants_available!(source_module_ref)
+                    Object.const_get(source_module_ref)
+                  else
+                    source_module_ref
+                  end
 
-                # Get syntax tree from Kumi::Schema extended module
                 syntax_tree = source_module.__kumi_syntax_tree__
 
-                # Find declaration in source AST
                 source_decl = syntax_tree.values.find { |v| v.name == name } ||
                               syntax_tree.traits.find { |t| t.name == name }
 
                 unless source_decl
-                  report_error(errors,
-                    "imported definition `#{name}` not found in #{source_module}",
-                    location: meta[:loc])
+                  report_error(
+                    errors,
+                    "imported definition `#{name}` not found in #{qualified_ref(source_module_ref, source_module)}",
+                    location: meta[:loc]
+                  )
                   next
                 end
 
-                # Analyze the source schema to get full state
-                analyzed_result = Kumi::Analyzer.analyze!(syntax_tree)
-                analyzed_state = analyzed_result.state
+                analyzed_state = Kumi::Analyzer.analyze!(syntax_tree).state
 
-                # Cache source info with rich analyzed state
                 imported_schemas[name] = {
                   decl: source_decl,
                   source_module: source_module,
@@ -56,13 +45,44 @@ module Kumi
                   input_metadata: analyzed_state[:input_metadata] || {}
                 }
               rescue => e
-                report_error(errors,
-                  "failed to load import `#{name}` from #{source_module}: #{e.message}",
-                  location: meta[:loc])
+                report_error(
+                  errors,
+                  "failed to load import `#{name}` from #{qualified_ref(source_module_ref)}: #{e.class}: #{e.message}",
+                  location: meta[:loc]
+                )
               end
             end
 
             state.with(:imported_schemas, imported_schemas.freeze)
+          end
+
+          private
+
+          # Try to make GoldenSchemas available when resolving string refs during tests/CI.
+          def ensure_shared_constants_available!(ref)
+            return if ref.to_s.empty?
+            return if Object.const_defined?(ref)
+
+            # Only attempt special handling for our known shared namespace
+            if ref.start_with?("GoldenSchemas::")
+              # Prefer the dev loader if present
+              if defined?(Kumi::Dev::Golden) && Kumi::Dev::Golden.respond_to?(:load_shared_schemas!)
+                Kumi::Dev::Golden.load_shared_schemas!
+                return if Object.const_defined?(ref)
+              end
+
+              # Fallback: require from repo root if possible
+              shared_dir = File.expand_path("../../../../golden/_shared", __dir__)
+              if File.directory?(shared_dir)
+                Dir.glob(File.join(shared_dir, "*.rb")).sort.each { |f| require f }
+              end
+            end
+          end
+
+          def qualified_ref(ref, mod = nil)
+            return mod if mod
+            return ref if ref
+            "(unknown)"
           end
         end
       end

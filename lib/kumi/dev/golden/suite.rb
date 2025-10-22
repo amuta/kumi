@@ -9,8 +9,6 @@ module Kumi
         def initialize(base_dir: "golden", representations: REPRESENTATIONS)
           @base_dir = base_dir
           @representations = representations
-          # Ensure shared schemas are loaded for imports
-          ensure_golden_schemas_loaded!
         end
 
         def list
@@ -66,12 +64,6 @@ module Kumi
         end
 
         private
-
-        def ensure_golden_schemas_loaded!
-          shared_dir = File.expand_path("../../../golden/_shared", __dir__)
-          return unless File.directory?(shared_dir)
-          Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
-        end
 
         def schema_names
           Dir.glob(File.join(base_dir, "*/schema.kumi"))
