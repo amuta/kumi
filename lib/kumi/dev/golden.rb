@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "json"
-require "open3"
+# Load Schema first so CompiledSchemaWrapper is available
+require_relative "../schema"
 
 require_relative "golden/representation"
 require_relative "golden/result"
