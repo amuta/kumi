@@ -5,7 +5,7 @@ module Kumi::Compiled::KUMI_89c727b3286f369100c4f6e1ba4658baa9ff894725200c0d102a
     t1 = input["orders"] || input[:orders]
     t1.each_with_index do |orders_el_2, orders_i_3|
       t4 = orders_el_2["items"] || orders_el_2[:items]
-      t5 = GoldenSchemas::Subtotal._subtotal({"items" => t4})
+      t5 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t4})
       out << t5
     end
     out
@@ -16,7 +16,7 @@ module Kumi::Compiled::KUMI_89c727b3286f369100c4f6e1ba4658baa9ff894725200c0d102a
     t7 = input["orders"] || input[:orders]
     t7.each_with_index do |orders_el_8, orders_i_9|
       t18 = orders_el_8["items"] || orders_el_8[:items]
-      t19 = GoldenSchemas::Subtotal._subtotal({"items" => t18})
+      t19 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t18})
       acc_6 += t19
     end
     acc_6
@@ -27,11 +27,11 @@ module Kumi::Compiled::KUMI_89c727b3286f369100c4f6e1ba4658baa9ff894725200c0d102a
     t22 = input["orders"] || input[:orders]
     t22.each_with_index do |t23, t24|
       t28 = t23["items"] || t23[:items]
-      t29 = GoldenSchemas::Subtotal._subtotal({"items" => t28})
+      t29 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t28})
       acc21 += t29
     end
     t26 = acc21
-    GoldenSchemas::Tax._tax({"amount" => t26})
+    Kumi::TestSharedSchemas::Tax._tax({"amount" => t26})
   end
 
   def self._grand_total(input)
@@ -40,13 +40,13 @@ module Kumi::Compiled::KUMI_89c727b3286f369100c4f6e1ba4658baa9ff894725200c0d102a
     acc43 = 0
     t32.each_with_index do |t33, t34|
       t38 = t33["items"] || t33[:items]
-      t39 = GoldenSchemas::Subtotal._subtotal({"items" => t38})
+      t39 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t38})
       acc31 += t39
       acc43 += t39
     end
     t36 = acc31
     t48 = acc43
-    t41 = GoldenSchemas::Tax._tax({"amount" => t48})
+    t41 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t48})
     t36 + t41
   end
 end

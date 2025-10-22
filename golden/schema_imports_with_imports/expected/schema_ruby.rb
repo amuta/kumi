@@ -2,12 +2,12 @@
 module Kumi::Compiled::KUMI_6af2320dd77b74dcbd294497ebc68e0aabe569818ddefe292b2ab6b3282041a5
   def self._tax_result(input)
     t1 = input["amount"] || input[:amount]
-    GoldenSchemas::Tax._tax({"amount" => t1})
+    Kumi::TestSharedSchemas::Tax._tax({"amount" => t1})
   end
 
   def self._total(input)
     t3 = input["amount"] || input[:amount]
-    t7 = GoldenSchemas::Tax._tax({"amount" => t3})
+    t7 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t3})
     t3 + t7
   end
 end

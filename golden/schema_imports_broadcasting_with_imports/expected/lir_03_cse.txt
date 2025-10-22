@@ -3,7 +3,7 @@
     %t1 = load_input "items" :: array
     loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
       %t4 = load_field items_el_2["amount"] :: decimal
-      %t5 = importschemacall %t4 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t5 = importschemacall %t4 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
       yield %t5
     end_loop
   )
@@ -12,7 +12,7 @@
     %t7 = load_input "items" :: array
     loop items id=L2 in %t7 as el=%items_el_8, idx=%items_i_9
       %t13 = load_field items_el_8["amount"] :: decimal
-      %t14 = importschemacall %t13 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t14 = importschemacall %t13 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
       %acc_6 = acc_add agg.sum(%acc_6, %t14) :: float
     end_loop
     %t11 = acc_load %acc_6 :: float

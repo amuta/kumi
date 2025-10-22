@@ -16,33 +16,15 @@ module Kumi
       # Ensure JIT for golden tests
       Kumi.configure { |c| c.compilation_mode = :jit }
 
-      # Idempotent loader for shared importable schemas used by text DSL tests
-      def self.load_shared_schemas!
-        dirs = []
-        # Repo-root relative to this file
-        dirs << File.expand_path("../../../golden/_shared", __dir__)
-        # Repo-root relative to CWD (CI can run from repo root)
-        dirs << File.expand_path("golden/_shared", Dir.pwd)
-        # Bundler root, when available
-        if defined?(Bundler) && Bundler.respond_to?(:root) && Bundler.root
-          dirs << File.expand_path("golden/_shared", Bundler.root.to_s)
-        end
-        dirs.uniq.each do |dir|
-          next unless File.directory?(dir)
-          Dir.glob(File.join(dir, "*.rb")).sort.each { |f| require f }
-        end
-
-        # Precompile any loaded GoldenSchemas modules so imports can find trees
-        if defined?(GoldenSchemas)
-          GoldenSchemas.constants.each do |const|
-            mod = GoldenSchemas.const_get(const)
+      # Precompile shared schemas so __kumi_syntax_tree__ is available for imports
+      def self.precompile_schemas!
+        if defined?(Kumi::TestSharedSchemas)
+          Kumi::TestSharedSchemas.constants.each do |const|
+            mod = Kumi::TestSharedSchemas.const_get(const)
             mod.runner if mod.is_a?(Module) && mod.respond_to?(:runner)
           end
         end
       end
-
-      # Load immediately on require, safe to call again later
-      load_shared_schemas!
 
       module_function
 

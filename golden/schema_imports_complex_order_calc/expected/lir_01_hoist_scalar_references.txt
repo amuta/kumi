@@ -3,7 +3,7 @@
     %t1 = load_input "orders" :: array
     loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
       %t4 = load_field orders_el_2["items"] :: array
-      %t5 = importschemacall %t4 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t5 = importschemacall %t4 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       yield %t5
     end_loop
   )
@@ -21,7 +21,7 @@
     loop orders id=L3 in %t12 as el=%orders_el_13, idx=%orders_i_14
       %t15 = load_decl order_with_shipping axes=[orders] :: integer
       %t16 = load_input "global_discount_rate" :: decimal
-      %t17 = importschemacall %t15, %t16 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t17 = importschemacall %t15, %t16 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
       yield %t17
     end_loop
   )
@@ -29,7 +29,7 @@
     %t18 = load_input "orders" :: array
     loop orders id=L4 in %t18 as el=%orders_el_19, idx=%orders_i_20
       %t21 = load_decl order_discounted axes=[orders] :: float
-      %t22 = importschemacall %t21 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t22 = importschemacall %t21 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
       yield %t22
     end_loop
   )

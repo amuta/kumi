@@ -3,7 +3,7 @@
     %t1 = load_input "items" :: array
     loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
       %t4 = load_field items_el_2["amount"] :: decimal
-      %t5 = importschemacall %t4 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t5 = importschemacall %t4 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
       yield %t5
     end_loop
   )

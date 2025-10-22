@@ -3,7 +3,7 @@
     %t1 = load_input "orders" :: array
     loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
       %t4 = load_field orders_el_2["items"] :: array
-      %t5 = importschemacall %t4 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t5 = importschemacall %t4 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       yield %t5
     end_loop
   )
@@ -19,7 +19,7 @@
   )
   (Declaration tax_for_all
     %t12 = load_decl total_before_tax :: integer
-    %t13 = importschemacall %t12 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    %t13 = importschemacall %t12 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
     yield %t13
   )
   (Declaration grand_total

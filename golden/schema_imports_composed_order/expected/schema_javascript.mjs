@@ -10,7 +10,7 @@ export function _price_after_discount(input) {
   let t13 = input["quantity"];
   let t14 = t12 * t13;
   let t5 = input["discount_rate"];
-  let t6 = GoldenSchemas.Price.from({'base_price': t14, 'discount_rate': t5})._discounted;
+  let t6 = Kumi.TestSharedSchemas.Price.from({'base_price': t14, 'discount_rate': t5})._discounted;
   return t6;
 }
 
@@ -19,7 +19,7 @@ export function _discount_amt(input) {
   let t16 = input["quantity"];
   let t17 = t15 * t16;
   let t8 = input["discount_rate"];
-  let t9 = GoldenSchemas.Price.from({'base_price': t17, 'discount_rate': t8})._discount_amount;
+  let t9 = Kumi.TestSharedSchemas.Price.from({'base_price': t17, 'discount_rate': t8})._discount_amount;
   return t9;
 }
 
@@ -28,8 +28,8 @@ export function _final_total(input) {
   let t22 = input["quantity"];
   let t23 = t21 * t22;
   let t19 = input["discount_rate"];
-  let t20 = GoldenSchemas.Price.from({'base_price': t23, 'discount_rate': t19})._discounted;
-  let t11 = GoldenSchemas.Tax.from({'amount': t20})._total;
+  let t20 = Kumi.TestSharedSchemas.Price.from({'base_price': t23, 'discount_rate': t19})._discounted;
+  let t11 = Kumi.TestSharedSchemas.Tax.from({'amount': t20})._total;
   return t11;
 }
 

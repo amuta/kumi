@@ -4,9 +4,9 @@ require "zeitwerk"
 require "mutex_m"
 # require "pry" # COMMENT AFTER DEBUGGING
 
-loader = Zeitwerk::Loader.for_gem
-loader.ignore("#{__dir__}/kumi-cli")
-loader.inflector.inflect(
+AUTOLOADER = Zeitwerk::Loader.for_gem
+AUTOLOADER.ignore("#{__dir__}/kumi-cli")
+AUTOLOADER.inflector.inflect(
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "ast_emitter" => "ASTEmitter",
   "attach_terminal_info_pass" => "AttachTerminalInfoPass",
@@ -36,7 +36,7 @@ loader.inflector.inflect(
   "ruby_ast" => "RubyAST",
   "vm" => "VM"
 )
-loader.setup
+AUTOLOADER.setup
 
 module Kumi
   # Provides access to the singleton configuration object.
@@ -59,6 +59,15 @@ module Kumi
 
   # A namespace for dynamically created compiled modules.
   module Compiled
+  end
+
+  # Load shared schemas only when explicitly requested (for golden tests)
+  def self.load_shared_schemas!
+    AUTOLOADER.eager_load_dir("#{__dir__}/kumi/test_shared_schemas")
+    # Populate GoldenSchemas module (already defined in golden_schema_modules.rb)
+    Kumi::TestSharedSchemas.constants.each do |const|
+      GoldenSchemas.const_set(const, Kumi::TestSharedSchemas.const_get(const)) unless GoldenSchemas.const_defined?(const)
+    end
   end
 end
 

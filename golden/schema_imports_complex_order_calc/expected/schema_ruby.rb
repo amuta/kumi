@@ -5,7 +5,7 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t1 = input["orders"] || input[:orders]
     t1.each_with_index do |orders_el_2, orders_i_3|
       t4 = orders_el_2["items"] || orders_el_2[:items]
-      t5 = GoldenSchemas::Subtotal._subtotal({"items" => t4})
+      t5 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t4})
       out << t5
     end
     out
@@ -17,7 +17,7 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t6.each_with_index do |orders_el_7, orders_i_8|
       t60 = orders_el_7["items"] || orders_el_7[:items]
       t10 = orders_el_7["shipping_cost"] || orders_el_7[:shipping_cost]
-      t61 = GoldenSchemas::Subtotal._subtotal({"items" => t60})
+      t61 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t60})
       t11 = t61 + t10
       out << t11
     end
@@ -31,9 +31,9 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t12.each_with_index do |orders_el_13, orders_i_14|
       t67 = orders_el_13["items"] || orders_el_13[:items]
       t64 = orders_el_13["shipping_cost"] || orders_el_13[:shipping_cost]
-      t68 = GoldenSchemas::Subtotal._subtotal({"items" => t67})
+      t68 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t67})
       t65 = t68 + t64
-      t17 = GoldenSchemas::Discount._discounted({"price" => t65, "rate" => t16})
+      t17 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t65, "rate" => t16})
       out << t17
     end
     out
@@ -46,10 +46,10 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t18.each_with_index do |orders_el_19, orders_i_20|
       t78 = orders_el_19["items"] || orders_el_19[:items]
       t75 = orders_el_19["shipping_cost"] || orders_el_19[:shipping_cost]
-      t79 = GoldenSchemas::Subtotal._subtotal({"items" => t78})
+      t79 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t78})
       t76 = t79 + t75
-      t72 = GoldenSchemas::Discount._discounted({"price" => t76, "rate" => t71})
-      t22 = GoldenSchemas::Tax._tax({"amount" => t72})
+      t72 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t76, "rate" => t71})
+      t22 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t72})
       out << t22
     end
     out
@@ -62,10 +62,10 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t23.each_with_index do |orders_el_24, orders_i_25|
       t89 = orders_el_24["items"] || orders_el_24[:items]
       t86 = orders_el_24["shipping_cost"] || orders_el_24[:shipping_cost]
-      t90 = GoldenSchemas::Subtotal._subtotal({"items" => t89})
+      t90 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t89})
       t87 = t90 + t86
-      t83 = GoldenSchemas::Discount._discounted({"price" => t87, "rate" => t82})
-      t93 = GoldenSchemas::Tax._tax({"amount" => t83})
+      t83 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t87, "rate" => t82})
+      t93 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t83})
       t28 = t83 + t93
       out << t28
     end
@@ -79,9 +79,9 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t29.each_with_index do |orders_el_30, orders_i_31|
       t110 = orders_el_30["items"] || orders_el_30[:items]
       t107 = orders_el_30["shipping_cost"] || orders_el_30[:shipping_cost]
-      t111 = GoldenSchemas::Subtotal._subtotal({"items" => t110})
+      t111 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t110})
       t108 = t111 + t107
-      t115 = GoldenSchemas::Discount._discounted({"price" => t108, "rate" => t114})
+      t115 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t108, "rate" => t114})
       t34 = t108 - t115
       out << t34
     end
@@ -105,10 +105,10 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t42.each_with_index do |orders_el_43, orders_i_44|
       t136 = orders_el_43["items"] || orders_el_43[:items]
       t133 = orders_el_43["shipping_cost"] || orders_el_43[:shipping_cost]
-      t137 = GoldenSchemas::Subtotal._subtotal({"items" => t136})
+      t137 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t136})
       t134 = t137 + t133
-      t130 = GoldenSchemas::Discount._discounted({"price" => t134, "rate" => t129})
-      t140 = GoldenSchemas::Tax._tax({"amount" => t130})
+      t130 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t134, "rate" => t129})
+      t140 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t130})
       t126 = t130 + t140
       acc_41 += t126
     end
@@ -122,10 +122,10 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t48.each_with_index do |orders_el_49, orders_i_50|
       t164 = orders_el_49["items"] || orders_el_49[:items]
       t161 = orders_el_49["shipping_cost"] || orders_el_49[:shipping_cost]
-      t165 = GoldenSchemas::Subtotal._subtotal({"items" => t164})
+      t165 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t164})
       t162 = t165 + t161
-      t158 = GoldenSchemas::Discount._discounted({"price" => t162, "rate" => t157})
-      t154 = GoldenSchemas::Tax._tax({"amount" => t158})
+      t158 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t162, "rate" => t157})
+      t154 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t158})
       acc_47 += t154
     end
     acc_47
@@ -138,9 +138,9 @@ module Kumi::Compiled::KUMI_b2388bf2993ea1c66d3dac07338c5ac4d06d13ba8f20737f3e3a
     t54.each_with_index do |orders_el_55, orders_i_56|
       t175 = orders_el_55["items"] || orders_el_55[:items]
       t172 = orders_el_55["shipping_cost"] || orders_el_55[:shipping_cost]
-      t176 = GoldenSchemas::Subtotal._subtotal({"items" => t175})
+      t176 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t175})
       t173 = t176 + t172
-      t180 = GoldenSchemas::Discount._discounted({"price" => t173, "rate" => t179})
+      t180 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t173, "rate" => t179})
       t169 = t173 - t180
       acc_53 += t169
     end

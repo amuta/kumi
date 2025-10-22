@@ -60,17 +60,9 @@ when "pp"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
-  # Ensure shared importable schemas are loaded in all environments (CI included)
-  begin
-    # Kumi::Dev::Golden gets autoloaded when referenced, but we call the loader explicitly as well.
-    Kumi::Dev::Golden.load_shared_schemas!
-  rescue NameError, LoadError
-    # Fallback: best-effort direct require from repo root
-    shared_dir = File.expand_path("../golden/_shared", __dir__)
-    if Dir.exist?(shared_dir)
-      Dir[File.join(shared_dir, "*.rb")].sort.each { |f| require f }
-    end
-  end
+  # Load and precompile shared schemas
+  Kumi.load_shared_schemas!
+  Kumi::Dev::Golden.precompile_schemas!
 
   sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> [name1 name2 ...]"
   opts = {}

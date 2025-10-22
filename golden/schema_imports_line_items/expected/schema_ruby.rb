@@ -2,19 +2,19 @@
 module Kumi::Compiled::KUMI_f03c0bb3f6e56ad31c7b8258d07007070c13d0b4a3d10929472c392acf96337e
   def self._order_subtotal(input)
     t1 = input["order_items"] || input[:order_items]
-    GoldenSchemas::Subtotal._subtotal({"items" => t1})
+    Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t1})
   end
 
   def self._tax_amount(input)
     t9 = input["order_items"] || input[:order_items]
-    t10 = GoldenSchemas::Subtotal._subtotal({"items" => t9})
+    t10 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t9})
     t4 = input["tax_rate"] || input[:tax_rate]
     t10 * t4
   end
 
   def self._total(input)
     t11 = input["order_items"] || input[:order_items]
-    t12 = GoldenSchemas::Subtotal._subtotal({"items" => t11})
+    t12 = Kumi::TestSharedSchemas::Subtotal._subtotal({"items" => t11})
     t14 = input["tax_rate"] || input[:tax_rate]
     t15 = t12 * t14
     t12 + t15

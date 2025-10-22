@@ -5,7 +5,7 @@ module Kumi::Compiled::KUMI_8be3d4966f8aad6e90f4ac6b0b11919080af1c5b1f9d01f1cc4c
     t2 = 1.05
     t3 = t1 * t2
     t4 = input["rate"] || input[:rate]
-    GoldenSchemas::Compound._annual_interest({"principal" => t3, "rate" => t4})
+    Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t3, "rate" => t4})
   end
 
   def self._total_over_periods(input)
@@ -13,7 +13,7 @@ module Kumi::Compiled::KUMI_8be3d4966f8aad6e90f4ac6b0b11919080af1c5b1f9d01f1cc4c
     t13 = 1.05
     t14 = t12 * t13
     t15 = input["rate"] || input[:rate]
-    t16 = GoldenSchemas::Compound._annual_interest({"principal" => t14, "rate" => t15})
+    t16 = Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t14, "rate" => t15})
     t7 = input["periods"] || input[:periods]
     t16 * t7
   end
@@ -23,7 +23,7 @@ module Kumi::Compiled::KUMI_8be3d4966f8aad6e90f4ac6b0b11919080af1c5b1f9d01f1cc4c
     t21 = 1.05
     t22 = t20 * t21
     t23 = input["rate"] || input[:rate]
-    t24 = GoldenSchemas::Compound._annual_interest({"principal" => t22, "rate" => t23})
+    t24 = Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t22, "rate" => t23})
     t18 = input["periods"] || input[:periods]
     t19 = t24 * t18
     t10 = 2

@@ -5,7 +5,7 @@ module Kumi::Compiled::KUMI_c35d17b75791ed5a62bfa3700e066dd16047a18a0bc2de3d0b20
     t1 = input["items"] || input[:items]
     t1.each_with_index do |items_el_2, items_i_3|
       t4 = items_el_2["amount"] || items_el_2[:amount]
-      t5 = GoldenSchemas::Tax._tax({"amount" => t4})
+      t5 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t4})
       out << t5
     end
     out
@@ -16,7 +16,7 @@ module Kumi::Compiled::KUMI_c35d17b75791ed5a62bfa3700e066dd16047a18a0bc2de3d0b20
     t7 = input["items"] || input[:items]
     t7.each_with_index do |items_el_8, items_i_9|
       t13 = items_el_8["amount"] || items_el_8[:amount]
-      t14 = GoldenSchemas::Tax._tax({"amount" => t13})
+      t14 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t13})
       acc_6 += t14
     end
     acc_6

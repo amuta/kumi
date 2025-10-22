@@ -1,7 +1,7 @@
 (LIR
   (Declaration order_subtotal
     %t1 = load_input "order_items" :: array
-    %t2 = importschemacall %t1 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    %t2 = importschemacall %t1 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
     yield %t2
   )
   (Declaration tax_amount

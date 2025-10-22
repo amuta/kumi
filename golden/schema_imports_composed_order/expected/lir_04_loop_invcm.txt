@@ -10,7 +10,7 @@
     %t13 = load_input "quantity" :: decimal
     %t14 = call core.mul:numeric(%t12, %t13) :: decimal
     %t5 = load_input "discount_rate" :: decimal
-    %t6 = importschemacall %t14, %t5 fn_name="discounted" source_module="GoldenSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: float
+    %t6 = importschemacall %t14, %t5 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: float
     yield %t6
   )
   (Declaration discount_amt
@@ -18,7 +18,7 @@
     %t16 = load_input "quantity" :: decimal
     %t17 = call core.mul:numeric(%t15, %t16) :: decimal
     %t8 = load_input "discount_rate" :: decimal
-    %t9 = importschemacall %t17, %t8 fn_name="discount_amount" source_module="GoldenSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: decimal
+    %t9 = importschemacall %t17, %t8 fn_name="discount_amount" source_module="Kumi::TestSharedSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: decimal
     yield %t9
   )
   (Declaration final_total
@@ -26,8 +26,8 @@
     %t22 = load_input "quantity" :: decimal
     %t23 = call core.mul:numeric(%t21, %t22) :: decimal
     %t19 = load_input "discount_rate" :: decimal
-    %t20 = importschemacall %t23, %t19 fn_name="discounted" source_module="GoldenSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: float
-    %t11 = importschemacall %t20 fn_name="total" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    %t20 = importschemacall %t23, %t19 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: float
+    %t11 = importschemacall %t20 fn_name="total" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
     yield %t11
   )
 )

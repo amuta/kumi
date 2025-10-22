@@ -4,7 +4,7 @@
     %t2 = const 1.05 :: float
     %t3 = call core.mul:numeric(%t1, %t2) :: float
     %t4 = load_input "rate" :: decimal
-    %t5 = importschemacall %t3, %t4 fn_name="annual_interest" source_module="GoldenSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
+    %t5 = importschemacall %t3, %t4 fn_name="annual_interest" source_module="Kumi::TestSharedSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
     yield %t5
   )
   (Declaration total_over_periods

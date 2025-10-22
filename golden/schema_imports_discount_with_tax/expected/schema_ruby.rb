@@ -2,33 +2,33 @@
 module Kumi::Compiled::KUMI_815807158326c483dd45fe75578e81d78e8275a25668535fa389b4062415037e
   def self._tax_amount(input)
     t1 = input["price"] || input[:price]
-    GoldenSchemas::Tax._tax({"amount" => t1})
+    Kumi::TestSharedSchemas::Tax._tax({"amount" => t1})
   end
 
   def self._price_after_discount(input)
     t3 = input["price"] || input[:price]
     t4 = input["discount_rate"] || input[:discount_rate]
-    GoldenSchemas::Discount._discounted({"price" => t3, "rate" => t4})
+    Kumi::TestSharedSchemas::Discount._discounted({"price" => t3, "rate" => t4})
   end
 
   def self._discount_saved(input)
     t6 = input["price"] || input[:price]
     t7 = input["discount_rate"] || input[:discount_rate]
-    GoldenSchemas::Discount._savings({"price" => t6, "rate" => t7})
+    Kumi::TestSharedSchemas::Discount._savings({"price" => t6, "rate" => t7})
   end
 
   def self._tax_on_discounted(input)
     t14 = input["price"] || input[:price]
     t15 = input["discount_rate"] || input[:discount_rate]
-    t16 = GoldenSchemas::Discount._discounted({"price" => t14, "rate" => t15})
-    GoldenSchemas::Tax._tax({"amount" => t16})
+    t16 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t14, "rate" => t15})
+    Kumi::TestSharedSchemas::Tax._tax({"amount" => t16})
   end
 
   def self._final_total(input)
     t17 = input["price"] || input[:price]
     t18 = input["discount_rate"] || input[:discount_rate]
-    t19 = GoldenSchemas::Discount._discounted({"price" => t17, "rate" => t18})
-    t21 = GoldenSchemas::Tax._tax({"amount" => t19})
+    t19 = Kumi::TestSharedSchemas::Discount._discounted({"price" => t17, "rate" => t18})
+    t21 = Kumi::TestSharedSchemas::Tax._tax({"amount" => t19})
     t19 + t21
   end
 end

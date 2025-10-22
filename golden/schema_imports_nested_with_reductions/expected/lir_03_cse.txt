@@ -3,7 +3,7 @@
     %t1 = load_input "orders" :: array
     loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
       %t4 = load_field orders_el_2["items"] :: array
-      %t5 = importschemacall %t4 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t5 = importschemacall %t4 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       yield %t5
     end_loop
   )
@@ -12,7 +12,7 @@
     %t7 = load_input "orders" :: array
     loop orders id=L2 in %t7 as el=%orders_el_8, idx=%orders_i_9
       %t18 = load_field orders_el_8["items"] :: array
-      %t19 = importschemacall %t18 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t19 = importschemacall %t18 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc_6 = acc_add agg.sum(%acc_6, %t19) :: integer
     end_loop
     %t11 = acc_load %acc_6 :: integer
@@ -23,11 +23,11 @@
     %t22 = load_input "orders" :: array
     loop orders id=L3 in %t22 as el=%t23, idx=%t24
       %t28 = load_field t23["items"] :: array
-      %t29 = importschemacall %t28 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t29 = importschemacall %t28 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc21 = acc_add agg.sum(%acc21, %t29) :: integer
     end_loop
     %t26 = acc_load %acc21 :: integer
-    %t13 = importschemacall %t26 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    %t13 = importschemacall %t26 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
     yield %t13
   )
   (Declaration grand_total
@@ -36,13 +36,13 @@
     %acc43 = decl_acc :: integer
     loop orders id=L4 in %t32 as el=%t33, idx=%t34
       %t38 = load_field t33["items"] :: array
-      %t39 = importschemacall %t38 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t39 = importschemacall %t38 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc31 = acc_add agg.sum(%acc31, %t39) :: integer
       %acc43 = acc_add agg.sum(%acc43, %t39) :: integer
     end_loop
     %t36 = acc_load %acc31 :: integer
     %t48 = acc_load %acc43 :: integer
-    %t41 = importschemacall %t48 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    %t41 = importschemacall %t48 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
     %t16 = call core.add(%t36, %t41) :: float
     yield %t16
   )
