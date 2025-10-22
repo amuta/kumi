@@ -1,0 +1,15 @@
+import :discounted, :discount_amount, from: GoldenSchemas::Price
+import :total, from: GoldenSchemas::Tax
+
+schema do
+  input do
+    decimal :item_price
+    decimal :quantity
+    decimal :discount_rate
+  end
+
+  value :subtotal, input.item_price * input.quantity
+  value :price_after_discount, discounted(base_price: subtotal, discount_rate: input.discount_rate)
+  value :discount_amt, discount_amount(base_price: subtotal, discount_rate: input.discount_rate)
+  value :final_total, total(amount: price_after_discount)
+end

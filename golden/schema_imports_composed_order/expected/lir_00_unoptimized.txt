@@ -1,0 +1,25 @@
+(LIR
+  (Declaration subtotal
+    %t1 = load_input "item_price" :: decimal
+    %t2 = load_input "quantity" :: decimal
+    %t3 = call core.mul:numeric(%t1, %t2) :: decimal
+    yield %t3
+  )
+  (Declaration price_after_discount
+    %t4 = load_decl subtotal :: decimal
+    %t5 = load_input "discount_rate" :: decimal
+    %t6 = importschemacall %t4, %t5 fn_name="discounted" source_module="GoldenSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: float
+    yield %t6
+  )
+  (Declaration discount_amt
+    %t7 = load_decl subtotal :: decimal
+    %t8 = load_input "discount_rate" :: decimal
+    %t9 = importschemacall %t7, %t8 fn_name="discount_amount" source_module="GoldenSchemas::Price" input_mapping_keys=["base_price", "discount_rate"] :: decimal
+    yield %t9
+  )
+  (Declaration final_total
+    %t10 = load_decl price_after_discount :: float
+    %t11 = importschemacall %t10 fn_name="total" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    yield %t11
+  )
+)

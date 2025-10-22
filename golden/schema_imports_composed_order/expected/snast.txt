@@ -1,0 +1,25 @@
+(SNAST
+  (VALUE subtotal
+    (Call :core.mul:numeric
+      (InputRef item_price key_chain=[]) :: [] -> decimal
+      (InputRef quantity key_chain=[]) :: [] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE price_after_discount
+    (ImportCall :discounted
+      (base_price (Ref subtotal) :: [] -> decimal)
+      (discount_rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE discount_amt
+    (ImportCall :discount_amount
+      (base_price (Ref subtotal) :: [] -> decimal)
+      (discount_rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE final_total
+    (ImportCall :total
+      (amount (Ref price_after_discount) :: [] -> float)
+    ) :: [] -> float
+  ) :: [] -> float
+)
