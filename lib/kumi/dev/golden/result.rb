@@ -71,20 +71,26 @@ module Kumi
       end
 
       class SchemaTestResult
-        attr_reader :schema_name, :test_results, :error
+        attr_reader :schema_name, :test_results, :error, :skipped, :skip_reason
 
-        def initialize(schema_name:, test_results: [], error: nil)
+        def initialize(schema_name:, test_results: [], error: nil, skipped: false, skip_reason: nil)
           @schema_name = schema_name
           @test_results = test_results
           @error = error
+          @skipped = skipped
+          @skip_reason = skip_reason
         end
 
         def passed?
-          error.nil? && test_results.all?(&:passed?)
+          skipped? || (error.nil? && test_results.all?(&:passed?))
         end
 
         def failed?
           !passed?
+        end
+
+        def skipped?
+          skipped
         end
 
         def passed_count
