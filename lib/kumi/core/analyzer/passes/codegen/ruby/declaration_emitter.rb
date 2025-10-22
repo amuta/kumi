@@ -141,6 +141,20 @@ module Kumi
                 end
               end
 
+              def emit_importschemacall(ins, _i)
+                # Generate code to call an imported schema function
+                source_module = ins.attributes[:source_module]
+                fn_name = ins.attributes[:fn_name]
+                input_keys = ins.attributes[:input_mapping_keys]
+                args = operands_for(ins)
+
+                # Create a hash of input parameters
+                input_hash = input_keys.zip(args).map { |k, v| "#{k.inspect} => #{v}" }.join(", ")
+
+                # Generate: imported_module_instance._fn_name({input_mapping})
+                write "#{vreg(ins)} = #{source_module}.from({#{input_hash}})._#{fn_name}"
+              end
+
               def emit_fold(ins, _i)
                 kernel = kernel_for(ins.result_register)
                 args = operands_for(ins)

@@ -1,0 +1,3 @@
+amount: decimal
+rate: decimal
+periods: integer

@@ -1,0 +1,20 @@
+(NAST
+  (VALUE tax_amount
+    #<struct Kumi::Core::NAST::ImportCall id=7361, loc=nil, meta={}>
+  )
+  (VALUE price_after_tax
+    (Call :add
+    (InputRef [:amount])
+    (Ref tax_amount)
+  )
+  )
+  (VALUE discounted_price
+    #<struct Kumi::Core::NAST::ImportCall id=7369, loc=nil, meta={}>
+  )
+  (VALUE discount_amount
+    #<struct Kumi::Core::NAST::ImportCall id=7373, loc=nil, meta={}>
+  )
+  (VALUE final_price
+    (Ref discounted_price)
+  )
+)

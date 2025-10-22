@@ -1,0 +1,17 @@
+(SNAST
+  (VALUE interest
+    (UnknownNode: Kumi::Core::NAST::ImportCall)
+  ) :: [] -> decimal
+  (VALUE total_over_periods
+    (Call :core.mul:numeric
+      (Ref interest) :: [] -> decimal
+      (InputRef periods key_chain=[]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE doubled
+    (Call :core.mul:numeric
+      (Ref total_over_periods) :: [] -> integer
+      (Const 2) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

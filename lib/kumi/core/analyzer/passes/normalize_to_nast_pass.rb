@@ -171,87 +171,22 @@ module Kumi
               return NAST::Const.new(value: nil, loc: node.loc)
             end
 
-            source_decl = import_meta[:decl]
-            source_expr = source_decl.expression
+            # Don't inline the source expression. Instead, create an NAST::ImportCall node
+            # that represents a call to the compiled schema function.
+            # The compiled schema handles its own internal dependencies.
 
-            substitution_map = build_substitution_map(node.input_mapping, errors, node.loc)
-
-            normalize_with_substitution(source_expr, substitution_map, errors, node.loc)
-          end
-
-          def build_substitution_map(input_mapping, errors, loc)
-            map = {}
-            input_mapping.each do |param_name, caller_expr|
-              normalized_expr = normalize_expr(caller_expr, errors)
-              map[param_name] = normalized_expr
+            # Normalize the arguments (the values being passed)
+            args = node.input_mapping.map do |param_name, caller_expr|
+              normalize_expr(caller_expr, errors)
             end
-            map
-          end
 
-          def normalize_with_substitution(node, substitution_map, errors, loc)
-            case node
-            when Kumi::Syntax::InputReference
-              sub_expr = substitution_map[node.name]
-              if sub_expr
-                sub_expr
-              else
-                add_error(errors, node.loc, "input field `#{node.name}` not mapped in ImportCall")
-                NAST::Const.new(value: nil, loc: node.loc)
-              end
-
-            when Kumi::Syntax::InputElementReference
-              root_field = node.path.first
-              sub_expr = substitution_map[root_field]
-              if sub_expr
-                sub_expr
-              else
-                add_error(errors, node.loc, "input field `#{root_field}` not mapped in ImportCall")
-                NAST::Const.new(value: nil, loc: node.loc)
-              end
-
-            when Kumi::Syntax::DeclarationReference
-              normalize_expr(node, errors)
-
-            when Kumi::Syntax::CallExpression
-              args = node.args.map { |arg| normalize_with_substitution(arg, substitution_map, errors, node.loc) }
-              NAST::Call.new(fn: node.fn_name, args: args, loc: node.loc)
-
-            when Kumi::Syntax::Literal
-              NAST::Const.new(value: node.value, loc: node.loc)
-
-            when Kumi::Syntax::CascadeExpression
-              normalize_cascade_with_substitution(node, substitution_map, errors)
-
-            when Kumi::Syntax::ArrayExpression
-              args = node.elements.map { |a| normalize_with_substitution(a, substitution_map, errors, node.loc) }
-              NAST::Tuple.new(args: args, loc: node.loc)
-
-            when Kumi::Syntax::HashExpression
-              pairs = node.pairs.map do |k, v|
-                NAST::Pair.new(
-                  key: k.value,
-                  value: normalize_with_substitution(v, substitution_map, errors, node.loc)
-                )
-              end
-              NAST::Hash.new(pairs:, loc: node.loc)
-
-            else
-              add_error(errors, node&.loc, "Unsupported AST node in import substitution: #{node&.class}")
-              NAST::Const.new(value: nil, loc: node&.loc)
-            end
-          end
-
-          def normalize_cascade_with_substitution(node, substitution_map, errors)
-            cases = node.cases[0..-1]
-            default_expr = node.cases.last&.result || Kumi::Syntax::Literal.new(value: nil, loc: node.loc)
-            else_n = normalize_with_substitution(default_expr, substitution_map, errors, node.loc)
-
-            cases.reverse_each do |br|
-              cond = normalize_with_substitution(br.condition, substitution_map, errors, node.loc) if br.condition
-              val = normalize_with_substitution(br.result, substitution_map, errors, node.loc)
-              else_n = NAST::Call.new(fn: SELECT_ID, args: [cond, val, else_n], loc: br.condition&.loc || node.loc)
-            end
-            else_n
+            NAST::ImportCall.new(
+              fn_name: node.fn_name,
+              args: args,
+              input_mapping_keys: node.input_mapping.keys,
+              source_module: import_meta[:source_module],
+              loc: node.loc
+            )
           end
         end
       end

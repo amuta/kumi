@@ -1,9 +1,6 @@
 (NAST
   (VALUE tax_result
-    (Call :multiply
-    (InputRef [:amount])
-    (Const 0.15)
-  )
+    #<struct Kumi::Core::NAST::ImportCall id=8343, loc=nil, meta={}>
   )
   (VALUE total
     (Call :add

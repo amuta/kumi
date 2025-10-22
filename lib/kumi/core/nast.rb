@@ -101,6 +101,22 @@ module Kumi
         end
       end
 
+      class ImportCall < Node
+        attr_reader :fn_name, :args, :input_mapping_keys, :source_module
+
+        def initialize(fn_name:, args:, input_mapping_keys:, source_module:, **k)
+          super(**k)
+          @fn_name = fn_name.to_sym
+          @args = args
+          @input_mapping_keys = input_mapping_keys
+          @source_module = source_module
+        end
+
+        def accept(visitor)
+          visitor.respond_to?(:visit_import_call) ? visitor.visit_import_call(self) : super
+        end
+      end
+
       class Tuple < Node
         attr_reader :args
 

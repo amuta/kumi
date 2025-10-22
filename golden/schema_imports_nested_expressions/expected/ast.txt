@@ -1,0 +1,31 @@
+(Root
+  inputs: [
+    (InputDeclaration :amount :decimal)
+    (InputDeclaration :rate :decimal)
+    (InputDeclaration :periods :integer)
+  ]
+  values: [
+    (ValueDeclaration :interest
+      (ImportCall
+        (CallExpression :multiply
+          (InputReference :amount)
+          (Literal 1.05)
+        )
+        (InputReference :rate)
+      )
+    )
+    (ValueDeclaration :total_over_periods
+      (CallExpression :multiply
+        (DeclarationReference :interest)
+        (InputReference :periods)
+      )
+    )
+    (ValueDeclaration :doubled
+      (CallExpression :multiply
+        (DeclarationReference :total_over_periods)
+        (Literal 2)
+      )
+    )
+  ]
+  traits: []
+)

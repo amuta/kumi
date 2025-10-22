@@ -1,0 +1,22 @@
+(LIR
+  (Declaration interest
+    %t1 = load_input "amount" :: decimal
+    %t2 = const 1.05 :: float
+    %t3 = call core.mul:numeric(%t1, %t2) :: float
+    %t4 = load_input "rate" :: decimal
+    %t5 = importschemacall %t3, %t4 fn_name="annual_interest" source_module="GoldenSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
+    yield %t5
+  )
+  (Declaration total_over_periods
+    %t6 = load_decl interest :: decimal
+    %t7 = load_input "periods" :: integer
+    %t8 = call core.mul:numeric(%t6, %t7) :: integer
+    yield %t8
+  )
+  (Declaration doubled
+    %t9 = load_decl total_over_periods :: integer
+    %t10 = const 2 :: integer
+    %t11 = call core.mul:numeric(%t9, %t10) :: integer
+    yield %t11
+  )
+)

@@ -1,0 +1,17 @@
+(NAST
+  (VALUE interest
+    #<struct Kumi::Core::NAST::ImportCall id=7985, loc=nil, meta={}>
+  )
+  (VALUE total_over_periods
+    (Call :multiply
+    (Ref interest)
+    (InputRef [:periods])
+  )
+  )
+  (VALUE doubled
+    (Call :multiply
+    (Ref total_over_periods)
+    (Const 2)
+  )
+  )
+)

@@ -28,14 +28,12 @@ module Kumi::Compiled::KUMI_6af2320dd77b74dcbd294497ebc68e0aabe569818ddefe292b2a
 
   def _tax_result(input = @input)
     t1 = input["amount"] || input[:amount]
-    t2 = 0.15
-    t1 * t2
+    GoldenSchemas::Tax.from({"amount" => t1})._tax
   end
 
   def _total(input = @input)
-    t4 = input["amount"] || input[:amount]
-    t8 = 0.15
-    t9 = t4 * t8
-    t4 + t9
+    t3 = input["amount"] || input[:amount]
+    t7 = GoldenSchemas::Tax.from({"amount" => t3})._tax
+    t3 + t7
   end
 end

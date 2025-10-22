@@ -1,0 +1,29 @@
+(LIR
+  (Declaration tax_amount
+    %t1 = load_input "amount" :: decimal
+    %t2 = importschemacall %t1 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+    yield %t2
+  )
+  (Declaration price_after_tax
+    %t3 = load_input "amount" :: decimal
+    %t4 = load_decl tax_amount :: float
+    %t5 = call core.add(%t3, %t4) :: float
+    yield %t5
+  )
+  (Declaration discounted_price
+    %t6 = load_decl price_after_tax :: float
+    %t7 = load_input "discount_rate" :: decimal
+    %t8 = importschemacall %t6, %t7 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+    yield %t8
+  )
+  (Declaration discount_amount
+    %t9 = load_decl price_after_tax :: float
+    %t10 = load_input "discount_rate" :: decimal
+    %t11 = importschemacall %t9, %t10 fn_name="savings" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: decimal
+    yield %t11
+  )
+  (Declaration final_price
+    %t12 = load_decl discounted_price :: float
+    yield %t12
+  )
+)

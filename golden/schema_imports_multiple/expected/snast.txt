@@ -1,0 +1,20 @@
+(SNAST
+  (VALUE tax_amount
+    (UnknownNode: Kumi::Core::NAST::ImportCall)
+  ) :: [] -> float
+  (VALUE price_after_tax
+    (Call :core.add
+      (InputRef amount key_chain=[]) :: [] -> decimal
+      (Ref tax_amount) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE discounted_price
+    (UnknownNode: Kumi::Core::NAST::ImportCall)
+  ) :: [] -> float
+  (VALUE discount_amount
+    (UnknownNode: Kumi::Core::NAST::ImportCall)
+  ) :: [] -> decimal
+  (VALUE final_price
+    (Ref discounted_price) :: [] -> float
+  ) :: [] -> float
+)

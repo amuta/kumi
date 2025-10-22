@@ -146,6 +146,33 @@ module Kumi
           )
         end
 
+        # ImportSchemaCall
+        # Params:
+        #   fn_name:           imported function name
+        #   source_module:     the module containing the imported schema
+        #   args:              argument registers (mapped parameter values)
+        #   input_mapping_keys:keys of input mapping in order of args
+        #   out_dtype:         dtype of the result
+        #   as:                result register
+        #   location:          optional Location
+        # Result: produces
+        def import_schema_call(fn_name:, source_module:, args:, input_mapping_keys:, out_dtype:, as: nil, ids: nil, location: nil)
+          as ||= ids.generate_temp
+          Instruction.new(
+            opcode: :ImportSchemaCall,
+            result_register: as,
+            stamp: Stamp.new(dtype: out_dtype),
+            inputs: args,
+            immediates: [],
+            attributes: {
+              fn_name: fn_name.to_s,
+              source_module: source_module.to_s,
+              input_mapping_keys: Array(input_mapping_keys).map(&:to_s)
+            },
+            location:
+          )
+        end
+
         # Fold
         # Params:
         #   function:   String function id (e.g., "core.mul")
