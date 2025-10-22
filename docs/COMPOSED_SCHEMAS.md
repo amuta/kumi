@@ -1,12 +1,8 @@
 # Composed Schemas
 
-Kumi enables building complex calculation systems by composing smaller, reusable schemas.
+Multiple schemas can be imported and called within a single schema.
 
-## Basic Pattern
-
-Create simple, focused schemas for specific calculations, then compose them into larger systems.
-
-## Example: Order Processing
+## Example: Order Processing with Price and Tax
 
 ### Step 1: Define Base Schemas
 
@@ -47,7 +43,7 @@ module GoldenSchemas
 end
 ```
 
-### Step 2: Compose Into Order Schema
+### Composed Order Schema
 
 ```kumi
 import :discounted, :discount_amount, from: GoldenSchemas::Price
@@ -67,9 +63,9 @@ schema do
 end
 ```
 
-### Step 3: Execution
+### Test Data and Output
 
-With input:
+Input:
 ```json
 {
   "item_price": 100.0,
@@ -77,12 +73,6 @@ With input:
   "discount_rate": 0.1
 }
 ```
-
-Execution flow:
-1. `subtotal` = 100.0 × 3 = 300.0
-2. `price_after_discount` = discounted(base_price: 300.0, discount_rate: 0.1) = 270.0
-3. `discount_amt` = discount_amount(base_price: 300.0, discount_rate: 0.1) = 30.0
-4. `final_total` = total(amount: 270.0) = 270.0 + (270.0 × 0.15) = 310.5
 
 Output:
 ```json
@@ -96,48 +86,46 @@ Output:
 
 ## Parameter Mapping
 
-When calling imported functions, map input arguments to the imported schema's input fields:
+Imported functions are called with keyword arguments that map to the imported schema's input fields.
 
+Price schema input fields: `base_price`, `discount_rate`
 ```kumi
-# Price schema expects: base_price, discount_rate
 discounted(base_price: subtotal, discount_rate: input.discount_rate)
+```
 
-# Tax schema expects: amount
+Tax schema input fields: `amount`
+```kumi
 total(amount: price_after_discount)
 ```
 
-The compiler substitutes the provided arguments for the imported schema's input references.
+The compiler substitutes the provided values for input references in the imported schema's expressions.
 
-## Compilation Behavior
+## Compilation
 
-1. The compiler analyzes each imported schema
-2. Extracts the expression for each imported declaration
-3. Substitutes arguments into the imported expression
-4. Inlines the result into the calling schema
-5. Applies optimization passes to the inlined code
+For each imported function call:
+1. Compiler locates the declaration in the imported schema
+2. Extracts the expression
+3. Substitutes keyword arguments for input references
+4. Inlines the substituted expression into the calling schema
+5. Applies optimization passes (constant folding, CSE, dead code elimination, etc.)
 
-**Result:** No runtime function calls. All imported expressions are inlined and optimized as if they were written directly in the calling schema.
+## Testing
 
-## Testing Composed Schemas
-
-Test base schemas independently:
+Base schemas tested independently:
 ```bash
-bin/kumi golden test schema_imports_price
-bin/kumi golden test schema_imports_tax
+bin/kumi golden test schema_imports_discount_with_tax
+bin/kumi golden test schema_imports_nested_with_reductions
 ```
 
-Test composed schemas:
+Composed schemas tested:
 ```bash
 bin/kumi golden test schema_imports_composed_order
 ```
 
-See `golden/` directory for working examples.
-
-## Benefits of Composition
-
-- **Reusability**: Base schemas used in multiple contexts
-- **Modularity**: Each schema has a single responsibility
-- **Maintainability**: Changes to base schemas apply everywhere they're used
-- **Clarity**: Intent of complex calculations explicit
-- **Type Safety**: All substitutions checked during compilation
-- **No Runtime Cost**: All inlining happens at compile time
+Working examples in `golden/`:
+- `schema_imports_with_imports` - single import
+- `schema_imports_broadcasting_with_imports` - broadcast across arrays
+- `schema_imports_discount_with_tax` - multiple imports
+- `schema_imports_nested_with_reductions` - nested arrays
+- `schema_imports_complex_order_calc` - complex multi-import
+- `schema_imports_composed_order` - composed price and tax
