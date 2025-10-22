@@ -1,5 +1,5 @@
 schema do
-  import :tax, from: GoldenSchemas::Tax
+  import :tax, from: Kumi::TestSharedSchemas::Tax
 
   input do
     array :items do

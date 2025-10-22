@@ -1,5 +1,5 @@
-import :discounted, :discount_amount, from: GoldenSchemas::Price
-import :total, from: GoldenSchemas::Tax
+import :discounted, :discount_amount, from: Kumi::TestSharedSchemas::Price
+import :total, from: Kumi::TestSharedSchemas::Tax
 
 schema do
   input do

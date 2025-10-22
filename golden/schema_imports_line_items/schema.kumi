@@ -1,4 +1,4 @@
-import :subtotal, from: GoldenSchemas::Subtotal
+import :subtotal, from: Kumi::TestSharedSchemas::Subtotal
 
 schema do
   input do

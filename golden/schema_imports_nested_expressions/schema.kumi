@@ -1,5 +1,5 @@
 schema do
-  import :annual_interest, from: GoldenSchemas::Compound
+  import :annual_interest, from: Kumi::TestSharedSchemas::Compound
 
   input do
     decimal :amount

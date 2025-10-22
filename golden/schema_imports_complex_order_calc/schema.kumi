@@ -1,6 +1,6 @@
-import :tax, from: GoldenSchemas::Tax
-import :discounted, from: GoldenSchemas::Discount
-import :subtotal, from: GoldenSchemas::Subtotal
+import :tax, from: Kumi::TestSharedSchemas::Tax
+import :discounted, from: Kumi::TestSharedSchemas::Discount
+import :subtotal, from: Kumi::TestSharedSchemas::Subtotal
 
 schema do
   input do
