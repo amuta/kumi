@@ -24,6 +24,11 @@ module Kumi
       shared_dir = File.expand_path("../../../golden/_shared", __dir__)
       if File.directory?(shared_dir)
         Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
+        # Compile all shared schemas so imports can find their syntax trees
+        GoldenSchemas.constants.each do |const|
+          schema_module = GoldenSchemas.const_get(const)
+          schema_module.runner if schema_module.is_a?(Module) && schema_module.respond_to?(:runner)
+        end
       end
 
       module_function
