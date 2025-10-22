@@ -1,0 +1,10 @@
+(SNAST
+  (VALUE item_taxes
+    (UnknownNode: Kumi::Core::NAST::ImportCall)
+  ) :: [items] -> float
+  (VALUE total_tax
+    (Reduce :agg.sum over [items]
+      (Ref item_taxes) :: [items] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

@@ -191,8 +191,8 @@ module Kumi
             end
 
             result_type = src_decl_meta[:result_type] || Types.scalar(:any)
-            # ImportCall to a compiled schema function returns a scalar (or array if vectorized)
-            result_scope = []
+            # ImportCall broadcasts over argument scopes (like elementwise functions)
+            result_scope = lub_by_prefix(arg_scopes)
 
             @metadata_table[node_id(call)] = {
               kind: :import_call,

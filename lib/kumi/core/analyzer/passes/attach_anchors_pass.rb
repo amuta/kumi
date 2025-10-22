@@ -46,7 +46,7 @@ module Kumi
                 walk.call(x.on_false)
               when NAST::Reduce, NAST::Fold
                 walk.call(x.arg)
-              when NAST::Call, NAST::Tuple
+              when NAST::Call, NAST::Tuple, NAST::ImportCall
                 x.args.each { walk.call(_1) }
               when NAST::Hash
                 x.pairs.each { walk.call(_1) }
