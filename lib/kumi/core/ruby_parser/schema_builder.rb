@@ -8,7 +8,7 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll import].freeze
 
         def initialize(context)
           @context = context
@@ -57,10 +57,31 @@ module Kumi
           Kumi::Syntax::Literal.new(value, loc: @context.current_location)
         end
 
+        def import(*names, from:)
+          update_location
+
+          unless from.is_a?(Module) || from.is_a?(Class)
+            raise_syntax_error(
+              "import 'from:' must reference a module or class",
+              location: @context.current_location
+            )
+          end
+
+          import_decl = Kumi::Syntax::ImportDeclaration.new(names, from, loc: @context.current_location)
+          @context.imports << import_decl
+          @context.imported_names.merge(names)
+        end
+
         def fn(fn_name, *args, **kwargs)
           update_location
-          expr_args = args.map { ensure_syntax(_1) }
-          Kumi::Syntax::CallExpression.new(fn_name, expr_args, kwargs, loc: @context.current_location)
+
+          if args.empty? && !kwargs.empty? && @context.imported_names.include?(fn_name)
+            mapping = build_import_mapping(kwargs)
+            Kumi::Syntax::ImportCall.new(fn_name, mapping, loc: @context.current_location)
+          else
+            expr_args = args.map { ensure_syntax(_1) }
+            Kumi::Syntax::CallExpression.new(fn_name, expr_args, kwargs, loc: @context.current_location)
+          end
         end
 
         def select(condition, value_when_true, value_when_false)
@@ -96,6 +117,15 @@ module Kumi
         end
 
         private
+
+        def build_import_mapping(kwargs)
+          converter = ExpressionConverter.new(@context)
+          mapping = {}
+          kwargs.each do |field_name, expr|
+            mapping[field_name] = converter.ensure_syntax(expr)
+          end
+          mapping
+        end
 
         def update_location
           # Use caller_locations(2, 1) to skip the DSL method and get the actual user code location

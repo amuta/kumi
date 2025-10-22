@@ -1,0 +1,15 @@
+import :tax, from: Kumi::TestSharedSchemas::Tax
+import :discounted, :savings, from: Kumi::TestSharedSchemas::Discount
+
+schema do
+  input do
+    decimal :price
+    decimal :discount_rate
+  end
+
+  value :tax_amount, tax(amount: input.price)
+  value :price_after_discount, discounted(price: input.price, rate: input.discount_rate)
+  value :discount_saved, savings(price: input.price, rate: input.discount_rate)
+  value :tax_on_discounted, tax(amount: price_after_discount)
+  value :final_total, price_after_discount + tax_on_discounted
+end

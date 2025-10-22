@@ -29,7 +29,7 @@ module Kumi
               annotate!(node.body, by_fqn)
             when NAST::InputRef
               annotate_input_ref!(node, by_fqn)
-            when NAST::Tuple, NAST::Call
+            when NAST::Tuple, NAST::Call, NAST::ImportCall
               node.args.each { |a| annotate!(a, by_fqn) }
             when NAST::Hash
               node.pairs.each { |p| annotate!(p.value, by_fqn) }

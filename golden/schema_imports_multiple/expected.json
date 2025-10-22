@@ -1,0 +1,7 @@
+{
+  "tax_amount": 15,
+  "price_after_tax": 115,
+  "discounted_price": 103.5,
+  "discount_amount": 11.5,
+  "final_price": 103.5
+}

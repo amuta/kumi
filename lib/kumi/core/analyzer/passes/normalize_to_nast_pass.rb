@@ -42,6 +42,9 @@ module Kumi
             when Kumi::Syntax::DeclarationReference
               NAST::Ref.new(name: node.name, loc: node.loc)
 
+            when Kumi::Syntax::ImportCall
+              normalize_import_call(node, errors)
+
             when Kumi::Syntax::CallExpression
               # Special handling section - very clear what's happening
               case node.fn_name
@@ -157,6 +160,33 @@ module Kumi
             normalized_args.reverse.reduce do |right, left|
               NAST::Call.new(fn: :"core.and", args: [left, right], loc: loc)
             end
+          end
+
+          def normalize_import_call(node, errors)
+            imported_schemas = get_state(:imported_schemas, required: false) || {}
+
+            import_meta = imported_schemas[node.fn_name]
+            unless import_meta
+              add_error(errors, node.loc, "imported function `#{node.fn_name}` not found in imported_schemas")
+              return NAST::Const.new(value: nil, loc: node.loc)
+            end
+
+            # Don't inline the source expression. Instead, create an NAST::ImportCall node
+            # that represents a call to the compiled schema function.
+            # The compiled schema handles its own internal dependencies.
+
+            # Normalize the arguments (the values being passed)
+            args = node.input_mapping.map do |param_name, caller_expr|
+              normalize_expr(caller_expr, errors)
+            end
+
+            NAST::ImportCall.new(
+              fn_name: node.fn_name,
+              args: args,
+              input_mapping_keys: node.input_mapping.keys,
+              source_module: import_meta[:source_module],
+              loc: node.loc
+            )
           end
         end
       end

@@ -5,6 +5,38 @@ require "digest"
 require "fileutils"
 
 module Kumi
+  # Thin wrapper providing backward-compatible interface for pure module functions.
+  # The compiled module now contains only module-level functions (def self._name(input)),
+  # but users expect an instance-like interface with .from(), .update(), [].
+  # This wrapper bridges that gap.
+  class CompiledSchemaWrapper
+    def initialize(compiled_module, input_data)
+      @compiled_module = compiled_module
+      @input = input_data
+    end
+
+    def [](declaration_name)
+      method_name = "_#{declaration_name}"
+      unless @compiled_module.respond_to?(method_name)
+        raise KeyError, "Unknown declaration: #{declaration_name}"
+      end
+      @compiled_module.public_send(method_name, @input)
+    end
+
+    def update(new_input)
+      @input = @input.merge(new_input)
+      self
+    end
+
+    def from(new_input)
+      CompiledSchemaWrapper.new(@compiled_module, new_input)
+    end
+
+    private
+
+    attr_reader :compiled_module, :input
+  end
+
   # This module is the main entry point for users of the Kumi DSL.
   # When a user module `extend`s this, it gains the `schema` block method
   # and the `from` class method to execute the compiled logic.
@@ -34,12 +66,12 @@ module Kumi
     def runner
       ensure_compiled!
 
-      __kumi_compiled_module__.from({})
+      CompiledSchemaWrapper.new(__kumi_compiled_module__, {})
     end
 
     def from(input_data)
       ensure_compiled!
-      __kumi_compiled_module__.from(input_data)
+      CompiledSchemaWrapper.new(__kumi_compiled_module__, input_data)
     end
 
     def write_source(file_path, platform: :ruby)
@@ -94,6 +126,16 @@ module Kumi
         # to mix in the compiled methods (_total_payroll, etc.) and the instance
         # method `__kumi_compiled_module__`.
         @__kumi_compiled_module__ = Kumi::Compiled.const_get(schema_digest)
+
+        # Create a wrapper module with the compiled functions available as instance methods.
+        # This allows them to be extended as singleton methods on the schema module.
+        # This enables schema imports to work: GoldenSchemas::Tax._tax({amount: 100})
+        wrapper = Module.new
+        @__kumi_compiled_module__.singleton_methods(false).each do |method_name|
+          wrapper.define_method(method_name, @__kumi_compiled_module__.method(method_name).to_proc)
+        end
+        self.extend(wrapper)
+
         @kumi_compiled = true
       end
     end

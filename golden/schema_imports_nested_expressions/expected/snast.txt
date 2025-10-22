@@ -1,0 +1,23 @@
+(SNAST
+  (VALUE interest
+    (ImportCall :annual_interest
+      (principal (Call :core.mul:numeric
+        (InputRef amount key_chain=[]) :: [] -> decimal
+        (Const 1.05) :: [] -> float
+      ) :: [] -> float)
+      (rate (InputRef rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE total_over_periods
+    (Call :core.mul:numeric
+      (Ref interest) :: [] -> decimal
+      (InputRef periods key_chain=[]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE doubled
+    (Call :core.mul:numeric
+      (Ref total_over_periods) :: [] -> integer
+      (Const 2) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

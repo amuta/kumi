@@ -1,0 +1,35 @@
+(Root
+  inputs: [
+    (InputDeclaration :amount :decimal)
+    (InputDeclaration :discount_rate :decimal)
+  ]
+  values: [
+    (ValueDeclaration :tax_amount
+      (ImportCall :tax
+        (amount (InputReference :amount))
+      )
+    )
+    (ValueDeclaration :price_after_tax
+      (CallExpression :add
+        (InputReference :amount)
+        (DeclarationReference :tax_amount)
+      )
+    )
+    (ValueDeclaration :discounted_price
+      (ImportCall :discounted
+        (price (DeclarationReference :price_after_tax))
+        (rate (InputReference :discount_rate))
+      )
+    )
+    (ValueDeclaration :discount_amount
+      (ImportCall :savings
+        (price (DeclarationReference :price_after_tax))
+        (rate (InputReference :discount_rate))
+      )
+    )
+    (ValueDeclaration :final_price
+      (DeclarationReference :discounted_price)
+    )
+  ]
+  traits: []
+)

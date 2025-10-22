@@ -1,0 +1,19 @@
+(SNAST
+  (VALUE order_subtotal
+    (ImportCall :subtotal
+      (items (InputRef order_items key_chain=[]) :: [] -> array)
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE tax_amount
+    (Call :core.mul:numeric
+      (Ref order_subtotal) :: [] -> integer
+      (InputRef tax_rate key_chain=[]) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE total
+    (Call :core.add
+      (Ref order_subtotal) :: [] -> integer
+      (Ref tax_amount) :: [] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

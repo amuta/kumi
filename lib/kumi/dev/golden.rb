@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "json"
-require "open3"
+require_relative "../schema"
 
 require_relative "golden/representation"
 require_relative "golden/result"
@@ -15,11 +13,19 @@ require_relative "golden/suite"
 module Kumi
   module Dev
     module Golden
+      # Precompile shared schemas so __kumi_syntax_tree__ is available for imports
+      def self.precompile_schemas!
+        if defined?(Kumi::TestSharedSchemas)
+          Kumi::TestSharedSchemas.constants.each do |const|
+            mod = Kumi::TestSharedSchemas.const_get(const)
+            mod.runner if mod.is_a?(Module) && mod.respond_to?(:runner)
+          end
+        end
+      end
+
       module_function
 
-      def list
-        suite.list
-      end
+      def list = suite.list
 
       def update!(*names)
         names = [names].flatten.compact
@@ -44,14 +50,10 @@ module Kumi
         names = names_arg.any? ? names_arg : suite.send(:schema_names)
 
         ruby_names = suite.send(:filter_testable_schemas, names, :ruby)
-        ruby_results = ruby_names.map do |schema_name|
-          RuntimeTest.new(schema_name, :ruby).run(suite.send(:schema_dir, schema_name))
-        end
+        ruby_results = ruby_names.map { |n| RuntimeTest.new(n, :ruby).run(suite.send(:schema_dir, n)) }
 
         js_names = suite.send(:filter_testable_schemas, names, :javascript)
-        js_results = js_names.map do |schema_name|
-          RuntimeTest.new(schema_name, :javascript).run(suite.send(:schema_dir, schema_name))
-        end
+        js_results = js_names.map { |n| RuntimeTest.new(n, :javascript).run(suite.send(:schema_dir, n)) }
 
         Reporter.new.report_runtime_tests(ruby: ruby_results, javascript: js_results)
       end
@@ -59,20 +61,16 @@ module Kumi
       def test_codegen!(*names_arg)
         names_arg = [names_arg].flatten.compact
         names = names_arg.any? ? names_arg : suite.send(:schema_names)
-        testable_names = suite.send(:filter_testable_schemas, names, :ruby)
-        results = testable_names.map do |schema_name|
-          RuntimeTest.new(schema_name, :ruby).run(suite.send(:schema_dir, schema_name))
-        end
+        testable = suite.send(:filter_testable_schemas, names, :ruby)
+        results = testable.map { |n| RuntimeTest.new(n, :ruby).run(suite.send(:schema_dir, n)) }
         Reporter.new.report_runtime_tests(ruby: results)
       end
 
       def test_js_codegen!(*names_arg)
         names_arg = [names_arg].flatten.compact
         names = names_arg.any? ? names_arg : suite.send(:schema_names)
-        testable_names = suite.send(:filter_testable_schemas, names, :javascript)
-        results = testable_names.map do |schema_name|
-          RuntimeTest.new(schema_name, :javascript).run(suite.send(:schema_dir, schema_name))
-        end
+        testable = suite.send(:filter_testable_schemas, names, :javascript)
+        results = testable.map { |n| RuntimeTest.new(n, :javascript).run(suite.send(:schema_dir, n)) }
         Reporter.new.report_runtime_tests(javascript: results)
       end
 

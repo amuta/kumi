@@ -1,0 +1,26 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :amount :decimal)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :item_taxes
+      (ImportCall :tax
+        (amount (InputElementReference items.item.amount))
+      )
+    )
+    (ValueDeclaration :total_tax
+      (CallExpression :sum
+        (DeclarationReference :item_taxes)
+      )
+    )
+  ]
+  traits: []
+)

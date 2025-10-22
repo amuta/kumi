@@ -17,6 +17,15 @@ module Kumi
         end
 
         def run(base_dir)
+          # Skip JavaScript runtime tests for schemas with imports (requires generated shared modules)
+          if language == :javascript && has_imports?(base_dir)
+            return SchemaTestResult.new(
+              schema_name: schema_name,
+              skipped: true,
+              skip_reason: "JavaScript runtime testing for schemas with imports requires generated shared modules"
+            )
+          end
+
           expected_outputs = load_expected_outputs(base_dir)
           actual_outputs = execute_schema(base_dir, expected_outputs.keys)
 
@@ -42,6 +51,12 @@ module Kumi
         end
 
         private
+
+        def has_imports?(base_dir)
+          schema_file = File.join(base_dir, "schema.kumi")
+          return false unless File.exist?(schema_file)
+          File.read(schema_file).match?(/\bimport\s+/)
+        end
 
         def load_expected_outputs(base_dir)
           expected_file = File.join(base_dir, "expected.json")
@@ -72,7 +87,7 @@ module Kumi
           module_name = code.match(/module (Kumi::Compiled::\S+)/)[1]
           eval(code)
           module_const = Object.const_get(module_name)
-          instance = module_const.from(input_data)
+          instance = Kumi::CompiledSchemaWrapper.new(module_const, input_data)
 
           decl_names.to_h { |name| [name, instance[name.to_sym]] }
         end

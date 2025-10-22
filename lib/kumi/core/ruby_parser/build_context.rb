@@ -4,13 +4,15 @@ module Kumi
   module Core
     module RubyParser
       class BuildContext
-        attr_reader :inputs, :values, :traits
+        attr_reader :inputs, :values, :traits, :imports, :imported_names
         attr_accessor :current_location
 
         def initialize
           @inputs = []
           @values = []
           @traits = []
+          @imports = []
+          @imported_names = Set.new
           @input_block_defined = false
         end
 

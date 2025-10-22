@@ -1,0 +1,19 @@
+(LIR
+  (Declaration order_subtotal
+    %t1 = load_input "order_items" :: array
+    %t2 = importschemacall %t1 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    yield %t2
+  )
+  (Declaration tax_amount
+    %t3 = load_decl order_subtotal :: integer
+    %t4 = load_input "tax_rate" :: integer
+    %t5 = call core.mul:numeric(%t3, %t4) :: integer
+    yield %t5
+  )
+  (Declaration total
+    %t6 = load_decl order_subtotal :: integer
+    %t7 = load_decl tax_amount :: integer
+    %t8 = call core.add(%t6, %t7) :: integer
+    yield %t8
+  )
+)

@@ -1,0 +1,33 @@
+(Root
+  inputs: [
+    (InputDeclaration :item_price :decimal)
+    (InputDeclaration :quantity :decimal)
+    (InputDeclaration :discount_rate :decimal)
+  ]
+  values: [
+    (ValueDeclaration :subtotal
+      (CallExpression :multiply
+        (InputReference :item_price)
+        (InputReference :quantity)
+      )
+    )
+    (ValueDeclaration :price_after_discount
+      (ImportCall :discounted
+        (base_price (DeclarationReference :subtotal))
+        (discount_rate (InputReference :discount_rate))
+      )
+    )
+    (ValueDeclaration :discount_amt
+      (ImportCall :discount_amount
+        (base_price (DeclarationReference :subtotal))
+        (discount_rate (InputReference :discount_rate))
+      )
+    )
+    (ValueDeclaration :final_total
+      (ImportCall :total
+        (amount (DeclarationReference :price_after_discount))
+      )
+    )
+  ]
+  traits: []
+)

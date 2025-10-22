@@ -123,6 +123,26 @@ module Kumi
                 end
               end
 
+              def emit_importschemacall(ins, _i)
+                # Generate code to call an imported schema function
+                source_module = ins.attributes[:source_module]
+                fn_name = ins.attributes[:fn_name]
+                input_keys = ins.attributes[:input_mapping_keys]
+                args = operands_for(ins)
+
+                js_module = ruby_module_to_js(source_module)
+                input_obj = input_keys.zip(args).map { |k, v| "'#{k}': #{v}" }.join(", ")
+
+                write "let #{vreg(ins)} = #{js_module}.from({#{input_obj}})._#{fn_name};"
+              end
+
+              private
+
+              def ruby_module_to_js(ruby_module_path)
+                # Convert Ruby module path (GoldenSchemas::Tax) to JavaScript path (GoldenSchemas.Tax)
+                ruby_module_path.to_s.gsub('::', '.')
+              end
+
               def emit_fold(ins, _i)
                 kernel = kernel_for(ins.result_register)
                 args = operands_for(ins)

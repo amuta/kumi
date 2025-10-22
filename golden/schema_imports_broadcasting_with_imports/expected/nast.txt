@@ -1,0 +1,12 @@
+(NAST
+  (VALUE item_taxes
+    (ImportCall :tax
+    (amount (InputRef [:items, :item, :amount]))
+  )
+  )
+  (VALUE total_tax
+    (Call :sum
+    (Ref item_taxes)
+  )
+  )
+)

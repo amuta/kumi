@@ -27,7 +27,7 @@ module Kumi
                 # Pre-calculate the depth of the single Yield instruction.
                 @yield_depth = find_yield_depth(ops)
 
-                write "def _#{name}(input = @input)"
+                write "def self._#{name}(input)"
                 indent!
 
                 # Setup the top-level 'out' container if the result is an array.
@@ -139,6 +139,20 @@ module Kumi
                   fn_name = kernel_method_name(kernel[:fn_id])
                   write "#{vreg(ins)} = #{fn_name}(#{args.join(', ')})"
                 end
+              end
+
+              def emit_importschemacall(ins, _i)
+                # Generate code to call an imported schema function
+                source_module = ins.attributes[:source_module]
+                fn_name = ins.attributes[:fn_name]
+                input_keys = ins.attributes[:input_mapping_keys]
+                args = operands_for(ins)
+
+                # Create a hash of input parameters
+                input_hash = input_keys.zip(args).map { |k, v| "#{k.inspect} => #{v}" }.join(", ")
+
+                # Generate: imported_module._fn_name({input_mapping})
+                write "#{vreg(ins)} = #{source_module}._#{fn_name}({#{input_hash}})"
               end
 
               def emit_fold(ins, _i)

@@ -1,0 +1,10 @@
+schema do
+  import :tax, from: Kumi::TestSharedSchemas::Tax
+
+  input do
+    decimal :amount
+  end
+
+  value :tax_result, tax(amount: input.amount)
+  value :total, input.amount + tax_result
+end

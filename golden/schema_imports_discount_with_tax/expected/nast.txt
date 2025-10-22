@@ -1,0 +1,30 @@
+(NAST
+  (VALUE tax_amount
+    (ImportCall :tax
+    (amount (InputRef [:price]))
+  )
+  )
+  (VALUE price_after_discount
+    (ImportCall :discounted
+    (price (InputRef [:price]))
+    (rate (InputRef [:discount_rate]))
+  )
+  )
+  (VALUE discount_saved
+    (ImportCall :savings
+    (price (InputRef [:price]))
+    (rate (InputRef [:discount_rate]))
+  )
+  )
+  (VALUE tax_on_discounted
+    (ImportCall :tax
+    (amount (Ref price_after_discount))
+  )
+  )
+  (VALUE final_total
+    (Call :add
+    (Ref price_after_discount)
+    (Ref tax_on_discounted)
+  )
+  )
+)

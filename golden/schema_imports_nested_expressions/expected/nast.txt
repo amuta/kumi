@@ -1,0 +1,23 @@
+(NAST
+  (VALUE interest
+    (ImportCall :annual_interest
+    (principal (Call :multiply
+      (InputRef [:amount])
+      (Const 1.05)
+    ))
+    (rate (InputRef [:rate]))
+  )
+  )
+  (VALUE total_over_periods
+    (Call :multiply
+    (Ref interest)
+    (InputRef [:periods])
+  )
+  )
+  (VALUE doubled
+    (Call :multiply
+    (Ref total_over_periods)
+    (Const 2)
+  )
+  )
+)

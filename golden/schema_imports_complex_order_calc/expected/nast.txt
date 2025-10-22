@@ -1,0 +1,56 @@
+(NAST
+  (VALUE order_subtotals
+    (ImportCall :subtotal
+    (items (InputRef [:orders, :order, :items]))
+  )
+  )
+  (VALUE order_with_shipping
+    (Call :add
+    (Ref order_subtotals)
+    (InputRef [:orders, :order, :shipping_cost])
+  )
+  )
+  (VALUE order_discounted
+    (ImportCall :discounted
+    (price (Ref order_with_shipping))
+    (rate (InputRef [:global_discount_rate]))
+  )
+  )
+  (VALUE order_tax
+    (ImportCall :tax
+    (amount (Ref order_discounted))
+  )
+  )
+  (VALUE order_totals
+    (Call :add
+    (Ref order_discounted)
+    (Ref order_tax)
+  )
+  )
+  (VALUE discount_per_order
+    (Call :subtract
+    (Ref order_with_shipping)
+    (Ref order_discounted)
+  )
+  )
+  (VALUE total_orders
+    (Call :count
+    (InputRef [:orders, :order, :id])
+  )
+  )
+  (VALUE total_revenue
+    (Call :sum
+    (Ref order_totals)
+  )
+  )
+  (VALUE total_tax_collected
+    (Call :sum
+    (Ref order_tax)
+  )
+  )
+  (VALUE total_discount_given
+    (Call :sum
+    (Ref discount_per_order)
+  )
+  )
+)

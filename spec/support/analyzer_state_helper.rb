@@ -112,7 +112,9 @@ module AnalyzerStateHelper
   def analyze_with_passes(passes, &schema_block)
     syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&schema_block)
 
+    registry = Kumi::RegistryV2.load
     state = Kumi::Core::Analyzer::AnalysisState.new({})
+    state = state.with(:registry, registry)
     errors = []
 
     passes.each do |pass_class|

@@ -1,0 +1,25 @@
+(NAST
+  (VALUE subtotal
+    (Call :multiply
+    (InputRef [:item_price])
+    (InputRef [:quantity])
+  )
+  )
+  (VALUE price_after_discount
+    (ImportCall :discounted
+    (base_price (Ref subtotal))
+    (discount_rate (InputRef [:discount_rate]))
+  )
+  )
+  (VALUE discount_amt
+    (ImportCall :discount_amount
+    (base_price (Ref subtotal))
+    (discount_rate (InputRef [:discount_rate]))
+  )
+  )
+  (VALUE final_total
+    (ImportCall :total
+    (amount (Ref price_after_discount))
+  )
+  )
+)

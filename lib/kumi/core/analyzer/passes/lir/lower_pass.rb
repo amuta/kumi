@@ -75,16 +75,17 @@ module Kumi
 
             def lower_expr(node)
               case node
-              when NAST::Const    then emit_const(node)
-              when NAST::InputRef then emit_input_ref(node)
-              when NAST::Ref      then emit_ref(node)
-              when NAST::Tuple    then emit_tuple(node)
-              when NAST::Select   then emit_select(node)
-              when NAST::Fold     then emit_fold(node)
-              when NAST::Reduce   then emit_reduce(node)
-              when NAST::Call     then call_emit_selection(node)
-              when NAST::Hash     then emit_hash(node)
-              when NAST::IndexRef then emit_index_ref(node)
+              when NAST::Const       then emit_const(node)
+              when NAST::InputRef    then emit_input_ref(node)
+              when NAST::Ref         then emit_ref(node)
+              when NAST::Tuple       then emit_tuple(node)
+              when NAST::Select      then emit_select(node)
+              when NAST::Fold        then emit_fold(node)
+              when NAST::Reduce      then emit_reduce(node)
+              when NAST::Call        then call_emit_selection(node)
+              when NAST::Hash        then emit_hash(node)
+              when NAST::IndexRef    then emit_index_ref(node)
+              when NAST::ImportCall  then emit_import_call(node)
               else raise "unknown node #{node.class}"
               end
             end
@@ -132,6 +133,20 @@ module Kumi
               ins  = Build.kernel_call(
                 function: @registry.resolve_function(n.fn),
                 args: regs,
+                out_dtype: dtype_of(n),
+                ids: @ids
+              )
+              @ops << ins
+              ins.result_register
+            end
+
+            def emit_import_call(n)
+              regs = n.args.map { lower_expr(_1) }
+              ins = Build.import_schema_call(
+                fn_name: n.fn_name,
+                source_module: n.source_module,
+                args: regs,
+                input_mapping_keys: n.input_mapping_keys,
                 out_dtype: dtype_of(n),
                 ids: @ids
               )
@@ -321,7 +336,7 @@ module Kumi
                   walk.call(x.on_false)
                 when NAST::Reduce, NAST::Fold
                   walk.call(x.arg)
-                when NAST::Call, NAST::Tuple
+                when NAST::Call, NAST::Tuple, NAST::ImportCall
                   x.args.each { walk.call(_1) }
                 when NAST::Hash
                   x.pairs.each { walk.call(_1) }

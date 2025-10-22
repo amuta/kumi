@@ -54,6 +54,7 @@ module Kumi
           def analyze_expression(expr, errors)
             case expr
             when Kumi::Core::NAST::Call         then analyze_call_expression(expr, errors)
+            when Kumi::Core::NAST::ImportCall   then analyze_import_call(expr, errors)
             when Kumi::Core::NAST::Tuple        then analyze_tuple(expr, errors)
             when Kumi::Core::NAST::InputRef     then analyze_input_ref(expr)
             when Kumi::Core::NAST::IndexRef     then analyze_index_ref(expr, errors)
@@ -160,6 +161,49 @@ module Kumi
             }.freeze
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
+            { type: result_type, scope: result_scope }
+          end
+
+          def analyze_import_call(call, errors)
+            # Analyze arguments
+            arg_metadata = call.args.map { |arg| analyze_expression(arg, errors) }
+            arg_types = arg_metadata.map { |m| m[:type] }
+            arg_scopes = arg_metadata.map { |m| m[:scope] }
+
+            # Get the imported schemas from state
+            imported_schemas = get_state(:imported_schemas, required: false) || {}
+            import_meta = imported_schemas[call.fn_name]
+
+            unless import_meta
+              report_error(errors, "imported function `#{call.fn_name}` not found", location: call.loc)
+              return { type: Types.scalar(:any), scope: [] }
+            end
+
+            # Get the analyzed state of the source schema
+            analyzed_state = import_meta[:analyzed_state]
+            src_declaration_table = analyzed_state[:declaration_table] || {}
+
+            # Look up the imported declaration in the source schema
+            src_decl_meta = src_declaration_table[call.fn_name]
+            unless src_decl_meta
+              report_error(errors, "declaration `#{call.fn_name}` not found in imported schema", location: call.loc)
+              return { type: Types.scalar(:any), scope: [] }
+            end
+
+            result_type = src_decl_meta[:result_type] || Types.scalar(:any)
+            # ImportCall broadcasts over argument scopes (like elementwise functions)
+            result_scope = lub_by_prefix(arg_scopes)
+
+            @metadata_table[node_id(call)] = {
+              kind: :import_call,
+              result_type: result_type,
+              result_scope: result_scope,
+              imported_fn: call.fn_name,
+              arg_types: arg_types,
+              arg_scopes: arg_scopes
+            }.freeze
+
+            debug "    ImportCall #{call.fn_name}: -> #{result_type} in #{result_scope.inspect}"
             { type: result_type, scope: result_scope }
           end
 

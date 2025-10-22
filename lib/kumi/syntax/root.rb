@@ -4,10 +4,10 @@ module Kumi
   module Syntax
     # Represents the root of the Abstract Syntax Tree.
     # It holds all the top-level declarations parsed from the source.
-    Root = Struct.new(:inputs, :values, :traits) do
+    Root = Struct.new(:inputs, :values, :traits, :imports) do
       include Node
 
-      def children = [inputs, values, traits]
+      def children = [inputs, values, traits, imports]
 
       def digest
         # The digest must be stable and depend on anything that could change the

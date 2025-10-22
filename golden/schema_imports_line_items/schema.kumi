@@ -1,0 +1,17 @@
+import :subtotal, from: Kumi::TestSharedSchemas::Subtotal
+
+schema do
+  input do
+    integer :tax_rate
+    array :order_items do
+      hash :item do
+        integer :quantity
+        integer :unit_price
+      end
+    end
+  end
+
+  value :order_subtotal, subtotal(items: input.order_items)
+  value :tax_amount, order_subtotal * input.tax_rate
+  value :total, order_subtotal + tax_amount
+end

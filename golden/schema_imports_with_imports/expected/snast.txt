@@ -1,0 +1,13 @@
+(SNAST
+  (VALUE tax_result
+    (ImportCall :tax
+      (amount (InputRef amount key_chain=[]) :: [] -> decimal)
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE total
+    (Call :core.add
+      (InputRef amount key_chain=[]) :: [] -> decimal
+      (Ref tax_result) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

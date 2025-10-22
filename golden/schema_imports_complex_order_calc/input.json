@@ -1,0 +1,20 @@
+{
+  "global_discount_rate": 0.1,
+  "orders": [
+    {
+      "id": "ORD-001",
+      "items": [
+        {"quantity": 2, "unit_price": 60},
+        {"quantity": 2, "unit_price": 40}
+      ],
+      "shipping_cost": 10.0
+    },
+    {
+      "id": "ORD-002",
+      "items": [
+        {"quantity": 2, "unit_price": 60}
+      ],
+      "shipping_cost": 10.0
+    }
+  ]
+}

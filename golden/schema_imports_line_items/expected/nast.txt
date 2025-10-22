@@ -1,0 +1,19 @@
+(NAST
+  (VALUE order_subtotal
+    (ImportCall :subtotal
+    (items (InputRef [:order_items]))
+  )
+  )
+  (VALUE tax_amount
+    (Call :multiply
+    (Ref order_subtotal)
+    (InputRef [:tax_rate])
+  )
+  )
+  (VALUE total
+    (Call :add
+    (Ref order_subtotal)
+    (Ref tax_amount)
+  )
+  )
+)

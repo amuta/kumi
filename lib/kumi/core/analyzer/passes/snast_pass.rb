@@ -180,6 +180,21 @@ module Kumi
             stamp!(out, m[:result_scope], m[:result_type])
           end
 
+          def visit_import_call(n)
+            args = n.args.map { _1.accept(self) }
+            m = meta_for(n)
+            out = n.class.new(
+              id: n.id,
+              fn_name: n.fn_name,
+              args: args,
+              input_mapping_keys: n.input_mapping_keys,
+              source_module: n.source_module,
+              loc: n.loc,
+              meta: n.meta.dup
+            )
+            stamp!(out, m[:result_scope], m[:result_type])
+          end
+
           # ---------- Helpers ----------
 
           def stamp!(node, axes, dtype)

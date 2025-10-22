@@ -1,0 +1,13 @@
+schema do
+  import :annual_interest, from: Kumi::TestSharedSchemas::Compound
+
+  input do
+    decimal :amount
+    decimal :rate
+    integer :periods
+  end
+
+  value :interest, annual_interest(principal: input.amount * 1.05, rate: input.rate)
+  value :total_over_periods, interest * input.periods
+  value :doubled, total_over_periods * 2
+end

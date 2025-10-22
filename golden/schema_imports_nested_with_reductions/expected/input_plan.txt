@@ -1,0 +1,12 @@
+tax_rate_override: decimal
+orders: array (array) access_mode=element
+  └─> order: element_access
+  order: hash (hash)
+    └─> items: property_access → array_loop
+    items: array (array) access_mode=element
+      └─> item: element_access
+      item: hash (hash)
+        └─> quantity: property_access
+        └─> unit_price: property_access
+        quantity: integer
+        unit_price: integer

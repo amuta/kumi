@@ -60,6 +60,10 @@ when "pp"
   Kumi::Dev::PrettyPrinter.run(kind, path)
 
 when "golden"
+  # Load and precompile shared schemas
+  Kumi.load_shared_schemas!
+  Kumi::Dev::Golden.precompile_schemas!
+
   sub = ARGV.shift or abort "kumi golden <list|update|verify|diff|test> [name1 name2 ...]"
   opts = {}
   OptionParser.new do |o|

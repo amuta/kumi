@@ -7,27 +7,27 @@
   (VALUE box
     (Call :add
     (Call :multiply
-      #<struct Kumi::Core::NAST::IndexRef id=83, loc=nil, meta={}>
+      #<struct Kumi::Core::NAST::IndexRef id=138, loc=nil, meta={}>
       (Ref W)
     )
-    #<struct Kumi::Core::NAST::IndexRef id=87, loc=nil, meta={}>
+    #<struct Kumi::Core::NAST::IndexRef id=142, loc=nil, meta={}>
   )
   )
   (VALUE col_major
     (Call :add
     (Call :multiply
-      #<struct Kumi::Core::NAST::IndexRef id=91, loc=nil, meta={}>
+      #<struct Kumi::Core::NAST::IndexRef id=146, loc=nil, meta={}>
       (Call :array_size
         (InputRef [:x])
       )
     )
-    #<struct Kumi::Core::NAST::IndexRef id=96, loc=nil, meta={}>
+    #<struct Kumi::Core::NAST::IndexRef id=151, loc=nil, meta={}>
   )
   )
   (VALUE sum_ij
     (Call :add
-    #<struct Kumi::Core::NAST::IndexRef id=100, loc=nil, meta={}>
-    #<struct Kumi::Core::NAST::IndexRef id=102, loc=nil, meta={}>
+    #<struct Kumi::Core::NAST::IndexRef id=155, loc=nil, meta={}>
+    #<struct Kumi::Core::NAST::IndexRef id=157, loc=nil, meta={}>
   )
   )
 )

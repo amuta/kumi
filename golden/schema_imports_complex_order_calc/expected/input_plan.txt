@@ -1,0 +1,16 @@
+global_discount_rate: decimal
+orders: array (array) access_mode=element
+  └─> order: element_access
+  order: hash (hash)
+    └─> id: property_access
+    └─> items: property_access → array_loop
+    └─> shipping_cost: property_access
+    id: string
+    items: array (array) access_mode=element
+      └─> item: element_access
+      item: hash (hash)
+        └─> quantity: property_access
+        └─> unit_price: property_access
+        quantity: integer
+        unit_price: integer
+    shipping_cost: decimal

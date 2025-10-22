@@ -1,0 +1,37 @@
+(LIR
+  (Declaration tax_amount
+    %t1 = load_input "price" :: decimal
+    %t2 = importschemacall %t1 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
+    yield %t2
+  )
+  (Declaration price_after_discount
+    %t3 = load_input "price" :: decimal
+    %t4 = load_input "discount_rate" :: decimal
+    %t5 = importschemacall %t3, %t4 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+    yield %t5
+  )
+  (Declaration discount_saved
+    %t6 = load_input "price" :: decimal
+    %t7 = load_input "discount_rate" :: decimal
+    %t8 = importschemacall %t6, %t7 fn_name="savings" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: decimal
+    yield %t8
+  )
+  (Declaration tax_on_discounted
+    %t14 = load_input "price" :: decimal
+    %t15 = load_input "discount_rate" :: decimal
+    %t16 = importschemacall %t14, %t15 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+    %t10 = importschemacall %t16 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
+    yield %t10
+  )
+  (Declaration final_total
+    %t17 = load_input "price" :: decimal
+    %t18 = load_input "discount_rate" :: decimal
+    %t19 = importschemacall %t17, %t18 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+    %t22 = load_input "price" :: decimal
+    %t23 = load_input "discount_rate" :: decimal
+    %t24 = importschemacall %t22, %t23 fn_name="discounted" source_module="Kumi::TestSharedSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+    %t21 = importschemacall %t24 fn_name="tax" source_module="Kumi::TestSharedSchemas::Tax" input_mapping_keys=["amount"] :: float
+    %t13 = call core.add(%t19, %t21) :: float
+    yield %t13
+  )
+)

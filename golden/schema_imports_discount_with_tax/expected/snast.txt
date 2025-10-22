@@ -1,0 +1,30 @@
+(SNAST
+  (VALUE tax_amount
+    (ImportCall :tax
+      (amount (InputRef price key_chain=[]) :: [] -> decimal)
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE price_after_discount
+    (ImportCall :discounted
+      (price (InputRef price key_chain=[]) :: [] -> decimal)
+      (rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE discount_saved
+    (ImportCall :savings
+      (price (InputRef price key_chain=[]) :: [] -> decimal)
+      (rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE tax_on_discounted
+    (ImportCall :tax
+      (amount (Ref price_after_discount) :: [] -> float)
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE final_total
+    (Call :core.add
+      (Ref price_after_discount) :: [] -> float
+      (Ref tax_on_discounted) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

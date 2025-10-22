@@ -1,0 +1,47 @@
+(Root
+  inputs: [
+    (InputDeclaration :tax_rate_override :decimal)
+    (InputDeclaration :orders :array
+      [
+        (InputDeclaration :order :hash
+          [
+            (InputDeclaration :items :array
+              [
+                (InputDeclaration :item :hash
+                  [
+                    (InputDeclaration :quantity :integer)
+                    (InputDeclaration :unit_price :integer)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :order_subtotals
+      (ImportCall :subtotal
+        (items (InputElementReference orders.order.items))
+      )
+    )
+    (ValueDeclaration :total_before_tax
+      (CallExpression :sum
+        (DeclarationReference :order_subtotals)
+      )
+    )
+    (ValueDeclaration :tax_for_all
+      (ImportCall :tax
+        (amount (DeclarationReference :total_before_tax))
+      )
+    )
+    (ValueDeclaration :grand_total
+      (CallExpression :add
+        (DeclarationReference :total_before_tax)
+        (DeclarationReference :tax_for_all)
+      )
+    )
+  ]
+  traits: []
+)

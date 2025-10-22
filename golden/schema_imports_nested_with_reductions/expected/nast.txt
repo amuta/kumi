@@ -1,0 +1,23 @@
+(NAST
+  (VALUE order_subtotals
+    (ImportCall :subtotal
+    (items (InputRef [:orders, :order, :items]))
+  )
+  )
+  (VALUE total_before_tax
+    (Call :sum
+    (Ref order_subtotals)
+  )
+  )
+  (VALUE tax_for_all
+    (ImportCall :tax
+    (amount (Ref total_before_tax))
+  )
+  )
+  (VALUE grand_total
+    (Call :add
+    (Ref total_before_tax)
+    (Ref tax_for_all)
+  )
+  )
+)

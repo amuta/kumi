@@ -35,41 +35,9 @@ module Kumi
                 write "end"
               end
 
-              def emit_class_methods(decl_names)
-                write "def self.from(input_data = nil)"
-                indented do
-                  write "instance = Object.new"
-                  write "instance.extend(self)"
-                  write "instance.instance_variable_set(:@input, input_data)"
-                  write "instance"
-                end
-                write "end\n"
-
-                write "def self.__kumi_executable__"
-                indented do
-                  write "instance = Object.new"
-                  write "instance.extend(self)"
-                  write "instance"
-                end
-                write "end\n"
-
-                write "def update(input_data)"
-                indented do
-                  write "@input = @input.merge(input_data)"
-                  write "self"
-                end
-                write "end\n"
-
-                return unless decl_names.size >= 1
-
-                write "def [](name)"
-                indented do
-                  write "case name"
-                  decl_names.each { |name| write "when :#{name} then _#{name}" }
-                  write "else raise KeyError, \"Unknown declaration\""
-                  write "end"
-                end
-                write "end\n"
+              def emit_class_methods(_decl_names)
+                # No boilerplate needed anymore - all declarations are pure module functions
+                # This method remains for backward compatibility with the emit pipeline
               end
 
               def section(name)

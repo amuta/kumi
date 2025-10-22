@@ -1,0 +1,2 @@
+price: decimal
+discount_rate: decimal

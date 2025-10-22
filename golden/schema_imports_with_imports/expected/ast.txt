@@ -1,0 +1,19 @@
+(Root
+  inputs: [
+    (InputDeclaration :amount :decimal)
+  ]
+  values: [
+    (ValueDeclaration :tax_result
+      (ImportCall :tax
+        (amount (InputReference :amount))
+      )
+    )
+    (ValueDeclaration :total
+      (CallExpression :add
+        (InputReference :amount)
+        (DeclarationReference :tax_result)
+      )
+    )
+  ]
+  traits: []
+)
