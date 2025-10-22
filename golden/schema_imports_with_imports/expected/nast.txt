@@ -1,6 +1,8 @@
 (NAST
   (VALUE tax_result
-    #<struct Kumi::Core::NAST::ImportCall id=8343, loc=nil, meta={}>
+    (ImportCall :tax
+    (amount (InputRef [:amount]))
+  )
   )
   (VALUE total
     (Call :add

@@ -12,8 +12,8 @@
   ]
   values: [
     (ValueDeclaration :item_taxes
-      (ImportCall
-        (InputElementReference items.item.amount)
+      (ImportCall :tax
+        (amount (InputElementReference items.item.amount))
       )
     )
     (ValueDeclaration :total_tax

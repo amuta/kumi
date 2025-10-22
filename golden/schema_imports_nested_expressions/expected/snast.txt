@@ -1,6 +1,12 @@
 (SNAST
   (VALUE interest
-    (UnknownNode: Kumi::Core::NAST::ImportCall)
+    (ImportCall :annual_interest
+      (principal (Call :core.mul:numeric
+        (InputRef amount key_chain=[]) :: [] -> decimal
+        (Const 1.05) :: [] -> float
+      ) :: [] -> float)
+      (rate (InputRef rate key_chain=[]) :: [] -> decimal)
+    ) :: [] -> decimal
   ) :: [] -> decimal
   (VALUE total_over_periods
     (Call :core.mul:numeric

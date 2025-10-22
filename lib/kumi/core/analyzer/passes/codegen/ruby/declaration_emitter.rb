@@ -27,7 +27,7 @@ module Kumi
                 # Pre-calculate the depth of the single Yield instruction.
                 @yield_depth = find_yield_depth(ops)
 
-                write "def _#{name}(input = @input)"
+                write "def self._#{name}(input)"
                 indent!
 
                 # Setup the top-level 'out' container if the result is an array.
@@ -151,8 +151,8 @@ module Kumi
                 # Create a hash of input parameters
                 input_hash = input_keys.zip(args).map { |k, v| "#{k.inspect} => #{v}" }.join(", ")
 
-                # Generate: imported_module_instance._fn_name({input_mapping})
-                write "#{vreg(ins)} = #{source_module}.from({#{input_hash}})._#{fn_name}"
+                # Generate: imported_module._fn_name({input_mapping})
+                write "#{vreg(ins)} = #{source_module}._#{fn_name}({#{input_hash}})"
               end
 
               def emit_fold(ins, _i)

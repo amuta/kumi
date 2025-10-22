@@ -80,6 +80,17 @@ module Kumi
           lines << indent(print_node(node.value, depth + 1), depth + 1)
           lines << indent(")", depth)
           lines.join("\n")
+        when Kumi::Core::NAST::ImportCall
+          if node.args.empty?
+            "(ImportCall :#{node.fn_name})"
+          else
+            lines = ["(ImportCall :#{node.fn_name}"]
+            node.input_mapping_keys.zip(node.args).each do |key, arg|
+              lines << indent("(#{key} #{print_node(arg, depth + 1)})", depth + 1)
+            end
+            lines << indent(")", depth)
+            lines.join("\n")
+          end
         else
           node.inspect
         end

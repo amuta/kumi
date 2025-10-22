@@ -26,6 +26,7 @@ module Kumi
         when Kumi::Syntax::DeclarationReference then visit_declaration_reference(node)
         when Kumi::Syntax::Literal then visit_literal(node)
         when Kumi::Syntax::HashExpression then visit_hash_expression(node)
+        when Kumi::Syntax::ImportCall then visit_import_call(node)
         else visit_generic(node)
         end
       end
@@ -125,6 +126,14 @@ module Kumi
         end.join("\n#{indent_str(2)}")
 
         "(HashExpression\n#{indent_str(2)}#{pairs}\n#{indent_str})"
+      end
+
+      def visit_import_call(node)
+        pairs = node.input_mapping.map do |key, value|
+          "(#{key} #{child_printer.visit(value)})"
+        end.join("\n#{indent_str(2)}")
+
+        "(ImportCall :#{node.fn_name}\n#{indent_str(2)}#{pairs}\n#{indent_str})"
       end
 
       def visit_generic(node)

@@ -87,7 +87,7 @@ module Kumi
           module_name = code.match(/module (Kumi::Compiled::\S+)/)[1]
           eval(code)
           module_const = Object.const_get(module_name)
-          instance = module_const.from(input_data)
+          instance = Kumi::CompiledSchemaWrapper.new(module_const, input_data)
 
           decl_names.to_h { |name| [name, instance[name.to_sym]] }
         end

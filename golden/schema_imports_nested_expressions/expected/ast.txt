@@ -6,12 +6,12 @@
   ]
   values: [
     (ValueDeclaration :interest
-      (ImportCall
-        (CallExpression :multiply
+      (ImportCall :annual_interest
+        (principal (CallExpression :multiply
           (InputReference :amount)
           (Literal 1.05)
-        )
-        (InputReference :rate)
+        ))
+        (rate (InputReference :rate))
       )
     )
     (ValueDeclaration :total_over_periods

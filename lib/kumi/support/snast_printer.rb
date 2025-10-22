@@ -95,6 +95,12 @@ module Kumi
         when NAST::Pair
           value = format_concise(node.value, indent_level + 1)
           "#{indent}(Pair #{node.key}\n#{value}\n#{indent}) #{stamp_str}"
+        when NAST::ImportCall
+          header = "(ImportCall :#{node.fn_name}"
+          args = node.input_mapping_keys.zip(node.args).map do |key, arg|
+            format_concise(arg, indent_level + 1).sub(/^\s+/, "#{indent}  (#{key} ").tap { |s| s << ")" }
+          end.join("\n")
+          "#{indent}#{header}\n#{args}\n#{indent}) #{stamp_str}"
         else
           "#{indent}(UnknownNode: #{node.class})"
         end

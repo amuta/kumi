@@ -136,7 +136,7 @@ RSpec.describe Kumi::Schema do
         expect(File.exist?(output_path)).to be true
         content = File.read(output_path)
         expect(content).to include("module Kumi::Compiled::")
-        expect(content).to include("def _adult")
+        expect(content).to include("def self._adult(input)")
       end
 
       it "writes javascript code to file" do

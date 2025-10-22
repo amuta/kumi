@@ -1,6 +1,8 @@
 (SNAST
   (VALUE tax_result
-    (UnknownNode: Kumi::Core::NAST::ImportCall)
+    (ImportCall :tax
+      (amount (InputRef amount key_chain=[]) :: [] -> decimal)
+    ) :: [] -> float
   ) :: [] -> float
   (VALUE total
     (Call :core.add

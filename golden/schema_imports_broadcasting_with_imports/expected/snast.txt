@@ -1,6 +1,8 @@
 (SNAST
   (VALUE item_taxes
-    (UnknownNode: Kumi::Core::NAST::ImportCall)
+    (ImportCall :tax
+      (amount (InputRef items.item.amount key_chain=[]) :: [items] -> decimal)
+    ) :: [items] -> float
   ) :: [items] -> float
   (VALUE total_tax
     (Reduce :agg.sum over [items]

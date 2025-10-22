@@ -4,8 +4,8 @@
   ]
   values: [
     (ValueDeclaration :tax_result
-      (ImportCall
-        (InputReference :amount)
+      (ImportCall :tax
+        (amount (InputReference :amount))
       )
     )
     (ValueDeclaration :total

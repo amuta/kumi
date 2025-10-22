@@ -5,8 +5,8 @@
   ]
   values: [
     (ValueDeclaration :tax_amount
-      (ImportCall
-        (InputReference :amount)
+      (ImportCall :tax
+        (amount (InputReference :amount))
       )
     )
     (ValueDeclaration :price_after_tax
@@ -16,15 +16,15 @@
       )
     )
     (ValueDeclaration :discounted_price
-      (ImportCall
-        (DeclarationReference :price_after_tax)
-        (InputReference :discount_rate)
+      (ImportCall :discounted
+        (price (DeclarationReference :price_after_tax))
+        (rate (InputReference :discount_rate))
       )
     )
     (ValueDeclaration :discount_amount
-      (ImportCall
-        (DeclarationReference :price_after_tax)
-        (InputReference :discount_rate)
+      (ImportCall :savings
+        (price (DeclarationReference :price_after_tax))
+        (rate (InputReference :discount_rate))
       )
     )
     (ValueDeclaration :final_price
