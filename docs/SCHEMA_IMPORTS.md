@@ -60,13 +60,15 @@ end
 
 **Generated Ruby Code**:
 ```ruby
-def _tax_result(input = @input)
+def self._tax_result(input)
   # The tax expression is inlined directly:
   t1 = input["amount"] || input[:amount]
   t2 = 0.15
   t1 * t2
 end
 ```
+
+Note: The generated code uses module-level functions (`def self._name(input)`) rather than instance methods. This enables schema imports to be called directly on the compiled modules.
 
 ## Syntax
 
@@ -145,19 +147,64 @@ Multiple parameters work similarly:
 # Substitution: invoice.total * 0.1
 ```
 
-## Current Test Cases
+## Golden Test Cases
 
-### 1. `schema_imports_with_imports`
-- **Purpose**: Basic import with single parameter substitution
-- **Tests**: Simple function import and evaluation
-- **Input**: `{amount: 100}`
-- **Expected**: `{tax_result: 15, total: 115}`
+### Basic Tests
+1. **`schema_imports_with_imports`** - Single import, scalar parameters
+2. **`schema_imports_broadcasting_with_imports`** - Broadcasting imported functions across arrays
 
-### 2. `schema_imports_broadcasting_with_imports`
-- **Purpose**: Broadcasting across arrays with imports
-- **Tests**: Array broadcasting, loop fusion, aggregation
-- **Input**: `{items: [{amount: 100}, {amount: 200}, {amount: 300}]}`
-- **Expected**: `{item_taxes: [15, 30, 45], total_tax: 90}`
+### Advanced Tests
+3. **`schema_imports_line_items`** - Importing reduction functions
+   - Imports `:subtotal` (sums quantity × price over array)
+   - Tests array aggregation through imports
+
+4. **`schema_imports_discount_with_tax`** - Multiple imports from different schemas
+   - Imports `:tax`, `:discounted`, `:savings`
+   - Tests composing multiple imported functions in sequence
+
+5. **`schema_imports_nested_with_reductions`** - Nested arrays with imports
+   - Imports subtotal and applies it to nested order structure
+   - Tests broadcasting imports through multiple levels
+
+6. **`schema_imports_complex_order_calc`** - Full production-like example
+   - Imports tax, discount, and subtotal functions
+   - Demonstrates complete order processing pipeline with taxes, discounts, and summaries across multiple orders
+
+## Creating Reusable Schemas
+
+Shared schemas are defined in `golden/_shared/` as Ruby DSL modules:
+
+```ruby
+module GoldenSchemas
+  module Subtotal
+    extend Kumi::Schema
+
+    schema do
+      input do
+        array :items do
+          hash :item do
+            integer :quantity
+            integer :unit_price
+          end
+        end
+      end
+
+      value :subtotal, fn(:sum, input.items.item.quantity * input.items.item.unit_price)
+    end
+  end
+end
+```
+
+Then import in any schema:
+```kumi
+import :subtotal, from: GoldenSchemas::Subtotal
+
+schema do
+  value :order_total, subtotal(items: input.order_items)
+end
+```
+
+The shared schemas are automatically loaded and compiled in JIT mode when running golden tests.
 
 ## Implementation Details
 
@@ -187,24 +234,27 @@ Multiple parameters work similarly:
 - `imported_declarations`: State containing all imported names
 - `imported_schemas`: State containing full analysis of imported schemas
 
-## Architecture: Function Calls, Not Inlining
+## How Imports Are Compiled
 
-Unlike some other systems, Kumi schema imports work by **calling compiled schema functions**, not by inlining AST.
+**Imports use expression substitution with direct inlining:**
 
-**How it works:**
-1. Each imported schema is compiled to a module with methods for each declaration
-2. When you import a declaration, you're importing a function
-3. At runtime, the compiler generates code that:
-   - Creates an instance of the imported schema module
-   - Passes the mapped parameters as inputs
-   - Calls the appropriate method on that instance
-   - Returns the result
+1. The imported schema is fully analyzed and compiled to extract each declaration's expression
+2. When you call an imported function, the compiler substitutes its expression into your schema
+3. The substituted expression is then optimized and inlined into the final generated code
+
+**Example:**
+
+Imported schema defines: `value :tax, input.amount * 0.15`
+
+Your schema calls: `tax(amount: input.price)`
+
+Compiler produces: `input.price * 0.15` (inlined directly, no function call overhead)
 
 **Benefits:**
-- No AST pollution - the importing schema doesn't need to understand the source schema's internals
-- Declarations can have internal dependencies - the compiled function handles them
-- Clean separation of concerns
-- The compiled schema is a black box
+- **Zero runtime overhead** - imported expressions are inlined, not called at runtime
+- **Whole-program optimization** - the optimizer sees the inlined code and can apply CSE, constant folding, etc. across schema boundaries
+- **Broadcasting works naturally** - when you pass an array, the inlined expression broadcasts automatically
+- **Clean separation** - importing schema doesn't need to know about imported schema's internal implementation
 
 ## Testing Strategy
 
