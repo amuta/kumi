@@ -1,0 +1,35 @@
+(Root
+  inputs: [
+    (InputDeclaration :tax_rate :integer)
+    (InputDeclaration :order_items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :quantity :integer)
+            (InputDeclaration :unit_price :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :order_subtotal
+      (ImportCall :subtotal
+        (items (InputReference :order_items))
+      )
+    )
+    (ValueDeclaration :tax_amount
+      (CallExpression :multiply
+        (DeclarationReference :order_subtotal)
+        (InputReference :tax_rate)
+      )
+    )
+    (ValueDeclaration :total
+      (CallExpression :add
+        (DeclarationReference :order_subtotal)
+        (DeclarationReference :tax_amount)
+      )
+    )
+  ]
+  traits: []
+)

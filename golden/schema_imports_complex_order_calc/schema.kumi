@@ -1,0 +1,33 @@
+import :tax, from: GoldenSchemas::Tax
+import :discounted, from: GoldenSchemas::Discount
+import :subtotal, from: GoldenSchemas::Subtotal
+
+schema do
+  input do
+    decimal :global_discount_rate
+    array :orders do
+      hash :order do
+        string :id
+        array :items do
+          hash :item do
+            integer :quantity
+            integer :unit_price
+          end
+        end
+        decimal :shipping_cost
+      end
+    end
+  end
+
+  value :order_subtotals, subtotal(items: input.orders.order.items)
+  value :order_with_shipping, order_subtotals + input.orders.order.shipping_cost
+  value :order_discounted, discounted(price: order_with_shipping, rate: input.global_discount_rate)
+  value :order_tax, tax(amount: order_discounted)
+  value :order_totals, order_discounted + order_tax
+
+  value :discount_per_order, order_with_shipping - order_discounted
+  value :total_orders, fn(:count, input.orders.order.id)
+  value :total_revenue, fn(:sum, order_totals)
+  value :total_tax_collected, fn(:sum, order_tax)
+  value :total_discount_given, fn(:sum, discount_per_order)
+end

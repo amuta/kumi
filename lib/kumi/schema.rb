@@ -127,10 +127,14 @@ module Kumi
         # method `__kumi_compiled_module__`.
         @__kumi_compiled_module__ = Kumi::Compiled.const_get(schema_digest)
 
-        # Extend the schema module/class with the compiled module so that
-        # pure module functions like _declaration_name(input) are available directly.
-        # This allows schema imports to work: GoldenSchemas::Tax._tax({amount: 100})
-        self.singleton_class.include(@__kumi_compiled_module__)
+        # Create a wrapper module with the compiled functions available as instance methods.
+        # This allows them to be extended as singleton methods on the schema module.
+        # This enables schema imports to work: GoldenSchemas::Tax._tax({amount: 100})
+        wrapper = Module.new
+        @__kumi_compiled_module__.singleton_methods(false).each do |method_name|
+          wrapper.define_method(method_name, @__kumi_compiled_module__.method(method_name).to_proc)
+        end
+        self.extend(wrapper)
 
         @kumi_compiled = true
       end

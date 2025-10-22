@@ -1,0 +1,24 @@
+(LIR
+  (Declaration order_subtotal
+    %t1 = load_input "order_items" :: array
+    %t2 = importschemacall %t1 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    yield %t2
+  )
+  (Declaration tax_amount
+    %t9 = load_input "order_items" :: array
+    %t10 = importschemacall %t9 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    %t4 = load_input "tax_rate" :: integer
+    %t5 = call core.mul:numeric(%t10, %t4) :: integer
+    yield %t5
+  )
+  (Declaration total
+    %t11 = load_input "order_items" :: array
+    %t12 = importschemacall %t11 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    %t16 = load_input "order_items" :: array
+    %t17 = importschemacall %t16 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+    %t14 = load_input "tax_rate" :: integer
+    %t15 = call core.mul:numeric(%t17, %t14) :: integer
+    %t8 = call core.add(%t12, %t15) :: integer
+    yield %t8
+  )
+)

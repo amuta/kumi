@@ -1,0 +1,16 @@
+{
+  "tax_rate_override": 0.15,
+  "orders": [
+    {
+      "items": [
+        {"quantity": 2, "unit_price": 50},
+        {"quantity": 1, "unit_price": 30}
+      ]
+    },
+    {
+      "items": [
+        {"quantity": 3, "unit_price": 25}
+      ]
+    }
+  ]
+}

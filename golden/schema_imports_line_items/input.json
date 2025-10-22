@@ -1,0 +1,13 @@
+{
+  "tax_rate": 10,
+  "order_items": [
+    {
+      "quantity": 2,
+      "unit_price": 50
+    },
+    {
+      "quantity": 3,
+      "unit_price": 25
+    }
+  ]
+}

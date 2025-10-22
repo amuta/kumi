@@ -1,0 +1,82 @@
+(Root
+  inputs: [
+    (InputDeclaration :global_discount_rate :decimal)
+    (InputDeclaration :orders :array
+      [
+        (InputDeclaration :order :hash
+          [
+            (InputDeclaration :id :string)
+            (InputDeclaration :items :array
+              [
+                (InputDeclaration :item :hash
+                  [
+                    (InputDeclaration :quantity :integer)
+                    (InputDeclaration :unit_price :integer)
+                  ]
+                )
+              ]
+            )
+            (InputDeclaration :shipping_cost :decimal)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :order_subtotals
+      (ImportCall :subtotal
+        (items (InputElementReference orders.order.items))
+      )
+    )
+    (ValueDeclaration :order_with_shipping
+      (CallExpression :add
+        (DeclarationReference :order_subtotals)
+        (InputElementReference orders.order.shipping_cost)
+      )
+    )
+    (ValueDeclaration :order_discounted
+      (ImportCall :discounted
+        (price (DeclarationReference :order_with_shipping))
+        (rate (InputReference :global_discount_rate))
+      )
+    )
+    (ValueDeclaration :order_tax
+      (ImportCall :tax
+        (amount (DeclarationReference :order_discounted))
+      )
+    )
+    (ValueDeclaration :order_totals
+      (CallExpression :add
+        (DeclarationReference :order_discounted)
+        (DeclarationReference :order_tax)
+      )
+    )
+    (ValueDeclaration :discount_per_order
+      (CallExpression :subtract
+        (DeclarationReference :order_with_shipping)
+        (DeclarationReference :order_discounted)
+      )
+    )
+    (ValueDeclaration :total_orders
+      (CallExpression :count
+        (InputElementReference orders.order.id)
+      )
+    )
+    (ValueDeclaration :total_revenue
+      (CallExpression :sum
+        (DeclarationReference :order_totals)
+      )
+    )
+    (ValueDeclaration :total_tax_collected
+      (CallExpression :sum
+        (DeclarationReference :order_tax)
+      )
+    )
+    (ValueDeclaration :total_discount_given
+      (CallExpression :sum
+        (DeclarationReference :discount_per_order)
+      )
+    )
+  ]
+  traits: []
+)

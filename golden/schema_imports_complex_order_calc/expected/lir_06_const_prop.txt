@@ -1,0 +1,131 @@
+(LIR
+  (Declaration order_subtotals
+    %t1 = load_input "orders" :: array
+    loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
+      %t4 = load_field orders_el_2["items"] :: array
+      %t5 = importschemacall %t4 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      yield %t5
+    end_loop
+  )
+  (Declaration order_with_shipping
+    %t6 = load_input "orders" :: array
+    loop orders id=L2 in %t6 as el=%orders_el_7, idx=%orders_i_8
+      %t60 = load_field orders_el_7["items"] :: array
+      %t10 = load_field orders_el_7["shipping_cost"] :: decimal
+      %t61 = importschemacall %t60 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t11 = call core.add(%t61, %t10) :: integer
+      yield %t11
+    end_loop
+  )
+  (Declaration order_discounted
+    %t12 = load_input "orders" :: array
+    %t16 = load_input "global_discount_rate" :: decimal
+    loop orders id=L3 in %t12 as el=%orders_el_13, idx=%orders_i_14
+      %t67 = load_field orders_el_13["items"] :: array
+      %t64 = load_field orders_el_13["shipping_cost"] :: decimal
+      %t68 = importschemacall %t67 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t65 = call core.add(%t68, %t64) :: integer
+      %t17 = importschemacall %t65, %t16 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      yield %t17
+    end_loop
+  )
+  (Declaration order_tax
+    %t18 = load_input "orders" :: array
+    %t71 = load_input "global_discount_rate" :: decimal
+    loop orders id=L4 in %t18 as el=%orders_el_19, idx=%orders_i_20
+      %t78 = load_field orders_el_19["items"] :: array
+      %t75 = load_field orders_el_19["shipping_cost"] :: decimal
+      %t79 = importschemacall %t78 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t76 = call core.add(%t79, %t75) :: integer
+      %t72 = importschemacall %t76, %t71 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t22 = importschemacall %t72 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      yield %t22
+    end_loop
+  )
+  (Declaration order_totals
+    %t23 = load_input "orders" :: array
+    %t82 = load_input "global_discount_rate" :: decimal
+    loop orders id=L5 in %t23 as el=%orders_el_24, idx=%orders_i_25
+      %t89 = load_field orders_el_24["items"] :: array
+      %t86 = load_field orders_el_24["shipping_cost"] :: decimal
+      %t90 = importschemacall %t89 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t87 = call core.add(%t90, %t86) :: integer
+      %t83 = importschemacall %t87, %t82 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t93 = importschemacall %t83 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t28 = call core.add(%t83, %t93) :: float
+      yield %t28
+    end_loop
+  )
+  (Declaration discount_per_order
+    %t29 = load_input "orders" :: array
+    %t114 = load_input "global_discount_rate" :: decimal
+    loop orders id=L6 in %t29 as el=%orders_el_30, idx=%orders_i_31
+      %t110 = load_field orders_el_30["items"] :: array
+      %t107 = load_field orders_el_30["shipping_cost"] :: decimal
+      %t111 = importschemacall %t110 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t108 = call core.add(%t111, %t107) :: integer
+      %t115 = importschemacall %t108, %t114 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t34 = call core.sub(%t108, %t115) :: float
+      yield %t34
+    end_loop
+  )
+  (Declaration total_orders
+    %acc_35 = decl_acc :: integer
+    %t36 = load_input "orders" :: array
+    loop orders id=L7 in %t36 as el=%orders_el_37, idx=%orders_i_38
+      %t39 = load_field orders_el_37["id"] :: string
+      %acc_35 = acc_add agg.count(%acc_35, %t39) :: integer
+    end_loop
+    %t40 = acc_load %acc_35 :: integer
+    yield %t40
+  )
+  (Declaration total_revenue
+    %acc_41 = decl_acc :: float
+    %t42 = load_input "orders" :: array
+    %t129 = load_input "global_discount_rate" :: decimal
+    loop orders id=L8 in %t42 as el=%orders_el_43, idx=%orders_i_44
+      %t136 = load_field orders_el_43["items"] :: array
+      %t133 = load_field orders_el_43["shipping_cost"] :: decimal
+      %t137 = importschemacall %t136 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t134 = call core.add(%t137, %t133) :: integer
+      %t130 = importschemacall %t134, %t129 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t140 = importschemacall %t130 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %t126 = call core.add(%t130, %t140) :: float
+      %acc_41 = acc_add agg.sum(%acc_41, %t126) :: float
+    end_loop
+    %t46 = acc_load %acc_41 :: float
+    yield %t46
+  )
+  (Declaration total_tax_collected
+    %acc_47 = decl_acc :: float
+    %t48 = load_input "orders" :: array
+    %t157 = load_input "global_discount_rate" :: decimal
+    loop orders id=L9 in %t48 as el=%orders_el_49, idx=%orders_i_50
+      %t164 = load_field orders_el_49["items"] :: array
+      %t161 = load_field orders_el_49["shipping_cost"] :: decimal
+      %t165 = importschemacall %t164 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t162 = call core.add(%t165, %t161) :: integer
+      %t158 = importschemacall %t162, %t157 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t154 = importschemacall %t158 fn_name="tax" source_module="GoldenSchemas::Tax" input_mapping_keys=["amount"] :: float
+      %acc_47 = acc_add agg.sum(%acc_47, %t154) :: float
+    end_loop
+    %t52 = acc_load %acc_47 :: float
+    yield %t52
+  )
+  (Declaration total_discount_given
+    %acc_53 = decl_acc :: float
+    %t54 = load_input "orders" :: array
+    %t179 = load_input "global_discount_rate" :: decimal
+    loop orders id=L10 in %t54 as el=%orders_el_55, idx=%orders_i_56
+      %t175 = load_field orders_el_55["items"] :: array
+      %t172 = load_field orders_el_55["shipping_cost"] :: decimal
+      %t176 = importschemacall %t175 fn_name="subtotal" source_module="GoldenSchemas::Subtotal" input_mapping_keys=["items"] :: integer
+      %t173 = call core.add(%t176, %t172) :: integer
+      %t180 = importschemacall %t173, %t179 fn_name="discounted" source_module="GoldenSchemas::Discount" input_mapping_keys=["price", "rate"] :: float
+      %t169 = call core.sub(%t173, %t180) :: float
+      %acc_53 = acc_add agg.sum(%acc_53, %t169) :: float
+    end_loop
+    %t58 = acc_load %acc_53 :: float
+    yield %t58
+  )
+)

@@ -1,0 +1,12 @@
+{
+  "order_subtotals": [200, 120],
+  "order_with_shipping": [210.0, 130.0],
+  "order_discounted": [189.0, 117.0],
+  "order_tax": [28.349999999999998, 17.55],
+  "order_totals": [217.35, 134.55],
+  "discount_per_order": [21.0, 13.0],
+  "total_orders": 2,
+  "total_revenue": 351.9,
+  "total_tax_collected": 45.9,
+  "total_discount_given": 34.0
+}

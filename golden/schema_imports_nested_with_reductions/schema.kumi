@@ -1,0 +1,23 @@
+import :tax, from: GoldenSchemas::Tax
+import :subtotal, from: GoldenSchemas::Subtotal
+
+schema do
+  input do
+    decimal :tax_rate_override
+    array :orders do
+      hash :order do
+        array :items do
+          hash :item do
+            integer :quantity
+            integer :unit_price
+          end
+        end
+      end
+    end
+  end
+
+  value :order_subtotals, subtotal(items: input.orders.order.items)
+  value :total_before_tax, fn(:sum, order_subtotals)
+  value :tax_for_all, tax(amount: total_before_tax)
+  value :grand_total, total_before_tax + tax_for_all
+end
