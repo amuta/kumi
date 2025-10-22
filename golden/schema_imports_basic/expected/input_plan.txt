@@ -1,2 +1,0 @@
-amount: decimal
-price: decimal

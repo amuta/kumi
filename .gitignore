@@ -23,4 +23,5 @@
 
 # Golden test artifacts
 /golden/*/tmp/
+/golden/_shared/
 /cmd

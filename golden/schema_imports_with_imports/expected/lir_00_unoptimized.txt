@@ -1,0 +1,14 @@
+(LIR
+  (Declaration tax_result
+    %t1 = load_input "amount" :: decimal
+    %t2 = const 0.15 :: float
+    %t3 = call core.mul:numeric(%t1, %t2) :: float
+    yield %t3
+  )
+  (Declaration total
+    %t4 = load_input "amount" :: decimal
+    %t5 = load_decl tax_result :: float
+    %t6 = call core.add(%t4, %t5) :: float
+    yield %t6
+  )
+)

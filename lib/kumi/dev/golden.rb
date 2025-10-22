@@ -15,6 +15,17 @@ require_relative "golden/suite"
 module Kumi
   module Dev
     module Golden
+      # Configure Kumi for golden tests (JIT compilation for dynamic schemas)
+      Kumi.configure do |config|
+        config.compilation_mode = :jit
+      end
+
+      # Load shared golden schemas for import support (only when using golden tests)
+      shared_dir = File.expand_path("../../../golden/_shared", __dir__)
+      if File.directory?(shared_dir)
+        Dir.glob("#{shared_dir}/*.rb").sort.each { |f| require f }
+      end
+
       module_function
 
       def list

@@ -61,3 +61,6 @@ module Kumi
   module Compiled
   end
 end
+
+# Load golden schema module base
+require_relative "kumi/dev/golden_schema_modules"

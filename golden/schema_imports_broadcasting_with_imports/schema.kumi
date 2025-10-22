@@ -1,0 +1,14 @@
+import :tax, from: GoldenSchemas::Tax
+
+schema do
+  input do
+    array :items do
+      hash :item do
+        decimal :amount
+      end
+    end
+  end
+
+  value :item_taxes, tax(amount: input.items.item.amount)
+  value :total_tax, fn(:sum, item_taxes)
+end

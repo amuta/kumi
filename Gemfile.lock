@@ -1,4 +1,11 @@
 PATH
+  remote: ../kumi-parser
+  specs:
+    kumi-parser (0.0.28)
+      parslet (~> 2.0)
+      zeitwerk (~> 2.6)
+
+PATH
   remote: .
   specs:
     kumi (0.0.31)
@@ -17,9 +24,6 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     json (2.15.0)
-    kumi-parser (0.0.28)
-      parslet (~> 2.0)
-      zeitwerk (~> 2.6)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -102,7 +106,7 @@ DEPENDENCIES
   bigdecimal (~> 3.1.0)
   csv
   kumi!
-  kumi-parser (= 0.0.28)
+  kumi-parser!
   mutex_m (~> 0.3.0)
   parslet (~> 2.0)
   pry (~> 0.15.2)

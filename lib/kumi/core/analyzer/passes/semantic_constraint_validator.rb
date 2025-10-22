@@ -89,7 +89,11 @@ module Kumi
             skip = [:cascade_and] # TODO: - hack
             return if skip.include? fn_name
 
-            # binding.pry
+            # Skip validation for imported functions - they're pure schema methods
+            imported_schemas = state[:imported_schemas] || {}
+            return if imported_schemas.key?(fn_name)
+
+            # Check if it's a built-in function in the registry
             return if @registry.resolve_function(fn_name)
 
             report_error(

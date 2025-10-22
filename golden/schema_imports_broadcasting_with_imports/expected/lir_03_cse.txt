@@ -1,0 +1,23 @@
+(LIR
+  (Declaration item_taxes
+    %t1 = load_input "items" :: array
+    loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
+      %t4 = load_field items_el_2["amount"] :: decimal
+      %t5 = const 0.15 :: float
+      %t6 = call core.mul:numeric(%t4, %t5) :: float
+      yield %t6
+    end_loop
+  )
+  (Declaration total_tax
+    %acc_7 = decl_acc :: float
+    %t8 = load_input "items" :: array
+    loop items id=L2 in %t8 as el=%items_el_9, idx=%items_i_10
+      %t14 = load_field items_el_9["amount"] :: decimal
+      %t15 = const 0.15 :: float
+      %t16 = call core.mul:numeric(%t14, %t15) :: float
+      %acc_7 = acc_add agg.sum(%acc_7, %t16) :: float
+    end_loop
+    %t12 = acc_load %acc_7 :: float
+    yield %t12
+  )
+)
