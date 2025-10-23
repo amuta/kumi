@@ -135,6 +135,11 @@ Requires Ruby 3.1+. No external dependencies.
 ```ruby
 require 'kumi'
 
+Kumi.configure do |config|
+  config.compilation_mode = :jit
+  config.cache_path = File.expand_path("tmp/kumi_cache", __dir__)
+end
+
 module Double
   extend Kumi::Schema
 
@@ -147,6 +152,9 @@ end
 # Execute in Ruby
 result = Double.from(x: 5)
 result[:doubled]  # => 10
+
+# or just call the method directly
+Double._doubled(x: 5) # => 10
 
 # Export to JavaScript (same logic)
 Double.write_source("output.mjs", platform: :javascript)
