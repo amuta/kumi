@@ -16,19 +16,18 @@ The schema import feature works through multiple analysis passes:
 4. **DependencyResolver**: Creates dependency edges for ImportCall nodes
 5. **NormalizeToNASTPass**: **Substitutes** ImportCall nodes with the source expression, mapping parameters
 
-### Key Design Principle: Static Inlining
+### Key Design Principle: Runtime Function Calls
 
-Imports are **NOT function calls at runtime**. Instead:
+Imports are **compiled as runtime function calls** to the imported schema:
 
-1. The compiler analyzes the imported schema
-2. Extracts the expression for the imported declaration
-3. Substitutes it into the calling schema with parameter mapping
-4. Inlines the result into the generated code
+1. The compiler analyzes the imported schema and generates its module methods
+2. When an imported function is called, the generated code invokes `ImportedModule._function_name(input_hash)`
+3. This allows for modular code generation and schema reuse
 
 **Behavior:**
-- Imported expressions are substituted into the calling schema at compile time
-- Broadcasting works on imported expressions the same way it works on local expressions
-- The full optimizer pipeline runs on the inlined code
+- Imported functions are called at runtime via generated code
+- Broadcasting still applies - the calling function iterates and calls the imported function for each array element
+- Parameter mapping creates input hashes that are passed to the imported function
 
 ### Example: Tax Calculation
 
@@ -61,14 +60,14 @@ end
 **Generated Ruby Code**:
 ```ruby
 def self._tax_result(input)
-  # The tax expression is inlined directly:
+  # The imported function is called at runtime:
   t1 = input["amount"] || input[:amount]
-  t2 = 0.15
-  t1 * t2
+  t2 = GoldenSchemas::Tax._tax({"amount" => t1})
+  t2
 end
 ```
 
-Note: The generated code uses module-level functions (`def self._name(input)`) rather than instance methods. This enables schema imports to be called directly on the compiled modules.
+Note: The generated code uses module-level functions (`def self._name(input)`) rather than instance methods. Imported functions are invoked as module methods with parameter mapping, enabling schema composition and reuse.
 
 ## Syntax
 
@@ -100,7 +99,7 @@ Both create an `ImportCall` node which gets substituted during normalization.
 
 ## Broadcasting with Imports
 
-When you pass an array to an imported function, the substituted expression broadcasts across the array:
+When you pass an array to an imported function, the calling schema iterates over the array and calls the imported function for each element:
 
 ```kumi
 import :tax, from: GoldenSchemas::Tax
@@ -120,31 +119,32 @@ end
 ```
 
 With input `items: [{amount: 100}, {amount: 200}, {amount: 300}]`:
-- `item_taxes` broadcasts to `[15, 30, 45]` (each computed with tax = amount * 0.15)
+- The generated code loops over each item and calls `GoldenSchemas::Tax._tax({"amount" => item.amount})`
+- `item_taxes` becomes `[15, 30, 45]`
 - `total_tax` sums to `90`
 
-The generated code applies loop fusion and vectorization optimizations to the inlined expression.
+The generated code performs loop iteration and calls the imported function for each array element.
 
-## Parameter Substitution
+## Parameter Mapping
 
 When you call an imported function with keyword arguments, the compiler:
 
-1. Maps each argument name to the corresponding input field in the imported schema
-2. Substitutes input references with the actual expressions provided
-3. Inlines the substituted expression into the calling schema
+1. Maps each keyword argument name to the corresponding input field in the imported schema
+2. Constructs an input hash with the mapped parameter values
+3. Generates a runtime call to the imported function with this hash
 
 Example:
 ```kumi
-# Imported: value :tax, input.amount * 0.15
-# Call: tax(amount: input.price)
-# Substitution: input.price * 0.15
+# Imported schema input field: amount
+# Call: fn(:tax, amount: input.price)
+# Generated: GoldenSchemas::Tax._tax({"amount" => input.price})
 ```
 
 Multiple parameters work similarly:
 ```kumi
-# Imported: value :discount, input.price * input.rate
-# Call: discount(price: invoice.total, rate: 0.1)
-# Substitution: invoice.total * 0.1
+# Imported schema input fields: price, rate
+# Call: fn(:discount, price: invoice.total, rate: 0.1)
+# Generated: GoldenSchemas::Discount._discount({"price" => invoice.total, "rate" => 0.1})
 ```
 
 ## Golden Test Cases
@@ -224,41 +224,47 @@ The shared schemas are automatically loaded and compiled in JIT mode when runnin
 ### Analyzer Level (kumi gem)
 
 **New/Modified Passes**:
-- `ImportAnalysisPass`: Loads source schemas, extracts analyzed state
+- `ImportAnalysisPass`: Loads source schemas, extracts analyzed state, and prepares for runtime calls
 - `SemanticConstraintValidator`: Skips validation for imported function names
-- `NormalizeToNASTPass`: Performs substitution of ImportCall nodes
+- `CodegenPass`: Generates runtime function calls to imported schema methods
 
 **Key Data Structures**:
 - `ImportDeclaration`: Stores import metadata (names, source module)
 - `ImportCall`: Represents a call to an imported function (fn_name, input_mapping)
 - `imported_declarations`: State containing all imported names
-- `imported_schemas`: State containing full analysis of imported schemas
+- `imported_schemas`: State containing full analysis of imported schemas (used to ensure schemas are compiled before use)
 
 ## How Imports Are Compiled
 
-**Imports use expression substitution with direct inlining:**
+**Imports are compiled as runtime function calls:**
 
-1. The imported schema is fully analyzed and compiled to extract each declaration's expression
-2. When you call an imported function, the compiler substitutes its expression into your schema
-3. The substituted expression is then optimized and inlined into the final generated code
+1. The imported schema is fully analyzed and compiled as a standalone module with its own methods
+2. When you call an imported function, the compiler generates a call to that module's method
+3. Parameters are mapped and passed as a hash to the imported function at runtime
 
 **Example:**
 
 Imported schema defines: `value :tax, input.amount * 0.15`
 
-Your schema calls: `tax(amount: input.price)`
+Your schema calls: `fn(:tax, amount: input.price)`
 
-Compiler produces: `input.price * 0.15`
+Compiler produces:
+```ruby
+t1 = input["price"] || input[:price]
+t2 = GoldenSchemas::Tax._tax({"amount" => t1})
+```
+
+The imported function executes independently and returns its result to the calling schema.
 
 ## Testing Strategy
 
 To verify imports are working correctly, test:
 
 1. **Parser correctness**: ImportCall nodes are created for imported functions
-2. **Substitution**: Expressions are properly substituted with parameter mapping
-3. **Broadcasting**: Broadcasting works correctly with substituted expressions
-4. **Optimization**: Inlined code is optimized (CSE, dead code elimination)
-5. **Runtime evaluation**: Generated code produces correct results
+2. **Parameter mapping**: Input hashes are correctly constructed from keyword arguments
+3. **Runtime calls**: Generated code properly invokes imported schema methods with parameter hashes
+4. **Broadcasting**: Loop iteration works correctly when passing arrays to imported functions
+5. **Runtime evaluation**: Generated code produces correct results by calling imported functions
 
 ## Future Enhancements
 

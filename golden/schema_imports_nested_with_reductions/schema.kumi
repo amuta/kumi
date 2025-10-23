@@ -1,7 +1,7 @@
-import :tax, from: Kumi::TestSharedSchemas::Tax
-import :subtotal, from: Kumi::TestSharedSchemas::Subtotal
-
 schema do
+  import :tax, from: Kumi::TestSharedSchemas::Tax
+  import :subtotal, from: Kumi::TestSharedSchemas::Subtotal
+  
   input do
     decimal :tax_rate_override
     array :orders do

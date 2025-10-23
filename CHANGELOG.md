@@ -1,4 +1,15 @@
 ## [Unreleased]
+
+## [0.0.32] – 2025-10-23
+### Added
+- **Schema Imports:** Reuse declarations from other schemas with `import :name, from: Module` syntax
+- **Improved Import Errors:** Clear error messages with available declaration hints when imports fail
+- Documentation: `docs/COMPOSED_SCHEMAS.md` and `docs/SCHEMA_IMPORTS.md`
+
+## [0.0.31] – 2025-10-22
+### Changed
+- Documentation for schema imports in README and SYNTAX
+
 ## [0.0.30] – 2025-10-21
 ### Changed
 - **Analyzer Refactoring:** PassManager now centralizes pass orchestration, replacing manual orchestration in Analyzer.run_analysis_passes

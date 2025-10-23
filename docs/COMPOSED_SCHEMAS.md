@@ -45,21 +45,27 @@ end
 
 ### Composed Order Schema
 
-```kumi
-import :discounted, :discount_amount, from: GoldenSchemas::Price
-import :total, from: GoldenSchemas::Tax
+```ruby
+module GoldenSchemas
+  module ComposedOrder
+    extend Kumi::Schema
 
-schema do
-  input do
-    decimal :item_price
-    decimal :quantity
-    decimal :discount_rate
+    schema do
+      import :discounted, :discount_amount, from: GoldenSchemas::Price
+      import :total, from: GoldenSchemas::Tax
+
+      input do
+        decimal :item_price
+        decimal :quantity
+        decimal :discount_rate
+      end
+
+      value :subtotal, input.item_price * input.quantity
+      value :price_after_discount, fn(:discounted, base_price: subtotal, discount_rate: input.discount_rate)
+      value :discount_amt, fn(:discount_amount, base_price: subtotal, discount_rate: input.discount_rate)
+      value :final_total, fn(:total, amount: price_after_discount)
+    end
   end
-
-  value :subtotal, input.item_price * input.quantity
-  value :price_after_discount, discounted(base_price: subtotal, discount_rate: input.discount_rate)
-  value :discount_amt, discount_amount(base_price: subtotal, discount_rate: input.discount_rate)
-  value :final_total, total(amount: price_after_discount)
 end
 ```
 
@@ -98,16 +104,16 @@ Tax schema input fields: `amount`
 total(amount: price_after_discount)
 ```
 
-The compiler substitutes the provided values for input references in the imported schema's expressions.
+The compiler maps keyword argument names to the imported schema's input field names and generates a runtime call that passes these values as an input hash to the imported schema's method.
 
 ## Compilation
 
 For each imported function call:
 1. Compiler locates the declaration in the imported schema
-2. Extracts the expression
-3. Substitutes keyword arguments for input references
-4. Inlines the substituted expression into the calling schema
-5. Applies optimization passes (constant folding, CSE, dead code elimination, etc.)
+2. Maps keyword arguments to input field names
+3. Generates a runtime call to the imported schema's generated method
+4. Passes parameter values as an input hash to the imported function
+5. The imported schema's compiled method executes independently at runtime
 
 ## Testing
 
