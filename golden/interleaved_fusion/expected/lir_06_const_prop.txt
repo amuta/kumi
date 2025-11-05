@@ -23,7 +23,7 @@
         %acc40 = acc_add agg.sum(%acc40, %t44) :: integer
       end_loop
       %t45 = acc_load %acc40 :: integer
-      %t15 = call core.mul:numeric(%t45, %t14) :: float
+      %t15 = call core.mul:numeric(%t45, %__immediate_placeholder__) :: float
       yield %t15
     end_loop
   )
@@ -37,8 +37,8 @@
       %t20 = load_field departments_el_17["employees"] :: any
       loop employees id=L5 in %t20 as el=%employees_el_21, idx=%employees_i_22
         %t23 = load_field employees_el_21["role"] :: string
-        %t25 = call core.eq(%t23, %t24) :: boolean
-        %t28 = select %t25, %t26, %t27 :: integer
+        %t25 = call core.eq(%t23, %__immediate_placeholder__) :: boolean
+        %t28 = select %t25, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc_19 = acc_add agg.sum(%acc_19, %t28) :: integer
       end_loop
       %t29 = acc_load %acc_19 :: integer
@@ -62,14 +62,14 @@
         %acc48 = acc_add agg.sum(%acc48, %t52) :: integer
         %acc60 = acc_add agg.sum(%acc60, %t52) :: integer
         %t72 = load_field t50["role"] :: string
-        %t74 = call core.eq(%t72, %t73) :: boolean
-        %t77 = select %t74, %t75, %t76 :: integer
+        %t74 = call core.eq(%t72, %__immediate_placeholder__) :: boolean
+        %t77 = select %t74, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc68 = acc_add agg.sum(%acc68, %t77) :: integer
       end_loop
       %t53 = acc_load %acc48 :: integer
       %t65 = acc_load %acc60 :: integer
       %t78 = acc_load %acc68 :: integer
-      %t57 = call core.mul:numeric(%t65, %t56) :: float
+      %t57 = call core.mul:numeric(%t65, %__immediate_placeholder__) :: float
       %t37 = make_object{name: %t33, payroll: %t53, tax: %t57, managers: %t78} :: object
       yield %t37
     end_loop

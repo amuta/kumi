@@ -3,7 +3,6 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
   def self._high_performer(input)
     out = []
     t1 = input["regions"] || input[:regions]
-    t14 = 4.5
     t1.each_with_index do |regions_el_2, regions_i_3|
       out_1 = []
       t4 = regions_el_2["offices"] || regions_el_2[:offices]
@@ -15,7 +14,7 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
           t10 = teams_el_8["employees"] || teams_el_8[:employees]
           t10.each_with_index do |employees_el_11, employees_i_12|
             t13 = employees_el_11["rating"] || employees_el_11[:rating]
-            t15 = t13 >= t14
+            t15 = t13 >= 4.5
             out_3 << t15
           end
           out_2 << out_3
@@ -30,7 +29,6 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
   def self._senior_level(input)
     out = []
     t16 = input["regions"] || input[:regions]
-    t29 = "senior"
     t16.each_with_index do |regions_el_17, regions_i_18|
       out_1 = []
       t19 = regions_el_17["offices"] || regions_el_17[:offices]
@@ -42,7 +40,7 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
           t25 = teams_el_23["employees"] || teams_el_23[:employees]
           t25.each_with_index do |employees_el_26, employees_i_27|
             t28 = employees_el_26["level"] || employees_el_26[:level]
-            t30 = t28 == t29
+            t30 = t28 == "senior"
             out_3 << t30
           end
           out_2 << out_3
@@ -57,7 +55,6 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
   def self._top_team(input)
     out = []
     t31 = input["regions"] || input[:regions]
-    t41 = 0.9
     t31.each_with_index do |regions_el_32, regions_i_33|
       out_1 = []
       t34 = regions_el_32["offices"] || regions_el_32[:offices]
@@ -66,7 +63,7 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
         t37 = offices_el_35["teams"] || offices_el_35[:teams]
         t37.each_with_index do |teams_el_38, teams_i_39|
           t40 = teams_el_38["performance_score"] || teams_el_38[:performance_score]
-          t42 = t40 >= t41
+          t42 = t40 >= 0.9
           out_2 << t42
         end
         out_1 << out_2
@@ -79,12 +76,6 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
   def self._employee_bonus(input)
     out = []
     t43 = input["regions"] || input[:regions]
-    t92 = 0.9
-    t79 = 4.5
-    t86 = "senior"
-    t61 = 0.3
-    t67 = 0.2
-    t70 = 0.05
     t43.each_with_index do |regions_el_44, regions_i_45|
       out_1 = []
       t46 = regions_el_44["offices"] || regions_el_44[:offices]
@@ -94,20 +85,20 @@ module Kumi::Compiled::KUMI_c6796669cf48acb34098c972292bebe0cc140f1b74bd6b44e8b2
         t49.each_with_index do |teams_el_50, teams_i_51|
           out_3 = []
           t91 = teams_el_50["performance_score"] || teams_el_50[:performance_score]
-          t93 = t91 >= t92
+          t93 = t91 >= 0.9
           t52 = teams_el_50["employees"] || teams_el_50[:employees]
           t52.each_with_index do |employees_el_53, employees_i_54|
             t78 = employees_el_53["rating"] || employees_el_53[:rating]
-            t80 = t78 >= t79
+            t80 = t78 >= 4.5
             t85 = employees_el_53["level"] || employees_el_53[:level]
-            t87 = t85 == t86
+            t87 = t85 == "senior"
             t58 = t87 && t93
             t59 = t80 && t58
             t60 = employees_el_53["salary"] || employees_el_53[:salary]
-            t62 = t60 * t61
+            t62 = t60 * 0.3
             t65 = t80 && t93
-            t68 = t60 * t67
-            t71 = t60 * t70
+            t68 = t60 * 0.2
+            t71 = t60 * 0.05
             t72 = t65 ? t68 : t71
             t73 = t59 ? t62 : t72
             out_3 << t73

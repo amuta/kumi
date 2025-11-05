@@ -3,10 +3,9 @@ module Kumi::Compiled::KUMI_26022ac07abb598e5dc4e880678536e220f2445e5cf2af66ea1e
   def self._x_is_large(input)
     out = []
     t1 = input["points"] || input[:points]
-    t5 = 100
     t1.each_with_index do |points_el_2, points_i_3|
       t4 = points_el_2["x"] || points_el_2[:x]
-      t6 = t4 > t5
+      t6 = t4 > 100
       out << t6
     end
     out
@@ -15,11 +14,10 @@ module Kumi::Compiled::KUMI_26022ac07abb598e5dc4e880678536e220f2445e5cf2af66ea1e
   def self._selected_value(input)
     out = []
     t7 = input["points"] || input[:points]
-    t29 = 100
     t7.each_with_index do |points_el_8, points_i_9|
       t28 = points_el_8["x"] || points_el_8[:x]
       t12 = points_el_8["y"] || points_el_8[:y]
-      t30 = t28 > t29
+      t30 = t28 > 100
       t13 = t30 ? t28 : t12
       out << t13
     end
@@ -29,11 +27,10 @@ module Kumi::Compiled::KUMI_26022ac07abb598e5dc4e880678536e220f2445e5cf2af66ea1e
   def self._final_value_per_point(input)
     out = []
     t14 = input["points"] || input[:points]
-    t38 = 100
     t14.each_with_index do |points_el_15, points_i_16|
       t37 = points_el_15["x"] || points_el_15[:x]
       t34 = points_el_15["y"] || points_el_15[:y]
-      t39 = t37 > t38
+      t39 = t37 > 100
       t35 = t39 ? t37 : t34
       t19 = [t35, t37]
       t20 = t19.max
@@ -45,11 +42,10 @@ module Kumi::Compiled::KUMI_26022ac07abb598e5dc4e880678536e220f2445e5cf2af66ea1e
   def self._grand_total(input)
     acc_21 = 0
     t22 = input["points"] || input[:points]
-    t52 = 100
     t22.each_with_index do |points_el_23, points_i_24|
       t51 = points_el_23["x"] || points_el_23[:x]
       t48 = points_el_23["y"] || points_el_23[:y]
-      t53 = t51 > t52
+      t53 = t51 > 100
       t49 = t53 ? t51 : t48
       t43 = [t49, t51]
       t44 = t43.max

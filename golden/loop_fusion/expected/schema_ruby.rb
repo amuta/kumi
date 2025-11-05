@@ -19,16 +19,13 @@ module Kumi::Compiled::KUMI_a18a6a2fd789094cd70340b2bb9ba7e6f1eac60ff3f1d95d456e
   def self._manager_count(input)
     out = []
     t10 = input["departments"] || input[:departments]
-    t18 = "manager"
-    t20 = 1
-    t21 = 0
     t10.each_with_index do |departments_el_11, departments_i_12|
       acc_13 = 0
       t14 = departments_el_11["employees"] || departments_el_11[:employees]
       t14.each_with_index do |employees_el_15, employees_i_16|
         t17 = employees_el_15["role"] || employees_el_15[:role]
-        t19 = t17 == t18
-        t22 = t19 ? t20 : t21
+        t19 = t17 == "manager"
+        t22 = t19 ? 1 : 0
         acc_13 += t22
       end
       t23 = acc_13
@@ -40,9 +37,6 @@ module Kumi::Compiled::KUMI_a18a6a2fd789094cd70340b2bb9ba7e6f1eac60ff3f1d95d456e
   def self._department_summary(input)
     out = []
     t24 = input["departments"] || input[:departments]
-    t46 = "manager"
-    t48 = 1
-    t49 = 0
     t24.each_with_index do |departments_el_25, departments_i_26|
       t27 = departments_el_25["name"] || departments_el_25[:name]
       acc33 = 0
@@ -52,8 +46,8 @@ module Kumi::Compiled::KUMI_a18a6a2fd789094cd70340b2bb9ba7e6f1eac60ff3f1d95d456e
         t37 = t35["salary"] || t35[:salary]
         acc33 += t37
         t45 = t35["role"] || t35[:role]
-        t47 = t45 == t46
-        t50 = t47 ? t48 : t49
+        t47 = t45 == "manager"
+        t50 = t47 ? 1 : 0
         acc41 += t50
       end
       t38 = acc33

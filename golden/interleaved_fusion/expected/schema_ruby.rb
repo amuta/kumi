@@ -19,7 +19,6 @@ module Kumi::Compiled::KUMI_08321436a45bc50fd7169465c13f3febae57c9cea81cc198c644
   def self._payroll_tax(input)
     out = []
     t10 = input["departments"] || input[:departments]
-    t14 = 0.15
     t10.each_with_index do |departments_el_11, departments_i_12|
       acc40 = 0
       t41 = departments_el_11["employees"] || departments_el_11[:employees]
@@ -28,7 +27,7 @@ module Kumi::Compiled::KUMI_08321436a45bc50fd7169465c13f3febae57c9cea81cc198c644
         acc40 += t44
       end
       t45 = acc40
-      t15 = t45 * t14
+      t15 = t45 * 0.15
       out << t15
     end
     out
@@ -37,16 +36,13 @@ module Kumi::Compiled::KUMI_08321436a45bc50fd7169465c13f3febae57c9cea81cc198c644
   def self._manager_count(input)
     out = []
     t16 = input["departments"] || input[:departments]
-    t24 = "manager"
-    t26 = 1
-    t27 = 0
     t16.each_with_index do |departments_el_17, departments_i_18|
       acc_19 = 0
       t20 = departments_el_17["employees"] || departments_el_17[:employees]
       t20.each_with_index do |employees_el_21, employees_i_22|
         t23 = employees_el_21["role"] || employees_el_21[:role]
-        t25 = t23 == t24
-        t28 = t25 ? t26 : t27
+        t25 = t23 == "manager"
+        t28 = t25 ? 1 : 0
         acc_19 += t28
       end
       t29 = acc_19
@@ -58,10 +54,6 @@ module Kumi::Compiled::KUMI_08321436a45bc50fd7169465c13f3febae57c9cea81cc198c644
   def self._department_summary(input)
     out = []
     t30 = input["departments"] || input[:departments]
-    t56 = 0.15
-    t73 = "manager"
-    t75 = 1
-    t76 = 0
     t30.each_with_index do |departments_el_31, departments_i_32|
       t33 = departments_el_31["name"] || departments_el_31[:name]
       acc48 = 0
@@ -73,14 +65,14 @@ module Kumi::Compiled::KUMI_08321436a45bc50fd7169465c13f3febae57c9cea81cc198c644
         acc48 += t52
         acc60 += t52
         t72 = t50["role"] || t50[:role]
-        t74 = t72 == t73
-        t77 = t74 ? t75 : t76
+        t74 = t72 == "manager"
+        t77 = t74 ? 1 : 0
         acc68 += t77
       end
       t53 = acc48
       t65 = acc60
       t78 = acc68
-      t57 = t65 * t56
+      t57 = t65 * 0.15
       t37 = {
         "name" => t33,
         "payroll" => t53,

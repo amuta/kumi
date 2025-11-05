@@ -47,7 +47,6 @@ export function _mixed_array(input) {
 }
 
 export function _constant(input) {
-  const t26 = 42;
-  return t26;
+  return 42;
 }
 

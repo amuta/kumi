@@ -22,7 +22,7 @@
   (Declaration tail
     %t13 = const 7.0 :: float
     %t14 = const 5.0 :: float
-    %t15 = call core.add(%t13, %t14) :: float
+    %t15 = call core.add(%__immediate_placeholder__, %__immediate_placeholder__) :: float
     yield %t15
   )
   (Declaration out
@@ -42,7 +42,7 @@
     %t33 = acc_load %acc28 :: float
     %t34 = const 7.0 :: float
     %t35 = const 5.0 :: float
-    %t36 = call core.add(%t34, %t35) :: float
+    %t36 = call core.add(%__immediate_placeholder__, %__immediate_placeholder__) :: float
     %t19 = make_object{x: %t26, y: %t33, t: %t36} :: object
     yield %t19
   )

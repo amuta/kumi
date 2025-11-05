@@ -24,7 +24,7 @@
     %t27 = call core.mul:numeric(%t25, %t25) :: integer
     %t21 = call core.add(%t24, %t27) :: integer
     %t11 = const 0.5 :: float
-    %t12 = call core.pow(%t21, %t11) :: float
+    %t12 = call core.pow(%t21, %__immediate_placeholder__) :: float
     yield %t12
   )
 )

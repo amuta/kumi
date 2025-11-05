@@ -21,11 +21,11 @@
     %t10 = const 1 :: integer
     %t11 = load_input "x" :: integer
     %t12 = const 10 :: integer
-    %t13 = call core.add(%t11, %t12) :: integer
+    %t13 = call core.add(%t11, %__immediate_placeholder__) :: integer
     %t14 = load_input "y" :: integer
     %t15 = const 2 :: integer
-    %t16 = call core.mul:numeric(%t14, %t15) :: integer
-    %t17 = make_tuple(%t10, %t13, %t16) :: tuple<integer, integer, integer>
+    %t16 = call core.mul:numeric(%t14, %__immediate_placeholder__) :: integer
+    %t17 = make_tuple(%__immediate_placeholder__, %t13, %t16) :: tuple<integer, integer, integer>
     yield %t17
   )
 )

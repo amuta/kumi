@@ -1,22 +1,16 @@
 export function _summary(input) {
   let out = [];
   let t974 = input["income"];
-  const t975 = 168600.0;
-  let t976 = [t974, t975];
+  let t976 = [t974, 168600.0];
   let t977 = Math.min(...t976);
-  const t978 = 0.062;
-  let t979 = t977 * t978;
-  const t981 = 0.0145;
-  let t982 = t974 * t981;
+  let t979 = t977 * 0.062;
+  let t982 = t974 * 0.0145;
   let t1032 = input["state_rate"];
   let t1033 = t974 * t1032;
   let t1035 = input["local_rate"];
   let t1036 = t974 * t1035;
   let t181 = input["statuses"];
-  const t824 = 0;
-  const t857 = 1.0;
   let t971 = t979 + t982;
-  const t990 = 0.009;
   let t195 = {
     "marginal": t1032,
     "effective": t1032,
@@ -28,9 +22,7 @@ export function _summary(input) {
     "tax": t1036
   };
   let t204 = input["retirement_contrib"];
-  const t840 = -1;
-  const t842 = 100000000000.0;
-  let t858 = [t974, t857];
+  let t858 = [t974, 1.0];
   let t859 = Math.max(...t858);
   t181.forEach((statuses_el_182, statuses_i_183) => {
     let t184 = statuses_el_182["name"];
@@ -46,31 +38,31 @@ export function _summary(input) {
     let acc1315 = 0.0;
     let t823 = t974 - t822;
     let t986 = t974 - t985;
-    let t825 = [t823, t824];
-    let t988 = [t986, t824];
+    let t825 = [t823, 0];
+    let t988 = [t986, 0];
     let t826 = Math.max(...t825);
     let t989 = Math.max(...t988);
     t803.forEach((t804, t805) => {
       let t829 = t804["lo"];
       let t815 = t826 >= t829;
       let t847 = t804["hi"];
-      let t841 = t847 == t840;
-      let t844 = t841 ? t842 : t847;
+      let t841 = t847 == -1;
+      let t844 = t841 ? 100000000000.0 : t847;
       let t818 = t826 < t844;
       let t819 = t815 && t818;
       let t853 = t804["rate"];
-      let t809 = t819 ? t853 : t824;
+      let t809 = t819 ? t853 : 0;
       acc802 += t809;
     });
-    let t991 = t989 * t990;
+    let t991 = t989 * 0.009;
     t803.forEach((t865, t866) => {
       let t890 = t865["lo"];
       let t875 = t826 - t890;
       let t901 = t865["hi"];
-      let t895 = t901 == t840;
-      let t898 = t895 ? t842 : t901;
+      let t895 = t901 == -1;
+      let t898 = t895 ? 100000000000.0 : t901;
       let t879 = t898 - t890;
-      let t880 = Math.min(Math.max(t875, t824), t879);
+      let t880 = Math.min(Math.max(t875, 0), t879);
       let t910 = t865["rate"];
       let t869 = t880 * t910;
       acc863 += t869;

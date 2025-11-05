@@ -20,14 +20,11 @@ export function _difference(input) {
 }
 
 export function _results_array(input) {
-  const t10 = 1;
   let t11 = input["x"];
-  const t12 = 10;
-  let t13 = t11 + t12;
+  let t13 = t11 + 10;
   let t14 = input["y"];
-  const t15 = 2;
-  let t16 = t14 * t15;
-  let t17 = [t10, t13, t16];
+  let t16 = t14 * 2;
+  let t17 = [1, t13, t16];
   return t17;
 }
 

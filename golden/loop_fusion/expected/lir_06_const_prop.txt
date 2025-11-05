@@ -22,8 +22,8 @@
       %t14 = load_field departments_el_11["employees"] :: any
       loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
         %t17 = load_field employees_el_15["role"] :: string
-        %t19 = call core.eq(%t17, %t18) :: boolean
-        %t22 = select %t19, %t20, %t21 :: integer
+        %t19 = call core.eq(%t17, %__immediate_placeholder__) :: boolean
+        %t22 = select %t19, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc_13 = acc_add agg.sum(%acc_13, %t22) :: integer
       end_loop
       %t23 = acc_load %acc_13 :: integer
@@ -44,8 +44,8 @@
         %t37 = load_field t35["salary"] :: integer
         %acc33 = acc_add agg.sum(%acc33, %t37) :: integer
         %t45 = load_field t35["role"] :: string
-        %t47 = call core.eq(%t45, %t46) :: boolean
-        %t50 = select %t47, %t48, %t49 :: integer
+        %t47 = call core.eq(%t45, %__immediate_placeholder__) :: boolean
+        %t50 = select %t47, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc41 = acc_add agg.sum(%acc41, %t50) :: integer
       end_loop
       %t38 = acc_load %acc33 :: integer

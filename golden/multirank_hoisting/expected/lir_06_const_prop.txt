@@ -2,14 +2,14 @@
   (Declaration global_offset_plus
     %t1 = load_input "global_offset" :: float
     %t2 = const 1.0 :: float
-    %t3 = call core.add(%t1, %t2) :: float
+    %t3 = call core.add(%t1, %__immediate_placeholder__) :: float
     yield %t3
   )
   (Declaration batch_bias
     %t4 = load_input "batch" :: array
     %t54 = load_input "global_offset" :: float
     %t55 = const 1.0 :: float
-    %t56 = call core.add(%t54, %t55) :: float
+    %t56 = call core.add(%t54, %__immediate_placeholder__) :: float
     loop batch id=L1 in %t4 as el=%batch_el_5, idx=%batch_i_6
       %t7 = load_field batch_el_5["mean"] :: float
       %t9 = call core.add(%t7, %t56) :: float
@@ -23,7 +23,7 @@
       %t13 = load_field batch_el_11["row"] :: any
       loop row id=L3 in %t13 as el=%row_el_14, idx=%row_i_15
         %t16 = load_field row_el_14["scale"] :: float
-        %t18 = call core.mul:numeric(%t16, %t17) :: float
+        %t18 = call core.mul:numeric(%t16, %__immediate_placeholder__) :: float
         yield %t18
       end_loop
     end_loop
@@ -31,7 +31,7 @@
   (Declaration elem_affine
     %t66 = load_input "global_offset" :: float
     %t67 = const 1.0 :: float
-    %t68 = call core.add(%t66, %t67) :: float
+    %t68 = call core.add(%t66, %__immediate_placeholder__) :: float
     %t19 = load_input "batch" :: array
     %t60 = const 2.0 :: float
     loop batch id=L4 in %t19 as el=%batch_el_20, idx=%batch_i_21
@@ -40,7 +40,7 @@
       %t65 = call core.add(%t64, %t68) :: float
       loop row id=L5 in %t22 as el=%row_el_23, idx=%row_i_24
         %t59 = load_field row_el_23["scale"] :: float
-        %t61 = call core.mul:numeric(%t59, %t60) :: float
+        %t61 = call core.mul:numeric(%t59, %__immediate_placeholder__) :: float
         %t25 = load_field row_el_23["col"] :: any
         loop col id=L6 in %t25 as el=%col_el_26, idx=%col_i_27
           %t28 = load_field col_el_26["val"] :: float
@@ -54,7 +54,7 @@
   (Declaration row_sum_affine
     %t86 = load_input "global_offset" :: float
     %t87 = const 1.0 :: float
-    %t88 = call core.add(%t86, %t87) :: float
+    %t88 = call core.add(%t86, %__immediate_placeholder__) :: float
     %t33 = load_input "batch" :: array
     %t80 = const 2.0 :: float
     loop batch id=L7 in %t33 as el=%batch_el_34, idx=%batch_i_35
@@ -63,7 +63,7 @@
       %t85 = call core.add(%t84, %t88) :: float
       loop row id=L8 in %t36 as el=%row_el_37, idx=%row_i_38
         %t79 = load_field row_el_37["scale"] :: float
-        %t81 = call core.mul:numeric(%t79, %t80) :: float
+        %t81 = call core.mul:numeric(%t79, %__immediate_placeholder__) :: float
         %acc_39 = decl_acc :: float
         %t40 = load_field row_el_37["col"] :: any
         loop col id=L9 in %t40 as el=%col_el_41, idx=%col_i_42
@@ -80,7 +80,7 @@
   (Declaration batch_total_affine
     %t115 = load_input "global_offset" :: float
     %t116 = const 1.0 :: float
-    %t117 = call core.add(%t115, %t116) :: float
+    %t117 = call core.add(%t115, %__immediate_placeholder__) :: float
     %t45 = load_input "batch" :: array
     %t109 = const 2.0 :: float
     loop batch id=L10 in %t45 as el=%batch_el_46, idx=%batch_i_47
@@ -90,7 +90,7 @@
       %t114 = call core.add(%t113, %t117) :: float
       loop row id=L11 in %t49 as el=%row_el_50, idx=%row_i_51
         %t108 = load_field row_el_50["scale"] :: float
-        %t110 = call core.mul:numeric(%t108, %t109) :: float
+        %t110 = call core.mul:numeric(%t108, %__immediate_placeholder__) :: float
         %acc92 = decl_acc :: float
         %t93 = load_field row_el_50["col"] :: any
         loop col id=L12 in %t93 as el=%t94, idx=%t95

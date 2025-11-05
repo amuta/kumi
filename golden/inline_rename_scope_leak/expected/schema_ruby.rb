@@ -21,9 +21,7 @@ module Kumi::Compiled::KUMI_1c5ec0a5902db36fe1c3556a7d8eec25899f371005cfe3097427
   end
 
   def self._tail(input)
-    t13 = 7.0
-    t14 = 5.0
-    t13 + t14
+    7.0 + 5.0
   end
 
   def self._out(input)
@@ -41,9 +39,7 @@ module Kumi::Compiled::KUMI_1c5ec0a5902db36fe1c3556a7d8eec25899f371005cfe3097427
       acc28 += t32
     end
     t33 = acc28
-    t34 = 7.0
-    t35 = 5.0
-    t36 = t34 + t35
+    t36 = 7.0 + 5.0
     t19 = {
       "x" => t26,
       "y" => t33,

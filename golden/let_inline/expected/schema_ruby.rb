@@ -6,7 +6,6 @@ module Kumi::Compiled::KUMI_85ebac3fbe127b54b4657dcaa93e0d25460b802e4e348730c923
     t25 = input["y"] || input[:y]
     t27 = t25 * t25
     t21 = t24 + t27
-    t11 = 0.5
-    t21 ** t11
+    t21 ** 0.5
   end
 end

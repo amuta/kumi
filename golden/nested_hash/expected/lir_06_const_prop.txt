@@ -4,7 +4,7 @@
     %t2 = load_field t1["y"] :: any
     %t3 = load_field t2["z"] :: integer
     %t4 = const 2 :: integer
-    %t5 = call core.mul:numeric(%t3, %t4) :: integer
+    %t5 = call core.mul:numeric(%t3, %__immediate_placeholder__) :: integer
     yield %t5
   )
 )

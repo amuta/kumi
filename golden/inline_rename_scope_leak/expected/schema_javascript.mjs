@@ -19,9 +19,7 @@ export function _sum_y(input) {
 }
 
 export function _tail(input) {
-  const t13 = 7.0;
-  const t14 = 5.0;
-  let t15 = t13 + t14;
+  let t15 = 7.0 + 5.0;
   return t15;
 }
 
@@ -38,9 +36,7 @@ export function _out(input) {
     let t32 = t30["v"];
     acc28 += t32;
   });
-  const t34 = 7.0;
-  const t35 = 5.0;
-  let t36 = t34 + t35;
+  let t36 = 7.0 + 5.0;
   let t19 = {
     "x": acc21,
     "y": acc28,
