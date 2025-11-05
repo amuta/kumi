@@ -9,7 +9,7 @@ module Kumi::Compiled::KUMI_b5ebd6e70d1cabf1a7a46519e06a3d5dcffd6fae56cf1adc020a
       t6 = cells_i_3 - 1
       t8 = t6 >= 0
       t9 = t6 < t4
-      t14 = [[ t6, 0 ].max, t12 ].min
+      t14 = t6.clamp(0, t12)
       t10 = t8 && t9
       t15 = t1[t14]
       t17 = t10 ? t15 : 0
@@ -27,7 +27,7 @@ module Kumi::Compiled::KUMI_b5ebd6e70d1cabf1a7a46519e06a3d5dcffd6fae56cf1adc020a
       t23 = cells_i_20 - -1
       t25 = t23 >= 0
       t26 = t23 < t21
-      t31 = [[ t23, 0 ].max, t29 ].min
+      t31 = t23.clamp(0, t29)
       t27 = t25 && t26
       t32 = t18[t31]
       t34 = t27 ? t32 : 0
@@ -43,7 +43,7 @@ module Kumi::Compiled::KUMI_b5ebd6e70d1cabf1a7a46519e06a3d5dcffd6fae56cf1adc020a
     t42 = t38 - 1
     t35.each_with_index do |cells_el_36, cells_i_37|
       t40 = cells_i_37 - 1
-      t44 = [[ t40, 0 ].max, t42 ].min
+      t44 = t40.clamp(0, t42)
       t45 = t35[t44]
       out << t45
     end
@@ -57,7 +57,7 @@ module Kumi::Compiled::KUMI_b5ebd6e70d1cabf1a7a46519e06a3d5dcffd6fae56cf1adc020a
     t53 = t49 - 1
     t46.each_with_index do |cells_el_47, cells_i_48|
       t51 = cells_i_48 - -1
-      t55 = [[ t51, 0 ].max, t53 ].min
+      t55 = t51.clamp(0, t53)
       t56 = t46[t55]
       out << t56
     end

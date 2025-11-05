@@ -17,7 +17,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
         t15 = t13 >= 0
         t16 = t13 < t11
         t17 = t15 && t16
-        t21 = [[ t13, 0 ].max, t19 ].min
+        t21 = t13.clamp(0, t19)
         t22 = t10[t21]
         t24 = t17 ? t22 : 0
         out_1 << t24
@@ -41,7 +41,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
       t39 = t35 - 1
       rows_el_26.each_with_index do |col_el_28, col_i_29|
         t37 = col_i_29 - 1
-        t41 = [[ t37, 0 ].max, t39 ].min
+        t41 = t37.clamp(0, t39)
         t42 = t34[t41]
         out_1 << t42
       end
@@ -91,7 +91,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
         t74 = t72 >= 0
         t75 = t72 < t70
         t76 = t74 && t75
-        t80 = [[ t72, 0 ].max, t78 ].min
+        t80 = t72.clamp(0, t78)
         t81 = t69[t80]
         t83 = t76 ? t81 : 0
         out_1 << t83
@@ -115,7 +115,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
       t98 = t94 - 1
       rows_el_85.each_with_index do |col_el_87, col_i_88|
         t96 = col_i_88 - -1
-        t100 = [[ t96, 0 ].max, t98 ].min
+        t100 = t96.clamp(0, t98)
         t101 = t93[t100]
         out_1 << t101
       end
@@ -158,7 +158,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
       t126 = rows_i_121 - 1
       t128 = t126 >= 0
       t129 = t126 < t124
-      t134 = [[ t126, 0 ].max, t132 ].min
+      t134 = t126.clamp(0, t132)
       t130 = t128 && t129
       t135 = t119[t134]
       t136 = t135.length
@@ -183,7 +183,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
     t143.each_with_index do |rows_el_144, rows_i_145|
       out_1 = []
       t150 = rows_i_145 - 1
-      t154 = [[ t150, 0 ].max, t152 ].min
+      t154 = t150.clamp(0, t152)
       t155 = t143[t154]
       t156 = t155.length
       rows_el_144.each_with_index do |col_el_146, col_i_147|
@@ -232,7 +232,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
       t185 = rows_i_180 - -1
       t187 = t185 >= 0
       t188 = t185 < t183
-      t193 = [[ t185, 0 ].max, t191 ].min
+      t193 = t185.clamp(0, t191)
       t189 = t187 && t188
       t194 = t178[t193]
       t195 = t194.length
@@ -257,7 +257,7 @@ module Kumi::Compiled::KUMI_2e82070513c0a33e679b3378abf4f57f57462dacfb30dd0c5f51
     t202.each_with_index do |rows_el_203, rows_i_204|
       out_1 = []
       t209 = rows_i_204 - -1
-      t213 = [[ t209, 0 ].max, t211 ].min
+      t213 = t209.clamp(0, t211)
       t214 = t202[t213]
       t215 = t214.length
       rows_el_203.each_with_index do |col_el_205, col_i_206|

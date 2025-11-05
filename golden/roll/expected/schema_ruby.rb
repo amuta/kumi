@@ -37,7 +37,7 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     t28 = t24 - 1
     t21.each_with_index do |cells_el_22, cells_i_23|
       t26 = cells_i_23 - 1
-      t30 = [[ t26, 0 ].max, t28 ].min
+      t30 = t26.clamp(0, t28)
       t31 = t21[t30]
       out << t31
     end
@@ -51,7 +51,7 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     t39 = t35 - 1
     t32.each_with_index do |cells_el_33, cells_i_34|
       t37 = cells_i_34 - -1
-      t41 = [[ t37, 0 ].max, t39 ].min
+      t41 = t37.clamp(0, t39)
       t42 = t32[t41]
       out << t42
     end

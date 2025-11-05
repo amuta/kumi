@@ -65,7 +65,7 @@ module Kumi::Compiled::KUMI_10d24737af0cd29fba6597e5c51a6a6fa81bdc09b7495873e624
         t895 = t901 == -1
         t898 = t895 ? 100000000000.0 : t901
         t879 = t898 - t890
-        t880 = [[ t875, 0 ].max, t879 ].min
+        t880 = t875.clamp(0, t879)
         t910 = t865["rate"] || t865[:rate]
         t869 = t880 * t910
         acc863 += t869
