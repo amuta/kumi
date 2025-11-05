@@ -1,16 +1,14 @@
 (LIR
   (Declaration interest
     %t1 = load_input "amount" :: decimal
-    %t2 = const 1.05 :: float
-    %t3 = call core.mul:numeric(%t1, %__immediate_placeholder__) :: float
+    %t3 = call core.mul:numeric(%t1, 1.05) :: float
     %t4 = load_input "rate" :: decimal
     %t5 = importschemacall %t3, %t4 fn_name="annual_interest" source_module="Kumi::TestSharedSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
     yield %t5
   )
   (Declaration total_over_periods
     %t12 = load_input "amount" :: decimal
-    %t13 = const 1.05 :: float
-    %t14 = call core.mul:numeric(%t12, %__immediate_placeholder__) :: float
+    %t14 = call core.mul:numeric(%t12, 1.05) :: float
     %t15 = load_input "rate" :: decimal
     %t16 = importschemacall %t14, %t15 fn_name="annual_interest" source_module="Kumi::TestSharedSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
     %t7 = load_input "periods" :: integer
@@ -19,14 +17,12 @@
   )
   (Declaration doubled
     %t20 = load_input "amount" :: decimal
-    %t21 = const 1.05 :: float
-    %t22 = call core.mul:numeric(%t20, %__immediate_placeholder__) :: float
+    %t22 = call core.mul:numeric(%t20, 1.05) :: float
     %t23 = load_input "rate" :: decimal
     %t24 = importschemacall %t22, %t23 fn_name="annual_interest" source_module="Kumi::TestSharedSchemas::Compound" input_mapping_keys=["principal", "rate"] :: decimal
     %t18 = load_input "periods" :: integer
     %t19 = call core.mul:numeric(%t24, %t18) :: integer
-    %t10 = const 2 :: integer
-    %t11 = call core.mul:numeric(%t19, %__immediate_placeholder__) :: integer
+    %t11 = call core.mul:numeric(%t19, 2) :: integer
     yield %t11
   )
 )

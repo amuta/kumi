@@ -38,28 +38,44 @@ module Kumi
 
             def optimize_decl(ops)
               rewritten = ops.map(&:dup)
+              use_counts = Hash.new(0)
+
+              rewritten.each do |ins|
+                Array(ins.inputs).each do |reg|
+                  use_counts[reg] += 1 if reg
+                end
+              end
+
               constants = {}
 
               LIR::Peephole.run(rewritten) do |window|
                 ins = window.current
                 break unless ins
 
-                substituted = substitute_inputs(ins, constants)
+                substitution = substitute_inputs(ins, constants)
 
-                if substituted
-                  ins = substituted
-                  window.replace(1, with: ins)
+                if substitution
+                  new_ins, replaced_regs = substitution
+                  window.replace(1, with: new_ins)
+                  replaced_regs.each do |reg|
+                    use_counts[reg] -= 1
+                  end
                 end
 
-                register = ins.result_register
+                register = window.result_register
                 constants.delete(register) if register
 
-                if register && ins.opcode == :Constant
-                  literal = Array(ins.immediates).first
+                if register && window.const?
+                  literal = window.literal
                   constants[register] = literal if literal
                 end
 
                 window.skip
+              end
+
+              rewritten.reject! do |ins|
+                reg = ins.result_register
+                ins.opcode == :Constant && reg && use_counts[reg].zero?
               end
 
               rewritten
@@ -72,12 +88,14 @@ module Kumi
               new_inputs = []
               new_imms   = []
               changed    = false
+              replaced_regs = []
 
               original_inputs.each do |reg|
                 if (literal = constants[reg])
                   new_inputs << :__immediate_placeholder__
                   new_imms << literal
                   changed = true
+                  replaced_regs << reg
                 else
                   new_inputs << reg
                 end
@@ -88,7 +106,7 @@ module Kumi
 
               return unless changed
 
-              LIR::Instruction.new(
+              instruction = LIR::Instruction.new(
                 opcode: ins.opcode,
                 result_register: ins.result_register,
                 stamp: ins.stamp,
@@ -97,6 +115,7 @@ module Kumi
                 attributes: ins.attributes,
                 location: ins.location
               )
+              [instruction, replaced_regs]
             end
           end
         end

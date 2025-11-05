@@ -10,23 +10,20 @@
   )
   (Declaration is_john
     %t7 = load_input "users" :: array
-    %t11 = const "John" :: string
     loop users id=L2 in %t7 as el=%users_el_8, idx=%users_i_9
       %t10 = load_field users_el_8["name"] :: string
-      %t12 = call core.eq(%t10, %__immediate_placeholder__) :: boolean
+      %t12 = call core.eq(%t10, "John") :: boolean
       yield %t12
     end_loop
   )
   (Declaration john_user
     %t13 = load_input "users" :: array
-    %t22 = const "John" :: string
-    %t18 = const "NOT_JOHN" :: string
     loop users id=L3 in %t13 as el=%users_el_14, idx=%users_i_15
       %t21 = load_field users_el_14["name"] :: string
       %t26 = load_field users_el_14["state"] :: string
-      %t23 = call core.eq(%t21, %__immediate_placeholder__) :: boolean
+      %t23 = call core.eq(%t21, "John") :: boolean
       %t27 = make_object{name: %t21, state: %t26} :: object
-      %t19 = select %t23, %t27, %__immediate_placeholder__ :: hash
+      %t19 = select %t23, %t27, "NOT_JOHN" :: hash
       yield %t19
     end_loop
   )

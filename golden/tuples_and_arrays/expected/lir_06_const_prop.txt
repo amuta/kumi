@@ -1,31 +1,28 @@
 (LIR
   (Declaration x_is_large
     %t1 = load_input "points" :: array
-    %t5 = const 100 :: integer
     loop points id=L1 in %t1 as el=%points_el_2, idx=%points_i_3
       %t4 = load_field points_el_2["x"] :: integer
-      %t6 = call core.gt(%t4, %__immediate_placeholder__) :: boolean
+      %t6 = call core.gt(%t4, 100) :: boolean
       yield %t6
     end_loop
   )
   (Declaration selected_value
     %t7 = load_input "points" :: array
-    %t29 = const 100 :: integer
     loop points id=L2 in %t7 as el=%points_el_8, idx=%points_i_9
       %t28 = load_field points_el_8["x"] :: integer
       %t12 = load_field points_el_8["y"] :: integer
-      %t30 = call core.gt(%t28, %__immediate_placeholder__) :: boolean
+      %t30 = call core.gt(%t28, 100) :: boolean
       %t13 = select %t30, %t28, %t12 :: integer
       yield %t13
     end_loop
   )
   (Declaration final_value_per_point
     %t14 = load_input "points" :: array
-    %t38 = const 100 :: integer
     loop points id=L3 in %t14 as el=%points_el_15, idx=%points_i_16
       %t37 = load_field points_el_15["x"] :: integer
       %t34 = load_field points_el_15["y"] :: integer
-      %t39 = call core.gt(%t37, %__immediate_placeholder__) :: boolean
+      %t39 = call core.gt(%t37, 100) :: boolean
       %t35 = select %t39, %t37, %t34 :: integer
       %t19 = make_tuple(%t35, %t37) :: tuple<integer, integer>
       %t20 = fold %t19 fn="agg.max" :: integer
@@ -35,11 +32,10 @@
   (Declaration grand_total
     %acc_21 = decl_acc :: integer
     %t22 = load_input "points" :: array
-    %t52 = const 100 :: integer
     loop points id=L4 in %t22 as el=%points_el_23, idx=%points_i_24
       %t51 = load_field points_el_23["x"] :: integer
       %t48 = load_field points_el_23["y"] :: integer
-      %t53 = call core.gt(%t51, %__immediate_placeholder__) :: boolean
+      %t53 = call core.gt(%t51, 100) :: boolean
       %t49 = select %t53, %t51, %t48 :: integer
       %t43 = make_tuple(%t49, %t51) :: tuple<integer, integer>
       %t44 = fold %t43 fn="agg.max" :: integer

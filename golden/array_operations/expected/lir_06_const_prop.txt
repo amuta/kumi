@@ -10,37 +10,33 @@
   )
   (Declaration discounted_price
     %t7 = load_input "items" :: array
-    %t11 = const 0.9 :: float
     loop items id=L2 in %t7 as el=%items_el_8, idx=%items_i_9
       %t10 = load_field items_el_8["price"] :: float
-      %t12 = call core.mul:numeric(%t10, %__immediate_placeholder__) :: float
+      %t12 = call core.mul:numeric(%t10, 0.9) :: float
       yield %t12
     end_loop
   )
   (Declaration is_valid_quantity
     %t13 = load_input "items" :: array
-    %t17 = const 0 :: integer
     loop items id=L3 in %t13 as el=%items_el_14, idx=%items_i_15
       %t16 = load_field items_el_14["quantity"] :: integer
-      %t18 = call core.gt(%t16, %__immediate_placeholder__) :: boolean
+      %t18 = call core.gt(%t16, 0) :: boolean
       yield %t18
     end_loop
   )
   (Declaration expensive_items
     %t19 = load_input "items" :: array
-    %t23 = const 100.0 :: float
     loop items id=L4 in %t19 as el=%items_el_20, idx=%items_i_21
       %t22 = load_field items_el_20["price"] :: float
-      %t24 = call core.gt(%t22, %__immediate_placeholder__) :: boolean
+      %t24 = call core.gt(%t22, 100.0) :: boolean
       yield %t24
     end_loop
   )
   (Declaration electronics
     %t25 = load_input "items" :: array
-    %t29 = const "electronics" :: string
     loop items id=L5 in %t25 as el=%items_el_26, idx=%items_i_27
       %t28 = load_field items_el_26["category"] :: string
-      %t30 = call core.eq(%t28, %__immediate_placeholder__) :: boolean
+      %t30 = call core.eq(%t28, "electronics") :: boolean
       yield %t30
     end_loop
   )

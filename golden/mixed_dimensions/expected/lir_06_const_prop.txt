@@ -42,7 +42,6 @@
     end_loop
   )
   (Declaration constant
-    %t26 = const 42 :: integer
     yield %__immediate_placeholder__
   )
 )

@@ -41,7 +41,14 @@ RSpec.describe Kumi::Core::LIR::Peephole do
       ops << build.constant(value: 0, dtype: :integer, as: :z, ids: ids)
       ops << build.constant(value: 42, dtype: :integer, as: :answer, ids: ids)
 
-      described_class.run(ops) { |window| window.zero? ? window.delete : window.skip }
+      described_class.run(ops) do |window|
+        if window.zero?
+          expect(window.opcode).to eq(:Constant)
+          window.delete
+        else
+          window.skip
+        end
+      end
 
       expect(ops.length).to eq(1)
       expect(ops.first.opcode).to eq(:Constant)
@@ -56,11 +63,12 @@ RSpec.describe Kumi::Core::LIR::Peephole do
       seen = []
 
       described_class.run(ops) do |window|
-        seen << [window.const?, window.zero?, window.literal_value]
+        seen << [window.const?, window.zero?, window.literal_value, window.result_register]
         window.skip
       end
 
-      expect(seen).to eq([[true, true, 0], [true, false, 7]])
+      expect(seen.map { [_1[0], _1[1], _1[2]] }).to eq([[true, true, 0], [true, false, 7]])
+      expect(seen.map(&:last)).to all(be_a(Symbol))
     end
   end
 end

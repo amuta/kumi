@@ -14,16 +14,13 @@
   )
   (Declaration manager_count
     %t10 = load_input "departments" :: array
-    %t18 = const "manager" :: string
-    %t20 = const 1 :: integer
-    %t21 = const 0 :: integer
     loop departments id=L3 in %t10 as el=%departments_el_11, idx=%departments_i_12
       %acc_13 = decl_acc :: integer
       %t14 = load_field departments_el_11["employees"] :: any
       loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
         %t17 = load_field employees_el_15["role"] :: string
-        %t19 = call core.eq(%t17, %__immediate_placeholder__) :: boolean
-        %t22 = select %t19, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t19 = call core.eq(%t17, "manager") :: boolean
+        %t22 = select %t19, 1, 0 :: integer
         %acc_13 = acc_add agg.sum(%acc_13, %t22) :: integer
       end_loop
       %t23 = acc_load %acc_13 :: integer
@@ -32,16 +29,13 @@
   )
   (Declaration senior_employee_count
     %t24 = load_input "departments" :: array
-    %t32 = const "senior" :: string
-    %t34 = const 1 :: integer
-    %t35 = const 0 :: integer
     loop departments id=L5 in %t24 as el=%departments_el_25, idx=%departments_i_26
       %acc_27 = decl_acc :: integer
       %t28 = load_field departments_el_25["employees"] :: any
       loop employees id=L6 in %t28 as el=%employees_el_29, idx=%employees_i_30
         %t31 = load_field employees_el_29["role"] :: string
-        %t33 = call core.eq(%t31, %__immediate_placeholder__) :: boolean
-        %t36 = select %t33, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t33 = call core.eq(%t31, "senior") :: boolean
+        %t36 = select %t33, 1, 0 :: integer
         %acc_27 = acc_add agg.sum(%acc_27, %t36) :: integer
       end_loop
       %t37 = acc_load %acc_27 :: integer
@@ -63,10 +57,6 @@
   )
   (Declaration department_summary
     %t47 = load_input "departments" :: array
-    %t71 = const "manager" :: string
-    %t73 = const 1 :: integer
-    %t74 = const 0 :: integer
-    %t84 = const "senior" :: string
     loop departments id=L9 in %t47 as el=%departments_el_48, idx=%departments_i_49
       %t50 = load_field departments_el_48["name"] :: string
       %acc58 = decl_acc :: integer
@@ -78,12 +68,12 @@
         %t62 = load_field t60["salary"] :: integer
         %acc58 = acc_add agg.sum(%acc58, %t62) :: integer
         %t70 = load_field t60["role"] :: string
-        %t72 = call core.eq(%t70, %__immediate_placeholder__) :: boolean
-        %t75 = select %t72, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t72 = call core.eq(%t70, "manager") :: boolean
+        %t75 = select %t72, 1, 0 :: integer
         %acc66 = acc_add agg.sum(%acc66, %t75) :: integer
         %acc92 = acc_add agg.max(%acc92, %t62) :: integer
-        %t85 = call core.eq(%t70, %__immediate_placeholder__) :: boolean
-        %t88 = select %t85, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+        %t85 = call core.eq(%t70, "senior") :: boolean
+        %t88 = select %t85, 1, 0 :: integer
         %acc79 = acc_add agg.sum(%acc79, %t88) :: integer
       end_loop
       %t63 = acc_load %acc58 :: integer

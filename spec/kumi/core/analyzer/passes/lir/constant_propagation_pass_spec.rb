@@ -25,12 +25,13 @@ RSpec.describe Kumi::Core::Analyzer::Passes::LIR::ConstantPropagationPass do
     new_state = pass.run([])
     new_ops = new_state[:lir_module]["demo"][:operations]
 
-    kernel = new_ops[2]
+    kernel = new_ops[1]
     expect(kernel.inputs.first).to eq(:__immediate_placeholder__)
     expect(kernel.inputs.last).to eq(:val)
 
     literal = kernel.immediates.first
     expect(literal.value).to eq(10)
     expect(new_state[:lir_06_const_prop]).to eq(new_state[:lir_module])
+    expect(new_ops.map(&:opcode)).to eq(%i[LoadInput KernelCall Yield])
   end
 end

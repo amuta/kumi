@@ -53,8 +53,10 @@ module Kumi
 
           def current = instruction(0)
 
-          def instruction(offset = 0)
-            @ops[@index + offset]
+          def instruction(offset = 0) = @ops[@index + offset]
+
+          def opcode(offset = 0)
+            instruction(offset)&.opcode
           end
 
           def instructions(count)
@@ -66,6 +68,10 @@ module Kumi
               ins = instruction(off)
               ins&.respond_to?(:opcode) && ins.opcode == opcode
             end
+          end
+
+          def result_register(offset = 0)
+            instruction(offset)&.result_register
           end
 
           def const?(offset = 0, value: nil)

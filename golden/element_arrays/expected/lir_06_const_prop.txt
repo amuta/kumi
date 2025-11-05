@@ -29,11 +29,10 @@
   )
   (Declaration cell_over_limit
     %t17 = load_input "cube" :: array
-    %t24 = const 100 :: integer
     loop cube id=L7 in %t17 as el=%cube_el_18, idx=%cube_i_19
       loop layer id=L8 in %cube_el_18 as el=%layer_el_20, idx=%layer_i_21
         loop row id=L9 in %layer_el_20 as el=%row_el_22, idx=%row_i_23
-          %t25 = call core.gt(%row_el_22, %__immediate_placeholder__) :: boolean
+          %t25 = call core.gt(%row_el_22, 100) :: boolean
           yield %t25
         end_loop
       end_loop
@@ -41,14 +40,12 @@
   )
   (Declaration cell_sum
     %t26 = load_input "cube" :: array
-    %t56 = const 100 :: integer
-    %t35 = const 0 :: integer
     loop cube id=L10 in %t26 as el=%cube_el_27, idx=%cube_i_28
       loop layer id=L11 in %cube_el_27 as el=%layer_el_29, idx=%layer_i_30
         %acc_31 = decl_acc :: integer
         loop row id=L12 in %layer_el_29 as el=%row_el_32, idx=%row_i_33
-          %t57 = call core.gt(%row_el_32, %__immediate_placeholder__) :: boolean
-          %t36 = select %t57, %row_el_32, %__immediate_placeholder__ :: integer
+          %t57 = call core.gt(%row_el_32, 100) :: boolean
+          %t36 = select %t57, %row_el_32, 0 :: integer
           %acc_31 = acc_add agg.sum(%acc_31, %t36) :: integer
         end_loop
         %t37 = acc_load %acc_31 :: integer
@@ -59,16 +56,13 @@
   (Declaration count_over_limit
     %acc_38 = decl_acc :: integer
     %t39 = load_input "cube" :: array
-    %t59 = const 100 :: integer
-    %t49 = const 1 :: integer
-    %t50 = const 0 :: integer
     loop cube id=L13 in %t39 as el=%cube_el_40, idx=%cube_i_41
       %acc_42 = decl_acc :: integer
       loop layer id=L14 in %cube_el_40 as el=%layer_el_43, idx=%layer_i_44
         %acc_45 = decl_acc :: integer
         loop row id=L15 in %layer_el_43 as el=%row_el_46, idx=%row_i_47
-          %t60 = call core.gt(%row_el_46, %__immediate_placeholder__) :: boolean
-          %t51 = select %t60, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
+          %t60 = call core.gt(%row_el_46, 100) :: boolean
+          %t51 = select %t60, 1, 0 :: integer
           %acc_45 = acc_add agg.sum(%acc_45, %t51) :: integer
         end_loop
         %t52 = acc_load %acc_45 :: integer
