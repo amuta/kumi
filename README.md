@@ -31,13 +31,15 @@ Calculation systems appear in: tax engines, pricing models, financial projection
 
 **Status**: experimental. Public API may change. Typing and some static checks are still evolving.
 
-**Feedback**: have a use case or hit a rough edge? Open an issue or reach out.
+**Feedback**: have a use case or hit a rough edge? Open an issue or reach out (andremuta+kumi@gmail.com).
 
 ---
 
-## Example: US Tax Calculator (2024)
+## Examples
 
-A single schema computes federal, state, FICA taxes across multiple filing statuses. See the [interactive demo](https://kumi-play-web.fly.dev/?example=us-federal-tax-2024).
+- **US Tax Calculator (2024)** — a single schema computes federal, state, and FICA taxes across multiple filing statuses. [Open in the demo](https://kumi-play-web.fly.dev/?example=us-federal-tax-2024).
+- **Monte Carlo Portfolio** — demonstrates probabilistic simulations and table visualizations. [Open in the demo](https://kumi-play-web.fly.dev/?example=monte-carlo-simulation).
+- **Conway's Game of Life** — showcases array operations powering a grid-based simulation. [Open in the demo](https://kumi-play-web.fly.dev/?example=game-of-life).
 
 ---
 
@@ -53,12 +55,6 @@ Requires Ruby 3.1+. No external dependencies.
 
 ```ruby
 require 'kumi'
-
-Kumi.configure do |config|
-  # Optional defaults to ENV["KUMI_COMPILATION_MODE"] or :jit in development/:aot otherwise (v0.0.33+)
-  config.compilation_mode = :jit
-  config.cache_path = File.expand_path("tmp/kumi_cache", __dir__)
-end
 
 module Double
   extend Kumi::Schema
@@ -78,10 +74,16 @@ Double._doubled(x: 5) # => 10
 
 # Export to JavaScript (same logic)
 Double.write_source("output.mjs", platform: :javascript)
+# ./output.mjs
+# export function _doubled(input) {
+#   let t1 = input["x"];
+#   let t3 = t1 * 2;
+#   return t3;
+# }
 ```
 
 You can also override the compilation strategy without touching code by setting
-`KUMI_COMPILATION_MODE` to `jit` or `aot` (e.g. `export KUMI_COMPILATION_MODE=jit`).
+`KUMI_COMPILATION_MODE` to `jit` or `aot` (e.g. `export KUMI_COMPILATION_MODE=aot`).
 
 Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
 

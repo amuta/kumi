@@ -53,7 +53,7 @@ module Kumi
     # refresh" experience, and AOT for production to ensure fast boots
     # and catch precompilation errors in CI.
     def default_compilation_mode
-      override = ENV["KUMI_COMPILATION_MODE"]
+      override = ENV.fetch("KUMI_COMPILATION_MODE", nil)
       if override && !override.strip.empty?
         normalized = override.strip.downcase.to_sym
         return normalized if %i[jit aot].include?(normalized)
@@ -61,10 +61,7 @@ module Kumi
         warn "[kumi] Ignoring invalid KUMI_COMPILATION_MODE=#{override.inspect}; falling back to environment-based default"
       end
 
-      # RACK_ENV is a common standard, but Rails.env is more specific.
-      env = defined?(Rails) ? Rails.env.to_s : ENV.fetch("RACK_ENV", nil)
-
-      env == "development" ? :jit : :aot
+      :jit
     end
   end
 end
