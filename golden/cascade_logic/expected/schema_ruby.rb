@@ -2,29 +2,22 @@
 module Kumi::Compiled::KUMI_b7d70a0f26b02f4829d18e5f9e1a5f0ad3d852c29f874e504fbacf6117eda08e
   def self._y_positive(input)
     t1 = input["y"] || input[:y]
-    t2 = 0
-    t1 > t2
+    t1 > 0
   end
 
   def self._x_positive(input)
     t4 = input["x"] || input[:x]
-    t5 = 0
-    t4 > t5
+    t4 > 0
   end
 
   def self._status(input)
     t19 = input["y"] || input[:y]
-    t20 = 0
-    t21 = t19 > t20
+    t21 = t19 > 0
     t22 = input["x"] || input[:x]
-    t24 = t22 > t20
+    t24 = t22 > 0
     t9 = t21 && t24
-    t10 = "both positive"
-    t12 = "x positive"
-    t14 = "y positive"
-    t15 = "neither positive"
-    t16 = t21 ? t14 : t15
-    t17 = t24 ? t12 : t16
-    t9 ? t10 : t17
+    t16 = t21 ? "y positive" : "neither positive"
+    t17 = t24 ? "x positive" : t16
+    t9 ? "both positive" : t17
   end
 end

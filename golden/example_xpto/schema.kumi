@@ -1,0 +1,8 @@
+schema do
+  input do
+    integer :x
+  end
+
+  value :scaled, input.x * 10
+  value :affine, input.x * 10 + 5
+end

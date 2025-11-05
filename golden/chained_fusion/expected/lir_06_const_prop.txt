@@ -22,8 +22,8 @@
       %t14 = load_field departments_el_11["employees"] :: any
       loop employees id=L4 in %t14 as el=%employees_el_15, idx=%employees_i_16
         %t17 = load_field employees_el_15["role"] :: string
-        %t19 = call core.eq(%t17, %t18) :: boolean
-        %t22 = select %t19, %t20, %t21 :: integer
+        %t19 = call core.eq(%t17, %__immediate_placeholder__) :: boolean
+        %t22 = select %t19, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc_13 = acc_add agg.sum(%acc_13, %t22) :: integer
       end_loop
       %t23 = acc_load %acc_13 :: integer
@@ -40,8 +40,8 @@
       %t28 = load_field departments_el_25["employees"] :: any
       loop employees id=L6 in %t28 as el=%employees_el_29, idx=%employees_i_30
         %t31 = load_field employees_el_29["role"] :: string
-        %t33 = call core.eq(%t31, %t32) :: boolean
-        %t36 = select %t33, %t34, %t35 :: integer
+        %t33 = call core.eq(%t31, %__immediate_placeholder__) :: boolean
+        %t36 = select %t33, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc_27 = acc_add agg.sum(%acc_27, %t36) :: integer
       end_loop
       %t37 = acc_load %acc_27 :: integer
@@ -78,12 +78,12 @@
         %t62 = load_field t60["salary"] :: integer
         %acc58 = acc_add agg.sum(%acc58, %t62) :: integer
         %t70 = load_field t60["role"] :: string
-        %t72 = call core.eq(%t70, %t71) :: boolean
-        %t75 = select %t72, %t73, %t74 :: integer
+        %t72 = call core.eq(%t70, %__immediate_placeholder__) :: boolean
+        %t75 = select %t72, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc66 = acc_add agg.sum(%acc66, %t75) :: integer
         %acc92 = acc_add agg.max(%acc92, %t62) :: integer
-        %t85 = call core.eq(%t70, %t84) :: boolean
-        %t88 = select %t85, %t73, %t74 :: integer
+        %t85 = call core.eq(%t70, %__immediate_placeholder__) :: boolean
+        %t88 = select %t85, %__immediate_placeholder__, %__immediate_placeholder__ :: integer
         %acc79 = acc_add agg.sum(%acc79, %t88) :: integer
       end_loop
       %t63 = acc_load %acc58 :: integer

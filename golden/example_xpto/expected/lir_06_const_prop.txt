@@ -1,0 +1,16 @@
+(LIR
+  (Declaration scaled
+    %t1 = load_input "x" :: integer
+    %t2 = const 10 :: integer
+    %t3 = call core.mul:numeric(%t1, %__immediate_placeholder__) :: integer
+    yield %t3
+  )
+  (Declaration affine
+    %t4 = load_input "x" :: integer
+    %t5 = const 10 :: integer
+    %t6 = call core.mul:numeric(%t4, %__immediate_placeholder__) :: integer
+    %t7 = const 5 :: integer
+    %t8 = call core.add(%t6, %__immediate_placeholder__) :: integer
+    yield %t8
+  )
+)

@@ -46,13 +46,12 @@ module Kumi::Compiled::KUMI_3525a158791afe8aeec057c235be3e9ea2f470e504b96ad545a7
   def self._cell_over_limit(input)
     out = []
     t17 = input["cube"] || input[:cube]
-    t24 = 100
     t17.each_with_index do |cube_el_18, cube_i_19|
       out_1 = []
       cube_el_18.each_with_index do |layer_el_20, layer_i_21|
         out_2 = []
         layer_el_20.each_with_index do |row_el_22, row_i_23|
-          t25 = row_el_22 > t24
+          t25 = row_el_22 > 100
           out_2 << t25
         end
         out_1 << out_2
@@ -65,15 +64,13 @@ module Kumi::Compiled::KUMI_3525a158791afe8aeec057c235be3e9ea2f470e504b96ad545a7
   def self._cell_sum(input)
     out = []
     t26 = input["cube"] || input[:cube]
-    t56 = 100
-    t35 = 0
     t26.each_with_index do |cube_el_27, cube_i_28|
       out_1 = []
       cube_el_27.each_with_index do |layer_el_29, layer_i_30|
         acc_31 = 0
         layer_el_29.each_with_index do |row_el_32, row_i_33|
-          t57 = row_el_32 > t56
-          t36 = t57 ? row_el_32 : t35
+          t57 = row_el_32 > 100
+          t36 = t57 ? row_el_32 : 0
           acc_31 += t36
         end
         t37 = acc_31
@@ -87,16 +84,13 @@ module Kumi::Compiled::KUMI_3525a158791afe8aeec057c235be3e9ea2f470e504b96ad545a7
   def self._count_over_limit(input)
     acc_38 = 0
     t39 = input["cube"] || input[:cube]
-    t59 = 100
-    t49 = 1
-    t50 = 0
     t39.each_with_index do |cube_el_40, cube_i_41|
       acc_42 = 0
       cube_el_40.each_with_index do |layer_el_43, layer_i_44|
         acc_45 = 0
         layer_el_43.each_with_index do |row_el_46, row_i_47|
-          t60 = row_el_46 > t59
-          t51 = t60 ? t49 : t50
+          t60 = row_el_46 > 100
+          t51 = t60 ? 1 : 0
           acc_45 += t51
         end
         t52 = acc_45

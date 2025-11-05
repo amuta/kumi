@@ -1,0 +1,23 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+  ]
+  values: [
+    (ValueDeclaration :scaled
+      (CallExpression :multiply
+        (InputReference :x)
+        (Literal 10)
+      )
+    )
+    (ValueDeclaration :affine
+      (CallExpression :add
+        (CallExpression :multiply
+          (InputReference :x)
+          (Literal 10)
+        )
+        (Literal 5)
+      )
+    )
+  ]
+  traits: []
+)

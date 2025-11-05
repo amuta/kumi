@@ -23,58 +23,80 @@ module Kumi
 
             def run(_errors)
               ops_by_decl = get_state(:lir_module)
-              # out = {}
+              out = {}
 
-              # ops_by_decl.each do |name, payload|
-              #   out[name] = { operations: optimize_decl(Array(payload[:operations])) }
-              # end
+              ops_by_decl.each do |name, payload|
+                operations = Array(payload[:operations])
+                out[name] = { operations: optimize_decl(operations) }
+              end
 
-              # TODO: - make it work with new gather/length
-              # out.freeze
-              out = ops_by_decl
-              state.with(:lir_06_const_prop, out).with(:lir_module, out.freeze)
+              out.freeze
+              state.with(:lir_module, out).with(:lir_06_const_prop, out)
             end
 
             private
 
             def optimize_decl(ops)
-              known_constants = {}
-              new_ops = []
+              rewritten = ops.map(&:dup)
+              constants = {}
 
-              ops.each do |ins|
-                # --- START OF THE FIX ---
+              LIR::Peephole.run(rewritten) do |window|
+                ins = window.current
+                break unless ins
 
-                new_inputs = []
-                new_immediates = []
+                substituted = substitute_inputs(ins, constants)
 
-                # Process inputs, replacing known constants with a placeholder.
-                Array(ins.inputs).each do |input_reg|
-                  if (literal = known_constants[input_reg])
-                    new_inputs << :__immediate_placeholder__
-                    new_immediates << literal
-                  else
-                    new_inputs << input_reg
-                  end
+                if substituted
+                  ins = substituted
+                  window.replace(1, with: ins)
                 end
 
-                # Append any existing immediates after the new ones.
-                new_immediates.concat(Array(ins.immediates))
+                register = ins.result_register
+                constants.delete(register) if register
 
-                modified_ins = ins.dup
-                modified_ins.inputs = new_inputs
-                modified_ins.immediates = new_immediates
-                new_ops << modified_ins
+                if register && ins.opcode == :Constant
+                  literal = Array(ins.immediates).first
+                  constants[register] = literal if literal
+                end
 
-                # --- END OF THE FIX ---
+                window.skip
+              end
 
-                # Update the map based on the MODIFIED instruction.
-                known_constants.delete(modified_ins.result_register) if modified_ins.result_register
-                if modified_ins.opcode == :Constant && modified_ins.immediates&.first
-                  known_constants[modified_ins.result_register] = modified_ins.immediates.first
+              rewritten
+            end
+
+            def substitute_inputs(ins, constants)
+              original_inputs = Array(ins.inputs)
+              original_imms   = Array(ins.immediates)
+
+              new_inputs = []
+              new_imms   = []
+              changed    = false
+
+              original_inputs.each do |reg|
+                if (literal = constants[reg])
+                  new_inputs << :__immediate_placeholder__
+                  new_imms << literal
+                  changed = true
+                else
+                  new_inputs << reg
                 end
               end
 
-              new_ops
+              new_imms.concat(original_imms)
+              changed ||= new_imms != original_imms
+
+              return unless changed
+
+              LIR::Instruction.new(
+                opcode: ins.opcode,
+                result_register: ins.result_register,
+                stamp: ins.stamp,
+                inputs: new_inputs.empty? ? [] : new_inputs,
+                immediates: new_imms.empty? ? [] : new_imms,
+                attributes: ins.attributes,
+                location: ins.location
+              )
             end
           end
         end

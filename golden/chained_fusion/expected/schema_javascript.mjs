@@ -16,16 +16,13 @@ export function _total_payroll(input) {
 export function _manager_count(input) {
   let out = [];
   let t10 = input["departments"];
-  const t18 = "manager";
-  const t20 = 1;
-  const t21 = 0;
   t10.forEach((departments_el_11, departments_i_12) => {
     let acc_13 = 0;
     let t14 = departments_el_11["employees"];
     t14.forEach((employees_el_15, employees_i_16) => {
       let t17 = employees_el_15["role"];
-      let t19 = t17 == t18;
-      let t22 = t19 ? t20 : t21;
+      let t19 = t17 == "manager";
+      let t22 = t19 ? 1 : 0;
       acc_13 += t22;
     });
     out.push(acc_13);
@@ -36,16 +33,13 @@ export function _manager_count(input) {
 export function _senior_employee_count(input) {
   let out = [];
   let t24 = input["departments"];
-  const t32 = "senior";
-  const t34 = 1;
-  const t35 = 0;
   t24.forEach((departments_el_25, departments_i_26) => {
     let acc_27 = 0;
     let t28 = departments_el_25["employees"];
     t28.forEach((employees_el_29, employees_i_30) => {
       let t31 = employees_el_29["role"];
-      let t33 = t31 == t32;
-      let t36 = t33 ? t34 : t35;
+      let t33 = t31 == "senior";
+      let t36 = t33 ? 1 : 0;
       acc_27 += t36;
     });
     out.push(acc_27);
@@ -75,10 +69,6 @@ export function _max_salary(input) {
 export function _department_summary(input) {
   let out = [];
   let t47 = input["departments"];
-  const t71 = "manager";
-  const t73 = 1;
-  const t74 = 0;
-  const t84 = "senior";
   t47.forEach((departments_el_48, departments_i_49) => {
     let t50 = departments_el_48["name"];
     let acc58 = 0;
@@ -90,16 +80,16 @@ export function _department_summary(input) {
       let t62 = t60["salary"];
       acc58 += t62;
       let t70 = t60["role"];
-      let t72 = t70 == t71;
-      let t75 = t72 ? t73 : t74;
+      let t72 = t70 == "manager";
+      let t75 = t72 ? 1 : 0;
       acc66 += t75;
       if (acc92 === null || acc92 === undefined) {
         acc92 = t62;
       } else {
         acc92 = (acc92 === null || t62 > acc92) ? t62 : acc92;
       }
-      let t85 = t70 == t84;
-      let t88 = t85 ? t73 : t74;
+      let t85 = t70 == "senior";
+      let t88 = t85 ? 1 : 0;
       acc79 += t88;
     });
     let t55 = {

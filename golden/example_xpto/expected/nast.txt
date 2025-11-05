@@ -1,0 +1,17 @@
+(NAST
+  (VALUE scaled
+    (Call :multiply
+    (InputRef [:x])
+    (Const 10)
+  )
+  )
+  (VALUE affine
+    (Call :add
+    (Call :multiply
+      (InputRef [:x])
+      (Const 10)
+    )
+    (Const 5)
+  )
+  )
+)
