@@ -39,5 +39,5 @@ kernels:
   
   - id: clamp:ruby:v1
     fn: core.clamp
-    inline: "= [[ $0, $1 ].max, $2 ].min"
-    impl: "(x, lo, hi)\n  [[x, lo].max, hi].min"
+    inline: "= $0.clamp($1, $2)"
+    impl: "(x, lo, hi)\n  x.clamp(lo, hi)"

@@ -15,10 +15,9 @@ module Kumi::Compiled::KUMI_218fdff3f4e9234460f58bd2e8299360d6d7bbdb610abb4135c0
   def self._discounted_price(input)
     out = []
     t7 = input["items"] || input[:items]
-    t11 = 0.9
     t7.each_with_index do |items_el_8, items_i_9|
       t10 = items_el_8["price"] || items_el_8[:price]
-      t12 = t10 * t11
+      t12 = t10 * 0.9
       out << t12
     end
     out
@@ -27,10 +26,9 @@ module Kumi::Compiled::KUMI_218fdff3f4e9234460f58bd2e8299360d6d7bbdb610abb4135c0
   def self._is_valid_quantity(input)
     out = []
     t13 = input["items"] || input[:items]
-    t17 = 0
     t13.each_with_index do |items_el_14, items_i_15|
       t16 = items_el_14["quantity"] || items_el_14[:quantity]
-      t18 = t16 > t17
+      t18 = t16 > 0
       out << t18
     end
     out
@@ -39,10 +37,9 @@ module Kumi::Compiled::KUMI_218fdff3f4e9234460f58bd2e8299360d6d7bbdb610abb4135c0
   def self._expensive_items(input)
     out = []
     t19 = input["items"] || input[:items]
-    t23 = 100.0
     t19.each_with_index do |items_el_20, items_i_21|
       t22 = items_el_20["price"] || items_el_20[:price]
-      t24 = t22 > t23
+      t24 = t22 > 100.0
       out << t24
     end
     out
@@ -51,10 +48,9 @@ module Kumi::Compiled::KUMI_218fdff3f4e9234460f58bd2e8299360d6d7bbdb610abb4135c0
   def self._electronics(input)
     out = []
     t25 = input["items"] || input[:items]
-    t29 = "electronics"
     t25.each_with_index do |items_el_26, items_i_27|
       t28 = items_el_26["category"] || items_el_26[:category]
-      t30 = t28 == t29
+      t30 = t28 == "electronics"
       out << t30
     end
     out

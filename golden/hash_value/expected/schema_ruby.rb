@@ -18,10 +18,9 @@ module Kumi::Compiled::KUMI_bd6e071cbbc6247249650fa631ce52dd619019ba13e9bc4dce45
   def self._is_john(input)
     out = []
     t7 = input["users"] || input[:users]
-    t11 = "John"
     t7.each_with_index do |users_el_8, users_i_9|
       t10 = users_el_8["name"] || users_el_8[:name]
-      t12 = t10 == t11
+      t12 = t10 == "John"
       out << t12
     end
     out
@@ -30,17 +29,15 @@ module Kumi::Compiled::KUMI_bd6e071cbbc6247249650fa631ce52dd619019ba13e9bc4dce45
   def self._john_user(input)
     out = []
     t13 = input["users"] || input[:users]
-    t22 = "John"
-    t18 = "NOT_JOHN"
     t13.each_with_index do |users_el_14, users_i_15|
       t21 = users_el_14["name"] || users_el_14[:name]
       t26 = users_el_14["state"] || users_el_14[:state]
-      t23 = t21 == t22
+      t23 = t21 == "John"
       t27 = {
         "name" => t21,
         "state" => t26
       }
-      t19 = t23 ? t27 : t18
+      t19 = t23 ? t27 : "NOT_JOHN"
       out << t19
     end
     out

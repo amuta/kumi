@@ -13,9 +13,8 @@ export function _items_subtotal(input) {
 export function _items_discounted(input) {
   let out = [];
   let t7 = input["items"];
-  const t11 = 1.0;
   let t12 = input["discount"];
-  let t13 = t11 - t12;
+  let t13 = 1.0 - t12;
   t7.forEach((items_el_8, items_i_9) => {
     let t10 = items_el_8["price"];
     let t14 = t10 * t13;
@@ -27,10 +26,9 @@ export function _items_discounted(input) {
 export function _items_is_big(input) {
   let out = [];
   let t15 = input["items"];
-  const t19 = 100.0;
   t15.forEach((items_el_16, items_i_17) => {
     let t18 = items_el_16["price"];
-    let t20 = t18 > t19;
+    let t20 = t18 > 100.0;
     out.push(t20);
   });
   return out;
@@ -39,14 +37,12 @@ export function _items_is_big(input) {
 export function _items_effective(input) {
   let out = [];
   let t21 = input["items"];
-  const t50 = 100.0;
-  const t26 = 0.9;
   t21.forEach((items_el_22, items_i_23) => {
     let t49 = items_el_22["price"];
     let t54 = items_el_22["qty"];
-    let t51 = t49 > t50;
+    let t51 = t49 > 100.0;
     let t55 = t49 * t54;
-    let t27 = t55 * t26;
+    let t27 = t55 * 0.9;
     let t29 = t51 ? t27 : t55;
     out.push(t29);
   });
@@ -78,14 +74,12 @@ export function _cart_total(input) {
 export function _cart_total_effective(input) {
   let acc_42 = 0.0;
   let t43 = input["items"];
-  const t73 = 100.0;
-  const t67 = 0.9;
   t43.forEach((items_el_44, items_i_45) => {
     let t72 = items_el_44["price"];
     let t77 = items_el_44["qty"];
-    let t74 = t72 > t73;
+    let t74 = t72 > 100.0;
     let t78 = t72 * t77;
-    let t68 = t78 * t67;
+    let t68 = t78 * 0.9;
     let t70 = t74 ? t68 : t78;
     acc_42 += t70;
   });

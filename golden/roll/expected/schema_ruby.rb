@@ -4,9 +4,8 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     out = []
     t1 = input["cells"] || input[:cells]
     t4 = t1.length
-    t5 = 1
     t1.each_with_index do |cells_el_2, cells_i_3|
-      t6 = cells_i_3 - t5
+      t6 = cells_i_3 - 1
       t7 = t6 % t4
       t8 = t7 + t4
       t9 = t8 % t4
@@ -20,9 +19,8 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     out = []
     t11 = input["cells"] || input[:cells]
     t14 = t11.length
-    t15 = -1
     t11.each_with_index do |cells_el_12, cells_i_13|
-      t16 = cells_i_13 - t15
+      t16 = cells_i_13 - -1
       t17 = t16 % t14
       t18 = t17 + t14
       t19 = t18 % t14
@@ -36,12 +34,10 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     out = []
     t21 = input["cells"] || input[:cells]
     t24 = t21.length
-    t25 = 1
-    t29 = 0
-    t28 = t24 - t25
+    t28 = t24 - 1
     t21.each_with_index do |cells_el_22, cells_i_23|
-      t26 = cells_i_23 - t25
-      t30 = [[ t26, t29 ].max, t28 ].min
+      t26 = cells_i_23 - 1
+      t30 = t26.clamp(0, t28)
       t31 = t21[t30]
       out << t31
     end
@@ -52,13 +48,10 @@ module Kumi::Compiled::KUMI_aa0175fb662391cb2f71c075ed92c681a24c7fa83122140350f8
     out = []
     t32 = input["cells"] || input[:cells]
     t35 = t32.length
-    t36 = -1
-    t38 = 1
-    t40 = 0
-    t39 = t35 - t38
+    t39 = t35 - 1
     t32.each_with_index do |cells_el_33, cells_i_34|
-      t37 = cells_i_34 - t36
-      t41 = [[ t37, t40 ].max, t39 ].min
+      t37 = cells_i_34 - -1
+      t41 = t37.clamp(0, t39)
       t42 = t32[t41]
       out << t42
     end

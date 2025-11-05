@@ -19,16 +19,13 @@ module Kumi::Compiled::KUMI_0cf02b28c0be789af2b82f1ba35f220da829c032a18d5f22ef65
   def self._manager_count(input)
     out = []
     t10 = input["departments"] || input[:departments]
-    t18 = "manager"
-    t20 = 1
-    t21 = 0
     t10.each_with_index do |departments_el_11, departments_i_12|
       acc_13 = 0
       t14 = departments_el_11["employees"] || departments_el_11[:employees]
       t14.each_with_index do |employees_el_15, employees_i_16|
         t17 = employees_el_15["role"] || employees_el_15[:role]
-        t19 = t17 == t18
-        t22 = t19 ? t20 : t21
+        t19 = t17 == "manager"
+        t22 = t19 ? 1 : 0
         acc_13 += t22
       end
       t23 = acc_13
@@ -40,16 +37,13 @@ module Kumi::Compiled::KUMI_0cf02b28c0be789af2b82f1ba35f220da829c032a18d5f22ef65
   def self._senior_employee_count(input)
     out = []
     t24 = input["departments"] || input[:departments]
-    t32 = "senior"
-    t34 = 1
-    t35 = 0
     t24.each_with_index do |departments_el_25, departments_i_26|
       acc_27 = 0
       t28 = departments_el_25["employees"] || departments_el_25[:employees]
       t28.each_with_index do |employees_el_29, employees_i_30|
         t31 = employees_el_29["role"] || employees_el_29[:role]
-        t33 = t31 == t32
-        t36 = t33 ? t34 : t35
+        t33 = t31 == "senior"
+        t36 = t33 ? 1 : 0
         acc_27 += t36
       end
       t37 = acc_27
@@ -78,10 +72,6 @@ module Kumi::Compiled::KUMI_0cf02b28c0be789af2b82f1ba35f220da829c032a18d5f22ef65
   def self._department_summary(input)
     out = []
     t47 = input["departments"] || input[:departments]
-    t71 = "manager"
-    t73 = 1
-    t74 = 0
-    t84 = "senior"
     t47.each_with_index do |departments_el_48, departments_i_49|
       t50 = departments_el_48["name"] || departments_el_48[:name]
       acc58 = 0
@@ -93,13 +83,13 @@ module Kumi::Compiled::KUMI_0cf02b28c0be789af2b82f1ba35f220da829c032a18d5f22ef65
         t62 = t60["salary"] || t60[:salary]
         acc58 += t62
         t70 = t60["role"] || t60[:role]
-        t72 = t70 == t71
-        t75 = t72 ? t73 : t74
+        t72 = t70 == "manager"
+        t75 = t72 ? 1 : 0
         acc66 += t75
         acc92 ||= t62
         acc92 = t62 if t62 > acc92
-        t85 = t70 == t84
-        t88 = t85 ? t73 : t74
+        t85 = t70 == "senior"
+        t88 = t85 ? 1 : 0
         acc79 += t88
       end
       t63 = acc58

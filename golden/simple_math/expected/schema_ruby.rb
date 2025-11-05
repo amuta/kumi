@@ -19,13 +19,10 @@ module Kumi::Compiled::KUMI_8a7d2cf7ffee89e5afa12bfe327d703fc3d0d8fc59de5808ea80
   end
 
   def self._results_array(input)
-    t10 = 1
     t11 = input["x"] || input[:x]
-    t12 = 10
-    t13 = t11 + t12
+    t13 = t11 + 10
     t14 = input["y"] || input[:y]
-    t15 = 2
-    t16 = t14 * t15
-    [t10, t13, t16]
+    t16 = t14 * 2
+    [1, t13, t16]
   end
 end

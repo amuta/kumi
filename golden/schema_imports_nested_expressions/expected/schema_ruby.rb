@@ -2,16 +2,14 @@
 module Kumi::Compiled::KUMI_0fd8a560e9466e8c3a1d05a332c3ee51a92858f798bfcaaef3e0cc8321847d93
   def self._interest(input)
     t1 = input["amount"] || input[:amount]
-    t2 = 1.05
-    t3 = t1 * t2
+    t3 = t1 * 1.05
     t4 = input["rate"] || input[:rate]
     Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t3, "rate" => t4})
   end
 
   def self._total_over_periods(input)
     t12 = input["amount"] || input[:amount]
-    t13 = 1.05
-    t14 = t12 * t13
+    t14 = t12 * 1.05
     t15 = input["rate"] || input[:rate]
     t16 = Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t14, "rate" => t15})
     t7 = input["periods"] || input[:periods]
@@ -20,13 +18,11 @@ module Kumi::Compiled::KUMI_0fd8a560e9466e8c3a1d05a332c3ee51a92858f798bfcaaef3e0
 
   def self._doubled(input)
     t20 = input["amount"] || input[:amount]
-    t21 = 1.05
-    t22 = t20 * t21
+    t22 = t20 * 1.05
     t23 = input["rate"] || input[:rate]
     t24 = Kumi::TestSharedSchemas::Compound._annual_interest({"principal" => t22, "rate" => t23})
     t18 = input["periods"] || input[:periods]
     t19 = t24 * t18
-    t10 = 2
-    t19 * t10
+    t19 * 2
   end
 end

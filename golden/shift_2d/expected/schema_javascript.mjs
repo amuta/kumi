@@ -2,8 +2,6 @@ export function _shift_cols_right_zero(input) {
   let out = [];
   let t1 = input["rows"];
   let t6 = t1.length;
-  const t12 = 1;
-  const t14 = 0;
   t1.forEach((rows_el_2, rows_i_3) => {
     let out_1 = [];
     let t7 = ((rows_i_3 % t6) + t6) % t6;
@@ -11,15 +9,15 @@ export function _shift_cols_right_zero(input) {
     let t9 = ((t8 % t6) + t6) % t6;
     let t10 = t1[t9];
     let t11 = t10.length;
-    let t19 = t11 - t12;
+    let t19 = t11 - 1;
     rows_el_2.forEach((col_el_4, col_i_5) => {
-      let t13 = col_i_5 - t12;
-      let t15 = t13 >= t14;
+      let t13 = col_i_5 - 1;
+      let t15 = t13 >= 0;
       let t16 = t13 < t11;
       let t17 = t15 && t16;
-      let t21 = Math.min(Math.max(t13, t14), t19);
+      let t21 = Math.min(Math.max(t13, 0), t19);
       let t22 = t10[t21];
-      let t24 = t17 ? t22 : t14;
+      let t24 = t17 ? t22 : 0;
       out_1.push(t24);
     });
     out.push(out_1);
@@ -31,8 +29,6 @@ export function _shift_cols_right_clamp(input) {
   let out = [];
   let t25 = input["rows"];
   let t30 = t25.length;
-  const t36 = 1;
-  const t40 = 0;
   t25.forEach((rows_el_26, rows_i_27) => {
     let out_1 = [];
     let t31 = ((rows_i_27 % t30) + t30) % t30;
@@ -40,10 +36,10 @@ export function _shift_cols_right_clamp(input) {
     let t33 = ((t32 % t30) + t30) % t30;
     let t34 = t25[t33];
     let t35 = t34.length;
-    let t39 = t35 - t36;
+    let t39 = t35 - 1;
     rows_el_26.forEach((col_el_28, col_i_29) => {
-      let t37 = col_i_29 - t36;
-      let t41 = Math.min(Math.max(t37, t40), t39);
+      let t37 = col_i_29 - 1;
+      let t41 = Math.min(Math.max(t37, 0), t39);
       let t42 = t34[t41];
       out_1.push(t42);
     });
@@ -56,7 +52,6 @@ export function _shift_cols_right_wrap(input) {
   let out = [];
   let t43 = input["rows"];
   let t48 = t43.length;
-  const t54 = 1;
   t43.forEach((rows_el_44, rows_i_45) => {
     let out_1 = [];
     let t49 = ((rows_i_45 % t48) + t48) % t48;
@@ -65,7 +60,7 @@ export function _shift_cols_right_wrap(input) {
     let t52 = t43[t51];
     let t53 = t52.length;
     rows_el_44.forEach((col_el_46, col_i_47) => {
-      let t55 = col_i_47 - t54;
+      let t55 = col_i_47 - 1;
       let t56 = ((t55 % t53) + t53) % t53;
       let t57 = t56 + t53;
       let t58 = ((t57 % t53) + t53) % t53;
@@ -81,9 +76,6 @@ export function _shift_cols_left_zero(input) {
   let out = [];
   let t60 = input["rows"];
   let t65 = t60.length;
-  const t71 = -1;
-  const t73 = 0;
-  const t77 = 1;
   t60.forEach((rows_el_61, rows_i_62) => {
     let out_1 = [];
     let t66 = ((rows_i_62 % t65) + t65) % t65;
@@ -91,15 +83,15 @@ export function _shift_cols_left_zero(input) {
     let t68 = ((t67 % t65) + t65) % t65;
     let t69 = t60[t68];
     let t70 = t69.length;
-    let t78 = t70 - t77;
+    let t78 = t70 - 1;
     rows_el_61.forEach((col_el_63, col_i_64) => {
-      let t72 = col_i_64 - t71;
-      let t74 = t72 >= t73;
+      let t72 = col_i_64 - -1;
+      let t74 = t72 >= 0;
       let t75 = t72 < t70;
       let t76 = t74 && t75;
-      let t80 = Math.min(Math.max(t72, t73), t78);
+      let t80 = Math.min(Math.max(t72, 0), t78);
       let t81 = t69[t80];
-      let t83 = t76 ? t81 : t73;
+      let t83 = t76 ? t81 : 0;
       out_1.push(t83);
     });
     out.push(out_1);
@@ -111,9 +103,6 @@ export function _shift_cols_left_clamp(input) {
   let out = [];
   let t84 = input["rows"];
   let t89 = t84.length;
-  const t95 = -1;
-  const t97 = 1;
-  const t99 = 0;
   t84.forEach((rows_el_85, rows_i_86) => {
     let out_1 = [];
     let t90 = ((rows_i_86 % t89) + t89) % t89;
@@ -121,10 +110,10 @@ export function _shift_cols_left_clamp(input) {
     let t92 = ((t91 % t89) + t89) % t89;
     let t93 = t84[t92];
     let t94 = t93.length;
-    let t98 = t94 - t97;
+    let t98 = t94 - 1;
     rows_el_85.forEach((col_el_87, col_i_88) => {
-      let t96 = col_i_88 - t95;
-      let t100 = Math.min(Math.max(t96, t99), t98);
+      let t96 = col_i_88 - -1;
+      let t100 = Math.min(Math.max(t96, 0), t98);
       let t101 = t93[t100];
       out_1.push(t101);
     });
@@ -137,7 +126,6 @@ export function _shift_cols_left_wrap(input) {
   let out = [];
   let t102 = input["rows"];
   let t107 = t102.length;
-  const t113 = -1;
   t102.forEach((rows_el_103, rows_i_104) => {
     let out_1 = [];
     let t108 = ((rows_i_104 % t107) + t107) % t107;
@@ -146,7 +134,7 @@ export function _shift_cols_left_wrap(input) {
     let t111 = t102[t110];
     let t112 = t111.length;
     rows_el_103.forEach((col_el_105, col_i_106) => {
-      let t114 = col_i_106 - t113;
+      let t114 = col_i_106 - -1;
       let t115 = ((t114 % t112) + t112) % t112;
       let t116 = t115 + t112;
       let t117 = ((t116 % t112) + t112) % t112;
@@ -162,15 +150,13 @@ export function _shift_rows_down_zero(input) {
   let out = [];
   let t119 = input["rows"];
   let t124 = t119.length;
-  const t125 = 1;
-  const t127 = 0;
-  let t132 = t124 - t125;
+  let t132 = t124 - 1;
   t119.forEach((rows_el_120, rows_i_121) => {
     let out_1 = [];
-    let t126 = rows_i_121 - t125;
-    let t128 = t126 >= t127;
+    let t126 = rows_i_121 - 1;
+    let t128 = t126 >= 0;
     let t129 = t126 < t124;
-    let t134 = Math.min(Math.max(t126, t127), t132);
+    let t134 = Math.min(Math.max(t126, 0), t132);
     let t130 = t128 && t129;
     let t135 = t119[t134];
     let t136 = t135.length;
@@ -179,7 +165,7 @@ export function _shift_rows_down_zero(input) {
       let t138 = t137 + t136;
       let t139 = ((t138 % t136) + t136) % t136;
       let t140 = t135[t139];
-      let t142 = t130 ? t140 : t127;
+      let t142 = t130 ? t140 : 0;
       out_1.push(t142);
     });
     out.push(out_1);
@@ -191,13 +177,11 @@ export function _shift_rows_down_clamp(input) {
   let out = [];
   let t143 = input["rows"];
   let t148 = t143.length;
-  const t149 = 1;
-  const t153 = 0;
-  let t152 = t148 - t149;
+  let t152 = t148 - 1;
   t143.forEach((rows_el_144, rows_i_145) => {
     let out_1 = [];
-    let t150 = rows_i_145 - t149;
-    let t154 = Math.min(Math.max(t150, t153), t152);
+    let t150 = rows_i_145 - 1;
+    let t154 = Math.min(Math.max(t150, 0), t152);
     let t155 = t143[t154];
     let t156 = t155.length;
     rows_el_144.forEach((col_el_146, col_i_147) => {
@@ -216,10 +200,9 @@ export function _shift_rows_down_wrap(input) {
   let out = [];
   let t161 = input["rows"];
   let t166 = t161.length;
-  const t167 = 1;
   t161.forEach((rows_el_162, rows_i_163) => {
     let out_1 = [];
-    let t168 = rows_i_163 - t167;
+    let t168 = rows_i_163 - 1;
     let t169 = ((t168 % t166) + t166) % t166;
     let t170 = t169 + t166;
     let t171 = ((t170 % t166) + t166) % t166;
@@ -241,16 +224,13 @@ export function _shift_rows_up_zero(input) {
   let out = [];
   let t178 = input["rows"];
   let t183 = t178.length;
-  const t184 = -1;
-  const t186 = 0;
-  const t190 = 1;
-  let t191 = t183 - t190;
+  let t191 = t183 - 1;
   t178.forEach((rows_el_179, rows_i_180) => {
     let out_1 = [];
-    let t185 = rows_i_180 - t184;
-    let t187 = t185 >= t186;
+    let t185 = rows_i_180 - -1;
+    let t187 = t185 >= 0;
     let t188 = t185 < t183;
-    let t193 = Math.min(Math.max(t185, t186), t191);
+    let t193 = Math.min(Math.max(t185, 0), t191);
     let t189 = t187 && t188;
     let t194 = t178[t193];
     let t195 = t194.length;
@@ -259,7 +239,7 @@ export function _shift_rows_up_zero(input) {
       let t197 = t196 + t195;
       let t198 = ((t197 % t195) + t195) % t195;
       let t199 = t194[t198];
-      let t201 = t189 ? t199 : t186;
+      let t201 = t189 ? t199 : 0;
       out_1.push(t201);
     });
     out.push(out_1);
@@ -271,14 +251,11 @@ export function _shift_rows_up_clamp(input) {
   let out = [];
   let t202 = input["rows"];
   let t207 = t202.length;
-  const t208 = -1;
-  const t210 = 1;
-  const t212 = 0;
-  let t211 = t207 - t210;
+  let t211 = t207 - 1;
   t202.forEach((rows_el_203, rows_i_204) => {
     let out_1 = [];
-    let t209 = rows_i_204 - t208;
-    let t213 = Math.min(Math.max(t209, t212), t211);
+    let t209 = rows_i_204 - -1;
+    let t213 = Math.min(Math.max(t209, 0), t211);
     let t214 = t202[t213];
     let t215 = t214.length;
     rows_el_203.forEach((col_el_205, col_i_206) => {
@@ -297,10 +274,9 @@ export function _shift_rows_up_wrap(input) {
   let out = [];
   let t220 = input["rows"];
   let t225 = t220.length;
-  const t226 = -1;
   t220.forEach((rows_el_221, rows_i_222) => {
     let out_1 = [];
-    let t227 = rows_i_222 - t226;
+    let t227 = rows_i_222 - -1;
     let t228 = ((t227 % t225) + t225) % t225;
     let t229 = t228 + t225;
     let t230 = ((t229 % t225) + t225) % t225;

@@ -30,27 +30,24 @@
   )
   (Declaration big_team
     %t21 = load_input "depts" :: array
-    %t28 = const 10 :: integer
     loop depts id=L5 in %t21 as el=%depts_el_22, idx=%depts_i_23
       %t24 = load_field depts_el_22["teams"] :: any
       loop teams id=L6 in %t24 as el=%teams_el_25, idx=%teams_i_26
         %t27 = load_field teams_el_25["headcount"] :: integer
-        %t29 = call core.gt(%t27, %t28) :: boolean
+        %t29 = call core.gt(%t27, 10) :: boolean
         yield %t29
       end_loop
     end_loop
   )
   (Declaration dept_total_masked
     %t30 = load_input "depts" :: array
-    %t45 = const 10 :: integer
-    %t39 = const 0 :: integer
     loop depts id=L7 in %t30 as el=%depts_el_31, idx=%depts_i_32
       %acc_33 = decl_acc :: integer
       %t34 = load_field depts_el_31["teams"] :: any
       loop teams id=L8 in %t34 as el=%teams_el_35, idx=%teams_i_36
         %t44 = load_field teams_el_35["headcount"] :: integer
-        %t46 = call core.gt(%t44, %t45) :: boolean
-        %t40 = select %t46, %t44, %t39 :: integer
+        %t46 = call core.gt(%t44, 10) :: boolean
+        %t40 = select %t46, %t44, 0 :: integer
         %acc_33 = acc_add agg.sum(%acc_33, %t40) :: integer
       end_loop
       %t41 = acc_load %acc_33 :: integer

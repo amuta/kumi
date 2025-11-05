@@ -13,10 +13,9 @@ export function _subtotals(input) {
 export function _discounted_price(input) {
   let out = [];
   let t7 = input["items"];
-  const t11 = 0.9;
   t7.forEach((items_el_8, items_i_9) => {
     let t10 = items_el_8["price"];
-    let t12 = t10 * t11;
+    let t12 = t10 * 0.9;
     out.push(t12);
   });
   return out;
@@ -25,10 +24,9 @@ export function _discounted_price(input) {
 export function _is_valid_quantity(input) {
   let out = [];
   let t13 = input["items"];
-  const t17 = 0;
   t13.forEach((items_el_14, items_i_15) => {
     let t16 = items_el_14["quantity"];
-    let t18 = t16 > t17;
+    let t18 = t16 > 0;
     out.push(t18);
   });
   return out;
@@ -37,10 +35,9 @@ export function _is_valid_quantity(input) {
 export function _expensive_items(input) {
   let out = [];
   let t19 = input["items"];
-  const t23 = 100.0;
   t19.forEach((items_el_20, items_i_21) => {
     let t22 = items_el_20["price"];
-    let t24 = t22 > t23;
+    let t24 = t22 > 100.0;
     out.push(t24);
   });
   return out;
@@ -49,10 +46,9 @@ export function _expensive_items(input) {
 export function _electronics(input) {
   let out = [];
   let t25 = input["items"];
-  const t29 = "electronics";
   t25.forEach((items_el_26, items_i_27) => {
     let t28 = items_el_26["category"];
-    let t30 = t28 == t29;
+    let t30 = t28 == "electronics";
     out.push(t30);
   });
   return out;

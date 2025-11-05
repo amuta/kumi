@@ -1,7 +1,6 @@
 (LIR
   (Declaration high_performer
     %t1 = load_input "regions" :: array
-    %t14 = const 4.5 :: float
     loop regions id=L1 in %t1 as el=%regions_el_2, idx=%regions_i_3
       %t4 = load_field regions_el_2["offices"] :: any
       loop offices id=L2 in %t4 as el=%offices_el_5, idx=%offices_i_6
@@ -10,7 +9,7 @@
           %t10 = load_field teams_el_8["employees"] :: any
           loop employees id=L4 in %t10 as el=%employees_el_11, idx=%employees_i_12
             %t13 = load_field employees_el_11["rating"] :: float
-            %t15 = call core.gte(%t13, %t14) :: boolean
+            %t15 = call core.gte(%t13, 4.5) :: boolean
             yield %t15
           end_loop
         end_loop
@@ -19,7 +18,6 @@
   )
   (Declaration senior_level
     %t16 = load_input "regions" :: array
-    %t29 = const "senior" :: string
     loop regions id=L5 in %t16 as el=%regions_el_17, idx=%regions_i_18
       %t19 = load_field regions_el_17["offices"] :: any
       loop offices id=L6 in %t19 as el=%offices_el_20, idx=%offices_i_21
@@ -28,7 +26,7 @@
           %t25 = load_field teams_el_23["employees"] :: any
           loop employees id=L8 in %t25 as el=%employees_el_26, idx=%employees_i_27
             %t28 = load_field employees_el_26["level"] :: string
-            %t30 = call core.eq(%t28, %t29) :: boolean
+            %t30 = call core.eq(%t28, "senior") :: boolean
             yield %t30
           end_loop
         end_loop
@@ -37,14 +35,13 @@
   )
   (Declaration top_team
     %t31 = load_input "regions" :: array
-    %t41 = const 0.9 :: float
     loop regions id=L9 in %t31 as el=%regions_el_32, idx=%regions_i_33
       %t34 = load_field regions_el_32["offices"] :: any
       loop offices id=L10 in %t34 as el=%offices_el_35, idx=%offices_i_36
         %t37 = load_field offices_el_35["teams"] :: any
         loop teams id=L11 in %t37 as el=%teams_el_38, idx=%teams_i_39
           %t40 = load_field teams_el_38["performance_score"] :: float
-          %t42 = call core.gte(%t40, %t41) :: boolean
+          %t42 = call core.gte(%t40, 0.9) :: boolean
           yield %t42
         end_loop
       end_loop
@@ -52,32 +49,26 @@
   )
   (Declaration employee_bonus
     %t43 = load_input "regions" :: array
-    %t92 = const 0.9 :: float
-    %t79 = const 4.5 :: float
-    %t86 = const "senior" :: string
-    %t61 = const 0.3 :: float
-    %t67 = const 0.2 :: float
-    %t70 = const 0.05 :: float
     loop regions id=L12 in %t43 as el=%regions_el_44, idx=%regions_i_45
       %t46 = load_field regions_el_44["offices"] :: any
       loop offices id=L13 in %t46 as el=%offices_el_47, idx=%offices_i_48
         %t49 = load_field offices_el_47["teams"] :: any
         loop teams id=L14 in %t49 as el=%teams_el_50, idx=%teams_i_51
           %t91 = load_field teams_el_50["performance_score"] :: float
-          %t93 = call core.gte(%t91, %t92) :: boolean
+          %t93 = call core.gte(%t91, 0.9) :: boolean
           %t52 = load_field teams_el_50["employees"] :: any
           loop employees id=L15 in %t52 as el=%employees_el_53, idx=%employees_i_54
             %t78 = load_field employees_el_53["rating"] :: float
-            %t80 = call core.gte(%t78, %t79) :: boolean
+            %t80 = call core.gte(%t78, 4.5) :: boolean
             %t85 = load_field employees_el_53["level"] :: string
-            %t87 = call core.eq(%t85, %t86) :: boolean
+            %t87 = call core.eq(%t85, "senior") :: boolean
             %t58 = call core.and(%t87, %t93) :: boolean
             %t59 = call core.and(%t80, %t58) :: boolean
             %t60 = load_field employees_el_53["salary"] :: float
-            %t62 = call core.mul:numeric(%t60, %t61) :: float
+            %t62 = call core.mul:numeric(%t60, 0.3) :: float
             %t65 = call core.and(%t80, %t93) :: boolean
-            %t68 = call core.mul:numeric(%t60, %t67) :: float
-            %t71 = call core.mul:numeric(%t60, %t70) :: float
+            %t68 = call core.mul:numeric(%t60, 0.2) :: float
+            %t71 = call core.mul:numeric(%t60, 0.05) :: float
             %t72 = select %t65, %t68, %t71 :: float
             %t73 = select %t59, %t62, %t72 :: float
             yield %t73

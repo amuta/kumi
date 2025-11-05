@@ -1,47 +1,30 @@
 (LIR
   (Declaration tuple
-    %t1 = const 1 :: integer
-    %t2 = const 2 :: integer
-    %t3 = const 3 :: integer
     %t4 = load_input "x" :: integer
-    %t5 = make_tuple(%t1, %t2, %t3, %t4) :: tuple<integer, integer, integer, integer>
+    %t5 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__, %t4) :: tuple<integer, integer, integer, integer>
     yield %t5
   )
   (Declaration max_1
-    %t24 = const 1 :: integer
-    %t25 = const 2 :: integer
-    %t26 = const 3 :: integer
     %t27 = load_input "x" :: integer
-    %t28 = make_tuple(%t24, %t25, %t26, %t27) :: tuple<integer, integer, integer, integer>
+    %t28 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__, %t27) :: tuple<integer, integer, integer, integer>
     %t7 = fold %t28 fn="agg.max" :: integer
     yield %t7
   )
   (Declaration max_2
-    %t8 = const 1 :: integer
-    %t9 = const 2 :: integer
-    %t10 = const 3 :: integer
     %t11 = load_input "x" :: integer
-    %t12 = const 1000 :: integer
-    %t13 = make_tuple(%t8, %t9, %t10, %t11, %t12) :: tuple<integer, integer, integer, integer, integer>
+    %t13 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__, %t11, %__immediate_placeholder__) :: tuple<integer, integer, integer, integer, integer>
     %t14 = fold %t13 fn="agg.max" :: integer
     yield %t14
   )
   (Declaration min_1
-    %t29 = const 1 :: integer
-    %t30 = const 2 :: integer
-    %t31 = const 3 :: integer
     %t32 = load_input "x" :: integer
-    %t33 = make_tuple(%t29, %t30, %t31, %t32) :: tuple<integer, integer, integer, integer>
+    %t33 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__, %t32) :: tuple<integer, integer, integer, integer>
     %t16 = fold %t33 fn="agg.min" :: integer
     yield %t16
   )
   (Declaration min_2
-    %t17 = const 1 :: integer
-    %t18 = const 2 :: integer
-    %t19 = const 3 :: integer
     %t20 = load_input "x" :: integer
-    %t21 = const -100 :: integer
-    %t22 = make_tuple(%t17, %t18, %t19, %t20, %t21) :: tuple<integer, integer, integer, integer, integer>
+    %t22 = make_tuple(%__immediate_placeholder__, %__immediate_placeholder__, %__immediate_placeholder__, %t20, %__immediate_placeholder__) :: tuple<integer, integer, integer, integer, integer>
     %t23 = fold %t22 fn="agg.min" :: integer
     yield %t23
   )

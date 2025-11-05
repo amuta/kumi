@@ -71,17 +71,17 @@ module Kumi
           "#{res}load_field #{only(ins.inputs)}[#{fmt_key(key)}]#{stamp(ins)}"
         when :KernelCall
           fn = ins.attributes[:fn]
-          "#{res}call #{fn}(#{list(ins.inputs)})#{stamp(ins)}"
+          "#{res}call #{fn}(#{list_with_immediates(ins)})#{stamp(ins)}"
         when :Select
-          c, t, f = ins.inputs
-          "#{res}select #{fmt_reg(c)}, #{fmt_reg(t)}, #{fmt_reg(f)}#{stamp(ins)}"
+          c, t, f = resolved_inputs(ins)
+          "#{res}select #{c}, #{t}, #{f}#{stamp(ins)}"
         when :DeclareAccumulator
           "#{res}decl_acc#{stamp(ins)}"
         when :Accumulate
           acc = fmt_reg(ins.result_register)
           fn   = ins.attributes[:fn]
-          v    = only(ins.inputs)
-          "#{res}acc_add #{fn}(#{acc}, #{fmt_reg(v)})#{stamp(ins)}"
+          v    = resolved_inputs(ins).first
+          "#{res}acc_add #{fn}(#{acc}, #{v})#{stamp(ins)}"
         when :LoadAccumulator
           acc = ins.inputs.first or raise "No accumulator bound"
           "#{res}acc_load #{fmt_reg(acc)}#{stamp(ins)}"
@@ -141,3 +141,19 @@ module Kumi
     end
   end
 end
+      def resolved_inputs(ins)
+        inputs = Array(ins.inputs)
+        imm_queue = Array(ins.immediates)
+
+        inputs.map do |input|
+          if input == :__immediate_placeholder__
+            fmt_lit(imm_queue.shift)
+          else
+            fmt_reg(input)
+          end
+        end
+      end
+
+      def list_with_immediates(ins)
+        resolved_inputs(ins).join(", ")
+      end

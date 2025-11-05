@@ -3,22 +3,16 @@ module Kumi::Compiled::KUMI_10d24737af0cd29fba6597e5c51a6a6fa81bdc09b7495873e624
   def self._summary(input)
     out = []
     t974 = input["income"] || input[:income]
-    t975 = 168600.0
-    t976 = [t974, t975]
+    t976 = [t974, 168600.0]
     t977 = t976.min
-    t978 = 0.062
-    t979 = t977 * t978
-    t981 = 0.0145
-    t982 = t974 * t981
+    t979 = t977 * 0.062
+    t982 = t974 * 0.0145
     t1032 = input["state_rate"] || input[:state_rate]
     t1033 = t974 * t1032
     t1035 = input["local_rate"] || input[:local_rate]
     t1036 = t974 * t1035
     t181 = input["statuses"] || input[:statuses]
-    t824 = 0
-    t857 = 1.0
     t971 = t979 + t982
-    t990 = 0.009
     t195 = {
       "marginal" => t1032,
       "effective" => t1032,
@@ -30,9 +24,7 @@ module Kumi::Compiled::KUMI_10d24737af0cd29fba6597e5c51a6a6fa81bdc09b7495873e624
       "tax" => t1036
     }
     t204 = input["retirement_contrib"] || input[:retirement_contrib]
-    t840 = -1
-    t842 = 100000000000.0
-    t858 = [t974, t857]
+    t858 = [t974, 1.0]
     t859 = t858.max
     t181.each_with_index do |statuses_el_182, statuses_i_183|
       t184 = statuses_el_182["name"] || statuses_el_182[:name]
@@ -48,32 +40,32 @@ module Kumi::Compiled::KUMI_10d24737af0cd29fba6597e5c51a6a6fa81bdc09b7495873e624
       acc1315 = 0.0
       t823 = t974 - t822
       t986 = t974 - t985
-      t825 = [t823, t824]
-      t988 = [t986, t824]
+      t825 = [t823, 0]
+      t988 = [t986, 0]
       t826 = t825.max
       t989 = t988.max
       t803.each_with_index do |t804, t805|
         t829 = t804["lo"] || t804[:lo]
         t815 = t826 >= t829
         t847 = t804["hi"] || t804[:hi]
-        t841 = t847 == t840
-        t844 = t841 ? t842 : t847
+        t841 = t847 == -1
+        t844 = t841 ? 100000000000.0 : t847
         t818 = t826 < t844
         t819 = t815 && t818
         t853 = t804["rate"] || t804[:rate]
-        t809 = t819 ? t853 : t824
+        t809 = t819 ? t853 : 0
         acc802 += t809
       end
-      t991 = t989 * t990
+      t991 = t989 * 0.009
       t810 = acc802
       t803.each_with_index do |t865, t866|
         t890 = t865["lo"] || t865[:lo]
         t875 = t826 - t890
         t901 = t865["hi"] || t865[:hi]
-        t895 = t901 == t840
-        t898 = t895 ? t842 : t901
+        t895 = t901 == -1
+        t898 = t895 ? 100000000000.0 : t901
         t879 = t898 - t890
-        t880 = [[ t875, t824 ].max, t879 ].min
+        t880 = t875.clamp(0, t879)
         t910 = t865["rate"] || t865[:rate]
         t869 = t880 * t910
         acc863 += t869

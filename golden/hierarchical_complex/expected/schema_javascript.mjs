@@ -1,7 +1,6 @@
 export function _high_performer(input) {
   let out = [];
   let t1 = input["regions"];
-  const t14 = 4.5;
   t1.forEach((regions_el_2, regions_i_3) => {
     let out_1 = [];
     let t4 = regions_el_2["offices"];
@@ -13,7 +12,7 @@ export function _high_performer(input) {
         let t10 = teams_el_8["employees"];
         t10.forEach((employees_el_11, employees_i_12) => {
           let t13 = employees_el_11["rating"];
-          let t15 = t13 >= t14;
+          let t15 = t13 >= 4.5;
           out_3.push(t15);
         });
         out_2.push(out_3);
@@ -28,7 +27,6 @@ export function _high_performer(input) {
 export function _senior_level(input) {
   let out = [];
   let t16 = input["regions"];
-  const t29 = "senior";
   t16.forEach((regions_el_17, regions_i_18) => {
     let out_1 = [];
     let t19 = regions_el_17["offices"];
@@ -40,7 +38,7 @@ export function _senior_level(input) {
         let t25 = teams_el_23["employees"];
         t25.forEach((employees_el_26, employees_i_27) => {
           let t28 = employees_el_26["level"];
-          let t30 = t28 == t29;
+          let t30 = t28 == "senior";
           out_3.push(t30);
         });
         out_2.push(out_3);
@@ -55,7 +53,6 @@ export function _senior_level(input) {
 export function _top_team(input) {
   let out = [];
   let t31 = input["regions"];
-  const t41 = 0.9;
   t31.forEach((regions_el_32, regions_i_33) => {
     let out_1 = [];
     let t34 = regions_el_32["offices"];
@@ -64,7 +61,7 @@ export function _top_team(input) {
       let t37 = offices_el_35["teams"];
       t37.forEach((teams_el_38, teams_i_39) => {
         let t40 = teams_el_38["performance_score"];
-        let t42 = t40 >= t41;
+        let t42 = t40 >= 0.9;
         out_2.push(t42);
       });
       out_1.push(out_2);
@@ -77,12 +74,6 @@ export function _top_team(input) {
 export function _employee_bonus(input) {
   let out = [];
   let t43 = input["regions"];
-  const t92 = 0.9;
-  const t79 = 4.5;
-  const t86 = "senior";
-  const t61 = 0.3;
-  const t67 = 0.2;
-  const t70 = 0.05;
   t43.forEach((regions_el_44, regions_i_45) => {
     let out_1 = [];
     let t46 = regions_el_44["offices"];
@@ -92,20 +83,20 @@ export function _employee_bonus(input) {
       t49.forEach((teams_el_50, teams_i_51) => {
         let out_3 = [];
         let t91 = teams_el_50["performance_score"];
-        let t93 = t91 >= t92;
+        let t93 = t91 >= 0.9;
         let t52 = teams_el_50["employees"];
         t52.forEach((employees_el_53, employees_i_54) => {
           let t78 = employees_el_53["rating"];
-          let t80 = t78 >= t79;
+          let t80 = t78 >= 4.5;
           let t85 = employees_el_53["level"];
-          let t87 = t85 == t86;
+          let t87 = t85 == "senior";
           let t58 = t87 && t93;
           let t59 = t80 && t58;
           let t60 = employees_el_53["salary"];
-          let t62 = t60 * t61;
+          let t62 = t60 * 0.3;
           let t65 = t80 && t93;
-          let t68 = t60 * t67;
-          let t71 = t60 * t70;
+          let t68 = t60 * 0.2;
+          let t71 = t60 * 0.05;
           let t72 = t65 ? t68 : t71;
           let t73 = t59 ? t62 : t72;
           out_3.push(t73);

@@ -129,12 +129,7 @@ module Kumi
 
                 if (template = kernel[:attrs]["inline"])
                   inlined_code = _inline_kernel(template, args)
-                  if template.start_with?("=") || template.include?("$0")
-                    write "#{vreg(ins)} #{inlined_code}"
-                  else
-                    # For +=, -= etc.
-                    write "#{vreg(ins)} #{inlined_code}".lstrip
-                  end
+                  write "#{vreg(ins)} #{inlined_code}"
                 else
                   fn_name = kernel_method_name(kernel[:fn_id])
                   write "#{vreg(ins)} = #{fn_name}(#{args.join(', ')})"

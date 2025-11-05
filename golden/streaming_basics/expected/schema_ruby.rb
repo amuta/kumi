@@ -15,9 +15,8 @@ module Kumi::Compiled::KUMI_4ef78ef9d64de01cd8d2d8ac6518e66db9272186bbd383051d13
   def self._items_discounted(input)
     out = []
     t7 = input["items"] || input[:items]
-    t11 = 1.0
     t12 = input["discount"] || input[:discount]
-    t13 = t11 - t12
+    t13 = 1.0 - t12
     t7.each_with_index do |items_el_8, items_i_9|
       t10 = items_el_8["price"] || items_el_8[:price]
       t14 = t10 * t13
@@ -29,10 +28,9 @@ module Kumi::Compiled::KUMI_4ef78ef9d64de01cd8d2d8ac6518e66db9272186bbd383051d13
   def self._items_is_big(input)
     out = []
     t15 = input["items"] || input[:items]
-    t19 = 100.0
     t15.each_with_index do |items_el_16, items_i_17|
       t18 = items_el_16["price"] || items_el_16[:price]
-      t20 = t18 > t19
+      t20 = t18 > 100.0
       out << t20
     end
     out
@@ -41,14 +39,12 @@ module Kumi::Compiled::KUMI_4ef78ef9d64de01cd8d2d8ac6518e66db9272186bbd383051d13
   def self._items_effective(input)
     out = []
     t21 = input["items"] || input[:items]
-    t50 = 100.0
-    t26 = 0.9
     t21.each_with_index do |items_el_22, items_i_23|
       t49 = items_el_22["price"] || items_el_22[:price]
       t54 = items_el_22["qty"] || items_el_22[:qty]
-      t51 = t49 > t50
+      t51 = t49 > 100.0
       t55 = t49 * t54
-      t27 = t55 * t26
+      t27 = t55 * 0.9
       t29 = t51 ? t27 : t55
       out << t29
     end
@@ -80,14 +76,12 @@ module Kumi::Compiled::KUMI_4ef78ef9d64de01cd8d2d8ac6518e66db9272186bbd383051d13
   def self._cart_total_effective(input)
     acc_42 = 0.0
     t43 = input["items"] || input[:items]
-    t73 = 100.0
-    t67 = 0.9
     t43.each_with_index do |items_el_44, items_i_45|
       t72 = items_el_44["price"] || items_el_44[:price]
       t77 = items_el_44["qty"] || items_el_44[:qty]
-      t74 = t72 > t73
+      t74 = t72 > 100.0
       t78 = t72 * t77
-      t68 = t78 * t67
+      t68 = t78 * 0.9
       t70 = t74 ? t68 : t78
       acc_42 += t70
     end

@@ -4,7 +4,6 @@ module Kumi::Compiled::KUMI_d44730f909ac538475c52999b89821d1009f1e916456e4990470
     t1 = input["x"] || input[:x]
     t2 = t1["y"] || t1[:y]
     t3 = t2["z"] || t2[:z]
-    t4 = 2
-    t3 * t4
+    t3 * 2
   end
 end

@@ -35,13 +35,12 @@ module Kumi::Compiled::KUMI_e0ac80d6394f5253560b7ef4862089da2e41fbbc41c2020b72c4
   def self._big_team(input)
     out = []
     t21 = input["depts"] || input[:depts]
-    t28 = 10
     t21.each_with_index do |depts_el_22, depts_i_23|
       out_1 = []
       t24 = depts_el_22["teams"] || depts_el_22[:teams]
       t24.each_with_index do |teams_el_25, teams_i_26|
         t27 = teams_el_25["headcount"] || teams_el_25[:headcount]
-        t29 = t27 > t28
+        t29 = t27 > 10
         out_1 << t29
       end
       out << out_1
@@ -52,15 +51,13 @@ module Kumi::Compiled::KUMI_e0ac80d6394f5253560b7ef4862089da2e41fbbc41c2020b72c4
   def self._dept_total_masked(input)
     out = []
     t30 = input["depts"] || input[:depts]
-    t45 = 10
-    t39 = 0
     t30.each_with_index do |depts_el_31, depts_i_32|
       acc_33 = 0
       t34 = depts_el_31["teams"] || depts_el_31[:teams]
       t34.each_with_index do |teams_el_35, teams_i_36|
         t44 = teams_el_35["headcount"] || teams_el_35[:headcount]
-        t46 = t44 > t45
-        t40 = t46 ? t44 : t39
+        t46 = t44 > 10
+        t40 = t46 ? t44 : 0
         acc_33 += t40
       end
       t41 = acc_33

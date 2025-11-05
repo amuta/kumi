@@ -31,13 +31,12 @@ export function _company_total(input) {
 export function _big_team(input) {
   let out = [];
   let t21 = input["depts"];
-  const t28 = 10;
   t21.forEach((depts_el_22, depts_i_23) => {
     let out_1 = [];
     let t24 = depts_el_22["teams"];
     t24.forEach((teams_el_25, teams_i_26) => {
       let t27 = teams_el_25["headcount"];
-      let t29 = t27 > t28;
+      let t29 = t27 > 10;
       out_1.push(t29);
     });
     out.push(out_1);
@@ -48,15 +47,13 @@ export function _big_team(input) {
 export function _dept_total_masked(input) {
   let out = [];
   let t30 = input["depts"];
-  const t45 = 10;
-  const t39 = 0;
   t30.forEach((depts_el_31, depts_i_32) => {
     let acc_33 = 0;
     let t34 = depts_el_31["teams"];
     t34.forEach((teams_el_35, teams_i_36) => {
       let t44 = teams_el_35["headcount"];
-      let t46 = t44 > t45;
-      let t40 = t46 ? t44 : t39;
+      let t46 = t44 > 10;
+      let t40 = t46 ? t44 : 0;
       acc_33 += t40;
     });
     out.push(acc_33);
