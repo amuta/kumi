@@ -136,6 +136,7 @@ Requires Ruby 3.1+. No external dependencies.
 require 'kumi'
 
 Kumi.configure do |config|
+  # Optional override; defaults to ENV["KUMI_COMPILATION_MODE"] or :jit in development/:aot otherwise
   config.compilation_mode = :jit
   config.cache_path = File.expand_path("tmp/kumi_cache", __dir__)
 end
@@ -159,6 +160,9 @@ Double._doubled(x: 5) # => 10
 # Export to JavaScript (same logic)
 Double.write_source("output.mjs", platform: :javascript)
 ```
+
+You can also override the compilation strategy without touching code by setting
+`KUMI_COMPILATION_MODE` to `jit` or `aot` (e.g. `export KUMI_COMPILATION_MODE=jit`).
 
 Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
 
