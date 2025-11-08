@@ -49,7 +49,7 @@ Calculation systems appear in: tax engines, pricing models, financial projection
 gem install kumi
 ```
 
-Requires Ruby 3.1+. No external dependencies.
+Requires Ruby 3.1+. Runtime dependencies: `mutex_m` and `zeitwerk` (bundled via Rubygems).
 
 ## Quick Start
 

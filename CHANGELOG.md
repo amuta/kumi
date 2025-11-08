@@ -1,9 +1,18 @@
 ## [Unreleased]
 
+## [0.0.33] – 2025-11-05
+### Added
+- **Peephole Optimization Helper:** `Kumi::Core::LIR::Peephole` plus specs for safer peephole transforms, inline Ruby clamp kernel, richer LIR dumps, and refreshed golden files
+- **Import Diagnostics:** Clearer errors with available declaration hints when imports fail
+
+### Changed
+- Default `Kumi.configure.compilation_mode` now `:jit`; override via config or `KUMI_COMPILATION_MODE`
+- Improved constant propagation output formatting for Ruby/JS codegen
+
 ## [0.0.32] – 2025-10-23
 ### Added
 - **Schema Imports:** Reuse declarations from other schemas with `import :name, from: Module` syntax
-- **Improved Import Errors:** Clear error messages with available declaration hints when imports fail
+- **Improved Import Errors:** Clearer messages with available declaration hints when imports fail
 - Documentation: `docs/COMPOSED_SCHEMAS.md` and `docs/SCHEMA_IMPORTS.md`
 
 ## [0.0.31] – 2025-10-22
