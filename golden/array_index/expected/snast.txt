@@ -1,7 +1,7 @@
 (SNAST
   (VALUE W
     (Call :core.array_size
-      (InputRef x.y key_chain=[]) :: [x] -> array
+      (InputRef x.y key_chain=[]) :: [x] -> array<integer>
     ) :: [x] -> integer
   ) :: [x] -> integer
   (VALUE box
@@ -18,7 +18,7 @@
       (Call :core.mul:numeric
         (IndexRef j input=x.y.__index(j)) :: [x, y] -> integer
         (Call :core.array_size
-          (InputRef x key_chain=[]) :: [] -> array
+          (InputRef x key_chain=[]) :: [] -> array<array<integer>>
         ) :: [] -> integer
       ) :: [x, y] -> integer
       (IndexRef i input=x.__index(i)) :: [x] -> integer

@@ -2,7 +2,7 @@
   (Declaration order_subtotals
     %t1 = load_input "orders" :: array
     loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
-      %t4 = load_field orders_el_2["items"] :: array
+      %t4 = load_field orders_el_2["items"] :: array<any>
       %t5 = importschemacall %t4 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       yield %t5
     end_loop
@@ -11,7 +11,7 @@
     %t6 = load_input "orders" :: array
     loop orders id=L2 in %t6 as el=%orders_el_7, idx=%orders_i_8
       %t59 = load_input "orders" :: array
-      %t60 = load_field orders_el_7["items"] :: array
+      %t60 = load_field orders_el_7["items"] :: array<any>
       %t61 = importschemacall %t60 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t10 = load_field orders_el_7["shipping_cost"] :: decimal
       %t11 = call core.add(%t61, %t10) :: integer
@@ -23,7 +23,7 @@
     loop orders id=L3 in %t12 as el=%orders_el_13, idx=%orders_i_14
       %t62 = load_input "orders" :: array
       %t66 = load_input "orders" :: array
-      %t67 = load_field orders_el_13["items"] :: array
+      %t67 = load_field orders_el_13["items"] :: array<any>
       %t68 = importschemacall %t67 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t64 = load_field orders_el_13["shipping_cost"] :: decimal
       %t65 = call core.add(%t68, %t64) :: integer
@@ -38,7 +38,7 @@
       %t69 = load_input "orders" :: array
       %t73 = load_input "orders" :: array
       %t77 = load_input "orders" :: array
-      %t78 = load_field orders_el_19["items"] :: array
+      %t78 = load_field orders_el_19["items"] :: array<any>
       %t79 = importschemacall %t78 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t75 = load_field orders_el_19["shipping_cost"] :: decimal
       %t76 = call core.add(%t79, %t75) :: integer
@@ -54,7 +54,7 @@
       %t80 = load_input "orders" :: array
       %t84 = load_input "orders" :: array
       %t88 = load_input "orders" :: array
-      %t89 = load_field orders_el_24["items"] :: array
+      %t89 = load_field orders_el_24["items"] :: array<any>
       %t90 = importschemacall %t89 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t86 = load_field orders_el_24["shipping_cost"] :: decimal
       %t87 = call core.add(%t90, %t86) :: integer
@@ -64,7 +64,7 @@
       %t94 = load_input "orders" :: array
       %t98 = load_input "orders" :: array
       %t102 = load_input "orders" :: array
-      %t103 = load_field orders_el_24["items"] :: array
+      %t103 = load_field orders_el_24["items"] :: array<any>
       %t104 = importschemacall %t103 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t100 = load_field orders_el_24["shipping_cost"] :: decimal
       %t101 = call core.add(%t104, %t100) :: integer
@@ -80,14 +80,14 @@
     loop orders id=L6 in %t29 as el=%orders_el_30, idx=%orders_i_31
       %t105 = load_input "orders" :: array
       %t109 = load_input "orders" :: array
-      %t110 = load_field orders_el_30["items"] :: array
+      %t110 = load_field orders_el_30["items"] :: array<any>
       %t111 = importschemacall %t110 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t107 = load_field orders_el_30["shipping_cost"] :: decimal
       %t108 = call core.add(%t111, %t107) :: integer
       %t112 = load_input "orders" :: array
       %t116 = load_input "orders" :: array
       %t120 = load_input "orders" :: array
-      %t121 = load_field orders_el_30["items"] :: array
+      %t121 = load_field orders_el_30["items"] :: array<any>
       %t122 = importschemacall %t121 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t118 = load_field orders_el_30["shipping_cost"] :: decimal
       %t119 = call core.add(%t122, %t118) :: integer
@@ -115,7 +115,7 @@
       %t127 = load_input "orders" :: array
       %t131 = load_input "orders" :: array
       %t135 = load_input "orders" :: array
-      %t136 = load_field orders_el_43["items"] :: array
+      %t136 = load_field orders_el_43["items"] :: array<any>
       %t137 = importschemacall %t136 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t133 = load_field orders_el_43["shipping_cost"] :: decimal
       %t134 = call core.add(%t137, %t133) :: integer
@@ -125,7 +125,7 @@
       %t141 = load_input "orders" :: array
       %t145 = load_input "orders" :: array
       %t149 = load_input "orders" :: array
-      %t150 = load_field orders_el_43["items"] :: array
+      %t150 = load_field orders_el_43["items"] :: array<any>
       %t151 = importschemacall %t150 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t147 = load_field orders_el_43["shipping_cost"] :: decimal
       %t148 = call core.add(%t151, %t147) :: integer
@@ -146,7 +146,7 @@
       %t155 = load_input "orders" :: array
       %t159 = load_input "orders" :: array
       %t163 = load_input "orders" :: array
-      %t164 = load_field orders_el_49["items"] :: array
+      %t164 = load_field orders_el_49["items"] :: array<any>
       %t165 = importschemacall %t164 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t161 = load_field orders_el_49["shipping_cost"] :: decimal
       %t162 = call core.add(%t165, %t161) :: integer
@@ -165,14 +165,14 @@
       %t166 = load_input "orders" :: array
       %t170 = load_input "orders" :: array
       %t174 = load_input "orders" :: array
-      %t175 = load_field orders_el_55["items"] :: array
+      %t175 = load_field orders_el_55["items"] :: array<any>
       %t176 = importschemacall %t175 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t172 = load_field orders_el_55["shipping_cost"] :: decimal
       %t173 = call core.add(%t176, %t172) :: integer
       %t177 = load_input "orders" :: array
       %t181 = load_input "orders" :: array
       %t185 = load_input "orders" :: array
-      %t186 = load_field orders_el_55["items"] :: array
+      %t186 = load_field orders_el_55["items"] :: array<any>
       %t187 = importschemacall %t186 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %t183 = load_field orders_el_55["shipping_cost"] :: decimal
       %t184 = call core.add(%t187, %t183) :: integer

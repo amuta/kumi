@@ -21,7 +21,7 @@
   )
   (Declaration server_count
     %t12 = load_input "config" :: any
-    %t13 = load_field t12["servers"] :: array
+    %t13 = load_field t12["servers"] :: array<any>
     %t14 = call core.array_size(%t13) :: integer
     yield %t14
   )

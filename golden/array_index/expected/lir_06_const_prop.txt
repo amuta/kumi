@@ -19,7 +19,8 @@
   )
   (Declaration col_major
     %t13 = load_input "x" :: array
-    %t19 = call core.array_size(%t13) :: integer
+    %t18 = load_input "x" :: array<array<integer>>
+    %t19 = call core.array_size(%t18) :: integer
     loop x id=L4 in %t13 as el=%x_el_14, idx=%x_i_15
       loop y id=L5 in %x_el_14 as el=%y_el_16, idx=%y_i_17
         %t20 = call core.mul:numeric(%y_i_17, %t19) :: integer

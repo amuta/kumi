@@ -18,7 +18,8 @@
         %t19 = call core.sub(%t11, %t12) :: integer
         %t21 = call core.clamp(%t13, %t14, %t19) :: integer
         %t22 = gather %t10, %t21 :: integer
-        %t24 = select %t17, %t22, %t14 :: integer
+        %t23 = const 0 :: integer
+        %t24 = select %t17, %t22, %t23 :: integer
         yield %t24
       end_loop
     end_loop
@@ -83,7 +84,8 @@
         %t78 = call core.sub(%t70, %t77) :: integer
         %t80 = call core.clamp(%t72, %t73, %t78) :: integer
         %t81 = gather %t69, %t80 :: integer
-        %t83 = select %t76, %t81, %t73 :: integer
+        %t82 = const 0 :: integer
+        %t83 = select %t76, %t81, %t82 :: integer
         yield %t83
       end_loop
     end_loop
@@ -148,7 +150,8 @@
         %t138 = call core.add(%t137, %t136) :: integer
         %t139 = call core.mod(%t138, %t136) :: integer
         %t140 = gather %t135, %t139 :: integer
-        %t142 = select %t130, %t140, %t127 :: integer
+        %t141 = const 0 :: integer
+        %t142 = select %t130, %t140, %t141 :: integer
         yield %t142
       end_loop
     end_loop
@@ -213,7 +216,8 @@
         %t197 = call core.add(%t196, %t195) :: integer
         %t198 = call core.mod(%t197, %t195) :: integer
         %t199 = gather %t194, %t198 :: integer
-        %t201 = select %t189, %t199, %t186 :: integer
+        %t200 = const 0 :: integer
+        %t201 = select %t189, %t199, %t200 :: integer
         yield %t201
       end_loop
     end_loop

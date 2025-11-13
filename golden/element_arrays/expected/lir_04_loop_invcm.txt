@@ -1,6 +1,6 @@
 (LIR
   (Declaration cube
-    %t1 = load_input "cube" :: array
+    %t1 = load_input "cube" :: array<array<array<integer>>>
     yield %t1
   )
   (Declaration layer

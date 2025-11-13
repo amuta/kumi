@@ -2,7 +2,7 @@
   (Declaration order_subtotals
     %t1 = load_input "orders" :: array
     loop orders id=L1 in %t1 as el=%orders_el_2, idx=%orders_i_3
-      %t4 = load_field orders_el_2["items"] :: array
+      %t4 = load_field orders_el_2["items"] :: array<any>
       %t5 = importschemacall %t4 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       yield %t5
     end_loop
@@ -11,7 +11,7 @@
     %acc_6 = decl_acc :: integer
     %t7 = load_input "orders" :: array
     loop orders id=L2 in %t7 as el=%orders_el_8, idx=%orders_i_9
-      %t18 = load_field orders_el_8["items"] :: array
+      %t18 = load_field orders_el_8["items"] :: array<any>
       %t19 = importschemacall %t18 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc_6 = acc_add agg.sum(%acc_6, %t19) :: integer
     end_loop
@@ -22,7 +22,7 @@
     %acc21 = decl_acc :: integer
     %t22 = load_input "orders" :: array
     loop orders id=L3 in %t22 as el=%t23, idx=%t24
-      %t28 = load_field t23["items"] :: array
+      %t28 = load_field t23["items"] :: array<any>
       %t29 = importschemacall %t28 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc21 = acc_add agg.sum(%acc21, %t29) :: integer
     end_loop
@@ -35,10 +35,10 @@
     %t32 = load_input "orders" :: array
     %acc43 = decl_acc :: integer
     loop orders id=L4 in %t32 as el=%t33, idx=%t34
-      %t38 = load_field t33["items"] :: array
+      %t38 = load_field t33["items"] :: array<any>
       %t39 = importschemacall %t38 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc31 = acc_add agg.sum(%acc31, %t39) :: integer
-      %t50 = load_field t33["items"] :: array
+      %t50 = load_field t33["items"] :: array<any>
       %t51 = importschemacall %t50 fn_name="subtotal" source_module="Kumi::TestSharedSchemas::Subtotal" input_mapping_keys=["items"] :: integer
       %acc43 = acc_add agg.sum(%acc43, %t51) :: integer
     end_loop

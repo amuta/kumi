@@ -5,6 +5,7 @@
       %t4 = length %t1 :: integer
       %t5 = const 1 :: integer
       %t7 = const 0 :: integer
+      %t16 = const 0 :: integer
       %t6 = call core.sub(%cells_i_3, %t5) :: integer
       %t12 = call core.sub(%t4, %t5) :: integer
       %t8 = call core.gte(%t6, %t7) :: boolean
@@ -12,7 +13,7 @@
       %t14 = call core.clamp(%t6, %t7, %t12) :: integer
       %t10 = call core.and(%t8, %t9) :: boolean
       %t15 = gather %t1, %t14 :: integer
-      %t17 = select %t10, %t15, %t7 :: integer
+      %t17 = select %t10, %t15, %t16 :: integer
       yield %t17
     end_loop
   )
@@ -23,6 +24,7 @@
       %t22 = const -1 :: integer
       %t24 = const 0 :: integer
       %t28 = const 1 :: integer
+      %t33 = const 0 :: integer
       %t23 = call core.sub(%cells_i_20, %t22) :: integer
       %t29 = call core.sub(%t21, %t28) :: integer
       %t25 = call core.gte(%t23, %t24) :: boolean
@@ -30,7 +32,7 @@
       %t31 = call core.clamp(%t23, %t24, %t29) :: integer
       %t27 = call core.and(%t25, %t26) :: boolean
       %t32 = gather %t18, %t31 :: integer
-      %t34 = select %t27, %t32, %t24 :: integer
+      %t34 = select %t27, %t32, %t33 :: integer
       yield %t34
     end_loop
   )

@@ -17,7 +17,8 @@ export function _box(input) {
 export function _col_major(input) {
   let out = [];
   let t13 = input["x"];
-  let t19 = t13.length;
+  let t18 = input["x"];
+  let t19 = t18.length;
   t13.forEach((x_el_14, x_i_15) => {
     let out_1 = [];
     x_el_14.forEach((y_el_16, y_i_17) => {

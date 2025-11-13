@@ -1,13 +1,13 @@
 (SNAST
   (VALUE cube
-    (InputRef cube key_chain=[]) :: [] -> array
-  ) :: [] -> array
+    (InputRef cube key_chain=[]) :: [] -> array<array<array<integer>>>
+  ) :: [] -> array<array<array<integer>>>
   (VALUE layer
-    (InputRef cube.layer key_chain=[]) :: [cube] -> array
-  ) :: [cube] -> array
+    (InputRef cube.layer key_chain=[]) :: [cube] -> array<array<integer>>
+  ) :: [cube] -> array<array<integer>>
   (VALUE row
-    (InputRef cube.layer.row key_chain=[]) :: [cube, layer] -> array
-  ) :: [cube, layer] -> array
+    (InputRef cube.layer.row key_chain=[]) :: [cube, layer] -> array<integer>
+  ) :: [cube, layer] -> array<integer>
   (VALUE cell
     (InputRef cube.layer.row.cell key_chain=[]) :: [cube, layer, row] -> integer
   ) :: [cube, layer, row] -> integer

@@ -10,7 +10,7 @@
   ) :: [servers] -> string
   (VALUE server_count
     (Call :core.array_size
-      (InputRef config.servers key_chain=[]) :: [] -> array
+      (InputRef config.servers key_chain=[]) :: [] -> array<any>
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE total_ports

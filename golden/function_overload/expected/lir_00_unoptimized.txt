@@ -5,7 +5,7 @@
     yield %t2
   )
   (Declaration items_count
-    %t3 = load_input "items" :: array
+    %t3 = load_input "items" :: array<integer>
     %t4 = call core.array_size(%t3) :: integer
     yield %t4
   )

@@ -4,6 +4,7 @@
     %t6 = length %t1 :: integer
     %t12 = const 1 :: integer
     %t14 = const 0 :: integer
+    %t23 = const 0 :: integer
     loop rows id=L1 in %t1 as el=%rows_el_2, idx=%rows_i_3
       %t7 = call core.mod(%rows_i_3, %t6) :: integer
       %t8 = call core.add(%t7, %t6) :: integer
@@ -18,7 +19,7 @@
         %t17 = call core.and(%t15, %t16) :: boolean
         %t21 = call core.clamp(%t13, %t14, %t19) :: integer
         %t22 = gather %t10, %t21 :: integer
-        %t24 = select %t17, %t22, %t14 :: integer
+        %t24 = select %t17, %t22, %t23 :: integer
         yield %t24
       end_loop
     end_loop
@@ -69,6 +70,7 @@
     %t71 = const -1 :: integer
     %t73 = const 0 :: integer
     %t77 = const 1 :: integer
+    %t82 = const 0 :: integer
     loop rows id=L7 in %t60 as el=%rows_el_61, idx=%rows_i_62
       %t66 = call core.mod(%rows_i_62, %t65) :: integer
       %t67 = call core.add(%t66, %t65) :: integer
@@ -83,7 +85,7 @@
         %t76 = call core.and(%t74, %t75) :: boolean
         %t80 = call core.clamp(%t72, %t73, %t78) :: integer
         %t81 = gather %t69, %t80 :: integer
-        %t83 = select %t76, %t81, %t73 :: integer
+        %t83 = select %t76, %t81, %t82 :: integer
         yield %t83
       end_loop
     end_loop
@@ -134,6 +136,7 @@
     %t124 = length %t119 :: integer
     %t125 = const 1 :: integer
     %t127 = const 0 :: integer
+    %t141 = const 0 :: integer
     %t132 = call core.sub(%t124, %t125) :: integer
     loop rows id=L13 in %t119 as el=%rows_el_120, idx=%rows_i_121
       %t126 = call core.sub(%rows_i_121, %t125) :: integer
@@ -148,7 +151,7 @@
         %t138 = call core.add(%t137, %t136) :: integer
         %t139 = call core.mod(%t138, %t136) :: integer
         %t140 = gather %t135, %t139 :: integer
-        %t142 = select %t130, %t140, %t127 :: integer
+        %t142 = select %t130, %t140, %t141 :: integer
         yield %t142
       end_loop
     end_loop
@@ -199,6 +202,7 @@
     %t184 = const -1 :: integer
     %t186 = const 0 :: integer
     %t190 = const 1 :: integer
+    %t200 = const 0 :: integer
     %t191 = call core.sub(%t183, %t190) :: integer
     loop rows id=L19 in %t178 as el=%rows_el_179, idx=%rows_i_180
       %t185 = call core.sub(%rows_i_180, %t184) :: integer
@@ -213,7 +217,7 @@
         %t197 = call core.add(%t196, %t195) :: integer
         %t198 = call core.mod(%t197, %t195) :: integer
         %t199 = gather %t194, %t198 :: integer
-        %t201 = select %t189, %t199, %t186 :: integer
+        %t201 = select %t189, %t199, %t200 :: integer
         yield %t201
       end_loop
     end_loop

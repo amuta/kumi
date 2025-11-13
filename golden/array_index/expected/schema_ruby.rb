@@ -19,7 +19,8 @@ module Kumi::Compiled::KUMI_510650f83f69ad0965715b7dd0a0be819775493c2ce07cd50113
   def self._col_major(input)
     out = []
     t13 = input["x"] || input[:x]
-    t19 = t13.length
+    t18 = input["x"] || input[:x]
+    t19 = t18.length
     t13.each_with_index do |x_el_14, x_i_15|
       out_1 = []
       x_el_14.each_with_index do |y_el_16, y_i_17|
