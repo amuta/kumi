@@ -1,0 +1,17 @@
+function interest:
+  block entry:
+    %v1 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+    %v2 = constant [value=1.05] [] -> float
+    %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> float
+    %v4 = load_input [key=:rate, chain=["rate"]] [] -> decimal
+    %v5 = import_call (:v3, :v4) [fn_name=:annual_interest, source_module="Kumi::TestSharedSchemas::Compound", mapping_keys=[:principal, :rate]] [] -> decimal
+function total_over_periods:
+  block entry:
+    %v6 = decl_ref [name=:interest] [] -> decimal
+    %v7 = load_input [key=:periods, chain=["periods"]] [] -> integer
+    %v8 = map (:v6, :v7) [fn=:core.mul:numeric] [] -> integer
+function doubled:
+  block entry:
+    %v9 = decl_ref [name=:total_over_periods] [] -> integer
+    %v10 = constant [value=2] [] -> integer
+    %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [] -> integer

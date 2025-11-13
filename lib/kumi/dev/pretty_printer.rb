@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "stringio"
 require_relative "printer/irv2_formatter"
 
 module Kumi
@@ -173,6 +174,24 @@ module Kumi
 
           Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
         end
+      end
+
+      def generate_dfir(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        snast = res.state[:snast_module] or raise "Missing SNAST for #{path}"
+        registry = res.state[:registry] or raise "Missing registry for #{path}"
+        input_table = res.state[:input_table] or raise "Missing input_table for #{path}"
+
+        df_graph = Kumi::IR::DF::Lower.new(
+          snast_module: snast,
+          registry: registry,
+          input_table: input_table
+        ).call
+
+        io = StringIO.new
+        Kumi::IR::Printer.print(df_graph, io: io)
+        io.string
       end
 
       def generate_irv2(path)

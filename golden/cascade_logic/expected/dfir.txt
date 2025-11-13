@@ -1,0 +1,24 @@
+function y_positive:
+  block entry:
+    %v1 = load_input [key=:y, chain=["y"]] [] -> integer
+    %v2 = constant [value=0] [] -> integer
+    %v3 = map (:v1, :v2) [fn=:core.gt] [] -> boolean
+function x_positive:
+  block entry:
+    %v4 = load_input [key=:x, chain=["x"]] [] -> integer
+    %v5 = constant [value=0] [] -> integer
+    %v6 = map (:v4, :v5) [fn=:core.gt] [] -> boolean
+function status:
+  block entry:
+    %v7 = decl_ref [name=:y_positive] [] -> boolean
+    %v8 = decl_ref [name=:x_positive] [] -> boolean
+    %v9 = map (:v7, :v8) [fn=:core.and] [] -> boolean
+    %v10 = constant [value="both positive"] [] -> string
+    %v11 = decl_ref [name=:x_positive] [] -> boolean
+    %v12 = constant [value="x positive"] [] -> string
+    %v13 = decl_ref [name=:y_positive] [] -> boolean
+    %v14 = constant [value="y positive"] [] -> string
+    %v15 = constant [value="neither positive"] [] -> string
+    %v16 = select (:v13, :v14, :v15) [] -> string
+    %v17 = select (:v11, :v12, :v16) [] -> string
+    %v18 = select (:v9, :v10, :v17) [] -> string

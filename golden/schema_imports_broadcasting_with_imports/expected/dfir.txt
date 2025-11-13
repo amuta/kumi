@@ -1,0 +1,10 @@
+function item_taxes:
+  block entry:
+    %v1 = load_input [key=:items, chain=["amount"]] [items] -> decimal
+    %v2 = load_field (:v1) [field=:item] [items] -> decimal
+    %v3 = load_field (:v2) [field=:amount] [items] -> decimal
+    %v4 = import_call (:v3) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [items] -> float
+function total_tax:
+  block entry:
+    %v5 = decl_ref [name=:item_taxes] [items] -> float
+    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:items]] [] -> float

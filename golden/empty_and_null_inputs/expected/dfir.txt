@@ -1,0 +1,17 @@
+function regional_sales:
+  block entry:
+    %v1 = load_input [key=:regions, chain=["amount"]] [regions, sales] -> integer
+    %v2 = load_field (:v1) [field=:region] [regions, sales] -> integer
+    %v3 = load_field (:v2) [field=:sales] [regions, sales] -> integer
+    %v4 = load_field (:v3) [field=:sale] [regions, sales] -> integer
+    %v5 = load_field (:v4) [field=:amount] [regions, sales] -> integer
+    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
+function total_sales:
+  block entry:
+    %v7 = decl_ref [name=:regional_sales] [regions] -> integer
+    %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
+function adjusted_total:
+  block entry:
+    %v9 = decl_ref [name=:total_sales] [] -> integer
+    %v10 = load_input [key=:adjustment, chain=["adjustment"]] [] -> integer
+    %v11 = map (:v9, :v10) [fn=:core.add] [] -> integer

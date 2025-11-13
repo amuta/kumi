@@ -1,0 +1,27 @@
+function app_name:
+  block entry:
+    %v1 = load_input [key=:config, chain=["config", "app_name"]] [] -> string
+    %v2 = load_field (:v1) [field=:app_name] [] -> string
+function all_flags:
+  block entry:
+    %v3 = load_input [key=:config, chain=[]] [feature_flags] -> string
+    %v4 = load_field (:v3) [field=:feature_flags] [feature_flags] -> string
+    %v5 = load_field (:v4) [field=:flag_name] [feature_flags] -> string
+function server_hostnames:
+  block entry:
+    %v6 = load_input [key=:config, chain=["hostname"]] [servers] -> string
+    %v7 = load_field (:v6) [field=:servers] [servers] -> string
+    %v8 = load_field (:v7) [field=:server] [servers] -> string
+    %v9 = load_field (:v8) [field=:hostname] [servers] -> string
+function server_count:
+  block entry:
+    %v10 = load_input [key=:config, chain=["config", "servers"]] [] -> array<any>
+    %v11 = load_field (:v10) [field=:servers] [] -> array<any>
+    %v12 = map (:v11) [fn=:core.array_size] [] -> integer
+function total_ports:
+  block entry:
+    %v13 = load_input [key=:config, chain=["port"]] [servers] -> integer
+    %v14 = load_field (:v13) [field=:servers] [servers] -> integer
+    %v15 = load_field (:v14) [field=:server] [servers] -> integer
+    %v16 = load_field (:v15) [field=:port] [servers] -> integer
+    %v17 = reduce (:v16) [fn=:agg.sum, over_axes=[:servers]] [] -> integer

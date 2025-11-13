@@ -1,0 +1,6 @@
+function v_sum_y:
+  block entry:
+    %v1 = load_input [key=:x, chain=[]] [x, y] -> integer
+    %v2 = load_field (:v1) [field=:y] [x, y] -> integer
+    %v3 = load_field (:v2) [field=:v] [x, y] -> integer
+    %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:y]] [x] -> integer

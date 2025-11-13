@@ -1,0 +1,12 @@
+function scaled:
+  block entry:
+    %v1 = load_input [key=:x, chain=["x"]] [] -> integer
+    %v2 = constant [value=10] [] -> integer
+    %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> integer
+function affine:
+  block entry:
+    %v4 = load_input [key=:x, chain=["x"]] [] -> integer
+    %v5 = constant [value=10] [] -> integer
+    %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [] -> integer
+    %v7 = constant [value=5] [] -> integer
+    %v8 = map (:v6, :v7) [fn=:core.add] [] -> integer

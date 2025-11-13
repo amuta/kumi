@@ -1,0 +1,29 @@
+function W:
+  block entry:
+    %v1 = load_input [key=:x, chain=[]] [x] -> array<integer>
+    %v2 = load_field (:v1) [field=:y] [x] -> array<integer>
+    %v3 = map (:v2) [fn=:core.array_size] [x] -> integer
+function box:
+  block entry:
+    %v4 = axis_index [axis=:x] [x] -> integer
+    %v5 = decl_ref [name=:W] [x] -> integer
+    %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [x] -> integer
+    %v7 = axis_broadcast (:v6) [from_axes=[:x], to_axes=[:x, :y]] [x, y] -> integer
+    %v8 = axis_index [axis=:y] [x, y] -> integer
+    %v9 = map (:v7, :v8) [fn=:core.add] [x, y] -> integer
+function col_major:
+  block entry:
+    %v10 = axis_index [axis=:y] [x, y] -> integer
+    %v11 = load_input [key=:x, chain=["x"]] [] -> array<array<integer>>
+    %v12 = map (:v11) [fn=:core.array_size] [] -> integer
+    %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:x, :y]] [x, y] -> integer
+    %v14 = map (:v10, :v13) [fn=:core.mul:numeric] [x, y] -> integer
+    %v15 = axis_index [axis=:x] [x] -> integer
+    %v16 = axis_broadcast (:v15) [from_axes=[:x], to_axes=[:x, :y]] [x, y] -> integer
+    %v17 = map (:v14, :v16) [fn=:core.add] [x, y] -> integer
+function sum_ij:
+  block entry:
+    %v18 = axis_index [axis=:x] [x] -> integer
+    %v19 = axis_broadcast (:v18) [from_axes=[:x], to_axes=[:x, :y]] [x, y] -> integer
+    %v20 = axis_index [axis=:y] [x, y] -> integer
+    %v21 = map (:v19, :v20) [fn=:core.add] [x, y] -> integer

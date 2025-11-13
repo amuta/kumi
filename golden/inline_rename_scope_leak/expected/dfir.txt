@@ -1,0 +1,23 @@
+function sum_x:
+  block entry:
+    %v1 = load_input [key=:xs, chain=["v"]] [xs] -> float
+    %v2 = load_field (:v1) [field=:el] [xs] -> float
+    %v3 = load_field (:v2) [field=:v] [xs] -> float
+    %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:xs]] [] -> float
+function sum_y:
+  block entry:
+    %v5 = load_input [key=:ys, chain=["v"]] [ys] -> float
+    %v6 = load_field (:v5) [field=:el] [ys] -> float
+    %v7 = load_field (:v6) [field=:v] [ys] -> float
+    %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:ys]] [] -> float
+function tail:
+  block entry:
+    %v9 = constant [value=7.0] [] -> float
+    %v10 = constant [value=5.0] [] -> float
+    %v11 = map (:v9, :v10) [fn=:core.add] [] -> float
+function out:
+  block entry:
+    %v12 = decl_ref [name=:sum_x] [] -> float
+    %v13 = decl_ref [name=:sum_y] [] -> float
+    %v14 = decl_ref [name=:tail] [] -> float
+    %v15 = make_object (:v12, :v13, :v14) [keys=[:x, :y, :t]] [] -> hash

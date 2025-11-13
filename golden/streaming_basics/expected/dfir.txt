@@ -1,0 +1,50 @@
+function items_subtotal:
+  block entry:
+    %v1 = load_input [key=:items, chain=["price"]] [items] -> float
+    %v2 = load_field (:v1) [field=:item] [items] -> float
+    %v3 = load_field (:v2) [field=:price] [items] -> float
+    %v4 = load_input [key=:items, chain=["qty"]] [items] -> integer
+    %v5 = load_field (:v4) [field=:item] [items] -> integer
+    %v6 = load_field (:v5) [field=:qty] [items] -> integer
+    %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
+function items_discounted:
+  block entry:
+    %v8 = load_input [key=:items, chain=["price"]] [items] -> float
+    %v9 = load_field (:v8) [field=:item] [items] -> float
+    %v10 = load_field (:v9) [field=:price] [items] -> float
+    %v11 = constant [value=1.0] [] -> float
+    %v12 = load_input [key=:discount, chain=["discount"]] [] -> float
+    %v13 = map (:v11, :v12) [fn=:core.sub] [] -> float
+    %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
+    %v15 = map (:v10, :v14) [fn=:core.mul:numeric] [items] -> float
+function items_is_big:
+  block entry:
+    %v16 = load_input [key=:items, chain=["price"]] [items] -> float
+    %v17 = load_field (:v16) [field=:item] [items] -> float
+    %v18 = load_field (:v17) [field=:price] [items] -> float
+    %v19 = constant [value=100.0] [] -> float
+    %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
+    %v21 = map (:v18, :v20) [fn=:core.gt] [items] -> boolean
+function items_effective:
+  block entry:
+    %v22 = decl_ref [name=:items_is_big] [items] -> boolean
+    %v23 = decl_ref [name=:items_subtotal] [items] -> float
+    %v24 = constant [value=0.9] [] -> float
+    %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:items]] [items] -> float
+    %v26 = map (:v23, :v25) [fn=:core.mul:numeric] [items] -> float
+    %v27 = decl_ref [name=:items_subtotal] [items] -> float
+    %v28 = select (:v22, :v26, :v27) [items] -> float
+function total_qty:
+  block entry:
+    %v29 = load_input [key=:items, chain=["qty"]] [items] -> integer
+    %v30 = load_field (:v29) [field=:item] [items] -> integer
+    %v31 = load_field (:v30) [field=:qty] [items] -> integer
+    %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+function cart_total:
+  block entry:
+    %v33 = decl_ref [name=:items_subtotal] [items] -> float
+    %v34 = reduce (:v33) [fn=:agg.sum, over_axes=[:items]] [] -> float
+function cart_total_effective:
+  block entry:
+    %v35 = decl_ref [name=:items_effective] [items] -> float
+    %v36 = reduce (:v35) [fn=:agg.sum, over_axes=[:items]] [] -> float

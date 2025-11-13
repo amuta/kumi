@@ -1,0 +1,23 @@
+function tax_amount:
+  block entry:
+    %v1 = load_input [key=:price, chain=["price"]] [] -> decimal
+    %v2 = import_call (:v1) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [] -> float
+function price_after_discount:
+  block entry:
+    %v3 = load_input [key=:price, chain=["price"]] [] -> decimal
+    %v4 = load_input [key=:discount_rate, chain=["discount_rate"]] [] -> decimal
+    %v5 = import_call (:v3, :v4) [fn_name=:discounted, source_module="Kumi::TestSharedSchemas::Discount", mapping_keys=[:price, :rate]] [] -> float
+function discount_saved:
+  block entry:
+    %v6 = load_input [key=:price, chain=["price"]] [] -> decimal
+    %v7 = load_input [key=:discount_rate, chain=["discount_rate"]] [] -> decimal
+    %v8 = import_call (:v6, :v7) [fn_name=:savings, source_module="Kumi::TestSharedSchemas::Discount", mapping_keys=[:price, :rate]] [] -> decimal
+function tax_on_discounted:
+  block entry:
+    %v9 = decl_ref [name=:price_after_discount] [] -> float
+    %v10 = import_call (:v9) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [] -> float
+function final_total:
+  block entry:
+    %v11 = decl_ref [name=:price_after_discount] [] -> float
+    %v12 = decl_ref [name=:tax_on_discounted] [] -> float
+    %v13 = map (:v11, :v12) [fn=:core.add] [] -> float

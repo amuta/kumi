@@ -1,0 +1,23 @@
+function price:
+  block entry:
+    %v1 = load_input [key=:unit_price, chain=["unit_price"]] [] -> string
+    %v2 = map (:v1) [fn=:core.to_decimal] [] -> decimal
+function rate:
+  block entry:
+    %v3 = load_input [key=:tax_rate, chain=["tax_rate"]] [] -> string
+    %v4 = map (:v3) [fn=:core.to_decimal] [] -> decimal
+function subtotal:
+  block entry:
+    %v5 = decl_ref [name=:price] [] -> decimal
+    %v6 = load_input [key=:quantity, chain=["quantity"]] [] -> integer
+    %v7 = map (:v5, :v6) [fn=:core.mul:numeric] [] -> integer
+function tax_amount:
+  block entry:
+    %v8 = decl_ref [name=:subtotal] [] -> integer
+    %v9 = decl_ref [name=:rate] [] -> decimal
+    %v10 = map (:v8, :v9) [fn=:core.mul:numeric] [] -> integer
+function total:
+  block entry:
+    %v11 = decl_ref [name=:subtotal] [] -> integer
+    %v12 = decl_ref [name=:tax_amount] [] -> integer
+    %v13 = map (:v11, :v12) [fn=:core.add] [] -> integer

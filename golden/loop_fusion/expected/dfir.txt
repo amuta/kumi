@@ -1,0 +1,32 @@
+function total_payroll:
+  block entry:
+    %v1 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+    %v2 = load_field (:v1) [field=:dept] [departments, employees] -> integer
+    %v3 = load_field (:v2) [field=:employees] [departments, employees] -> integer
+    %v4 = load_field (:v3) [field=:emp] [departments, employees] -> integer
+    %v5 = load_field (:v4) [field=:salary] [departments, employees] -> integer
+    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function manager_count:
+  block entry:
+    %v7 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
+    %v8 = load_field (:v7) [field=:dept] [departments, employees] -> string
+    %v9 = load_field (:v8) [field=:employees] [departments, employees] -> string
+    %v10 = load_field (:v9) [field=:emp] [departments, employees] -> string
+    %v11 = load_field (:v10) [field=:role] [departments, employees] -> string
+    %v12 = constant [value="manager"] [] -> string
+    %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+    %v14 = map (:v11, :v13) [fn=:core.eq] [departments, employees] -> boolean
+    %v15 = constant [value=1] [] -> integer
+    %v16 = constant [value=0] [] -> integer
+    %v17 = axis_broadcast (:v15) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v18 = axis_broadcast (:v16) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v19 = select (:v14, :v17, :v18) [departments, employees] -> integer
+    %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function department_summary:
+  block entry:
+    %v21 = load_input [key=:departments, chain=["name"]] [departments] -> string
+    %v22 = load_field (:v21) [field=:dept] [departments] -> string
+    %v23 = load_field (:v22) [field=:name] [departments] -> string
+    %v24 = decl_ref [name=:total_payroll] [departments] -> integer
+    %v25 = decl_ref [name=:manager_count] [departments] -> integer
+    %v26 = make_object (:v23, :v24, :v25) [keys=[:name, :total_payroll, :manager_count]] [departments] -> hash

@@ -1,0 +1,20 @@
+function roll_right:
+  block entry:
+    %v2 = load_input [key=:cells, chain=[]] [cells] -> integer
+    %v3 = load_field (:v2) [field=:value] [cells] -> integer
+    %v1 = axis_shift (:v3) [axis=:cells, offset=1, policy=:wrap] [cells] -> integer
+function roll_left:
+  block entry:
+    %v5 = load_input [key=:cells, chain=[]] [cells] -> integer
+    %v6 = load_field (:v5) [field=:value] [cells] -> integer
+    %v4 = axis_shift (:v6) [axis=:cells, offset=-1, policy=:wrap] [cells] -> integer
+function roll_right_clamp:
+  block entry:
+    %v8 = load_input [key=:cells, chain=[]] [cells] -> integer
+    %v9 = load_field (:v8) [field=:value] [cells] -> integer
+    %v7 = axis_shift (:v9) [axis=:cells, offset=1, policy=:clamp] [cells] -> integer
+function roll_left_clamp:
+  block entry:
+    %v11 = load_input [key=:cells, chain=[]] [cells] -> integer
+    %v12 = load_field (:v11) [field=:value] [cells] -> integer
+    %v10 = axis_shift (:v12) [axis=:cells, offset=-1, policy=:clamp] [cells] -> integer

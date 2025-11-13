@@ -1,0 +1,58 @@
+function total_payroll:
+  block entry:
+    %v1 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+    %v2 = load_field (:v1) [field=:dept] [departments, employees] -> integer
+    %v3 = load_field (:v2) [field=:employees] [departments, employees] -> integer
+    %v4 = load_field (:v3) [field=:emp] [departments, employees] -> integer
+    %v5 = load_field (:v4) [field=:salary] [departments, employees] -> integer
+    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function manager_count:
+  block entry:
+    %v7 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
+    %v8 = load_field (:v7) [field=:dept] [departments, employees] -> string
+    %v9 = load_field (:v8) [field=:employees] [departments, employees] -> string
+    %v10 = load_field (:v9) [field=:emp] [departments, employees] -> string
+    %v11 = load_field (:v10) [field=:role] [departments, employees] -> string
+    %v12 = constant [value="manager"] [] -> string
+    %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+    %v14 = map (:v11, :v13) [fn=:core.eq] [departments, employees] -> boolean
+    %v15 = constant [value=1] [] -> integer
+    %v16 = constant [value=0] [] -> integer
+    %v17 = axis_broadcast (:v15) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v18 = axis_broadcast (:v16) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v19 = select (:v14, :v17, :v18) [departments, employees] -> integer
+    %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function senior_employee_count:
+  block entry:
+    %v21 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
+    %v22 = load_field (:v21) [field=:dept] [departments, employees] -> string
+    %v23 = load_field (:v22) [field=:employees] [departments, employees] -> string
+    %v24 = load_field (:v23) [field=:emp] [departments, employees] -> string
+    %v25 = load_field (:v24) [field=:role] [departments, employees] -> string
+    %v26 = constant [value="senior"] [] -> string
+    %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+    %v28 = map (:v25, :v27) [fn=:core.eq] [departments, employees] -> boolean
+    %v29 = constant [value=1] [] -> integer
+    %v30 = constant [value=0] [] -> integer
+    %v31 = axis_broadcast (:v29) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v32 = axis_broadcast (:v30) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+    %v33 = select (:v28, :v31, :v32) [departments, employees] -> integer
+    %v34 = reduce (:v33) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function max_salary:
+  block entry:
+    %v35 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+    %v36 = load_field (:v35) [field=:dept] [departments, employees] -> integer
+    %v37 = load_field (:v36) [field=:employees] [departments, employees] -> integer
+    %v38 = load_field (:v37) [field=:emp] [departments, employees] -> integer
+    %v39 = load_field (:v38) [field=:salary] [departments, employees] -> integer
+    %v40 = reduce (:v39) [fn=:agg.max, over_axes=[:employees]] [departments] -> integer
+function department_summary:
+  block entry:
+    %v41 = load_input [key=:departments, chain=["name"]] [departments] -> string
+    %v42 = load_field (:v41) [field=:dept] [departments] -> string
+    %v43 = load_field (:v42) [field=:name] [departments] -> string
+    %v44 = decl_ref [name=:total_payroll] [departments] -> integer
+    %v45 = decl_ref [name=:manager_count] [departments] -> integer
+    %v46 = decl_ref [name=:senior_employee_count] [departments] -> integer
+    %v47 = decl_ref [name=:max_salary] [departments] -> integer
+    %v48 = make_object (:v43, :v44, :v45, :v46, :v47) [keys=[:name, :total_payroll, :manager_count, :senior_count, :top_salary]] [departments] -> hash
