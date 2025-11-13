@@ -7,19 +7,22 @@ module Kumi
         module_function
 
         def default
-          @default ||= Kumi::IR::Passes::Pipeline.new(
-            default_passes
-          )
+          @default ||= Kumi::IR::Passes::Pipeline.new(default_passes)
         end
 
         def run(graph:, context: {})
-          default.run(graph:, context:)
+          default.run(graph:, context: context)
         end
 
         def default_passes
-          [] # Placeholder: passes will be appended here as they are implemented.
+          [
+            Passes::BroadcastSimplify.new
+          ]
         end
       end
     end
   end
 end
+# frozen_string_literal: true
+
+require_relative "passes/broadcast_simplify"

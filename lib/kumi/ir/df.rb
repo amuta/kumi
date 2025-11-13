@@ -5,6 +5,8 @@ module Kumi
     module DF
       autoload :Ops, "kumi/ir/df/ops"
       autoload :Printer, "kumi/ir/df/printer"
+      autoload :Pipeline, "kumi/ir/df/pipeline"
+
       class Function < Base::Function; end
 
       class Graph < Base::Module
