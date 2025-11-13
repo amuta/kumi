@@ -3,6 +3,7 @@
 module Kumi
   module IR
     autoload :Base,    "kumi/ir/base"
+    autoload :Passes,  "kumi/ir/passes"
     autoload :DF,      "kumi/ir/df"
     autoload :Loop,    "kumi/ir/loop"
     autoload :Buf,     "kumi/ir/buf"

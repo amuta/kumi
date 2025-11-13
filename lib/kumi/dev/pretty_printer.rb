@@ -189,6 +189,9 @@ module Kumi
           input_table: input_table
         ).call
 
+        context = { registry:, input_table: }
+        df_graph = Kumi::IR::DF::Pipeline.run(graph: df_graph, context: context)
+
         io = StringIO.new
         Kumi::IR::Printer.print(df_graph, io: io)
         io.string
