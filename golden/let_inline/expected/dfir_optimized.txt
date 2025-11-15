@@ -1,0 +1,24 @@
+function x_sq:
+  block entry:
+    %v1 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v3 = map (:v1, :v1) [fn=:core.mul:numeric] [] -> integer
+function y_sq:
+  block entry:
+    %v4 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
+    %v6 = map (:v4, :v4) [fn=:core.mul:numeric] [] -> integer
+function distance_sq:
+  block entry:
+    %v10 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v12 = map (:v10, :v10) [fn=:core.mul:numeric] [] -> integer
+    %v13 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
+    %v15 = map (:v13, :v13) [fn=:core.mul:numeric] [] -> integer
+    %v9 = map (:v12, :v15) [fn=:core.add] [] -> integer
+function distance:
+  block entry:
+    %v13 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v15 = map (:v13, :v13) [fn=:core.mul:numeric] [] -> integer
+    %v16 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
+    %v18 = map (:v16, :v16) [fn=:core.mul:numeric] [] -> integer
+    %v19 = map (:v15, :v18) [fn=:core.add] [] -> integer
+    %v11 = constant [value=0.5] [] -> float
+    %v12 = map (:v19, :v11) [fn=:core.pow] [] -> float

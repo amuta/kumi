@@ -1,7 +1,7 @@
 function W:
   block entry:
-    %v1 = load_input [key=:x, chain=[]] [x] -> array<integer>
-    %v2 = load_field (:v1) [field=:y] [x] -> array<integer>
+    %v1 = load_input [key=:x, chain=[], plan_ref="x"] [] -> array<array<integer>>
+    %v2 = load_field (:v1) [field=:y, plan_ref="x.y"] [x] -> array<integer>
     %v3 = map (:v2) [fn=:core.array_size] [x] -> integer
 function box:
   block entry:
@@ -14,7 +14,7 @@ function box:
 function col_major:
   block entry:
     %v10 = axis_index [axis=:y] [x, y] -> integer
-    %v11 = load_input [key=:x, chain=["x"]] [] -> array<array<integer>>
+    %v11 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> array<array<integer>>
     %v12 = map (:v11) [fn=:core.array_size] [] -> integer
     %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:x, :y]] [x, y] -> integer
     %v14 = map (:v10, :v13) [fn=:core.mul:numeric] [x, y] -> integer

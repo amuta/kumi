@@ -1,12 +1,12 @@
 function x_sq:
   block entry:
-    %v1 = load_input [key=:x, chain=["x"]] [] -> integer
-    %v2 = load_input [key=:x, chain=["x"]] [] -> integer
+    %v1 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v2 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
     %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> integer
 function y_sq:
   block entry:
-    %v4 = load_input [key=:y, chain=["y"]] [] -> integer
-    %v5 = load_input [key=:y, chain=["y"]] [] -> integer
+    %v4 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
+    %v5 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
     %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [] -> integer
 function distance_sq:
   block entry:

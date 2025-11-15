@@ -177,24 +177,13 @@ module Kumi
       end
 
       def generate_dfir(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        snast = res.state[:snast_module] or raise "Missing SNAST for #{path}"
-        registry = res.state[:registry] or raise "Missing registry for #{path}"
-        input_table = res.state[:input_table] or raise "Missing input_table for #{path}"
+        graph = build_df_graph(path: path, optimized: false)
+        print_df_graph(graph)
+      end
 
-        df_graph = Kumi::IR::DF::Lower.new(
-          snast_module: snast,
-          registry: registry,
-          input_table: input_table
-        ).call
-
-        context = { registry:, input_table: }
-        df_graph = Kumi::IR::DF::Pipeline.run(graph: df_graph, context: context)
-
-        io = StringIO.new
-        Kumi::IR::Printer.print(df_graph, io: io)
-        io.string
+      def generate_dfir_optimized(path)
+        graph = build_df_graph(path: path, optimized: true)
+        print_df_graph(graph)
       end
 
       def generate_irv2(path)
@@ -249,3 +238,30 @@ module Kumi
     end
   end
 end
+      def build_df_graph(path:, optimized:)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        snast = res.state[:snast_module] or raise "Missing SNAST for #{path}"
+        registry = res.state[:registry] or raise "Missing registry for #{path}"
+        input_table = res.state[:input_table] or raise "Missing input_table for #{path}"
+        input_metadata = res.state[:input_metadata] || {}
+        imported_schemas = res.state[:imported_schemas] || {}
+
+        df_graph = Kumi::IR::DF::Lower.new(
+          snast_module: snast,
+          registry: registry,
+          input_table: input_table,
+          input_metadata: input_metadata
+        ).call
+
+        return df_graph unless optimized
+
+        context = { registry:, input_table: input_table, imported_schemas: imported_schemas }
+        Kumi::IR::DF::Pipeline.run(graph: df_graph, context: context)
+      end
+
+      def print_df_graph(graph)
+        io = StringIO.new
+        Kumi::IR::Printer.print(graph, io: io)
+        io.string
+      end

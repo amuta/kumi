@@ -1,0 +1,27 @@
+function interest:
+  block entry:
+    %v1 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+    %v2 = constant [value=1.05] [] -> float
+    %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> float
+    %v4 = load_input [key=:rate, chain=["rate"], plan_ref="rate"] [] -> decimal
+    %v6 = map (:v3, :v4) [fn=:core.mul:numeric] [] -> decimal
+function total_over_periods:
+  block entry:
+    %v9 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+    %v10 = constant [value=1.05] [] -> float
+    %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [] -> float
+    %v12 = load_input [key=:rate, chain=["rate"], plan_ref="rate"] [] -> decimal
+    %v14 = map (:v11, :v12) [fn=:core.mul:numeric] [] -> decimal
+    %v7 = load_input [key=:periods, chain=["periods"], plan_ref="periods"] [] -> integer
+    %v8 = map (:v14, :v7) [fn=:core.mul:numeric] [] -> integer
+function doubled:
+  block entry:
+    %v12 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+    %v13 = constant [value=1.05] [] -> float
+    %v14 = map (:v12, :v13) [fn=:core.mul:numeric] [] -> float
+    %v15 = load_input [key=:rate, chain=["rate"], plan_ref="rate"] [] -> decimal
+    %v19 = map (:v14, :v15) [fn=:core.mul:numeric] [] -> decimal
+    %v17 = load_input [key=:periods, chain=["periods"], plan_ref="periods"] [] -> integer
+    %v18 = map (:v19, :v17) [fn=:core.mul:numeric] [] -> integer
+    %v10 = constant [value=2] [] -> integer
+    %v11 = map (:v18, :v10) [fn=:core.mul:numeric] [] -> integer

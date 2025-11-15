@@ -150,7 +150,7 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:idx, axes: [:rows], dtype: ir_types.scalar(:integer)) { idx }
       end
 
-      lowering = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {})
+      lowering = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {}, input_metadata: {})
       graph = lowering.call
       instrs = graph.fetch_function(:idx).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:axis_index)
@@ -163,7 +163,7 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:fold_sum, axes: [:rows], dtype: int_type) { fold }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :core_sum), input_table: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :core_sum), input_table: {}, input_metadata: {}).call
       instrs = graph.fetch_function(:fold_sum).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:fold)
     end
@@ -182,7 +182,7 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:imported, axes: [], dtype: int_type) { import }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {}, input_metadata: {}).call
       instrs = graph.fetch_function(:imported).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:import_call)
     end
@@ -206,7 +206,7 @@ RSpec.describe "IR::DF Examples" do
         resolve_function: :"core.shift",
         function: { options: { policy: :zero, axis_offset: 0 } }
       )
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry:, input_table: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry:, input_table: {}, input_metadata: {}).call
       instrs = graph.fetch_function(:shifted).entry_block.instructions
       shift = instrs.find { _1.opcode == :axis_shift }
       expect(shift).not_to be_nil
@@ -223,7 +223,7 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:broadcast_add, axes: %i[rows], dtype: int) { call }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :"core.add"), input_table: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :"core.add"), input_table: {}, input_metadata: {}).call
       instrs = graph.fetch_function(:broadcast_add).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:axis_broadcast)
     end

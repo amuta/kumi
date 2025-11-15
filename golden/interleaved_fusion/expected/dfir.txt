@@ -1,10 +1,10 @@
 function total_payroll:
   block entry:
-    %v1 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
-    %v2 = load_field (:v1) [field=:dept] [departments, employees] -> integer
-    %v3 = load_field (:v2) [field=:employees] [departments, employees] -> integer
-    %v4 = load_field (:v3) [field=:emp] [departments, employees] -> integer
-    %v5 = load_field (:v4) [field=:salary] [departments, employees] -> integer
+    %v1 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [] -> array<any>
+    %v2 = load_field (:v1) [field=:dept, plan_ref="departments.dept"] [departments] -> any
+    %v3 = load_field (:v2) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<any>
+    %v4 = load_field (:v3) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> any
+    %v5 = load_field (:v4) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
     %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function payroll_tax:
   block entry:
@@ -14,11 +14,11 @@ function payroll_tax:
     %v10 = map (:v7, :v9) [fn=:core.mul:numeric] [departments] -> float
 function manager_count:
   block entry:
-    %v11 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
-    %v12 = load_field (:v11) [field=:dept] [departments, employees] -> string
-    %v13 = load_field (:v12) [field=:employees] [departments, employees] -> string
-    %v14 = load_field (:v13) [field=:emp] [departments, employees] -> string
-    %v15 = load_field (:v14) [field=:role] [departments, employees] -> string
+    %v11 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [] -> array<any>
+    %v12 = load_field (:v11) [field=:dept, plan_ref="departments.dept"] [departments] -> any
+    %v13 = load_field (:v12) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<any>
+    %v14 = load_field (:v13) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> any
+    %v15 = load_field (:v14) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
     %v16 = constant [value="manager"] [] -> string
     %v17 = axis_broadcast (:v16) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
     %v18 = map (:v15, :v17) [fn=:core.eq] [departments, employees] -> boolean
@@ -30,9 +30,9 @@ function manager_count:
     %v24 = reduce (:v23) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function department_summary:
   block entry:
-    %v25 = load_input [key=:departments, chain=["name"]] [departments] -> string
-    %v26 = load_field (:v25) [field=:dept] [departments] -> string
-    %v27 = load_field (:v26) [field=:name] [departments] -> string
+    %v25 = load_input [key=:departments, chain=["name"], plan_ref="departments"] [] -> array<any>
+    %v26 = load_field (:v25) [field=:dept, plan_ref="departments.dept"] [departments] -> any
+    %v27 = load_field (:v26) [field=:name, plan_ref="departments.dept.name"] [departments] -> string
     %v28 = decl_ref [name=:total_payroll] [departments] -> integer
     %v29 = decl_ref [name=:payroll_tax] [departments] -> float
     %v30 = decl_ref [name=:manager_count] [departments] -> integer

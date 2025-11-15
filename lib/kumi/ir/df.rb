@@ -3,10 +3,6 @@
 module Kumi
   module IR
     module DF
-      autoload :Ops, "kumi/ir/df/ops"
-      autoload :Printer, "kumi/ir/df/printer"
-      autoload :Pipeline, "kumi/ir/df/pipeline"
-
       class Function < Base::Function; end
 
       class Graph < Base::Module
@@ -25,12 +21,12 @@ module Kumi
           append Ops::Constant.new(result:, value:, axes:, dtype:, metadata:)
         end
 
-        def load_input(result:, key:, axes:, dtype:, chain: [], metadata: {}, source_plan: nil)
-          append Ops::LoadInput.new(result:, key:, axes:, dtype:, chain:, metadata:, source_plan:)
+        def load_input(result:, key:, axes:, dtype:, chain: [], metadata: {}, source_plan: nil, plan_ref: nil)
+          append Ops::LoadInput.new(result:, key:, axes:, dtype:, chain:, metadata:, source_plan:, plan_ref:)
         end
 
-        def load_field(result:, object:, field:, axes:, dtype:, metadata: {})
-          append Ops::LoadField.new(result:, object:, field:, axes:, dtype:, metadata:)
+        def load_field(result:, object:, field:, axes:, dtype:, metadata: {}, plan_ref: nil)
+          append Ops::LoadField.new(result:, object:, field:, axes:, dtype:, metadata:, plan_ref:)
         end
 
         def map(result:, fn:, args:, axes:, dtype:, metadata: {})

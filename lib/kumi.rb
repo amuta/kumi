@@ -34,6 +34,8 @@ AUTOLOADER.inflector.inflect(
   "nast_printer" => "NASTPrinter",
   "snast_printer" => "SNASTPrinter",
   "snast_pass" => "SNASTPass",
+  "cse" => "CSE",
+  "stencil_cse" => "StencilCSE",
   "ruby_ast" => "RubyAST",
   "vm" => "VM"
 )

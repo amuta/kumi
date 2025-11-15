@@ -1,0 +1,41 @@
+function tuple:
+  block entry:
+    %v1 = constant [value=1] [] -> integer
+    %v2 = constant [value=2] [] -> integer
+    %v3 = constant [value=3] [] -> integer
+    %v4 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v5 = array_build (:v1, :v2, :v3, :v4) [size=4] [] -> tuple<integer, integer, integer, integer>
+function max_1:
+  block entry:
+    %v8 = constant [value=1] [] -> integer
+    %v9 = constant [value=2] [] -> integer
+    %v10 = constant [value=3] [] -> integer
+    %v11 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v12 = array_build (:v8, :v9, :v10, :v11) [size=4] [] -> tuple<integer, integer, integer, integer>
+    %v7 = fold (:v12) [fn=:agg.max] [] -> tuple<integer, integer, integer, integer>
+function max_2:
+  block entry:
+    %v8 = constant [value=1] [] -> integer
+    %v9 = constant [value=2] [] -> integer
+    %v10 = constant [value=3] [] -> integer
+    %v11 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v12 = constant [value=1000] [] -> integer
+    %v13 = array_build (:v8, :v9, :v10, :v11, :v12) [size=5] [] -> tuple<integer, integer, integer, integer, integer>
+    %v14 = fold (:v13) [fn=:agg.max] [] -> tuple<integer, integer, integer, integer, integer>
+function min_1:
+  block entry:
+    %v17 = constant [value=1] [] -> integer
+    %v18 = constant [value=2] [] -> integer
+    %v19 = constant [value=3] [] -> integer
+    %v20 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v21 = array_build (:v17, :v18, :v19, :v20) [size=4] [] -> tuple<integer, integer, integer, integer>
+    %v16 = fold (:v21) [fn=:agg.min] [] -> tuple<integer, integer, integer, integer>
+function min_2:
+  block entry:
+    %v17 = constant [value=1] [] -> integer
+    %v18 = constant [value=2] [] -> integer
+    %v19 = constant [value=3] [] -> integer
+    %v20 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+    %v21 = constant [value=-100] [] -> integer
+    %v22 = array_build (:v17, :v18, :v19, :v20, :v21) [size=5] [] -> tuple<integer, integer, integer, integer, integer>
+    %v23 = fold (:v22) [fn=:agg.min] [] -> tuple<integer, integer, integer, integer, integer>

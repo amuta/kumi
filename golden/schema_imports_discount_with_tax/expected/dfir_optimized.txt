@@ -1,0 +1,36 @@
+function tax_amount:
+  block entry:
+    %v1 = load_input [key=:price, chain=["price"], plan_ref="price"] [] -> decimal
+    %v3 = constant [value=0.15] [] -> float
+    %v4 = map (:v1, :v3) [fn=:core.mul:numeric] [] -> float
+function price_after_discount:
+  block entry:
+    %v3 = load_input [key=:price, chain=["price"], plan_ref="price"] [] -> decimal
+    %v4 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+    %v6 = constant [value=1.0] [] -> float
+    %v7 = map (:v6, :v4) [fn=:core.sub] [] -> float
+    %v8 = map (:v3, :v7) [fn=:core.mul:numeric] [] -> float
+function discount_saved:
+  block entry:
+    %v6 = load_input [key=:price, chain=["price"], plan_ref="price"] [] -> decimal
+    %v7 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+    %v9 = map (:v6, :v7) [fn=:core.mul:numeric] [] -> decimal
+function tax_on_discounted:
+  block entry:
+    %v11 = load_input [key=:price, chain=["price"], plan_ref="price"] [] -> decimal
+    %v12 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+    %v14 = constant [value=1.0] [] -> float
+    %v15 = map (:v14, :v12) [fn=:core.sub] [] -> float
+    %v16 = map (:v11, :v15) [fn=:core.mul:numeric] [] -> float
+    %v17 = constant [value=0.15] [] -> float
+    %v18 = map (:v16, :v17) [fn=:core.mul:numeric] [] -> float
+function final_total:
+  block entry:
+    %v14 = load_input [key=:price, chain=["price"], plan_ref="price"] [] -> decimal
+    %v15 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+    %v21 = constant [value=1.0] [] -> float
+    %v22 = map (:v21, :v15) [fn=:core.sub] [] -> float
+    %v23 = map (:v14, :v22) [fn=:core.mul:numeric] [] -> float
+    %v24 = constant [value=0.15] [] -> float
+    %v25 = map (:v23, :v24) [fn=:core.mul:numeric] [] -> float
+    %v13 = map (:v23, :v25) [fn=:core.add] [] -> float

@@ -1,0 +1,15 @@
+function item_taxes:
+  block entry:
+    %v1 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<any>
+    %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> any
+    %v3 = load_field (:v2) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
+    %v5 = constant [value=0.15] [items] -> float
+    %v6 = map (:v3, :v5) [fn=:core.mul:numeric] [items] -> float
+function total_tax:
+  block entry:
+    %v7 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<any>
+    %v8 = load_field (:v7) [field=:item, plan_ref="items.item"] [items] -> any
+    %v9 = load_field (:v8) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
+    %v11 = constant [value=0.15] [items] -> float
+    %v12 = map (:v9, :v11) [fn=:core.mul:numeric] [items] -> float
+    %v6 = reduce (:v12) [fn=:agg.sum, over_axes=[:items]] [] -> float

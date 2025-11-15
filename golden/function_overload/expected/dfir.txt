@@ -1,10 +1,10 @@
 function name_len:
   block entry:
-    %v1 = load_input [key=:name, chain=["name"]] [] -> string
+    %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
     %v2 = map (:v1) [fn=:core.length] [] -> integer
 function items_count:
   block entry:
-    %v3 = load_input [key=:items, chain=["items"]] [] -> array<integer>
+    %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
     %v4 = map (:v3) [fn=:core.array_size] [] -> integer
 function summary:
   block entry:

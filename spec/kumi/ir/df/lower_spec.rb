@@ -154,4 +154,67 @@ RSpec.describe Kumi::IR::DF::Lower do
       expect(instrs.map(&:opcode)).to include(:array_build)
     end
   end
+
+  describe "input access plan references" do
+    it "attaches plan_ref attributes to load instructions" do
+      snast = snast_factory.build do |b|
+        value = snast_factory.input_ref(
+          path: %i[rows col alive],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer)
+        )
+        b.declaration(:alive_value, axes: %i[rows col], dtype: types.scalar(:integer)) { value }
+      end
+
+      plans = [
+        Kumi::Core::Analyzer::Plans::InputPlan.new(
+          source_path: %i[rows],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer),
+          key_policy: :indifferent,
+          missing_policy: :error,
+          navigation_steps: [{ kind: :property_access, key: "rows" }],
+          path_fqn: "rows",
+          open_axis: false
+        ),
+        Kumi::Core::Analyzer::Plans::InputPlan.new(
+          source_path: %i[rows col],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer),
+          key_policy: :indifferent,
+          missing_policy: :error,
+          navigation_steps: [
+            { kind: :property_access, key: "rows" },
+            { kind: :property_access, key: "col" }
+          ],
+          path_fqn: "rows.col",
+          open_axis: false
+        ),
+        Kumi::Core::Analyzer::Plans::InputPlan.new(
+          source_path: %i[rows col alive],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer),
+          key_policy: :indifferent,
+          missing_policy: :error,
+          navigation_steps: [
+            { kind: :property_access, key: "rows" },
+            { kind: :property_access, key: "col" },
+            { kind: :property_access, key: "alive" }
+          ],
+          path_fqn: "rows.col.alive",
+          open_axis: false
+        )
+      ]
+
+      lower = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: plans)
+      graph = lower.call
+
+      instrs = graph.fetch_function(:alive_value).entry_block.instructions
+      load_input, load_field_col, load_field_alive = instrs.first(3)
+
+      expect(load_input.attributes[:plan_ref]).to eq("rows")
+      expect(load_field_col.attributes[:plan_ref]).to eq("rows.col")
+      expect(load_field_alive.attributes[:plan_ref]).to eq("rows.col.alive")
+    end
+  end
 end

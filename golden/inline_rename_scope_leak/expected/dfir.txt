@@ -1,14 +1,14 @@
 function sum_x:
   block entry:
-    %v1 = load_input [key=:xs, chain=["v"]] [xs] -> float
-    %v2 = load_field (:v1) [field=:el] [xs] -> float
-    %v3 = load_field (:v2) [field=:v] [xs] -> float
+    %v1 = load_input [key=:xs, chain=["v"], plan_ref="xs"] [] -> array<any>
+    %v2 = load_field (:v1) [field=:el, plan_ref="xs.el"] [xs] -> any
+    %v3 = load_field (:v2) [field=:v, plan_ref="xs.el.v"] [xs] -> float
     %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:xs]] [] -> float
 function sum_y:
   block entry:
-    %v5 = load_input [key=:ys, chain=["v"]] [ys] -> float
-    %v6 = load_field (:v5) [field=:el] [ys] -> float
-    %v7 = load_field (:v6) [field=:v] [ys] -> float
+    %v5 = load_input [key=:ys, chain=["v"], plan_ref="ys"] [] -> array<any>
+    %v6 = load_field (:v5) [field=:el, plan_ref="ys.el"] [ys] -> any
+    %v7 = load_field (:v6) [field=:v, plan_ref="ys.el.v"] [ys] -> float
     %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:ys]] [] -> float
 function tail:
   block entry:

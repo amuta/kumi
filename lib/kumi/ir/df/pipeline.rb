@@ -16,13 +16,15 @@ module Kumi
 
         def default_passes
           [
-            Passes::BroadcastSimplify.new
+            Passes::DeclInlining.new,
+            Passes::LoadDedup.new,
+            Passes::BroadcastSimplify.new,
+            Passes::CSE.new,
+            Passes::StencilCSE.new,
+            Passes::ImportInlining.new
           ]
         end
       end
     end
   end
 end
-# frozen_string_literal: true
-
-require_relative "passes/broadcast_simplify"

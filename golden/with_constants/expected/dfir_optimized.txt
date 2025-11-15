@@ -1,0 +1,12 @@
+function scores:
+  block entry:
+    %v1 = constant [value=100] [] -> integer
+    %v2 = constant [value=85] [] -> integer
+    %v3 = constant [value=92] [] -> integer
+    %v4 = array_build (:v1, :v2, :v3) [size=3] [] -> tuple<integer, integer, integer>
+function first_score:
+  block entry:
+    %v5 = constant [value=100] [] -> integer
+function second_score:
+  block entry:
+    %v6 = constant [value=85] [] -> integer

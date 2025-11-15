@@ -1,8 +1,8 @@
 function a:
   block entry:
-    %v1 = load_input [key=:rows, chain=[]] [rows, col] -> integer
-    %v2 = load_field (:v1) [field=:col] [rows, col] -> integer
-    %v3 = load_field (:v2) [field=:alive] [rows, col] -> integer
+    %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+    %v2 = load_field (:v1) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+    %v3 = load_field (:v2) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
 function n:
   block entry:
     %v5 = decl_ref [name=:a] [rows, col] -> integer

@@ -1,0 +1,100 @@
+function high_performer:
+  block entry:
+    %v1 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [] -> array<any>
+    %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v3 = load_field (:v2) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v4 = load_field (:v3) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v5 = load_field (:v4) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v6 = load_field (:v5) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v7 = load_field (:v6) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<any>
+    %v8 = load_field (:v7) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> any
+    %v9 = load_field (:v8) [field=:rating, plan_ref="regions.region.offices.office.teams.team.employees.employee.rating"] [regions, offices, teams, employees] -> float
+    %v10 = constant [value=4.5] [] -> float
+    %v11 = axis_broadcast (:v10) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+    %v12 = map (:v9, :v11) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+function senior_level:
+  block entry:
+    %v13 = load_input [key=:regions, chain=["level"], plan_ref="regions"] [] -> array<any>
+    %v14 = load_field (:v13) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v15 = load_field (:v14) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v16 = load_field (:v15) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v17 = load_field (:v16) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v18 = load_field (:v17) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v19 = load_field (:v18) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<any>
+    %v20 = load_field (:v19) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> any
+    %v21 = load_field (:v20) [field=:level, plan_ref="regions.region.offices.office.teams.team.employees.employee.level"] [regions, offices, teams, employees] -> string
+    %v22 = constant [value="senior"] [] -> string
+    %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
+    %v24 = map (:v21, :v23) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+function top_team:
+  block entry:
+    %v25 = load_input [key=:regions, chain=["performance_score"], plan_ref="regions"] [] -> array<any>
+    %v26 = load_field (:v25) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v27 = load_field (:v26) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v28 = load_field (:v27) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v29 = load_field (:v28) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v30 = load_field (:v29) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v31 = load_field (:v30) [field=:performance_score, plan_ref="regions.region.offices.office.teams.team.performance_score"] [regions, offices, teams] -> float
+    %v32 = constant [value=0.9] [] -> float
+    %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
+    %v34 = map (:v31, :v33) [fn=:core.gte] [regions, offices, teams] -> boolean
+function employee_bonus:
+  block entry:
+    %v83 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [] -> array<any>
+    %v84 = load_field (:v83) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v85 = load_field (:v84) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v86 = load_field (:v85) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v87 = load_field (:v86) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v88 = load_field (:v87) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v89 = load_field (:v88) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<any>
+    %v90 = load_field (:v89) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> any
+    %v91 = load_field (:v90) [field=:rating, plan_ref="regions.region.offices.office.teams.team.employees.employee.rating"] [regions, offices, teams, employees] -> float
+    %v92 = constant [value=4.5] [] -> float
+    %v93 = axis_broadcast (:v92) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+    %v94 = map (:v91, :v93) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+    %v95 = load_input [key=:regions, chain=["level"], plan_ref="regions"] [] -> array<any>
+    %v96 = load_field (:v95) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v97 = load_field (:v96) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v98 = load_field (:v97) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v99 = load_field (:v98) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v100 = load_field (:v99) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v101 = load_field (:v100) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<any>
+    %v102 = load_field (:v101) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> any
+    %v103 = load_field (:v102) [field=:level, plan_ref="regions.region.offices.office.teams.team.employees.employee.level"] [regions, offices, teams, employees] -> string
+    %v104 = constant [value="senior"] [] -> string
+    %v105 = axis_broadcast (:v104) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
+    %v106 = map (:v103, :v105) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+    %v107 = load_input [key=:regions, chain=["performance_score"], plan_ref="regions"] [] -> array<any>
+    %v108 = load_field (:v107) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v109 = load_field (:v108) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v110 = load_field (:v109) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v111 = load_field (:v110) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v112 = load_field (:v111) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v113 = load_field (:v112) [field=:performance_score, plan_ref="regions.region.offices.office.teams.team.performance_score"] [regions, offices, teams] -> float
+    %v114 = constant [value=0.9] [] -> float
+    %v115 = axis_broadcast (:v114) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
+    %v116 = map (:v113, :v115) [fn=:core.gte] [regions, offices, teams] -> boolean
+    %v38 = axis_broadcast (:v116) [from_axes=[:regions, :offices, :teams], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> boolean
+    %v39 = map (:v106, :v38) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+    %v40 = map (:v94, :v39) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+    %v41 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [] -> array<any>
+    %v42 = load_field (:v41) [field=:region, plan_ref="regions.region"] [regions] -> any
+    %v43 = load_field (:v42) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<any>
+    %v44 = load_field (:v43) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> any
+    %v45 = load_field (:v44) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<any>
+    %v46 = load_field (:v45) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> any
+    %v47 = load_field (:v46) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<any>
+    %v48 = load_field (:v47) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> any
+    %v49 = load_field (:v48) [field=:salary, plan_ref="regions.region.offices.office.teams.team.employees.employee.salary"] [regions, offices, teams, employees] -> float
+    %v50 = constant [value=0.3] [] -> float
+    %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+    %v52 = map (:v49, :v51) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+    %v56 = map (:v94, :v38) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+    %v66 = constant [value=0.2] [] -> float
+    %v67 = axis_broadcast (:v66) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+    %v68 = map (:v49, :v67) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+    %v78 = constant [value=0.05] [] -> float
+    %v79 = axis_broadcast (:v78) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+    %v80 = map (:v49, :v79) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+    %v81 = select (:v56, :v68, :v80) [regions, offices, teams, employees] -> float
+    %v82 = select (:v40, :v52, :v81) [regions, offices, teams, employees] -> float
