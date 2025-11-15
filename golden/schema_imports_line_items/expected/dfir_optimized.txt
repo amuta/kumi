@@ -1,32 +1,26 @@
 function order_subtotal:
-  block entry:
-    %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
-    %v3 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> any
-    %v4 = load_field (:v3) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
-    %v5 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> any
-    %v6 = load_field (:v5) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
-    %v7 = map (:v4, :v6) [fn=:core.mul:numeric] [items] -> integer
-    %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v3 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v4 = load_field (:v3) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v5 = load_field (:v3) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [items] -> integer
+  %v7 = reduce (:v6) [fn=:agg.sum, over_axes=[:items]] [] -> integer
 function tax_amount:
-  block entry:
-    %v6 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
-    %v8 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> any
-    %v9 = load_field (:v8) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
-    %v10 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> any
-    %v11 = load_field (:v10) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
-    %v12 = map (:v9, :v11) [fn=:core.mul:numeric] [items] -> integer
-    %v13 = reduce (:v12) [fn=:agg.sum, over_axes=[:items]] [] -> integer
-    %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
-    %v5 = map (:v13, :v4) [fn=:core.mul:numeric] [] -> integer
+  %v6 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v8 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v9 = load_field (:v8) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v10 = load_field (:v8) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [items] -> integer
+  %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v5 = map (:v12, :v4) [fn=:core.mul:numeric] [] -> integer
 function total:
-  block entry:
-    %v9 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
-    %v15 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> any
-    %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
-    %v17 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> any
-    %v18 = load_field (:v17) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
-    %v19 = map (:v16, :v18) [fn=:core.mul:numeric] [items] -> integer
-    %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:items]] [] -> integer
-    %v13 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
-    %v14 = map (:v20, :v13) [fn=:core.mul:numeric] [] -> integer
-    %v8 = map (:v20, :v14) [fn=:core.add] [] -> integer
+  %v9 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v15 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v17 = load_field (:v15) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v18 = map (:v16, :v17) [fn=:core.mul:numeric] [items] -> integer
+  %v19 = reduce (:v18) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v13 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v14 = map (:v19, :v13) [fn=:core.mul:numeric] [] -> integer
+  %v8 = map (:v19, :v14) [fn=:core.add] [] -> integer

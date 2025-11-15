@@ -235,9 +235,15 @@ module Kumi
 
         Kumi::Pack.print(schema: path, targets: %w[ruby])
       end
-    end
-  end
-end
+      def generate_loopir(path)
+        schema, = Kumi::Frontends.load(path: path)
+        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
+        loop_module = res.state[:loop_module]
+        return nil unless loop_module
+
+        print_loop_module(loop_module)
+      end
+
       def build_df_graph(path:, optimized:)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
@@ -265,3 +271,12 @@ end
         Kumi::IR::Printer.print(graph, io: io)
         io.string
       end
+
+      def print_loop_module(loop_module)
+        io = StringIO.new
+        Kumi::IR::Printer.print(loop_module, io: io)
+        io.string
+      end
+    end
+  end
+end

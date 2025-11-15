@@ -1,0 +1,66 @@
+function order_subtotals:
+  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
+  loop_start (:v1) [axis=:orders, element=:orders_el_1, index=:orders_idx_1, loop_id=:L1] [] -> "unknown"
+    %items_1 = load_field (:orders_el_1) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+    %v5 = load_field (:items_1) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+    %v6 = load_field (:v5) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
+    %v7 = load_field (:v5) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
+    %v8 = map (:v6, :v7) [fn=:core.mul:numeric] [orders, items] -> integer
+    %v9_acc = declare_accumulator [fn=:agg.sum] [orders] -> integer
+    accumulate (:v9_acc, :v8) [orders] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v9 = load_accumulator (:v9_acc) [orders] -> integer
+  yield (:v9) [] -> "unknown"
+function total_before_tax:
+  %v7 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
+  %v6_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v7) [axis=:orders, element=:orders_el_1, index=:orders_idx_1, loop_id=:L1] [] -> "unknown"
+    %items_1 = load_field (:orders_el_1) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+    %v11 = load_field (:items_1) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+    %v12 = load_field (:v11) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
+    %v13 = load_field (:v11) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
+    %v14 = map (:v12, :v13) [fn=:core.mul:numeric] [orders, items] -> integer
+    %v15_acc = declare_accumulator [fn=:agg.sum] [orders] -> integer
+    accumulate (:v15_acc, :v14) [orders] -> integer
+    accumulate (:v6_acc, :v15) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v15 = load_accumulator (:v15_acc) [orders] -> integer
+  %v6 = load_accumulator (:v6_acc) [] -> integer
+  yield (:v6) [] -> "unknown"
+function tax_for_all:
+  %v9 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
+  %v13_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v9) [axis=:orders, element=:orders_el_1, index=:orders_idx_1, loop_id=:L1] [] -> "unknown"
+    %items_1 = load_field (:orders_el_1) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+    %v14 = load_field (:items_1) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+    %v15 = load_field (:v14) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
+    %v16 = load_field (:v14) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
+    %v17 = map (:v15, :v16) [fn=:core.mul:numeric] [orders, items] -> integer
+    %v18_acc = declare_accumulator [fn=:agg.sum] [orders] -> integer
+    accumulate (:v18_acc, :v17) [orders] -> integer
+    accumulate (:v13_acc, :v18) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v18 = load_accumulator (:v18_acc) [orders] -> integer
+  %v13 = load_accumulator (:v13_acc) [] -> integer
+  %v19 = constant [value=0.15] [] -> float
+  %v20 = map (:v13, :v19) [fn=:core.mul:numeric] [] -> float
+  yield (:v20) [] -> "unknown"
+function grand_total:
+  %v12 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
+  %v16_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v12) [axis=:orders, element=:orders_el_1, index=:orders_idx_1, loop_id=:L1] [] -> "unknown"
+    %items_1 = load_field (:orders_el_1) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+    %v23 = load_field (:items_1) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+    %v24 = load_field (:v23) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
+    %v25 = load_field (:v23) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
+    %v26 = map (:v24, :v25) [fn=:core.mul:numeric] [orders, items] -> integer
+    %v27_acc = declare_accumulator [fn=:agg.sum] [orders] -> integer
+    accumulate (:v27_acc, :v26) [orders] -> integer
+    accumulate (:v16_acc, :v27) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v27 = load_accumulator (:v27_acc) [orders] -> integer
+  %v16 = load_accumulator (:v16_acc) [] -> integer
+  %v28 = constant [value=0.15] [] -> float
+  %v29 = map (:v16, :v28) [fn=:core.mul:numeric] [] -> float
+  %v11 = map (:v16, :v29) [fn=:core.add] [] -> float
+  yield (:v11) [] -> "unknown"

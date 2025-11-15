@@ -1,0 +1,124 @@
+function global_offset_plus:
+  %v1 = load_input [key=:global_offset, chain=["global_offset"], plan_ref="global_offset"] [] -> float
+  %v2 = constant [value=1.0] [] -> float
+  %v3 = map (:v1, :v2) [fn=:core.add] [] -> float
+  yield (:v3) [] -> "unknown"
+function batch_bias:
+  %v4 = load_input [key=:batch, chain=["mean"], plan_ref="batch"] [] -> array<hash>
+  loop_start (:v4) [axis=:batch, element=:batch_el_1, index=:batch_idx_1, loop_id=:L1] [] -> "unknown"
+    %mean_1 = load_field (:batch_el_1) [field=:mean, plan_ref="batch.b.mean"] [batch] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v10 = load_input [key=:global_offset, chain=["global_offset"], plan_ref="global_offset"] [] -> float
+  %v11 = constant [value=1.0] [] -> float
+  %v12 = map (:v10, :v11) [fn=:core.add] [] -> float
+  %v8 = axis_broadcast (:v12) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  loop_start (:v4) [axis=:batch, element=:batch_el_2, index=:batch_idx_2, loop_id=:L2] [] -> "unknown"
+    %v9 = map (:mean_1, :v8) [fn=:core.add] [batch] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v9) [] -> "unknown"
+function row_scale2:
+  %v10 = load_input [key=:batch, chain=["scale"], plan_ref="batch"] [] -> array<hash>
+  loop_start (:v10) [axis=:batch, element=:batch_el_1, index=:batch_idx_1, loop_id=:L1] [] -> "unknown"
+    %row_1 = load_field (:batch_el_1) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
+    %v13 = load_field (:row_1) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
+    %v14 = load_field (:v13) [field=:scale, plan_ref="batch.b.row.r.scale"] [batch, row] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v15 = constant [value=2.0] [] -> float
+  %v16 = axis_broadcast (:v15) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  loop_start (:v10) [axis=:batch, element=:batch_el_2, index=:batch_idx_2, loop_id=:L2] [] -> "unknown"
+    %v17 = map (:v14, :v16) [fn=:core.mul:numeric] [batch, row] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v17) [] -> "unknown"
+function elem_affine:
+  %v18 = load_input [key=:batch, chain=["val"], plan_ref="batch"] [] -> array<hash>
+  loop_start (:v18) [axis=:batch, element=:batch_el_1, index=:batch_idx_1, loop_id=:L1] [] -> "unknown"
+    %row_1 = load_field (:batch_el_1) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
+    %v21 = load_field (:row_1) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
+    %v22 = load_field (:v21) [field=:col, plan_ref="batch.b.row.r.col"] [batch, row] -> array<hash>
+    %v23 = load_field (:v22) [field=:c, plan_ref="batch.b.row.r.col.c"] [batch, row, col] -> hash
+    %v24 = load_field (:v23) [field=:val, plan_ref="batch.b.row.r.col.c.val"] [batch, row, col] -> float
+    %v35 = load_field (:v21) [field=:scale, plan_ref="batch.b.row.r.scale"] [batch, row] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v36 = constant [value=2.0] [] -> float
+  %v37 = axis_broadcast (:v36) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  loop_start (:v18) [axis=:batch, element=:batch_el_2, index=:batch_idx_2, loop_id=:L2] [] -> "unknown"
+    %v38 = map (:v35, :v37) [fn=:core.mul:numeric] [batch, row] -> float
+    %v26 = axis_broadcast (:v38) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v27 = map (:v24, :v26) [fn=:core.mul:numeric] [batch, row, col] -> float
+    %mean_1 = load_field (:batch_el_2) [field=:mean, plan_ref="batch.b.mean"] [batch] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v42 = load_input [key=:global_offset, chain=["global_offset"], plan_ref="global_offset"] [] -> float
+  %v43 = constant [value=1.0] [] -> float
+  %v44 = map (:v42, :v43) [fn=:core.add] [] -> float
+  %v45 = axis_broadcast (:v44) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  loop_start (:v18) [axis=:batch, element=:batch_el_3, index=:batch_idx_3, loop_id=:L3] [] -> "unknown"
+    %v46 = map (:mean_1, :v45) [fn=:core.add] [batch] -> float
+    %v29 = axis_broadcast (:v46) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v30 = map (:v27, :v29) [fn=:core.add] [batch, row, col] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v30) [] -> "unknown"
+function row_sum_affine:
+  %v33 = load_input [key=:batch, chain=["val"], plan_ref="batch"] [] -> array<hash>
+  loop_start (:v33) [axis=:batch, element=:batch_el_1, index=:batch_idx_1, loop_id=:L1] [] -> "unknown"
+    %row_1 = load_field (:batch_el_1) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
+    %v36 = load_field (:row_1) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
+    %v37 = load_field (:v36) [field=:col, plan_ref="batch.b.row.r.col"] [batch, row] -> array<hash>
+    %v38 = load_field (:v37) [field=:c, plan_ref="batch.b.row.r.col.c"] [batch, row, col] -> hash
+    %v39 = load_field (:v38) [field=:val, plan_ref="batch.b.row.r.col.c.val"] [batch, row, col] -> float
+    %v44 = load_field (:v36) [field=:scale, plan_ref="batch.b.row.r.scale"] [batch, row] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v45 = constant [value=2.0] [] -> float
+  %v46 = axis_broadcast (:v45) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  loop_start (:v33) [axis=:batch, element=:batch_el_2, index=:batch_idx_2, loop_id=:L2] [] -> "unknown"
+    %v47 = map (:v44, :v46) [fn=:core.mul:numeric] [batch, row] -> float
+    %v48 = axis_broadcast (:v47) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v49 = map (:v39, :v48) [fn=:core.mul:numeric] [batch, row, col] -> float
+    %mean_1 = load_field (:batch_el_2) [field=:mean, plan_ref="batch.b.mean"] [batch] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v53 = load_input [key=:global_offset, chain=["global_offset"], plan_ref="global_offset"] [] -> float
+  %v54 = constant [value=1.0] [] -> float
+  %v55 = map (:v53, :v54) [fn=:core.add] [] -> float
+  %v56 = axis_broadcast (:v55) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v32_acc = declare_accumulator [fn=:agg.sum] [batch, row] -> float
+  %v32 = load_accumulator (:v32_acc) [batch, row] -> float
+  loop_start (:v33) [axis=:batch, element=:batch_el_3, index=:batch_idx_3, loop_id=:L3] [] -> "unknown"
+    %v57 = map (:mean_1, :v56) [fn=:core.add] [batch] -> float
+    %v58 = axis_broadcast (:v57) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v59 = map (:v49, :v58) [fn=:core.add] [batch, row, col] -> float
+    accumulate (:v32_acc, :v59) [batch, row] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v32) [] -> "unknown"
+function batch_total_affine:
+  %v35 = load_input [key=:batch, chain=["val"], plan_ref="batch"] [] -> array<hash>
+  loop_start (:v35) [axis=:batch, element=:batch_el_1, index=:batch_idx_1, loop_id=:L1] [] -> "unknown"
+    %row_1 = load_field (:batch_el_1) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
+    %v38 = load_field (:row_1) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
+    %v39 = load_field (:v38) [field=:col, plan_ref="batch.b.row.r.col"] [batch, row] -> array<hash>
+    %v40 = load_field (:v39) [field=:c, plan_ref="batch.b.row.r.col.c"] [batch, row, col] -> hash
+    %v41 = load_field (:v40) [field=:val, plan_ref="batch.b.row.r.col.c.val"] [batch, row, col] -> float
+    %v46 = load_field (:v38) [field=:scale, plan_ref="batch.b.row.r.scale"] [batch, row] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v47 = constant [value=2.0] [] -> float
+  %v48 = axis_broadcast (:v47) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  loop_start (:v35) [axis=:batch, element=:batch_el_2, index=:batch_idx_2, loop_id=:L2] [] -> "unknown"
+    %v49 = map (:v46, :v48) [fn=:core.mul:numeric] [batch, row] -> float
+    %v50 = axis_broadcast (:v49) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v51 = map (:v41, :v50) [fn=:core.mul:numeric] [batch, row, col] -> float
+    %mean_1 = load_field (:batch_el_2) [field=:mean, plan_ref="batch.b.mean"] [batch] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v55 = load_input [key=:global_offset, chain=["global_offset"], plan_ref="global_offset"] [] -> float
+  %v56 = constant [value=1.0] [] -> float
+  %v57 = map (:v55, :v56) [fn=:core.add] [] -> float
+  %v58 = axis_broadcast (:v57) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v62_acc = declare_accumulator [fn=:agg.sum] [batch, row] -> float
+  %v62 = load_accumulator (:v62_acc) [batch, row] -> float
+  loop_start (:v35) [axis=:batch, element=:batch_el_3, index=:batch_idx_3, loop_id=:L3] [] -> "unknown"
+    %v59 = map (:mean_1, :v58) [fn=:core.add] [batch] -> float
+    %v60 = axis_broadcast (:v59) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+    %v61 = map (:v51, :v60) [fn=:core.add] [batch, row, col] -> float
+    accumulate (:v62_acc, :v61) [batch, row] -> float
+    %v34_acc = declare_accumulator [fn=:agg.sum] [batch] -> float
+    accumulate (:v34_acc, :v62) [batch] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v34 = load_accumulator (:v34_acc) [batch] -> float
+  yield (:v34) [] -> "unknown"

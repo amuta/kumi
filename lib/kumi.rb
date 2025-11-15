@@ -26,6 +26,7 @@ AUTOLOADER.inflector.inflect(
   "local_cse_pass" => "LocalCSEPass",
   "lower_to_ir_pass" => "LowerToIRPass",
   "lower_to_lir_pass" => "LowerToLIRPass",
+  "lower_to_dfir_pass" => "LowerToDFIRPass",
   "lower_to_irv2_pass" => "LowerToIRV2Pass",
   "load_input_cse" => "LoadInputCSE",
   "nast" => "NAST",

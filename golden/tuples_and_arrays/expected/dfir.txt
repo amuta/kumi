@@ -1,30 +1,26 @@
 function x_is_large:
-  block entry:
-    %v1 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:point, plan_ref="points.point"] [points] -> any
-    %v3 = load_field (:v2) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v4 = constant [value=100] [] -> integer
-    %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:points]] [points] -> integer
-    %v6 = map (:v3, :v5) [fn=:core.gt] [points] -> boolean
+  %v1 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v3 = load_field (:v2) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v4 = constant [value=100] [] -> integer
+  %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v6 = map (:v3, :v5) [fn=:core.gt] [points] -> boolean
 function selected_value:
-  block entry:
-    %v7 = decl_ref [name=:x_is_large] [points] -> boolean
-    %v8 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v9 = load_field (:v8) [field=:point, plan_ref="points.point"] [points] -> any
-    %v10 = load_field (:v9) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v11 = load_input [key=:points, chain=["y"], plan_ref="points"] [] -> array<any>
-    %v12 = load_field (:v11) [field=:point, plan_ref="points.point"] [points] -> any
-    %v13 = load_field (:v12) [field=:y, plan_ref="points.point.y"] [points] -> integer
-    %v14 = select (:v7, :v10, :v13) [points] -> integer
+  %v7 = decl_ref [name=:x_is_large] [points] -> boolean
+  %v8 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v9 = load_field (:v8) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v10 = load_field (:v9) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v11 = load_input [key=:points, chain=["y"], plan_ref="points"] [] -> array<hash>
+  %v12 = load_field (:v11) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v13 = load_field (:v12) [field=:y, plan_ref="points.point.y"] [points] -> integer
+  %v14 = select (:v7, :v10, :v13) [points] -> integer
 function final_value_per_point:
-  block entry:
-    %v15 = decl_ref [name=:selected_value] [points] -> integer
-    %v16 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v17 = load_field (:v16) [field=:point, plan_ref="points.point"] [points] -> any
-    %v18 = load_field (:v17) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v19 = array_build (:v15, :v18) [size=2] [points] -> tuple<integer, integer>
-    %v20 = fold (:v19) [fn=:agg.max] [points] -> tuple<integer, integer>
+  %v15 = decl_ref [name=:selected_value] [points] -> integer
+  %v16 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v17 = load_field (:v16) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v18 = load_field (:v17) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v19 = array_build (:v15, :v18) [size=2] [points] -> tuple<integer, integer>
+  %v20 = fold (:v19) [fn=:agg.max] [points] -> tuple<integer, integer>
 function grand_total:
-  block entry:
-    %v21 = decl_ref [name=:final_value_per_point] [points] -> integer
-    %v22 = reduce (:v21) [fn=:agg.sum, over_axes=[:points]] [] -> integer
+  %v21 = decl_ref [name=:final_value_per_point] [points] -> integer
+  %v22 = reduce (:v21) [fn=:agg.sum, over_axes=[:points]] [] -> integer

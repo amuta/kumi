@@ -1,0 +1,36 @@
+function shift_right_zero:
+  %v2 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v2) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v1 = axis_shift (:cells_el_1) [axis=:cells, offset=1, policy=:zero] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v1) [] -> "unknown"
+function shift_left_zero:
+  %v5 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v5) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v4 = axis_shift (:cells_el_1) [axis=:cells, offset=-1, policy=:zero] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v4) [] -> "unknown"
+function shift_right_clamp:
+  %v8 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v8) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v7 = axis_shift (:cells_el_1) [axis=:cells, offset=1, policy=:clamp] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v7) [] -> "unknown"
+function shift_left_clamp:
+  %v11 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v11) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v10 = axis_shift (:cells_el_1) [axis=:cells, offset=-1, policy=:clamp] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v10) [] -> "unknown"
+function shift_right_wrap:
+  %v14 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v14) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v13 = axis_shift (:cells_el_1) [axis=:cells, offset=1, policy=:wrap] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v13) [] -> "unknown"
+function shift_left_wrap:
+  %v17 = load_input [key=:cells, chain=[], plan_ref="cells"] [] -> array<integer>
+  loop_start (:v17) [axis=:cells, element=:cells_el_1, index=:cells_idx_1, loop_id=:L1] [] -> "unknown"
+    %v16 = axis_shift (:cells_el_1) [axis=:cells, offset=-1, policy=:wrap] [cells] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v16) [] -> "unknown"

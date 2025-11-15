@@ -1,0 +1,41 @@
+function regional_sales:
+  %v1 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  loop_start (:v1) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %sales_1 = load_field (:regions_el_1) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+    %v4 = load_field (:sales_1) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+    %v5 = load_field (:v4) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+    %v6_acc = declare_accumulator [fn=:agg.sum] [regions] -> integer
+    accumulate (:v6_acc, :v5) [regions] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v6 = load_accumulator (:v6_acc) [regions] -> integer
+  yield (:v6) [] -> "unknown"
+function total_sales:
+  %v9 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  %v8_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v9) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %sales_1 = load_field (:regions_el_1) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+    %v12 = load_field (:sales_1) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+    %v13 = load_field (:v12) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+    %v14_acc = declare_accumulator [fn=:agg.sum] [regions] -> integer
+    accumulate (:v14_acc, :v13) [regions] -> integer
+    accumulate (:v8_acc, :v14) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v14 = load_accumulator (:v14_acc) [regions] -> integer
+  %v8 = load_accumulator (:v8_acc) [] -> integer
+  yield (:v8) [] -> "unknown"
+function adjusted_total:
+  %v12 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  %v18_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v12) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %sales_1 = load_field (:regions_el_1) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+    %v15 = load_field (:sales_1) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+    %v16 = load_field (:v15) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+    %v17_acc = declare_accumulator [fn=:agg.sum] [regions] -> integer
+    accumulate (:v17_acc, :v16) [regions] -> integer
+    accumulate (:v18_acc, :v17) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v17 = load_accumulator (:v17_acc) [regions] -> integer
+  %v18 = load_accumulator (:v18_acc) [] -> integer
+  %v10 = load_input [key=:adjustment, chain=["adjustment"], plan_ref="adjustment"] [] -> integer
+  %v11 = map (:v18, :v10) [fn=:core.add] [] -> integer
+  yield (:v11) [] -> "unknown"

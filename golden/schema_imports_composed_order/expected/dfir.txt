@@ -1,19 +1,15 @@
 function subtotal:
-  block entry:
-    %v1 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
-    %v2 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
-    %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> decimal
+  %v1 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
+  %v2 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
+  %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> decimal
 function price_after_discount:
-  block entry:
-    %v4 = decl_ref [name=:subtotal] [] -> decimal
-    %v5 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
-    %v6 = import_call (:v4, :v5) [fn_name=:discounted, source_module="Kumi::TestSharedSchemas::Price", mapping_keys=[:base_price, :discount_rate]] [] -> float
+  %v4 = decl_ref [name=:subtotal] [] -> decimal
+  %v5 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+  %v6 = import_call (:v4, :v5) [fn_name=:discounted, source_module="Kumi::TestSharedSchemas::Price", mapping_keys=[:base_price, :discount_rate]] [] -> float
 function discount_amt:
-  block entry:
-    %v7 = decl_ref [name=:subtotal] [] -> decimal
-    %v8 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
-    %v9 = import_call (:v7, :v8) [fn_name=:discount_amount, source_module="Kumi::TestSharedSchemas::Price", mapping_keys=[:base_price, :discount_rate]] [] -> decimal
+  %v7 = decl_ref [name=:subtotal] [] -> decimal
+  %v8 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+  %v9 = import_call (:v7, :v8) [fn_name=:discount_amount, source_module="Kumi::TestSharedSchemas::Price", mapping_keys=[:base_price, :discount_rate]] [] -> decimal
 function final_total:
-  block entry:
-    %v10 = decl_ref [name=:price_after_discount] [] -> float
-    %v11 = import_call (:v10) [fn_name=:total, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [] -> float
+  %v10 = decl_ref [name=:price_after_discount] [] -> float
+  %v11 = import_call (:v10) [fn_name=:total, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [] -> float

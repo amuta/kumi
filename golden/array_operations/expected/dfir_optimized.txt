@@ -1,41 +1,34 @@
 function subtotals:
-  block entry:
-    %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> any
-    %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v4 = load_input [key=:items, chain=["quantity"], plan_ref="items"] [] -> array<any>
-    %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> any
-    %v6 = load_field (:v5) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
-    %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
+  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v6 = load_field (:v2) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function discounted_price:
-  block entry:
-    %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<any>
-    %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> any
-    %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v11 = constant [value=0.9] [] -> float
-    %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v13 = map (:v10, :v12) [fn=:core.mul:numeric] [items] -> float
+  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v11 = constant [value=0.9] [] -> float
+  %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v13 = map (:v10, :v12) [fn=:core.mul:numeric] [items] -> float
 function is_valid_quantity:
-  block entry:
-    %v14 = load_input [key=:items, chain=["quantity"], plan_ref="items"] [] -> array<any>
-    %v15 = load_field (:v14) [field=:item, plan_ref="items.item"] [items] -> any
-    %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
-    %v17 = constant [value=0] [] -> integer
-    %v18 = axis_broadcast (:v17) [from_axes=[], to_axes=[:items]] [items] -> integer
-    %v19 = map (:v16, :v18) [fn=:core.gt] [items] -> boolean
+  %v14 = load_input [key=:items, chain=["quantity"], plan_ref="items"] [] -> array<hash>
+  %v15 = load_field (:v14) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v17 = constant [value=0] [] -> integer
+  %v18 = axis_broadcast (:v17) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v19 = map (:v16, :v18) [fn=:core.gt] [items] -> boolean
 function expensive_items:
-  block entry:
-    %v20 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<any>
-    %v21 = load_field (:v20) [field=:item, plan_ref="items.item"] [items] -> any
-    %v22 = load_field (:v21) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v23 = constant [value=100.0] [] -> float
-    %v24 = axis_broadcast (:v23) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v25 = map (:v22, :v24) [fn=:core.gt] [items] -> boolean
+  %v20 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v21 = load_field (:v20) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v22 = load_field (:v21) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v23 = constant [value=100.0] [] -> float
+  %v24 = axis_broadcast (:v23) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v25 = map (:v22, :v24) [fn=:core.gt] [items] -> boolean
 function electronics:
-  block entry:
-    %v26 = load_input [key=:items, chain=["category"], plan_ref="items"] [] -> array<any>
-    %v27 = load_field (:v26) [field=:item, plan_ref="items.item"] [items] -> any
-    %v28 = load_field (:v27) [field=:category, plan_ref="items.item.category"] [items] -> string
-    %v29 = constant [value="electronics"] [] -> string
-    %v30 = axis_broadcast (:v29) [from_axes=[], to_axes=[:items]] [items] -> string
-    %v31 = map (:v28, :v30) [fn=:core.eq] [items] -> boolean
+  %v26 = load_input [key=:items, chain=["category"], plan_ref="items"] [] -> array<hash>
+  %v27 = load_field (:v26) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v28 = load_field (:v27) [field=:category, plan_ref="items.item.category"] [items] -> string
+  %v29 = constant [value="electronics"] [] -> string
+  %v30 = axis_broadcast (:v29) [from_axes=[], to_axes=[:items]] [items] -> string
+  %v31 = map (:v28, :v30) [fn=:core.eq] [items] -> boolean

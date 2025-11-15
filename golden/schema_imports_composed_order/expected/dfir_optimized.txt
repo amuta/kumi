@@ -1,33 +1,29 @@
 function subtotal:
-  block entry:
-    %v1 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
-    %v2 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
-    %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> decimal
+  %v1 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
+  %v2 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
+  %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> decimal
 function price_after_discount:
-  block entry:
-    %v7 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
-    %v8 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
-    %v9 = map (:v7, :v8) [fn=:core.mul:numeric] [] -> decimal
-    %v5 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
-    %v10 = constant [value=1.0] [] -> float
-    %v11 = map (:v10, :v5) [fn=:core.sub] [] -> float
-    %v12 = map (:v9, :v11) [fn=:core.mul:numeric] [] -> float
+  %v7 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
+  %v8 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
+  %v9 = map (:v7, :v8) [fn=:core.mul:numeric] [] -> decimal
+  %v5 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+  %v10 = constant [value=1.0] [] -> float
+  %v11 = map (:v10, :v5) [fn=:core.sub] [] -> float
+  %v12 = map (:v9, :v11) [fn=:core.mul:numeric] [] -> float
 function discount_amt:
-  block entry:
-    %v10 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
-    %v11 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
-    %v12 = map (:v10, :v11) [fn=:core.mul:numeric] [] -> decimal
-    %v8 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
-    %v13 = map (:v12, :v8) [fn=:core.mul:numeric] [] -> decimal
+  %v10 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
+  %v11 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
+  %v12 = map (:v10, :v11) [fn=:core.mul:numeric] [] -> decimal
+  %v8 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+  %v13 = map (:v12, :v8) [fn=:core.mul:numeric] [] -> decimal
 function final_total:
-  block entry:
-    %v12 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
-    %v13 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
-    %v14 = map (:v12, :v13) [fn=:core.mul:numeric] [] -> decimal
-    %v15 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
-    %v17 = constant [value=1.0] [] -> float
-    %v18 = map (:v17, :v15) [fn=:core.sub] [] -> float
-    %v19 = map (:v14, :v18) [fn=:core.mul:numeric] [] -> float
-    %v20 = constant [value=0.15] [] -> float
-    %v21 = map (:v19, :v20) [fn=:core.mul:numeric] [] -> float
-    %v22 = map (:v19, :v21) [fn=:core.add] [] -> float
+  %v12 = load_input [key=:item_price, chain=["item_price"], plan_ref="item_price"] [] -> decimal
+  %v13 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> decimal
+  %v14 = map (:v12, :v13) [fn=:core.mul:numeric] [] -> decimal
+  %v15 = load_input [key=:discount_rate, chain=["discount_rate"], plan_ref="discount_rate"] [] -> decimal
+  %v17 = constant [value=1.0] [] -> float
+  %v18 = map (:v17, :v15) [fn=:core.sub] [] -> float
+  %v19 = map (:v14, :v18) [fn=:core.mul:numeric] [] -> float
+  %v20 = constant [value=0.15] [] -> float
+  %v21 = map (:v19, :v20) [fn=:core.mul:numeric] [] -> float
+  %v22 = map (:v19, :v21) [fn=:core.add] [] -> float

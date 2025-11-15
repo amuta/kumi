@@ -1,0 +1,245 @@
+function a:
+  %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v1) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:col_el_1) [] -> "unknown"
+function n:
+  %v6 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v6) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v4 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v4) [] -> "unknown"
+function s:
+  %v8 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v8) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v6 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v6) [] -> "unknown"
+function w:
+  %v10 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v10) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v8 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v8) [] -> "unknown"
+function e:
+  %v12 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v12) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v10 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v10) [] -> "unknown"
+function nw:
+  %v14 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v14) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v17 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v12 = axis_shift (:v17) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v12) [] -> "unknown"
+function ne:
+  %v16 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v16) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v19 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v14 = axis_shift (:v19) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v14) [] -> "unknown"
+function sw:
+  %v18 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v18) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v21 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v16 = axis_shift (:v21) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v16) [] -> "unknown"
+function se:
+  %v20 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v20) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v23 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v18 = axis_shift (:v23) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v18) [] -> "unknown"
+function neighbors:
+  %v30 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v30) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v33 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v37 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v41 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v45 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v50 = axis_shift (:v33) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v55 = axis_shift (:v33) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v60 = axis_shift (:v37) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v65 = axis_shift (:v37) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v28 = array_build (:v33, :v37, :v41, :v45, :v50, :v55, :v60, :v65) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v29 = fold (:v28) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v29) [] -> "unknown"
+function alive:
+  %v34 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v34) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v31 = constant [value=0] [] -> integer
+  %v32 = axis_broadcast (:v31) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  loop_start (:v34) [axis=:rows, element=:rows_el_2, index=:rows_idx_2, loop_id=:L3] [] -> "unknown"
+    loop_start (:rows_el_2) [axis=:col, element=:col_el_2, index=:col_idx_2, loop_id=:L4] [] -> "unknown"
+      %v33 = map (:col_el_1, :v32) [fn=:core.gt] [rows, col] -> boolean
+    loop_end [loop_id=:L4] [] -> "unknown"
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v33) [] -> "unknown"
+function n3_alive:
+  %v38 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v38) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v41 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v45 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v49 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v53 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v58 = axis_shift (:v41) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v63 = axis_shift (:v41) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v68 = axis_shift (:v45) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v73 = axis_shift (:v45) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v74 = array_build (:v41, :v45, :v49, :v53, :v58, :v63, :v68, :v73) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v75 = fold (:v74) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v35 = constant [value=3] [] -> integer
+  %v36 = axis_broadcast (:v35) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v37 = map (:v75, :v36) [fn=:core.eq] [rows, col] -> boolean
+  yield (:v37) [] -> "unknown"
+function n2_alive:
+  %v42 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v42) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v45 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v49 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v53 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v57 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v62 = axis_shift (:v45) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v67 = axis_shift (:v45) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v72 = axis_shift (:v49) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v77 = axis_shift (:v49) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v78 = array_build (:v45, :v49, :v53, :v57, :v62, :v67, :v72, :v77) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v79 = fold (:v78) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v39 = constant [value=2] [] -> integer
+  %v40 = axis_broadcast (:v39) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v41 = map (:v79, :v40) [fn=:core.eq] [rows, col] -> boolean
+  yield (:v41) [] -> "unknown"
+function keep_alive:
+  %v45 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v45) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v48 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v52 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v56 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v60 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v65 = axis_shift (:v48) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v70 = axis_shift (:v48) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v75 = axis_shift (:v52) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v80 = axis_shift (:v52) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v81 = array_build (:v48, :v52, :v56, :v60, :v65, :v70, :v75, :v80) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v82 = fold (:v81) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v83 = constant [value=2] [] -> integer
+  %v84 = axis_broadcast (:v83) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v85 = map (:v82, :v84) [fn=:core.eq] [rows, col] -> boolean
+  %v89 = constant [value=0] [] -> integer
+  %v90 = axis_broadcast (:v89) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  loop_start (:v45) [axis=:rows, element=:rows_el_2, index=:rows_idx_2, loop_id=:L3] [] -> "unknown"
+    loop_start (:rows_el_2) [axis=:col, element=:col_el_2, index=:col_idx_2, loop_id=:L4] [] -> "unknown"
+      %v91 = map (:col_el_1, :v90) [fn=:core.gt] [rows, col] -> boolean
+      %v44 = map (:v85, :v91) [fn=:core.and] [rows, col] -> boolean
+    loop_end [loop_id=:L4] [] -> "unknown"
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v44) [] -> "unknown"
+function next_alive:
+  %v48 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v48) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v51 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v55 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v59 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v63 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v68 = axis_shift (:v51) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v73 = axis_shift (:v51) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v78 = axis_shift (:v55) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v83 = axis_shift (:v55) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v84 = array_build (:v51, :v55, :v59, :v63, :v68, :v73, :v78, :v83) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v85 = fold (:v84) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v86 = constant [value=3] [] -> integer
+  %v87 = axis_broadcast (:v86) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v88 = map (:v85, :v87) [fn=:core.eq] [rows, col] -> boolean
+  %v127 = constant [value=2] [] -> integer
+  %v128 = axis_broadcast (:v127) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v129 = map (:v85, :v128) [fn=:core.eq] [rows, col] -> boolean
+  %v133 = constant [value=0] [] -> integer
+  %v134 = axis_broadcast (:v133) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  loop_start (:v48) [axis=:rows, element=:rows_el_2, index=:rows_idx_2, loop_id=:L3] [] -> "unknown"
+    loop_start (:rows_el_2) [axis=:col, element=:col_el_2, index=:col_idx_2, loop_id=:L4] [] -> "unknown"
+      %v135 = map (:col_el_1, :v134) [fn=:core.gt] [rows, col] -> boolean
+      %v136 = map (:v129, :v135) [fn=:core.and] [rows, col] -> boolean
+      %v47 = map (:v88, :v136) [fn=:core.or] [rows, col] -> boolean
+    loop_end [loop_id=:L4] [] -> "unknown"
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v47) [] -> "unknown"
+function next_state:
+  %v54 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  loop_start (:v54) [axis=:rows, element=:rows_el_1, index=:rows_idx_1, loop_id=:L1] [] -> "unknown"
+    loop_start (:rows_el_1) [axis=:col, element=:col_el_1, index=:col_idx_1, loop_id=:L2] [] -> "unknown"
+      %v57 = axis_shift (:col_el_1) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+      %v61 = axis_shift (:col_el_1) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+      %v65 = axis_shift (:col_el_1) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v69 = axis_shift (:col_el_1) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v74 = axis_shift (:v57) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v79 = axis_shift (:v57) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v84 = axis_shift (:v61) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+      %v89 = axis_shift (:v61) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+      %v90 = array_build (:v57, :v61, :v65, :v69, :v74, :v79, :v84, :v89) [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+      %v91 = fold (:v90) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+    loop_end [loop_id=:L2] [] -> "unknown"
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v92 = constant [value=3] [] -> integer
+  %v93 = axis_broadcast (:v92) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v94 = map (:v91, :v93) [fn=:core.eq] [rows, col] -> boolean
+  %v133 = constant [value=2] [] -> integer
+  %v134 = axis_broadcast (:v133) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v135 = map (:v91, :v134) [fn=:core.eq] [rows, col] -> boolean
+  %v139 = constant [value=0] [] -> integer
+  %v140 = axis_broadcast (:v139) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  loop_start (:v54) [axis=:rows, element=:rows_el_2, index=:rows_idx_2, loop_id=:L3] [] -> "unknown"
+    loop_start (:rows_el_2) [axis=:col, element=:col_el_2, index=:col_idx_2, loop_id=:L4] [] -> "unknown"
+      %v141 = map (:col_el_1, :v140) [fn=:core.gt] [rows, col] -> boolean
+      %v142 = map (:v135, :v141) [fn=:core.and] [rows, col] -> boolean
+      %v143 = map (:v94, :v142) [fn=:core.or] [rows, col] -> boolean
+    loop_end [loop_id=:L4] [] -> "unknown"
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v49 = constant [value=1] [] -> integer
+  %v51 = axis_broadcast (:v49) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  loop_start (:v54) [axis=:rows, element=:rows_el_3, index=:rows_idx_3, loop_id=:L5] [] -> "unknown"
+    loop_start (:rows_el_3) [axis=:col, element=:col_el_3, index=:col_idx_3, loop_id=:L6] [] -> "unknown"
+      %v53 = select (:v143, :v51, :v140) [rows, col] -> integer
+    loop_end [loop_id=:L6] [] -> "unknown"
+  loop_end [loop_id=:L5] [] -> "unknown"
+  yield (:v53) [] -> "unknown"

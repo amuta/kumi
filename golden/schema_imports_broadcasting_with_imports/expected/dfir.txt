@@ -1,10 +1,8 @@
 function item_taxes:
-  block entry:
-    %v1 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> any
-    %v3 = load_field (:v2) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
-    %v4 = import_call (:v3) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [items] -> float
+  %v1 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v3 = load_field (:v2) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
+  %v4 = import_call (:v3) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [items] -> float
 function total_tax:
-  block entry:
-    %v5 = decl_ref [name=:item_taxes] [items] -> float
-    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:items]] [] -> float
+  %v5 = decl_ref [name=:item_taxes] [items] -> float
+  %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:items]] [] -> float

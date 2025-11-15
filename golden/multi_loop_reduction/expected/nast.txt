@@ -1,0 +1,25 @@
+(NAST
+  (VALUE total_value
+    (Call :sum
+    (InputRef [:items, :item, :value])
+  )
+  )
+  (VALUE half_total
+    (Call :multiply
+    (Ref total_value)
+    (Const 0.5)
+  )
+  )
+  (VALUE high_value_sum
+    (Call :sum
+    (Call :select
+      (Call :"core.gt"
+        (InputRef [:items, :item, :value])
+        (Ref half_total)
+      )
+      (InputRef [:items, :item, :value])
+      (Const 0)
+    )
+  )
+  )
+)

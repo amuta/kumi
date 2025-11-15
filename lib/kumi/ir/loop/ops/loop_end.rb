@@ -4,7 +4,7 @@ module Kumi
   module IR
     module Loop
       module Ops
-        class LoopEnd < Kumi::IR::Base::Instruction
+        class LoopEnd < Kumi::IR::Loop::Instruction
 
           def initialize(loop_id:, metadata: {})
             super(

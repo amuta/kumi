@@ -1,0 +1,109 @@
+function total_payroll:
+  %v1 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [] -> array<hash>
+  loop_start (:v1) [axis=:departments, element=:departments_el_1, index=:departments_idx_1, loop_id=:L1] [] -> "unknown"
+    %employees_1 = load_field (:departments_el_1) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
+    %v4 = load_field (:employees_1) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+    %v5 = load_field (:v4) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
+    %v6_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v6_acc, :v5) [departments] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v6 = load_accumulator (:v6_acc) [departments] -> integer
+  yield (:v6) [] -> "unknown"
+function manager_count:
+  %v7 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [] -> array<hash>
+  loop_start (:v7) [axis=:departments, element=:departments_el_1, index=:departments_idx_1, loop_id=:L1] [] -> "unknown"
+    %employees_1 = load_field (:departments_el_1) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
+    %v10 = load_field (:employees_1) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+    %v11 = load_field (:v10) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v12 = constant [value="manager"] [] -> string
+  %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  loop_start (:v7) [axis=:departments, element=:departments_el_2, index=:departments_idx_2, loop_id=:L2] [] -> "unknown"
+    %v14 = map (:v11, :v13) [fn=:core.eq] [departments, employees] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v15 = constant [value=1] [] -> integer
+  %v16 = constant [value=0] [] -> integer
+  %v17 = axis_broadcast (:v15) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v18 = axis_broadcast (:v16) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  loop_start (:v7) [axis=:departments, element=:departments_el_3, index=:departments_idx_3, loop_id=:L3] [] -> "unknown"
+    %v19 = select (:v14, :v17, :v18) [departments, employees] -> integer
+    %v20_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v20_acc, :v19) [departments] -> integer
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v20 = load_accumulator (:v20_acc) [departments] -> integer
+  yield (:v20) [] -> "unknown"
+function senior_employee_count:
+  %v21 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [] -> array<hash>
+  loop_start (:v21) [axis=:departments, element=:departments_el_1, index=:departments_idx_1, loop_id=:L1] [] -> "unknown"
+    %employees_1 = load_field (:departments_el_1) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
+    %v24 = load_field (:employees_1) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+    %v25 = load_field (:v24) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v26 = constant [value="senior"] [] -> string
+  %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  loop_start (:v21) [axis=:departments, element=:departments_el_2, index=:departments_idx_2, loop_id=:L2] [] -> "unknown"
+    %v28 = map (:v25, :v27) [fn=:core.eq] [departments, employees] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v29 = constant [value=1] [] -> integer
+  %v30 = constant [value=0] [] -> integer
+  %v31 = axis_broadcast (:v29) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v32 = axis_broadcast (:v30) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  loop_start (:v21) [axis=:departments, element=:departments_el_3, index=:departments_idx_3, loop_id=:L3] [] -> "unknown"
+    %v33 = select (:v28, :v31, :v32) [departments, employees] -> integer
+    %v34_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v34_acc, :v33) [departments] -> integer
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v34 = load_accumulator (:v34_acc) [departments] -> integer
+  yield (:v34) [] -> "unknown"
+function max_salary:
+  %v35 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [] -> array<hash>
+  loop_start (:v35) [axis=:departments, element=:departments_el_1, index=:departments_idx_1, loop_id=:L1] [] -> "unknown"
+    %employees_1 = load_field (:departments_el_1) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
+    %v38 = load_field (:employees_1) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+    %v39 = load_field (:v38) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
+    %v40_acc = declare_accumulator [fn=:agg.max] [departments] -> integer
+    accumulate (:v40_acc, :v39) [departments] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v40 = load_accumulator (:v40_acc) [departments] -> integer
+  yield (:v40) [] -> "unknown"
+function department_summary:
+  %v41 = load_input [key=:departments, chain=["name"], plan_ref="departments"] [] -> array<hash>
+  loop_start (:v41) [axis=:departments, element=:departments_el_1, index=:departments_idx_1, loop_id=:L1] [] -> "unknown"
+    %name_1 = load_field (:departments_el_1) [field=:name, plan_ref="departments.dept.name"] [departments] -> string
+    %employees_1 = load_field (:departments_el_1) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
+    %v52 = load_field (:employees_1) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+    %v53 = load_field (:v52) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
+    %v54_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v54_acc, :v53) [departments] -> integer
+    %v59 = load_field (:v52) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v54 = load_accumulator (:v54_acc) [departments] -> integer
+  %v60 = constant [value="manager"] [] -> string
+  %v61 = axis_broadcast (:v60) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  loop_start (:v41) [axis=:departments, element=:departments_el_2, index=:departments_idx_2, loop_id=:L2] [] -> "unknown"
+    %v62 = map (:v59, :v61) [fn=:core.eq] [departments, employees] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v63 = constant [value=1] [] -> integer
+  %v64 = constant [value=0] [] -> integer
+  %v65 = axis_broadcast (:v63) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v66 = axis_broadcast (:v64) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  loop_start (:v41) [axis=:departments, element=:departments_el_3, index=:departments_idx_3, loop_id=:L3] [] -> "unknown"
+    %v67 = select (:v62, :v65, :v66) [departments, employees] -> integer
+    %v68_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v68_acc, :v67) [departments] -> integer
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v68 = load_accumulator (:v68_acc) [departments] -> integer
+  %v74 = constant [value="senior"] [] -> string
+  %v75 = axis_broadcast (:v74) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  loop_start (:v41) [axis=:departments, element=:departments_el_4, index=:departments_idx_4, loop_id=:L4] [] -> "unknown"
+    %v76 = map (:v59, :v75) [fn=:core.eq] [departments, employees] -> boolean
+    %v81 = select (:v76, :v65, :v66) [departments, employees] -> integer
+    %v82_acc = declare_accumulator [fn=:agg.sum] [departments] -> integer
+    accumulate (:v82_acc, :v81) [departments] -> integer
+    %v88_acc = declare_accumulator [fn=:agg.max] [departments] -> integer
+    accumulate (:v88_acc, :v53) [departments] -> integer
+    %v48 = make_object (:v43, :v54, :v68, :v82, :v88) [keys=[:name, :total_payroll, :manager_count, :senior_count, :top_salary]] [departments] -> hash
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v82 = load_accumulator (:v82_acc) [departments] -> integer
+  %v88 = load_accumulator (:v88_acc) [departments] -> integer
+  yield (:v48) [] -> "unknown"

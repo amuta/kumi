@@ -1,0 +1,33 @@
+function price:
+  %v1 = load_input [key=:unit_price, chain=["unit_price"], plan_ref="unit_price"] [] -> string
+  %v2 = map (:v1) [fn=:core.to_decimal] [] -> decimal
+  yield (:v2) [] -> "unknown"
+function rate:
+  %v3 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> string
+  %v4 = map (:v3) [fn=:core.to_decimal] [] -> decimal
+  yield (:v4) [] -> "unknown"
+function subtotal:
+  %v8 = load_input [key=:unit_price, chain=["unit_price"], plan_ref="unit_price"] [] -> string
+  %v9 = map (:v8) [fn=:core.to_decimal] [] -> decimal
+  %v6 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> integer
+  %v7 = map (:v9, :v6) [fn=:core.mul:numeric] [] -> integer
+  yield (:v7) [] -> "unknown"
+function tax_amount:
+  %v11 = load_input [key=:unit_price, chain=["unit_price"], plan_ref="unit_price"] [] -> string
+  %v12 = map (:v11) [fn=:core.to_decimal] [] -> decimal
+  %v13 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> integer
+  %v14 = map (:v12, :v13) [fn=:core.mul:numeric] [] -> integer
+  %v15 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> string
+  %v16 = map (:v15) [fn=:core.to_decimal] [] -> decimal
+  %v10 = map (:v14, :v16) [fn=:core.mul:numeric] [] -> integer
+  yield (:v10) [] -> "unknown"
+function total:
+  %v14 = load_input [key=:unit_price, chain=["unit_price"], plan_ref="unit_price"] [] -> string
+  %v15 = map (:v14) [fn=:core.to_decimal] [] -> decimal
+  %v16 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> integer
+  %v17 = map (:v15, :v16) [fn=:core.mul:numeric] [] -> integer
+  %v22 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> string
+  %v23 = map (:v22) [fn=:core.to_decimal] [] -> decimal
+  %v24 = map (:v17, :v23) [fn=:core.mul:numeric] [] -> integer
+  %v13 = map (:v17, :v24) [fn=:core.add] [] -> integer
+  yield (:v13) [] -> "unknown"

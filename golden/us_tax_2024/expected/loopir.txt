@@ -1,0 +1,715 @@
+function state_tax:
+  %v1 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v2 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> float
+  yield (:v3) [] -> "unknown"
+function local_tax:
+  %v4 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v5 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [] -> float
+  yield (:v6) [] -> "unknown"
+function taxable:
+  %v7 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v8 = axis_broadcast (:v7) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v9 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v9) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v12 = map (:v8, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v13 = constant [value=0] [] -> integer
+  %v14 = array_build (:v12, :v13) [statuses] -> tuple<float, integer>
+  %v15 = fold (:v14) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  yield (:v15) [] -> "unknown"
+function lo:
+  %v16 = load_input [key=:statuses, chain=["lo"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v16) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_1) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v19 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v20 = load_field (:v19) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v20) [] -> "unknown"
+function hi:
+  %v21 = load_input [key=:statuses, chain=["hi"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v21) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_1) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v24 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v25 = load_field (:v24) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v25) [] -> "unknown"
+function rate:
+  %v26 = load_input [key=:statuses, chain=["rate"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v26) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_1) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v29 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v30 = load_field (:v29) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v30) [] -> "unknown"
+function big_hi:
+  %v31 = constant [value=100000000000.0] [] -> float
+  yield (:v31) [] -> "unknown"
+function hi_eff:
+  %v40 = load_input [key=:statuses, chain=["hi"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v40) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_1) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v43 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v44 = load_field (:v43) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v33 = constant [value=-1] [] -> integer
+  %v34 = axis_broadcast (:v33) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v40) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %v35 = map (:v44, :v34) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v36 = constant [value=100000000000.0] [] -> float
+  %v38 = axis_broadcast (:v36) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v40) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v39 = select (:v35, :v38, :v44) [statuses, rates] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v39) [] -> "unknown"
+function amt:
+  %v50 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v52 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v52) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v55 = map (:v51, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v56 = constant [value=0] [] -> integer
+  %v57 = array_build (:v55, :v56) [statuses] -> tuple<float, integer>
+  %v58 = fold (:v57) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v41 = axis_broadcast (:v58) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v52) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v62 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v63 = load_field (:v62) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v43 = map (:v41, :v63) [fn=:core.sub] [statuses, rates] -> float
+    %v45 = axis_broadcast (:v56) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v68 = load_field (:v62) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v69 = constant [value=-1] [] -> integer
+  %v70 = axis_broadcast (:v69) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v52) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v71 = map (:v68, :v70) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v72 = constant [value=100000000000.0] [] -> float
+  %v78 = axis_broadcast (:v72) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v52) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v79 = select (:v71, :v78, :v68) [statuses, rates] -> float
+    %v48 = map (:v79, :v63) [fn=:core.sub] [statuses, rates] -> float
+    %v49 = map (:v43, :v45, :v48) [fn=:core.clamp] [statuses, rates] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  yield (:v49) [] -> "unknown"
+function fed_tax:
+  %v54 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v55 = axis_broadcast (:v54) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v56 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v56) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v59 = map (:v55, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v60 = constant [value=0] [] -> integer
+  %v61 = array_build (:v59, :v60) [statuses] -> tuple<float, integer>
+  %v62 = fold (:v61) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v63 = axis_broadcast (:v62) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v56) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v67 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v68 = load_field (:v67) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v69 = map (:v63, :v68) [fn=:core.sub] [statuses, rates] -> float
+    %v71 = axis_broadcast (:v60) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v76 = load_field (:v67) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v77 = constant [value=-1] [] -> integer
+  %v78 = axis_broadcast (:v77) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v56) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v79 = map (:v76, :v78) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v80 = constant [value=100000000000.0] [] -> float
+  %v86 = axis_broadcast (:v80) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v56) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v87 = select (:v79, :v86, :v76) [statuses, rates] -> float
+    %v93 = map (:v87, :v68) [fn=:core.sub] [statuses, rates] -> float
+    %v94 = map (:v69, :v71, :v93) [fn=:core.clamp] [statuses, rates] -> float
+    %v99 = load_field (:v67) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v52 = map (:v94, :v99) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v53_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v53_acc, :v52) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v53 = load_accumulator (:v53_acc) [statuses] -> float
+  yield (:v53) [] -> "unknown"
+function in_br:
+  %v63 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v64 = axis_broadcast (:v63) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v65 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v65) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v68 = map (:v64, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v69 = constant [value=0] [] -> integer
+  %v70 = array_build (:v68, :v69) [statuses] -> tuple<float, integer>
+  %v71 = fold (:v70) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v55 = axis_broadcast (:v71) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v65) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v75 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v76 = load_field (:v75) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v57 = map (:v55, :v76) [fn=:core.gte] [statuses, rates] -> boolean
+    %v90 = load_field (:v75) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v91 = constant [value=-1] [] -> integer
+  %v92 = axis_broadcast (:v91) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v65) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v93 = map (:v90, :v92) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v94 = constant [value=100000000000.0] [] -> float
+  %v100 = axis_broadcast (:v94) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v65) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v101 = select (:v93, :v100, :v90) [statuses, rates] -> float
+    %v61 = map (:v55, :v101) [fn=:core.lt] [statuses, rates] -> boolean
+    %v62 = map (:v57, :v61) [fn=:core.and] [statuses, rates] -> boolean
+  loop_end [loop_id=:L4] [] -> "unknown"
+  yield (:v62) [] -> "unknown"
+function fed_marg:
+  %v69 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v70 = axis_broadcast (:v69) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v71 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v71) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v74 = map (:v70, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v75 = constant [value=0] [] -> integer
+  %v76 = array_build (:v74, :v75) [statuses] -> tuple<float, integer>
+  %v77 = fold (:v76) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v78 = axis_broadcast (:v77) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v71) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v82 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v83 = load_field (:v82) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v84 = map (:v78, :v83) [fn=:core.gte] [statuses, rates] -> boolean
+    %v99 = load_field (:v82) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v100 = constant [value=-1] [] -> integer
+  %v101 = axis_broadcast (:v100) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v71) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v102 = map (:v99, :v101) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v103 = constant [value=100000000000.0] [] -> float
+  %v109 = axis_broadcast (:v103) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v71) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v110 = select (:v102, :v109, :v99) [statuses, rates] -> float
+    %v111 = map (:v78, :v110) [fn=:core.lt] [statuses, rates] -> boolean
+    %v112 = map (:v84, :v111) [fn=:core.and] [statuses, rates] -> boolean
+    %v117 = load_field (:v82) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v66 = axis_broadcast (:v75) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v67 = select (:v112, :v117, :v66) [statuses, rates] -> float
+    %v68_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v68_acc, :v67) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v68 = load_accumulator (:v68_acc) [statuses] -> float
+  yield (:v68) [] -> "unknown"
+function fed_eff:
+  %v76 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v77 = axis_broadcast (:v76) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v78 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v78) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v81 = map (:v77, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v82 = constant [value=0] [] -> integer
+  %v83 = array_build (:v81, :v82) [statuses] -> tuple<float, integer>
+  %v84 = fold (:v83) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v85 = axis_broadcast (:v84) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v78) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v89 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v90 = load_field (:v89) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v91 = map (:v85, :v90) [fn=:core.sub] [statuses, rates] -> float
+    %v93 = axis_broadcast (:v82) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v98 = load_field (:v89) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v99 = constant [value=-1] [] -> integer
+  %v100 = axis_broadcast (:v99) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v78) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v101 = map (:v98, :v100) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v102 = constant [value=100000000000.0] [] -> float
+  %v108 = axis_broadcast (:v102) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v78) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v109 = select (:v101, :v108, :v98) [statuses, rates] -> float
+    %v115 = map (:v109, :v90) [fn=:core.sub] [statuses, rates] -> float
+    %v116 = map (:v91, :v93, :v115) [fn=:core.clamp] [statuses, rates] -> float
+    %v121 = load_field (:v89) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v122 = map (:v116, :v121) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v123_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v123_acc, :v122) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v123 = load_accumulator (:v123_acc) [statuses] -> float
+  %v71 = constant [value=1.0] [] -> float
+  %v72 = array_build (:v76, :v71) [] -> tuple<float, float>
+  %v73 = fold (:v72) [fn=:agg.max] [] -> tuple<float, float>
+  %v74 = axis_broadcast (:v73) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v75 = map (:v123, :v74) [fn=:core.div] [statuses] -> float
+  yield (:v75) [] -> "unknown"
+function ss_wage_base:
+  %v76 = constant [value=168600.0] [] -> float
+  yield (:v76) [] -> "unknown"
+function ss_rate:
+  %v77 = constant [value=0.062] [] -> float
+  yield (:v77) [] -> "unknown"
+function ss_tax:
+  %v78 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v79 = constant [value=168600.0] [] -> float
+  %v80 = array_build (:v78, :v79) [] -> tuple<float, float>
+  %v81 = fold (:v80) [fn=:agg.min] [] -> tuple<float, float>
+  %v82 = constant [value=0.062] [] -> float
+  %v83 = map (:v81, :v82) [fn=:core.mul:numeric] [] -> float
+  yield (:v83) [] -> "unknown"
+function med_base_rate:
+  %v84 = constant [value=0.0145] [] -> float
+  yield (:v84) [] -> "unknown"
+function med_tax:
+  %v85 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v86 = constant [value=0.0145] [] -> float
+  %v87 = map (:v85, :v86) [fn=:core.mul:numeric] [] -> float
+  yield (:v87) [] -> "unknown"
+function addl_med_rate:
+  %v88 = constant [value=0.009] [] -> float
+  yield (:v88) [] -> "unknown"
+function addl_med_tax:
+  %v89 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v90 = axis_broadcast (:v89) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v91 = load_input [key=:statuses, chain=["addl_threshold"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v91) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_1) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v94 = map (:v90, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v95 = constant [value=0] [] -> integer
+  %v96 = array_build (:v94, :v95) [statuses] -> tuple<float, integer>
+  %v97 = fold (:v96) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v98 = constant [value=0.009] [] -> float
+  %v99 = axis_broadcast (:v98) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v100 = map (:v97, :v99) [fn=:core.mul:numeric] [statuses] -> float
+  yield (:v100) [] -> "unknown"
+function fica_tax:
+  %v107 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v108 = constant [value=168600.0] [] -> float
+  %v109 = array_build (:v107, :v108) [] -> tuple<float, float>
+  %v110 = fold (:v109) [fn=:agg.min] [] -> tuple<float, float>
+  %v111 = constant [value=0.062] [] -> float
+  %v112 = map (:v110, :v111) [fn=:core.mul:numeric] [] -> float
+  %v114 = constant [value=0.0145] [] -> float
+  %v115 = map (:v107, :v114) [fn=:core.mul:numeric] [] -> float
+  %v103 = map (:v112, :v115) [fn=:core.add] [] -> float
+  %v104 = axis_broadcast (:v103) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v117 = axis_broadcast (:v107) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v118 = load_input [key=:statuses, chain=["addl_threshold"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v118) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_1) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v121 = map (:v117, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v122 = constant [value=0] [] -> integer
+  %v123 = array_build (:v121, :v122) [statuses] -> tuple<float, integer>
+  %v124 = fold (:v123) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v125 = constant [value=0.009] [] -> float
+  %v126 = axis_broadcast (:v125) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v127 = map (:v124, :v126) [fn=:core.mul:numeric] [statuses] -> float
+  %v106 = map (:v104, :v127) [fn=:core.add] [statuses] -> float
+  yield (:v106) [] -> "unknown"
+function fica_eff:
+  %v114 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v115 = constant [value=168600.0] [] -> float
+  %v116 = array_build (:v114, :v115) [] -> tuple<float, float>
+  %v117 = fold (:v116) [fn=:agg.min] [] -> tuple<float, float>
+  %v118 = constant [value=0.062] [] -> float
+  %v119 = map (:v117, :v118) [fn=:core.mul:numeric] [] -> float
+  %v121 = constant [value=0.0145] [] -> float
+  %v122 = map (:v114, :v121) [fn=:core.mul:numeric] [] -> float
+  %v123 = map (:v119, :v122) [fn=:core.add] [] -> float
+  %v124 = axis_broadcast (:v123) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v126 = axis_broadcast (:v114) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v127 = load_input [key=:statuses, chain=["addl_threshold"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v127) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_1) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v130 = map (:v126, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v131 = constant [value=0] [] -> integer
+  %v132 = array_build (:v130, :v131) [statuses] -> tuple<float, integer>
+  %v133 = fold (:v132) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v134 = constant [value=0.009] [] -> float
+  %v135 = axis_broadcast (:v134) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v136 = map (:v133, :v135) [fn=:core.mul:numeric] [statuses] -> float
+  %v137 = map (:v124, :v136) [fn=:core.add] [statuses] -> float
+  %v109 = constant [value=1.0] [] -> float
+  %v110 = array_build (:v114, :v109) [] -> tuple<float, float>
+  %v111 = fold (:v110) [fn=:agg.max] [] -> tuple<float, float>
+  %v112 = axis_broadcast (:v111) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v113 = map (:v137, :v112) [fn=:core.div] [statuses] -> float
+  yield (:v113) [] -> "unknown"
+function total_tax:
+  %v123 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v124 = axis_broadcast (:v123) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v125 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v125) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v128 = map (:v124, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v129 = constant [value=0] [] -> integer
+  %v130 = array_build (:v128, :v129) [statuses] -> tuple<float, integer>
+  %v131 = fold (:v130) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v132 = axis_broadcast (:v131) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v125) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v136 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v137 = load_field (:v136) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v138 = map (:v132, :v137) [fn=:core.sub] [statuses, rates] -> float
+    %v140 = axis_broadcast (:v129) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v145 = load_field (:v136) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v146 = constant [value=-1] [] -> integer
+  %v147 = axis_broadcast (:v146) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v125) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v148 = map (:v145, :v147) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v149 = constant [value=100000000000.0] [] -> float
+  %v155 = axis_broadcast (:v149) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v125) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v156 = select (:v148, :v155, :v145) [statuses, rates] -> float
+    %v162 = map (:v156, :v137) [fn=:core.sub] [statuses, rates] -> float
+    %v163 = map (:v138, :v140, :v162) [fn=:core.clamp] [statuses, rates] -> float
+    %v168 = load_field (:v136) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v169 = map (:v163, :v168) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v170_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v170_acc, :v169) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v170 = load_accumulator (:v170_acc) [statuses] -> float
+  %v172 = constant [value=168600.0] [] -> float
+  %v173 = array_build (:v123, :v172) [] -> tuple<float, float>
+  %v174 = fold (:v173) [fn=:agg.min] [] -> tuple<float, float>
+  %v175 = constant [value=0.062] [] -> float
+  %v176 = map (:v174, :v175) [fn=:core.mul:numeric] [] -> float
+  %v178 = constant [value=0.0145] [] -> float
+  %v179 = map (:v123, :v178) [fn=:core.mul:numeric] [] -> float
+  %v180 = map (:v176, :v179) [fn=:core.add] [] -> float
+  %v181 = axis_broadcast (:v180) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v125) [axis=:statuses, element=:statuses_el_5, index=:statuses_idx_5, loop_id=:L5] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_5) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v187 = map (:v124, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+    %v189 = array_build (:v187, :v129) [statuses] -> tuple<float, integer>
+    %v190 = fold (:v189) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v191 = constant [value=0.009] [] -> float
+  %v192 = axis_broadcast (:v191) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v193 = map (:v190, :v192) [fn=:core.mul:numeric] [statuses] -> float
+  %v194 = map (:v181, :v193) [fn=:core.add] [statuses] -> float
+  %v116 = map (:v170, :v194) [fn=:core.add] [statuses] -> float
+  %v196 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v197 = map (:v123, :v196) [fn=:core.mul:numeric] [] -> float
+  %v118 = axis_broadcast (:v197) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v119 = map (:v116, :v118) [fn=:core.add] [statuses] -> float
+  %v199 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v200 = map (:v123, :v199) [fn=:core.mul:numeric] [] -> float
+  %v121 = axis_broadcast (:v200) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v122 = map (:v119, :v121) [fn=:core.add] [statuses] -> float
+  yield (:v122) [] -> "unknown"
+function total_eff:
+  %v130 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v131 = axis_broadcast (:v130) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v132 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v132) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v135 = map (:v131, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v136 = constant [value=0] [] -> integer
+  %v137 = array_build (:v135, :v136) [statuses] -> tuple<float, integer>
+  %v138 = fold (:v137) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v139 = axis_broadcast (:v138) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v132) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v143 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v144 = load_field (:v143) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v145 = map (:v139, :v144) [fn=:core.sub] [statuses, rates] -> float
+    %v147 = axis_broadcast (:v136) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v152 = load_field (:v143) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v153 = constant [value=-1] [] -> integer
+  %v154 = axis_broadcast (:v153) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v132) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v155 = map (:v152, :v154) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v156 = constant [value=100000000000.0] [] -> float
+  %v162 = axis_broadcast (:v156) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v132) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v163 = select (:v155, :v162, :v152) [statuses, rates] -> float
+    %v169 = map (:v163, :v144) [fn=:core.sub] [statuses, rates] -> float
+    %v170 = map (:v145, :v147, :v169) [fn=:core.clamp] [statuses, rates] -> float
+    %v175 = load_field (:v143) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v176 = map (:v170, :v175) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v177_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v177_acc, :v176) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v177 = load_accumulator (:v177_acc) [statuses] -> float
+  %v179 = constant [value=168600.0] [] -> float
+  %v180 = array_build (:v130, :v179) [] -> tuple<float, float>
+  %v181 = fold (:v180) [fn=:agg.min] [] -> tuple<float, float>
+  %v182 = constant [value=0.062] [] -> float
+  %v183 = map (:v181, :v182) [fn=:core.mul:numeric] [] -> float
+  %v185 = constant [value=0.0145] [] -> float
+  %v186 = map (:v130, :v185) [fn=:core.mul:numeric] [] -> float
+  %v187 = map (:v183, :v186) [fn=:core.add] [] -> float
+  %v188 = axis_broadcast (:v187) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v132) [axis=:statuses, element=:statuses_el_5, index=:statuses_idx_5, loop_id=:L5] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_5) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v194 = map (:v131, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+    %v196 = array_build (:v194, :v136) [statuses] -> tuple<float, integer>
+    %v197 = fold (:v196) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v198 = constant [value=0.009] [] -> float
+  %v199 = axis_broadcast (:v198) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v200 = map (:v197, :v199) [fn=:core.mul:numeric] [statuses] -> float
+  %v201 = map (:v188, :v200) [fn=:core.add] [statuses] -> float
+  %v202 = map (:v177, :v201) [fn=:core.add] [statuses] -> float
+  %v204 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v205 = map (:v130, :v204) [fn=:core.mul:numeric] [] -> float
+  %v206 = axis_broadcast (:v205) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v207 = map (:v202, :v206) [fn=:core.add] [statuses] -> float
+  %v209 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v210 = map (:v130, :v209) [fn=:core.mul:numeric] [] -> float
+  %v211 = axis_broadcast (:v210) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v212 = map (:v207, :v211) [fn=:core.add] [statuses] -> float
+  %v125 = constant [value=1.0] [] -> float
+  %v126 = array_build (:v130, :v125) [] -> tuple<float, float>
+  %v127 = fold (:v126) [fn=:agg.max] [] -> tuple<float, float>
+  %v128 = axis_broadcast (:v127) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v129 = map (:v212, :v128) [fn=:core.div] [statuses] -> float
+  yield (:v129) [] -> "unknown"
+function after_tax:
+  %v130 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v131 = axis_broadcast (:v130) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v136 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v136) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v139 = map (:v131, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v140 = constant [value=0] [] -> integer
+  %v141 = array_build (:v139, :v140) [statuses] -> tuple<float, integer>
+  %v142 = fold (:v141) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v143 = axis_broadcast (:v142) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v136) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v147 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v148 = load_field (:v147) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v149 = map (:v143, :v148) [fn=:core.sub] [statuses, rates] -> float
+    %v151 = axis_broadcast (:v140) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v156 = load_field (:v147) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v157 = constant [value=-1] [] -> integer
+  %v158 = axis_broadcast (:v157) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v136) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v159 = map (:v156, :v158) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v160 = constant [value=100000000000.0] [] -> float
+  %v166 = axis_broadcast (:v160) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v136) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v167 = select (:v159, :v166, :v156) [statuses, rates] -> float
+    %v173 = map (:v167, :v148) [fn=:core.sub] [statuses, rates] -> float
+    %v174 = map (:v149, :v151, :v173) [fn=:core.clamp] [statuses, rates] -> float
+    %v179 = load_field (:v147) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v180 = map (:v174, :v179) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v181_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v181_acc, :v180) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v181 = load_accumulator (:v181_acc) [statuses] -> float
+  %v183 = constant [value=168600.0] [] -> float
+  %v184 = array_build (:v130, :v183) [] -> tuple<float, float>
+  %v185 = fold (:v184) [fn=:agg.min] [] -> tuple<float, float>
+  %v186 = constant [value=0.062] [] -> float
+  %v187 = map (:v185, :v186) [fn=:core.mul:numeric] [] -> float
+  %v189 = constant [value=0.0145] [] -> float
+  %v190 = map (:v130, :v189) [fn=:core.mul:numeric] [] -> float
+  %v191 = map (:v187, :v190) [fn=:core.add] [] -> float
+  %v192 = axis_broadcast (:v191) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v136) [axis=:statuses, element=:statuses_el_5, index=:statuses_idx_5, loop_id=:L5] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_5) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v198 = map (:v131, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+    %v200 = array_build (:v198, :v140) [statuses] -> tuple<float, integer>
+    %v201 = fold (:v200) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v202 = constant [value=0.009] [] -> float
+  %v203 = axis_broadcast (:v202) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v204 = map (:v201, :v203) [fn=:core.mul:numeric] [statuses] -> float
+  %v205 = map (:v192, :v204) [fn=:core.add] [statuses] -> float
+  %v206 = map (:v181, :v205) [fn=:core.add] [statuses] -> float
+  %v208 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v209 = map (:v130, :v208) [fn=:core.mul:numeric] [] -> float
+  %v210 = axis_broadcast (:v209) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v211 = map (:v206, :v210) [fn=:core.add] [statuses] -> float
+  %v213 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v214 = map (:v130, :v213) [fn=:core.mul:numeric] [] -> float
+  %v215 = axis_broadcast (:v214) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v216 = map (:v211, :v215) [fn=:core.add] [statuses] -> float
+  %v133 = map (:v131, :v216) [fn=:core.sub] [statuses] -> float
+  yield (:v133) [] -> "unknown"
+function take_home:
+  %v138 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v139 = axis_broadcast (:v138) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v142 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v142) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_1) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v145 = map (:v139, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v146 = constant [value=0] [] -> integer
+  %v147 = array_build (:v145, :v146) [statuses] -> tuple<float, integer>
+  %v148 = fold (:v147) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v149 = axis_broadcast (:v148) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v142) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_2) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v153 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v154 = load_field (:v153) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v155 = map (:v149, :v154) [fn=:core.sub] [statuses, rates] -> float
+    %v157 = axis_broadcast (:v146) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v162 = load_field (:v153) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v163 = constant [value=-1] [] -> integer
+  %v164 = axis_broadcast (:v163) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v142) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %v165 = map (:v162, :v164) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v166 = constant [value=100000000000.0] [] -> float
+  %v172 = axis_broadcast (:v166) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v142) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v173 = select (:v165, :v172, :v162) [statuses, rates] -> float
+    %v179 = map (:v173, :v154) [fn=:core.sub] [statuses, rates] -> float
+    %v180 = map (:v155, :v157, :v179) [fn=:core.clamp] [statuses, rates] -> float
+    %v185 = load_field (:v153) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v186 = map (:v180, :v185) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v187_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v187_acc, :v186) [statuses] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v187 = load_accumulator (:v187_acc) [statuses] -> float
+  %v189 = constant [value=168600.0] [] -> float
+  %v190 = array_build (:v138, :v189) [] -> tuple<float, float>
+  %v191 = fold (:v190) [fn=:agg.min] [] -> tuple<float, float>
+  %v192 = constant [value=0.062] [] -> float
+  %v193 = map (:v191, :v192) [fn=:core.mul:numeric] [] -> float
+  %v195 = constant [value=0.0145] [] -> float
+  %v196 = map (:v138, :v195) [fn=:core.mul:numeric] [] -> float
+  %v197 = map (:v193, :v196) [fn=:core.add] [] -> float
+  %v198 = axis_broadcast (:v197) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v142) [axis=:statuses, element=:statuses_el_5, index=:statuses_idx_5, loop_id=:L5] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_5) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v204 = map (:v139, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+    %v206 = array_build (:v204, :v146) [statuses] -> tuple<float, integer>
+    %v207 = fold (:v206) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v208 = constant [value=0.009] [] -> float
+  %v209 = axis_broadcast (:v208) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v210 = map (:v207, :v209) [fn=:core.mul:numeric] [statuses] -> float
+  %v211 = map (:v198, :v210) [fn=:core.add] [statuses] -> float
+  %v212 = map (:v187, :v211) [fn=:core.add] [statuses] -> float
+  %v214 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v215 = map (:v138, :v214) [fn=:core.mul:numeric] [] -> float
+  %v216 = axis_broadcast (:v215) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v217 = map (:v212, :v216) [fn=:core.add] [statuses] -> float
+  %v219 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v220 = map (:v138, :v219) [fn=:core.mul:numeric] [] -> float
+  %v221 = axis_broadcast (:v220) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v222 = map (:v217, :v221) [fn=:core.add] [statuses] -> float
+  %v223 = map (:v139, :v222) [fn=:core.sub] [statuses] -> float
+  %v135 = load_input [key=:retirement_contrib, chain=["retirement_contrib"], plan_ref="retirement_contrib"] [] -> float
+  %v136 = axis_broadcast (:v135) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v137 = map (:v223, :v136) [fn=:core.sub] [statuses] -> float
+  yield (:v137) [] -> "unknown"
+function summary:
+  %v138 = load_input [key=:statuses, chain=["name"], plan_ref="statuses"] [] -> array<hash>
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_1, index=:statuses_idx_1, loop_id=:L1] [] -> "unknown"
+    %name_1 = load_field (:statuses_el_1) [field=:name, plan_ref="statuses.status.name"] [statuses] -> string
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v163 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
+  %v164 = axis_broadcast (:v163) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_2, index=:statuses_idx_2, loop_id=:L2] [] -> "unknown"
+    %std_1 = load_field (:statuses_el_2) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
+    %v168 = map (:v164, :std_1) [fn=:core.sub] [statuses] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v169 = constant [value=0] [] -> integer
+  %v170 = array_build (:v168, :v169) [statuses] -> tuple<float, integer>
+  %v171 = fold (:v170) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v172 = axis_broadcast (:v171) [from_axes=[:statuses], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_3, index=:statuses_idx_3, loop_id=:L3] [] -> "unknown"
+    %rates_1 = load_field (:statuses_el_3) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
+    %v176 = load_field (:rates_1) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+    %v177 = load_field (:v176) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
+    %v178 = map (:v172, :v177) [fn=:core.gte] [statuses, rates] -> boolean
+    %v193 = load_field (:v176) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v194 = constant [value=-1] [] -> integer
+  %v195 = axis_broadcast (:v194) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_4, index=:statuses_idx_4, loop_id=:L4] [] -> "unknown"
+    %v196 = map (:v193, :v195) [fn=:core.eq] [statuses, rates] -> boolean
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v197 = constant [value=100000000000.0] [] -> float
+  %v203 = axis_broadcast (:v197) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> float
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_5, index=:statuses_idx_5, loop_id=:L5] [] -> "unknown"
+    %v204 = select (:v196, :v203, :v193) [statuses, rates] -> float
+    %v205 = map (:v172, :v204) [fn=:core.lt] [statuses, rates] -> boolean
+    %v206 = map (:v178, :v205) [fn=:core.and] [statuses, rates] -> boolean
+    %v211 = load_field (:v176) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
+    %v213 = axis_broadcast (:v169) [from_axes=[], to_axes=[:statuses, :rates]] [statuses, rates] -> integer
+    %v214 = select (:v206, :v211, :v213) [statuses, rates] -> float
+    %v215_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v215_acc, :v214) [statuses] -> float
+    %v231 = map (:v172, :v177) [fn=:core.sub] [statuses, rates] -> float
+    %v255 = map (:v204, :v177) [fn=:core.sub] [statuses, rates] -> float
+    %v256 = map (:v231, :v213, :v255) [fn=:core.clamp] [statuses, rates] -> float
+    %v262 = map (:v256, :v211) [fn=:core.mul:numeric] [statuses, rates] -> float
+    %v263_acc = declare_accumulator [fn=:agg.sum] [statuses] -> float
+    accumulate (:v263_acc, :v262) [statuses] -> float
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v215 = load_accumulator (:v215_acc) [statuses] -> float
+  %v263 = load_accumulator (:v263_acc) [statuses] -> float
+  %v265 = constant [value=1.0] [] -> float
+  %v266 = array_build (:v163, :v265) [] -> tuple<float, float>
+  %v267 = fold (:v266) [fn=:agg.max] [] -> tuple<float, float>
+  %v268 = axis_broadcast (:v267) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v269 = map (:v263, :v268) [fn=:core.div] [statuses] -> float
+  %v144 = make_object (:v215, :v269, :v263) [keys=[:marginal, :effective, :tax]] [statuses] -> hash
+  %v319 = constant [value=168600.0] [] -> float
+  %v320 = array_build (:v163, :v319) [] -> tuple<float, float>
+  %v321 = fold (:v320) [fn=:agg.min] [] -> tuple<float, float>
+  %v322 = constant [value=0.062] [] -> float
+  %v323 = map (:v321, :v322) [fn=:core.mul:numeric] [] -> float
+  %v325 = constant [value=0.0145] [] -> float
+  %v326 = map (:v163, :v325) [fn=:core.mul:numeric] [] -> float
+  %v327 = map (:v323, :v326) [fn=:core.add] [] -> float
+  %v328 = axis_broadcast (:v327) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_6, index=:statuses_idx_6, loop_id=:L6] [] -> "unknown"
+    %addl_threshold_1 = load_field (:statuses_el_6) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
+    %v334 = map (:v164, :addl_threshold_1) [fn=:core.sub] [statuses] -> float
+    %v336 = array_build (:v334, :v169) [statuses] -> tuple<float, integer>
+    %v337 = fold (:v336) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  loop_end [loop_id=:L6] [] -> "unknown"
+  %v338 = constant [value=0.009] [] -> float
+  %v339 = axis_broadcast (:v338) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v340 = map (:v337, :v339) [fn=:core.mul:numeric] [statuses] -> float
+  %v341 = map (:v328, :v340) [fn=:core.add] [statuses] -> float
+  %v347 = map (:v341, :v268) [fn=:core.div] [statuses] -> float
+  %v147 = make_object (:v347, :v341) [keys=[:effective, :tax]] [statuses] -> hash
+  %v148 = load_input [key=:state_rate, chain=["state_rate"], plan_ref="state_rate"] [] -> float
+  %v374 = map (:v163, :v148) [fn=:core.mul:numeric] [] -> float
+  %v151 = make_object (:v148, :v148, :v374) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %v152 = load_input [key=:local_rate, chain=["local_rate"], plan_ref="local_rate"] [] -> float
+  %v377 = map (:v163, :v152) [fn=:core.mul:numeric] [] -> float
+  %v155 = make_object (:v152, :v152, :v377) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %v450 = map (:v263, :v341) [fn=:core.add] [statuses] -> float
+  %v454 = axis_broadcast (:v374) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v455 = map (:v450, :v454) [fn=:core.add] [statuses] -> float
+  %v459 = axis_broadcast (:v377) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v460 = map (:v455, :v459) [fn=:core.add] [statuses] -> float
+  %v466 = map (:v460, :v268) [fn=:core.div] [statuses] -> float
+  %v158 = make_object (:v466, :v460) [keys=[:effective, :tax]] [statuses] -> hash
+  %v635 = map (:v164, :v460) [fn=:core.sub] [statuses] -> float
+  %v160 = load_input [key=:retirement_contrib, chain=["retirement_contrib"], plan_ref="retirement_contrib"] [] -> float
+  %v723 = axis_broadcast (:v160) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
+  %v724 = map (:v635, :v723) [fn=:core.sub] [statuses] -> float
+  loop_start (:v138) [axis=:statuses, element=:statuses_el_7, index=:statuses_idx_7, loop_id=:L7] [] -> "unknown"
+    %v162 = make_object (:v140, :v144, :v147, :v151, :v155, :v158, :v635, :v160, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash
+  loop_end [loop_id=:L7] [] -> "unknown"
+  yield (:v162) [] -> "unknown"

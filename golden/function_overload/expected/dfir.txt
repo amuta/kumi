@@ -1,13 +1,10 @@
 function name_len:
-  block entry:
-    %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
-    %v2 = map (:v1) [fn=:core.length] [] -> integer
+  %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
+  %v2 = map (:v1) [fn=:core.length] [] -> integer
 function items_count:
-  block entry:
-    %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
-    %v4 = map (:v3) [fn=:core.array_size] [] -> integer
+  %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
+  %v4 = map (:v3) [fn=:core.array_size] [] -> integer
 function summary:
-  block entry:
-    %v5 = decl_ref [name=:name_len] [] -> integer
-    %v6 = decl_ref [name=:items_count] [] -> integer
-    %v7 = make_object (:v5, :v6) [keys=[:name_length, :item_count]] [] -> hash
+  %v5 = decl_ref [name=:name_len] [] -> integer
+  %v6 = decl_ref [name=:items_count] [] -> integer
+  %v7 = make_object (:v5, :v6) [keys=[:name_length, :item_count]] [] -> hash

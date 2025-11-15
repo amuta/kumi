@@ -1,0 +1,25 @@
+function total_value:
+  %v1 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v3 = load_field (:v2) [field=:value, plan_ref="items.item.value"] [items] -> integer
+  %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+function half_total:
+  %v8 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v10 = load_field (:v9) [field=:value, plan_ref="items.item.value"] [items] -> integer
+  %v11 = reduce (:v10) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v6 = constant [value=0.5] [] -> float
+  %v7 = map (:v11, :v6) [fn=:core.mul:numeric] [] -> float
+function high_value_sum:
+  %v8 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v10 = load_field (:v9) [field=:value, plan_ref="items.item.value"] [items] -> integer
+  %v24 = reduce (:v10) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v25 = constant [value=0.5] [] -> float
+  %v26 = map (:v24, :v25) [fn=:core.mul:numeric] [] -> float
+  %v12 = axis_broadcast (:v26) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v13 = map (:v10, :v12) [fn=:core.gt] [items] -> boolean
+  %v17 = constant [value=0] [] -> integer
+  %v18 = axis_broadcast (:v17) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v19 = select (:v13, :v10, :v18) [items] -> integer
+  %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:items]] [] -> integer

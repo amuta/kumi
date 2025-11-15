@@ -1,51 +1,41 @@
 function order_subtotals:
-  block entry:
-    %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> any
-    %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
-    %v4 = import_call (:v3) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [orders] -> integer
+  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+  %v4 = import_call (:v3) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [orders] -> integer
 function order_with_shipping:
-  block entry:
-    %v5 = decl_ref [name=:order_subtotals] [orders] -> integer
-    %v6 = load_input [key=:orders, chain=["shipping_cost"], plan_ref="orders"] [] -> array<any>
-    %v7 = load_field (:v6) [field=:order, plan_ref="orders.order"] [orders] -> any
-    %v8 = load_field (:v7) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
-    %v9 = map (:v5, :v8) [fn=:core.add] [orders] -> integer
+  %v5 = decl_ref [name=:order_subtotals] [orders] -> integer
+  %v6 = load_input [key=:orders, chain=["shipping_cost"], plan_ref="orders"] [] -> array<hash>
+  %v7 = load_field (:v6) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v8 = load_field (:v7) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v9 = map (:v5, :v8) [fn=:core.add] [orders] -> integer
 function order_discounted:
-  block entry:
-    %v10 = decl_ref [name=:order_with_shipping] [orders] -> integer
-    %v11 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
-    %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
-    %v13 = import_call (:v10, :v12) [fn_name=:discounted, source_module="Kumi::TestSharedSchemas::Discount", mapping_keys=[:price, :rate]] [orders] -> float
+  %v10 = decl_ref [name=:order_with_shipping] [orders] -> integer
+  %v11 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
+  %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
+  %v13 = import_call (:v10, :v12) [fn_name=:discounted, source_module="Kumi::TestSharedSchemas::Discount", mapping_keys=[:price, :rate]] [orders] -> float
 function order_tax:
-  block entry:
-    %v14 = decl_ref [name=:order_discounted] [orders] -> float
-    %v15 = import_call (:v14) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [orders] -> float
+  %v14 = decl_ref [name=:order_discounted] [orders] -> float
+  %v15 = import_call (:v14) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [orders] -> float
 function order_totals:
-  block entry:
-    %v16 = decl_ref [name=:order_discounted] [orders] -> float
-    %v17 = decl_ref [name=:order_tax] [orders] -> float
-    %v18 = map (:v16, :v17) [fn=:core.add] [orders] -> float
+  %v16 = decl_ref [name=:order_discounted] [orders] -> float
+  %v17 = decl_ref [name=:order_tax] [orders] -> float
+  %v18 = map (:v16, :v17) [fn=:core.add] [orders] -> float
 function discount_per_order:
-  block entry:
-    %v19 = decl_ref [name=:order_with_shipping] [orders] -> integer
-    %v20 = decl_ref [name=:order_discounted] [orders] -> float
-    %v21 = map (:v19, :v20) [fn=:core.sub] [orders] -> float
+  %v19 = decl_ref [name=:order_with_shipping] [orders] -> integer
+  %v20 = decl_ref [name=:order_discounted] [orders] -> float
+  %v21 = map (:v19, :v20) [fn=:core.sub] [orders] -> float
 function total_orders:
-  block entry:
-    %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [] -> array<any>
-    %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> any
-    %v24 = load_field (:v23) [field=:id, plan_ref="orders.order.id"] [orders] -> string
-    %v25 = reduce (:v24) [fn=:agg.count, over_axes=[:orders]] [] -> integer
+  %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [] -> array<hash>
+  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v24 = load_field (:v23) [field=:id, plan_ref="orders.order.id"] [orders] -> string
+  %v25 = reduce (:v24) [fn=:agg.count, over_axes=[:orders]] [] -> integer
 function total_revenue:
-  block entry:
-    %v26 = decl_ref [name=:order_totals] [orders] -> float
-    %v27 = reduce (:v26) [fn=:agg.sum, over_axes=[:orders]] [] -> float
+  %v26 = decl_ref [name=:order_totals] [orders] -> float
+  %v27 = reduce (:v26) [fn=:agg.sum, over_axes=[:orders]] [] -> float
 function total_tax_collected:
-  block entry:
-    %v28 = decl_ref [name=:order_tax] [orders] -> float
-    %v29 = reduce (:v28) [fn=:agg.sum, over_axes=[:orders]] [] -> float
+  %v28 = decl_ref [name=:order_tax] [orders] -> float
+  %v29 = reduce (:v28) [fn=:agg.sum, over_axes=[:orders]] [] -> float
 function total_discount_given:
-  block entry:
-    %v30 = decl_ref [name=:discount_per_order] [orders] -> float
-    %v31 = reduce (:v30) [fn=:agg.sum, over_axes=[:orders]] [] -> float
+  %v30 = decl_ref [name=:discount_per_order] [orders] -> float
+  %v31 = reduce (:v30) [fn=:agg.sum, over_axes=[:orders]] [] -> float

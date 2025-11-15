@@ -1,11 +1,9 @@
 function tax_result:
-  block entry:
-    %v1 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
-    %v3 = constant [value=0.15] [] -> float
-    %v4 = map (:v1, :v3) [fn=:core.mul:numeric] [] -> float
+  %v1 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+  %v3 = constant [value=0.15] [] -> float
+  %v4 = map (:v1, :v3) [fn=:core.mul:numeric] [] -> float
 function total:
-  block entry:
-    %v3 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
-    %v8 = constant [value=0.15] [] -> float
-    %v9 = map (:v3, :v8) [fn=:core.mul:numeric] [] -> float
-    %v5 = map (:v3, :v9) [fn=:core.add] [] -> float
+  %v3 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+  %v8 = constant [value=0.15] [] -> float
+  %v9 = map (:v3, :v8) [fn=:core.mul:numeric] [] -> float
+  %v5 = map (:v3, :v9) [fn=:core.add] [] -> float

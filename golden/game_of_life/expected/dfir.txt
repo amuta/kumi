@@ -1,85 +1,69 @@
 function a:
-  block entry:
-    %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-    %v2 = load_field (:v1) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
-    %v3 = load_field (:v2) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
+  %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
+  %v2 = load_field (:v1) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v3 = load_field (:v2) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
 function n:
-  block entry:
-    %v5 = decl_ref [name=:a] [rows, col] -> integer
-    %v4 = axis_shift (:v5) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+  %v5 = decl_ref [name=:a] [rows, col] -> integer
+  %v4 = axis_shift (:v5) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
 function s:
-  block entry:
-    %v7 = decl_ref [name=:a] [rows, col] -> integer
-    %v6 = axis_shift (:v7) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+  %v7 = decl_ref [name=:a] [rows, col] -> integer
+  %v6 = axis_shift (:v7) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
 function w:
-  block entry:
-    %v9 = decl_ref [name=:a] [rows, col] -> integer
-    %v8 = axis_shift (:v9) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+  %v9 = decl_ref [name=:a] [rows, col] -> integer
+  %v8 = axis_shift (:v9) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function e:
-  block entry:
-    %v11 = decl_ref [name=:a] [rows, col] -> integer
-    %v10 = axis_shift (:v11) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+  %v11 = decl_ref [name=:a] [rows, col] -> integer
+  %v10 = axis_shift (:v11) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function nw:
-  block entry:
-    %v13 = decl_ref [name=:n] [rows, col] -> integer
-    %v12 = axis_shift (:v13) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+  %v13 = decl_ref [name=:n] [rows, col] -> integer
+  %v12 = axis_shift (:v13) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function ne:
-  block entry:
-    %v15 = decl_ref [name=:n] [rows, col] -> integer
-    %v14 = axis_shift (:v15) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+  %v15 = decl_ref [name=:n] [rows, col] -> integer
+  %v14 = axis_shift (:v15) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function sw:
-  block entry:
-    %v17 = decl_ref [name=:s] [rows, col] -> integer
-    %v16 = axis_shift (:v17) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+  %v17 = decl_ref [name=:s] [rows, col] -> integer
+  %v16 = axis_shift (:v17) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function se:
-  block entry:
-    %v19 = decl_ref [name=:s] [rows, col] -> integer
-    %v18 = axis_shift (:v19) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+  %v19 = decl_ref [name=:s] [rows, col] -> integer
+  %v18 = axis_shift (:v19) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function neighbors:
-  block entry:
-    %v20 = decl_ref [name=:n] [rows, col] -> integer
-    %v21 = decl_ref [name=:s] [rows, col] -> integer
-    %v22 = decl_ref [name=:w] [rows, col] -> integer
-    %v23 = decl_ref [name=:e] [rows, col] -> integer
-    %v24 = decl_ref [name=:nw] [rows, col] -> integer
-    %v25 = decl_ref [name=:ne] [rows, col] -> integer
-    %v26 = decl_ref [name=:sw] [rows, col] -> integer
-    %v27 = decl_ref [name=:se] [rows, col] -> integer
-    %v28 = array_build (:v20, :v21, :v22, :v23, :v24, :v25, :v26, :v27) [size=8] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
-    %v29 = fold (:v28) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  %v20 = decl_ref [name=:n] [rows, col] -> integer
+  %v21 = decl_ref [name=:s] [rows, col] -> integer
+  %v22 = decl_ref [name=:w] [rows, col] -> integer
+  %v23 = decl_ref [name=:e] [rows, col] -> integer
+  %v24 = decl_ref [name=:nw] [rows, col] -> integer
+  %v25 = decl_ref [name=:ne] [rows, col] -> integer
+  %v26 = decl_ref [name=:sw] [rows, col] -> integer
+  %v27 = decl_ref [name=:se] [rows, col] -> integer
+  %v28 = array_build (:v20, :v21, :v22, :v23, :v24, :v25, :v26, :v27) [size=8] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  %v29 = fold (:v28) [fn=:agg.sum] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
 function alive:
-  block entry:
-    %v30 = decl_ref [name=:a] [rows, col] -> integer
-    %v31 = constant [value=0] [] -> integer
-    %v32 = axis_broadcast (:v31) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-    %v33 = map (:v30, :v32) [fn=:core.gt] [rows, col] -> boolean
+  %v30 = decl_ref [name=:a] [rows, col] -> integer
+  %v31 = constant [value=0] [] -> integer
+  %v32 = axis_broadcast (:v31) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v33 = map (:v30, :v32) [fn=:core.gt] [rows, col] -> boolean
 function n3_alive:
-  block entry:
-    %v34 = decl_ref [name=:neighbors] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
-    %v35 = constant [value=3] [] -> integer
-    %v36 = axis_broadcast (:v35) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-    %v37 = map (:v34, :v36) [fn=:core.eq] [rows, col] -> boolean
+  %v34 = decl_ref [name=:neighbors] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  %v35 = constant [value=3] [] -> integer
+  %v36 = axis_broadcast (:v35) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v37 = map (:v34, :v36) [fn=:core.eq] [rows, col] -> boolean
 function n2_alive:
-  block entry:
-    %v38 = decl_ref [name=:neighbors] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
-    %v39 = constant [value=2] [] -> integer
-    %v40 = axis_broadcast (:v39) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-    %v41 = map (:v38, :v40) [fn=:core.eq] [rows, col] -> boolean
+  %v38 = decl_ref [name=:neighbors] [rows, col] -> tuple<integer, integer, integer, integer, integer, integer, integer, integer>
+  %v39 = constant [value=2] [] -> integer
+  %v40 = axis_broadcast (:v39) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v41 = map (:v38, :v40) [fn=:core.eq] [rows, col] -> boolean
 function keep_alive:
-  block entry:
-    %v42 = decl_ref [name=:n2_alive] [rows, col] -> boolean
-    %v43 = decl_ref [name=:alive] [rows, col] -> boolean
-    %v44 = map (:v42, :v43) [fn=:core.and] [rows, col] -> boolean
+  %v42 = decl_ref [name=:n2_alive] [rows, col] -> boolean
+  %v43 = decl_ref [name=:alive] [rows, col] -> boolean
+  %v44 = map (:v42, :v43) [fn=:core.and] [rows, col] -> boolean
 function next_alive:
-  block entry:
-    %v45 = decl_ref [name=:n3_alive] [rows, col] -> boolean
-    %v46 = decl_ref [name=:keep_alive] [rows, col] -> boolean
-    %v47 = map (:v45, :v46) [fn=:core.or] [rows, col] -> boolean
+  %v45 = decl_ref [name=:n3_alive] [rows, col] -> boolean
+  %v46 = decl_ref [name=:keep_alive] [rows, col] -> boolean
+  %v47 = map (:v45, :v46) [fn=:core.or] [rows, col] -> boolean
 function next_state:
-  block entry:
-    %v48 = decl_ref [name=:next_alive] [rows, col] -> boolean
-    %v49 = constant [value=1] [] -> integer
-    %v50 = constant [value=0] [] -> integer
-    %v51 = axis_broadcast (:v49) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-    %v52 = axis_broadcast (:v50) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-    %v53 = select (:v48, :v51, :v52) [rows, col] -> integer
+  %v48 = decl_ref [name=:next_alive] [rows, col] -> boolean
+  %v49 = constant [value=1] [] -> integer
+  %v50 = constant [value=0] [] -> integer
+  %v51 = axis_broadcast (:v49) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v52 = axis_broadcast (:v50) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
+  %v53 = select (:v48, :v51, :v52) [rows, col] -> integer

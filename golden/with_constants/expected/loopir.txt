@@ -1,0 +1,12 @@
+function scores:
+  %v1 = constant [value=100] [] -> integer
+  %v2 = constant [value=85] [] -> integer
+  %v3 = constant [value=92] [] -> integer
+  %v4 = array_build (:v1, :v2, :v3) [] -> tuple<integer, integer, integer>
+  yield (:v4) [] -> "unknown"
+function first_score:
+  %v5 = constant [value=100] [] -> integer
+  yield (:v5) [] -> "unknown"
+function second_score:
+  %v6 = constant [value=85] [] -> integer
+  yield (:v6) [] -> "unknown"

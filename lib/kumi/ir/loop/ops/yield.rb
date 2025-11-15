@@ -4,7 +4,7 @@ module Kumi
   module IR
     module Loop
       module Ops
-        class Yield < Kumi::IR::Base::Instruction
+        class Yield < Kumi::IR::Loop::Instruction
 
           def initialize(values:, metadata: {})
             super(

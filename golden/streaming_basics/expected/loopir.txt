@@ -1,0 +1,93 @@
+function items_subtotal:
+  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  loop_start (:v1) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+    %qty_1 = load_field (:items_el_1) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+    %v7 = map (:price_1, :qty_1) [fn=:core.mul:numeric] [items] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  yield (:v7) [] -> "unknown"
+function items_discounted:
+  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  loop_start (:v8) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v11 = constant [value=1.0] [] -> float
+  %v12 = load_input [key=:discount, chain=["discount"], plan_ref="discount"] [] -> float
+  %v13 = map (:v11, :v12) [fn=:core.sub] [] -> float
+  %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v8) [axis=:items, element=:items_el_2, index=:items_idx_2, loop_id=:L2] [] -> "unknown"
+    %v15 = map (:price_1, :v14) [fn=:core.mul:numeric] [items] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v15) [] -> "unknown"
+function items_is_big:
+  %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  loop_start (:v16) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v19 = constant [value=100.0] [] -> float
+  %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v16) [axis=:items, element=:items_el_2, index=:items_idx_2, loop_id=:L2] [] -> "unknown"
+    %v21 = map (:price_1, :v20) [fn=:core.gt] [items] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v21) [] -> "unknown"
+function items_effective:
+  %v29 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  loop_start (:v29) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v32 = constant [value=100.0] [] -> float
+  %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v29) [axis=:items, element=:items_el_2, index=:items_idx_2, loop_id=:L2] [] -> "unknown"
+    %v34 = map (:price_1, :v33) [fn=:core.gt] [items] -> boolean
+    %qty_1 = load_field (:items_el_2) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+    %v41 = map (:price_1, :qty_1) [fn=:core.mul:numeric] [items] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v24 = constant [value=0.9] [] -> float
+  %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v29) [axis=:items, element=:items_el_3, index=:items_idx_3, loop_id=:L3] [] -> "unknown"
+    %v26 = map (:v41, :v25) [fn=:core.mul:numeric] [items] -> float
+    %v28 = select (:v34, :v26, :v41) [items] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  yield (:v28) [] -> "unknown"
+function total_qty:
+  %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [] -> array<hash>
+  %v32_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v29) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %qty_1 = load_field (:items_el_1) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+    accumulate (:v32_acc, :qty_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v32 = load_accumulator (:v32_acc) [] -> integer
+  yield (:v32) [] -> "unknown"
+function cart_total:
+  %v35 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v34_acc = declare_accumulator [fn=:agg.sum] [] -> float
+  loop_start (:v35) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+    %qty_1 = load_field (:items_el_1) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+    %v41 = map (:price_1, :qty_1) [fn=:core.mul:numeric] [items] -> float
+    accumulate (:v34_acc, :v41) [] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v34 = load_accumulator (:v34_acc) [] -> float
+  yield (:v34) [] -> "unknown"
+function cart_total_effective:
+  %v37 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  loop_start (:v37) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %price_1 = load_field (:items_el_1) [field=:price, plan_ref="items.item.price"] [items] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v40 = constant [value=100.0] [] -> float
+  %v41 = axis_broadcast (:v40) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v37) [axis=:items, element=:items_el_2, index=:items_idx_2, loop_id=:L2] [] -> "unknown"
+    %v42 = map (:price_1, :v41) [fn=:core.gt] [items] -> boolean
+    %qty_1 = load_field (:items_el_2) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+    %v49 = map (:price_1, :qty_1) [fn=:core.mul:numeric] [items] -> float
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v50 = constant [value=0.9] [] -> float
+  %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v36_acc = declare_accumulator [fn=:agg.sum] [] -> float
+  loop_start (:v37) [axis=:items, element=:items_el_3, index=:items_idx_3, loop_id=:L3] [] -> "unknown"
+    %v52 = map (:v49, :v51) [fn=:core.mul:numeric] [items] -> float
+    %v60 = select (:v42, :v52, :v49) [items] -> float
+    accumulate (:v36_acc, :v60) [] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v36 = load_accumulator (:v36_acc) [] -> float
+  yield (:v36) [] -> "unknown"

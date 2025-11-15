@@ -1,28 +1,25 @@
 function regional_sales:
-  block entry:
-    %v1 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions] -> any
-    %v3 = load_field (:v2) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<any>
-    %v4 = load_field (:v3) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> any
-    %v5 = load_field (:v4) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
-    %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
+  %v1 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions] -> hash
+  %v3 = load_field (:v2) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+  %v4 = load_field (:v3) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+  %v5 = load_field (:v4) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+  %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
 function total_sales:
-  block entry:
-    %v9 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<any>
-    %v10 = load_field (:v9) [field=:region, plan_ref="regions.region"] [regions] -> any
-    %v11 = load_field (:v10) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<any>
-    %v12 = load_field (:v11) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> any
-    %v13 = load_field (:v12) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
-    %v14 = reduce (:v13) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
-    %v8 = reduce (:v14) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
+  %v9 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  %v10 = load_field (:v9) [field=:region, plan_ref="regions.region"] [regions] -> hash
+  %v11 = load_field (:v10) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+  %v12 = load_field (:v11) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+  %v13 = load_field (:v12) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+  %v14 = reduce (:v13) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
+  %v8 = reduce (:v14) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
 function adjusted_total:
-  block entry:
-    %v12 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<any>
-    %v13 = load_field (:v12) [field=:region, plan_ref="regions.region"] [regions] -> any
-    %v14 = load_field (:v13) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<any>
-    %v15 = load_field (:v14) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> any
-    %v16 = load_field (:v15) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
-    %v17 = reduce (:v16) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
-    %v18 = reduce (:v17) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
-    %v10 = load_input [key=:adjustment, chain=["adjustment"], plan_ref="adjustment"] [] -> integer
-    %v11 = map (:v18, :v10) [fn=:core.add] [] -> integer
+  %v12 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [] -> array<hash>
+  %v13 = load_field (:v12) [field=:region, plan_ref="regions.region"] [regions] -> hash
+  %v14 = load_field (:v13) [field=:sales, plan_ref="regions.region.sales"] [regions] -> array<hash>
+  %v15 = load_field (:v14) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> hash
+  %v16 = load_field (:v15) [field=:amount, plan_ref="regions.region.sales.sale.amount"] [regions, sales] -> integer
+  %v17 = reduce (:v16) [fn=:agg.sum, over_axes=[:sales]] [regions] -> integer
+  %v18 = reduce (:v17) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
+  %v10 = load_input [key=:adjustment, chain=["adjustment"], plan_ref="adjustment"] [] -> integer
+  %v11 = map (:v18, :v10) [fn=:core.add] [] -> integer

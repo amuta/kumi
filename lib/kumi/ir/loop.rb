@@ -4,6 +4,8 @@ module Kumi
   module IR
     module Loop
       autoload :Ops, "kumi/ir/loop/ops"
+      autoload :Lower, "kumi/ir/loop/lower"
+      autoload :Pipeline, "kumi/ir/loop/pipeline"
 
       OPCODES = %i[
         constant
@@ -11,13 +13,23 @@ module Kumi
         load_field
         loop_start
         loop_end
-        call
+        map
         select
         declare_accumulator
         accumulate
         load_accumulator
+        axis_shift
+        axis_broadcast
+        array_build
+        array_get
+        array_len
+        axis_index
+        fold
+        decl_ref
+        import_call
         make_tuple
         make_object
+        tuple_get
         yield
       ].freeze
 
@@ -41,8 +53,8 @@ module Kumi
       end
 
       class Module < Base::Module
-        def self.from_dfir(df_graph, **_opts)
-          new(name: df_graph.name)
+        def self.from_dfir(df_graph, context: {})
+          Lower.new(df_module: df_graph, context: context).call
         end
       end
 
@@ -65,6 +77,34 @@ module Kumi
 
         def select(result:, cond:, on_true:, on_false:, axes:, dtype:, metadata: {})
           append Ops::Select.new(result:, cond:, on_true:, on_false:, axes:, dtype:, metadata:)
+        end
+
+        def axis_shift(result:, source:, axis:, offset:, policy:, axes:, dtype:, metadata: {})
+          append Ops::AxisShift.new(result:, source:, axis:, offset:, policy:, axes:, dtype:, metadata:)
+        end
+
+        def axis_broadcast(result:, value:, from_axes:, to_axes:, dtype:, metadata: {})
+          append Ops::AxisBroadcast.new(result:, value:, from_axes:, to_axes:, axes: to_axes, dtype:, metadata:)
+        end
+
+        def array_build(result:, elements:, axes:, dtype:, metadata: {})
+          append Ops::ArrayBuild.new(result:, elements:, axes:, dtype:, metadata:)
+        end
+
+        def array_get(result:, array:, index:, axes:, dtype:, oob:, metadata: {})
+          append Ops::ArrayGet.new(result:, array:, index:, axes:, dtype:, oob:, metadata:)
+        end
+
+        def array_len(result:, array:, axes:, dtype:, metadata: {})
+          append Ops::ArrayLen.new(result:, array:, axes:, dtype:, metadata:)
+        end
+
+        def axis_index(result:, axis:, axes:, dtype:, metadata: {})
+          append Ops::AxisIndex.new(result:, axis:, axes:, dtype:, metadata:)
+        end
+
+        def fold(result:, fn:, arg:, axes:, dtype:, metadata: {})
+          append Ops::Fold.new(result:, fn:, arg:, axes:, dtype:, metadata:)
         end
 
         def loop_start(axis:, collection:, element:, index:, loop_id:, metadata: {})
@@ -95,8 +135,8 @@ module Kumi
           append Ops::DeclRef.new(result:, name:, axes:, dtype:, metadata:)
         end
 
-        def import_call(result:, fn_name:, source_module:, args:, axes:, dtype:, metadata: {})
-          append Ops::ImportCall.new(result:, fn_name:, source_module:, args:, axes:, dtype:, metadata:)
+        def import_call(result:, fn_name:, source_module:, args:, mapping_keys: [], axes:, dtype:, metadata: {})
+          append Ops::ImportCall.new(result:, fn_name:, source_module:, args:, mapping_keys:, axes:, dtype:, metadata:)
         end
 
         def make_tuple(result:, elements:, axes:, dtype:, metadata: {})

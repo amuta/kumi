@@ -4,7 +4,7 @@ module Kumi
   module IR
     module Loop
       module Ops
-        class Node < Kumi::IR::Base::Instruction
+        class Node < Kumi::IR::Loop::Instruction
           class << self
             attr_reader :opcode_symbol
 

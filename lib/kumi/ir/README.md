@@ -20,16 +20,28 @@ families without duplicating structural code.
   before lowering to target ISAs.
 
 Each layer exposes a `Module`, `Function`, `Instruction`, and `Builder` class so
-passes can be written against a well-defined surface area. Conversions (e.g.,
-`DF::Graph.from_snast`, `Loop::Module.from_dfir`) are intentionally placeholders
-so experimentation can happen without touching existing passes.
+passes can be written against a well-defined surface area. DF graphs are now
+materialized during analysis (`LowerToDFIRPass`), and `Loop::Module.from_dfir`
+reuses that graph to build the LoopIR equivalent before feeding the legacy LIR
+stack. Those modules are kept in analysis state (`state[:df_module]`,
+`state[:loop_module]`) so downstream passes and tooling can inspect them without
+rerunning lowerings.
 
 See `df_definition.md` for the instruction set and invariants we expect,
 `df_mapping.md` for guidance on mapping SNAST→Loop IR, and `df_examples.md` for
 concrete scenarios.
 
 LoopIR roadmap lives in `loop_plan.md`, which outlines how DF graphs will be
-lowered into structured loops, accumulators, and buffer-aware passes.
+lowered into structured loops, accumulators, and buffer-aware passes. The loop
+pipeline currently contains a placeholder pass list wired through
+`Kumi::IR::Loop::Pipeline`, making it easy to incrementally port optimizations
+from today’s LIR stack.
+
+Pretty printer commands are available for both layers:
+
+- `kumi-dev pretty dfir` / `dfir_optimized` – DF graphs before/after the DF
+  pipeline.
+- `kumi-dev pretty loopir` – LoopIR emitted by `LoopLowerPass`.
 
 ## Test Helpers
 

@@ -1,0 +1,40 @@
+function sum_numbers:
+  %v1 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [] -> array<hash>
+  %v4_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v1) [axis=:numbers, element=:numbers_el_1, index=:numbers_idx_1, loop_id=:L1] [] -> "unknown"
+    %value_1 = load_field (:numbers_el_1) [field=:value, plan_ref="numbers.num.value"] [numbers] -> integer
+    accumulate (:v4_acc, :value_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v4 = load_accumulator (:v4_acc) [] -> integer
+  yield (:v4) [] -> "unknown"
+function matrix_sums:
+  %v5 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [] -> array<hash>
+  loop_start (:v5) [axis=:matrix, element=:matrix_el_1, index=:matrix_idx_1, loop_id=:L1] [] -> "unknown"
+    %row_1 = load_field (:matrix_el_1) [field=:row, plan_ref="matrix.m.row"] [matrix] -> array<hash>
+    %v8 = load_field (:row_1) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> hash
+    %v9 = load_field (:v8) [field=:cell, plan_ref="matrix.m.row.r.cell"] [matrix, row] -> float
+    %v10_acc = declare_accumulator [fn=:agg.sum] [matrix] -> float
+    accumulate (:v10_acc, :v9) [matrix] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v10 = load_accumulator (:v10_acc) [matrix] -> float
+  yield (:v10) [] -> "unknown"
+function mixed_array:
+  %v11 = load_input [key=:scalar_val, chain=["scalar_val"], plan_ref="scalar_val"] [] -> integer
+  %v19 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [] -> array<hash>
+  %v22_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v19) [axis=:numbers, element=:numbers_el_1, index=:numbers_idx_1, loop_id=:L1] [] -> "unknown"
+    %value_1 = load_field (:numbers_el_1) [field=:value, plan_ref="numbers.num.value"] [numbers] -> integer
+    accumulate (:v22_acc, :value_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v22 = load_accumulator (:v22_acc) [] -> integer
+  %v13 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [] -> array<hash>
+  loop_start (:v13) [axis=:matrix, element=:matrix_el_1, index=:matrix_idx_1, loop_id=:L2] [] -> "unknown"
+    %row_1 = load_field (:matrix_el_1) [field=:row, plan_ref="matrix.m.row"] [matrix] -> array<hash>
+    %v16 = load_field (:row_1) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> hash
+    %v17 = load_field (:v16) [field=:cell, plan_ref="matrix.m.row.r.cell"] [matrix, row] -> float
+    %v18 = array_build (:v11, :v22, :v17) [matrix, row] -> tuple<integer, integer, float>
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v18) [] -> "unknown"
+function constant:
+  %v19 = constant [value=42] [] -> integer
+  yield (:v19) [] -> "unknown"

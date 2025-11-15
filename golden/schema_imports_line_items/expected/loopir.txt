@@ -1,0 +1,35 @@
+function order_subtotal:
+  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v3 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v4 = load_field (:v3) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v5 = load_field (:v3) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [items] -> integer
+  %v7_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  accumulate (:v7_acc, :v6) [] -> integer
+  %v7 = load_accumulator (:v7_acc) [] -> integer
+  yield (:v7) [] -> "unknown"
+function tax_amount:
+  %v6 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v8 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v9 = load_field (:v8) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v10 = load_field (:v8) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [items] -> integer
+  %v12_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  accumulate (:v12_acc, :v11) [] -> integer
+  %v12 = load_accumulator (:v12_acc) [] -> integer
+  %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v5 = map (:v12, :v4) [fn=:core.mul:numeric] [] -> integer
+  yield (:v5) [] -> "unknown"
+function total:
+  %v9 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v15 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
+  %v17 = load_field (:v15) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
+  %v18 = map (:v16, :v17) [fn=:core.mul:numeric] [items] -> integer
+  %v19_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  accumulate (:v19_acc, :v18) [] -> integer
+  %v19 = load_accumulator (:v19_acc) [] -> integer
+  %v13 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v14 = map (:v19, :v13) [fn=:core.mul:numeric] [] -> integer
+  %v8 = map (:v19, :v14) [fn=:core.add] [] -> integer
+  yield (:v8) [] -> "unknown"

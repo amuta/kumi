@@ -1,0 +1,100 @@
+function high_performer:
+  %v1 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [] -> array<hash>
+  loop_start (:v1) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %offices_1 = load_field (:regions_el_1) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
+    %v4 = load_field (:offices_1) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
+    %v5 = load_field (:v4) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
+    %v6 = load_field (:v5) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
+    %v7 = load_field (:v6) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
+    %v8 = load_field (:v7) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+    %v9 = load_field (:v8) [field=:rating, plan_ref="regions.region.offices.office.teams.team.employees.employee.rating"] [regions, offices, teams, employees] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v10 = constant [value=4.5] [] -> float
+  %v11 = axis_broadcast (:v10) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+  loop_start (:v1) [axis=:regions, element=:regions_el_2, index=:regions_idx_2, loop_id=:L2] [] -> "unknown"
+    %v12 = map (:v9, :v11) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v12) [] -> "unknown"
+function senior_level:
+  %v13 = load_input [key=:regions, chain=["level"], plan_ref="regions"] [] -> array<hash>
+  loop_start (:v13) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %offices_1 = load_field (:regions_el_1) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
+    %v16 = load_field (:offices_1) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
+    %v17 = load_field (:v16) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
+    %v18 = load_field (:v17) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
+    %v19 = load_field (:v18) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
+    %v20 = load_field (:v19) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+    %v21 = load_field (:v20) [field=:level, plan_ref="regions.region.offices.office.teams.team.employees.employee.level"] [regions, offices, teams, employees] -> string
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v22 = constant [value="senior"] [] -> string
+  %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
+  loop_start (:v13) [axis=:regions, element=:regions_el_2, index=:regions_idx_2, loop_id=:L2] [] -> "unknown"
+    %v24 = map (:v21, :v23) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v24) [] -> "unknown"
+function top_team:
+  %v25 = load_input [key=:regions, chain=["performance_score"], plan_ref="regions"] [] -> array<hash>
+  loop_start (:v25) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %offices_1 = load_field (:regions_el_1) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
+    %v28 = load_field (:offices_1) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
+    %v29 = load_field (:v28) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
+    %v30 = load_field (:v29) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
+    %v31 = load_field (:v30) [field=:performance_score, plan_ref="regions.region.offices.office.teams.team.performance_score"] [regions, offices, teams] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v32 = constant [value=0.9] [] -> float
+  %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
+  loop_start (:v25) [axis=:regions, element=:regions_el_2, index=:regions_idx_2, loop_id=:L2] [] -> "unknown"
+    %v34 = map (:v31, :v33) [fn=:core.gte] [regions, offices, teams] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  yield (:v34) [] -> "unknown"
+function employee_bonus:
+  %v83 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [] -> array<hash>
+  loop_start (:v83) [axis=:regions, element=:regions_el_1, index=:regions_idx_1, loop_id=:L1] [] -> "unknown"
+    %offices_1 = load_field (:regions_el_1) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
+    %v86 = load_field (:offices_1) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
+    %v87 = load_field (:v86) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
+    %v88 = load_field (:v87) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
+    %v89 = load_field (:v88) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
+    %v90 = load_field (:v89) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+    %v91 = load_field (:v90) [field=:rating, plan_ref="regions.region.offices.office.teams.team.employees.employee.rating"] [regions, offices, teams, employees] -> float
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v92 = constant [value=4.5] [] -> float
+  %v93 = axis_broadcast (:v92) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+  loop_start (:v83) [axis=:regions, element=:regions_el_2, index=:regions_idx_2, loop_id=:L2] [] -> "unknown"
+    %v94 = map (:v91, :v93) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+    %v103 = load_field (:v90) [field=:level, plan_ref="regions.region.offices.office.teams.team.employees.employee.level"] [regions, offices, teams, employees] -> string
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v104 = constant [value="senior"] [] -> string
+  %v105 = axis_broadcast (:v104) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
+  loop_start (:v83) [axis=:regions, element=:regions_el_3, index=:regions_idx_3, loop_id=:L3] [] -> "unknown"
+    %v106 = map (:v103, :v105) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+    %v113 = load_field (:v88) [field=:performance_score, plan_ref="regions.region.offices.office.teams.team.performance_score"] [regions, offices, teams] -> float
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v114 = constant [value=0.9] [] -> float
+  %v115 = axis_broadcast (:v114) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
+  loop_start (:v83) [axis=:regions, element=:regions_el_4, index=:regions_idx_4, loop_id=:L4] [] -> "unknown"
+    %v116 = map (:v113, :v115) [fn=:core.gte] [regions, offices, teams] -> boolean
+    %v38 = axis_broadcast (:v116) [from_axes=[:regions, :offices, :teams], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> boolean
+    %v39 = map (:v106, :v38) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+    %v40 = map (:v94, :v39) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+    %v49 = load_field (:v90) [field=:salary, plan_ref="regions.region.offices.office.teams.team.employees.employee.salary"] [regions, offices, teams, employees] -> float
+  loop_end [loop_id=:L4] [] -> "unknown"
+  %v50 = constant [value=0.3] [] -> float
+  %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+  loop_start (:v83) [axis=:regions, element=:regions_el_5, index=:regions_idx_5, loop_id=:L5] [] -> "unknown"
+    %v52 = map (:v49, :v51) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+    %v56 = map (:v94, :v38) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+  loop_end [loop_id=:L5] [] -> "unknown"
+  %v66 = constant [value=0.2] [] -> float
+  %v67 = axis_broadcast (:v66) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+  loop_start (:v83) [axis=:regions, element=:regions_el_6, index=:regions_idx_6, loop_id=:L6] [] -> "unknown"
+    %v68 = map (:v49, :v67) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+  loop_end [loop_id=:L6] [] -> "unknown"
+  %v78 = constant [value=0.05] [] -> float
+  %v79 = axis_broadcast (:v78) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
+  loop_start (:v83) [axis=:regions, element=:regions_el_7, index=:regions_idx_7, loop_id=:L7] [] -> "unknown"
+    %v80 = map (:v49, :v79) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+    %v81 = select (:v56, :v68, :v80) [regions, offices, teams, employees] -> float
+    %v82 = select (:v40, :v52, :v81) [regions, offices, teams, employees] -> float
+  loop_end [loop_id=:L7] [] -> "unknown"
+  yield (:v82) [] -> "unknown"

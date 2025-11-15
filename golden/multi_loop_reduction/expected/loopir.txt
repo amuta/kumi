@@ -1,0 +1,43 @@
+function total_value:
+  %v1 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v4_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v1) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %value_1 = load_field (:items_el_1) [field=:value, plan_ref="items.item.value"] [items] -> integer
+    accumulate (:v4_acc, :value_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v4 = load_accumulator (:v4_acc) [] -> integer
+  yield (:v4) [] -> "unknown"
+function half_total:
+  %v8 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v11_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v8) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %value_1 = load_field (:items_el_1) [field=:value, plan_ref="items.item.value"] [items] -> integer
+    accumulate (:v11_acc, :value_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v11 = load_accumulator (:v11_acc) [] -> integer
+  %v6 = constant [value=0.5] [] -> float
+  %v7 = map (:v11, :v6) [fn=:core.mul:numeric] [] -> float
+  yield (:v7) [] -> "unknown"
+function high_value_sum:
+  %v8 = load_input [key=:items, chain=["value"], plan_ref="items"] [] -> array<hash>
+  %v24_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v8) [axis=:items, element=:items_el_1, index=:items_idx_1, loop_id=:L1] [] -> "unknown"
+    %value_1 = load_field (:items_el_1) [field=:value, plan_ref="items.item.value"] [items] -> integer
+    accumulate (:v24_acc, :value_1) [] -> integer
+  loop_end [loop_id=:L1] [] -> "unknown"
+  %v24 = load_accumulator (:v24_acc) [] -> integer
+  %v25 = constant [value=0.5] [] -> float
+  %v26 = map (:v24, :v25) [fn=:core.mul:numeric] [] -> float
+  %v12 = axis_broadcast (:v26) [from_axes=[], to_axes=[:items]] [items] -> float
+  loop_start (:v8) [axis=:items, element=:items_el_2, index=:items_idx_2, loop_id=:L2] [] -> "unknown"
+    %v13 = map (:value_1, :v12) [fn=:core.gt] [items] -> boolean
+  loop_end [loop_id=:L2] [] -> "unknown"
+  %v17 = constant [value=0] [] -> integer
+  %v18 = axis_broadcast (:v17) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v20_acc = declare_accumulator [fn=:agg.sum] [] -> integer
+  loop_start (:v8) [axis=:items, element=:items_el_3, index=:items_idx_3, loop_id=:L3] [] -> "unknown"
+    %v19 = select (:v13, :value_1, :v18) [items] -> integer
+    accumulate (:v20_acc, :v19) [] -> integer
+  loop_end [loop_id=:L3] [] -> "unknown"
+  %v20 = load_accumulator (:v20_acc) [] -> integer
+  yield (:v20) [] -> "unknown"

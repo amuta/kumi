@@ -4,7 +4,7 @@ module Kumi
   module IR
     module Loop
       module Ops
-        class LoopStart < Kumi::IR::Base::Instruction
+        class LoopStart < Kumi::IR::Loop::Instruction
 
           def initialize(collection:, axis:, element:, index:, loop_id:, metadata: {})
             attrs = {

@@ -1,68 +1,61 @@
 function items_subtotal:
-  block entry:
-    %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v6 = load_field (:v2) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
-    %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
+  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v6 = load_field (:v2) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+  %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function items_discounted:
-  block entry:
-    %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v11 = constant [value=1.0] [] -> float
-    %v12 = load_input [key=:discount, chain=["discount"], plan_ref="discount"] [] -> float
-    %v13 = map (:v11, :v12) [fn=:core.sub] [] -> float
-    %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v15 = map (:v10, :v14) [fn=:core.mul:numeric] [items] -> float
+  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v11 = constant [value=1.0] [] -> float
+  %v12 = load_input [key=:discount, chain=["discount"], plan_ref="discount"] [] -> float
+  %v13 = map (:v11, :v12) [fn=:core.sub] [] -> float
+  %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v15 = map (:v10, :v14) [fn=:core.mul:numeric] [items] -> float
 function items_is_big:
-  block entry:
-    %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v17 = load_field (:v16) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v18 = load_field (:v17) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v19 = constant [value=100.0] [] -> float
-    %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v21 = map (:v18, :v20) [fn=:core.gt] [items] -> boolean
+  %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v17 = load_field (:v16) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v18 = load_field (:v17) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v19 = constant [value=100.0] [] -> float
+  %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v21 = map (:v18, :v20) [fn=:core.gt] [items] -> boolean
 function items_effective:
-  block entry:
-    %v29 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v31 = load_field (:v30) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v32 = constant [value=100.0] [] -> float
-    %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v34 = map (:v31, :v33) [fn=:core.gt] [items] -> boolean
-    %v40 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
-    %v41 = map (:v31, :v40) [fn=:core.mul:numeric] [items] -> float
-    %v24 = constant [value=0.9] [] -> float
-    %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v26 = map (:v41, :v25) [fn=:core.mul:numeric] [items] -> float
-    %v28 = select (:v34, :v26, :v41) [items] -> float
+  %v29 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v31 = load_field (:v30) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v32 = constant [value=100.0] [] -> float
+  %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v34 = map (:v31, :v33) [fn=:core.gt] [items] -> boolean
+  %v40 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+  %v41 = map (:v31, :v40) [fn=:core.mul:numeric] [items] -> float
+  %v24 = constant [value=0.9] [] -> float
+  %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v26 = map (:v41, :v25) [fn=:core.mul:numeric] [items] -> float
+  %v28 = select (:v34, :v26, :v41) [items] -> float
 function total_qty:
-  block entry:
-    %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [] -> array<hash>
-    %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v31 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
-    %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [] -> array<hash>
+  %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v31 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+  %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:items]] [] -> integer
 function cart_total:
-  block entry:
-    %v35 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v36 = load_field (:v35) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v37 = load_field (:v36) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v40 = load_field (:v36) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
-    %v41 = map (:v37, :v40) [fn=:core.mul:numeric] [items] -> float
-    %v34 = reduce (:v41) [fn=:agg.sum, over_axes=[:items]] [] -> float
+  %v35 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v36 = load_field (:v35) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v37 = load_field (:v36) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v40 = load_field (:v36) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+  %v41 = map (:v37, :v40) [fn=:core.mul:numeric] [items] -> float
+  %v34 = reduce (:v41) [fn=:agg.sum, over_axes=[:items]] [] -> float
 function cart_total_effective:
-  block entry:
-    %v37 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-    %v38 = load_field (:v37) [field=:item, plan_ref="items.item"] [items] -> hash
-    %v39 = load_field (:v38) [field=:price, plan_ref="items.item.price"] [items] -> float
-    %v40 = constant [value=100.0] [] -> float
-    %v41 = axis_broadcast (:v40) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v42 = map (:v39, :v41) [fn=:core.gt] [items] -> boolean
-    %v48 = load_field (:v38) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
-    %v49 = map (:v39, :v48) [fn=:core.mul:numeric] [items] -> float
-    %v50 = constant [value=0.9] [] -> float
-    %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:items]] [items] -> float
-    %v52 = map (:v49, :v51) [fn=:core.mul:numeric] [items] -> float
-    %v60 = select (:v42, :v52, :v49) [items] -> float
-    %v36 = reduce (:v60) [fn=:agg.sum, over_axes=[:items]] [] -> float
+  %v37 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
+  %v38 = load_field (:v37) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v39 = load_field (:v38) [field=:price, plan_ref="items.item.price"] [items] -> float
+  %v40 = constant [value=100.0] [] -> float
+  %v41 = axis_broadcast (:v40) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v42 = map (:v39, :v41) [fn=:core.gt] [items] -> boolean
+  %v48 = load_field (:v38) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
+  %v49 = map (:v39, :v48) [fn=:core.mul:numeric] [items] -> float
+  %v50 = constant [value=0.9] [] -> float
+  %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v52 = map (:v49, :v51) [fn=:core.mul:numeric] [items] -> float
+  %v60 = select (:v42, :v52, :v49) [items] -> float
+  %v36 = reduce (:v60) [fn=:agg.sum, over_axes=[:items]] [] -> float

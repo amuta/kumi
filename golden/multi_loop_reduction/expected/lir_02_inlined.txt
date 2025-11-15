@@ -1,0 +1,47 @@
+(LIR
+  (Declaration total_value
+    %acc_1 = decl_acc :: integer
+    %t2 = load_input "items" :: array
+    loop items id=L1 in %t2 as el=%items_el_3, idx=%items_i_4
+      %t5 = load_field items_el_3["value"] :: integer
+      %acc_1 = acc_add agg.sum(%acc_1, %t5) :: integer
+    end_loop
+    %t6 = acc_load %acc_1 :: integer
+    yield %t6
+  )
+  (Declaration half_total
+    %acc22 = decl_acc :: integer
+    %t23 = load_input "items" :: array
+    loop items id=L3 in %t23 as el=%t24, idx=%t25
+      %t26 = load_field t24["value"] :: integer
+      %acc22 = acc_add agg.sum(%acc22, %t26) :: integer
+    end_loop
+    %t27 = acc_load %acc22 :: integer
+    %t8 = const 0.5 :: float
+    %t9 = call core.mul:numeric(%t27, %t8) :: float
+    yield %t9
+  )
+  (Declaration high_value_sum
+    %acc_10 = decl_acc :: integer
+    %t11 = load_input "items" :: array
+    %acc32 = decl_acc :: integer
+    %t33 = load_input "items" :: array
+    loop items id=L4 in %t33 as el=%t34, idx=%t35
+      %t36 = load_field t34["value"] :: integer
+      %acc32 = acc_add agg.sum(%acc32, %t36) :: integer
+    end_loop
+    %t37 = acc_load %acc32 :: integer
+    %t29 = const 0.5 :: float
+    %t30 = call core.mul:numeric(%t37, %t29) :: float
+    loop items id=L2 in %t11 as el=%items_el_12, idx=%items_i_13
+      %t14 = load_field items_el_12["value"] :: integer
+      %t16 = call core.gt(%t14, %t30) :: boolean
+      %t17 = load_field items_el_12["value"] :: integer
+      %t18 = const 0 :: integer
+      %t19 = select %t16, %t17, %t18 :: integer
+      %acc_10 = acc_add agg.sum(%acc_10, %t19) :: integer
+    end_loop
+    %t20 = acc_load %acc_10 :: integer
+    yield %t20
+  )
+)

@@ -1,0 +1,25 @@
+(SNAST
+  (VALUE total_value
+    (Reduce :agg.sum over [items]
+      (InputRef items.item.value key_chain=[]) :: [items] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE half_total
+    (Call :core.mul:numeric
+      (Ref total_value) :: [] -> integer
+      (Const 0.5) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE high_value_sum
+    (Reduce :agg.sum over [items]
+      (Select
+        (Call :core.gt
+          (InputRef items.item.value key_chain=[]) :: [items] -> integer
+          (Ref half_total) :: [] -> float
+        ) :: [items] -> boolean
+        (InputRef items.item.value key_chain=[]) :: [items] -> integer
+        (Const 0) :: [] -> integer
+      ) :: [items] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

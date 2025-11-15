@@ -4,7 +4,7 @@ module Kumi
   module IR
     module Loop
       module Ops
-        class DeclareAccumulator < Kumi::IR::Base::Instruction
+        class DeclareAccumulator < Kumi::IR::Loop::Instruction
 
           def initialize(result:, fn:, axes:, dtype:, metadata: {})
             metadata = metadata.merge(axes: Array(axes).map(&:to_sym), dtype:)
@@ -29,7 +29,7 @@ module Kumi
           opcode :declare_accumulator
         end
 
-        class Accumulate < Kumi::IR::Base::Instruction
+        class Accumulate < Kumi::IR::Loop::Instruction
 
           def initialize(accumulator:, value:, metadata: {})
             super(

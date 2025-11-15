@@ -29,6 +29,8 @@ module Kumi
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
+      Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
+      Passes::Loop::LowerPass,                 # Experimental DFIR -> LoopIR lowering
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes

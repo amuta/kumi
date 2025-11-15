@@ -1,14 +1,11 @@
 function order_subtotal:
-  block entry:
-    %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
-    %v2 = import_call (:v1) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [] -> integer
+  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v2 = import_call (:v1) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [] -> integer
 function tax_amount:
-  block entry:
-    %v3 = decl_ref [name=:order_subtotal] [] -> integer
-    %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
-    %v5 = map (:v3, :v4) [fn=:core.mul:numeric] [] -> integer
+  %v3 = decl_ref [name=:order_subtotal] [] -> integer
+  %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v5 = map (:v3, :v4) [fn=:core.mul:numeric] [] -> integer
 function total:
-  block entry:
-    %v6 = decl_ref [name=:order_subtotal] [] -> integer
-    %v7 = decl_ref [name=:tax_amount] [] -> integer
-    %v8 = map (:v6, :v7) [fn=:core.add] [] -> integer
+  %v6 = decl_ref [name=:order_subtotal] [] -> integer
+  %v7 = decl_ref [name=:tax_amount] [] -> integer
+  %v8 = map (:v6, :v7) [fn=:core.add] [] -> integer

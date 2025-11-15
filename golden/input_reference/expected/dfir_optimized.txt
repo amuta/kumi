@@ -1,27 +1,22 @@
 function app_name:
-  block entry:
-    %v1 = load_input [key=:config, chain=["config", "app_name"], plan_ref="config"] [] -> any
-    %v2 = load_field (:v1) [field=:app_name, plan_ref="config.app_name"] [] -> string
+  %v1 = load_input [key=:config, chain=["config", "app_name"], plan_ref="config"] [] -> hash
+  %v2 = load_field (:v1) [field=:app_name, plan_ref="config.app_name"] [] -> string
 function all_flags:
-  block entry:
-    %v3 = load_input [key=:config, chain=[], plan_ref="config"] [] -> any
-    %v4 = load_field (:v3) [field=:feature_flags, plan_ref="config.feature_flags"] [] -> array<string>
-    %v5 = load_field (:v4) [field=:flag_name, plan_ref="config.feature_flags.flag_name"] [feature_flags] -> string
+  %v3 = load_input [key=:config, chain=[], plan_ref="config"] [] -> hash
+  %v4 = load_field (:v3) [field=:feature_flags, plan_ref="config.feature_flags"] [] -> array<string>
+  %v5 = load_field (:v4) [field=:flag_name, plan_ref="config.feature_flags.flag_name"] [feature_flags] -> string
 function server_hostnames:
-  block entry:
-    %v6 = load_input [key=:config, chain=["hostname"], plan_ref="config"] [] -> any
-    %v7 = load_field (:v6) [field=:servers, plan_ref="config.servers"] [] -> array<any>
-    %v8 = load_field (:v7) [field=:server, plan_ref="config.servers.server"] [servers] -> any
-    %v9 = load_field (:v8) [field=:hostname, plan_ref="config.servers.server.hostname"] [servers] -> string
+  %v6 = load_input [key=:config, chain=["hostname"], plan_ref="config"] [] -> hash
+  %v7 = load_field (:v6) [field=:servers, plan_ref="config.servers"] [] -> array<hash>
+  %v8 = load_field (:v7) [field=:server, plan_ref="config.servers.server"] [servers] -> hash
+  %v9 = load_field (:v8) [field=:hostname, plan_ref="config.servers.server.hostname"] [servers] -> string
 function server_count:
-  block entry:
-    %v10 = load_input [key=:config, chain=["config", "servers"], plan_ref="config"] [] -> any
-    %v11 = load_field (:v10) [field=:servers, plan_ref="config.servers"] [] -> array<any>
-    %v12 = map (:v11) [fn=:core.array_size] [] -> integer
+  %v10 = load_input [key=:config, chain=["config", "servers"], plan_ref="config"] [] -> hash
+  %v11 = load_field (:v10) [field=:servers, plan_ref="config.servers"] [] -> array<hash>
+  %v12 = map (:v11) [fn=:core.array_size] [] -> integer
 function total_ports:
-  block entry:
-    %v13 = load_input [key=:config, chain=["port"], plan_ref="config"] [] -> any
-    %v14 = load_field (:v13) [field=:servers, plan_ref="config.servers"] [] -> array<any>
-    %v15 = load_field (:v14) [field=:server, plan_ref="config.servers.server"] [servers] -> any
-    %v16 = load_field (:v15) [field=:port, plan_ref="config.servers.server.port"] [servers] -> integer
-    %v17 = reduce (:v16) [fn=:agg.sum, over_axes=[:servers]] [] -> integer
+  %v13 = load_input [key=:config, chain=["port"], plan_ref="config"] [] -> hash
+  %v14 = load_field (:v13) [field=:servers, plan_ref="config.servers"] [] -> array<hash>
+  %v15 = load_field (:v14) [field=:server, plan_ref="config.servers.server"] [servers] -> hash
+  %v16 = load_field (:v15) [field=:port, plan_ref="config.servers.server.port"] [servers] -> integer
+  %v17 = reduce (:v16) [fn=:agg.sum, over_axes=[:servers]] [] -> integer

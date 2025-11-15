@@ -1,49 +1,39 @@
 function x_is_large:
-  block entry:
-    %v1 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v2 = load_field (:v1) [field=:point, plan_ref="points.point"] [points] -> any
-    %v3 = load_field (:v2) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v4 = constant [value=100] [] -> integer
-    %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:points]] [points] -> integer
-    %v6 = map (:v3, :v5) [fn=:core.gt] [points] -> boolean
+  %v1 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v2 = load_field (:v1) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v3 = load_field (:v2) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v4 = constant [value=100] [] -> integer
+  %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v6 = map (:v3, :v5) [fn=:core.gt] [points] -> boolean
 function selected_value:
-  block entry:
-    %v15 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v16 = load_field (:v15) [field=:point, plan_ref="points.point"] [points] -> any
-    %v17 = load_field (:v16) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v18 = constant [value=100] [] -> integer
-    %v19 = axis_broadcast (:v18) [from_axes=[], to_axes=[:points]] [points] -> integer
-    %v20 = map (:v17, :v19) [fn=:core.gt] [points] -> boolean
-    %v11 = load_input [key=:points, chain=["y"], plan_ref="points"] [] -> array<any>
-    %v12 = load_field (:v11) [field=:point, plan_ref="points.point"] [points] -> any
-    %v13 = load_field (:v12) [field=:y, plan_ref="points.point.y"] [points] -> integer
-    %v14 = select (:v20, :v17, :v13) [points] -> integer
+  %v15 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v16 = load_field (:v15) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v17 = load_field (:v16) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v18 = constant [value=100] [] -> integer
+  %v19 = axis_broadcast (:v18) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v20 = map (:v17, :v19) [fn=:core.gt] [points] -> boolean
+  %v13 = load_field (:v16) [field=:y, plan_ref="points.point.y"] [points] -> integer
+  %v14 = select (:v20, :v17, :v13) [points] -> integer
 function final_value_per_point:
-  block entry:
-    %v21 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v22 = load_field (:v21) [field=:point, plan_ref="points.point"] [points] -> any
-    %v23 = load_field (:v22) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v24 = constant [value=100] [] -> integer
-    %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:points]] [points] -> integer
-    %v26 = map (:v23, :v25) [fn=:core.gt] [points] -> boolean
-    %v30 = load_input [key=:points, chain=["y"], plan_ref="points"] [] -> array<any>
-    %v31 = load_field (:v30) [field=:point, plan_ref="points.point"] [points] -> any
-    %v32 = load_field (:v31) [field=:y, plan_ref="points.point.y"] [points] -> integer
-    %v33 = select (:v26, :v23, :v32) [points] -> integer
-    %v19 = array_build (:v33, :v23) [size=2] [points] -> tuple<integer, integer>
-    %v20 = fold (:v19) [fn=:agg.max] [points] -> tuple<integer, integer>
+  %v21 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v22 = load_field (:v21) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v23 = load_field (:v22) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v24 = constant [value=100] [] -> integer
+  %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v26 = map (:v23, :v25) [fn=:core.gt] [points] -> boolean
+  %v32 = load_field (:v22) [field=:y, plan_ref="points.point.y"] [points] -> integer
+  %v33 = select (:v26, :v23, :v32) [points] -> integer
+  %v19 = array_build (:v33, :v23) [size=2] [points] -> tuple<integer, integer>
+  %v20 = fold (:v19) [fn=:agg.max] [points] -> tuple<integer, integer>
 function grand_total:
-  block entry:
-    %v23 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<any>
-    %v24 = load_field (:v23) [field=:point, plan_ref="points.point"] [points] -> any
-    %v25 = load_field (:v24) [field=:x, plan_ref="points.point.x"] [points] -> integer
-    %v26 = constant [value=100] [] -> integer
-    %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:points]] [points] -> integer
-    %v28 = map (:v25, :v27) [fn=:core.gt] [points] -> boolean
-    %v32 = load_input [key=:points, chain=["y"], plan_ref="points"] [] -> array<any>
-    %v33 = load_field (:v32) [field=:point, plan_ref="points.point"] [points] -> any
-    %v34 = load_field (:v33) [field=:y, plan_ref="points.point.y"] [points] -> integer
-    %v35 = select (:v28, :v25, :v34) [points] -> integer
-    %v39 = array_build (:v35, :v25) [size=2] [points] -> tuple<integer, integer>
-    %v40 = fold (:v39) [fn=:agg.max] [points] -> tuple<integer, integer>
-    %v22 = reduce (:v40) [fn=:agg.sum, over_axes=[:points]] [] -> integer
+  %v23 = load_input [key=:points, chain=["x"], plan_ref="points"] [] -> array<hash>
+  %v24 = load_field (:v23) [field=:point, plan_ref="points.point"] [points] -> hash
+  %v25 = load_field (:v24) [field=:x, plan_ref="points.point.x"] [points] -> integer
+  %v26 = constant [value=100] [] -> integer
+  %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v28 = map (:v25, :v27) [fn=:core.gt] [points] -> boolean
+  %v34 = load_field (:v24) [field=:y, plan_ref="points.point.y"] [points] -> integer
+  %v35 = select (:v28, :v25, :v34) [points] -> integer
+  %v39 = array_build (:v35, :v25) [size=2] [points] -> tuple<integer, integer>
+  %v40 = fold (:v39) [fn=:agg.max] [points] -> tuple<integer, integer>
+  %v22 = reduce (:v40) [fn=:agg.sum, over_axes=[:points]] [] -> integer

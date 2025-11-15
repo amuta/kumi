@@ -1,15 +1,12 @@
 function name_len:
-  block entry:
-    %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
-    %v2 = map (:v1) [fn=:core.length] [] -> integer
+  %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
+  %v2 = map (:v1) [fn=:core.length] [] -> integer
 function items_count:
-  block entry:
-    %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
-    %v4 = map (:v3) [fn=:core.array_size] [] -> integer
+  %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
+  %v4 = map (:v3) [fn=:core.array_size] [] -> integer
 function summary:
-  block entry:
-    %v8 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
-    %v9 = map (:v8) [fn=:core.length] [] -> integer
-    %v10 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
-    %v11 = map (:v10) [fn=:core.array_size] [] -> integer
-    %v7 = make_object (:v9, :v11) [keys=[:name_length, :item_count]] [] -> hash
+  %v8 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
+  %v9 = map (:v8) [fn=:core.length] [] -> integer
+  %v10 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
+  %v11 = map (:v10) [fn=:core.array_size] [] -> integer
+  %v7 = make_object (:v9, :v11) [keys=[:name_length, :item_count]] [] -> hash
