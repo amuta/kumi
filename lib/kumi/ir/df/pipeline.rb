@@ -19,6 +19,7 @@ module Kumi
             Passes::DeclInlining.new,
             Passes::LoadDedup.new,
             Passes::BroadcastSimplify.new,
+            Passes::TupleFoldCanonicalization.new,
             Passes::CSE.new,
             Passes::StencilCSE.new,
             Passes::ImportInlining.new

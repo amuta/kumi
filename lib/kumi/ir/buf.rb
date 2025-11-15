@@ -15,11 +15,7 @@ module Kumi
 
       class Function < Base::Function; end
 
-      class Module < Base::Module
-        def self.from_loop(loop_module, **_opts)
-          new(name: loop_module.name)
-        end
-      end
+      class Module < Base::Module; end
 
       class Builder < Base::Builder
         private

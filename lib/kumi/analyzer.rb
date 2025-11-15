@@ -30,7 +30,6 @@ module Kumi
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
       Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
-      Passes::Loop::LowerPass,                 # Experimental DFIR -> LoopIR lowering
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
@@ -83,18 +82,14 @@ module Kumi
       filtered_passes = if resume_at
                           passes.each_with_index do |pass_class, idx|
                             pass_name = pass_class.name.split("::").last
-                            if pass_name == resume_at
-                              break passes[idx..]
-                            end
+                            break passes[idx..] if pass_name == resume_at
                           end.flatten.compact
                         else
                           passes
                         end
 
       # Check for error threshold pass
-      if !errors.empty? && filtered_passes.include?(ERROR_THRESHOLD_PASS)
-        raise handle_analysis_errors(errors)
-      end
+      raise handle_analysis_errors(errors) if !errors.empty? && filtered_passes.include?(ERROR_THRESHOLD_PASS)
 
       # Use PassManager for orchestration
       manager = Core::Analyzer::PassManager.new(filtered_passes)

@@ -2,9 +2,9 @@
 
 module Kumi
   module IR
-    module Loop
+    module Vec
       module Ops
-        class Node < Kumi::IR::Loop::Instruction
+        class Node < Kumi::IR::Base::Instruction
           class << self
             attr_reader :opcode_symbol
 
@@ -15,8 +15,10 @@ module Kumi
           end
 
           def initialize(result:, axes:, dtype:, inputs: [], attributes: {}, metadata: {}, effects: Base::Effects::NONE)
-            axes = Array(axes || []).map(&:to_sym)
-            metadata = metadata.merge(axes:, dtype:)
+            raise ArgumentError, "dtype required" unless dtype
+
+            axes = Array(axes || []).map(&:to_sym).freeze
+            metadata = metadata.merge(dtype:, axes:)
             super(
               opcode: self.class.opcode_symbol || infer_opcode,
               result:,

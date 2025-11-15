@@ -30,7 +30,6 @@ module Kumi
         Representation.new("snast", extension: "txt"),
         Representation.new("dfir", extension: "txt"),
         Representation.new("dfir_optimized", extension: "txt"),
-        Representation.new("loopir", extension: "txt"),
         Representation.new("lir_00_unoptimized", extension: "txt"),
         Representation.new("lir_01_hoist_scalar_references", extension: "txt"),
         Representation.new("lir_02_inlined", extension: "txt"),
