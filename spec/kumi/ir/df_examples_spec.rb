@@ -165,7 +165,7 @@ RSpec.describe "IR::DF Examples" do
 
       graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :core_sum), input_table: {}, input_metadata: {}).call
       instrs = graph.fetch_function(:fold_sum).entry_block.instructions
-      expect(instrs.map(&:opcode)).to include(:fold)
+      expect(instrs.map(&:opcode)).to include(:reduce)
     end
 
     it "lowers import calls" do

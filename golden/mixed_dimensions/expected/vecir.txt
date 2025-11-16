@@ -1,0 +1,28 @@
+function sum_numbers:
+  %v1 = load_input [key=:numbers, chain=["value"]] [numbers] -> integer
+  %v2 = load_field (:v1) [field=:num] [numbers] -> integer
+  %v3 = load_field (:v2) [field=:value] [numbers] -> integer
+  %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:numbers]] [] -> integer
+function matrix_sums:
+  %v5 = load_input [key=:matrix, chain=["cell"]] [matrix, row] -> float
+  %v6 = load_field (:v5) [field=:m] [matrix, row] -> float
+  %v7 = load_field (:v6) [field=:row] [matrix, row] -> float
+  %v8 = load_field (:v7) [field=:r] [matrix, row] -> float
+  %v9 = load_field (:v8) [field=:cell] [matrix, row] -> float
+  %v10 = reduce (:v9) [fn=:agg.sum, over_axes=[:row]] [matrix] -> float
+function mixed_array:
+  %v11 = load_input [key=:scalar_val, chain=["scalar_val"]] [] -> integer
+  %v19 = load_input [key=:numbers, chain=["value"]] [numbers] -> integer
+  %v20 = load_field (:v19) [field=:num] [numbers] -> integer
+  %v21 = load_field (:v20) [field=:value] [numbers] -> integer
+  %v22 = reduce (:v21) [fn=:agg.sum, over_axes=[:numbers]] [] -> integer
+  %v13 = load_input [key=:matrix, chain=["cell"]] [matrix, row] -> float
+  %v14 = load_field (:v13) [field=:m] [matrix, row] -> float
+  %v15 = load_field (:v14) [field=:row] [matrix, row] -> float
+  %v16 = load_field (:v15) [field=:r] [matrix, row] -> float
+  %v17 = load_field (:v16) [field=:cell] [matrix, row] -> float
+  %vec_tmp1 = axis_broadcast (:v11) [from_axes=[], to_axes=[:matrix, :row]] [matrix, row] -> integer
+  %vec_tmp2 = axis_broadcast (:v22) [from_axes=[], to_axes=[:matrix, :row]] [matrix, row] -> integer
+  %v18 = make_object (:vec_tmp1, :vec_tmp2, :v17) [keys=[:_0, :_1, :_2]] [matrix, row] -> tuple<integer, integer, float>
+function constant:
+  %v19 = constant [value=42] [] -> integer

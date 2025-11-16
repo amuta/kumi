@@ -1,0 +1,8 @@
+(NAST
+  (VALUE price_with_bonus
+    (Tuple
+    (InputRef [:items, :item, :price])
+    (Const 10)
+  )
+  )
+)

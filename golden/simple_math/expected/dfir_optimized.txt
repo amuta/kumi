@@ -18,4 +18,4 @@ function results_array:
   %v14 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
   %v15 = constant [value=2] [] -> integer
   %v16 = map (:v14, :v15) [fn=:core.mul:numeric] [] -> integer
-  %v17 = array_build (:v10, :v13, :v16) [size=3] [] -> tuple<integer, integer, integer>
+  %v17 = make_object (:v10, :v13, :v16) [keys=[:_0, :_1, :_2]] [] -> tuple<integer, integer, integer>

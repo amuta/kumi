@@ -6,6 +6,7 @@ module Kumi
       module Passes
         class TupleFoldCanonicalization < Kumi::IR::Passes::Base
           def run(graph:, context: {})
+            @registry = context[:registry]
             functions = graph.functions.values.map { rewrite_function(_1) }
             Kumi::IR::DF::Graph.new(name: graph.name, functions:)
           end
@@ -45,8 +46,8 @@ module Kumi
                   emitted_index: new_instructions.length - 1,
                   exclusive: usage.fetch(cloned.result, 0) == 1
                 }
-              when :fold
-                if rewritten = rewrite_fold(instr, new_inputs, array_defs, value_info, new_instructions, reg_gen)
+              when :reduce
+                if fold_reduce?(instr) && (rewritten = rewrite_fold(instr, new_inputs, array_defs, value_info, new_instructions, reg_gen))
                   replacements[instr.result] = rewritten
                   next
                 end
@@ -65,9 +66,15 @@ module Kumi
             Kumi::IR::Base::Block.new(name: block.name, instructions: filtered)
           end
 
+          def fold_reduce?(instr)
+            over_axes = instr.attributes[:over_axes]
+            !over_axes || over_axes.empty?
+          end
+
           def rewrite_fold(instr, inputs, array_defs, value_info, new_instructions, reg_gen)
             fn = instr.attributes[:fn]&.to_sym
-            return nil unless fn == :"agg.sum"
+            combiner = tuple_fold_combiner_for(fn)
+            return nil unless combiner
             source = inputs.first
             array_info = array_defs[source]
             return nil unless array_info && array_info[:exclusive]
@@ -83,10 +90,10 @@ module Kumi
             acc = elements.first
 
             elements.drop(1).each do |elem|
-              temp = reg_gen.next
+              temp = reg_gen.next(prefix: :acc)
               new_instr = Kumi::IR::DF::Ops::Map.new(
                 result: temp,
-                fn: :"core.add",
+                fn: combiner,
                 args: [acc, elem],
                 axes: axes,
                 dtype: element_dtype,
@@ -125,14 +132,31 @@ module Kumi
             counts
           end
 
+          def tuple_fold_combiner_for(fn)
+            return nil unless fn && @registry
+
+            function = @registry.function(fn.to_s) rescue nil
+            return nil unless function
+
+            options = function.respond_to?(:options) ? function.options : nil
+            return nil unless options
+
+            combiner = options[:tuple_fold_combiner] || options["tuple_fold_combiner"]
+            return nil unless combiner
+
+            (combiner.is_a?(String) ? combiner.to_sym : combiner)
+          end
+
           class RegGenerator
             def initialize(function)
-              @counter = extract_highest(function)
+              @counters = Hash.new(-1)
+              @counters[:v] = extract_highest(function)
             end
 
-            def next
-              @counter += 1
-              :"v#{@counter}"
+            def next(prefix: :v)
+              key = prefix.to_sym
+              @counters[key] += 1
+              :"#{key}#{@counters[key]}"
             end
 
             private

@@ -1,33 +1,35 @@
 function order_subtotals:
-  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v5 = load_field (:v3) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v5 = load_field (:v3) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v6 = load_field (:v5) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v7 = load_field (:v5) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v8 = map (:v6, :v7) [fn=:core.mul:numeric] [orders, items] -> integer
   %v9 = reduce (:v8) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
 function order_with_shipping:
-  %v10 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v11 = load_field (:v10) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v12 = load_field (:v11) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v14 = load_field (:v12) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v10 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v11 = load_field (:v10) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v12 = load_field (:v11) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v14 = load_field (:v12) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v15 = load_field (:v14) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v16 = load_field (:v14) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v17 = map (:v15, :v16) [fn=:core.mul:numeric] [orders, items] -> integer
   %v18 = reduce (:v17) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v8 = load_field (:v11) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v7 = load_field (:v10) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v8 = load_field (:v7) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v9 = map (:v18, :v8) [fn=:core.add] [orders] -> integer
 function order_discounted:
-  %v14 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v15 = load_field (:v14) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v16 = load_field (:v15) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v22 = load_field (:v16) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v14 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v15 = load_field (:v14) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v16 = load_field (:v15) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v22 = load_field (:v16) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v23 = load_field (:v22) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v24 = load_field (:v22) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v25 = map (:v23, :v24) [fn=:core.mul:numeric] [orders, items] -> integer
   %v26 = reduce (:v25) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v20 = load_field (:v15) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v19 = load_field (:v14) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v20 = load_field (:v19) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v21 = map (:v26, :v20) [fn=:core.add] [orders] -> integer
   %v11 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -35,15 +37,16 @@ function order_discounted:
   %v28 = map (:v27, :v12) [fn=:core.sub] [orders] -> float
   %v29 = map (:v21, :v28) [fn=:core.mul:numeric] [orders] -> float
 function order_tax:
-  %v16 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v17 = load_field (:v16) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v18 = load_field (:v17) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v27 = load_field (:v18) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v16 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v17 = load_field (:v16) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v18 = load_field (:v17) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v27 = load_field (:v18) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v28 = load_field (:v27) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v29 = load_field (:v27) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v30 = map (:v28, :v29) [fn=:core.mul:numeric] [orders, items] -> integer
   %v31 = reduce (:v30) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v22 = load_field (:v17) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v21 = load_field (:v16) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v22 = load_field (:v21) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v23 = map (:v31, :v22) [fn=:core.add] [orders] -> integer
   %v24 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -53,15 +56,16 @@ function order_tax:
   %v35 = constant [value=0.15] [orders] -> float
   %v36 = map (:v34, :v35) [fn=:core.mul:numeric] [orders] -> float
 function order_totals:
-  %v19 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v20 = load_field (:v19) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v21 = load_field (:v20) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v42 = load_field (:v21) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v19 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v20 = load_field (:v19) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v21 = load_field (:v20) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v42 = load_field (:v21) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v43 = load_field (:v42) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v44 = load_field (:v42) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v45 = map (:v43, :v44) [fn=:core.mul:numeric] [orders, items] -> integer
   %v46 = reduce (:v45) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v25 = load_field (:v20) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v24 = load_field (:v19) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v25 = load_field (:v24) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v26 = map (:v46, :v25) [fn=:core.add] [orders] -> integer
   %v27 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v28 = axis_broadcast (:v27) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -72,15 +76,16 @@ function order_totals:
   %v51 = map (:v49, :v50) [fn=:core.mul:numeric] [orders] -> float
   %v18 = map (:v49, :v51) [fn=:core.add] [orders] -> float
 function discount_per_order:
-  %v22 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v24 = load_field (:v23) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v41 = load_field (:v24) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v22 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v24 = load_field (:v23) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v41 = load_field (:v24) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v42 = load_field (:v41) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v43 = load_field (:v41) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v44 = map (:v42, :v43) [fn=:core.mul:numeric] [orders, items] -> integer
   %v45 = reduce (:v44) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v28 = load_field (:v23) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v27 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v28 = load_field (:v27) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v29 = map (:v45, :v28) [fn=:core.add] [orders] -> integer
   %v38 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v39 = axis_broadcast (:v38) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -89,20 +94,21 @@ function discount_per_order:
   %v48 = map (:v29, :v47) [fn=:core.mul:numeric] [orders] -> float
   %v21 = map (:v29, :v48) [fn=:core.sub] [orders] -> float
 function total_orders:
-  %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [] -> array<hash>
-  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [orders] -> string
+  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> string
   %v24 = load_field (:v23) [field=:id, plan_ref="orders.order.id"] [orders] -> string
   %v25 = reduce (:v24) [fn=:agg.count, over_axes=[:orders]] [] -> integer
 function total_revenue:
-  %v28 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v29 = load_field (:v28) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v30 = load_field (:v29) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v52 = load_field (:v30) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v28 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v29 = load_field (:v28) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v30 = load_field (:v29) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v52 = load_field (:v30) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v53 = load_field (:v52) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v54 = load_field (:v52) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v55 = map (:v53, :v54) [fn=:core.mul:numeric] [orders, items] -> integer
   %v56 = reduce (:v55) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v34 = load_field (:v29) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v33 = load_field (:v28) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v34 = load_field (:v33) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v35 = map (:v56, :v34) [fn=:core.add] [orders] -> integer
   %v36 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v37 = axis_broadcast (:v36) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -114,15 +120,16 @@ function total_revenue:
   %v51 = map (:v59, :v61) [fn=:core.add] [orders] -> float
   %v27 = reduce (:v51) [fn=:agg.sum, over_axes=[:orders]] [] -> float
 function total_tax_collected:
-  %v30 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v31 = load_field (:v30) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v32 = load_field (:v31) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v42 = load_field (:v32) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v30 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v31 = load_field (:v30) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v32 = load_field (:v31) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v42 = load_field (:v32) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v43 = load_field (:v42) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v44 = load_field (:v42) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v45 = map (:v43, :v44) [fn=:core.mul:numeric] [orders, items] -> integer
   %v46 = reduce (:v45) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v36 = load_field (:v31) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v35 = load_field (:v30) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v36 = load_field (:v35) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v37 = map (:v46, :v36) [fn=:core.add] [orders] -> integer
   %v38 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v39 = axis_broadcast (:v38) [from_axes=[], to_axes=[:orders]] [orders] -> decimal
@@ -133,15 +140,16 @@ function total_tax_collected:
   %v51 = map (:v49, :v50) [fn=:core.mul:numeric] [orders] -> float
   %v29 = reduce (:v51) [fn=:agg.sum, over_axes=[:orders]] [] -> float
 function total_discount_given:
-  %v32 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v33 = load_field (:v32) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v34 = load_field (:v33) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
-  %v52 = load_field (:v34) [field=:item, plan_ref="items.item"] [orders, items] -> hash
+  %v32 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v33 = load_field (:v32) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v34 = load_field (:v33) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
+  %v52 = load_field (:v34) [field=:item, plan_ref="items.item"] [orders, items] -> integer
   %v53 = load_field (:v52) [field=:quantity, plan_ref="items.item.quantity"] [orders, items] -> integer
   %v54 = load_field (:v52) [field=:unit_price, plan_ref="items.item.unit_price"] [orders, items] -> integer
   %v55 = map (:v53, :v54) [fn=:core.mul:numeric] [orders, items] -> integer
   %v56 = reduce (:v55) [fn=:agg.sum, over_axes=[:items]] [orders] -> integer
-  %v38 = load_field (:v33) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
+  %v37 = load_field (:v32) [field=:order, plan_ref="orders.order"] [orders] -> decimal
+  %v38 = load_field (:v37) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v39 = map (:v56, :v38) [fn=:core.add] [orders] -> integer
   %v48 = load_input [key=:global_discount_rate, chain=["global_discount_rate"], plan_ref="global_discount_rate"] [] -> decimal
   %v49 = axis_broadcast (:v48) [from_axes=[], to_axes=[:orders]] [orders] -> decimal

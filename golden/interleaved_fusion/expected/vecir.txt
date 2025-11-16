@@ -1,0 +1,54 @@
+function total_payroll:
+  %v1 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+  %v2 = load_field (:v1) [field=:dept] [departments, employees] -> integer
+  %v3 = load_field (:v2) [field=:employees] [departments, employees] -> integer
+  %v4 = load_field (:v3) [field=:emp] [departments, employees] -> integer
+  %v5 = load_field (:v4) [field=:salary] [departments, employees] -> integer
+  %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function payroll_tax:
+  %v11 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+  %v12 = load_field (:v11) [field=:dept] [departments, employees] -> integer
+  %v13 = load_field (:v12) [field=:employees] [departments, employees] -> integer
+  %v14 = load_field (:v13) [field=:emp] [departments, employees] -> integer
+  %v15 = load_field (:v14) [field=:salary] [departments, employees] -> integer
+  %v16 = reduce (:v15) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+  %v8 = constant [value=0.15] [] -> float
+  %v9 = axis_broadcast (:v8) [from_axes=[], to_axes=[:departments]] [departments] -> float
+  %v10 = map (:v16, :v9) [fn=:core.mul:numeric] [departments] -> float
+function manager_count:
+  %v11 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
+  %v12 = load_field (:v11) [field=:dept] [departments, employees] -> string
+  %v13 = load_field (:v12) [field=:employees] [departments, employees] -> string
+  %v14 = load_field (:v13) [field=:emp] [departments, employees] -> string
+  %v15 = load_field (:v14) [field=:role] [departments, employees] -> string
+  %v16 = constant [value="manager"] [] -> string
+  %v17 = axis_broadcast (:v16) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  %v18 = map (:v15, :v17) [fn=:core.eq] [departments, employees] -> boolean
+  %v19 = constant [value=1] [] -> integer
+  %v20 = constant [value=0] [] -> integer
+  %v21 = axis_broadcast (:v19) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v22 = axis_broadcast (:v20) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v23 = select (:v18, :v21, :v22) [departments, employees] -> integer
+  %v24 = reduce (:v23) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+function department_summary:
+  %v25 = load_input [key=:departments, chain=["name"]] [departments] -> string
+  %v26 = load_field (:v25) [field=:dept] [departments] -> string
+  %v27 = load_field (:v26) [field=:name] [departments] -> string
+  %v34 = load_field (:v33) [field=:employees] [departments, employees] -> integer
+  %v35 = load_field (:v34) [field=:emp] [departments, employees] -> integer
+  %v36 = load_field (:v35) [field=:salary] [departments, employees] -> integer
+  %v37 = reduce (:v36) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+  %v44 = constant [value=0.15] [] -> float
+  %v45 = axis_broadcast (:v44) [from_axes=[], to_axes=[:departments]] [departments] -> float
+  %v46 = map (:v37, :v45) [fn=:core.mul:numeric] [departments] -> float
+  %v51 = load_field (:v50) [field=:role] [departments, employees] -> string
+  %v52 = constant [value="manager"] [] -> string
+  %v53 = axis_broadcast (:v52) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
+  %v54 = map (:v51, :v53) [fn=:core.eq] [departments, employees] -> boolean
+  %v55 = constant [value=1] [] -> integer
+  %v56 = constant [value=0] [] -> integer
+  %v57 = axis_broadcast (:v55) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v58 = axis_broadcast (:v56) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> integer
+  %v59 = select (:v54, :v57, :v58) [departments, employees] -> integer
+  %v60 = reduce (:v59) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+  %v31 = make_object (:v27, :v37, :v46, :v60) [keys=[:name, :payroll, :tax, :managers]] [departments] -> hash

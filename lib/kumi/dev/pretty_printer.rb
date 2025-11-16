@@ -186,6 +186,11 @@ module Kumi
         print_df_graph(graph)
       end
 
+      def generate_vecir(path)
+        graph = build_vec_graph(path: path)
+        print_df_graph(graph)
+      end
+
       def generate_irv2(path)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
@@ -242,14 +247,12 @@ module Kumi
         snast = res.state[:snast_module] or raise "Missing SNAST for #{path}"
         registry = res.state[:registry] or raise "Missing registry for #{path}"
         input_table = res.state[:input_table] or raise "Missing input_table for #{path}"
-        input_metadata = res.state[:input_metadata] || {}
         imported_schemas = res.state[:imported_schemas] || {}
 
         df_graph = Kumi::IR::DF::Lower.new(
           snast_module: snast,
           registry: registry,
-          input_table: input_table,
-          input_metadata: input_metadata
+          input_table: input_table
         ).call
 
         return df_graph unless optimized
@@ -258,12 +261,17 @@ module Kumi
         Kumi::IR::DF::Pipeline.run(graph: df_graph, context: context)
       end
 
+      def build_vec_graph(path:)
+        df_graph = build_df_graph(path: path, optimized: true)
+        vec_module = Kumi::IR::Vec::Module.from_df(df_graph)
+        Kumi::IR::Vec::Pipeline.run(graph: vec_module, context: {})
+      end
+
       def print_df_graph(graph)
         io = StringIO.new
         Kumi::IR::Printer.print(graph, io: io)
         io.string
       end
-
     end
   end
 end

@@ -1,0 +1,26 @@
+function order_subtotal:
+  %v1 = load_input [key=:order_items, chain=["order_items"]] [] -> array<any>
+  %v3 = load_field (:v1) [field=:item] [items] -> integer
+  %v4 = load_field (:v3) [field=:quantity] [items] -> integer
+  %v5 = load_field (:v3) [field=:unit_price] [items] -> integer
+  %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [items] -> integer
+  %v7 = reduce (:v6) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+function tax_amount:
+  %v6 = load_input [key=:order_items, chain=["order_items"]] [] -> array<any>
+  %v8 = load_field (:v6) [field=:item] [items] -> integer
+  %v9 = load_field (:v8) [field=:quantity] [items] -> integer
+  %v10 = load_field (:v8) [field=:unit_price] [items] -> integer
+  %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [items] -> integer
+  %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v4 = load_input [key=:tax_rate, chain=["tax_rate"]] [] -> integer
+  %v5 = map (:v12, :v4) [fn=:core.mul:numeric] [] -> integer
+function total:
+  %v9 = load_input [key=:order_items, chain=["order_items"]] [] -> array<any>
+  %v15 = load_field (:v9) [field=:item] [items] -> integer
+  %v16 = load_field (:v15) [field=:quantity] [items] -> integer
+  %v17 = load_field (:v15) [field=:unit_price] [items] -> integer
+  %v18 = map (:v16, :v17) [fn=:core.mul:numeric] [items] -> integer
+  %v19 = reduce (:v18) [fn=:agg.sum, over_axes=[:items]] [] -> integer
+  %v13 = load_input [key=:tax_rate, chain=["tax_rate"]] [] -> integer
+  %v14 = map (:v19, :v13) [fn=:core.mul:numeric] [] -> integer
+  %v8 = map (:v19, :v14) [fn=:core.add] [] -> integer

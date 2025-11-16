@@ -1,5 +1,5 @@
 function order_subtotal:
-  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
+  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
   %v2 = import_call (:v1) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [] -> integer
 function tax_amount:
   %v3 = decl_ref [name=:order_subtotal] [] -> integer

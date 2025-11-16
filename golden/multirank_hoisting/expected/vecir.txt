@@ -1,0 +1,91 @@
+function global_offset_plus:
+  %v1 = load_input [key=:global_offset, chain=["global_offset"]] [] -> float
+  %v2 = constant [value=1.0] [] -> float
+  %v3 = map (:v1, :v2) [fn=:core.add] [] -> float
+function batch_bias:
+  %v4 = load_input [key=:batch, chain=["mean"]] [batch] -> float
+  %v5 = load_field (:v4) [field=:b] [batch] -> float
+  %v6 = load_field (:v5) [field=:mean] [batch] -> float
+  %v10 = load_input [key=:global_offset, chain=["global_offset"]] [] -> float
+  %v11 = constant [value=1.0] [] -> float
+  %v12 = map (:v10, :v11) [fn=:core.add] [] -> float
+  %v8 = axis_broadcast (:v12) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v9 = map (:v6, :v8) [fn=:core.add] [batch] -> float
+function row_scale2:
+  %v10 = load_input [key=:batch, chain=["scale"]] [batch, row] -> float
+  %v11 = load_field (:v10) [field=:b] [batch, row] -> float
+  %v12 = load_field (:v11) [field=:row] [batch, row] -> float
+  %v13 = load_field (:v12) [field=:r] [batch, row] -> float
+  %v14 = load_field (:v13) [field=:scale] [batch, row] -> float
+  %v15 = constant [value=2.0] [] -> float
+  %v16 = axis_broadcast (:v15) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  %v17 = map (:v14, :v16) [fn=:core.mul:numeric] [batch, row] -> float
+function elem_affine:
+  %v18 = load_input [key=:batch, chain=["val"]] [batch, row, col] -> float
+  %v19 = load_field (:v18) [field=:b] [batch, row, col] -> float
+  %v20 = load_field (:v19) [field=:row] [batch, row, col] -> float
+  %v21 = load_field (:v20) [field=:r] [batch, row, col] -> float
+  %v22 = load_field (:v21) [field=:col] [batch, row, col] -> float
+  %v23 = load_field (:v22) [field=:c] [batch, row, col] -> float
+  %v24 = load_field (:v23) [field=:val] [batch, row, col] -> float
+  %v35 = load_field (:v34) [field=:scale] [batch, row] -> float
+  %v36 = constant [value=2.0] [] -> float
+  %v37 = axis_broadcast (:v36) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  %v38 = map (:v35, :v37) [fn=:core.mul:numeric] [batch, row] -> float
+  %v26 = axis_broadcast (:v38) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v27 = map (:v24, :v26) [fn=:core.mul:numeric] [batch, row, col] -> float
+  %v41 = load_field (:v40) [field=:mean] [batch] -> float
+  %v42 = load_input [key=:global_offset, chain=["global_offset"]] [] -> float
+  %v43 = constant [value=1.0] [] -> float
+  %v44 = map (:v42, :v43) [fn=:core.add] [] -> float
+  %v45 = axis_broadcast (:v44) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v46 = map (:v41, :v45) [fn=:core.add] [batch] -> float
+  %v29 = axis_broadcast (:v46) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v30 = map (:v27, :v29) [fn=:core.add] [batch, row, col] -> float
+function row_sum_affine:
+  %v33 = load_input [key=:batch, chain=["val"]] [batch, row, col] -> float
+  %v34 = load_field (:v33) [field=:b] [batch, row, col] -> float
+  %v35 = load_field (:v34) [field=:row] [batch, row, col] -> float
+  %v36 = load_field (:v35) [field=:r] [batch, row, col] -> float
+  %v37 = load_field (:v36) [field=:col] [batch, row, col] -> float
+  %v38 = load_field (:v37) [field=:c] [batch, row, col] -> float
+  %v39 = load_field (:v38) [field=:val] [batch, row, col] -> float
+  %v44 = load_field (:v43) [field=:scale] [batch, row] -> float
+  %v45 = constant [value=2.0] [] -> float
+  %v46 = axis_broadcast (:v45) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  %v47 = map (:v44, :v46) [fn=:core.mul:numeric] [batch, row] -> float
+  %v48 = axis_broadcast (:v47) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v49 = map (:v39, :v48) [fn=:core.mul:numeric] [batch, row, col] -> float
+  %v52 = load_field (:v51) [field=:mean] [batch] -> float
+  %v53 = load_input [key=:global_offset, chain=["global_offset"]] [] -> float
+  %v54 = constant [value=1.0] [] -> float
+  %v55 = map (:v53, :v54) [fn=:core.add] [] -> float
+  %v56 = axis_broadcast (:v55) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v57 = map (:v52, :v56) [fn=:core.add] [batch] -> float
+  %v58 = axis_broadcast (:v57) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v59 = map (:v49, :v58) [fn=:core.add] [batch, row, col] -> float
+  %v32 = reduce (:v59) [fn=:agg.sum, over_axes=[:col]] [batch, row] -> float
+function batch_total_affine:
+  %v35 = load_input [key=:batch, chain=["val"]] [batch, row, col] -> float
+  %v36 = load_field (:v35) [field=:b] [batch, row, col] -> float
+  %v37 = load_field (:v36) [field=:row] [batch, row, col] -> float
+  %v38 = load_field (:v37) [field=:r] [batch, row, col] -> float
+  %v39 = load_field (:v38) [field=:col] [batch, row, col] -> float
+  %v40 = load_field (:v39) [field=:c] [batch, row, col] -> float
+  %v41 = load_field (:v40) [field=:val] [batch, row, col] -> float
+  %v46 = load_field (:v45) [field=:scale] [batch, row] -> float
+  %v47 = constant [value=2.0] [] -> float
+  %v48 = axis_broadcast (:v47) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
+  %v49 = map (:v46, :v48) [fn=:core.mul:numeric] [batch, row] -> float
+  %v50 = axis_broadcast (:v49) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v51 = map (:v41, :v50) [fn=:core.mul:numeric] [batch, row, col] -> float
+  %v54 = load_field (:v53) [field=:mean] [batch] -> float
+  %v55 = load_input [key=:global_offset, chain=["global_offset"]] [] -> float
+  %v56 = constant [value=1.0] [] -> float
+  %v57 = map (:v55, :v56) [fn=:core.add] [] -> float
+  %v58 = axis_broadcast (:v57) [from_axes=[], to_axes=[:batch]] [batch] -> float
+  %v59 = map (:v54, :v58) [fn=:core.add] [batch] -> float
+  %v60 = axis_broadcast (:v59) [from_axes=[:batch], to_axes=[:batch, :row, :col]] [batch, row, col] -> float
+  %v61 = map (:v51, :v60) [fn=:core.add] [batch, row, col] -> float
+  %v62 = reduce (:v61) [fn=:agg.sum, over_axes=[:col]] [batch, row] -> float
+  %v34 = reduce (:v62) [fn=:agg.sum, over_axes=[:row]] [batch] -> float

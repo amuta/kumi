@@ -1,29 +1,29 @@
 function cube:
   %v1 = load_input [key=:cube, chain=["cube"], plan_ref="cube"] [] -> array<array<array<integer>>>
 function layer:
-  %v2 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
+  %v2 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube] -> array<array<integer>>
   %v3 = load_field (:v2) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
 function row:
-  %v4 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
-  %v5 = load_field (:v4) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
+  %v4 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube, layer] -> array<integer>
+  %v5 = load_field (:v4) [field=:layer, plan_ref="cube.layer"] [cube, layer] -> array<integer>
   %v6 = load_field (:v5) [field=:row, plan_ref="cube.layer.row"] [cube, layer] -> array<integer>
 function cell:
-  %v7 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
-  %v8 = load_field (:v7) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
-  %v9 = load_field (:v8) [field=:row, plan_ref="cube.layer.row"] [cube, layer] -> array<integer>
+  %v7 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube, layer, row] -> integer
+  %v8 = load_field (:v7) [field=:layer, plan_ref="cube.layer"] [cube, layer, row] -> integer
+  %v9 = load_field (:v8) [field=:row, plan_ref="cube.layer.row"] [cube, layer, row] -> integer
   %v10 = load_field (:v9) [field=:cell, plan_ref="cube.layer.row.cell"] [cube, layer, row] -> integer
 function cell_over_limit:
-  %v11 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
-  %v12 = load_field (:v11) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
-  %v13 = load_field (:v12) [field=:row, plan_ref="cube.layer.row"] [cube, layer] -> array<integer>
+  %v11 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube, layer, row] -> integer
+  %v12 = load_field (:v11) [field=:layer, plan_ref="cube.layer"] [cube, layer, row] -> integer
+  %v13 = load_field (:v12) [field=:row, plan_ref="cube.layer.row"] [cube, layer, row] -> integer
   %v14 = load_field (:v13) [field=:cell, plan_ref="cube.layer.row.cell"] [cube, layer, row] -> integer
   %v15 = constant [value=100] [] -> integer
   %v16 = axis_broadcast (:v15) [from_axes=[], to_axes=[:cube, :layer, :row]] [cube, layer, row] -> integer
   %v17 = map (:v14, :v16) [fn=:core.gt] [cube, layer, row] -> boolean
 function cell_sum:
-  %v27 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
-  %v28 = load_field (:v27) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
-  %v29 = load_field (:v28) [field=:row, plan_ref="cube.layer.row"] [cube, layer] -> array<integer>
+  %v27 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube, layer, row] -> integer
+  %v28 = load_field (:v27) [field=:layer, plan_ref="cube.layer"] [cube, layer, row] -> integer
+  %v29 = load_field (:v28) [field=:row, plan_ref="cube.layer.row"] [cube, layer, row] -> integer
   %v30 = load_field (:v29) [field=:cell, plan_ref="cube.layer.row.cell"] [cube, layer, row] -> integer
   %v31 = constant [value=100] [] -> integer
   %v32 = axis_broadcast (:v31) [from_axes=[], to_axes=[:cube, :layer, :row]] [cube, layer, row] -> integer
@@ -33,9 +33,9 @@ function cell_sum:
   %v25 = select (:v33, :v30, :v24) [cube, layer, row] -> integer
   %v26 = reduce (:v25) [fn=:agg.sum, over_axes=[:row]] [cube, layer] -> integer
 function count_over_limit:
-  %v36 = load_input [key=:cube, chain=[], plan_ref="cube"] [] -> array<array<array<integer>>>
-  %v37 = load_field (:v36) [field=:layer, plan_ref="cube.layer"] [cube] -> array<array<integer>>
-  %v38 = load_field (:v37) [field=:row, plan_ref="cube.layer.row"] [cube, layer] -> array<integer>
+  %v36 = load_input [key=:cube, chain=[], plan_ref="cube"] [cube, layer, row] -> integer
+  %v37 = load_field (:v36) [field=:layer, plan_ref="cube.layer"] [cube, layer, row] -> integer
+  %v38 = load_field (:v37) [field=:row, plan_ref="cube.layer.row"] [cube, layer, row] -> integer
   %v39 = load_field (:v38) [field=:cell, plan_ref="cube.layer.row.cell"] [cube, layer, row] -> integer
   %v40 = constant [value=100] [] -> integer
   %v41 = axis_broadcast (:v40) [from_axes=[], to_axes=[:cube, :layer, :row]] [cube, layer, row] -> integer

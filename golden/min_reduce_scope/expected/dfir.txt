@@ -1,33 +1,33 @@
 function dept_total:
-  %v1 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:dept, plan_ref="depts.dept"] [depts] -> hash
-  %v3 = load_field (:v2) [field=:teams, plan_ref="depts.dept.teams"] [depts] -> array<hash>
-  %v4 = load_field (:v3) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> hash
+  %v1 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v2 = load_field (:v1) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
+  %v3 = load_field (:v2) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
+  %v4 = load_field (:v3) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
   %v5 = load_field (:v4) [field=:headcount, plan_ref="depts.dept.teams.team.headcount"] [depts, teams] -> integer
   %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:teams]] [depts] -> integer
 function company_total:
-  %v7 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [] -> array<hash>
-  %v8 = load_field (:v7) [field=:dept, plan_ref="depts.dept"] [depts] -> hash
-  %v9 = load_field (:v8) [field=:teams, plan_ref="depts.dept.teams"] [depts] -> array<hash>
-  %v10 = load_field (:v9) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> hash
+  %v7 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v8 = load_field (:v7) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
+  %v9 = load_field (:v8) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
+  %v10 = load_field (:v9) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
   %v11 = load_field (:v10) [field=:headcount, plan_ref="depts.dept.teams.team.headcount"] [depts, teams] -> integer
   %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:teams]] [depts] -> integer
   %v13 = reduce (:v12) [fn=:agg.sum, over_axes=[:depts]] [] -> integer
 function big_team:
-  %v14 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [] -> array<hash>
-  %v15 = load_field (:v14) [field=:dept, plan_ref="depts.dept"] [depts] -> hash
-  %v16 = load_field (:v15) [field=:teams, plan_ref="depts.dept.teams"] [depts] -> array<hash>
-  %v17 = load_field (:v16) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> hash
+  %v14 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v15 = load_field (:v14) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
+  %v16 = load_field (:v15) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
+  %v17 = load_field (:v16) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
   %v18 = load_field (:v17) [field=:headcount, plan_ref="depts.dept.teams.team.headcount"] [depts, teams] -> integer
   %v19 = constant [value=10] [] -> integer
   %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:depts, :teams]] [depts, teams] -> integer
   %v21 = map (:v18, :v20) [fn=:core.gt] [depts, teams] -> boolean
 function dept_total_masked:
   %v22 = decl_ref [name=:big_team] [depts, teams] -> boolean
-  %v23 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [] -> array<hash>
-  %v24 = load_field (:v23) [field=:dept, plan_ref="depts.dept"] [depts] -> hash
-  %v25 = load_field (:v24) [field=:teams, plan_ref="depts.dept.teams"] [depts] -> array<hash>
-  %v26 = load_field (:v25) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> hash
+  %v23 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v24 = load_field (:v23) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
+  %v25 = load_field (:v24) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
+  %v26 = load_field (:v25) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
   %v27 = load_field (:v26) [field=:headcount, plan_ref="depts.dept.teams.team.headcount"] [depts, teams] -> integer
   %v28 = constant [value=0] [] -> integer
   %v29 = axis_broadcast (:v28) [from_axes=[], to_axes=[:depts, :teams]] [depts, teams] -> integer

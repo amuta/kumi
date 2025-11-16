@@ -1,0 +1,8 @@
+(SNAST
+  (VALUE price_with_bonus
+    (Tuple
+      (InputRef items.item.price key_chain=[]) :: [items] -> integer
+      (Const 10) :: [] -> integer
+    ) :: [items] -> tuple<integer, integer>
+  ) :: [items] -> tuple<integer, integer>
+)

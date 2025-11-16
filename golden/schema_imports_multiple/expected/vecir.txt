@@ -1,0 +1,34 @@
+function tax_amount:
+  %v1 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+  %v3 = constant [value=0.15] [] -> float
+  %v4 = map (:v1, :v3) [fn=:core.mul:numeric] [] -> float
+function price_after_tax:
+  %v3 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+  %v8 = constant [value=0.15] [] -> float
+  %v9 = map (:v3, :v8) [fn=:core.mul:numeric] [] -> float
+  %v5 = map (:v3, :v9) [fn=:core.add] [] -> float
+function discounted_price:
+  %v9 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+  %v13 = constant [value=0.15] [] -> float
+  %v14 = map (:v9, :v13) [fn=:core.mul:numeric] [] -> float
+  %v12 = map (:v9, :v14) [fn=:core.add] [] -> float
+  %v7 = load_input [key=:discount_rate, chain=["discount_rate"]] [] -> decimal
+  %v15 = constant [value=1.0] [] -> float
+  %v16 = map (:v15, :v7) [fn=:core.sub] [] -> float
+  %v17 = map (:v12, :v16) [fn=:core.mul:numeric] [] -> float
+function discount_amount:
+  %v12 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+  %v16 = constant [value=0.15] [] -> float
+  %v17 = map (:v12, :v16) [fn=:core.mul:numeric] [] -> float
+  %v15 = map (:v12, :v17) [fn=:core.add] [] -> float
+  %v10 = load_input [key=:discount_rate, chain=["discount_rate"]] [] -> decimal
+  %v18 = map (:v15, :v10) [fn=:core.mul:numeric] [] -> decimal
+function final_price:
+  %v13 = load_input [key=:amount, chain=["amount"]] [] -> decimal
+  %v19 = constant [value=0.15] [] -> float
+  %v20 = map (:v13, :v19) [fn=:core.mul:numeric] [] -> float
+  %v16 = map (:v13, :v20) [fn=:core.add] [] -> float
+  %v17 = load_input [key=:discount_rate, chain=["discount_rate"]] [] -> decimal
+  %v21 = constant [value=1.0] [] -> float
+  %v22 = map (:v21, :v17) [fn=:core.sub] [] -> float
+  %v23 = map (:v16, :v22) [fn=:core.mul:numeric] [] -> float

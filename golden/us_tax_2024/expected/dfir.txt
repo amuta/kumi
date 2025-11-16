@@ -9,30 +9,30 @@ function local_tax:
 function taxable:
   %v7 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v8 = axis_broadcast (:v7) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
-  %v9 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [] -> array<hash>
-  %v10 = load_field (:v9) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
+  %v9 = load_input [key=:statuses, chain=["std"], plan_ref="statuses"] [statuses] -> float
+  %v10 = load_field (:v9) [field=:status, plan_ref="statuses.status"] [statuses] -> float
   %v11 = load_field (:v10) [field=:std, plan_ref="statuses.status.std"] [statuses] -> float
   %v12 = map (:v8, :v11) [fn=:core.sub] [statuses] -> float
   %v13 = constant [value=0] [] -> integer
   %v14 = array_build (:v12, :v13) [size=2] [statuses] -> tuple<float, integer>
-  %v15 = fold (:v14) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v15 = reduce (:v14) [fn=:agg.max, over_axes=[]] [statuses] -> tuple<float, integer>
 function lo:
-  %v16 = load_input [key=:statuses, chain=["lo"], plan_ref="statuses"] [] -> array<hash>
-  %v17 = load_field (:v16) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
-  %v18 = load_field (:v17) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
-  %v19 = load_field (:v18) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+  %v16 = load_input [key=:statuses, chain=["lo"], plan_ref="statuses"] [statuses, rates] -> float
+  %v17 = load_field (:v16) [field=:status, plan_ref="statuses.status"] [statuses, rates] -> float
+  %v18 = load_field (:v17) [field=:rates, plan_ref="statuses.status.rates"] [statuses, rates] -> float
+  %v19 = load_field (:v18) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> float
   %v20 = load_field (:v19) [field=:lo, plan_ref="statuses.status.rates.bracket.lo"] [statuses, rates] -> float
 function hi:
-  %v21 = load_input [key=:statuses, chain=["hi"], plan_ref="statuses"] [] -> array<hash>
-  %v22 = load_field (:v21) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
-  %v23 = load_field (:v22) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
-  %v24 = load_field (:v23) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+  %v21 = load_input [key=:statuses, chain=["hi"], plan_ref="statuses"] [statuses, rates] -> float
+  %v22 = load_field (:v21) [field=:status, plan_ref="statuses.status"] [statuses, rates] -> float
+  %v23 = load_field (:v22) [field=:rates, plan_ref="statuses.status.rates"] [statuses, rates] -> float
+  %v24 = load_field (:v23) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> float
   %v25 = load_field (:v24) [field=:hi, plan_ref="statuses.status.rates.bracket.hi"] [statuses, rates] -> float
 function rate:
-  %v26 = load_input [key=:statuses, chain=["rate"], plan_ref="statuses"] [] -> array<hash>
-  %v27 = load_field (:v26) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
-  %v28 = load_field (:v27) [field=:rates, plan_ref="statuses.status.rates"] [statuses] -> array<hash>
-  %v29 = load_field (:v28) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> hash
+  %v26 = load_input [key=:statuses, chain=["rate"], plan_ref="statuses"] [statuses, rates] -> float
+  %v27 = load_field (:v26) [field=:status, plan_ref="statuses.status"] [statuses, rates] -> float
+  %v28 = load_field (:v27) [field=:rates, plan_ref="statuses.status.rates"] [statuses, rates] -> float
+  %v29 = load_field (:v28) [field=:bracket, plan_ref="statuses.status.rates.bracket"] [statuses, rates] -> float
   %v30 = load_field (:v29) [field=:rate, plan_ref="statuses.status.rates.bracket.rate"] [statuses, rates] -> float
 function big_hi:
   %v31 = constant [value=100000000000.0] [] -> float
@@ -83,7 +83,7 @@ function fed_eff:
   %v70 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v71 = constant [value=1.0] [] -> float
   %v72 = array_build (:v70, :v71) [size=2] [] -> tuple<float, float>
-  %v73 = fold (:v72) [fn=:agg.max] [] -> tuple<float, float>
+  %v73 = reduce (:v72) [fn=:agg.max, over_axes=[]] [] -> tuple<float, float>
   %v74 = axis_broadcast (:v73) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v75 = map (:v69, :v74) [fn=:core.div] [statuses] -> float
 function ss_wage_base:
@@ -94,7 +94,7 @@ function ss_tax:
   %v78 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v79 = constant [value=168600.0] [] -> float
   %v80 = array_build (:v78, :v79) [size=2] [] -> tuple<float, float>
-  %v81 = fold (:v80) [fn=:agg.min] [] -> tuple<float, float>
+  %v81 = reduce (:v80) [fn=:agg.min, over_axes=[]] [] -> tuple<float, float>
   %v82 = constant [value=0.062] [] -> float
   %v83 = map (:v81, :v82) [fn=:core.mul:numeric] [] -> float
 function med_base_rate:
@@ -108,13 +108,13 @@ function addl_med_rate:
 function addl_med_tax:
   %v89 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v90 = axis_broadcast (:v89) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
-  %v91 = load_input [key=:statuses, chain=["addl_threshold"], plan_ref="statuses"] [] -> array<hash>
-  %v92 = load_field (:v91) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
+  %v91 = load_input [key=:statuses, chain=["addl_threshold"], plan_ref="statuses"] [statuses] -> float
+  %v92 = load_field (:v91) [field=:status, plan_ref="statuses.status"] [statuses] -> float
   %v93 = load_field (:v92) [field=:addl_threshold, plan_ref="statuses.status.addl_threshold"] [statuses] -> float
   %v94 = map (:v90, :v93) [fn=:core.sub] [statuses] -> float
   %v95 = constant [value=0] [] -> integer
   %v96 = array_build (:v94, :v95) [size=2] [statuses] -> tuple<float, integer>
-  %v97 = fold (:v96) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v97 = reduce (:v96) [fn=:agg.max, over_axes=[]] [statuses] -> tuple<float, integer>
   %v98 = constant [value=0.009] [] -> float
   %v99 = axis_broadcast (:v98) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v100 = map (:v97, :v99) [fn=:core.mul:numeric] [statuses] -> float
@@ -130,7 +130,7 @@ function fica_eff:
   %v108 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v109 = constant [value=1.0] [] -> float
   %v110 = array_build (:v108, :v109) [size=2] [] -> tuple<float, float>
-  %v111 = fold (:v110) [fn=:agg.max] [] -> tuple<float, float>
+  %v111 = reduce (:v110) [fn=:agg.max, over_axes=[]] [] -> tuple<float, float>
   %v112 = axis_broadcast (:v111) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v113 = map (:v107, :v112) [fn=:core.div] [statuses] -> float
 function total_tax:
@@ -148,7 +148,7 @@ function total_eff:
   %v124 = load_input [key=:income, chain=["income"], plan_ref="income"] [] -> float
   %v125 = constant [value=1.0] [] -> float
   %v126 = array_build (:v124, :v125) [size=2] [] -> tuple<float, float>
-  %v127 = fold (:v126) [fn=:agg.max] [] -> tuple<float, float>
+  %v127 = reduce (:v126) [fn=:agg.max, over_axes=[]] [] -> tuple<float, float>
   %v128 = axis_broadcast (:v127) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v129 = map (:v123, :v128) [fn=:core.div] [statuses] -> float
 function after_tax:
@@ -162,8 +162,8 @@ function take_home:
   %v136 = axis_broadcast (:v135) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v137 = map (:v134, :v136) [fn=:core.sub] [statuses] -> float
 function summary:
-  %v138 = load_input [key=:statuses, chain=["name"], plan_ref="statuses"] [] -> array<hash>
-  %v139 = load_field (:v138) [field=:status, plan_ref="statuses.status"] [statuses] -> hash
+  %v138 = load_input [key=:statuses, chain=["name"], plan_ref="statuses"] [statuses] -> string
+  %v139 = load_field (:v138) [field=:status, plan_ref="statuses.status"] [statuses] -> string
   %v140 = load_field (:v139) [field=:name, plan_ref="statuses.status.name"] [statuses] -> string
   %v141 = decl_ref [name=:fed_marg] [statuses] -> float
   %v142 = decl_ref [name=:fed_eff] [statuses] -> float

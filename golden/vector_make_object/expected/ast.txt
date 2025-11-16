@@ -1,0 +1,22 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :price :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :price_with_bonus
+      (ArrayExpression
+        (InputElementReference items.item.price)
+        (Literal 10)
+      )
+    )
+  ]
+  traits: []
+)

@@ -6,7 +6,7 @@ function tuple:
   %v5 = array_build (:v1, :v2, :v3, :v4) [size=4] [] -> tuple<integer, integer, integer, integer>
 function max_1:
   %v6 = decl_ref [name=:tuple] [] -> tuple<integer, integer, integer, integer>
-  %v7 = fold (:v6) [fn=:agg.max] [] -> tuple<integer, integer, integer, integer>
+  %v7 = reduce (:v6) [fn=:agg.max, over_axes=[]] [] -> tuple<integer, integer, integer, integer>
 function max_2:
   %v8 = constant [value=1] [] -> integer
   %v9 = constant [value=2] [] -> integer
@@ -14,10 +14,10 @@ function max_2:
   %v11 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
   %v12 = constant [value=1000] [] -> integer
   %v13 = array_build (:v8, :v9, :v10, :v11, :v12) [size=5] [] -> tuple<integer, integer, integer, integer, integer>
-  %v14 = fold (:v13) [fn=:agg.max] [] -> tuple<integer, integer, integer, integer, integer>
+  %v14 = reduce (:v13) [fn=:agg.max, over_axes=[]] [] -> tuple<integer, integer, integer, integer, integer>
 function min_1:
   %v15 = decl_ref [name=:tuple] [] -> tuple<integer, integer, integer, integer>
-  %v16 = fold (:v15) [fn=:agg.min] [] -> tuple<integer, integer, integer, integer>
+  %v16 = reduce (:v15) [fn=:agg.min, over_axes=[]] [] -> tuple<integer, integer, integer, integer>
 function min_2:
   %v17 = constant [value=1] [] -> integer
   %v18 = constant [value=2] [] -> integer
@@ -25,4 +25,4 @@ function min_2:
   %v20 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
   %v21 = constant [value=-100] [] -> integer
   %v22 = array_build (:v17, :v18, :v19, :v20, :v21) [size=5] [] -> tuple<integer, integer, integer, integer, integer>
-  %v23 = fold (:v22) [fn=:agg.min] [] -> tuple<integer, integer, integer, integer, integer>
+  %v23 = reduce (:v22) [fn=:agg.min, over_axes=[]] [] -> tuple<integer, integer, integer, integer, integer>

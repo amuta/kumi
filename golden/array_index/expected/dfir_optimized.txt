@@ -1,10 +1,10 @@
 function W:
-  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [] -> array<array<integer>>
+  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [x] -> array<integer>
   %v2 = load_field (:v1) [field=:y, plan_ref="x.y"] [x] -> array<integer>
   %v3 = map (:v2) [fn=:core.array_size] [x] -> integer
 function box:
   %v4 = axis_index [axis=:x] [x] -> integer
-  %v10 = load_input [key=:x, chain=[], plan_ref="x"] [] -> array<array<integer>>
+  %v10 = load_input [key=:x, chain=[], plan_ref="x"] [x] -> array<integer>
   %v11 = load_field (:v10) [field=:y, plan_ref="x.y"] [x] -> array<integer>
   %v12 = map (:v11) [fn=:core.array_size] [x] -> integer
   %v6 = map (:v4, :v12) [fn=:core.mul:numeric] [x] -> integer

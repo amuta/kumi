@@ -1,0 +1,11 @@
+schema do
+  input do
+    array :items do
+      hash :item do
+        integer :price
+      end
+    end
+  end
+
+  value :price_with_bonus, [input.items.item.price, 10]
+end

@@ -1,54 +1,54 @@
 function a:
-  %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v2 = load_field (:v1) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v1 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v2 = load_field (:v1) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v3 = load_field (:v2) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
 function n:
-  %v6 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v7 = load_field (:v6) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v6 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v7 = load_field (:v6) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v8 = load_field (:v7) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v4 = axis_shift (:v8) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
 function s:
-  %v8 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v9 = load_field (:v8) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v8 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v9 = load_field (:v8) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v10 = load_field (:v9) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v6 = axis_shift (:v10) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
 function w:
-  %v10 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v11 = load_field (:v10) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v10 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v11 = load_field (:v10) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v12 = load_field (:v11) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v8 = axis_shift (:v12) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function e:
-  %v12 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v13 = load_field (:v12) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v12 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v13 = load_field (:v12) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v14 = load_field (:v13) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v10 = axis_shift (:v14) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function nw:
-  %v14 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v15 = load_field (:v14) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v14 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v15 = load_field (:v14) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v16 = load_field (:v15) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v17 = axis_shift (:v16) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v12 = axis_shift (:v17) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function ne:
-  %v16 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v17 = load_field (:v16) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v16 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v17 = load_field (:v16) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v18 = load_field (:v17) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v19 = axis_shift (:v18) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v14 = axis_shift (:v19) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function sw:
-  %v18 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v19 = load_field (:v18) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v18 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v19 = load_field (:v18) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v20 = load_field (:v19) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v21 = axis_shift (:v20) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
   %v16 = axis_shift (:v21) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
 function se:
-  %v20 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v21 = load_field (:v20) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v20 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v21 = load_field (:v20) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v22 = load_field (:v21) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v23 = axis_shift (:v22) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
   %v18 = axis_shift (:v23) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
 function neighbors:
-  %v30 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v31 = load_field (:v30) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v30 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v31 = load_field (:v30) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v32 = load_field (:v31) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v33 = axis_shift (:v32) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v37 = axis_shift (:v32) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -58,23 +58,23 @@ function neighbors:
   %v55 = axis_shift (:v33) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v60 = axis_shift (:v37) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v65 = axis_shift (:v37) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v66 = map (:v33, :v37) [fn=:core.add] [rows, col] -> integer
-  %v67 = map (:v66, :v41) [fn=:core.add] [rows, col] -> integer
-  %v68 = map (:v67, :v45) [fn=:core.add] [rows, col] -> integer
-  %v69 = map (:v68, :v50) [fn=:core.add] [rows, col] -> integer
-  %v70 = map (:v69, :v55) [fn=:core.add] [rows, col] -> integer
-  %v71 = map (:v70, :v60) [fn=:core.add] [rows, col] -> integer
-  %v72 = map (:v71, :v65) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v33, :v37) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v41) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v45) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v50) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v55) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v60) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v65) [fn=:core.add] [rows, col] -> integer
 function alive:
-  %v34 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v35 = load_field (:v34) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v34 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v35 = load_field (:v34) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v36 = load_field (:v35) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v31 = constant [value=0] [] -> integer
   %v32 = axis_broadcast (:v31) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
   %v33 = map (:v36, :v32) [fn=:core.gt] [rows, col] -> boolean
 function n3_alive:
-  %v38 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v39 = load_field (:v38) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v38 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v39 = load_field (:v38) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v40 = load_field (:v39) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v41 = axis_shift (:v40) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v45 = axis_shift (:v40) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -84,19 +84,19 @@ function n3_alive:
   %v63 = axis_shift (:v41) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v68 = axis_shift (:v45) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v73 = axis_shift (:v45) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v76 = map (:v41, :v45) [fn=:core.add] [rows, col] -> integer
-  %v77 = map (:v76, :v49) [fn=:core.add] [rows, col] -> integer
-  %v78 = map (:v77, :v53) [fn=:core.add] [rows, col] -> integer
-  %v79 = map (:v78, :v58) [fn=:core.add] [rows, col] -> integer
-  %v80 = map (:v79, :v63) [fn=:core.add] [rows, col] -> integer
-  %v81 = map (:v80, :v68) [fn=:core.add] [rows, col] -> integer
-  %v82 = map (:v81, :v73) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v41, :v45) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v49) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v53) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v58) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v63) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v68) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v73) [fn=:core.add] [rows, col] -> integer
   %v35 = constant [value=3] [] -> integer
   %v36 = axis_broadcast (:v35) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v37 = map (:v82, :v36) [fn=:core.eq] [rows, col] -> boolean
+  %v37 = map (:acc6, :v36) [fn=:core.eq] [rows, col] -> boolean
 function n2_alive:
-  %v42 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v43 = load_field (:v42) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v42 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v43 = load_field (:v42) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v44 = load_field (:v43) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v45 = axis_shift (:v44) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v49 = axis_shift (:v44) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -106,19 +106,19 @@ function n2_alive:
   %v67 = axis_shift (:v45) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v72 = axis_shift (:v49) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v77 = axis_shift (:v49) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v80 = map (:v45, :v49) [fn=:core.add] [rows, col] -> integer
-  %v81 = map (:v80, :v53) [fn=:core.add] [rows, col] -> integer
-  %v82 = map (:v81, :v57) [fn=:core.add] [rows, col] -> integer
-  %v83 = map (:v82, :v62) [fn=:core.add] [rows, col] -> integer
-  %v84 = map (:v83, :v67) [fn=:core.add] [rows, col] -> integer
-  %v85 = map (:v84, :v72) [fn=:core.add] [rows, col] -> integer
-  %v86 = map (:v85, :v77) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v45, :v49) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v53) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v57) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v62) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v67) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v72) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v77) [fn=:core.add] [rows, col] -> integer
   %v39 = constant [value=2] [] -> integer
   %v40 = axis_broadcast (:v39) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v41 = map (:v86, :v40) [fn=:core.eq] [rows, col] -> boolean
+  %v41 = map (:acc6, :v40) [fn=:core.eq] [rows, col] -> boolean
 function keep_alive:
-  %v45 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v46 = load_field (:v45) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v45 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v46 = load_field (:v45) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v47 = load_field (:v46) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v48 = axis_shift (:v47) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v52 = axis_shift (:v47) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -128,23 +128,23 @@ function keep_alive:
   %v70 = axis_shift (:v48) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v75 = axis_shift (:v52) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v80 = axis_shift (:v52) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v92 = map (:v48, :v52) [fn=:core.add] [rows, col] -> integer
-  %v93 = map (:v92, :v56) [fn=:core.add] [rows, col] -> integer
-  %v94 = map (:v93, :v60) [fn=:core.add] [rows, col] -> integer
-  %v95 = map (:v94, :v65) [fn=:core.add] [rows, col] -> integer
-  %v96 = map (:v95, :v70) [fn=:core.add] [rows, col] -> integer
-  %v97 = map (:v96, :v75) [fn=:core.add] [rows, col] -> integer
-  %v98 = map (:v97, :v80) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v48, :v52) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v56) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v60) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v65) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v70) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v75) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v80) [fn=:core.add] [rows, col] -> integer
   %v83 = constant [value=2] [] -> integer
   %v84 = axis_broadcast (:v83) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v85 = map (:v98, :v84) [fn=:core.eq] [rows, col] -> boolean
+  %v85 = map (:acc6, :v84) [fn=:core.eq] [rows, col] -> boolean
   %v89 = constant [value=0] [] -> integer
   %v90 = axis_broadcast (:v89) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
   %v91 = map (:v47, :v90) [fn=:core.gt] [rows, col] -> boolean
   %v44 = map (:v85, :v91) [fn=:core.and] [rows, col] -> boolean
 function next_alive:
-  %v48 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v49 = load_field (:v48) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v48 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v49 = load_field (:v48) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v50 = load_field (:v49) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v51 = axis_shift (:v50) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v55 = axis_shift (:v50) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -154,27 +154,27 @@ function next_alive:
   %v73 = axis_shift (:v51) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v78 = axis_shift (:v55) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v83 = axis_shift (:v55) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v137 = map (:v51, :v55) [fn=:core.add] [rows, col] -> integer
-  %v138 = map (:v137, :v59) [fn=:core.add] [rows, col] -> integer
-  %v139 = map (:v138, :v63) [fn=:core.add] [rows, col] -> integer
-  %v140 = map (:v139, :v68) [fn=:core.add] [rows, col] -> integer
-  %v141 = map (:v140, :v73) [fn=:core.add] [rows, col] -> integer
-  %v142 = map (:v141, :v78) [fn=:core.add] [rows, col] -> integer
-  %v143 = map (:v142, :v83) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v51, :v55) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v59) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v63) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v68) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v73) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v78) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v83) [fn=:core.add] [rows, col] -> integer
   %v86 = constant [value=3] [] -> integer
   %v87 = axis_broadcast (:v86) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v88 = map (:v143, :v87) [fn=:core.eq] [rows, col] -> boolean
+  %v88 = map (:acc6, :v87) [fn=:core.eq] [rows, col] -> boolean
   %v127 = constant [value=2] [] -> integer
   %v128 = axis_broadcast (:v127) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v129 = map (:v143, :v128) [fn=:core.eq] [rows, col] -> boolean
+  %v129 = map (:acc6, :v128) [fn=:core.eq] [rows, col] -> boolean
   %v133 = constant [value=0] [] -> integer
   %v134 = axis_broadcast (:v133) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
   %v135 = map (:v50, :v134) [fn=:core.gt] [rows, col] -> boolean
   %v136 = map (:v129, :v135) [fn=:core.and] [rows, col] -> boolean
   %v47 = map (:v88, :v136) [fn=:core.or] [rows, col] -> boolean
 function next_state:
-  %v54 = load_input [key=:rows, chain=[], plan_ref="rows"] [] -> array<array<integer>>
-  %v55 = load_field (:v54) [field=:col, plan_ref="rows.col"] [rows] -> array<integer>
+  %v54 = load_input [key=:rows, chain=[], plan_ref="rows"] [rows, col] -> integer
+  %v55 = load_field (:v54) [field=:col, plan_ref="rows.col"] [rows, col] -> integer
   %v56 = load_field (:v55) [field=:alive, plan_ref="rows.col.alive"] [rows, col] -> integer
   %v57 = axis_shift (:v56) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
   %v61 = axis_shift (:v56) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
@@ -184,19 +184,19 @@ function next_state:
   %v79 = axis_shift (:v57) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
   %v84 = axis_shift (:v61) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
   %v89 = axis_shift (:v61) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
-  %v144 = map (:v57, :v61) [fn=:core.add] [rows, col] -> integer
-  %v145 = map (:v144, :v65) [fn=:core.add] [rows, col] -> integer
-  %v146 = map (:v145, :v69) [fn=:core.add] [rows, col] -> integer
-  %v147 = map (:v146, :v74) [fn=:core.add] [rows, col] -> integer
-  %v148 = map (:v147, :v79) [fn=:core.add] [rows, col] -> integer
-  %v149 = map (:v148, :v84) [fn=:core.add] [rows, col] -> integer
-  %v150 = map (:v149, :v89) [fn=:core.add] [rows, col] -> integer
+  %acc0 = map (:v57, :v61) [fn=:core.add] [rows, col] -> integer
+  %acc1 = map (:acc0, :v65) [fn=:core.add] [rows, col] -> integer
+  %acc2 = map (:acc1, :v69) [fn=:core.add] [rows, col] -> integer
+  %acc3 = map (:acc2, :v74) [fn=:core.add] [rows, col] -> integer
+  %acc4 = map (:acc3, :v79) [fn=:core.add] [rows, col] -> integer
+  %acc5 = map (:acc4, :v84) [fn=:core.add] [rows, col] -> integer
+  %acc6 = map (:acc5, :v89) [fn=:core.add] [rows, col] -> integer
   %v92 = constant [value=3] [] -> integer
   %v93 = axis_broadcast (:v92) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v94 = map (:v150, :v93) [fn=:core.eq] [rows, col] -> boolean
+  %v94 = map (:acc6, :v93) [fn=:core.eq] [rows, col] -> boolean
   %v133 = constant [value=2] [] -> integer
   %v134 = axis_broadcast (:v133) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
-  %v135 = map (:v150, :v134) [fn=:core.eq] [rows, col] -> boolean
+  %v135 = map (:acc6, :v134) [fn=:core.eq] [rows, col] -> boolean
   %v139 = constant [value=0] [] -> integer
   %v140 = axis_broadcast (:v139) [from_axes=[], to_axes=[:rows, :col]] [rows, col] -> integer
   %v141 = map (:v56, :v140) [fn=:core.gt] [rows, col] -> boolean

@@ -1,0 +1,34 @@
+function subtotals:
+  %v1 = load_input [key=:items, chain=["price"]] [items] -> float
+  %v2 = load_field (:v1) [field=:item] [items] -> float
+  %v3 = load_field (:v2) [field=:price] [items] -> float
+  %v6 = load_field (:v5) [field=:quantity] [items] -> integer
+  %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
+function discounted_price:
+  %v8 = load_input [key=:items, chain=["price"]] [items] -> float
+  %v9 = load_field (:v8) [field=:item] [items] -> float
+  %v10 = load_field (:v9) [field=:price] [items] -> float
+  %v11 = constant [value=0.9] [] -> float
+  %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v13 = map (:v10, :v12) [fn=:core.mul:numeric] [items] -> float
+function is_valid_quantity:
+  %v14 = load_input [key=:items, chain=["quantity"]] [items] -> integer
+  %v15 = load_field (:v14) [field=:item] [items] -> integer
+  %v16 = load_field (:v15) [field=:quantity] [items] -> integer
+  %v17 = constant [value=0] [] -> integer
+  %v18 = axis_broadcast (:v17) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v19 = map (:v16, :v18) [fn=:core.gt] [items] -> boolean
+function expensive_items:
+  %v20 = load_input [key=:items, chain=["price"]] [items] -> float
+  %v21 = load_field (:v20) [field=:item] [items] -> float
+  %v22 = load_field (:v21) [field=:price] [items] -> float
+  %v23 = constant [value=100.0] [] -> float
+  %v24 = axis_broadcast (:v23) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v25 = map (:v22, :v24) [fn=:core.gt] [items] -> boolean
+function electronics:
+  %v26 = load_input [key=:items, chain=["category"]] [items] -> string
+  %v27 = load_field (:v26) [field=:item] [items] -> string
+  %v28 = load_field (:v27) [field=:category] [items] -> string
+  %v29 = constant [value="electronics"] [] -> string
+  %v30 = axis_broadcast (:v29) [from_axes=[], to_axes=[:items]] [items] -> string
+  %v31 = map (:v28, :v30) [fn=:core.eq] [items] -> boolean

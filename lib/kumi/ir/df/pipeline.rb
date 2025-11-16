@@ -22,7 +22,8 @@ module Kumi
             Passes::TupleFoldCanonicalization.new,
             Passes::CSE.new,
             Passes::StencilCSE.new,
-            Passes::ImportInlining.new
+            Passes::ImportInlining.new,
+            Passes::TupleToObject.new
           ]
         end
       end

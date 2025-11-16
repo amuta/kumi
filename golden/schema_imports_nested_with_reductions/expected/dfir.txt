@@ -1,7 +1,7 @@
 function order_subtotals:
-  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
   %v4 = import_call (:v3) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [orders] -> integer
 function total_before_tax:
   %v5 = decl_ref [name=:order_subtotals] [orders] -> integer

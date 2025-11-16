@@ -1,15 +1,15 @@
 function total_payroll:
-  %v1 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v3 = load_field (:v2) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
-  %v4 = load_field (:v3) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+  %v1 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [departments, employees] -> integer
+  %v2 = load_field (:v1) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> integer
+  %v3 = load_field (:v2) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> integer
+  %v4 = load_field (:v3) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> integer
   %v5 = load_field (:v4) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
   %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function manager_count:
-  %v7 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [] -> array<hash>
-  %v8 = load_field (:v7) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v9 = load_field (:v8) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
-  %v10 = load_field (:v9) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+  %v7 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [departments, employees] -> string
+  %v8 = load_field (:v7) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> string
+  %v9 = load_field (:v8) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> string
+  %v10 = load_field (:v9) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> string
   %v11 = load_field (:v10) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
   %v12 = constant [value="manager"] [] -> string
   %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
@@ -21,10 +21,10 @@ function manager_count:
   %v19 = select (:v14, :v17, :v18) [departments, employees] -> integer
   %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function senior_employee_count:
-  %v21 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [] -> array<hash>
-  %v22 = load_field (:v21) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v23 = load_field (:v22) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
-  %v24 = load_field (:v23) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+  %v21 = load_input [key=:departments, chain=["role"], plan_ref="departments"] [departments, employees] -> string
+  %v22 = load_field (:v21) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> string
+  %v23 = load_field (:v22) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> string
+  %v24 = load_field (:v23) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> string
   %v25 = load_field (:v24) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
   %v26 = constant [value="senior"] [] -> string
   %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
@@ -36,21 +36,25 @@ function senior_employee_count:
   %v33 = select (:v28, :v31, :v32) [departments, employees] -> integer
   %v34 = reduce (:v33) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function max_salary:
-  %v35 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [] -> array<hash>
-  %v36 = load_field (:v35) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v37 = load_field (:v36) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
-  %v38 = load_field (:v37) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+  %v35 = load_input [key=:departments, chain=["salary"], plan_ref="departments"] [departments, employees] -> integer
+  %v36 = load_field (:v35) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> integer
+  %v37 = load_field (:v36) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> integer
+  %v38 = load_field (:v37) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> integer
   %v39 = load_field (:v38) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
   %v40 = reduce (:v39) [fn=:agg.max, over_axes=[:employees]] [departments] -> integer
 function department_summary:
-  %v41 = load_input [key=:departments, chain=["name"], plan_ref="departments"] [] -> array<hash>
-  %v42 = load_field (:v41) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
+  %v41 = load_input [key=:departments, chain=["name"], plan_ref="departments"] [departments] -> string
+  %v42 = load_field (:v41) [field=:dept, plan_ref="departments.dept"] [departments] -> string
   %v43 = load_field (:v42) [field=:name, plan_ref="departments.dept.name"] [departments] -> string
-  %v51 = load_field (:v42) [field=:employees, plan_ref="departments.dept.employees"] [departments] -> array<hash>
-  %v52 = load_field (:v51) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> hash
+  %v50 = load_field (:v41) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> integer
+  %v51 = load_field (:v50) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> integer
+  %v52 = load_field (:v51) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> integer
   %v53 = load_field (:v52) [field=:salary, plan_ref="departments.dept.employees.emp.salary"] [departments, employees] -> integer
   %v54 = reduce (:v53) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
-  %v59 = load_field (:v52) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
+  %v56 = load_field (:v41) [field=:dept, plan_ref="departments.dept"] [departments, employees] -> string
+  %v57 = load_field (:v56) [field=:employees, plan_ref="departments.dept.employees"] [departments, employees] -> string
+  %v58 = load_field (:v57) [field=:emp, plan_ref="departments.dept.employees.emp"] [departments, employees] -> string
+  %v59 = load_field (:v58) [field=:role, plan_ref="departments.dept.employees.emp.role"] [departments, employees] -> string
   %v60 = constant [value="manager"] [] -> string
   %v61 = axis_broadcast (:v60) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string
   %v62 = map (:v59, :v61) [fn=:core.eq] [departments, employees] -> boolean

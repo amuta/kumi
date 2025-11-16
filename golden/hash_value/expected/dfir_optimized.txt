@@ -1,19 +1,19 @@
 function users:
-  %v1 = load_input [key=:users, chain=["name"], plan_ref="users"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:user, plan_ref="users.user"] [users] -> hash
+  %v1 = load_input [key=:users, chain=["name"], plan_ref="users"] [users] -> string
+  %v2 = load_field (:v1) [field=:user, plan_ref="users.user"] [users] -> string
   %v3 = load_field (:v2) [field=:name, plan_ref="users.user.name"] [users] -> string
   %v6 = load_field (:v2) [field=:state, plan_ref="users.user.state"] [users] -> string
   %v7 = make_object (:v3, :v6) [keys=[:name, :state]] [users] -> hash
 function is_john:
-  %v8 = load_input [key=:users, chain=["name"], plan_ref="users"] [] -> array<hash>
-  %v9 = load_field (:v8) [field=:user, plan_ref="users.user"] [users] -> hash
+  %v8 = load_input [key=:users, chain=["name"], plan_ref="users"] [users] -> string
+  %v9 = load_field (:v8) [field=:user, plan_ref="users.user"] [users] -> string
   %v10 = load_field (:v9) [field=:name, plan_ref="users.user.name"] [users] -> string
   %v11 = constant [value="John"] [] -> string
   %v12 = axis_broadcast (:v11) [from_axes=[], to_axes=[:users]] [users] -> string
   %v13 = map (:v10, :v12) [fn=:core.eq] [users] -> boolean
 function john_user:
-  %v19 = load_input [key=:users, chain=["name"], plan_ref="users"] [] -> array<hash>
-  %v20 = load_field (:v19) [field=:user, plan_ref="users.user"] [users] -> hash
+  %v19 = load_input [key=:users, chain=["name"], plan_ref="users"] [users] -> string
+  %v20 = load_field (:v19) [field=:user, plan_ref="users.user"] [users] -> string
   %v21 = load_field (:v20) [field=:name, plan_ref="users.user.name"] [users] -> string
   %v22 = constant [value="John"] [] -> string
   %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:users]] [users] -> string

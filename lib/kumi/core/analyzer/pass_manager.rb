@@ -40,7 +40,12 @@ module Kumi
               end
             rescue StandardError => e
               # Capture exception context
-              message = "Error in Analysis Pass(#{pass_name}): #{e.message}"
+              location_hint = e.backtrace&.first
+              message = if location_hint
+                          "Error in Analysis Pass(#{pass_name}) at #{location_hint}: #{e.message}"
+                        else
+                          "Error in Analysis Pass(#{pass_name}): #{e.message}"
+                        end
               error_obj = ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: e.backtrace)
               errors << error_obj
 

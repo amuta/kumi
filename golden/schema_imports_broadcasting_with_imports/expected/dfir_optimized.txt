@@ -1,12 +1,12 @@
 function item_taxes:
-  %v1 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v1 = load_input [key=:items, chain=["amount"], plan_ref="items"] [items] -> decimal
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> decimal
   %v3 = load_field (:v2) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
   %v5 = constant [value=0.15] [items] -> float
   %v6 = map (:v3, :v5) [fn=:core.mul:numeric] [items] -> float
 function total_tax:
-  %v7 = load_input [key=:items, chain=["amount"], plan_ref="items"] [] -> array<hash>
-  %v8 = load_field (:v7) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v7 = load_input [key=:items, chain=["amount"], plan_ref="items"] [items] -> decimal
+  %v8 = load_field (:v7) [field=:item, plan_ref="items.item"] [items] -> decimal
   %v9 = load_field (:v8) [field=:amount, plan_ref="items.item.amount"] [items] -> decimal
   %v11 = constant [value=0.15] [items] -> float
   %v12 = map (:v9, :v11) [fn=:core.mul:numeric] [items] -> float

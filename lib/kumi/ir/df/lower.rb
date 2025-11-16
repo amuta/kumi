@@ -6,14 +6,14 @@ module Kumi
       class Lower
         NAST = Kumi::Core::NAST
 
-        def initialize(snast_module:, registry:, input_table:, input_metadata: {})
+        def initialize(snast_module:, registry:, input_table:, input_metadata: nil)
           @snast_module = snast_module
           @registry = registry
           @input_table = input_table
+          @input_metadata = input_metadata
           @graph = Graph.new(name: snast_module.respond_to?(:name) ? snast_module.name : :anonymous)
           @reg_counter = 0
           @plan_index = build_plan_index(@input_table)
-          @metadata_index = build_metadata_index(input_metadata || {})
         end
 
         def call
@@ -76,33 +76,31 @@ module Kumi
           segments = Array(node.path)
           raise "InputRef without path" if segments.empty?
 
-          target_axes = axes_of(node)
-          target_dtype = dtype_of(node)
+          axes = axes_of(node)
+          dtype = dtype_of(node)
           path_prefix = []
 
           path_prefix << segments.first
-          entry = plan_entry_for(path_prefix)
           current = builder.load_input(
             result: next_reg,
             key: segments.first,
             chain: node.key_chain,
-            axes: entry&.dig(:axes) || target_axes,
-            dtype: entry&.dig(:dtype) || target_dtype,
+            axes: axes,
+            dtype: dtype,
             metadata: {},
-            plan_ref: entry&.dig(:plan_ref)
+            plan_ref: plan_ref_for(path_prefix)
           )
 
           segments.drop(1).each do |field|
             path_prefix << field
-            entry = plan_entry_for(path_prefix)
             current = builder.load_field(
               result: next_reg,
               object: current,
               field: field,
-              axes: entry&.dig(:axes) || target_axes,
-              dtype: entry&.dig(:dtype) || target_dtype,
+              axes: axes,
+              dtype: dtype,
               metadata: {},
-              plan_ref: entry&.dig(:plan_ref)
+              plan_ref: plan_ref_for(path_prefix)
             )
           end
 
@@ -110,9 +108,7 @@ module Kumi
         end
 
         def emit_call(node, builder)
-          if %i[shift roll].include?(node.fn)
-            return emit_axis_shift(node, builder)
-          end
+          return emit_axis_shift(node, builder) if %i[shift roll].include?(node.fn)
 
           args = []
           node.args.each do |arg_node|
@@ -166,11 +162,12 @@ module Kumi
           fn_id = node.meta[:function] || @registry.resolve_function(node.fn)
           out_dtype = fold_result_type(fn_id, dtype_of(node.arg))
           result = next_reg
-          builder.fold(
+          builder.reduce(
             result:,
             fn: fn_id,
             arg:,
             axes: axes_of(node),
+            over_axes: [],
             dtype: out_dtype,
             metadata: {}
           )
@@ -257,6 +254,7 @@ module Kumi
           source_axes = axes_of(source_node)
           idx = source_axes.length - 1 - opts[:axis_offset]
           raise "shift axis_offset #{opts[:axis_offset]} out of range" if idx.negative?
+
           axis = source_axes[idx]
 
           result = next_reg
@@ -280,28 +278,24 @@ module Kumi
           Array(node.meta.dig(:stamp, :axes))
         end
 
-      def normalize_dtype(dtype)
-        return nil if dtype.nil?
-        return dtype if dtype.is_a?(Kumi::Core::Types::Type)
+        def normalize_dtype(dtype)
+          return nil if dtype.nil?
+          return dtype if dtype.is_a?(Kumi::Core::Types::Type)
 
-        Kumi::Core::Types.normalize(dtype)
-      end
+          Kumi::Core::Types.normalize(dtype)
+        end
 
         def plan_ref_for(path_segments)
-          plan_entry_for(path_segments)&.dig(:plan_ref)
-        end
+          return nil if @plan_index.empty?
 
-        def plan_entry_for(path_segments)
           key = format_fqn_key(path_segments)
-          plan_entry = @plan_index[key]
-          meta_entry = metadata_entry_for(key)
-          merge_plan_entries(plan_entry, meta_entry)
+          @plan_index[key]
         end
 
-      def next_reg
-        @reg_counter += 1
-        "v#{@reg_counter}".to_sym
-      end
+        def next_reg
+          @reg_counter += 1
+          :"v#{@reg_counter}"
+        end
 
         def literal_offset!(node)
           val = node.is_a?(NAST::Const) ? node.value : nil
@@ -382,15 +376,16 @@ module Kumi
             table.each_with_object({}) do |(key, entry), memo|
               fqn_key = normalize_fqn_key(key)
               next unless fqn_key
-              plan_entry = extract_plan_entry(entry)
-              memo[fqn_key] = plan_entry if plan_entry
+
+              ref = extract_plan_ref(entry)
+              memo[fqn_key] = ref if ref
             end
           when Array
             table.each_with_object({}) do |entry, memo|
-              plan_entry = extract_plan_entry(entry)
-              next unless plan_entry && plan_entry[:plan_ref]
+              fqn_key = extract_plan_ref(entry)
+              next unless fqn_key
 
-              memo[plan_entry[:plan_ref]] = plan_entry
+              memo[fqn_key] = fqn_key
             end
           else
             {}
@@ -430,97 +425,20 @@ module Kumi
           return nil if key.nil?
           return key.to_s if key.is_a?(String)
           return key.to_s if key.is_a?(Symbol)
+
           key.respond_to?(:to_str) ? key.to_str : key.to_s
         end
 
-        def extract_plan_entry(entry)
-          if entry.respond_to?(:path_fqn)
-            {
-              plan_ref: entry.path_fqn.to_s,
-              axes: entry.respond_to?(:axes) ? entry.axes : [],
-              dtype: entry.respond_to?(:dtype) ? entry.dtype : nil
-            }
-          elsif entry.respond_to?(:[])
-            fqn = entry[:path_fqn] || entry["path_fqn"] || entry[:fqn] || entry["fqn"]
-            return nil unless fqn
+        def extract_plan_ref(entry)
+          return entry.path_fqn.to_s if entry.respond_to?(:path_fqn) && entry.path_fqn
 
-            {
-              plan_ref: fqn.to_s,
-              axes: entry[:axes] || entry["axes"] || [],
-              dtype: entry[:dtype] || entry["dtype"]
-            }
+          if entry.respond_to?(:[])
+            return entry[:path_fqn].to_s if entry.respond_to?(:key?) && entry.key?(:path_fqn)
+            return entry["path_fqn"].to_s if entry.respond_to?(:key?) && entry.key?("path_fqn")
+            return entry[:fqn].to_s if entry.respond_to?(:key?) && entry.key?(:fqn)
+            return entry["fqn"].to_s if entry.respond_to?(:key?) && entry.key?("fqn")
           end
-        end
-
-        def metadata_entry_for(key)
-          return nil unless @metadata_index
-
-          @metadata_index[key]
-        end
-
-        def build_metadata_index(meta, prefix = [], memo = {})
-          meta.each do |name, node|
-            path = format_fqn_key(prefix + [name])
-            memo[path] = {
-              plan_ref: nil,
-              axes: nil,
-              dtype: metadata_dtype(node)
-            }
-            children = node[:children] || node["children"]
-            next unless children && !children.empty?
-
-            build_metadata_index(children, prefix + [name], memo)
-          end
-          memo
-        end
-
-        def metadata_dtype(node)
-          container = (node[:container] || node["container"])&.to_sym
-          type = node[:type] || node["type"]
-
-          case container
-          when :array
-            child_nodes = node[:children] || node["children"] || {}
-            element_dtype =
-              if child_nodes.size == 1
-                metadata_dtype(child_nodes.values.first)
-              else
-                Kumi::Core::Types.scalar(:hash)
-              end
-            Kumi::Core::Types.array(element_dtype)
-          when :hash
-            Kumi::Core::Types.scalar(:hash)
-          else
-            normalize_dtype(type)
-          end
-        end
-
-        def merge_plan_entries(plan_entry, meta_entry)
-          return meta_entry unless plan_entry
-          return plan_entry unless meta_entry
-
-          {
-            plan_ref: plan_entry[:plan_ref] || meta_entry[:plan_ref],
-            axes: plan_entry[:axes] || meta_entry[:axes],
-            dtype: preferred_dtype(plan_entry[:dtype], meta_entry[:dtype])
-          }
-        end
-
-        def preferred_dtype(primary, fallback)
-          return fallback if dtype_any?(primary)
-          primary || fallback
-        end
-
-        def dtype_any?(dtype)
-          return true if dtype.nil?
-
-          if dtype.respond_to?(:kind) && !dtype.respond_to?(:element_type)
-            dtype.kind == :any
-          elsif dtype.respond_to?(:element_type)
-            dtype_any?(dtype.element_type)
-          else
-            false
-          end
+          nil
         end
 
         def format_fqn_key(path_segments)

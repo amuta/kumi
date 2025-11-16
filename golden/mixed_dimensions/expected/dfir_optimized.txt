@@ -1,26 +1,26 @@
 function sum_numbers:
-  %v1 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:num, plan_ref="numbers.num"] [numbers] -> hash
+  %v1 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [numbers] -> integer
+  %v2 = load_field (:v1) [field=:num, plan_ref="numbers.num"] [numbers] -> integer
   %v3 = load_field (:v2) [field=:value, plan_ref="numbers.num.value"] [numbers] -> integer
   %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:numbers]] [] -> integer
 function matrix_sums:
-  %v5 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [] -> array<hash>
-  %v6 = load_field (:v5) [field=:m, plan_ref="matrix.m"] [matrix] -> hash
-  %v7 = load_field (:v6) [field=:row, plan_ref="matrix.m.row"] [matrix] -> array<hash>
-  %v8 = load_field (:v7) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> hash
+  %v5 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [matrix, row] -> float
+  %v6 = load_field (:v5) [field=:m, plan_ref="matrix.m"] [matrix, row] -> float
+  %v7 = load_field (:v6) [field=:row, plan_ref="matrix.m.row"] [matrix, row] -> float
+  %v8 = load_field (:v7) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> float
   %v9 = load_field (:v8) [field=:cell, plan_ref="matrix.m.row.r.cell"] [matrix, row] -> float
   %v10 = reduce (:v9) [fn=:agg.sum, over_axes=[:row]] [matrix] -> float
 function mixed_array:
   %v11 = load_input [key=:scalar_val, chain=["scalar_val"], plan_ref="scalar_val"] [] -> integer
-  %v19 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [] -> array<hash>
-  %v20 = load_field (:v19) [field=:num, plan_ref="numbers.num"] [numbers] -> hash
+  %v19 = load_input [key=:numbers, chain=["value"], plan_ref="numbers"] [numbers] -> integer
+  %v20 = load_field (:v19) [field=:num, plan_ref="numbers.num"] [numbers] -> integer
   %v21 = load_field (:v20) [field=:value, plan_ref="numbers.num.value"] [numbers] -> integer
   %v22 = reduce (:v21) [fn=:agg.sum, over_axes=[:numbers]] [] -> integer
-  %v13 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [] -> array<hash>
-  %v14 = load_field (:v13) [field=:m, plan_ref="matrix.m"] [matrix] -> hash
-  %v15 = load_field (:v14) [field=:row, plan_ref="matrix.m.row"] [matrix] -> array<hash>
-  %v16 = load_field (:v15) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> hash
+  %v13 = load_input [key=:matrix, chain=["cell"], plan_ref="matrix"] [matrix, row] -> float
+  %v14 = load_field (:v13) [field=:m, plan_ref="matrix.m"] [matrix, row] -> float
+  %v15 = load_field (:v14) [field=:row, plan_ref="matrix.m.row"] [matrix, row] -> float
+  %v16 = load_field (:v15) [field=:r, plan_ref="matrix.m.row.r"] [matrix, row] -> float
   %v17 = load_field (:v16) [field=:cell, plan_ref="matrix.m.row.r.cell"] [matrix, row] -> float
-  %v18 = array_build (:v11, :v22, :v17) [size=3] [matrix, row] -> tuple<integer, integer, float>
+  %v18 = make_object (:v11, :v22, :v17) [keys=[:_0, :_1, :_2]] [matrix, row] -> tuple<integer, integer, float>
 function constant:
   %v19 = constant [value=42] [] -> integer

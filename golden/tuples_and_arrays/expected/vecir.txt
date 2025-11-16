@@ -1,0 +1,37 @@
+function x_is_large:
+  %v1 = load_input [key=:points, chain=["x"]] [points] -> integer
+  %v2 = load_field (:v1) [field=:point] [points] -> integer
+  %v3 = load_field (:v2) [field=:x] [points] -> integer
+  %v4 = constant [value=100] [] -> integer
+  %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v6 = map (:v3, :v5) [fn=:core.gt] [points] -> boolean
+function selected_value:
+  %v15 = load_input [key=:points, chain=["x"]] [points] -> integer
+  %v16 = load_field (:v15) [field=:point] [points] -> integer
+  %v17 = load_field (:v16) [field=:x] [points] -> integer
+  %v18 = constant [value=100] [] -> integer
+  %v19 = axis_broadcast (:v18) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v20 = map (:v17, :v19) [fn=:core.gt] [points] -> boolean
+  %v13 = load_field (:v16) [field=:y] [points] -> integer
+  %v14 = select (:v20, :v17, :v13) [points] -> integer
+function final_value_per_point:
+  %v21 = load_input [key=:points, chain=["x"]] [points] -> integer
+  %v22 = load_field (:v21) [field=:point] [points] -> integer
+  %v23 = load_field (:v22) [field=:x] [points] -> integer
+  %v24 = constant [value=100] [] -> integer
+  %v25 = axis_broadcast (:v24) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v26 = map (:v23, :v25) [fn=:core.gt] [points] -> boolean
+  %v32 = load_field (:v22) [field=:y] [points] -> integer
+  %v33 = select (:v26, :v23, :v32) [points] -> integer
+  %acc0 = map (:v33, :v23) [fn=:core.max] [points] -> integer
+function grand_total:
+  %v23 = load_input [key=:points, chain=["x"]] [points] -> integer
+  %v24 = load_field (:v23) [field=:point] [points] -> integer
+  %v25 = load_field (:v24) [field=:x] [points] -> integer
+  %v26 = constant [value=100] [] -> integer
+  %v27 = axis_broadcast (:v26) [from_axes=[], to_axes=[:points]] [points] -> integer
+  %v28 = map (:v25, :v27) [fn=:core.gt] [points] -> boolean
+  %v34 = load_field (:v24) [field=:y] [points] -> integer
+  %v35 = select (:v28, :v25, :v34) [points] -> integer
+  %acc0 = map (:v35, :v25) [fn=:core.max] [points] -> integer
+  %v22 = reduce (:acc0) [fn=:agg.sum, over_axes=[:points]] [] -> integer

@@ -1,12 +1,12 @@
 function order_subtotals:
-  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> hash
-  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<hash>
+  %v1 = load_input [key=:orders, chain=["items"], plan_ref="orders"] [orders] -> array<any>
+  %v2 = load_field (:v1) [field=:order, plan_ref="orders.order"] [orders] -> array<any>
+  %v3 = load_field (:v2) [field=:items, plan_ref="orders.order.items"] [orders] -> array<any>
   %v4 = import_call (:v3) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [orders] -> integer
 function order_with_shipping:
   %v5 = decl_ref [name=:order_subtotals] [orders] -> integer
-  %v6 = load_input [key=:orders, chain=["shipping_cost"], plan_ref="orders"] [] -> array<hash>
-  %v7 = load_field (:v6) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v6 = load_input [key=:orders, chain=["shipping_cost"], plan_ref="orders"] [orders] -> decimal
+  %v7 = load_field (:v6) [field=:order, plan_ref="orders.order"] [orders] -> decimal
   %v8 = load_field (:v7) [field=:shipping_cost, plan_ref="orders.order.shipping_cost"] [orders] -> decimal
   %v9 = map (:v5, :v8) [fn=:core.add] [orders] -> integer
 function order_discounted:
@@ -26,8 +26,8 @@ function discount_per_order:
   %v20 = decl_ref [name=:order_discounted] [orders] -> float
   %v21 = map (:v19, :v20) [fn=:core.sub] [orders] -> float
 function total_orders:
-  %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [] -> array<hash>
-  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> hash
+  %v22 = load_input [key=:orders, chain=["id"], plan_ref="orders"] [orders] -> string
+  %v23 = load_field (:v22) [field=:order, plan_ref="orders.order"] [orders] -> string
   %v24 = load_field (:v23) [field=:id, plan_ref="orders.order.id"] [orders] -> string
   %v25 = reduce (:v24) [fn=:agg.count, over_axes=[:orders]] [] -> integer
 function total_revenue:

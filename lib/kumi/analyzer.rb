@@ -30,6 +30,7 @@ module Kumi
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
       Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
+      Passes::Vec::LowerPass,                  # Lowers DFIR into VecIR and stores it in analysis state
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
@@ -59,9 +60,11 @@ module Kumi
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
       state, stopped = run_analysis_passes(schema, passes, state, errors)
       return create_analysis_result(state) if stopped
+      handle_analysis_errors(errors) unless errors.empty?
 
       state, stopped = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
       return create_analysis_result(state) if stopped
+      handle_analysis_errors(errors) unless errors.empty?
 
       state, = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
 

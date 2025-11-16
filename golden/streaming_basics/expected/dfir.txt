@@ -1,14 +1,14 @@
 function items_subtotal:
-  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> float
   %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-  %v4 = load_input [key=:items, chain=["qty"], plan_ref="items"] [] -> array<hash>
-  %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v4 = load_input [key=:items, chain=["qty"], plan_ref="items"] [items] -> integer
+  %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> integer
   %v6 = load_field (:v5) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function items_discounted:
-  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> float
   %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
   %v11 = constant [value=1.0] [] -> float
   %v12 = load_input [key=:discount, chain=["discount"], plan_ref="discount"] [] -> float
@@ -16,8 +16,8 @@ function items_discounted:
   %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
   %v15 = map (:v10, :v14) [fn=:core.mul:numeric] [items] -> float
 function items_is_big:
-  %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [] -> array<hash>
-  %v17 = load_field (:v16) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v17 = load_field (:v16) [field=:item, plan_ref="items.item"] [items] -> float
   %v18 = load_field (:v17) [field=:price, plan_ref="items.item.price"] [items] -> float
   %v19 = constant [value=100.0] [] -> float
   %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
@@ -31,8 +31,8 @@ function items_effective:
   %v27 = decl_ref [name=:items_subtotal] [items] -> float
   %v28 = select (:v22, :v26, :v27) [items] -> float
 function total_qty:
-  %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [] -> array<hash>
-  %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [items] -> integer
+  %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> integer
   %v31 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:items]] [] -> integer
 function cart_total:

@@ -7,6 +7,8 @@ functions:
       param: source_value
     reduction_strategy: identity # This function has a true identity value.
     aliases: ["sum"]
+    options:
+      tuple_fold_combiner: core.add
 
   - id: agg.count
     kind: reduce
@@ -25,6 +27,8 @@ functions:
       param: source_value
     reduction_strategy: first_element
     aliases: ["min"]
+    options:
+      tuple_fold_combiner: core.min
 
   - id: agg.max
     kind: reduce
@@ -34,6 +38,8 @@ functions:
       param: source_value
     reduction_strategy: first_element
     aliases: ["max"]
+    options:
+      tuple_fold_combiner: core.max
 
   - id: agg.mean
     kind: reduce

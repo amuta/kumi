@@ -52,8 +52,6 @@ module Kumi
                 )
               when :reduce
                 Ops::Reduce.new(result: result, fn: attrs[:fn], arg: inputs.first, over_axes: attrs[:over_axes], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
-              when :fold
-                Ops::Fold.new(result: result, fn: attrs[:fn], arg: inputs.first, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :make_object
                 Ops::MakeObject.new(result: result, inputs: inputs, keys: attrs[:keys], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :array_build

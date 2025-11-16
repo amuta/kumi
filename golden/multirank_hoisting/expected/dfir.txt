@@ -3,28 +3,28 @@ function global_offset_plus:
   %v2 = constant [value=1.0] [] -> float
   %v3 = map (:v1, :v2) [fn=:core.add] [] -> float
 function batch_bias:
-  %v4 = load_input [key=:batch, chain=["mean"], plan_ref="batch"] [] -> array<hash>
-  %v5 = load_field (:v4) [field=:b, plan_ref="batch.b"] [batch] -> hash
+  %v4 = load_input [key=:batch, chain=["mean"], plan_ref="batch"] [batch] -> float
+  %v5 = load_field (:v4) [field=:b, plan_ref="batch.b"] [batch] -> float
   %v6 = load_field (:v5) [field=:mean, plan_ref="batch.b.mean"] [batch] -> float
   %v7 = decl_ref [name=:global_offset_plus] [] -> float
   %v8 = axis_broadcast (:v7) [from_axes=[], to_axes=[:batch]] [batch] -> float
   %v9 = map (:v6, :v8) [fn=:core.add] [batch] -> float
 function row_scale2:
-  %v10 = load_input [key=:batch, chain=["scale"], plan_ref="batch"] [] -> array<hash>
-  %v11 = load_field (:v10) [field=:b, plan_ref="batch.b"] [batch] -> hash
-  %v12 = load_field (:v11) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
-  %v13 = load_field (:v12) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
+  %v10 = load_input [key=:batch, chain=["scale"], plan_ref="batch"] [batch, row] -> float
+  %v11 = load_field (:v10) [field=:b, plan_ref="batch.b"] [batch, row] -> float
+  %v12 = load_field (:v11) [field=:row, plan_ref="batch.b.row"] [batch, row] -> float
+  %v13 = load_field (:v12) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> float
   %v14 = load_field (:v13) [field=:scale, plan_ref="batch.b.row.r.scale"] [batch, row] -> float
   %v15 = constant [value=2.0] [] -> float
   %v16 = axis_broadcast (:v15) [from_axes=[], to_axes=[:batch, :row]] [batch, row] -> float
   %v17 = map (:v14, :v16) [fn=:core.mul:numeric] [batch, row] -> float
 function elem_affine:
-  %v18 = load_input [key=:batch, chain=["val"], plan_ref="batch"] [] -> array<hash>
-  %v19 = load_field (:v18) [field=:b, plan_ref="batch.b"] [batch] -> hash
-  %v20 = load_field (:v19) [field=:row, plan_ref="batch.b.row"] [batch] -> array<hash>
-  %v21 = load_field (:v20) [field=:r, plan_ref="batch.b.row.r"] [batch, row] -> hash
-  %v22 = load_field (:v21) [field=:col, plan_ref="batch.b.row.r.col"] [batch, row] -> array<hash>
-  %v23 = load_field (:v22) [field=:c, plan_ref="batch.b.row.r.col.c"] [batch, row, col] -> hash
+  %v18 = load_input [key=:batch, chain=["val"], plan_ref="batch"] [batch, row, col] -> float
+  %v19 = load_field (:v18) [field=:b, plan_ref="batch.b"] [batch, row, col] -> float
+  %v20 = load_field (:v19) [field=:row, plan_ref="batch.b.row"] [batch, row, col] -> float
+  %v21 = load_field (:v20) [field=:r, plan_ref="batch.b.row.r"] [batch, row, col] -> float
+  %v22 = load_field (:v21) [field=:col, plan_ref="batch.b.row.r.col"] [batch, row, col] -> float
+  %v23 = load_field (:v22) [field=:c, plan_ref="batch.b.row.r.col.c"] [batch, row, col] -> float
   %v24 = load_field (:v23) [field=:val, plan_ref="batch.b.row.r.col.c.val"] [batch, row, col] -> float
   %v25 = decl_ref [name=:row_scale2] [batch, row] -> float
   %v26 = axis_broadcast (:v25) [from_axes=[:batch, :row], to_axes=[:batch, :row, :col]] [batch, row, col] -> float

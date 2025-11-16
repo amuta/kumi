@@ -1,36 +1,36 @@
 function high_performer:
-  %v1 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v3 = load_field (:v2) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v4 = load_field (:v3) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v5 = load_field (:v4) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v6 = load_field (:v5) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
-  %v7 = load_field (:v6) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
-  %v8 = load_field (:v7) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+  %v1 = load_input [key=:regions, chain=["rating"], plan_ref="regions"] [regions, offices, teams, employees] -> float
+  %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions, offices, teams, employees] -> float
+  %v3 = load_field (:v2) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams, employees] -> float
+  %v4 = load_field (:v3) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams, employees] -> float
+  %v5 = load_field (:v4) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams, employees] -> float
+  %v6 = load_field (:v5) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams, employees] -> float
+  %v7 = load_field (:v6) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams, employees] -> float
+  %v8 = load_field (:v7) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> float
   %v9 = load_field (:v8) [field=:rating, plan_ref="regions.region.offices.office.teams.team.employees.employee.rating"] [regions, offices, teams, employees] -> float
   %v10 = constant [value=4.5] [] -> float
   %v11 = axis_broadcast (:v10) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
   %v12 = map (:v9, :v11) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
 function senior_level:
-  %v13 = load_input [key=:regions, chain=["level"], plan_ref="regions"] [] -> array<hash>
-  %v14 = load_field (:v13) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v15 = load_field (:v14) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v16 = load_field (:v15) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v17 = load_field (:v16) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v18 = load_field (:v17) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
-  %v19 = load_field (:v18) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
-  %v20 = load_field (:v19) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+  %v13 = load_input [key=:regions, chain=["level"], plan_ref="regions"] [regions, offices, teams, employees] -> string
+  %v14 = load_field (:v13) [field=:region, plan_ref="regions.region"] [regions, offices, teams, employees] -> string
+  %v15 = load_field (:v14) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams, employees] -> string
+  %v16 = load_field (:v15) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams, employees] -> string
+  %v17 = load_field (:v16) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams, employees] -> string
+  %v18 = load_field (:v17) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams, employees] -> string
+  %v19 = load_field (:v18) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams, employees] -> string
+  %v20 = load_field (:v19) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> string
   %v21 = load_field (:v20) [field=:level, plan_ref="regions.region.offices.office.teams.team.employees.employee.level"] [regions, offices, teams, employees] -> string
   %v22 = constant [value="senior"] [] -> string
   %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
   %v24 = map (:v21, :v23) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
 function top_team:
-  %v25 = load_input [key=:regions, chain=["performance_score"], plan_ref="regions"] [] -> array<hash>
-  %v26 = load_field (:v25) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v27 = load_field (:v26) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v28 = load_field (:v27) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v29 = load_field (:v28) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v30 = load_field (:v29) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
+  %v25 = load_input [key=:regions, chain=["performance_score"], plan_ref="regions"] [regions, offices, teams] -> float
+  %v26 = load_field (:v25) [field=:region, plan_ref="regions.region"] [regions, offices, teams] -> float
+  %v27 = load_field (:v26) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams] -> float
+  %v28 = load_field (:v27) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams] -> float
+  %v29 = load_field (:v28) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams] -> float
+  %v30 = load_field (:v29) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> float
   %v31 = load_field (:v30) [field=:performance_score, plan_ref="regions.region.offices.office.teams.team.performance_score"] [regions, offices, teams] -> float
   %v32 = constant [value=0.9] [] -> float
   %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
@@ -42,14 +42,14 @@ function employee_bonus:
   %v38 = axis_broadcast (:v37) [from_axes=[:regions, :offices, :teams], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> boolean
   %v39 = map (:v36, :v38) [fn=:core.and] [regions, offices, teams, employees] -> boolean
   %v40 = map (:v35, :v39) [fn=:core.and] [regions, offices, teams, employees] -> boolean
-  %v41 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [] -> array<hash>
-  %v42 = load_field (:v41) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v43 = load_field (:v42) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v44 = load_field (:v43) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v45 = load_field (:v44) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v46 = load_field (:v45) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
-  %v47 = load_field (:v46) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
-  %v48 = load_field (:v47) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+  %v41 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [regions, offices, teams, employees] -> float
+  %v42 = load_field (:v41) [field=:region, plan_ref="regions.region"] [regions, offices, teams, employees] -> float
+  %v43 = load_field (:v42) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams, employees] -> float
+  %v44 = load_field (:v43) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams, employees] -> float
+  %v45 = load_field (:v44) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams, employees] -> float
+  %v46 = load_field (:v45) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams, employees] -> float
+  %v47 = load_field (:v46) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams, employees] -> float
+  %v48 = load_field (:v47) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> float
   %v49 = load_field (:v48) [field=:salary, plan_ref="regions.region.offices.office.teams.team.employees.employee.salary"] [regions, offices, teams, employees] -> float
   %v50 = constant [value=0.3] [] -> float
   %v51 = axis_broadcast (:v50) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
@@ -58,26 +58,26 @@ function employee_bonus:
   %v54 = decl_ref [name=:top_team] [regions, offices, teams] -> boolean
   %v55 = axis_broadcast (:v54) [from_axes=[:regions, :offices, :teams], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> boolean
   %v56 = map (:v53, :v55) [fn=:core.and] [regions, offices, teams, employees] -> boolean
-  %v57 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [] -> array<hash>
-  %v58 = load_field (:v57) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v59 = load_field (:v58) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v60 = load_field (:v59) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v61 = load_field (:v60) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v62 = load_field (:v61) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
-  %v63 = load_field (:v62) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
-  %v64 = load_field (:v63) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+  %v57 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [regions, offices, teams, employees] -> float
+  %v58 = load_field (:v57) [field=:region, plan_ref="regions.region"] [regions, offices, teams, employees] -> float
+  %v59 = load_field (:v58) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams, employees] -> float
+  %v60 = load_field (:v59) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams, employees] -> float
+  %v61 = load_field (:v60) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams, employees] -> float
+  %v62 = load_field (:v61) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams, employees] -> float
+  %v63 = load_field (:v62) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams, employees] -> float
+  %v64 = load_field (:v63) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> float
   %v65 = load_field (:v64) [field=:salary, plan_ref="regions.region.offices.office.teams.team.employees.employee.salary"] [regions, offices, teams, employees] -> float
   %v66 = constant [value=0.2] [] -> float
   %v67 = axis_broadcast (:v66) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
   %v68 = map (:v65, :v67) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
-  %v69 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [] -> array<hash>
-  %v70 = load_field (:v69) [field=:region, plan_ref="regions.region"] [regions] -> hash
-  %v71 = load_field (:v70) [field=:offices, plan_ref="regions.region.offices"] [regions] -> array<hash>
-  %v72 = load_field (:v71) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices] -> hash
-  %v73 = load_field (:v72) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices] -> array<hash>
-  %v74 = load_field (:v73) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams] -> hash
-  %v75 = load_field (:v74) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams] -> array<hash>
-  %v76 = load_field (:v75) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> hash
+  %v69 = load_input [key=:regions, chain=["salary"], plan_ref="regions"] [regions, offices, teams, employees] -> float
+  %v70 = load_field (:v69) [field=:region, plan_ref="regions.region"] [regions, offices, teams, employees] -> float
+  %v71 = load_field (:v70) [field=:offices, plan_ref="regions.region.offices"] [regions, offices, teams, employees] -> float
+  %v72 = load_field (:v71) [field=:office, plan_ref="regions.region.offices.office"] [regions, offices, teams, employees] -> float
+  %v73 = load_field (:v72) [field=:teams, plan_ref="regions.region.offices.office.teams"] [regions, offices, teams, employees] -> float
+  %v74 = load_field (:v73) [field=:team, plan_ref="regions.region.offices.office.teams.team"] [regions, offices, teams, employees] -> float
+  %v75 = load_field (:v74) [field=:employees, plan_ref="regions.region.offices.office.teams.team.employees"] [regions, offices, teams, employees] -> float
+  %v76 = load_field (:v75) [field=:employee, plan_ref="regions.region.offices.office.teams.team.employees.employee"] [regions, offices, teams, employees] -> float
   %v77 = load_field (:v76) [field=:salary, plan_ref="regions.region.offices.office.teams.team.employees.employee.salary"] [regions, offices, teams, employees] -> float
   %v78 = constant [value=0.05] [] -> float
   %v79 = axis_broadcast (:v78) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float

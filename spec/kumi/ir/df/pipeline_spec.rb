@@ -24,4 +24,12 @@ RSpec.describe Kumi::IR::DF::Pipeline do
     expect(instrs.map(&:opcode)).not_to include(:axis_broadcast)
     expect(instrs.last.inputs.first).to eq(:v1)
   end
+
+  it "runs TupleToObject after import inlining" do
+    pass_classes = described_class.default_passes.map(&:class)
+    tuple_idx = pass_classes.index(Kumi::IR::DF::Passes::TupleToObject)
+    import_idx = pass_classes.index(Kumi::IR::DF::Passes::ImportInlining)
+
+    expect(tuple_idx).to be > import_idx
+  end
 end

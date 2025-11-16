@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# TODO: -> WE SHOUDNT COMPILE AGAIN - for now we could just get the memoized state
+
 module Kumi
   module IR
     module DF
@@ -38,8 +40,7 @@ module Kumi
           graph = Kumi::IR::DF::Lower.new(
             snast_module: snast,
             registry: registry,
-            input_table: input_table,
-            input_metadata: analyzed_state[:input_metadata] || {}
+            input_table: input_table
           ).call
 
           runner = pipeline || default_pipeline

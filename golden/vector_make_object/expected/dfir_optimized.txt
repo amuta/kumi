@@ -1,0 +1,6 @@
+function price_with_bonus:
+  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> integer
+  %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> integer
+  %v4 = constant [value=10] [] -> integer
+  %v5 = make_object (:v3, :v4) [keys=[:_0, :_1]] [items] -> tuple<integer, integer>

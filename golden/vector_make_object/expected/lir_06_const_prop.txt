@@ -1,0 +1,10 @@
+(LIR
+  (Declaration price_with_bonus
+    %t1 = load_input "items" :: array
+    loop items id=L1 in %t1 as el=%items_el_2, idx=%items_i_3
+      %t4 = load_field items_el_2["price"] :: integer
+      %t6 = make_tuple(%t4, %__immediate_placeholder__) :: tuple<integer, integer>
+      yield %t6
+    end_loop
+  )
+)

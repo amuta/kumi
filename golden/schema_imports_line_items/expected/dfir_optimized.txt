@@ -1,13 +1,13 @@
 function order_subtotal:
-  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
-  %v3 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
+  %v3 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> integer
   %v4 = load_field (:v3) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
   %v5 = load_field (:v3) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
   %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [items] -> integer
   %v7 = reduce (:v6) [fn=:agg.sum, over_axes=[:items]] [] -> integer
 function tax_amount:
-  %v6 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
-  %v8 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v6 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
+  %v8 = load_field (:v6) [field=:item, plan_ref="items.item"] [items] -> integer
   %v9 = load_field (:v8) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
   %v10 = load_field (:v8) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
   %v11 = map (:v9, :v10) [fn=:core.mul:numeric] [items] -> integer
@@ -15,8 +15,8 @@ function tax_amount:
   %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
   %v5 = map (:v12, :v4) [fn=:core.mul:numeric] [] -> integer
 function total:
-  %v9 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<hash>
-  %v15 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> hash
+  %v9 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
+  %v15 = load_field (:v9) [field=:item, plan_ref="items.item"] [items] -> integer
   %v16 = load_field (:v15) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
   %v17 = load_field (:v15) [field=:unit_price, plan_ref="items.item.unit_price"] [items] -> integer
   %v18 = map (:v16, :v17) [fn=:core.mul:numeric] [items] -> integer

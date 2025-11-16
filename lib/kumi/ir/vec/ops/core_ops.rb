@@ -56,7 +56,7 @@ module Kumi
               from_axes: Array(from_axes).map(&:to_sym),
               to_axes: Array(to_axes).map(&:to_sym)
             }
-            super(inputs: [value], attributes: attrs, **kwargs)
+            super(inputs: [value], attributes: attrs, axes: attrs[:to_axes], **kwargs)
           end
         end
 
@@ -73,7 +73,14 @@ module Kumi
               offset: Integer(offset),
               policy: policy
             }
-            super(inputs: [source], attributes: attrs, **kwargs)
+            axes = kwargs[:axes] || extract_axes(source)
+            super(inputs: [source], attributes: attrs, axes:, **kwargs)
+          end
+
+          private
+
+          def extract_axes(source)
+            source.respond_to?(:axes) ? source.axes : []
           end
         end
 
@@ -85,26 +92,6 @@ module Kumi
           end
         end
 
-        class ArrayBuild < Node
-          opcode :array_build
-
-          def initialize(elements:, **kwargs)
-            super(
-              inputs: Array(elements),
-              attributes: { size: Array(elements).size },
-              **kwargs
-            )
-          end
-        end
-
-        class Fold < Node
-          opcode :fold
-
-          def initialize(fn:, arg:, **kwargs)
-            super(inputs: [arg], attributes: { fn: fn.to_sym }, **kwargs)
-          end
-        end
-
         class Reduce < Node
           opcode :reduce
 
@@ -113,28 +100,15 @@ module Kumi
               fn: fn.to_sym,
               over_axes: Array(over_axes).map(&:to_sym)
             }
-            super(inputs: [arg], attributes: attrs, **kwargs)
+            axes = kwargs[:axes] || derive_axes(arg, attrs[:over_axes])
+            super(inputs: [arg], attributes: attrs, axes:, **kwargs)
           end
-        end
 
-        class DeclRef < Node
-          opcode :decl_ref
+          private
 
-          def initialize(name:, **kwargs)
-            super(inputs: [], attributes: { name: name.to_sym }, **kwargs)
-          end
-        end
-
-        class ImportCall < Node
-          opcode :import_call
-
-          def initialize(fn_name:, source_module:, args:, mapping_keys:, **kwargs)
-            attrs = {
-              fn_name: fn_name.to_sym,
-              source_module: source_module.to_s,
-              mapping_keys: Array(mapping_keys).map(&:to_sym)
-            }
-            super(inputs: Array(args), attributes: attrs, **kwargs)
+          def derive_axes(arg, over_axes)
+            source_axes = arg.respond_to?(:axes) ? Array(arg.axes) : []
+            source_axes.reject { |axis| over_axes.include?(axis) }
           end
         end
 
@@ -142,11 +116,8 @@ module Kumi
           opcode :make_object
 
           def initialize(inputs:, keys:, **kwargs)
-            super(
-              inputs: Array(inputs),
-              attributes: { keys: Array(keys).map(&:to_sym) },
-              **kwargs
-            )
+            attributes = { keys: Array(keys).map(&:to_sym) }
+            super(inputs: Array(inputs), attributes:, **kwargs)
           end
         end
       end

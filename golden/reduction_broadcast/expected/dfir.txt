@@ -1,15 +1,15 @@
 function dept_headcount:
-  %v1 = load_input [key=:departments, chain=["headcount"], plan_ref="departments"] [] -> array<hash>
-  %v2 = load_field (:v1) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v3 = load_field (:v2) [field=:teams, plan_ref="departments.dept.teams"] [departments] -> array<hash>
-  %v4 = load_field (:v3) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> hash
+  %v1 = load_input [key=:departments, chain=["headcount"], plan_ref="departments"] [departments, teams] -> integer
+  %v2 = load_field (:v1) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> integer
+  %v3 = load_field (:v2) [field=:teams, plan_ref="departments.dept.teams"] [departments, teams] -> integer
+  %v4 = load_field (:v3) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> integer
   %v5 = load_field (:v4) [field=:headcount, plan_ref="departments.dept.teams.team.headcount"] [departments, teams] -> integer
   %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:teams]] [departments] -> integer
 function teams_per_dept:
-  %v7 = load_input [key=:departments, chain=["team_name"], plan_ref="departments"] [] -> array<hash>
-  %v8 = load_field (:v7) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v9 = load_field (:v8) [field=:teams, plan_ref="departments.dept.teams"] [departments] -> array<hash>
-  %v10 = load_field (:v9) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> hash
+  %v7 = load_input [key=:departments, chain=["team_name"], plan_ref="departments"] [departments, teams] -> string
+  %v8 = load_field (:v7) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> string
+  %v9 = load_field (:v8) [field=:teams, plan_ref="departments.dept.teams"] [departments, teams] -> string
+  %v10 = load_field (:v9) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> string
   %v11 = load_field (:v10) [field=:team_name, plan_ref="departments.dept.teams.team.team_name"] [departments, teams] -> string
   %v12 = reduce (:v11) [fn=:agg.count, over_axes=[:teams]] [departments] -> integer
 function avg_headcount_per_dept:
@@ -17,10 +17,10 @@ function avg_headcount_per_dept:
   %v14 = decl_ref [name=:teams_per_dept] [departments] -> integer
   %v15 = map (:v13, :v14) [fn=:core.div] [departments] -> float
 function is_above_average_team:
-  %v16 = load_input [key=:departments, chain=["headcount"], plan_ref="departments"] [] -> array<hash>
-  %v17 = load_field (:v16) [field=:dept, plan_ref="departments.dept"] [departments] -> hash
-  %v18 = load_field (:v17) [field=:teams, plan_ref="departments.dept.teams"] [departments] -> array<hash>
-  %v19 = load_field (:v18) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> hash
+  %v16 = load_input [key=:departments, chain=["headcount"], plan_ref="departments"] [departments, teams] -> integer
+  %v17 = load_field (:v16) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> integer
+  %v18 = load_field (:v17) [field=:teams, plan_ref="departments.dept.teams"] [departments, teams] -> integer
+  %v19 = load_field (:v18) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> integer
   %v20 = load_field (:v19) [field=:headcount, plan_ref="departments.dept.teams.team.headcount"] [departments, teams] -> integer
   %v21 = decl_ref [name=:avg_headcount_per_dept] [departments] -> float
   %v22 = axis_broadcast (:v21) [from_axes=[:departments], to_axes=[:departments, :teams]] [departments, teams] -> float

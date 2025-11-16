@@ -4,20 +4,18 @@ module Kumi
   module IR
     module Vec
       autoload :Ops, "kumi/ir/vec/ops"
-
-      class Instruction < Base::Instruction
-        def vector_width
-          attributes[:width]
-        end
-
-        def mask?
-          attributes[:mask] == true
-        end
-      end
+      autoload :Passes, "kumi/ir/vec/passes"
+      autoload :Pipeline, "kumi/ir/vec/pipeline"
+      autoload :Lower, "kumi/ir/vec/lower"
+      autoload :Validator, "kumi/ir/vec/validator"
 
       class Function < Base::Function; end
 
-      class Module < Base::Module; end
+      class Module < Base::Module
+        def self.from_df(df_module, context: {})
+          Lower.new(df_module: df_module).call
+        end
+      end
 
       class Builder < Base::Builder
         def constant(result:, value:, axes:, dtype:, metadata: {})
@@ -41,7 +39,7 @@ module Kumi
         end
 
         def axis_broadcast(result:, value:, from_axes:, to_axes:, dtype:, metadata: {})
-          append Ops::AxisBroadcast.new(result:, value:, from_axes:, to_axes:, axes: to_axes, dtype:, metadata:)
+          append Ops::AxisBroadcast.new(result:, value:, from_axes:, to_axes:, dtype:, metadata:)
         end
 
         def axis_shift(result:, source:, axis:, offset:, policy:, axes:, dtype:, metadata: {})
@@ -56,31 +54,7 @@ module Kumi
           append Ops::Reduce.new(result:, fn:, arg:, axes:, over_axes:, dtype:, metadata:)
         end
 
-        def fold(result:, fn:, arg:, axes:, dtype:, metadata: {})
-          append Ops::Fold.new(result:, fn:, arg:, axes:, dtype:, metadata:)
-        end
-
-        def array_build(result:, elements:, axes:, dtype:, metadata: {})
-          append Ops::ArrayBuild.new(result:, elements:, axes:, dtype:, metadata:)
-        end
-
-        def decl_ref(result:, name:, axes:, dtype:, metadata: {})
-          append Ops::DeclRef.new(result:, name:, axes:, dtype:, metadata:)
-        end
-
-        def import_call(result:, fn_name:, source_module:, args:, mapping_keys:, axes:, dtype:, metadata: {})
-          append Ops::ImportCall.new(result:, fn_name:, source_module:, args:, mapping_keys:, axes:, dtype:, metadata:)
-        end
-
-        def make_object(result:, inputs:, keys:, axes:, dtype:, metadata: {})
-          append Ops::MakeObject.new(result:, inputs:, keys:, axes:, dtype:, metadata:)
-        end
-
         private
-
-        def instruction_class
-          Instruction
-        end
 
         def append(node)
           current_block.append(node)

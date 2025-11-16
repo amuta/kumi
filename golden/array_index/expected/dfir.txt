@@ -1,5 +1,5 @@
 function W:
-  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [] -> array<array<integer>>
+  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [x] -> array<integer>
   %v2 = load_field (:v1) [field=:y, plan_ref="x.y"] [x] -> array<integer>
   %v3 = map (:v2) [fn=:core.array_size] [x] -> integer
 function box:

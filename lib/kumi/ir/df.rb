@@ -69,10 +69,6 @@ module Kumi
           append Ops::ImportCall.new(result:, fn_name:, source_module:, args:, mapping_keys:, axes:, dtype:, metadata:)
         end
 
-        def fold(result:, fn:, arg:, axes:, dtype:, metadata: {})
-          append Ops::Fold.new(result:, fn:, arg:, axes:, dtype:, metadata:)
-        end
-
         def axis_shift(result:, source:, axis:, offset:, policy:, axes:, dtype:, metadata: {})
           append Ops::AxisShift.new(result:, source:, axis:, offset:, policy:, axes:, dtype:, metadata:)
         end
