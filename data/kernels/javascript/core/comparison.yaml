@@ -22,3 +22,7 @@ kernels:
   - id: neq:javascript:v1
     fn: core.neq
     inline: "= $0 != $1"
+
+  - id: between:javascript:v1
+    fn: core.between?
+    inline: "= $0 >= $1 && $0 <= $2"

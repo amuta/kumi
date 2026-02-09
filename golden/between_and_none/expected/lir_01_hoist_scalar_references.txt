@@ -1,0 +1,36 @@
+(LIR
+  (Declaration in_range
+    %t1 = load_input "x" :: integer
+    %t2 = const 1 :: integer
+    %t3 = const 10 :: integer
+    %t4 = call core.between?(%t1, %t2, %t3) :: boolean
+    yield %t4
+  )
+  (Declaration at_lower
+    %t5 = load_input "x" :: integer
+    %t6 = const 5 :: integer
+    %t7 = const 5 :: integer
+    %t8 = call core.between?(%t5, %t6, %t7) :: boolean
+    yield %t8
+  )
+  (Declaration any_flag
+    %acc_9 = decl_acc :: boolean
+    %t10 = load_input "flags" :: array
+    loop flags id=L1 in %t10 as el=%flags_el_11, idx=%flags_i_12
+      %t13 = load_field flags_el_11["active"] :: boolean
+      %acc_9 = acc_add agg.any(%acc_9, %t13) :: boolean
+    end_loop
+    %t14 = acc_load %acc_9 :: boolean
+    yield %t14
+  )
+  (Declaration no_flags
+    %acc_15 = decl_acc :: boolean
+    %t16 = load_input "flags" :: array
+    loop flags id=L2 in %t16 as el=%flags_el_17, idx=%flags_i_18
+      %t19 = load_field flags_el_17["active"] :: boolean
+      %acc_15 = acc_add agg.none(%acc_15, %t19) :: boolean
+    end_loop
+    %t20 = acc_load %acc_15 :: boolean
+    yield %t20
+  )
+)

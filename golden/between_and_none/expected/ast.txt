@@ -1,0 +1,41 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :integer)
+    (InputDeclaration :flags :array
+      [
+        (InputDeclaration :flag :hash
+          [
+            (InputDeclaration :active :boolean)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :in_range
+      (CallExpression :between
+        (InputReference :x)
+        (Literal 1)
+        (Literal 10)
+      )
+    )
+    (ValueDeclaration :at_lower
+      (CallExpression :between
+        (InputReference :x)
+        (Literal 5)
+        (Literal 5)
+      )
+    )
+    (ValueDeclaration :any_flag
+      (CallExpression :any
+        (InputElementReference flags.flag.active)
+      )
+    )
+    (ValueDeclaration :no_flags
+      (CallExpression :none
+        (InputElementReference flags.flag.active)
+      )
+    )
+  ]
+  traits: []
+)

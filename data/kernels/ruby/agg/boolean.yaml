@@ -16,3 +16,11 @@ kernels:
     # `all?` of an empty list is correctly `true`.
     identity:
       boolean: true
+
+  - id: none:ruby:v1
+    fn: agg.none
+    impl: "(a, b)\n  a || b"
+    inline: "= $0 || $1"
+    identity:
+      boolean: false
+    finalize: "= !$0"

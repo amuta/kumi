@@ -28,3 +28,8 @@ kernels:
     fn: core.neq
     inline: "= $0 != $1"
     impl: "(a, b)\n  a != b"
+
+  - id: between:ruby:v1
+    fn: core.between?
+    inline: "= $0.between?($1, $2)"
+    impl: "(value, lo, hi)\n  value.between?(lo, hi)"

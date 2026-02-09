@@ -16,3 +16,12 @@ functions:
       kind: boolean
     aliases: ["all", "all?"]
     folding_class_method: all?
+
+  - id: agg.none
+    kind: reduce
+    params: [{ name: source_value }]
+    dtype:
+      rule: scalar
+      kind: boolean
+    aliases: ["none", "none?"]
+    folding_class_method: none?

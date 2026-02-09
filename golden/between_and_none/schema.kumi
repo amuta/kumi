@@ -1,0 +1,15 @@
+schema do
+  input do
+    integer :x
+    array :flags do
+      hash :flag do
+        boolean :active
+      end
+    end
+  end
+
+  value :in_range, fn(:between, input.x, 1, 10)
+  value :at_lower, fn(:between, input.x, 5, 5)
+  value :any_flag, fn(:any, input.flags.flag.active)
+  value :no_flags, fn(:none, input.flags.flag.active)
+end

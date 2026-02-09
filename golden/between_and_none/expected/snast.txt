@@ -1,0 +1,26 @@
+(SNAST
+  (VALUE in_range
+    (Call :core.between?
+      (InputRef x key_chain=[]) :: [] -> integer
+      (Const 1) :: [] -> integer
+      (Const 10) :: [] -> integer
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE at_lower
+    (Call :core.between?
+      (InputRef x key_chain=[]) :: [] -> integer
+      (Const 5) :: [] -> integer
+      (Const 5) :: [] -> integer
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE any_flag
+    (Reduce :agg.any over [flags]
+      (InputRef flags.flag.active key_chain=[]) :: [flags] -> boolean
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE no_flags
+    (Reduce :agg.none over [flags]
+      (InputRef flags.flag.active key_chain=[]) :: [flags] -> boolean
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+)

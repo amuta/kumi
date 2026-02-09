@@ -10,3 +10,10 @@ kernels:
     inline: "= $0 && $1"
     identity:
       boolean: true
+
+  - id: none:javascript:v1
+    fn: agg.none
+    inline: "= $0 || $1"
+    identity:
+      boolean: false
+    finalize: "= !$0"

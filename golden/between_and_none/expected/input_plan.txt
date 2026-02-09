@@ -1,0 +1,6 @@
+x: integer
+flags: array (array) access_mode=element
+  └─> flag: element_access
+  flag: hash (hash)
+    └─> active: property_access
+    active: boolean

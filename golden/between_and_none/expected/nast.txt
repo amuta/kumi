@@ -1,0 +1,26 @@
+(NAST
+  (VALUE in_range
+    (Call :between
+    (InputRef [:x])
+    (Const 1)
+    (Const 10)
+  )
+  )
+  (VALUE at_lower
+    (Call :between
+    (InputRef [:x])
+    (Const 5)
+    (Const 5)
+  )
+  )
+  (VALUE any_flag
+    (Call :any
+    (InputRef [:flags, :flag, :active])
+  )
+  )
+  (VALUE no_flags
+    (Call :none
+    (InputRef [:flags, :flag, :active])
+  )
+  )
+)
