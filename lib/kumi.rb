@@ -6,6 +6,7 @@ require "mutex_m"
 
 AUTOLOADER = Zeitwerk::Loader.for_gem
 AUTOLOADER.ignore("#{__dir__}/kumi-cli")
+AUTOLOADER.ignore("#{__dir__}/kumi/dev/golden_schema_modules.rb")
 AUTOLOADER.inflector.inflect(
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "ast_emitter" => "ASTEmitter",
@@ -66,6 +67,7 @@ module Kumi
     # Ensure JIT compilation mode for schemas being loaded
     Kumi.configure { |c| c.compilation_mode = :jit }
 
+    require_relative "kumi/dev/golden_schema_modules"
     AUTOLOADER.eager_load_dir("#{__dir__}/kumi/test_shared_schemas")
     # Populate GoldenSchemas module (already defined in golden_schema_modules.rb)
     Kumi::TestSharedSchemas.constants.each do |const|
