@@ -211,7 +211,13 @@ module Kumi
 
               def emit_loadaccumulator(ins, _i)
                 acc_reg = ins.inputs.first or raise "No accumulator bound"
-                write "#{vreg(ins)} = #{acc_reg}"
+                kernel = kernel_for(acc_reg)
+                if (finalize_template = kernel[:attrs]["finalize"])
+                  finalized = _inline_kernel(finalize_template, [acc_reg.to_s.delete("%")])
+                  write "#{vreg(ins)} #{finalized}"
+                else
+                  write "#{vreg(ins)} = #{acc_reg}"
+                end
               end
 
               def emit_loaddeclaration(ins, _i)

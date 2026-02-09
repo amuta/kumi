@@ -212,8 +212,13 @@ module Kumi
 
               def emit_loadaccumulator(ins, _i)
                 acc_reg = ins.inputs.first or raise "No accumulator bound"
-                # This is a no-op for codegen; it creates an alias that `areg` will resolve.
-                @aliases[vreg(ins)] = areg(acc_reg)
+                kernel = kernel_for(acc_reg)
+                if (finalize_template = kernel[:attrs]["finalize"])
+                  finalized = _inline_kernel(finalize_template, [areg(acc_reg)])
+                  write "let #{vreg(ins)} #{finalized};"
+                else
+                  @aliases[vreg(ins)] = areg(acc_reg)
+                end
               end
 
               def emit_loaddeclaration(ins, _i)

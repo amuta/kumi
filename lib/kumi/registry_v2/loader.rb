@@ -154,7 +154,8 @@ module Kumi
                 impl: h["impl"],
                 identity: h["identity"],
                 inline: h["inline"],
-                fold_inline: h["fold_inline"]
+                fold_inline: h["fold_inline"],
+                finalize: h["finalize"]
               )
               key = [k.fn_id, t]
               raise "duplicate kernel for #{key}" if out.key?(key)

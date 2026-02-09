@@ -26,7 +26,7 @@ module Kumi
       end
     end
 
-    Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, :inline, :fold_inline, keyword_init: true)
+    Kernel = Struct.new(:id, :fn_id, :target, :impl, :identity, :inline, :fold_inline, :finalize, keyword_init: true)
 
     class Instance
       def initialize(functions_by_id, kernels_by_key)

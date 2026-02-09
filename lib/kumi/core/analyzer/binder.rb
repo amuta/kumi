@@ -31,12 +31,14 @@ module Kumi
               impl = kernel.impl
               inline = kernel.inline
               fold_inline = kernel.fold_inline
+              finalize = kernel.finalize
               dtype = op.stamp&.dig("dtype")
 
               attrs = {}
 
               attrs["inline"] = inline if inline
               attrs["fold_inline"] = fold_inline if fold_inline
+              attrs["finalize"] = finalize if finalize
 
               # TODO: Make this logic clear, we are mixing reducers functions that works over scalars collections and eachwise, this is confusing.
               if function.reduce? && opcode != :Fold
