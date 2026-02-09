@@ -1,0 +1,40 @@
+(SNAST
+  (VALUE rounded_0
+    (Call :core.round
+      (InputRef x key_chain=[]) :: [] -> float
+      (Const 0) :: [] -> integer
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE rounded_2
+    (Call :core.round
+      (InputRef x key_chain=[]) :: [] -> float
+      (Const 2) :: [] -> integer
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE rounded_y
+    (Call :core.round
+      (InputRef y key_chain=[]) :: [] -> float
+      (Const 1) :: [] -> integer
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE floored
+    (Call :core.floor
+      (InputRef x key_chain=[]) :: [] -> float
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE ceiled
+    (Call :core.ceil
+      (InputRef x key_chain=[]) :: [] -> float
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE floor_neg
+    (Call :core.floor
+      (InputRef y key_chain=[]) :: [] -> float
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE ceil_neg
+    (Call :core.ceil
+      (InputRef y key_chain=[]) :: [] -> float
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

@@ -34,3 +34,15 @@ kernels:
   - id: clamp:javascript:v1
     fn: core.clamp
     inline: "= Math.min(Math.max($0, $1), $2)"
+
+  - id: round:javascript:v1
+    fn: core.round
+    inline: "= Number($0.toFixed($1))"
+
+  - id: floor:javascript:v1
+    fn: core.floor
+    inline: "= Math.floor($0)"
+
+  - id: ceil:javascript:v1
+    fn: core.ceil
+    inline: "= Math.ceil($0)"

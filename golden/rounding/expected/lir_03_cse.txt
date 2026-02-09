@@ -1,0 +1,40 @@
+(LIR
+  (Declaration rounded_0
+    %t1 = load_input "x" :: float
+    %t2 = const 0 :: integer
+    %t3 = call core.round(%t1, %t2) :: float
+    yield %t3
+  )
+  (Declaration rounded_2
+    %t4 = load_input "x" :: float
+    %t5 = const 2 :: integer
+    %t6 = call core.round(%t4, %t5) :: float
+    yield %t6
+  )
+  (Declaration rounded_y
+    %t7 = load_input "y" :: float
+    %t8 = const 1 :: integer
+    %t9 = call core.round(%t7, %t8) :: float
+    yield %t9
+  )
+  (Declaration floored
+    %t10 = load_input "x" :: float
+    %t11 = call core.floor(%t10) :: integer
+    yield %t11
+  )
+  (Declaration ceiled
+    %t12 = load_input "x" :: float
+    %t13 = call core.ceil(%t12) :: integer
+    yield %t13
+  )
+  (Declaration floor_neg
+    %t14 = load_input "y" :: float
+    %t15 = call core.floor(%t14) :: integer
+    yield %t15
+  )
+  (Declaration ceil_neg
+    %t16 = load_input "y" :: float
+    %t17 = call core.ceil(%t16) :: integer
+    yield %t17
+  )
+)

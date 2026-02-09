@@ -1,0 +1,47 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :float)
+    (InputDeclaration :y :float)
+  ]
+  values: [
+    (ValueDeclaration :rounded_0
+      (CallExpression :round
+        (InputReference :x)
+        (Literal 0)
+      )
+    )
+    (ValueDeclaration :rounded_2
+      (CallExpression :round
+        (InputReference :x)
+        (Literal 2)
+      )
+    )
+    (ValueDeclaration :rounded_y
+      (CallExpression :round
+        (InputReference :y)
+        (Literal 1)
+      )
+    )
+    (ValueDeclaration :floored
+      (CallExpression :floor
+        (InputReference :x)
+      )
+    )
+    (ValueDeclaration :ceiled
+      (CallExpression :ceil
+        (InputReference :x)
+      )
+    )
+    (ValueDeclaration :floor_neg
+      (CallExpression :floor
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :ceil_neg
+      (CallExpression :ceil
+        (InputReference :y)
+      )
+    )
+  ]
+  traits: []
+)

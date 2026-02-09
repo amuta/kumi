@@ -1,0 +1,14 @@
+schema do
+  input do
+    float :x
+    float :y
+  end
+
+  value :rounded_0, fn(:round, input.x, 0)
+  value :rounded_2, fn(:round, input.x, 2)
+  value :rounded_y, fn(:round, input.y, 1)
+  value :floored, fn(:floor, input.x)
+  value :ceiled, fn(:ceil, input.x)
+  value :floor_neg, fn(:floor, input.y)
+  value :ceil_neg, fn(:ceil, input.y)
+end

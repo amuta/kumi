@@ -1,0 +1,40 @@
+(NAST
+  (VALUE rounded_0
+    (Call :round
+    (InputRef [:x])
+    (Const 0)
+  )
+  )
+  (VALUE rounded_2
+    (Call :round
+    (InputRef [:x])
+    (Const 2)
+  )
+  )
+  (VALUE rounded_y
+    (Call :round
+    (InputRef [:y])
+    (Const 1)
+  )
+  )
+  (VALUE floored
+    (Call :floor
+    (InputRef [:x])
+  )
+  )
+  (VALUE ceiled
+    (Call :ceil
+    (InputRef [:x])
+  )
+  )
+  (VALUE floor_neg
+    (Call :floor
+    (InputRef [:y])
+  )
+  )
+  (VALUE ceil_neg
+    (Call :ceil
+    (InputRef [:y])
+  )
+  )
+)

@@ -41,3 +41,18 @@ kernels:
     fn: core.clamp
     inline: "= $0.clamp($1, $2)"
     impl: "(x, lo, hi)\n  x.clamp(lo, hi)"
+
+  - id: round:ruby:v1
+    fn: core.round
+    inline: "= $0.round($1)"
+    impl: "(value, precision)\n  value.round(precision)"
+
+  - id: floor:ruby:v1
+    fn: core.floor
+    inline: "= $0.floor"
+    impl: "(value)\n  value.floor"
+
+  - id: ceil:ruby:v1
+    fn: core.ceil
+    inline: "= $0.ceil"
+    impl: "(value)\n  value.ceil"

@@ -116,3 +116,27 @@ functions:
       rule: same_as
       param: x
     aliases: ["clamp"]
+
+  - id: core.round
+    kind: elementwise
+    params: [{ name: value }, { name: precision }]
+    dtype:
+      rule: same_as
+      param: value
+    aliases: ["round"]
+
+  - id: core.floor
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: integer
+    aliases: ["floor"]
+
+  - id: core.ceil
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: integer
+    aliases: ["ceil"]
