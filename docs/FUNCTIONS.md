@@ -42,6 +42,8 @@ Auto-generated documentation for Kumi functions and their kernels.
   a && b
 ```
 
+**Fold:** `= $0.all?`
+
 **Identity:**
 - boolean: `true`
 
@@ -71,6 +73,8 @@ Auto-generated documentation for Kumi functions and their kernels.
 (a, b)
   a || b
 ```
+
+**Fold:** `= $0.any?`
 
 **Identity:**
 - boolean: `false`
@@ -222,6 +226,38 @@ _Note: No identity value. First element initializes accumulator._
 _Note: No identity value. First element initializes accumulator._
 
 **Reduction:** First element is initial value (no identity)
+
+## `agg.none`
+
+**Aliases:** `none`, `none?`
+
+- **Arity:** 1
+- **Type:** boolean
+- **Behavior:** Reduces a dimension `[D] -> T`
+
+### Parameters
+
+- `source_value`
+
+### Implementations
+
+#### Ruby
+
+`none:ruby:v1`
+
+**Inline:** `= $0 || $1` (`$0` = accumulator, `$1` = element)
+
+**Implementation:**
+
+```ruby
+(a, b)
+  a || b
+```
+
+**Fold:** `= $0.none?`
+
+**Identity:**
+- boolean: `false`
 
 ## `agg.sum`
 
@@ -384,6 +420,58 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
+## `core.between?`
+
+**Aliases:** `between`, `between?`
+
+- **Arity:** 3
+- **Type:** boolean
+
+### Parameters
+
+- `value`
+- `lo`
+- `hi`
+
+### Implementations
+
+#### Ruby
+
+`between:ruby:v1`
+
+**Implementation:**
+
+```ruby
+(value, lo, hi)
+  value.between?(lo, hi)
+```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.ceil`
+
+- **Arity:** 1
+- **Type:** integer
+
+### Parameters
+
+- `value`
+
+### Implementations
+
+#### Ruby
+
+`ceil:ruby:v1`
+
+**Implementation:**
+
+```ruby
+(value)
+  value.ceil
+```
+
+_Note: No identity value. First element initializes accumulator._
+
 ## `core.clamp`
 
 - **Arity:** 3
@@ -405,7 +493,7 @@ _Note: No identity value. First element initializes accumulator._
 
 ```ruby
 (x, lo, hi)
-  [[x, lo].max, hi].min
+  x.clamp(lo, hi)
 ```
 
 _Note: No identity value. First element initializes accumulator._
@@ -502,6 +590,30 @@ _Note: No identity value. First element initializes accumulator._
 ```ruby
 (a, b)
   a == b
+```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.floor`
+
+- **Arity:** 1
+- **Type:** integer
+
+### Parameters
+
+- `value`
+
+### Implementations
+
+#### Ruby
+
+`floor:ruby:v1`
+
+**Implementation:**
+
+```ruby
+(value)
+  value.floor
 ```
 
 _Note: No identity value. First element initializes accumulator._
@@ -671,29 +783,29 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
-## `core.mul`
+## `core.mul:string_repeat`
 
 **Aliases:** `mul`, `multiply`
 
 - **Arity:** 2
-- **Type:** promoted from `left_operand`, `right_operand`
+- **Type:** string
 
 ### Parameters
 
-- `left_operand`
-- `right_operand`
+- `string_value`
+- `repeat_count`
 
 ### Implementations
 
-#### Ruby
+#### String_repeat
 
-`mul:ruby:v1`
+`mul:string_repeat:ruby:v1`
 
 **Implementation:**
 
 ```ruby
-(a, b)
-  a * b
+(str, count)
+  str * count
 ```
 
 _Note: No identity value. First element initializes accumulator._
@@ -801,6 +913,31 @@ _Note: No identity value. First element initializes accumulator._
 ```ruby
 (a, b)
   a ** b
+```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.round`
+
+- **Arity:** 2
+- **Type:** same as `value`
+
+### Parameters
+
+- `value`
+- `precision`
+
+### Implementations
+
+#### Ruby
+
+`round:ruby:v1`
+
+**Implementation:**
+
+```ruby
+(value, precision)
+  value.round(precision)
 ```
 
 _Note: No identity value. First element initializes accumulator._
