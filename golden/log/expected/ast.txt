@@ -1,0 +1,13 @@
+(Root
+  inputs: [
+    (InputDeclaration :x :float)
+  ]
+  values: [
+    (ValueDeclaration :ln_x
+      (CallExpression :log
+        (InputReference :x)
+      )
+    )
+  ]
+  traits: []
+)

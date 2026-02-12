@@ -140,3 +140,11 @@ functions:
       rule: scalar
       kind: integer
     aliases: ["ceil"]
+
+  - id: core.log
+    kind: elementwise
+    params: [{ name: value }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["log"]

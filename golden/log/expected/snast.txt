@@ -1,0 +1,7 @@
+(SNAST
+  (VALUE ln_x
+    (Call :core.log
+      (InputRef x key_chain=[]) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

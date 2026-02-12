@@ -1,0 +1,7 @@
+schema do
+  input do
+    float :x
+  end
+
+  value :ln_x, fn(:log, input.x)
+end

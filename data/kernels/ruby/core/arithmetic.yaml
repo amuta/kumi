@@ -56,3 +56,8 @@ kernels:
     fn: core.ceil
     inline: "= $0.ceil"
     impl: "(value)\n  value.ceil"
+
+  - id: log:ruby:v1
+    fn: core.log
+    inline: "= Math.log($0)"
+    impl: "(value)\n  Math.log(value)"

@@ -46,3 +46,7 @@ kernels:
   - id: ceil:javascript:v1
     fn: core.ceil
     inline: "= Math.ceil($0)"
+
+  - id: log:javascript:v1
+    fn: core.log
+    inline: "= Math.log($0)"

@@ -1,0 +1,7 @@
+(NAST
+  (VALUE ln_x
+    (Call :log
+    (InputRef [:x])
+  )
+  )
+)

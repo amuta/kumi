@@ -709,6 +709,30 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
+## `core.log`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `value`
+
+### Implementations
+
+#### Ruby
+
+`log:ruby:v1`
+
+**Implementation:**
+
+```ruby
+(value)
+  Math.log(value)
+```
+
+_Note: No identity value. First element initializes accumulator._
+
 ## `core.lt`
 
 **Aliases:** `<`, `less_than`, `lt`

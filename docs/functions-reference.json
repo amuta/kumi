@@ -831,6 +831,27 @@
     ],
     "reduction_strategy": null
   },
+  "log": {
+    "id": "core.log",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "value"
+      }
+    ],
+    "kernels": {
+      "ruby": "log:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "log"
+    ],
+    "reduction_strategy": null
+  },
   "and": {
     "id": "core.and",
     "kind": "elementwise",
