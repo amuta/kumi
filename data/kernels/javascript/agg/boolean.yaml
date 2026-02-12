@@ -2,18 +2,21 @@ kernels:
   - id: any:javascript:v1
     fn: agg.any
     inline: "= $0 || $1"
+    fold_inline: "= $0.some(Boolean)"
     identity:
       boolean: false
 
   - id: all:javascript:v1
     fn: agg.all
     inline: "= $0 && $1"
+    fold_inline: "= $0.every(Boolean)"
     identity:
       boolean: true
 
   - id: none:javascript:v1
     fn: agg.none
     inline: "= $0 || $1"
+    fold_inline: "= !$0.some(Boolean)"
     identity:
       boolean: false
     finalize: "= !$0"

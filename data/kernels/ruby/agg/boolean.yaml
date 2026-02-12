@@ -3,6 +3,7 @@ kernels:
     fn: agg.any
     impl: "(a, b)\n  a || b"
     inline: "= $0 || $1"
+    fold_inline: "= $0.any?"
     # The identity for a boolean OR reduction is `false`.
     # `any?` of an empty list is correctly `false`.
     identity:
@@ -12,6 +13,7 @@ kernels:
     fn: agg.all
     impl: "(a, b)\n  a && b"
     inline: "= $0 && $1"
+    fold_inline: "= $0.all?"
     # The identity for a boolean AND reduction is `true`.
     # `all?` of an empty list is correctly `true`.
     identity:
@@ -21,6 +23,7 @@ kernels:
     fn: agg.none
     impl: "(a, b)\n  a || b"
     inline: "= $0 || $1"
+    fold_inline: "= $0.none?"
     identity:
       boolean: false
     finalize: "= !$0"
