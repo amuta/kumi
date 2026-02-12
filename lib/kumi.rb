@@ -5,7 +5,7 @@ require "mutex_m"
 # require "pry" # COMMENT AFTER DEBUGGING
 
 module Kumi
-  AUTOLOADER = Zeitwerk::Loader.for_gem(warn_on_extra_files: false)
+  AUTOLOADER = Zeitwerk::Loader.for_gem
   AUTOLOADER.ignore("#{__dir__}/kumi-cli")
   AUTOLOADER.ignore("#{__dir__}/kumi/dev/golden_schema_modules.rb")
   AUTOLOADER.inflector.inflect(
