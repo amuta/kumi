@@ -162,12 +162,11 @@ module Kumi
           fn_id = node.meta[:function] || @registry.resolve_function(node.fn)
           out_dtype = fold_result_type(fn_id, dtype_of(node.arg))
           result = next_reg
-          builder.reduce(
+          builder.fold(
             result:,
             fn: fn_id,
             arg:,
             axes: axes_of(node),
-            over_axes: [],
             dtype: out_dtype,
             metadata: {}
           )

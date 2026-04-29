@@ -2,7 +2,8 @@ function subtotals:
   %v1 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> float
   %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-  %v5 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v4 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
+  %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> integer
   %v6 = load_field (:v5) [field=:quantity, plan_ref="items.item.quantity"] [items] -> integer
   %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function discounted_price:

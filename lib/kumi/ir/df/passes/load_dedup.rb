@@ -63,13 +63,23 @@ module Kumi
 
           def load_input_key(instr)
             attrs = instr.attributes || {}
-            key = attrs[:plan_ref] || attrs[:key]
-            [key]
+            [
+              attrs[:plan_ref] || attrs[:key],
+              Array(attrs[:chain]),
+              Array(instr.axes),
+              instr.dtype
+            ]
           end
 
           def load_field_key(instr, inputs)
             attrs = instr.attributes || {}
-            [inputs.first, attrs[:field], attrs[:plan_ref]]
+            [
+              inputs.first,
+              attrs[:field],
+              attrs[:plan_ref],
+              Array(instr.axes),
+              instr.dtype
+            ]
           end
 
           def field_cache_for(instr, caches)

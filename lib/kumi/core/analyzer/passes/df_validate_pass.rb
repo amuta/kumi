@@ -11,7 +11,7 @@ module Kumi
             unoptimized = get_state(:df_module_unoptimized, required: false)
             optimized = get_state(:df_module, required: false)
 
-            Kumi::IR::DF::Validator.validate!(unoptimized) if unoptimized
+            Kumi::IR::DF::Validator.validate!(unoptimized, allow_fold: true) if unoptimized
             Kumi::IR::DF::Validator.validate!(optimized) if optimized
 
             state

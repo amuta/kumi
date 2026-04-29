@@ -1,5 +1,5 @@
 function high_performer:
-  %v1 = load_input [key=:regions, chain=["rating"]] [regions, offices, teams, employees] -> float
+  %v1 = load_input [key=:regions, chain=[]] [regions, offices, teams, employees] -> float
   %v2 = load_field (:v1) [field=:region] [regions, offices, teams, employees] -> float
   %v3 = load_field (:v2) [field=:offices] [regions, offices, teams, employees] -> float
   %v4 = load_field (:v3) [field=:office] [regions, offices, teams, employees] -> float
@@ -12,7 +12,7 @@ function high_performer:
   %v11 = axis_broadcast (:v10) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
   %v12 = map (:v9, :v11) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
 function senior_level:
-  %v13 = load_input [key=:regions, chain=["level"]] [regions, offices, teams, employees] -> string
+  %v13 = load_input [key=:regions, chain=[]] [regions, offices, teams, employees] -> string
   %v14 = load_field (:v13) [field=:region] [regions, offices, teams, employees] -> string
   %v15 = load_field (:v14) [field=:offices] [regions, offices, teams, employees] -> string
   %v16 = load_field (:v15) [field=:office] [regions, offices, teams, employees] -> string
@@ -25,7 +25,7 @@ function senior_level:
   %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
   %v24 = map (:v21, :v23) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
 function top_team:
-  %v25 = load_input [key=:regions, chain=["performance_score"]] [regions, offices, teams] -> float
+  %v25 = load_input [key=:regions, chain=[]] [regions, offices, teams] -> float
   %v26 = load_field (:v25) [field=:region] [regions, offices, teams] -> float
   %v27 = load_field (:v26) [field=:offices] [regions, offices, teams] -> float
   %v28 = load_field (:v27) [field=:office] [regions, offices, teams] -> float
@@ -36,7 +36,7 @@ function top_team:
   %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float
   %v34 = map (:v31, :v33) [fn=:core.gte] [regions, offices, teams] -> boolean
 function employee_bonus:
-  %v83 = load_input [key=:regions, chain=["rating"]] [regions, offices, teams, employees] -> float
+  %v83 = load_input [key=:regions, chain=[]] [regions, offices, teams, employees] -> float
   %v84 = load_field (:v83) [field=:region] [regions, offices, teams, employees] -> float
   %v85 = load_field (:v84) [field=:offices] [regions, offices, teams, employees] -> float
   %v86 = load_field (:v85) [field=:office] [regions, offices, teams, employees] -> float
@@ -48,10 +48,24 @@ function employee_bonus:
   %v92 = constant [value=4.5] [] -> float
   %v93 = axis_broadcast (:v92) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> float
   %v94 = map (:v91, :v93) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+  %v95 = load_input [key=:regions, chain=[]] [regions, offices, teams, employees] -> string
+  %v96 = load_field (:v95) [field=:region] [regions, offices, teams, employees] -> string
+  %v97 = load_field (:v96) [field=:offices] [regions, offices, teams, employees] -> string
+  %v98 = load_field (:v97) [field=:office] [regions, offices, teams, employees] -> string
+  %v99 = load_field (:v98) [field=:teams] [regions, offices, teams, employees] -> string
+  %v100 = load_field (:v99) [field=:team] [regions, offices, teams, employees] -> string
+  %v101 = load_field (:v100) [field=:employees] [regions, offices, teams, employees] -> string
+  %v102 = load_field (:v101) [field=:employee] [regions, offices, teams, employees] -> string
   %v103 = load_field (:v102) [field=:level] [regions, offices, teams, employees] -> string
   %v104 = constant [value="senior"] [] -> string
   %v105 = axis_broadcast (:v104) [from_axes=[], to_axes=[:regions, :offices, :teams, :employees]] [regions, offices, teams, employees] -> string
   %v106 = map (:v103, :v105) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+  %v107 = load_input [key=:regions, chain=[]] [regions, offices, teams] -> float
+  %v108 = load_field (:v107) [field=:region] [regions, offices, teams] -> float
+  %v109 = load_field (:v108) [field=:offices] [regions, offices, teams] -> float
+  %v110 = load_field (:v109) [field=:office] [regions, offices, teams] -> float
+  %v111 = load_field (:v110) [field=:teams] [regions, offices, teams] -> float
+  %v112 = load_field (:v111) [field=:team] [regions, offices, teams] -> float
   %v113 = load_field (:v112) [field=:performance_score] [regions, offices, teams] -> float
   %v114 = constant [value=0.9] [] -> float
   %v115 = axis_broadcast (:v114) [from_axes=[], to_axes=[:regions, :offices, :teams]] [regions, offices, teams] -> float

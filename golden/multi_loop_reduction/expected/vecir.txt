@@ -1,17 +1,17 @@
 function total_value:
-  %v1 = load_input [key=:items, chain=["value"]] [items] -> integer
+  %v1 = load_input [key=:items, chain=[]] [items] -> integer
   %v2 = load_field (:v1) [field=:item] [items] -> integer
   %v3 = load_field (:v2) [field=:value] [items] -> integer
   %v4 = reduce (:v3) [fn=:agg.sum, over_axes=[:items]] [] -> integer
 function half_total:
-  %v8 = load_input [key=:items, chain=["value"]] [items] -> integer
+  %v8 = load_input [key=:items, chain=[]] [items] -> integer
   %v9 = load_field (:v8) [field=:item] [items] -> integer
   %v10 = load_field (:v9) [field=:value] [items] -> integer
   %v11 = reduce (:v10) [fn=:agg.sum, over_axes=[:items]] [] -> integer
   %v6 = constant [value=0.5] [] -> float
   %v7 = map (:v11, :v6) [fn=:core.mul:numeric] [] -> float
 function high_value_sum:
-  %v8 = load_input [key=:items, chain=["value"]] [items] -> integer
+  %v8 = load_input [key=:items, chain=[]] [items] -> integer
   %v9 = load_field (:v8) [field=:item] [items] -> integer
   %v10 = load_field (:v9) [field=:value] [items] -> integer
   %v24 = reduce (:v10) [fn=:agg.sum, over_axes=[:items]] [] -> integer

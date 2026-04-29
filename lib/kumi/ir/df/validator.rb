@@ -4,7 +4,7 @@ module Kumi
   module IR
     module DF
       class Validator
-        ALLOWED_OPS = %i[
+        CANONICAL_OPS = %i[
           constant
           load_input
           load_field
@@ -22,13 +22,16 @@ module Kumi
           axis_broadcast
         ].freeze
 
-        def self.validate!(df_module)
-          new(df_module).validate!
+        PRE_CANONICAL_OPS = (CANONICAL_OPS + %i[fold]).freeze
+
+        def self.validate!(df_module, allow_fold: false)
+          new(df_module, allow_fold:).validate!
           df_module
         end
 
-        def initialize(df_module)
+        def initialize(df_module, allow_fold: false)
           @df_module = df_module
+          @allow_fold = allow_fold
         end
 
         def validate!
@@ -50,7 +53,7 @@ module Kumi
         end
 
         def validate_instruction(instr, defs)
-          raise ArgumentError, "DFIR does not support opcode #{instr.opcode}" unless ALLOWED_OPS.include?(instr.opcode)
+          raise ArgumentError, "DFIR does not support opcode #{instr.opcode}" unless allowed_ops.include?(instr.opcode)
 
           case instr.opcode
           when :load_input
@@ -60,8 +63,8 @@ module Kumi
             end
           when :load_field
             source = defs[instr.inputs.first]
-            if source && Array(source.axes) != Array(instr.axes)
-              raise ArgumentError, "DFIR load_field must preserve axes"
+            if source && !prefix_axes?(Array(source.axes), Array(instr.axes))
+              raise ArgumentError, "DFIR load_field must preserve or expand axes"
             end
           when :select
             raise ArgumentError, "DFIR select expects 3 inputs" unless instr.inputs.size == 3
@@ -74,7 +77,17 @@ module Kumi
           when :reduce
             over_axes = Array(instr.attributes[:over_axes]).map(&:to_sym)
             raise ArgumentError, "DFIR reduce missing over_axes" if over_axes.empty?
+          when :fold
+            raise ArgumentError, "DFIR fold expects 1 input" unless instr.inputs.size == 1
           end
+        end
+
+        def allowed_ops
+          @allow_fold ? PRE_CANONICAL_OPS : CANONICAL_OPS
+        end
+
+        def prefix_axes?(source_axes, field_axes)
+          source_axes.each_with_index.all? { |axis, idx| field_axes[idx] == axis }
         end
       end
     end

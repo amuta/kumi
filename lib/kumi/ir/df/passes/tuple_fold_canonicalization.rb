@@ -49,8 +49,8 @@ module Kumi
                   emitted_index: new_instructions.length - 1,
                   exclusive: usage.fetch(cloned.defs.first, 0) == 1
                 }
-              when :reduce
-                if fold_reduce?(instr) && (rewritten = rewrite_fold(instr, new_inputs, array_defs, value_info, new_instructions, reg_gen))
+              when :fold
+                if (rewritten = rewrite_fold(instr, new_inputs, array_defs, value_info, new_instructions, reg_gen))
                   replacements[instr.defs.first] = rewritten
                   next
                 end
@@ -73,11 +73,6 @@ module Kumi
 
             filtered = new_instructions.compact
             Kumi::IR::Base::Block.new(name: block.name, instructions: filtered)
-          end
-
-          def fold_reduce?(instr)
-            over_axes = instr.attributes[:over_axes]
-            !over_axes || over_axes.empty?
           end
 
           def rewrite_fold(instr, inputs, array_defs, value_info, new_instructions, reg_gen)

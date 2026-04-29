@@ -1,12 +1,12 @@
 function total_payroll:
-  %v1 = load_input [key=:departments, chain=["salary"]] [departments, employees] -> integer
+  %v1 = load_input [key=:departments, chain=[]] [departments, employees] -> integer
   %v2 = load_field (:v1) [field=:dept] [departments, employees] -> integer
   %v3 = load_field (:v2) [field=:employees] [departments, employees] -> integer
   %v4 = load_field (:v3) [field=:emp] [departments, employees] -> integer
   %v5 = load_field (:v4) [field=:salary] [departments, employees] -> integer
   %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function manager_count:
-  %v7 = load_input [key=:departments, chain=["role"]] [departments, employees] -> string
+  %v7 = load_input [key=:departments, chain=[]] [departments, employees] -> string
   %v8 = load_field (:v7) [field=:dept] [departments, employees] -> string
   %v9 = load_field (:v8) [field=:employees] [departments, employees] -> string
   %v10 = load_field (:v9) [field=:emp] [departments, employees] -> string
@@ -21,13 +21,19 @@ function manager_count:
   %v19 = select (:v14, :v17, :v18) [departments, employees] -> integer
   %v20 = reduce (:v19) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
 function department_summary:
-  %v21 = load_input [key=:departments, chain=["name"]] [departments] -> string
+  %v21 = load_input [key=:departments, chain=[]] [departments] -> string
   %v22 = load_field (:v21) [field=:dept] [departments] -> string
   %v23 = load_field (:v22) [field=:name] [departments] -> string
+  %v27 = load_input [key=:departments, chain=[]] [departments, employees] -> integer
+  %v28 = load_field (:v27) [field=:dept] [departments, employees] -> integer
   %v29 = load_field (:v28) [field=:employees] [departments, employees] -> integer
   %v30 = load_field (:v29) [field=:emp] [departments, employees] -> integer
   %v31 = load_field (:v30) [field=:salary] [departments, employees] -> integer
   %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:employees]] [departments] -> integer
+  %v33 = load_input [key=:departments, chain=[]] [departments, employees] -> string
+  %v34 = load_field (:v33) [field=:dept] [departments, employees] -> string
+  %v35 = load_field (:v34) [field=:employees] [departments, employees] -> string
+  %v36 = load_field (:v35) [field=:emp] [departments, employees] -> string
   %v37 = load_field (:v36) [field=:role] [departments, employees] -> string
   %v38 = constant [value="manager"] [] -> string
   %v39 = axis_broadcast (:v38) [from_axes=[], to_axes=[:departments, :employees]] [departments, employees] -> string

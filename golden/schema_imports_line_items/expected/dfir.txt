@@ -1,9 +1,9 @@
 function order_subtotal:
-  %v1 = load_input [key=:order_items, chain=["order_items"], plan_ref="order_items"] [] -> array<any>
+  %v1 = load_input [key=:order_items, chain=[], plan_ref="order_items"] [] -> array<any>
   %v2 = import_call (:v1) [fn_name=:subtotal, source_module="Kumi::TestSharedSchemas::Subtotal", mapping_keys=[:items]] [] -> integer
 function tax_amount:
   %v3 = decl_ref [name=:order_subtotal] [] -> integer
-  %v4 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> integer
+  %v4 = load_input [key=:tax_rate, chain=[], plan_ref="tax_rate"] [] -> integer
   %v5 = map (:v3, :v4) [fn=:core.mul:numeric] [] -> integer
 function total:
   %v6 = decl_ref [name=:order_subtotal] [] -> integer

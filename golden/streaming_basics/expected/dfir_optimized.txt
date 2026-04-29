@@ -2,7 +2,8 @@ function items_subtotal:
   %v1 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> float
   %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-  %v5 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v4 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
+  %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> integer
   %v6 = load_field (:v5) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function items_discounted:
@@ -28,7 +29,8 @@ function items_effective:
   %v32 = constant [value=100.0] [] -> float
   %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:items]] [items] -> float
   %v34 = map (:v31, :v33) [fn=:core.gt] [items] -> boolean
-  %v39 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v38 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
+  %v39 = load_field (:v38) [field=:item, plan_ref="items.item"] [items] -> integer
   %v40 = load_field (:v39) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v41 = map (:v31, :v40) [fn=:core.mul:numeric] [items] -> float
   %v24 = constant [value=0.9] [] -> float
@@ -44,7 +46,8 @@ function cart_total:
   %v35 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v36 = load_field (:v35) [field=:item, plan_ref="items.item"] [items] -> float
   %v37 = load_field (:v36) [field=:price, plan_ref="items.item.price"] [items] -> float
-  %v39 = load_field (:v35) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v38 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
+  %v39 = load_field (:v38) [field=:item, plan_ref="items.item"] [items] -> integer
   %v40 = load_field (:v39) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v41 = map (:v37, :v40) [fn=:core.mul:numeric] [items] -> float
   %v34 = reduce (:v41) [fn=:agg.sum, over_axes=[:items]] [] -> float
@@ -55,7 +58,8 @@ function cart_total_effective:
   %v40 = constant [value=100.0] [] -> float
   %v41 = axis_broadcast (:v40) [from_axes=[], to_axes=[:items]] [items] -> float
   %v42 = map (:v39, :v41) [fn=:core.gt] [items] -> boolean
-  %v47 = load_field (:v37) [field=:item, plan_ref="items.item"] [items] -> integer
+  %v46 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
+  %v47 = load_field (:v46) [field=:item, plan_ref="items.item"] [items] -> integer
   %v48 = load_field (:v47) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v49 = map (:v39, :v48) [fn=:core.mul:numeric] [items] -> float
   %v50 = constant [value=0.9] [] -> float

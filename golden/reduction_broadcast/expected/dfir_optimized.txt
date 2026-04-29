@@ -19,7 +19,8 @@ function avg_headcount_per_dept:
   %v19 = load_field (:v18) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> integer
   %v20 = load_field (:v19) [field=:headcount, plan_ref="departments.dept.teams.team.headcount"] [departments, teams] -> integer
   %v21 = reduce (:v20) [fn=:agg.sum, over_axes=[:teams]] [departments] -> integer
-  %v23 = load_field (:v16) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> string
+  %v22 = load_input [key=:departments, chain=[], plan_ref="departments"] [departments, teams] -> string
+  %v23 = load_field (:v22) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> string
   %v24 = load_field (:v23) [field=:teams, plan_ref="departments.dept.teams"] [departments, teams] -> string
   %v25 = load_field (:v24) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> string
   %v26 = load_field (:v25) [field=:team_name, plan_ref="departments.dept.teams.team.team_name"] [departments, teams] -> string
@@ -32,7 +33,8 @@ function is_above_average_team:
   %v19 = load_field (:v18) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> integer
   %v20 = load_field (:v19) [field=:headcount, plan_ref="departments.dept.teams.team.headcount"] [departments, teams] -> integer
   %v29 = reduce (:v20) [fn=:agg.sum, over_axes=[:teams]] [departments] -> integer
-  %v31 = load_field (:v16) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> string
+  %v30 = load_input [key=:departments, chain=[], plan_ref="departments"] [departments, teams] -> string
+  %v31 = load_field (:v30) [field=:dept, plan_ref="departments.dept"] [departments, teams] -> string
   %v32 = load_field (:v31) [field=:teams, plan_ref="departments.dept.teams"] [departments, teams] -> string
   %v33 = load_field (:v32) [field=:team, plan_ref="departments.dept.teams.team"] [departments, teams] -> string
   %v34 = load_field (:v33) [field=:team_name, plan_ref="departments.dept.teams.team.team_name"] [departments, teams] -> string

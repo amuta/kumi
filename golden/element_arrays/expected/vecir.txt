@@ -1,5 +1,5 @@
 function cube:
-  %v1 = load_input [key=:cube, chain=["cube"]] [] -> array<array<array<integer>>>
+  %v1 = load_input [key=:cube, chain=[]] [] -> array<array<array<integer>>>
 function layer:
   %v2 = load_input [key=:cube, chain=[]] [cube] -> array<array<integer>>
   %v3 = load_field (:v2) [field=:layer] [cube] -> array<array<integer>>

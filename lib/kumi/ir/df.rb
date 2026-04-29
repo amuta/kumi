@@ -43,6 +43,10 @@ module Kumi
           append Ops::Reduce.new(result:, fn:, arg:, axes:, over_axes:, dtype:, metadata:)
         end
 
+        def fold(result:, fn:, arg:, axes:, dtype:, metadata: {})
+          append Ops::Fold.new(result:, fn:, arg:, axes:, dtype:, metadata:)
+        end
+
         def decl_ref(result:, name:, axes:, dtype:, metadata: {})
           append Ops::DeclRef.new(result:, name:, axes:, dtype:, metadata:)
         end
