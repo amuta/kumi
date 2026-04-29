@@ -28,40 +28,21 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
-              key = memo_key(instr, new_inputs)
+              signature = instr.value_signature(inputs: new_inputs, include_axes: true, include_dtype: true)
 
-              if key && memo.key?(key)
-                replacements[instr.result] = memo[key]
+              if signature && memo.key?(signature)
+                replacements[instr.result] = memo[signature]
                 next
               end
 
               cloned = Support::InstructionCloner.clone(instr, new_inputs)
               new_instructions << cloned
-              memo[key] = cloned.result if key && cloned.result
+              memo[signature] = cloned.result if signature && cloned.result
             end
 
             Kumi::IR::Base::Block.new(name: block.name, instructions: new_instructions)
-          end
-
-          def memo_key(instr, inputs)
-            return nil if instr.effectful?
-            return nil unless instr.result
-
-            [
-              instr.opcode,
-              inputs,
-              normalized_hash(instr.attributes),
-              instr.axes,
-              instr.dtype
-            ]
-          end
-
-          def normalized_hash(hash)
-            return hash unless hash.is_a?(Hash)
-
-            hash.sort_by { |k, _| k }
           end
         end
       end

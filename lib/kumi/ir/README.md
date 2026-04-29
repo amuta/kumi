@@ -1,60 +1,163 @@
-# Kumi::IR Scaffold
+# Kumi IR Architecture
 
-This directory hosts shared intermediate-representation layers that sit between SNAST
-and the existing LIR/codegen pipeline. The current goal is to provide explicit
-types with stable interfaces so that lowering passes can target different IR
-families without duplicating structural code.
+This directory contains the compiler IR stack that sits between SNAST and
+target code generation.
+
+This README describes the intended final shape of that stack.
+
+For the broader compiler view, see
+[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md). For the staged migration
+plan, see [docs/IR_GOALS_AND_PLAN.md](../../docs/IR_GOALS_AND_PLAN.md).
+
+## Goals
+
+The IR stack exists to make semantics explicit before codegen.
+
+The core goals are:
+
+- each layer owns one kind of transformation
+- passes are deterministic and easy to reason about
+- boundary validators define and enforce invariants
+- emitters become mechanical serializers over normalized IR
+
+The desired pipeline is:
+
+```text
+SNAST
+  -> DFIR
+  -> VecIR
+  -> LoopIR
+  -> BufIR (when needed)
+  -> Ruby / JavaScript / other emitters
+```
 
 ## Layers
 
-- **Base** – Common instruction, block, function, module, and builder classes.
-  They capture shared behaviors (side-effect tracking, metadata, structural
-  equality helpers) and are intended to be subclassed by concrete IRs.
-- **DF (Array/Functional IR)** – Lowering target directly from SNAST. Represents
-  map/reduce/scan style graphs prior to loop materialization. The DF pipeline
-  rewrites tuple helpers (`array_build + fold` → chained `map`s, scalar tuples →
-  `make_object`) and enforces axis discipline before Vec gets involved.
-- **Loop** – (Removed for now.) The structured-loop layer will return once VecIR
-  and BufIR own the vector/buffer stages.
-- **Buf** – Bufferized form that makes allocations, lifetimes, and ABI-visible
-  objects explicit.
-- **Vec** – Vectorized representation with axis-clean instructions, no tuples,
-  and an optimization pipeline (const-prop, GVN, axis canonicalization,
-  peephole algebra, stencil tagging, DCE) plus an analyzer pass that stores the
-  optimized Vec module alongside DFIR.
+### Base
 
-Each layer exposes a `Module`, `Function`, `Instruction`, and `Builder` class so
-passes can be written against a well-defined surface area. DF graphs are now
-materialized during analysis (`LowerToDFIRPass`), Vec graphs via the new
-`Passes::Vec::LowerPass`, and both DF/Vec representations can be pretty-printed
-from goldens (DF: `dfir.txt`, `dfir_optimized.txt`; Vec: `vecir.txt`).
+Shared IR scaffolding:
 
-See `df_definition.md` for the instruction set and invariants we expect,
-`df_mapping.md` for guidance on mapping SNAST→Loop IR, and `df_examples.md` for
-concrete scenarios.
+- instructions
+- blocks
+- functions
+- modules
+- builders
 
-Pretty printer commands are available for DFIR/VecIR layers:
+These classes provide common structure and should not carry layer-specific
+semantics.
 
-- `kumi-dev pretty dfir` / `dfir_optimized` – DF graphs before/after the DF
-  pipeline.
-- `kumi-dev pretty vecir` – Vec graphs after DF lowering + Vec pipeline.
+### DFIR
 
-## Test Helpers
+DFIR is the first explicit semantic IR after SNAST.
 
-Specs can fabricate IR inputs without running the entire analyzer pipeline by
-using helpers under `Kumi::IR::Testing`. The primary entry point today is
-`Kumi::IR::Testing::SnastFactory`, which exposes lightweight builders for
-SNAST nodes and declarations:
+It should:
 
-```ruby
-snast = Kumi::IR::Testing::SnastFactory.build do |b|
-  b.declaration(:total_payroll, axes: %i[departments], dtype: :integer) do
-    Kumi::IR::Testing::SnastFactory.const(0, dtype: :integer)
-  end
-end
+- lower semantic AST into graph form
+- normalize access paths
+- represent functional/array semantics directly
+- perform structural rewrites before vector semantics are materialized
+
+DFIR owns graph meaning, not backend syntax.
+
+### VecIR
+
+VecIR makes axis-aware value semantics explicit.
+
+It should:
+
+- carry axes and dtype on every value
+- represent broadcasts, shifts, indices, maps, selects, and reductions
+- run deterministic vector-level canonicalization and optimization
+- remain pure and declarative
+
+VecIR should not yet encode execution structure.
+
+See [vec_definition.md](./vec_definition.md).
+
+### LoopIR
+
+LoopIR is the execution-materialization layer.
+
+It should:
+
+- turn VecIR semantics into explicit iteration structure
+- own the execution meaning of indices, shifts, broadcasts, and reductions
+- remove the need for emitters to understand vector semantics directly
+
+LoopIR is the last semantic layer before storage concerns.
+
+### BufIR
+
+BufIR is the explicit storage/materialization layer.
+
+It should only become a substantial layer when needed, but when it exists, it
+owns:
+
+- allocations
+- lifetimes
+- buffer layout-visible materialization
+- storage-oriented lowering decisions
+
+If backend codegen still has to reason about storage, BufIR is the right place
+for that logic.
+
+## Validators
+
+Every major IR boundary should end with a validator pass.
+
+Validators are part of the architecture, not optional helpers.
+
+Their role is to make layer contracts explicit and executable.
+
+Examples:
+
+- DF validator: graph/legal-op/access-path invariants
+- Vec validator: axis and vector-semantics invariants
+- Loop validator: execution-shape invariants
+
+## Emitters
+
+Emitters should be dumb.
+
+They should:
+
+- walk normalized IR
+- emit target syntax
+- handle small target-specific conventions
+
+They should not:
+
+- rediscover semantic meaning
+- infer shapes
+- repair incomplete lowering
+
+If emitter logic becomes clever, the earlier IR layers are probably missing a
+responsibility.
+
+## Testing and Inspection
+
+IR work should be verified by stage, not only end-to-end.
+
+The intended inspection flow uses `golden_v2`:
+
+```bash
+bundle exec bin/kumi golden_v2 verify --repr frontend <schema>
+bundle exec bin/kumi golden_v2 verify --repr df <schema>
+bundle exec bin/kumi golden_v2 verify --repr vec <schema>
+bundle exec bin/kumi golden_v2 verify --repr loop <schema>
+bundle exec bin/kumi golden_v2 verify --repr codegen <schema>
 ```
 
-RSpec suites get additional conveniences via `spec/support/ir_helpers.rb`,
-which aliases the factory (`snast_factory`), provides `build_snast_module`,
-and exposes helper constructors for DF graphs/builders. Include that helper
-in custom test harnesses if you need the same shortcuts outside of RSpec.
+This allows earlier IRs to be debugged even when later codegen is still being
+refactored.
+
+## Design Rule
+
+Put changes in the earliest responsible layer.
+
+- semantic bugs belong in DFIR / VecIR / LoopIR
+- storage/materialization bugs belong in BufIR
+- syntax-only bugs belong in emitters
+
+That rule is one of the main safeguards against architecture drift.
+

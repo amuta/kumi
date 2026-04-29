@@ -1,0 +1,19 @@
+# frozen_string_literal: true
+
+module Kumi
+  module IR
+    module Buf
+      module Pipeline
+        module_function
+
+        def default
+          @default ||= Kumi::IR::Passes::Pipeline.new([])
+        end
+
+        def run(graph:, context: {})
+          default.run(graph: graph, context: context)
+        end
+      end
+    end
+  end
+end

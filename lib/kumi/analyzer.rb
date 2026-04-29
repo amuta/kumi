@@ -30,7 +30,11 @@ module Kumi
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
       Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
+      Passes::DFValidatePass,                  # Validates DFIR invariants before Vec lowering
       Passes::Vec::LowerPass,                  # Lowers DFIR into VecIR and stores it in analysis state
+      Passes::VecValidatePass,                 # Validates VecIR invariants before Loop lowering
+      Passes::Loop::LowerPass,                 # Lowers VecIR into LoopIR and stores it in analysis state
+      Passes::LoopValidatePass,                # Validates LoopIR invariants before LIR/codegen
       Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
       Passes::LIR::HoistScalarReferencesPass,
       Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
@@ -40,15 +44,14 @@ module Kumi
       Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
       Passes::LIR::DeadCodeEliminationPass, # Removes dead code
       Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
-      Passes::LIR::LoopInvariantCodeMotionPass
+      Passes::LIR::LoopInvariantCodeMotionPass,
+      Passes::LIR::ConstantPropagationPass # Produces lir_06_const_prop for goldens
       # Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
     ].freeze
 
     RUBY_TARGET_PASSES = [
-      Passes::LIR::ConstantPropagationPass, # Ruby uses this Intra-block constant propagation
-      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
-      Passes::Codegen::RubyPass, # Generates ruby code from LIR
-      Passes::Codegen::JsPass
+      Passes::Codegen::LoopRubyPass, # Generates Ruby code from LoopIR
+      Passes::Codegen::LoopJsPass
     ]
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)

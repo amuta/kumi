@@ -29,23 +29,24 @@ module Kumi
             new_instrs = []
 
             block.instructions.each do |instr|
-              inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
+              result = instr.defs.first
 
               case instr.opcode
               when :constant
-                constants[instr.result] = instr.attributes[:value]
+                constants[result] = instr.attributes[:value] if result
                 new_instrs << instr
               when :map
                 folded = fold_map(instr, inputs, constants, reg_gen)
                 if folded
-                  constants[instr.result] = folded.attributes[:value]
+                  constants[result] = folded.attributes[:value] if result
                   new_instrs << folded
                 else
-                  constants.delete(instr.result)
+                  constants.delete(result) if result
                   new_instrs << instr
                 end
               else
-                constants.delete(instr.result)
+                constants.delete(result) if result
                 new_instrs << instr
               end
             end

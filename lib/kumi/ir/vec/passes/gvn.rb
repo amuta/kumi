@@ -5,6 +5,8 @@ module Kumi
     module Vec
       module Passes
         class Gvn < Kumi::IR::Passes::Base
+          require_relative "support/instruction_cloner"
+
           def run(graph:, context: {})
             new_functions = graph.functions.values.map { reuse_values(_1) }
             Kumi::IR::Vec::Module.new(name: graph.name, functions: new_functions)
@@ -18,7 +20,7 @@ module Kumi
             new_blocks = function.blocks.map do |block|
               new_instrs = []
               block.instructions.each do |instr|
-                inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+                inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
                 signature = build_signature(instr, inputs)
 
                 if signature && table.key?(signature)
@@ -27,7 +29,16 @@ module Kumi
                 end
 
                 table[signature] = instr.result if signature
-                new_instrs << instr
+                cloned = Support::InstructionCloner.clone(
+                  instr,
+                  inputs,
+                  attributes: instr.attributes,
+                  metadata: instr.metadata,
+                  result: instr.result,
+                  axes: instr.axes,
+                  dtype: instr.dtype
+                )
+                new_instrs << cloned
               end
 
               Kumi::IR::Base::Block.new(name: block.name, instructions: new_instrs)
@@ -44,13 +55,7 @@ module Kumi
           def build_signature(instr, inputs)
             return nil unless instr.result
             return nil if instr.opcode == :load_input
-
-            attrs = instr.attributes || {}
-            [
-              instr.opcode,
-              inputs,
-              attrs.sort_by { |k, _| k.to_s }
-            ]
+            instr.value_signature(inputs: inputs, include_axes: true, include_dtype: true)
           end
         end
       end

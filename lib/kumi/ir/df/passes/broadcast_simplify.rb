@@ -30,16 +30,20 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| canonical_reg(reg, replacements) }
+              new_inputs = instr.uses.map { |reg| canonical_reg(reg, replacements) }
 
               if removable_broadcast?(instr, new_inputs, axes_by_reg)
-                replacements[instr.result] = new_inputs.first
+                if (result = instr.defs.first)
+                  replacements[result] = new_inputs.first
+                end
                 next
               end
 
               cloned = Support::InstructionCloner.clone(instr, new_inputs)
               new_instructions << cloned
-              axes_by_reg[cloned.result] = cloned.axes if cloned.result
+              if (result = cloned.defs.first)
+                axes_by_reg[result] = cloned.stamp[:axes]
+              end
             end
 
             Kumi::IR::Base::Block.new(name: block.name, instructions: new_instructions)

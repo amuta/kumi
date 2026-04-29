@@ -30,12 +30,14 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| canonical_reg(reg, replacements) }
+              new_inputs = instr.uses.map { |reg| canonical_reg(reg, replacements) }
 
               if instr.opcode == :axis_shift
                 key = shift_key(instr, new_inputs)
                 if key && shift_cache.key?(key)
-                  replacements[instr.result] = shift_cache[key]
+                  if (result = instr.defs.first)
+                    replacements[result] = shift_cache[key]
+                  end
                   next
                 end
               end
@@ -43,9 +45,9 @@ module Kumi
               cloned = Support::InstructionCloner.clone(instr, new_inputs)
               new_instructions << cloned
 
-              if instr.opcode == :axis_shift && cloned.result
+              if instr.opcode == :axis_shift && cloned.defs.first
                 key = shift_key(instr, new_inputs)
-                shift_cache[key] = cloned.result if key
+                shift_cache[key] = cloned.defs.first if key
               end
             end
 
@@ -60,18 +62,7 @@ module Kumi
           end
 
           def shift_key(instr, inputs)
-            source = inputs.first
-            return nil unless source
-
-            attrs = instr.attributes || {}
-            [
-              source,
-              attrs[:axis]&.to_sym,
-              attrs[:offset],
-              attrs[:policy]&.to_sym,
-              Array(instr.axes),
-              instr.dtype
-            ]
+            instr.value_signature(inputs: inputs, include_axes: true, include_dtype: true)
           end
         end
       end

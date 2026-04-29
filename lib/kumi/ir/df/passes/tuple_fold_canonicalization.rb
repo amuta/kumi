@@ -32,33 +32,42 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
               case instr.opcode
               when :array_build
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
-                value_info[cloned.result] = { dtype: cloned.dtype, axes: cloned.axes } if cloned.result
-                array_defs[cloned.result] = {
+                if (result = cloned.defs.first)
+                  stamp = cloned.stamp
+                  value_info[result] = { dtype: stamp[:dtype], axes: stamp[:axes] }
+                end
+                array_defs[cloned.defs.first] = {
                   elements: new_inputs.dup,
                   axes: cloned.axes,
                   element_dtype: element_dtype_for(new_inputs, value_info, cloned.dtype),
                   emitted_index: new_instructions.length - 1,
-                  exclusive: usage.fetch(cloned.result, 0) == 1
+                  exclusive: usage.fetch(cloned.defs.first, 0) == 1
                 }
               when :reduce
                 if fold_reduce?(instr) && (rewritten = rewrite_fold(instr, new_inputs, array_defs, value_info, new_instructions, reg_gen))
-                  replacements[instr.result] = rewritten
+                  replacements[instr.defs.first] = rewritten
                   next
                 end
 
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
-                value_info[cloned.result] = { dtype: cloned.dtype, axes: cloned.axes } if cloned.result
+                if (result = cloned.defs.first)
+                  stamp = cloned.stamp
+                  value_info[result] = { dtype: stamp[:dtype], axes: stamp[:axes] }
+                end
               else
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
-                value_info[cloned.result] = { dtype: cloned.dtype, axes: cloned.axes } if cloned.result
+                if (result = cloned.defs.first)
+                  stamp = cloned.stamp
+                  value_info[result] = { dtype: stamp[:dtype], axes: stamp[:axes] }
+                end
               end
             end
 
@@ -125,8 +134,8 @@ module Kumi
           def usage_counts(block)
             counts = Hash.new(0)
             block.each do |instr|
-              instr.inputs.each do |input|
-                counts[input] += 1 if input.is_a?(Symbol)
+              instr.uses.each do |input|
+                counts[input] += 1
               end
             end
             counts

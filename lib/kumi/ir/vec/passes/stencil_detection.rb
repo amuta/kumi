@@ -29,7 +29,7 @@ module Kumi
             block.instructions.each do |instr|
               next unless instr.opcode == :axis_shift
 
-              shifts_by_source[instr.inputs.first] << instr
+              shifts_by_source[instr.uses.first] << instr
             end
 
             tagged_sources = shifts_by_source.select { |_src, instrs| instrs.length >= 4 }.keys
@@ -37,15 +37,15 @@ module Kumi
 
             new_instrs = block.instructions.map do |instr|
               next instr unless instr.opcode == :axis_shift
-              next instr unless tagged_sources.include?(instr.inputs.first)
+              next instr unless tagged_sources.include?(instr.uses.first)
 
               metadata = instr.metadata.merge(vec_stencil: true)
               Passes::Support::InstructionCloner.clone(
                 instr,
-                instr.inputs,
+                instr.uses,
                 attributes: instr.attributes,
                 metadata: metadata,
-                result: instr.result,
+                result: instr.defs.first,
                 axes: instr.axes,
                 dtype: instr.dtype
               )

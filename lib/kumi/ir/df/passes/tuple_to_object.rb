@@ -34,19 +34,20 @@ module Kumi
           end
 
           def tuple_dtype?(instr)
-            dtype = instr.metadata[:dtype] || instr.dtype
+            dtype = instr.stamp[:dtype]
             dtype.respond_to?(:element_types)
           end
 
           def rewrite_array_build(instr)
-            dtype = instr.metadata[:dtype] || instr.dtype
+            stamp = instr.stamp
+            dtype = stamp[:dtype]
             keys = dtype.element_types.each_index.map { |idx| :"_#{idx}" }
             Ops::MakeObject.new(
-              result: instr.result,
-              inputs: instr.inputs,
+              result: instr.defs.first,
+              inputs: instr.uses,
               keys: keys,
-              axes: instr.axes,
-              dtype: instr.metadata[:dtype] || instr.dtype,
+              axes: stamp[:axes],
+              dtype: dtype,
               metadata: instr.metadata
             )
           end

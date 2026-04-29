@@ -41,8 +41,7 @@ module Kumi
       end
 
       def generate_input_plan(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, return_with_state: :input_metadata)
+        res = analyze_schema(path, stop_after: "InputAccessPlannerPass")
         return nil unless res.state[:input_metadata]
 
         print_input_plan(res.state[:input_metadata])
@@ -93,9 +92,8 @@ module Kumi
       end
 
       def generate_nast(path)
-        schema, = Kumi::Frontends.load(path: path)
         with_stop_after("NormalizeToNASTPass") do
-          res = Kumi::Analyzer.analyze!(schema)
+          res = analyze_schema(path)
           return nil unless res.state[:nast_module]
 
           Kumi::Support::NASTPrinter.print(res.state[:nast_module])
@@ -167,9 +165,8 @@ module Kumi
       end
 
       def generate_snast(path)
-        schema, = Kumi::Frontends.load(path: path)
         with_stop_after("SNASTPass") do
-          res = Kumi::Analyzer.analyze!(schema)
+          res = analyze_schema(path)
           raise "Error Generating #{path}" unless res.state[:snast_module]
 
           Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
@@ -177,18 +174,27 @@ module Kumi
       end
 
       def generate_dfir(path)
-        graph = build_df_graph(path: path, optimized: false)
-        print_df_graph(graph)
+        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
+        graph = res.state[:df_module_unoptimized] or raise "Missing DFIR for #{path}"
+        print_ir_graph(graph)
       end
 
       def generate_dfir_optimized(path)
-        graph = build_df_graph(path: path, optimized: true)
-        print_df_graph(graph)
+        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
+        graph = res.state[:df_module] or raise "Missing optimized DFIR for #{path}"
+        print_ir_graph(graph)
       end
 
       def generate_vecir(path)
-        graph = build_vec_graph(path: path)
-        print_df_graph(graph)
+        res = analyze_schema(path, stop_after: "VecValidatePass", side_tables: true)
+        graph = res.state[:vec_module] or raise "Missing VecIR for #{path}"
+        print_ir_graph(graph)
+      end
+
+      def generate_loopir(path)
+        res = analyze_schema(path, stop_after: "LoopValidatePass", side_tables: true)
+        graph = res.state[:loop_module] or raise "Missing LoopIR for #{path}"
+        print_ir_graph(graph)
       end
 
       def generate_irv2(path)
@@ -241,36 +247,21 @@ module Kumi
         Kumi::Pack.print(schema: path, targets: %w[ruby])
       end
 
-      def build_df_graph(path:, optimized:)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        snast = res.state[:snast_module] or raise "Missing SNAST for #{path}"
-        registry = res.state[:registry] or raise "Missing registry for #{path}"
-        input_table = res.state[:input_table] or raise "Missing input_table for #{path}"
-        imported_schemas = res.state[:imported_schemas] || {}
-
-        df_graph = Kumi::IR::DF::Lower.new(
-          snast_module: snast,
-          registry: registry,
-          input_table: input_table
-        ).call
-
-        return df_graph unless optimized
-
-        context = { registry:, input_table: input_table, imported_schemas: imported_schemas }
-        Kumi::IR::DF::Pipeline.run(graph: df_graph, context: context)
-      end
-
-      def build_vec_graph(path:)
-        df_graph = build_df_graph(path: path, optimized: true)
-        vec_module = Kumi::IR::Vec::Module.from_df(df_graph)
-        Kumi::IR::Vec::Pipeline.run(graph: vec_module, context: {})
-      end
-
-      def print_df_graph(graph)
+      def print_ir_graph(graph)
         io = StringIO.new
         Kumi::IR::Printer.print(graph, io: io)
         io.string
+      end
+
+      def analyze_schema(path, stop_after: nil, **opts)
+        schema, = Kumi::Frontends.load(path: path)
+        if stop_after
+          with_stop_after(stop_after) do
+            Kumi::Analyzer.analyze!(schema, **opts)
+          end
+        else
+          Kumi::Analyzer.analyze!(schema, **opts)
+        end
       end
     end
   end

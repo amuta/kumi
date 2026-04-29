@@ -3,6 +3,8 @@
 module Kumi
   module IR
     module DF
+      autoload :Validator, "kumi/ir/df/validator"
+
       class Function < Base::Function; end
 
       class Graph < Base::Module

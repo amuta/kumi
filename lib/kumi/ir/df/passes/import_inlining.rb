@@ -44,13 +44,15 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
               if instr.opcode == :import_call
                 inlined, result_reg = inline_import(instr, new_inputs, loader, reg_gen)
                 if inlined
                   new_instructions.concat(inlined)
-                  replacements[instr.result] = result_reg
+                  if (result = instr.defs.first)
+                    replacements[result] = result_reg
+                  end
                   next
                 end
               end
@@ -95,15 +97,16 @@ module Kumi
                 arg_reg = arg_map[key]
                 return nil unless arg_reg
 
-                value_map[callee_instr.result] = arg_reg
+                value_map[callee_instr.defs.first] = arg_reg
                 next
               end
 
-              new_inputs = callee_instr.inputs.map do |reg|
+              new_inputs = callee_instr.uses.map do |reg|
                 value_map.fetch(reg) { return nil }
               end
 
-              new_result = callee_instr.result ? reg_gen.next : nil
+              callee_result = callee_instr.defs.first
+              new_result = callee_result ? reg_gen.next : nil
               cloned = Support::InstructionCloner.clone(
                 callee_instr,
                 new_inputs,
@@ -112,10 +115,10 @@ module Kumi
                 result: new_result
               )
               emitted << cloned
-              value_map[callee_instr.result] = new_result if callee_instr.result
+              value_map[callee_result] = new_result if callee_result
             end
 
-            final_reg = value_map[block.instructions.reverse.find(&:result)&.result]
+            final_reg = value_map[block.instructions.reverse.find { |instr| instr.defs.any? }&.defs&.first]
             return nil unless final_reg
 
             [emitted, final_reg]

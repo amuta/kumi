@@ -29,28 +29,29 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
+              result = instr.defs.first
 
               case instr.opcode
               when :load_input
                 key = load_input_key(instr)
                 if key && load_inputs[key]
-                  replacements[instr.result] = load_inputs[key]
+                  replacements[result] = load_inputs[key] if result
                   next
                 end
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
-                load_inputs[key] = cloned.result if key && cloned.result
+                load_inputs[key] = cloned.defs.first if key && cloned.defs.first
               when :load_field
                 key = load_field_key(instr, new_inputs)
                 cache = field_cache_for(instr, load_fields)
                 if key && cache[key]
-                  replacements[instr.result] = cache[key]
+                  replacements[result] = cache[key] if result
                   next
                 end
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
-                cache[key] = cloned.result if key && cloned.result
+                cache[key] = cloned.defs.first if key && cloned.defs.first
               else
                 cloned = Support::InstructionCloner.clone(instr, new_inputs)
                 new_instructions << cloned
@@ -72,7 +73,7 @@ module Kumi
           end
 
           def field_cache_for(instr, caches)
-            key = instr.inputs.first
+            key = instr.uses.first
             caches[key] ||= {}
           end
         end

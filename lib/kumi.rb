@@ -12,6 +12,7 @@ AUTOLOADER.inflector.inflect(
   "attach_terminal_info_pass" => "AttachTerminalInfoPass",
   "cgir" => "CGIR",
   "df" => "DF",
+  "df_validate_pass" => "DFValidatePass",
   "global_cse_pass" => "GlobalCSEPass",
   "ir_dependency_pass" => "IRDependencyPass",
   "ir" => "IR",

@@ -32,21 +32,25 @@ module Kumi
             new_instructions = []
 
             block.each do |instr|
-              new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
               if instr.opcode == :decl_ref
                 ref_name = instr.attributes[:name]&.to_sym
                 inlined = inline_declaration(graph, ref_name, reg_gen, Set.new)
                 if inlined
                   new_instructions.concat(inlined.instructions)
-                  replacements[instr.result] = inlined.result
+                  if (result = instr.defs.first)
+                    replacements[result] = inlined.result
+                  end
                   next
                 end
               end
 
               cloned = Support::InstructionCloner.clone(instr, new_inputs)
               new_instructions << cloned
-              replacements[instr.result] = cloned.result if instr.result
+              if (result = instr.defs.first)
+                replacements[result] = cloned.defs.first
+              end
             end
 
             Kumi::IR::Base::Block.new(name: block.name, instructions: new_instructions)
@@ -71,12 +75,15 @@ module Kumi
                   return nil unless nested
 
                   emitted.concat(nested.instructions)
-                  replacements[instr.result] = nested.result
+                  if (result = instr.defs.first)
+                    replacements[result] = nested.result
+                  end
                   next
                 end
 
-                new_inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
-                new_result = instr.result ? reg_gen.next : nil
+                new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
+                result = instr.defs.first
+                new_result = result ? reg_gen.next : nil
                 cloned = Support::InstructionCloner.clone(
                   instr,
                   new_inputs,
@@ -85,12 +92,12 @@ module Kumi
                   result: new_result
                 )
                 emitted << cloned
-                replacements[instr.result] = new_result if instr.result
+                replacements[result] = new_result if result
               end
             end
 
-            last_instr = function.blocks.flat_map(&:instructions).reverse.find(&:result)
-            final_reg = last_instr && replacements[last_instr.result]
+            last_instr = function.blocks.flat_map(&:instructions).reverse.find { |instr| instr.defs.any? }
+            final_reg = last_instr && replacements[last_instr.defs.first]
             return nil unless final_reg
 
             InlineResult.new(emitted, final_reg)

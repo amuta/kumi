@@ -38,10 +38,10 @@ module Kumi
                 metadata = instr.metadata.merge(vec_invariant: invariant, axes: canonical_axes)
                 Passes::Support::InstructionCloner.clone(
                   instr,
-                  instr.inputs,
+                  instr.uses,
                   attributes: instr.attributes,
                   metadata: metadata,
-                  result: instr.result,
+                  result: instr.defs.first,
                   axes: canonical_axes,
                   dtype: instr.dtype
                 )

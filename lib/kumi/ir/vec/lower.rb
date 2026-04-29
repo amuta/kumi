@@ -77,19 +77,19 @@ module Kumi
           when :load_input
             Ops::LoadInput.new(result: instr.result, key: attrs[:key], chain: attrs[:chain] || [], axes:, dtype:, metadata:)
           when :load_field
-            Ops::LoadField.new(result: instr.result, object: instr.inputs.first, field: attrs[:field], axes:, dtype:, metadata:)
+            Ops::LoadField.new(result: instr.result, object: instr.uses.first, field: attrs[:field], axes:, dtype:, metadata:)
           when :map
-            Ops::Map.new(result: instr.result, fn: attrs[:fn], args: instr.inputs, axes:, dtype:, metadata:)
+            Ops::Map.new(result: instr.result, fn: attrs[:fn], args: instr.uses, axes:, dtype:, metadata:)
           when :select
-            Ops::Select.new(result: instr.result, cond: instr.inputs[0], on_true: instr.inputs[1], on_false: instr.inputs[2], axes:, dtype:, metadata:)
+            Ops::Select.new(result: instr.result, cond: instr.uses[0], on_true: instr.uses[1], on_false: instr.uses[2], axes:, dtype:, metadata:)
           when :axis_broadcast
-            Ops::AxisBroadcast.new(result: instr.result, value: instr.inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes] || axes, dtype:, metadata:)
+            Ops::AxisBroadcast.new(result: instr.result, value: instr.uses.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes] || axes, dtype:, metadata:)
           when :axis_shift
-            Ops::AxisShift.new(result: instr.result, source: instr.inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy], axes:, dtype:, metadata:)
+            Ops::AxisShift.new(result: instr.result, source: instr.uses.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy], axes:, dtype:, metadata:)
           when :axis_index
             Ops::AxisIndex.new(result: instr.result, axis: attrs[:axis], axes:, dtype:, metadata:)
           when :reduce
-            Ops::Reduce.new(result: instr.result, fn: attrs[:fn], arg: instr.inputs.first, over_axes: attrs[:over_axes], axes:, dtype:, metadata:)
+            Ops::Reduce.new(result: instr.result, fn: attrs[:fn], arg: instr.uses.first, over_axes: attrs[:over_axes], axes:, dtype:, metadata:)
           when :make_object
             lower_make_object(instr, axes, dtype, metadata, attrs, value_info)
           else
@@ -100,7 +100,7 @@ module Kumi
         def lower_make_object(instr, axes, dtype, metadata, attrs, value_info)
           target_axes = Array(axes).map(&:to_sym)
           emitted = []
-          converted_inputs = instr.inputs.map do |input|
+          converted_inputs = instr.uses.map do |input|
             info = value_info[input]
             input_axes = info ? Array(info[:axes]) : target_axes
             if input_axes == target_axes

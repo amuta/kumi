@@ -3,26 +3,33 @@ module Kumi::Compiled::KUMI_d3724a75498099c0b5fa0fef7fc42fd942eafe2c82a690fc8efe
   def self._sum(input)
     t1 = input["x"] || input[:x]
     t2 = input["y"] || input[:y]
-    t1 + t2
+    t3 = t1 + t2
+    return t3
   end
 
   def self._product(input)
     t4 = input["x"] || input[:x]
     t5 = input["y"] || input[:y]
-    t4 * t5
+    t6 = t4 * t5
+    return t6
   end
 
   def self._difference(input)
     t7 = input["x"] || input[:x]
     t8 = input["y"] || input[:y]
-    t7 - t8
+    t9 = t7 - t8
+    return t9
   end
 
   def self._results_array(input)
+    t10 = 1
     t11 = input["x"] || input[:x]
-    t13 = t11 + 10
+    t12 = 10
+    t13 = t11 + t12
     t14 = input["y"] || input[:y]
-    t16 = t14 * 2
-    [1, t13, t16]
+    t15 = 2
+    t16 = t14 * t15
+    t17 = [t10, t13, t16]
+    return t17
   end
 end

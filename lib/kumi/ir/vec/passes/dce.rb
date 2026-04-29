@@ -38,8 +38,8 @@ module Kumi
               end
 
               kept << instr
-              Array(instr.inputs).each do |input|
-                live << input if input.is_a?(Symbol)
+              instr.uses.each do |input|
+                live << input
               end
             end
 

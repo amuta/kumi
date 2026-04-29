@@ -44,7 +44,7 @@ module Kumi
             dtype: instr.dtype
           )
           new_attrs = remap_attributes(instr)
-          Passes::Support::InstructionCloner.clone(instr, instr.inputs, attributes: new_attrs, metadata: new_metadata)
+          Passes::Support::InstructionCloner.clone(instr, instr.uses, attributes: new_attrs, metadata: new_metadata)
         end
 
         def remap_axes(list)

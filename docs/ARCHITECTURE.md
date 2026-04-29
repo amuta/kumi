@@ -1,277 +1,278 @@
-# Kumi Documentation & IDE Architecture
+# Kumi Compiler Architecture
+
+This document describes the intended end-state architecture for Kumi's compiler.
+
 
 ## Overview
 
-This document describes the automatic documentation generation system and IDE support infrastructure for Kumi functions and kernels.
+Kumi should compile schemas through a small number of explicit semantic layers.
 
-## System Architecture
+The architecture goal is:
 
-```
-┌─────────────────────────────────────┐
-│  Function & Kernel Definitions      │
-├─────────────────────────────────────┤
-│  data/functions/*.yaml              │
-│  data/kernels/**/*.yaml             │
-└──────────────┬──────────────────────┘
-               │
-        ┌──────▼──────┐
-        │ bin/kumi-   │
-        │ doc-gen     │
-        └──────┬──────┘
-               │
-      ┌────────┴────────┐
-      │                 │
-   ┌──▼───┐      ┌─────▼──────┐
-   │ JSON │      │  Markdown  │
-   │ Data │      │  Reference │
-   └──┬───┘      └─────┬──────┘
-      │                │
-  ┌───▼──────────┐ ┌───▼─────────────────┐
-  │ IDE Tools    │ │ Developers/Docs     │
-  ├──────────────┤ ├─────────────────────┤
-  │ VSCode       │ │ docs/FUNCTIONS.md   │
-  │ Monaco       │ │ GitHub Reference    │
-  │ LSP Servers  │ │ API Documentation   │
-  └──────────────┘ └─────────────────────┘
+- semantics become more explicit as the pipeline progresses
+- each layer owns one kind of transformation
+- invariants are validated at layer boundaries
+- backends emit syntax from normalized IR, not meaning from partially-lowered IR
+
+The intended pipeline is:
+
+```text
+Schema / Frontend AST
+  -> NAST
+  -> SNAST
+  -> DFIR
+  -> VecIR
+  -> LoopIR
+  -> BufIR (when needed)
+  -> Target Emitters (Ruby / JavaScript / others)
 ```
 
-## Core Components
+## Design Principles
 
-### 1. Data Sources
+### IRs own semantics
 
-**Function Definitions** (`data/functions/*.yaml`)
-```yaml
-functions:
-  - id: agg.sum
-    kind: reduce
-    params: [{ name: source_value }]
-    dtype: { rule: same_as, param: source_value }
-    reduction_strategy: identity  # KEY: Identity-based reducer
-    aliases: ["sum"]
+Meaning should be resolved before codegen.
 
-  - id: agg.min
-    kind: reduce
-    params: [{ name: source_value }]
-    dtype: { rule: element_of, param: source_value }
-    reduction_strategy: first_element  # KEY: First-element reducer
-    aliases: ["min"]
-```
+That means:
 
-**Kernel Implementations** (`data/kernels/ruby/*.yaml`)
-```yaml
-kernels:
-  - id: agg.sum:ruby:v1
-    fn: agg.sum
-    inline: "+= $1"
-    impl: "(a,b)\n  a + b"
-    fold_inline: "= $0.sum"
-    identity:
-      float: 0.0
-      integer: 0
-```
+- access semantics belong in the IR pipeline
+- axis semantics belong in the IR pipeline
+- reduction semantics belong in the IR pipeline
+- iteration and execution structure belong in LoopIR
+- allocation and storage belong in BufIR
 
-### 2. Doc Generator Module
+Emitters should not reconstruct these concepts from ad hoc patterns.
 
-**Location:** `lib/kumi/doc_generator/`
+### Passes are deterministic
 
-#### Loader
-- Parses YAML files from `data/functions/` and `data/kernels/`
-- Returns raw function and kernel definitions
-- No transformation or filtering
+Every pass should have a small contract:
 
-#### Merger
-- Combines function definitions with kernel implementations
-- Creates entries indexed by function aliases (so `sum`, `add`, `sub` all resolvable)
-- Extracts important metadata:
-  - `reduction_strategy` - How the reducer initializes
-  - `dtype` - Type inference rules
-  - `arity` - Parameter count
-  - `kernels` - Available implementations
+- what it expects on input
+- what it guarantees on output
+- what invariants it validates
 
-#### Formatters
+The pipeline should feel like a compiler, not a collection of backend-driven
+patches.
 
-**Json Formatter**
-- Output: `docs/functions-reference.json`
-- Consumer: IDE plugins (VSCode, Monaco, etc.)
-- Data:
-  - Function ID and aliases
-  - Arity and parameter info
-  - Type information
-  - Kernel availability
-  - **Reduction strategy** (for reducer distinction)
+### Validation is explicit
 
-**Markdown Formatter**
-- Output: `docs/FUNCTIONS.md`
-- Consumer: Developers, documentation sites
-- Presentation:
-  - Human-readable function descriptions
-  - Inline operations (`$0 = accumulator, $1 = element`)
-  - Actual implementation code
-  - Fold strategies
-  - Identity values (when applicable)
-  - **Reduction semantics** (monoid vs first-element)
+Each major IR boundary should end with a validator pass. Validators are not
+optional diagnostics; they are the executable form of the architecture.
 
-### 3. VSCode Extension
+Examples:
 
-**Location:** `vscode-extension/`
+- `DFValidatePass`
+- `VecValidatePass`
+- `LoopValidatePass`
 
-**Features:**
-- Autocomplete for functions when typing `fn(:`
-- Hover tooltips with signatures
-- Schema block context detection (Ruby files only)
-- Works with `.kumi` and `.rb` files
+These passes should fail loudly when earlier layers leak invalid structure.
 
-**Components:**
-- `FunctionCompletionProvider` - Offers suggestions
-- `FunctionHoverProvider` - Shows detailed information
-- `isInSchemaBlock()` - Detects if inside `schema do...end` block (Ruby files)
+### Feedback loops are phase-scoped
 
-## Key Design Decisions
+The compiler must support inspecting and verifying intermediate layers without
+requiring the full pipeline to succeed.
 
-### 1. Reduction Strategy Distinction
+That is why golden inspection should be grouped by stage:
 
-**Problem:** Min/Max don't have identity values like Sum/Count do.
+- `frontend`
+- `df`
+- `vec`
+- `loop`
+- `codegen`
 
-**Solution:** Capture `reduction_strategy` from YAML:
-- `identity` → Monoid operation, can use identity element
-- `first_element` → First array element initializes accumulator
+This keeps refactors local and keeps late backend failures from hiding earlier
+IR issues.
 
-**Display:**
-- Markdown shows: "Monoid operation with identity element" or "First element is initial value"
-- JSON includes: `"reduction_strategy": "identity" | "first_element"`
+## Layer Responsibilities
 
-### 2. Kernel Implementation Visibility
+### Frontend AST, NAST, and SNAST
 
-**Decision:** Show actual kernel code inline in markdown.
+These layers own source-language normalization and semantic preparation.
 
-**Benefits:**
-- Developers see what the function actually does
-- Inline operations (`+= $1` vs `= $1 if $1 < $0`) show the pattern
-- Implementation code is actual Ruby/JavaScript
+- **Frontend AST**
+  - parser output
+  - syntax-oriented
+  - still close to source shape
 
-**Format:**
-```markdown
-**Inline:** `+= $1` ($0 = accumulator, $1 = element)
-**Implementation:**
-```ruby
-(a,b)
-  a + b
-```
-**Fold:** `= $0.sum`
-**Identity:** float: 0.0, integer: 0
-```
+- **NAST**
+  - normalized AST form
+  - removes frontend-specific irregularity
 
-### 3. Single Source of Truth
+- **SNAST**
+  - semantic AST with dimensional/type metadata
+  - explicit enough to lower into IR
 
-**Flow:**
-```
-YAML definitions
-    ↓
-bin/kumi-doc-gen (one command)
-    ↓
-    ├→ docs/FUNCTIONS.md (auto-generated)
-    ├→ docs/functions-reference.json (auto-generated)
-    └→ IDE/Tools consume JSON
-```
+These layers should not be burdened with backend concerns.
 
-Changes to function definitions automatically flow to:
-- IDE completions
-- Markdown reference
-- JSON API
+### DFIR
 
-### 4. Context-Aware IDE Support
+DFIR is the first real execution-oriented semantic layer.
 
-**Ruby files:** Only offer completions inside `schema do...end` blocks
-- Prevents noise from unrelated `fn(:` calls
-- Tracks brace nesting to detect context
+It should:
 
-**Kumi files:** Always available
-- Native language file type
+- lower from SNAST
+- represent functional/array semantics directly
+- normalize input traversal and access paths
+- carry reductions, selection, imports, tuples, object construction, and other
+  graph-level operations
+- perform structural cleanup before vector semantics become explicit
 
-## Data Model
+DFIR is where we should fix bugs about:
 
-### Function Entry (After Merge)
-```json
-{
-  "id": "agg.sum",
-  "kind": "reduce",
-  "arity": 1,
-  "params": [{ "name": "source_value" }],
-  "dtype": { "rule": "same_as", "param": "source_value" },
-  "aliases": ["sum"],
-  "reduction_strategy": "identity",
-  "kernels": {
-    "ruby": {
-      "id": "agg.sum:ruby:v1",
-      "inline": "+= $1",
-      "impl": "(a,b)\n  a + b",
-      "fold_inline": "= $0.sum",
-      "identity": { "float": 0.0, "integer": 0 }
-    }
-  }
-}
-```
+- duplicated or ambiguous input access
+- import inlining behavior
+- tuple/object canonicalization
+- graph structure before vector execution is considered
 
-## Usage Workflows
+DFIR should not be target-specific.
 
-### For End Users
+### VecIR
 
-**View function reference:**
+VecIR represents explicit axis-aware value semantics.
+
+It should:
+
+- make axes and dtype metadata explicit on every value
+- represent broadcasts, shifts, indices, maps, selects, and reductions in a
+  uniform vector form
+- run deterministic vector-level optimization and canonicalization passes
+- remain pure and declarative
+
+VecIR is not the right place for target syntax or loop syntax. It is the layer
+where array semantics become explicit, but not yet materialized into execution.
+
+### LoopIR
+
+LoopIR is the semantic execution layer.
+
+It should:
+
+- materialize iteration structure from VecIR
+- make index-driven execution explicit
+- own the meaning of broadcasts and reductions as execution constructs
+- remove the need for emitters to rediscover vector semantics
+
+The key test for LoopIR is simple:
+
+If a backend still needs to understand vector semantics in order to emit code,
+LoopIR is not finished.
+
+LoopIR should be where:
+
+- `axis_index` becomes execution-level index behavior
+- `axis_shift` becomes deterministic loop/index materialization
+- reductions become explicit iteration/accumulation structure
+- vector/object assembly becomes execution-shaped
+
+### BufIR
+
+BufIR is the storage/materialization boundary.
+
+It should exist as a real lowering stage if:
+
+- allocation strategy becomes important
+- temporary buffers need explicit ownership
+- materialized objects/arrays need explicit layout
+- backend codegen still has to reason about storage rather than syntax
+
+BufIR should own:
+
+- allocations
+- lifetimes
+- buffer writes/reads
+- layout-visible materialization
+
+If LoopIR is purely execution-shaped and targets can emit directly from it,
+BufIR can stay minimal. If not, BufIR should become the deliberate boundary
+rather than an accidental grab-bag.
+
+### Emitters
+
+Emitters should be mechanical.
+
+They should:
+
+- serialize normalized IR into Ruby/JS syntax
+- handle target naming conventions
+- handle small target-specific syntax details
+
+They should not:
+
+- infer shapes
+- reconstruct broadcasts
+- reinterpret axis semantics
+- compensate for incomplete lowering
+
+The architecture is healthy when emitter code is boring.
+
+## Boundary Validators
+
+Each IR boundary should have a validator that explains the layer contract in
+executable form.
+
+Examples of the intended role:
+
+- **DF validator**
+  - legal op families
+  - consistent access-path rules
+  - object/tuple construction sanity
+  - reduction shape rules
+
+- **Vec validator**
+  - legal vector op families
+  - axis consistency
+  - broadcast correctness
+  - reduction metadata correctness
+
+- **Loop validator**
+  - legal execution-level op families
+  - no unsupported vector semantics leaking through
+  - return/value consistency
+  - execution-structure sanity
+
+Validators are part of the design, not merely tests.
+
+## Golden and Inspection Strategy
+
+The intended verification model is staged.
+
+Use `golden_v2` to inspect and verify layers independently:
+
 ```bash
-# Markdown documentation
-open docs/FUNCTIONS.md
-
-# IDE support (VSCode)
-cd vscode-extension && npm install && npm run compile
-# Press F5 in VSCode
+bundle exec bin/kumi golden_v2 verify --repr frontend <schema>
+bundle exec bin/kumi golden_v2 verify --repr df <schema>
+bundle exec bin/kumi golden_v2 verify --repr vec <schema>
+bundle exec bin/kumi golden_v2 verify --repr loop <schema>
+bundle exec bin/kumi golden_v2 verify --repr codegen <schema>
 ```
 
-### For Developers
+This should be the normal workflow during IR refactors.
 
-**Modify functions:**
-1. Update `data/functions/category/*.yaml`
-2. Run `bin/kumi-doc-gen`
-3. Commit both YAML and generated files
+End-to-end runtime verification remains important, but it should be the last
+step, not the only source of signal.
 
-**Add new reducer:**
-```yaml
-- id: agg.product
-  kind: reduce
-  params: [{ name: source_value }]
-  reduction_strategy: identity
-  aliases: ["product"]
-```
-Add kernel in `data/kernels/ruby/agg/numeric.yaml`, then regenerate docs.
+## Ownership Rules
 
-## Extension Points
+Use this rule when deciding where a fix belongs:
 
-The architecture supports adding:
+- If the problem is about meaning, traversal, axes, broadcast, reduction, or
+  execution semantics, it belongs in DFIR/VecIR/LoopIR.
+- If the problem is about materialization, layout, ownership, or temporary
+  storage, it belongs in BufIR.
+- If the problem is purely about emitted target syntax, it belongs in the
+  emitter.
 
-1. **New formatters** (HTML, PDF, LSP protocol)
-2. **New generators** (TypeScript definitions, GraphQL schema)
-3. **New IDE support** (Neovim, Emacs plugins via LSP)
-4. **Validation** (against declared types/arity)
+If a backend patch compensates for an earlier semantic bug, that is usually the
+wrong place to fix it.
 
-All through the same YAML source data.
+## Success Criteria
 
-## Testing
+This architecture is achieved when:
 
-- 8 comprehensive tests for doc generation
-- All 944 existing Kumi tests pass
-- No regression in core functionality
+- IR layers have stable, narrow responsibilities
+- validators make contracts explicit
+- LoopIR is materially more than a renamed VecIR
+- BufIR exists only if it carries real storage meaning
+- emitters become mostly mechanical
+- golden failures identify the broken layer directly
 
-## Performance
-
-- **Generation time:** <100ms for all functions
-- **File sizes:**
-  - FUNCTIONS.md: ~950 lines
-  - functions-reference.json: ~1800 lines
-- **IDE load time:** Instant (JSON loaded once on activation)
-
-## Future Improvements
-
-1. **LSP Server**: Standalone language server for any editor
-2. **Type validation**: Check function call arity at compile time
-3. **IDE diagnostics**: Show type mismatches as you type
-4. **Documentation linking**: Cross-reference related functions
-5. **Kernel visualization**: Show kernel implementations side-by-side

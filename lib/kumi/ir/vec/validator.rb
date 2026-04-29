@@ -14,6 +14,7 @@ module Kumi
           axis_shift
           axis_index
           reduce
+          make_object
         ].freeze
 
         def self.validate!(vec_module)
@@ -45,14 +46,21 @@ module Kumi
           end
 
           dtype = instr.metadata[:dtype] || instr.dtype
-          if dtype.respond_to?(:element_types)
+          if dtype.respond_to?(:element_types) && instr.opcode != :make_object
             raise ArgumentError, "VecIR disallows tuple dtype (#{dtype})"
           end
 
-          return unless instr.opcode == :axis_broadcast
-
-          expected = Array(instr.attributes[:to_axes]).map(&:to_sym)
-          raise ArgumentError, "AxisBroadcast axes mismatch" unless Array(instr.axes) == expected
+          case instr.opcode
+          when :axis_broadcast
+            expected = Array(instr.attributes[:to_axes]).map(&:to_sym)
+            raise ArgumentError, "AxisBroadcast axes mismatch" unless Array(instr.axes) == expected
+          when :make_object
+            keys = Array(instr.attributes[:keys])
+            raise ArgumentError, "VecIR make_object inputs/keys mismatch" unless keys.size == instr.inputs.size
+          when :reduce
+            over_axes = Array(instr.attributes[:over_axes]).map(&:to_sym)
+            raise ArgumentError, "VecIR reduce missing over_axes" if over_axes.empty?
+          end
         end
       end
     end

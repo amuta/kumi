@@ -17,19 +17,20 @@ module Kumi
             new_blocks = function.blocks.map do |block|
               new_instrs = []
               block.instructions.each do |instr|
-                inputs = instr.inputs.map { |reg| replacements.fetch(reg, reg) }
+                inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
+                result = instr.defs.first
 
                 case instr.opcode
                 when :select
                   if inputs[1] == inputs[2]
-                    replacements[instr.result] = inputs[1]
+                    replacements[result] = inputs[1] if result
                     next
                   end
                   new_instrs << instr
                 when :map
                   simplified = simplify_map(instr, inputs)
                   if simplified
-                    replacements[instr.result] = simplified
+                    replacements[result] = simplified if result
                   else
                     new_instrs << instr
                   end
