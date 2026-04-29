@@ -53,6 +53,11 @@ module Kumi
           raise ArgumentError, "DFIR does not support opcode #{instr.opcode}" unless ALLOWED_OPS.include?(instr.opcode)
 
           case instr.opcode
+          when :load_input
+            chain = Array(instr.attributes[:chain])
+            if instr.attributes[:plan_ref] && !chain.empty?
+              raise ArgumentError, "DFIR load_input with plan_ref must be root-only"
+            end
           when :load_field
             source = defs[instr.inputs.first]
             if source && Array(source.axes) != Array(instr.axes)

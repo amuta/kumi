@@ -1,9 +1,9 @@
 function y_positive:
-  %v1 = load_input [key=:y, chain=["y"], plan_ref="y"] [] -> integer
+  %v1 = load_input [key=:y, chain=[], plan_ref="y"] [] -> integer
   %v2 = constant [value=0] [] -> integer
   %v3 = map (:v1, :v2) [fn=:core.gt] [] -> boolean
 function x_positive:
-  %v4 = load_input [key=:x, chain=["x"], plan_ref="x"] [] -> integer
+  %v4 = load_input [key=:x, chain=[], plan_ref="x"] [] -> integer
   %v5 = constant [value=0] [] -> integer
   %v6 = map (:v4, :v5) [fn=:core.gt] [] -> boolean
 function status:

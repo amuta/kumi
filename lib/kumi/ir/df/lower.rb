@@ -13,7 +13,7 @@ module Kumi
           @input_metadata = input_metadata
           @graph = Graph.new(name: snast_module.respond_to?(:name) ? snast_module.name : :anonymous)
           @reg_counter = 0
-          @plan_index = build_plan_index(@input_table)
+          @access_contract = AccessContract.new(@input_table)
         end
 
         def call
@@ -84,11 +84,11 @@ module Kumi
           current = builder.load_input(
             result: next_reg,
             key: segments.first,
-            chain: node.key_chain,
+            chain: @access_contract.load_input_chain_for(node),
             axes: axes,
             dtype: dtype,
             metadata: {},
-            plan_ref: plan_ref_for(path_prefix)
+            plan_ref: @access_contract.plan_ref_for!(path_prefix)
           )
 
           segments.drop(1).each do |field|
@@ -100,7 +100,7 @@ module Kumi
               axes: axes,
               dtype: dtype,
               metadata: {},
-              plan_ref: plan_ref_for(path_prefix)
+              plan_ref: @access_contract.plan_ref_for!(path_prefix)
             )
           end
 
@@ -285,13 +285,6 @@ module Kumi
           Kumi::Core::Types.normalize(dtype)
         end
 
-        def plan_ref_for(path_segments)
-          return nil if @plan_index.empty?
-
-          key = format_fqn_key(path_segments)
-          @plan_index[key]
-        end
-
         def next_reg
           @reg_counter += 1
           :"v#{@reg_counter}"
@@ -370,28 +363,6 @@ module Kumi
           end
         end
 
-        def build_plan_index(table)
-          case table
-          when Hash
-            table.each_with_object({}) do |(key, entry), memo|
-              fqn_key = normalize_fqn_key(key)
-              next unless fqn_key
-
-              ref = extract_plan_ref(entry)
-              memo[fqn_key] = ref if ref
-            end
-          when Array
-            table.each_with_object({}) do |entry, memo|
-              fqn_key = extract_plan_ref(entry)
-              next unless fqn_key
-
-              memo[fqn_key] = fqn_key
-            end
-          else
-            {}
-          end
-        end
-
         def registry_spec(fn)
           return nil unless @registry.respond_to?(:function)
 
@@ -421,29 +392,6 @@ module Kumi
           nil
         end
 
-        def normalize_fqn_key(key)
-          return nil if key.nil?
-          return key.to_s if key.is_a?(String)
-          return key.to_s if key.is_a?(Symbol)
-
-          key.respond_to?(:to_str) ? key.to_str : key.to_s
-        end
-
-        def extract_plan_ref(entry)
-          return entry.path_fqn.to_s if entry.respond_to?(:path_fqn) && entry.path_fqn
-
-          if entry.respond_to?(:[])
-            return entry[:path_fqn].to_s if entry.respond_to?(:key?) && entry.key?(:path_fqn)
-            return entry["path_fqn"].to_s if entry.respond_to?(:key?) && entry.key?("path_fqn")
-            return entry[:fqn].to_s if entry.respond_to?(:key?) && entry.key?(:fqn)
-            return entry["fqn"].to_s if entry.respond_to?(:key?) && entry.key?("fqn")
-          end
-          nil
-        end
-
-        def format_fqn_key(path_segments)
-          Array(path_segments).map { _1.to_s }.join(".")
-        end
       end
     end
   end

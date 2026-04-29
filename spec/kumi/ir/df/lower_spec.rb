@@ -156,6 +156,19 @@ RSpec.describe Kumi::IR::DF::Lower do
   end
 
   describe "input access plan references" do
+    def input_plan(path)
+      Kumi::Core::Analyzer::Plans::InputPlan.new(
+        source_path: path,
+        axes: %i[rows col],
+        dtype: types.scalar(:integer),
+        key_policy: :indifferent,
+        missing_policy: :error,
+        navigation_steps: path.map { |segment| { kind: :property_access, key: segment.to_s } },
+        path_fqn: path.join("."),
+        open_axis: false
+      )
+    end
+
     it "attaches plan_ref attributes to load instructions" do
       snast = snast_factory.build do |b|
         value = snast_factory.input_ref(
@@ -167,43 +180,9 @@ RSpec.describe Kumi::IR::DF::Lower do
       end
 
       plans = [
-        Kumi::Core::Analyzer::Plans::InputPlan.new(
-          source_path: %i[rows],
-          axes: %i[rows col],
-          dtype: types.scalar(:integer),
-          key_policy: :indifferent,
-          missing_policy: :error,
-          navigation_steps: [{ kind: :property_access, key: "rows" }],
-          path_fqn: "rows",
-          open_axis: false
-        ),
-        Kumi::Core::Analyzer::Plans::InputPlan.new(
-          source_path: %i[rows col],
-          axes: %i[rows col],
-          dtype: types.scalar(:integer),
-          key_policy: :indifferent,
-          missing_policy: :error,
-          navigation_steps: [
-            { kind: :property_access, key: "rows" },
-            { kind: :property_access, key: "col" }
-          ],
-          path_fqn: "rows.col",
-          open_axis: false
-        ),
-        Kumi::Core::Analyzer::Plans::InputPlan.new(
-          source_path: %i[rows col alive],
-          axes: %i[rows col],
-          dtype: types.scalar(:integer),
-          key_policy: :indifferent,
-          missing_policy: :error,
-          navigation_steps: [
-            { kind: :property_access, key: "rows" },
-            { kind: :property_access, key: "col" },
-            { kind: :property_access, key: "alive" }
-          ],
-          path_fqn: "rows.col.alive",
-          open_axis: false
-        )
+        input_plan(%i[rows]),
+        input_plan(%i[rows col]),
+        input_plan(%i[rows col alive])
       ]
 
       lower = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: plans)
@@ -215,6 +194,70 @@ RSpec.describe Kumi::IR::DF::Lower do
       expect(load_input.attributes[:plan_ref]).to eq("rows")
       expect(load_field_col.attributes[:plan_ref]).to eq("rows.col")
       expect(load_field_alive.attributes[:plan_ref]).to eq("rows.col.alive")
+    end
+
+    it "keeps load_input root-only instead of duplicating SNAST key_chain traversal" do
+      snast = snast_factory.build do |b|
+        value = snast_factory.input_ref(
+          path: %i[rows col alive],
+          key_chain: %i[rows col alive],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer)
+        )
+        b.declaration(:alive_value, axes: %i[rows col], dtype: types.scalar(:integer)) { value }
+      end
+
+      plans = [
+        input_plan(%i[rows]),
+        input_plan(%i[rows col]),
+        input_plan(%i[rows col alive])
+      ]
+
+      graph = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: plans).call
+
+      load_input = graph.fetch_function(:alive_value).entry_block.instructions.first
+      expect(load_input.opcode).to eq(:load_input)
+      expect(load_input.attributes[:key]).to eq(:rows)
+      expect(load_input.attributes[:chain]).to eq([])
+    end
+
+    it "fails when a non-empty input plan table lacks a referenced path prefix" do
+      snast = snast_factory.build do |b|
+        value = snast_factory.input_ref(
+          path: %i[rows col alive],
+          axes: %i[rows col],
+          dtype: types.scalar(:integer)
+        )
+        b.declaration(:alive_value, axes: %i[rows col], dtype: types.scalar(:integer)) { value }
+      end
+
+      lower = described_class.new(
+        snast_module: snast,
+        registry: double(resolve_function: :unused),
+        input_table: [input_plan(%i[rows]), input_plan(%i[rows col])]
+      )
+
+      expect { lower.call }
+        .to raise_error(ArgumentError, /missing input plan for "rows\.col\.alive"/)
+    end
+
+    it "fails when the input plan table contains ambiguous plan references" do
+      snast = snast_factory.build do |b|
+        value = snast_factory.input_ref(
+          path: %i[rows],
+          axes: %i[rows],
+          dtype: types.scalar(:integer)
+        )
+        b.declaration(:rows_value, axes: %i[rows], dtype: types.scalar(:integer)) { value }
+      end
+
+      expect do
+        described_class.new(
+          snast_module: snast,
+          registry: double(resolve_function: :unused),
+          input_table: [input_plan(%i[rows]), input_plan(%i[rows])]
+        )
+      end.to raise_error(ArgumentError, /ambiguous input plan for "rows"/)
     end
   end
 end

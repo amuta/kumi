@@ -1,8 +1,8 @@
 function name_len:
-  %v1 = load_input [key=:name, chain=["name"], plan_ref="name"] [] -> string
+  %v1 = load_input [key=:name, chain=[], plan_ref="name"] [] -> string
   %v2 = map (:v1) [fn=:core.length] [] -> integer
 function items_count:
-  %v3 = load_input [key=:items, chain=["items"], plan_ref="items"] [] -> array<integer>
+  %v3 = load_input [key=:items, chain=[], plan_ref="items"] [] -> array<integer>
   %v4 = map (:v3) [fn=:core.array_size] [] -> integer
 function summary:
   %v5 = decl_ref [name=:name_len] [] -> integer

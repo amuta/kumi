@@ -1,12 +1,12 @@
 function price:
-  %v1 = load_input [key=:unit_price, chain=["unit_price"], plan_ref="unit_price"] [] -> string
+  %v1 = load_input [key=:unit_price, chain=[], plan_ref="unit_price"] [] -> string
   %v2 = map (:v1) [fn=:core.to_decimal] [] -> decimal
 function rate:
-  %v3 = load_input [key=:tax_rate, chain=["tax_rate"], plan_ref="tax_rate"] [] -> string
+  %v3 = load_input [key=:tax_rate, chain=[], plan_ref="tax_rate"] [] -> string
   %v4 = map (:v3) [fn=:core.to_decimal] [] -> decimal
 function subtotal:
   %v5 = decl_ref [name=:price] [] -> decimal
-  %v6 = load_input [key=:quantity, chain=["quantity"], plan_ref="quantity"] [] -> integer
+  %v6 = load_input [key=:quantity, chain=[], plan_ref="quantity"] [] -> integer
   %v7 = map (:v5, :v6) [fn=:core.mul:numeric] [] -> integer
 function tax_amount:
   %v8 = decl_ref [name=:subtotal] [] -> integer

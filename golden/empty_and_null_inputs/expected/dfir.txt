@@ -1,5 +1,5 @@
 function regional_sales:
-  %v1 = load_input [key=:regions, chain=["amount"], plan_ref="regions"] [regions, sales] -> integer
+  %v1 = load_input [key=:regions, chain=[], plan_ref="regions"] [regions, sales] -> integer
   %v2 = load_field (:v1) [field=:region, plan_ref="regions.region"] [regions, sales] -> integer
   %v3 = load_field (:v2) [field=:sales, plan_ref="regions.region.sales"] [regions, sales] -> integer
   %v4 = load_field (:v3) [field=:sale, plan_ref="regions.region.sales.sale"] [regions, sales] -> integer
@@ -10,5 +10,5 @@ function total_sales:
   %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:regions]] [] -> integer
 function adjusted_total:
   %v9 = decl_ref [name=:total_sales] [] -> integer
-  %v10 = load_input [key=:adjustment, chain=["adjustment"], plan_ref="adjustment"] [] -> integer
+  %v10 = load_input [key=:adjustment, chain=[], plan_ref="adjustment"] [] -> integer
   %v11 = map (:v9, :v10) [fn=:core.add] [] -> integer

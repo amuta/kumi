@@ -1,22 +1,22 @@
 function items_subtotal:
-  %v1 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v1 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v2 = load_field (:v1) [field=:item, plan_ref="items.item"] [items] -> float
   %v3 = load_field (:v2) [field=:price, plan_ref="items.item.price"] [items] -> float
-  %v4 = load_input [key=:items, chain=["qty"], plan_ref="items"] [items] -> integer
+  %v4 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
   %v5 = load_field (:v4) [field=:item, plan_ref="items.item"] [items] -> integer
   %v6 = load_field (:v5) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v7 = map (:v3, :v6) [fn=:core.mul:numeric] [items] -> float
 function items_discounted:
-  %v8 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v8 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v9 = load_field (:v8) [field=:item, plan_ref="items.item"] [items] -> float
   %v10 = load_field (:v9) [field=:price, plan_ref="items.item.price"] [items] -> float
   %v11 = constant [value=1.0] [] -> float
-  %v12 = load_input [key=:discount, chain=["discount"], plan_ref="discount"] [] -> float
+  %v12 = load_input [key=:discount, chain=[], plan_ref="discount"] [] -> float
   %v13 = map (:v11, :v12) [fn=:core.sub] [] -> float
   %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:items]] [items] -> float
   %v15 = map (:v10, :v14) [fn=:core.mul:numeric] [items] -> float
 function items_is_big:
-  %v16 = load_input [key=:items, chain=["price"], plan_ref="items"] [items] -> float
+  %v16 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> float
   %v17 = load_field (:v16) [field=:item, plan_ref="items.item"] [items] -> float
   %v18 = load_field (:v17) [field=:price, plan_ref="items.item.price"] [items] -> float
   %v19 = constant [value=100.0] [] -> float
@@ -31,7 +31,7 @@ function items_effective:
   %v27 = decl_ref [name=:items_subtotal] [items] -> float
   %v28 = select (:v22, :v26, :v27) [items] -> float
 function total_qty:
-  %v29 = load_input [key=:items, chain=["qty"], plan_ref="items"] [items] -> integer
+  %v29 = load_input [key=:items, chain=[], plan_ref="items"] [items] -> integer
   %v30 = load_field (:v29) [field=:item, plan_ref="items.item"] [items] -> integer
   %v31 = load_field (:v30) [field=:qty, plan_ref="items.item.qty"] [items] -> integer
   %v32 = reduce (:v31) [fn=:agg.sum, over_axes=[:items]] [] -> integer

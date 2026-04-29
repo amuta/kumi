@@ -1,5 +1,5 @@
 function double:
-  %v1 = load_input [key=:x, chain=["x", "y", "z"], plan_ref="x"] [] -> integer
+  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [] -> integer
   %v2 = load_field (:v1) [field=:y, plan_ref="x.y"] [] -> integer
   %v3 = load_field (:v2) [field=:z, plan_ref="x.y.z"] [] -> integer
   %v4 = constant [value=2] [] -> integer

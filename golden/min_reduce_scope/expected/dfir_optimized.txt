@@ -1,12 +1,12 @@
 function dept_total:
-  %v1 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v1 = load_input [key=:depts, chain=[], plan_ref="depts"] [depts, teams] -> integer
   %v2 = load_field (:v1) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
   %v3 = load_field (:v2) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
   %v4 = load_field (:v3) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
   %v5 = load_field (:v4) [field=:headcount, plan_ref="depts.dept.teams.team.headcount"] [depts, teams] -> integer
   %v6 = reduce (:v5) [fn=:agg.sum, over_axes=[:teams]] [depts] -> integer
 function company_total:
-  %v7 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v7 = load_input [key=:depts, chain=[], plan_ref="depts"] [depts, teams] -> integer
   %v8 = load_field (:v7) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
   %v9 = load_field (:v8) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
   %v10 = load_field (:v9) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
@@ -14,7 +14,7 @@ function company_total:
   %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:teams]] [depts] -> integer
   %v13 = reduce (:v12) [fn=:agg.sum, over_axes=[:depts]] [] -> integer
 function big_team:
-  %v14 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v14 = load_input [key=:depts, chain=[], plan_ref="depts"] [depts, teams] -> integer
   %v15 = load_field (:v14) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
   %v16 = load_field (:v15) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
   %v17 = load_field (:v16) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer
@@ -23,7 +23,7 @@ function big_team:
   %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:depts, :teams]] [depts, teams] -> integer
   %v21 = map (:v18, :v20) [fn=:core.gt] [depts, teams] -> boolean
 function dept_total_masked:
-  %v32 = load_input [key=:depts, chain=["headcount"], plan_ref="depts"] [depts, teams] -> integer
+  %v32 = load_input [key=:depts, chain=[], plan_ref="depts"] [depts, teams] -> integer
   %v33 = load_field (:v32) [field=:dept, plan_ref="depts.dept"] [depts, teams] -> integer
   %v34 = load_field (:v33) [field=:teams, plan_ref="depts.dept.teams"] [depts, teams] -> integer
   %v35 = load_field (:v34) [field=:team, plan_ref="depts.dept.teams.team"] [depts, teams] -> integer

@@ -1,7 +1,7 @@
 function tax_result:
-  %v1 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+  %v1 = load_input [key=:amount, chain=[], plan_ref="amount"] [] -> decimal
   %v2 = import_call (:v1) [fn_name=:tax, source_module="Kumi::TestSharedSchemas::Tax", mapping_keys=[:amount]] [] -> float
 function total:
-  %v3 = load_input [key=:amount, chain=["amount"], plan_ref="amount"] [] -> decimal
+  %v3 = load_input [key=:amount, chain=[], plan_ref="amount"] [] -> decimal
   %v4 = decl_ref [name=:tax_result] [] -> float
   %v5 = map (:v3, :v4) [fn=:core.add] [] -> float

@@ -1,7 +1,7 @@
 function meta:
   %v1 = constant [value="grid2d"] [] -> string
-  %v2 = load_input [key=:width, chain=["width"], plan_ref="width"] [] -> integer
-  %v3 = load_input [key=:height, chain=["height"], plan_ref="height"] [] -> integer
+  %v2 = load_input [key=:width, chain=[], plan_ref="width"] [] -> integer
+  %v3 = load_input [key=:height, chain=[], plan_ref="height"] [] -> integer
   %v4 = make_object (:v2, :v3) [keys=[:width, :height]] [] -> hash
   %v5 = constant [value="random"] [] -> string
   %v6 = constant [value=0.3] [] -> float
