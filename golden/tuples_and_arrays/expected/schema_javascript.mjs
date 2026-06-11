@@ -1,54 +1,61 @@
 export function _x_is_large(input) {
-  let out = [];
-  let t1 = input["points"];
-  t1.forEach((points_el_2, points_i_3) => {
-    let t4 = points_el_2["x"];
-    let t6 = t4 > 100;
-    out.push(t6);
-  });
-  return out;
+  let t7 = input["points"];
+  let arr12 = [];
+  for (let points_i9 = 0; points_i9 < t7.length; points_i9++) {
+    let points_el8 = t7[points_i9];
+    let t10 = points_el8["x"];
+    let t11 = 100;
+    let t6 = t10 > t11;
+    arr12.push(t6);
+  }
+  return arr12;
 }
 
 export function _selected_value(input) {
-  let out = [];
-  let t7 = input["points"];
-  t7.forEach((points_el_8, points_i_9) => {
-    let t28 = points_el_8["x"];
-    let t12 = points_el_8["y"];
-    let t30 = t28 > 100;
-    let t13 = t30 ? t28 : t12;
-    out.push(t13);
-  });
-  return out;
+  let t21 = input["points"];
+  let arr27 = [];
+  for (let points_i23 = 0; points_i23 < t21.length; points_i23++) {
+    let points_el22 = t21[points_i23];
+    let t24 = points_el22["x"];
+    let t25 = 100;
+    let t20 = t24 > t25;
+    let t26 = points_el22["y"];
+    let t14 = t20 ? t24 : t26;
+    arr27.push(t14);
+  }
+  return arr27;
 }
 
 export function _final_value_per_point(input) {
-  let out = [];
-  let t14 = input["points"];
-  t14.forEach((points_el_15, points_i_16) => {
-    let t37 = points_el_15["x"];
-    let t34 = points_el_15["y"];
-    let t39 = t37 > 100;
-    let t35 = t39 ? t37 : t34;
-    let t19 = [t35, t37];
-    let t20 = Math.max(...t19);
-    out.push(t20);
-  });
-  return out;
+  let t34 = input["points"];
+  let arr40 = [];
+  for (let points_i36 = 0; points_i36 < t34.length; points_i36++) {
+    let points_el35 = t34[points_i36];
+    let t37 = points_el35["x"];
+    let t38 = 100;
+    let t26 = t37 > t38;
+    let t39 = points_el35["y"];
+    let t33 = t26 ? t37 : t39;
+    let acc0 = Math.max(t33, t37);
+    arr40.push(acc0);
+  }
+  return arr40;
 }
 
 export function _grand_total(input) {
-  let acc_21 = 0;
-  let t22 = input["points"];
-  t22.forEach((points_el_23, points_i_24) => {
-    let t51 = points_el_23["x"];
-    let t48 = points_el_23["y"];
-    let t53 = t51 > 100;
-    let t49 = t53 ? t51 : t48;
-    let t43 = [t49, t51];
-    let t44 = Math.max(...t43);
-    acc_21 += t44;
-  });
-  return acc_21;
+  let t36 = input["points"];
+  let acc42 = 0;
+  for (let points_i38 = 0; points_i38 < t36.length; points_i38++) {
+    let points_el37 = t36[points_i38];
+    let t39 = points_el37["x"];
+    let t40 = 100;
+    let t28 = t39 > t40;
+    let t41 = points_el37["y"];
+    let t35 = t28 ? t39 : t41;
+    let acc0 = Math.max(t35, t39);
+    acc42 += acc0;
+  }
+  let t22 = acc42;
+  return t22;
 }
 

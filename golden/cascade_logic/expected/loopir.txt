@@ -1,0 +1,22 @@
+function y_positive:
+  %v4 = load_input [key=:y]
+  %v5 = constant [value=0] [] -> integer
+  %v3 = kernel_call (:v4, :v5) [fn=:core.gt] [] -> boolean
+function x_positive:
+  %v7 = load_input [key=:x]
+  %v8 = constant [value=0] [] -> integer
+  %v6 = kernel_call (:v7, :v8) [fn=:core.gt] [] -> boolean
+function status:
+  %v25 = load_input [key=:y]
+  %v26 = constant [value=0] [] -> integer
+  %v21 = kernel_call (:v25, :v26) [fn=:core.gt] [] -> boolean
+  %v27 = load_input [key=:x]
+  %v24 = kernel_call (:v27, :v26) [fn=:core.gt] [] -> boolean
+  %v9 = kernel_call (:v21, :v24) [fn=:core.and] [] -> boolean
+  %v28 = constant [value="y positive"] [] -> string
+  %v29 = constant [value="neither positive"] [] -> string
+  %v16 = select (:v21, :v28, :v29) [] -> string
+  %v30 = constant [value="x positive"] [] -> string
+  %v17 = select (:v24, :v30, :v16) [] -> string
+  %v31 = constant [value="both positive"] [] -> string
+  %v18 = select (:v9, :v31, :v17) [] -> string

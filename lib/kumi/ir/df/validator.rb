@@ -24,14 +24,19 @@ module Kumi
 
         PRE_CANONICAL_OPS = (CANONICAL_OPS + %i[fold]).freeze
 
-        def self.validate!(df_module, allow_fold: false)
-          new(df_module, allow_fold:).validate!
+        FN_REF_OPS = %i[map reduce fold].freeze
+        DEFAULT_TARGETS = %i[ruby javascript].freeze
+
+        def self.validate!(df_module, allow_fold: false, registry: nil, targets: DEFAULT_TARGETS)
+          new(df_module, allow_fold:, registry:, targets:).validate!
           df_module
         end
 
-        def initialize(df_module, allow_fold: false)
+        def initialize(df_module, allow_fold: false, registry: nil, targets: DEFAULT_TARGETS)
           @df_module = df_module
           @allow_fold = allow_fold
+          @registry = registry
+          @targets = targets
         end
 
         def validate!
@@ -48,7 +53,27 @@ module Kumi
             block.instructions.each do |instr|
               defs[instr.result] = instr if instr.result
               validate_instruction(instr, defs)
+              validate_fn_ref(function, instr)
             end
+          end
+        end
+
+        # Registry coherence: every function reference must resolve to a
+        # registered function with a kernel for every enabled target, so a
+        # pass that mints an unregistered fn id fails here instead of as an
+        # opaque crash at lowering or codegen time.
+        def validate_fn_ref(function, instr)
+          return unless @registry && FN_REF_OPS.include?(instr.opcode)
+
+          fn = instr.attributes[:fn]
+          return unless fn
+
+          @targets.each do |target|
+            @registry.kernel_for(fn, target: target)
+          rescue StandardError => e
+            raise ArgumentError,
+                  "DFIR #{instr.opcode} #{instr.result.inspect} in function " \
+                  "#{function.name.inspect} references #{fn.inspect}: #{e.message}"
           end
         end
 

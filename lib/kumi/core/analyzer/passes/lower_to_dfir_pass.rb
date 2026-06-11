@@ -22,7 +22,8 @@ module Kumi
             context = {
               registry:,
               input_table:,
-              imported_schemas:
+              imported_schemas:,
+              input_plans: get_state(:precomputed_plan_by_fqn, required: false) || {}
             }
             optimized = Kumi::IR::DF::Pipeline.run(graph: lowered, context:)
 

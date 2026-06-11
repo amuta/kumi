@@ -1,0 +1,9 @@
+function price_with_bonus:
+  %v6 = load_input [key=:items]
+  %arr11 = array_init
+  %items_el7 = loop_start (:v6) [axis=:items, index=:items_i8]
+    %v9 = load_field (:items_el7) [field=:price]
+    %v10 = constant [value=10] [] -> integer
+    %v5 = make_object (:v9, :v10) [keys=[:_0, :_1]] [items] -> tuple<integer, integer>
+    array_push (:arr11, :v5)
+  loop_end [axis=:items]

@@ -1,0 +1,11 @@
+function v_sum_y:
+  %v5 = load_input [key=:x]
+  %arr11 = array_init
+  %x_el6 = loop_start (:v5) [axis=:x, index=:x_i7]
+    %acc10 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %y_el8 = loop_start (:x_el6) [axis=:y, index=:y_i9]
+      acc_step (:acc10, :y_el8) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:y]
+    %v4 = acc_load (:acc10) [] -> integer
+    array_push (:arr11, :v4)
+  loop_end [axis=:x]

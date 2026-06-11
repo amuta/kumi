@@ -10,36 +10,44 @@
 
 ## What is Kumi?
 
-Kumi is a **declarative DSL for building calculation systems**.
+Kumi is a **declarative DSL for calculation logic** — tax rules, pricing, scoring, financial projections — that compiles to plain Ruby and JavaScript.
 
-Schemas define:
-- Input shape (scalars, arrays, nested structures)
-- Declarations (computed values and boolean conditions)
-- Dependencies between declarations
+You declare the shape of your input data and the values you want computed. The compiler determines evaluation order, checks types, detects impossible conditions, and emits dependency-free code for each target.
 
-The compiler:
-- Performs type checking
-- Detects unsatisfiable constraints
-- Determines evaluation order
-- Generates code for Ruby or JavaScript
+```ruby
+schema do
+  input do
+    array :items do
+      hash :item do
+        integer :quantity
+        decimal :unit_price
+      end
+    end
+  end
+
+  value :line_totals, input.items.item.quantity * input.items.item.unit_price
+  value :subtotal, fn(:sum, line_totals)
+end
+```
+
+No loops, no iteration plumbing: `line_totals` is computed per item because that's where the data lives, and `fn(:sum, ...)` collapses it back to a scalar. This works through arbitrarily nested arrays.
+
+## Why
+
+- **One source of truth, two targets.** The same schema compiles to Ruby and JavaScript with identical semantics — write pricing logic once, run it in your backend and in the browser preview.
+- **Broadcasting from data shape.** Operations align over arrays automatically based on the declared input structure, including nested and ragged data.
+- **Static checks at compile time.** Type checking, dependency cycle detection, and unsatisfiable-constraint detection happen when the schema is defined, not in production.
+- **Boring generated code.** Output is deterministic, dependency-free, straight-line code with explicit loops. What you read is what runs.
 
 ## Use Cases
 
-Calculation systems appear in: tax engines, pricing models, financial projections, compliance systems, insurance underwriting, shipping rate calculators.
+Tax engines, pricing models, financial projections, compliance rules, insurance underwriting, shipping rate calculators — anywhere calculation logic must be correct, auditable, and consistent across platforms.
 
 ---
 
 **Status**: experimental. Public API may change. Typing and some static checks are still evolving.
 
 **Feedback**: have a use case or hit a rough edge? Open an issue or reach out (andremuta+kumi@gmail.com).
-
----
-
-## Examples
-
-- **US Tax Calculator (2024)** — a single schema computes federal, state, and FICA taxes across multiple filing statuses. [Open in the demo](https://kumi-play-web.fly.dev/?example=us-federal-tax-2024).
-- **Monte Carlo Portfolio** — demonstrates probabilistic simulations and table visualizations. [Open in the demo](https://kumi-play-web.fly.dev/?example=monte-carlo-simulation).
-- **Conway's Game of Life** — showcases array operations powering a grid-based simulation. [Open in the demo](https://kumi-play-web.fly.dev/?example=game-of-life).
 
 ---
 
@@ -85,18 +93,22 @@ Double.write_source("output.mjs", platform: :javascript)
 You can also override the compilation strategy without touching code by setting
 `KUMI_COMPILATION_MODE` to `jit` or `aot` (e.g. `export KUMI_COMPILATION_MODE=aot`).
 
-Try the [interactive demo](https://kumi-play-web.fly.dev/) (no setup required).
+## Examples
+
+- **US Tax Calculator (2024)** — a single schema computes federal, state, and FICA taxes across multiple filing statuses. [Open in the demo](https://kumi-play-web.fly.dev/?example=us-federal-tax-2024).
+- **Monte Carlo Portfolio** — probabilistic simulations and table visualizations. [Open in the demo](https://kumi-play-web.fly.dev/?example=monte-carlo-simulation).
+- **Conway's Game of Life** — array operations powering a grid-based simulation. [Open in the demo](https://kumi-play-web.fly.dev/?example=game-of-life).
 
 ---
 
 ## Documentation
 
-- **[Syntax Reference](docs/SYNTAX.md)** - DSL syntax, types, operators, functions, and schema imports
-- **[Functions Reference](docs/FUNCTIONS.md)** - Auto-generated docs for all functions and kernels
-- **[functions-reference.json](docs/functions-reference.json)** - Machine-readable format for IDEs (VSCode, Monaco, etc.)
-- **[Development Guide](docs/DEVELOPMENT.md)** - Testing, debugging, and contributing
-
-To regenerate function docs: `bin/kumi-doc-gen`
+- **[Syntax Reference](docs/SYNTAX.md)** — DSL syntax, types, operators, functions
+- **[Functions Reference](docs/FUNCTIONS.md)** — auto-generated docs for all functions and kernels ([machine-readable JSON](docs/functions-reference.json))
+- **[Schema Imports](docs/SCHEMA_IMPORTS.md)** — composing and reusing schemas
+- **[Architecture](docs/ARCHITECTURE.md)** — the compiler pipeline and IR stack
+- **[Golden Tests](docs/GOLDEN_TESTS.md)** — the end-to-end test harness
+- **[Development Guide](docs/DEVELOPMENT.md)** — tooling, docs generation, IDE integration
 
 ---
 

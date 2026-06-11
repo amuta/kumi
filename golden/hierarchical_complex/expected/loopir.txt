@@ -1,0 +1,129 @@
+function high_performer:
+  %v13 = load_input [key=:regions]
+  %arr27 = array_init
+  %regions_el14 = loop_start (:v13) [axis=:regions, index=:regions_i15]
+    %v16 = load_field (:regions_el14) [field=:offices]
+    %arr28 = array_init
+    %offices_el17 = loop_start (:v16) [axis=:offices, index=:offices_i18]
+      %v19 = load_field (:offices_el17) [field=:teams]
+      %arr29 = array_init
+      %teams_el20 = loop_start (:v19) [axis=:teams, index=:teams_i21]
+        %v22 = load_field (:teams_el20) [field=:employees]
+        %arr30 = array_init
+        %employees_el23 = loop_start (:v22) [axis=:employees, index=:employees_i24]
+          %v25 = load_field (:employees_el23) [field=:rating]
+          %v26 = constant [value=4.5] [] -> float
+          %v12 = kernel_call (:v25, :v26) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+          array_push (:arr30, :v12)
+        loop_end [axis=:employees]
+        array_push (:arr29, :arr30)
+      loop_end [axis=:teams]
+      array_push (:arr28, :arr29)
+    loop_end [axis=:offices]
+    array_push (:arr27, :arr28)
+  loop_end [axis=:regions]
+function senior_level:
+  %v25 = load_input [key=:regions]
+  %arr39 = array_init
+  %regions_el26 = loop_start (:v25) [axis=:regions, index=:regions_i27]
+    %v28 = load_field (:regions_el26) [field=:offices]
+    %arr40 = array_init
+    %offices_el29 = loop_start (:v28) [axis=:offices, index=:offices_i30]
+      %v31 = load_field (:offices_el29) [field=:teams]
+      %arr41 = array_init
+      %teams_el32 = loop_start (:v31) [axis=:teams, index=:teams_i33]
+        %v34 = load_field (:teams_el32) [field=:employees]
+        %arr42 = array_init
+        %employees_el35 = loop_start (:v34) [axis=:employees, index=:employees_i36]
+          %v37 = load_field (:employees_el35) [field=:level]
+          %v38 = constant [value="senior"] [] -> string
+          %v24 = kernel_call (:v37, :v38) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+          array_push (:arr42, :v24)
+        loop_end [axis=:employees]
+        array_push (:arr41, :arr42)
+      loop_end [axis=:teams]
+      array_push (:arr40, :arr41)
+    loop_end [axis=:offices]
+    array_push (:arr39, :arr40)
+  loop_end [axis=:regions]
+function top_team:
+  %v35 = load_input [key=:regions]
+  %arr46 = array_init
+  %regions_el36 = loop_start (:v35) [axis=:regions, index=:regions_i37]
+    %v38 = load_field (:regions_el36) [field=:offices]
+    %arr47 = array_init
+    %offices_el39 = loop_start (:v38) [axis=:offices, index=:offices_i40]
+      %v41 = load_field (:offices_el39) [field=:teams]
+      %arr48 = array_init
+      %teams_el42 = loop_start (:v41) [axis=:teams, index=:teams_i43]
+        %v44 = load_field (:teams_el42) [field=:performance_score]
+        %v45 = constant [value=0.9] [] -> float
+        %v34 = kernel_call (:v44, :v45) [fn=:core.gte] [regions, offices, teams] -> boolean
+        array_push (:arr48, :v34)
+      loop_end [axis=:teams]
+      array_push (:arr47, :arr48)
+    loop_end [axis=:offices]
+    array_push (:arr46, :arr47)
+  loop_end [axis=:regions]
+function employee_bonus:
+  %v117 = load_input [key=:regions]
+  %arr137 = array_init
+  %arr142 = array_init
+  %arr151 = array_init
+  %regions_el118 = loop_start (:v117) [axis=:regions, index=:regions_i119]
+    %v120 = load_field (:regions_el118) [field=:offices]
+    %arr138 = array_init
+    %arr143 = array_init
+    %arr152 = array_init
+    %offices_el121 = loop_start (:v120) [axis=:offices, index=:offices_i122]
+      %v123 = load_field (:offices_el121) [field=:teams]
+      %arr139 = array_init
+      %arr144 = array_init
+      %arr153 = array_init
+      %teams_el124 = loop_start (:v123) [axis=:teams, index=:teams_i125]
+        %v126 = load_field (:teams_el124) [field=:employees]
+        %arr140 = array_init
+        %arr145 = array_init
+        %employees_el127 = loop_start (:v126) [axis=:employees, index=:employees_i128]
+          %v129 = load_field (:employees_el127) [field=:rating]
+          %v130 = constant [value=4.5] [] -> float
+          %v94 = kernel_call (:v129, :v130) [fn=:core.gte] [regions, offices, teams, employees] -> boolean
+          array_push (:arr145, :v94)
+          %v131 = load_field (:employees_el127) [field=:level]
+          %v132 = constant [value="senior"] [] -> string
+          %v106 = kernel_call (:v131, :v132) [fn=:core.eq] [regions, offices, teams, employees] -> boolean
+          array_push (:arr140, :v106)
+        loop_end [axis=:employees]
+        array_push (:arr144, :arr145)
+        array_push (:arr139, :arr140)
+        %v133 = load_field (:teams_el124) [field=:performance_score]
+        %v134 = constant [value=0.9] [] -> float
+        %v116 = kernel_call (:v133, :v134) [fn=:core.gte] [regions, offices, teams] -> boolean
+        %arr154 = array_init
+        %employees_el135 = loop_start (:v126) [axis=:employees, index=:employees_i136]
+          %v141 = index_read (:arr140, :employees_i136)
+          %v39 = kernel_call (:v141, :v116) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+          %v146 = index_read (:arr145, :employees_i136)
+          %v40 = kernel_call (:v146, :v39) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+          %v147 = load_field (:employees_el135) [field=:salary]
+          %v148 = constant [value=0.3] [] -> float
+          %v52 = kernel_call (:v147, :v148) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+          %v56 = kernel_call (:v146, :v116) [fn=:core.and] [regions, offices, teams, employees] -> boolean
+          %v149 = constant [value=0.2] [] -> float
+          %v68 = kernel_call (:v147, :v149) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+          %v150 = constant [value=0.05] [] -> float
+          %v80 = kernel_call (:v147, :v150) [fn=:core.mul:numeric] [regions, offices, teams, employees] -> float
+          %v81 = select (:v56, :v68, :v80) [regions, offices, teams, employees] -> float
+          %v82 = select (:v40, :v52, :v81) [regions, offices, teams, employees] -> float
+          array_push (:arr154, :v82)
+        loop_end [axis=:employees]
+        array_push (:arr153, :arr154)
+      loop_end [axis=:teams]
+      array_push (:arr152, :arr153)
+      array_push (:arr143, :arr144)
+      array_push (:arr138, :arr139)
+    loop_end [axis=:offices]
+    array_push (:arr151, :arr152)
+    array_push (:arr142, :arr143)
+    array_push (:arr137, :arr138)
+  loop_end [axis=:regions]

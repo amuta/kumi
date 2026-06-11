@@ -13,6 +13,7 @@ module Kumi
             loader = @loader || build_loader(context)
             return graph unless loader
 
+            @plans = context[:input_plans] || {}
             functions = graph.functions.values.map { |fn| rewrite_function(fn, loader) }
             Kumi::IR::DF::Graph.new(name: graph.name, functions: functions)
           end
@@ -30,7 +31,8 @@ module Kumi
 
           def rewrite_function(fn, loader)
             reg_gen = RegGenerator.new(fn)
-            new_blocks = fn.blocks.map { |block| rewrite_block(block, loader, reg_gen) }
+            defs = {}
+            new_blocks = fn.blocks.map { |block| rewrite_block(block, loader, reg_gen, defs) }
             Kumi::IR::DF::Function.new(
               name: fn.name,
               parameters: fn.parameters,
@@ -39,17 +41,23 @@ module Kumi
             )
           end
 
-          def rewrite_block(block, loader, reg_gen)
+          def rewrite_block(block, loader, reg_gen, defs)
             replacements = {}
             new_instructions = []
+
+            record = lambda do |new_instr|
+              new_instructions << new_instr
+              result = new_instr.defs.first
+              defs[result] = new_instr if result
+            end
 
             block.each do |instr|
               new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
               if instr.opcode == :import_call
-                inlined, result_reg = inline_import(instr, new_inputs, loader, reg_gen)
+                inlined, result_reg = inline_import(instr, new_inputs, loader, reg_gen, defs)
                 if inlined
-                  new_instructions.concat(inlined)
+                  inlined.each(&record)
                   if (result = instr.defs.first)
                     replacements[result] = result_reg
                   end
@@ -57,14 +65,13 @@ module Kumi
                 end
               end
 
-              cloned = Support::InstructionCloner.clone(instr, new_inputs)
-              new_instructions << cloned
+              record.call(Support::InstructionCloner.clone(instr, new_inputs))
             end
 
             Kumi::IR::Base::Block.new(name: block.name, instructions: new_instructions)
           end
 
-          def inline_import(instr, resolved_inputs, loader, reg_gen)
+          def inline_import(instr, resolved_inputs, loader, reg_gen, caller_defs)
             attrs = instr.attributes || {}
             fn_name = attrs[:fn_name]&.to_sym
             return nil unless fn_name
@@ -79,7 +86,8 @@ module Kumi
             call_axes = Array(instr.axes).map(&:to_sym)
             arg_map = mapping_keys.zip(resolved_inputs).to_h
 
-            axes_map = build_axis_map(function_output_axes(callee), call_axes)
+            chain_axes_map, caller_fqns = derive_chain_mappings(callee, arg_map, caller_defs)
+            axes_map = build_axis_map(function_output_axes(callee), call_axes).merge(chain_axes_map)
             extra_axes = call_axes.reject { |ax| axes_map.value?(ax) }
 
             inliner = Kumi::IR::DF::ImportInliner.new(axis_map: axes_map, extra_axes: extra_axes)
@@ -107,11 +115,15 @@ module Kumi
 
               callee_result = callee_instr.defs.first
               new_result = callee_result ? reg_gen.next : nil
+              cloned_attrs = callee_instr.attributes
+              if cloned_attrs && cloned_attrs[:plan_ref] && (fqn = caller_fqns[callee_result])
+                cloned_attrs = cloned_attrs.merge(plan_ref: fqn)
+              end
               cloned = Support::InstructionCloner.clone(
                 callee_instr,
                 new_inputs,
                 metadata: callee_instr.metadata,
-                attributes: callee_instr.attributes,
+                attributes: cloned_attrs,
                 result: new_result
               )
               emitted << cloned
@@ -124,10 +136,95 @@ module Kumi
             [emitted, final_reg]
           end
 
+          # Canonicalizes axis identity at the inlining boundary: every callee
+          # axis that is reachable through an argument's load chain is mapped
+          # to the axis name the caller's input plan mints for the same
+          # carrier, so downstream IRs never see callee-named axes.
+          def derive_chain_mappings(callee, arg_map, caller_defs)
+            callee_defs = {}
+            callee.blocks.each do |block|
+              block.each { |i| callee_defs[i.defs.first] = i if i.defs.first }
+            end
+
+            axis_map = {}
+            fqns = {}
+
+            callee_defs.each_value do |instr|
+              next unless %i[load_input load_field].include?(instr.opcode)
+
+              segments = callee_chain_segments(instr, callee_defs)
+              next unless segments
+
+              arg_reg = arg_map[segments.first.to_sym]
+              next unless arg_reg
+
+              root = caller_chain(arg_reg, caller_defs)
+              next unless root
+
+              fqn = (root[:segments] + segments[1..]).join(".")
+              fqns[instr.defs.first] = fqn
+
+              plan = @plans[fqn]
+              next unless plan
+
+              caller_axes = Array(plan[:loop_axes]).map(&:to_sym).drop(root[:axes].size)
+              Array(instr.axes).map(&:to_sym).zip(caller_axes).each do |from, to|
+                next unless from && to
+
+                existing = axis_map[from]
+                if existing && existing != to
+                  raise ArgumentError,
+                        "import inlining maps callee axis #{from.inspect} to both #{existing.inspect} and #{to.inspect}"
+                end
+                axis_map[from] = to
+              end
+            end
+
+            [axis_map, fqns]
+          end
+
+          def callee_chain_segments(instr, defs)
+            segments = []
+            while instr
+              case instr.opcode
+              when :load_field
+                segments.unshift(instr.attributes[:field].to_s)
+                instr = defs[instr.uses.first]
+              when :load_input
+                segments.unshift(instr.attributes[:key].to_s)
+                return segments
+              else
+                return nil
+              end
+            end
+            nil
+          end
+
+          def caller_chain(reg, defs)
+            segments = []
+            axes = nil
+            instr = defs[reg]
+            while instr
+              axes ||= Array(instr.axes).map(&:to_sym)
+              case instr.opcode
+              when :load_field
+                segments.unshift(instr.attributes[:field].to_s)
+                instr = defs[instr.uses.first]
+              when :load_input
+                segments.unshift(instr.attributes[:key].to_s)
+                return { segments: segments, axes: axes }
+              else
+                return nil
+              end
+            end
+            nil
+          end
+
           def build_axis_map(callee_axes, target_axes)
             axis_pairs = callee_axes.zip(target_axes)
             axis_pairs.each_with_object({}) do |(from, to), memo|
               break memo unless from && to
+
               memo[from] = to
             end
           end

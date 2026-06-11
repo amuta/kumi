@@ -1,0 +1,58 @@
+function dept_total:
+  %v7 = load_input [key=:depts]
+  %arr15 = array_init
+  %depts_el8 = loop_start (:v7) [axis=:depts, index=:depts_i9]
+    %v10 = load_field (:depts_el8) [field=:teams]
+    %acc14 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %teams_el11 = loop_start (:v10) [axis=:teams, index=:teams_i12]
+      %v13 = load_field (:teams_el11) [field=:headcount]
+      acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:teams]
+    %v6 = acc_load (:acc14) [] -> integer
+    array_push (:arr15, :v6)
+  loop_end [axis=:depts]
+function company_total:
+  %v14 = load_input [key=:depts]
+  %acc22 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %depts_el15 = loop_start (:v14) [axis=:depts, index=:depts_i16]
+    %v17 = load_field (:depts_el15) [field=:teams]
+    %acc21 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %teams_el18 = loop_start (:v17) [axis=:teams, index=:teams_i19]
+      %v20 = load_field (:teams_el18) [field=:headcount]
+      acc_step (:acc21, :v20) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:teams]
+    %v12 = acc_load (:acc21) [] -> integer
+    acc_step (:acc22, :v12) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:depts]
+  %v13 = acc_load (:acc22) [] -> integer
+function big_team:
+  %v22 = load_input [key=:depts]
+  %arr30 = array_init
+  %depts_el23 = loop_start (:v22) [axis=:depts, index=:depts_i24]
+    %v25 = load_field (:depts_el23) [field=:teams]
+    %arr31 = array_init
+    %teams_el26 = loop_start (:v25) [axis=:teams, index=:teams_i27]
+      %v28 = load_field (:teams_el26) [field=:headcount]
+      %v29 = constant [value=10] [] -> integer
+      %v21 = kernel_call (:v28, :v29) [fn=:core.gt] [depts, teams] -> boolean
+      array_push (:arr31, :v21)
+    loop_end [axis=:teams]
+    array_push (:arr30, :arr31)
+  loop_end [axis=:depts]
+function dept_total_masked:
+  %v40 = load_input [key=:depts]
+  %arr50 = array_init
+  %depts_el41 = loop_start (:v40) [axis=:depts, index=:depts_i42]
+    %v43 = load_field (:depts_el41) [field=:teams]
+    %acc49 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %teams_el44 = loop_start (:v43) [axis=:teams, index=:teams_i45]
+      %v46 = load_field (:teams_el44) [field=:headcount]
+      %v47 = constant [value=10] [] -> integer
+      %v39 = kernel_call (:v46, :v47) [fn=:core.gt] [depts, teams] -> boolean
+      %v48 = constant [value=0] [] -> integer
+      %v30 = select (:v39, :v46, :v48) [depts, teams] -> integer
+      acc_step (:acc49, :v30) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:teams]
+    %v31 = acc_load (:acc49) [] -> integer
+    array_push (:arr50, :v31)
+  loop_end [axis=:depts]

@@ -28,13 +28,6 @@ module Kumi
         Representation.new(name: "dfir_optimized", extension: "txt", generator_method: :generate_dfir_optimized),
         Representation.new(name: "vecir", extension: "txt", generator_method: :generate_vecir),
         Representation.new(name: "loopir", extension: "txt", generator_method: :generate_loopir),
-        Representation.new(name: "lir_00_unoptimized", extension: "txt", generator_method: :generate_lir_00_unoptimized),
-        Representation.new(name: "lir_01_hoist_scalar_references", extension: "txt", generator_method: :generate_lir_01_hoist_scalar_references),
-        Representation.new(name: "lir_02_inlined", extension: "txt", generator_method: :generate_lir_02_inlined),
-        Representation.new(name: "lir_04_1_loop_fusion", extension: "txt", generator_method: :generate_lir_04_1_loop_fusion),
-        Representation.new(name: "lir_03_cse", extension: "txt", generator_method: :generate_lir_03_cse),
-        Representation.new(name: "lir_04_loop_invcm", extension: "txt", generator_method: :generate_lir_04_loop_invcm),
-        Representation.new(name: "lir_06_const_prop", extension: "txt", generator_method: :generate_lir_06_const_prop),
         Representation.new(name: "schema_ruby", extension: "rb", generator_method: :generate_schema_ruby),
         Representation.new(name: "schema_javascript", extension: "mjs", generator_method: :generate_schema_javascript)
       ].freeze
@@ -44,15 +37,6 @@ module Kumi
         "df" => %w[dfir dfir_optimized],
         "vec" => %w[vecir],
         "loop" => %w[loopir],
-        "lir" => %w[
-          lir_00_unoptimized
-          lir_01_hoist_scalar_references
-          lir_02_inlined
-          lir_04_1_loop_fusion
-          lir_03_cse
-          lir_04_loop_invcm
-          lir_06_const_prop
-        ],
         "codegen" => %w[schema_ruby schema_javascript],
         "all" => REPRESENTATIONS.map(&:name)
       }.freeze
@@ -237,8 +221,8 @@ module Kumi
           end
         end
 
-        def each_representation(tokens, &block)
-          select_representations(tokens).each(&block)
+        def each_representation(tokens, &)
+          select_representations(tokens).each(&)
         end
 
         def schema_names

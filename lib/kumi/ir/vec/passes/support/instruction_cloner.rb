@@ -34,6 +34,8 @@ module Kumi
                 Ops::AxisIndex.new(result:, axis: attrs[:axis], axes:, dtype:, metadata:)
               when :reduce
                 Ops::Reduce.new(result:, fn: attrs[:fn], arg: inputs.first, over_axes: attrs[:over_axes], axes:, dtype:, metadata:)
+              when :make_object
+                Ops::MakeObject.new(result:, inputs: inputs, keys: attrs[:keys], axes:, dtype:, metadata:)
               else
                 instr
               end

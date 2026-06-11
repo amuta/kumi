@@ -1,0 +1,58 @@
+(Root
+  inputs: [
+    (InputDeclaration :regions :array
+      [
+        (InputDeclaration :region :hash
+          [
+            (InputDeclaration :sales :array
+              [
+                (InputDeclaration :sale :hash
+                  [
+                    (InputDeclaration :amount :integer)
+                  ]
+                )
+              ]
+            )
+            (InputDeclaration :tags :array
+              [
+                (InputDeclaration :tag :hash
+                  [
+                    (InputDeclaration :label :string)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :region_max
+      (CallExpression :max
+        (InputElementReference regions.region.sales.sale.amount)
+      )
+    )
+    (ValueDeclaration :region_min
+      (CallExpression :min
+        (InputElementReference regions.region.sales.sale.amount)
+      )
+    )
+    (ValueDeclaration :region_labels
+      (CallExpression :join
+        (InputElementReference regions.region.tags.tag.label)
+      )
+    )
+    (ValueDeclaration :best_region_sale
+      (CallExpression :max
+        (DeclarationReference :region_max)
+      )
+    )
+    (ValueDeclaration :worst_region_sale
+      (CallExpression :min
+        (DeclarationReference :region_min)
+      )
+    )
+  ]
+  traits: []
+)

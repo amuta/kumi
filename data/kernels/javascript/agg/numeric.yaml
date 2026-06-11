@@ -16,12 +16,16 @@ kernels:
 
   - id: agg.min:javascript:v1
     fn: agg.min
-    # Handles first element being null/undefined
-    inline: "= ($0 === null || $1 < $0) ? $1 : $0"
+    # Skips null values (an inner reduction over an empty array yields null);
+    # the $1 !== null guard is required because null coerces to 0 in
+    # relational comparisons (null < 5 is true).
+    inline: "= ($1 !== null && ($0 === null || $1 < $0)) ? $1 : $0"
     fold_inline: "= Math.min(...$0)"
 
   - id: agg.max:javascript:v1
     fn: agg.max
-    # Handles first element being null/undefined
-    inline: "= ($0 === null || $1 > $0) ? $1 : $0"
+    # Skips null values (an inner reduction over an empty array yields null);
+    # the $1 !== null guard is required because null coerces to 0 in
+    # relational comparisons (null > -5 is true).
+    inline: "= ($1 !== null && ($0 === null || $1 > $0)) ? $1 : $0"
     fold_inline: "= Math.max(...$0)"

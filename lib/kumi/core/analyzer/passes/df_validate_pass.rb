@@ -10,9 +10,10 @@ module Kumi
           def run(_errors)
             unoptimized = get_state(:df_module_unoptimized, required: false)
             optimized = get_state(:df_module, required: false)
+            registry = get_state(:registry, required: false)
 
-            Kumi::IR::DF::Validator.validate!(unoptimized, allow_fold: true) if unoptimized
-            Kumi::IR::DF::Validator.validate!(optimized) if optimized
+            Kumi::IR::DF::Validator.validate!(unoptimized, allow_fold: true, registry:) if unoptimized
+            Kumi::IR::DF::Validator.validate!(optimized, registry:) if optimized
 
             state
           end

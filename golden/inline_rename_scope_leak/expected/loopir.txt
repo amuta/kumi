@@ -1,0 +1,35 @@
+function sum_x:
+  %v5 = load_input [key=:xs]
+  %acc9 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %xs_el6 = loop_start (:v5) [axis=:xs, index=:xs_i7]
+    %v8 = load_field (:xs_el6) [field=:v]
+    acc_step (:acc9, :v8) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:xs]
+  %v4 = acc_load (:acc9) [] -> float
+function sum_y:
+  %v9 = load_input [key=:ys]
+  %acc13 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %ys_el10 = loop_start (:v9) [axis=:ys, index=:ys_i11]
+    %v12 = load_field (:ys_el10) [field=:v]
+    acc_step (:acc13, :v12) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:ys]
+  %v8 = acc_load (:acc13) [] -> float
+function tail:
+  %v12 = constant [value=12.0] [] -> float
+function out:
+  %v27 = load_input [key=:xs]
+  %acc31 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %xs_el28 = loop_start (:v27) [axis=:xs, index=:xs_i29]
+    %v30 = load_field (:xs_el28) [field=:v]
+    acc_step (:acc31, :v30) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:xs]
+  %v19 = acc_load (:acc31) [] -> float
+  %v32 = load_input [key=:ys]
+  %acc36 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %ys_el33 = loop_start (:v32) [axis=:ys, index=:ys_i34]
+    %v35 = load_field (:ys_el33) [field=:v]
+    acc_step (:acc36, :v35) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:ys]
+  %v23 = acc_load (:acc36) [] -> float
+  %v37 = constant [value=12.0] [] -> float
+  %v15 = make_object (:v19, :v23, :v37) [keys=[:x, :y, :t]] [] -> hash

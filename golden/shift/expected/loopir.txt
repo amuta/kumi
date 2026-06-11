@@ -1,0 +1,64 @@
+function shift_right_zero:
+  %v4 = load_input [key=:cells]
+  %arr12 = array_init
+  %cells_el5 = loop_start (:v4) [axis=:cells, index=:cells_i6]
+    %v7 = load_input [key=:cells]
+    %v8 = array_len (:v7)
+    %v9 = shift_read (:v7, :cells_i6, :v8) [offset=1, policy=:clamp] [] -> integer
+    %v10 = shift_in_bounds (:cells_i6, :v8) [offset=1] [] -> :boolean
+    %v11 = constant [value=0] [] -> integer
+    %v1 = select (:v10, :v9, :v11) [cells] -> integer
+    array_push (:arr12, :v1)
+  loop_end [axis=:cells]
+function shift_left_zero:
+  %v7 = load_input [key=:cells]
+  %arr15 = array_init
+  %cells_el8 = loop_start (:v7) [axis=:cells, index=:cells_i9]
+    %v10 = load_input [key=:cells]
+    %v11 = array_len (:v10)
+    %v12 = shift_read (:v10, :cells_i9, :v11) [offset=-1, policy=:clamp] [] -> integer
+    %v13 = shift_in_bounds (:cells_i9, :v11) [offset=-1] [] -> :boolean
+    %v14 = constant [value=0] [] -> integer
+    %v4 = select (:v13, :v12, :v14) [cells] -> integer
+    array_push (:arr15, :v4)
+  loop_end [axis=:cells]
+function shift_right_clamp:
+  %v10 = load_input [key=:cells]
+  %arr16 = array_init
+  %cells_el11 = loop_start (:v10) [axis=:cells, index=:cells_i12]
+    %v13 = load_input [key=:cells]
+    %v14 = array_len (:v13)
+    %v15 = shift_read (:v13, :cells_i12, :v14) [offset=1, policy=:clamp] [] -> integer
+    %v7 = ref (:v15) [cells] -> integer
+    array_push (:arr16, :v7)
+  loop_end [axis=:cells]
+function shift_left_clamp:
+  %v13 = load_input [key=:cells]
+  %arr19 = array_init
+  %cells_el14 = loop_start (:v13) [axis=:cells, index=:cells_i15]
+    %v16 = load_input [key=:cells]
+    %v17 = array_len (:v16)
+    %v18 = shift_read (:v16, :cells_i15, :v17) [offset=-1, policy=:clamp] [] -> integer
+    %v10 = ref (:v18) [cells] -> integer
+    array_push (:arr19, :v10)
+  loop_end [axis=:cells]
+function shift_right_wrap:
+  %v16 = load_input [key=:cells]
+  %arr22 = array_init
+  %cells_el17 = loop_start (:v16) [axis=:cells, index=:cells_i18]
+    %v19 = load_input [key=:cells]
+    %v20 = array_len (:v19)
+    %v21 = shift_read (:v19, :cells_i18, :v20) [offset=1, policy=:wrap] [] -> integer
+    %v13 = ref (:v21) [cells] -> integer
+    array_push (:arr22, :v13)
+  loop_end [axis=:cells]
+function shift_left_wrap:
+  %v19 = load_input [key=:cells]
+  %arr25 = array_init
+  %cells_el20 = loop_start (:v19) [axis=:cells, index=:cells_i21]
+    %v22 = load_input [key=:cells]
+    %v23 = array_len (:v22)
+    %v24 = shift_read (:v22, :cells_i21, :v23) [offset=-1, policy=:wrap] [] -> integer
+    %v16 = ref (:v24) [cells] -> integer
+    array_push (:arr25, :v16)
+  loop_end [axis=:cells]

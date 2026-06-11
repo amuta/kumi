@@ -1,0 +1,12 @@
+function name_len:
+  %v3 = load_input [key=:name]
+  %v2 = kernel_call (:v3) [fn=:core.length] [] -> integer
+function items_count:
+  %v5 = load_input [key=:items]
+  %v4 = kernel_call (:v5) [fn=:core.array_size] [] -> integer
+function summary:
+  %v12 = load_input [key=:name]
+  %v9 = kernel_call (:v12) [fn=:core.length] [] -> integer
+  %v13 = load_input [key=:items]
+  %v11 = kernel_call (:v13) [fn=:core.array_size] [] -> integer
+  %v7 = make_object (:v9, :v11) [keys=[:name_length, :item_count]] [] -> hash

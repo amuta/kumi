@@ -181,9 +181,11 @@ module Kumi
 
         def format_axes_dtype
           axes = printer_axes
-          dtype = printer_dtype || "unknown"
+          dtype = printer_dtype
+          return nil if (axes.nil? || axes.empty?) && dtype.nil?
+
           axes_part = axes&.any? ? "[#{axes.join(', ')}]" : "[]"
-          "#{axes_part} -> #{format_value(dtype)}"
+          "#{axes_part} -> #{format_value(dtype || 'unknown')}"
         end
 
         def format_value(value)

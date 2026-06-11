@@ -1,0 +1,685 @@
+function state_tax:
+  %v4 = load_input [key=:income]
+  %v5 = load_input [key=:state_rate]
+  %v3 = kernel_call (:v4, :v5) [fn=:core.mul:numeric] [] -> float
+function local_tax:
+  %v7 = load_input [key=:income]
+  %v8 = load_input [key=:local_rate]
+  %v6 = kernel_call (:v7, :v8) [fn=:core.mul:numeric] [] -> float
+function taxable:
+  %v14 = load_input [key=:statuses]
+  %arr20 = array_init
+  %statuses_el15 = loop_start (:v14) [axis=:statuses, index=:statuses_i16]
+    %v17 = load_input [key=:income]
+    %v18 = load_field (:statuses_el15) [field=:std]
+    %v12 = kernel_call (:v17, :v18) [fn=:core.sub] [statuses] -> float
+    %v19 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v12, :v19) [fn=:core.max] [statuses] -> float
+    array_push (:arr20, :acc0)
+  loop_end [axis=:statuses]
+function lo:
+  %v21 = load_input [key=:statuses]
+  %arr29 = array_init
+  %statuses_el22 = loop_start (:v21) [axis=:statuses, index=:statuses_i23]
+    %v24 = load_field (:statuses_el22) [field=:rates]
+    %arr30 = array_init
+    %rates_el25 = loop_start (:v24) [axis=:rates, index=:rates_i26]
+      %v27 = load_field (:rates_el25) [field=:lo]
+      %v28 = ref (:v27) [statuses, rates] -> float
+      array_push (:arr30, :v28)
+    loop_end [axis=:rates]
+    array_push (:arr29, :arr30)
+  loop_end [axis=:statuses]
+function hi:
+  %v26 = load_input [key=:statuses]
+  %arr34 = array_init
+  %statuses_el27 = loop_start (:v26) [axis=:statuses, index=:statuses_i28]
+    %v29 = load_field (:statuses_el27) [field=:rates]
+    %arr35 = array_init
+    %rates_el30 = loop_start (:v29) [axis=:rates, index=:rates_i31]
+      %v32 = load_field (:rates_el30) [field=:hi]
+      %v33 = ref (:v32) [statuses, rates] -> float
+      array_push (:arr35, :v33)
+    loop_end [axis=:rates]
+    array_push (:arr34, :arr35)
+  loop_end [axis=:statuses]
+function rate:
+  %v31 = load_input [key=:statuses]
+  %arr39 = array_init
+  %statuses_el32 = loop_start (:v31) [axis=:statuses, index=:statuses_i33]
+    %v34 = load_field (:statuses_el32) [field=:rates]
+    %arr40 = array_init
+    %rates_el35 = loop_start (:v34) [axis=:rates, index=:rates_i36]
+      %v37 = load_field (:rates_el35) [field=:rate]
+      %v38 = ref (:v37) [statuses, rates] -> float
+      array_push (:arr40, :v38)
+    loop_end [axis=:rates]
+    array_push (:arr39, :arr40)
+  loop_end [axis=:statuses]
+function big_hi:
+  %v32 = constant [value=100000000000.0] [] -> float
+function hi_eff:
+  %v45 = load_input [key=:statuses]
+  %arr54 = array_init
+  %statuses_el46 = loop_start (:v45) [axis=:statuses, index=:statuses_i47]
+    %v48 = load_field (:statuses_el46) [field=:rates]
+    %arr55 = array_init
+    %rates_el49 = loop_start (:v48) [axis=:rates, index=:rates_i50]
+      %v51 = load_field (:rates_el49) [field=:hi]
+      %v52 = constant [value=-1] [] -> integer
+      %v35 = kernel_call (:v51, :v52) [fn=:core.eq] [statuses, rates] -> boolean
+      %v53 = constant [value=100000000000.0] [] -> float
+      %v39 = select (:v35, :v53, :v51) [statuses, rates] -> float
+      array_push (:arr55, :v39)
+    loop_end [axis=:rates]
+    array_push (:arr54, :arr55)
+  loop_end [axis=:statuses]
+function amt:
+  %v80 = load_input [key=:statuses]
+  %arr94 = array_init
+  %statuses_el81 = loop_start (:v80) [axis=:statuses, index=:statuses_i82]
+    %v83 = load_input [key=:income]
+    %v84 = load_field (:statuses_el81) [field=:std]
+    %v55 = kernel_call (:v83, :v84) [fn=:core.sub] [statuses] -> float
+    %v85 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v55, :v85) [fn=:core.max] [statuses] -> float
+    %v86 = load_field (:statuses_el81) [field=:rates]
+    %arr95 = array_init
+    %rates_el87 = loop_start (:v86) [axis=:rates, index=:rates_i88]
+      %v89 = load_field (:rates_el87) [field=:lo]
+      %v43 = kernel_call (:acc0, :v89) [fn=:core.sub] [statuses, rates] -> float
+      %v90 = load_field (:rates_el87) [field=:hi]
+      %v91 = constant [value=-1] [] -> integer
+      %v71 = kernel_call (:v90, :v91) [fn=:core.eq] [statuses, rates] -> boolean
+      %v92 = constant [value=100000000000.0] [] -> float
+      %v79 = select (:v71, :v92, :v90) [statuses, rates] -> float
+      %v48 = kernel_call (:v79, :v89) [fn=:core.sub] [statuses, rates] -> float
+      %v93 = constant [value=0] [] -> integer
+      %v49 = kernel_call (:v43, :v93, :v48) [fn=:core.clamp] [statuses, rates] -> float
+      array_push (:arr95, :v49)
+    loop_end [axis=:rates]
+    array_push (:arr94, :arr95)
+  loop_end [axis=:statuses]
+function fed_tax:
+  %v100 = load_input [key=:statuses]
+  %arr116 = array_init
+  %statuses_el101 = loop_start (:v100) [axis=:statuses, index=:statuses_i102]
+    %v103 = load_input [key=:income]
+    %v104 = load_field (:statuses_el101) [field=:std]
+    %v59 = kernel_call (:v103, :v104) [fn=:core.sub] [statuses] -> float
+    %v105 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v59, :v105) [fn=:core.max] [statuses] -> float
+    %v106 = load_field (:statuses_el101) [field=:rates]
+    %acc115 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el107 = loop_start (:v106) [axis=:rates, index=:rates_i108]
+      %v109 = load_field (:rates_el107) [field=:lo]
+      %v69 = kernel_call (:acc0, :v109) [fn=:core.sub] [statuses, rates] -> float
+      %v110 = load_field (:rates_el107) [field=:hi]
+      %v111 = constant [value=-1] [] -> integer
+      %v79 = kernel_call (:v110, :v111) [fn=:core.eq] [statuses, rates] -> boolean
+      %v112 = constant [value=100000000000.0] [] -> float
+      %v87 = select (:v79, :v112, :v110) [statuses, rates] -> float
+      %v93 = kernel_call (:v87, :v109) [fn=:core.sub] [statuses, rates] -> float
+      %v113 = constant [value=0] [] -> integer
+      %v94 = kernel_call (:v69, :v113, :v93) [fn=:core.clamp] [statuses, rates] -> float
+      %v114 = load_field (:rates_el107) [field=:rate]
+      %v52 = kernel_call (:v94, :v114) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc115, :v52) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v53 = acc_load (:acc115) [] -> float
+    array_push (:arr116, :v53)
+  loop_end [axis=:statuses]
+function in_br:
+  %v102 = load_input [key=:statuses]
+  %arr115 = array_init
+  %statuses_el103 = loop_start (:v102) [axis=:statuses, index=:statuses_i104]
+    %v105 = load_input [key=:income]
+    %v106 = load_field (:statuses_el103) [field=:std]
+    %v68 = kernel_call (:v105, :v106) [fn=:core.sub] [statuses] -> float
+    %v107 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v68, :v107) [fn=:core.max] [statuses] -> float
+    %v108 = load_field (:statuses_el103) [field=:rates]
+    %arr116 = array_init
+    %rates_el109 = loop_start (:v108) [axis=:rates, index=:rates_i110]
+      %v111 = load_field (:rates_el109) [field=:lo]
+      %v57 = kernel_call (:acc0, :v111) [fn=:core.gte] [statuses, rates] -> boolean
+      %v112 = load_field (:rates_el109) [field=:hi]
+      %v113 = constant [value=-1] [] -> integer
+      %v93 = kernel_call (:v112, :v113) [fn=:core.eq] [statuses, rates] -> boolean
+      %v114 = constant [value=100000000000.0] [] -> float
+      %v101 = select (:v93, :v114, :v112) [statuses, rates] -> float
+      %v61 = kernel_call (:acc0, :v101) [fn=:core.lt] [statuses, rates] -> boolean
+      %v62 = kernel_call (:v57, :v61) [fn=:core.and] [statuses, rates] -> boolean
+      array_push (:arr116, :v62)
+    loop_end [axis=:rates]
+    array_push (:arr115, :arr116)
+  loop_end [axis=:statuses]
+function fed_marg:
+  %v118 = load_input [key=:statuses]
+  %arr134 = array_init
+  %statuses_el119 = loop_start (:v118) [axis=:statuses, index=:statuses_i120]
+    %v121 = load_input [key=:income]
+    %v122 = load_field (:statuses_el119) [field=:std]
+    %v74 = kernel_call (:v121, :v122) [fn=:core.sub] [statuses] -> float
+    %v123 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v74, :v123) [fn=:core.max] [statuses] -> float
+    %v124 = load_field (:statuses_el119) [field=:rates]
+    %acc133 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el125 = loop_start (:v124) [axis=:rates, index=:rates_i126]
+      %v127 = load_field (:rates_el125) [field=:lo]
+      %v84 = kernel_call (:acc0, :v127) [fn=:core.gte] [statuses, rates] -> boolean
+      %v128 = load_field (:rates_el125) [field=:hi]
+      %v129 = constant [value=-1] [] -> integer
+      %v102 = kernel_call (:v128, :v129) [fn=:core.eq] [statuses, rates] -> boolean
+      %v130 = constant [value=100000000000.0] [] -> float
+      %v110 = select (:v102, :v130, :v128) [statuses, rates] -> float
+      %v111 = kernel_call (:acc0, :v110) [fn=:core.lt] [statuses, rates] -> boolean
+      %v112 = kernel_call (:v84, :v111) [fn=:core.and] [statuses, rates] -> boolean
+      %v131 = load_field (:rates_el125) [field=:rate]
+      %v132 = constant [value=0] [] -> integer
+      %v67 = select (:v112, :v131, :v132) [statuses, rates] -> float
+      acc_step (:acc133, :v67) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v68 = acc_load (:acc133) [] -> float
+    array_push (:arr134, :v68)
+  loop_end [axis=:statuses]
+function fed_eff:
+  %v124 = load_input [key=:statuses]
+  %arr144 = array_init
+  %statuses_el125 = loop_start (:v124) [axis=:statuses, index=:statuses_i126]
+    %v127 = load_input [key=:income]
+    %v128 = load_field (:statuses_el125) [field=:std]
+    %v81 = kernel_call (:v127, :v128) [fn=:core.sub] [statuses] -> float
+    %v129 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v81, :v129) [fn=:core.max] [statuses] -> float
+    %v130 = load_field (:statuses_el125) [field=:rates]
+    %acc139 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el131 = loop_start (:v130) [axis=:rates, index=:rates_i132]
+      %v133 = load_field (:rates_el131) [field=:lo]
+      %v91 = kernel_call (:acc0, :v133) [fn=:core.sub] [statuses, rates] -> float
+      %v134 = load_field (:rates_el131) [field=:hi]
+      %v135 = constant [value=-1] [] -> integer
+      %v101 = kernel_call (:v134, :v135) [fn=:core.eq] [statuses, rates] -> boolean
+      %v136 = constant [value=100000000000.0] [] -> float
+      %v109 = select (:v101, :v136, :v134) [statuses, rates] -> float
+      %v115 = kernel_call (:v109, :v133) [fn=:core.sub] [statuses, rates] -> float
+      %v137 = constant [value=0] [] -> integer
+      %v116 = kernel_call (:v91, :v137, :v115) [fn=:core.clamp] [statuses, rates] -> float
+      %v138 = load_field (:rates_el131) [field=:rate]
+      %v122 = kernel_call (:v116, :v138) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc139, :v122) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v123 = acc_load (:acc139) [] -> float
+    array_push (:arr144, :v123)
+  loop_end [axis=:statuses]
+  %v140 = load_input [key=:income]
+  %v141 = constant [value=1.0] [] -> float
+  %acc1 = kernel_call (:v140, :v141) [fn=:core.max] [] -> float
+  %arr146 = array_init
+  %statuses_el142 = loop_start (:v124) [axis=:statuses, index=:statuses_i143]
+    %v145 = index_read (:arr144, :statuses_i143)
+    %v75 = kernel_call (:v145, :acc1) [fn=:core.div] [statuses] -> float
+    array_push (:arr146, :v75)
+  loop_end [axis=:statuses]
+function ss_wage_base:
+  %v77 = constant [value=168600.0] [] -> float
+function ss_rate:
+  %v78 = constant [value=0.062] [] -> float
+function ss_tax:
+  %v84 = load_input [key=:income]
+  %v85 = constant [value=168600.0] [] -> float
+  %acc0 = kernel_call (:v84, :v85) [fn=:core.min] [] -> float
+  %v86 = constant [value=0.062] [] -> float
+  %v83 = kernel_call (:acc0, :v86) [fn=:core.mul:numeric] [] -> float
+function med_base_rate:
+  %v85 = constant [value=0.0145] [] -> float
+function med_tax:
+  %v88 = load_input [key=:income]
+  %v89 = constant [value=0.0145] [] -> float
+  %v87 = kernel_call (:v88, :v89) [fn=:core.mul:numeric] [] -> float
+function addl_med_rate:
+  %v89 = constant [value=0.009] [] -> float
+function addl_med_tax:
+  %v101 = load_input [key=:statuses]
+  %arr108 = array_init
+  %statuses_el102 = loop_start (:v101) [axis=:statuses, index=:statuses_i103]
+    %v104 = load_input [key=:income]
+    %v105 = load_field (:statuses_el102) [field=:addl_threshold]
+    %v94 = kernel_call (:v104, :v105) [fn=:core.sub] [statuses] -> float
+    %v106 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v94, :v106) [fn=:core.max] [statuses] -> float
+    %v107 = constant [value=0.009] [] -> float
+    %v100 = kernel_call (:acc0, :v107) [fn=:core.mul:numeric] [statuses] -> float
+    array_push (:arr108, :v100)
+  loop_end [axis=:statuses]
+function fica_tax:
+  %v128 = load_input [key=:income]
+  %v129 = constant [value=168600.0] [] -> float
+  %acc0 = kernel_call (:v128, :v129) [fn=:core.min] [] -> float
+  %v130 = constant [value=0.062] [] -> float
+  %v112 = kernel_call (:acc0, :v130) [fn=:core.mul:numeric] [] -> float
+  %v131 = constant [value=0.0145] [] -> float
+  %v115 = kernel_call (:v128, :v131) [fn=:core.mul:numeric] [] -> float
+  %v103 = kernel_call (:v112, :v115) [fn=:core.add] [] -> float
+  %v132 = load_input [key=:statuses]
+  %arr139 = array_init
+  %statuses_el133 = loop_start (:v132) [axis=:statuses, index=:statuses_i134]
+    %v135 = load_input [key=:income]
+    %v136 = load_field (:statuses_el133) [field=:addl_threshold]
+    %v121 = kernel_call (:v135, :v136) [fn=:core.sub] [statuses] -> float
+    %v137 = constant [value=0] [] -> integer
+    %acc1 = kernel_call (:v121, :v137) [fn=:core.max] [statuses] -> float
+    %v138 = constant [value=0.009] [] -> float
+    %v127 = kernel_call (:acc1, :v138) [fn=:core.mul:numeric] [statuses] -> float
+    %v106 = kernel_call (:v103, :v127) [fn=:core.add] [statuses] -> float
+    array_push (:arr139, :v106)
+  loop_end [axis=:statuses]
+function fica_eff:
+  %v138 = load_input [key=:income]
+  %v139 = constant [value=168600.0] [] -> float
+  %acc0 = kernel_call (:v138, :v139) [fn=:core.min] [] -> float
+  %v140 = constant [value=0.062] [] -> float
+  %v119 = kernel_call (:acc0, :v140) [fn=:core.mul:numeric] [] -> float
+  %v141 = constant [value=0.0145] [] -> float
+  %v122 = kernel_call (:v138, :v141) [fn=:core.mul:numeric] [] -> float
+  %v123 = kernel_call (:v119, :v122) [fn=:core.add] [] -> float
+  %v142 = load_input [key=:statuses]
+  %arr152 = array_init
+  %statuses_el143 = loop_start (:v142) [axis=:statuses, index=:statuses_i144]
+    %v145 = load_input [key=:income]
+    %v146 = load_field (:statuses_el143) [field=:addl_threshold]
+    %v130 = kernel_call (:v145, :v146) [fn=:core.sub] [statuses] -> float
+    %v147 = constant [value=0] [] -> integer
+    %acc1 = kernel_call (:v130, :v147) [fn=:core.max] [statuses] -> float
+    %v148 = constant [value=0.009] [] -> float
+    %v136 = kernel_call (:acc1, :v148) [fn=:core.mul:numeric] [statuses] -> float
+    %v137 = kernel_call (:v123, :v136) [fn=:core.add] [statuses] -> float
+    array_push (:arr152, :v137)
+  loop_end [axis=:statuses]
+  %v149 = constant [value=1.0] [] -> float
+  %acc2 = kernel_call (:v138, :v149) [fn=:core.max] [] -> float
+  %arr154 = array_init
+  %statuses_el150 = loop_start (:v142) [axis=:statuses, index=:statuses_i151]
+    %v153 = index_read (:arr152, :statuses_i151)
+    %v113 = kernel_call (:v153, :acc2) [fn=:core.div] [statuses] -> float
+    array_push (:arr154, :v113)
+  loop_end [axis=:statuses]
+function total_tax:
+  %v201 = load_input [key=:statuses]
+  %arr227 = array_init
+  %statuses_el202 = loop_start (:v201) [axis=:statuses, index=:statuses_i203]
+    %v204 = load_input [key=:income]
+    %v205 = load_field (:statuses_el202) [field=:std]
+    %v128 = kernel_call (:v204, :v205) [fn=:core.sub] [statuses] -> float
+    %v206 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v128, :v206) [fn=:core.max] [statuses] -> float
+    %v207 = load_field (:statuses_el202) [field=:rates]
+    %acc216 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el208 = loop_start (:v207) [axis=:rates, index=:rates_i209]
+      %v210 = load_field (:rates_el208) [field=:lo]
+      %v138 = kernel_call (:acc0, :v210) [fn=:core.sub] [statuses, rates] -> float
+      %v211 = load_field (:rates_el208) [field=:hi]
+      %v212 = constant [value=-1] [] -> integer
+      %v148 = kernel_call (:v211, :v212) [fn=:core.eq] [statuses, rates] -> boolean
+      %v213 = constant [value=100000000000.0] [] -> float
+      %v156 = select (:v148, :v213, :v211) [statuses, rates] -> float
+      %v162 = kernel_call (:v156, :v210) [fn=:core.sub] [statuses, rates] -> float
+      %v214 = constant [value=0] [] -> integer
+      %v163 = kernel_call (:v138, :v214, :v162) [fn=:core.clamp] [statuses, rates] -> float
+      %v215 = load_field (:rates_el208) [field=:rate]
+      %v169 = kernel_call (:v163, :v215) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc216, :v169) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v170 = acc_load (:acc216) [] -> float
+    array_push (:arr227, :v170)
+  loop_end [axis=:statuses]
+  %v217 = load_input [key=:income]
+  %v218 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v217, :v218) [fn=:core.min] [] -> float
+  %v219 = constant [value=0.062] [] -> float
+  %v176 = kernel_call (:acc1, :v219) [fn=:core.mul:numeric] [] -> float
+  %v220 = constant [value=0.0145] [] -> float
+  %v179 = kernel_call (:v217, :v220) [fn=:core.mul:numeric] [] -> float
+  %v180 = kernel_call (:v176, :v179) [fn=:core.add] [] -> float
+  %arr232 = array_init
+  %statuses_el221 = loop_start (:v201) [axis=:statuses, index=:statuses_i222]
+    %v223 = load_input [key=:income]
+    %v224 = load_field (:statuses_el221) [field=:addl_threshold]
+    %v187 = kernel_call (:v223, :v224) [fn=:core.sub] [statuses] -> float
+    %v225 = constant [value=0] [] -> integer
+    %acc2 = kernel_call (:v187, :v225) [fn=:core.max] [statuses] -> float
+    %v226 = constant [value=0.009] [] -> float
+    %v193 = kernel_call (:acc2, :v226) [fn=:core.mul:numeric] [statuses] -> float
+    %v194 = kernel_call (:v180, :v193) [fn=:core.add] [statuses] -> float
+    %v228 = index_read (:arr227, :statuses_i222)
+    %v116 = kernel_call (:v228, :v194) [fn=:core.add] [statuses] -> float
+    array_push (:arr232, :v116)
+  loop_end [axis=:statuses]
+  %v229 = load_input [key=:state_rate]
+  %v197 = kernel_call (:v217, :v229) [fn=:core.mul:numeric] [] -> float
+  %arr237 = array_init
+  %statuses_el230 = loop_start (:v201) [axis=:statuses, index=:statuses_i231]
+    %v233 = index_read (:arr232, :statuses_i231)
+    %v119 = kernel_call (:v233, :v197) [fn=:core.add] [statuses] -> float
+    array_push (:arr237, :v119)
+  loop_end [axis=:statuses]
+  %v234 = load_input [key=:local_rate]
+  %v200 = kernel_call (:v217, :v234) [fn=:core.mul:numeric] [] -> float
+  %arr239 = array_init
+  %statuses_el235 = loop_start (:v201) [axis=:statuses, index=:statuses_i236]
+    %v238 = index_read (:arr237, :statuses_i236)
+    %v122 = kernel_call (:v238, :v200) [fn=:core.add] [statuses] -> float
+    array_push (:arr239, :v122)
+  loop_end [axis=:statuses]
+function total_eff:
+  %v213 = load_input [key=:statuses]
+  %arr239 = array_init
+  %statuses_el214 = loop_start (:v213) [axis=:statuses, index=:statuses_i215]
+    %v216 = load_input [key=:income]
+    %v217 = load_field (:statuses_el214) [field=:std]
+    %v135 = kernel_call (:v216, :v217) [fn=:core.sub] [statuses] -> float
+    %v218 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v135, :v218) [fn=:core.max] [statuses] -> float
+    %v219 = load_field (:statuses_el214) [field=:rates]
+    %acc228 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el220 = loop_start (:v219) [axis=:rates, index=:rates_i221]
+      %v222 = load_field (:rates_el220) [field=:lo]
+      %v145 = kernel_call (:acc0, :v222) [fn=:core.sub] [statuses, rates] -> float
+      %v223 = load_field (:rates_el220) [field=:hi]
+      %v224 = constant [value=-1] [] -> integer
+      %v155 = kernel_call (:v223, :v224) [fn=:core.eq] [statuses, rates] -> boolean
+      %v225 = constant [value=100000000000.0] [] -> float
+      %v163 = select (:v155, :v225, :v223) [statuses, rates] -> float
+      %v169 = kernel_call (:v163, :v222) [fn=:core.sub] [statuses, rates] -> float
+      %v226 = constant [value=0] [] -> integer
+      %v170 = kernel_call (:v145, :v226, :v169) [fn=:core.clamp] [statuses, rates] -> float
+      %v227 = load_field (:rates_el220) [field=:rate]
+      %v176 = kernel_call (:v170, :v227) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc228, :v176) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v177 = acc_load (:acc228) [] -> float
+    array_push (:arr239, :v177)
+  loop_end [axis=:statuses]
+  %v229 = load_input [key=:income]
+  %v230 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v229, :v230) [fn=:core.min] [] -> float
+  %v231 = constant [value=0.062] [] -> float
+  %v183 = kernel_call (:acc1, :v231) [fn=:core.mul:numeric] [] -> float
+  %v232 = constant [value=0.0145] [] -> float
+  %v186 = kernel_call (:v229, :v232) [fn=:core.mul:numeric] [] -> float
+  %v187 = kernel_call (:v183, :v186) [fn=:core.add] [] -> float
+  %arr244 = array_init
+  %statuses_el233 = loop_start (:v213) [axis=:statuses, index=:statuses_i234]
+    %v235 = load_input [key=:income]
+    %v236 = load_field (:statuses_el233) [field=:addl_threshold]
+    %v194 = kernel_call (:v235, :v236) [fn=:core.sub] [statuses] -> float
+    %v237 = constant [value=0] [] -> integer
+    %acc2 = kernel_call (:v194, :v237) [fn=:core.max] [statuses] -> float
+    %v238 = constant [value=0.009] [] -> float
+    %v200 = kernel_call (:acc2, :v238) [fn=:core.mul:numeric] [statuses] -> float
+    %v201 = kernel_call (:v187, :v200) [fn=:core.add] [statuses] -> float
+    %v240 = index_read (:arr239, :statuses_i234)
+    %v202 = kernel_call (:v240, :v201) [fn=:core.add] [statuses] -> float
+    array_push (:arr244, :v202)
+  loop_end [axis=:statuses]
+  %v241 = load_input [key=:state_rate]
+  %v205 = kernel_call (:v229, :v241) [fn=:core.mul:numeric] [] -> float
+  %arr249 = array_init
+  %statuses_el242 = loop_start (:v213) [axis=:statuses, index=:statuses_i243]
+    %v245 = index_read (:arr244, :statuses_i243)
+    %v207 = kernel_call (:v245, :v205) [fn=:core.add] [statuses] -> float
+    array_push (:arr249, :v207)
+  loop_end [axis=:statuses]
+  %v246 = load_input [key=:local_rate]
+  %v210 = kernel_call (:v229, :v246) [fn=:core.mul:numeric] [] -> float
+  %arr254 = array_init
+  %statuses_el247 = loop_start (:v213) [axis=:statuses, index=:statuses_i248]
+    %v250 = index_read (:arr249, :statuses_i248)
+    %v212 = kernel_call (:v250, :v210) [fn=:core.add] [statuses] -> float
+    array_push (:arr254, :v212)
+  loop_end [axis=:statuses]
+  %v251 = constant [value=1.0] [] -> float
+  %acc3 = kernel_call (:v229, :v251) [fn=:core.max] [] -> float
+  %arr256 = array_init
+  %statuses_el252 = loop_start (:v213) [axis=:statuses, index=:statuses_i253]
+    %v255 = index_read (:arr254, :statuses_i253)
+    %v129 = kernel_call (:v255, :acc3) [fn=:core.div] [statuses] -> float
+    array_push (:arr256, :v129)
+  loop_end [axis=:statuses]
+function after_tax:
+  %v217 = load_input [key=:statuses]
+  %arr243 = array_init
+  %statuses_el218 = loop_start (:v217) [axis=:statuses, index=:statuses_i219]
+    %v220 = load_input [key=:income]
+    %v221 = load_field (:statuses_el218) [field=:std]
+    %v139 = kernel_call (:v220, :v221) [fn=:core.sub] [statuses] -> float
+    %v222 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v139, :v222) [fn=:core.max] [statuses] -> float
+    %v223 = load_field (:statuses_el218) [field=:rates]
+    %acc232 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el224 = loop_start (:v223) [axis=:rates, index=:rates_i225]
+      %v226 = load_field (:rates_el224) [field=:lo]
+      %v149 = kernel_call (:acc0, :v226) [fn=:core.sub] [statuses, rates] -> float
+      %v227 = load_field (:rates_el224) [field=:hi]
+      %v228 = constant [value=-1] [] -> integer
+      %v159 = kernel_call (:v227, :v228) [fn=:core.eq] [statuses, rates] -> boolean
+      %v229 = constant [value=100000000000.0] [] -> float
+      %v167 = select (:v159, :v229, :v227) [statuses, rates] -> float
+      %v173 = kernel_call (:v167, :v226) [fn=:core.sub] [statuses, rates] -> float
+      %v230 = constant [value=0] [] -> integer
+      %v174 = kernel_call (:v149, :v230, :v173) [fn=:core.clamp] [statuses, rates] -> float
+      %v231 = load_field (:rates_el224) [field=:rate]
+      %v180 = kernel_call (:v174, :v231) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc232, :v180) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v181 = acc_load (:acc232) [] -> float
+    array_push (:arr243, :v181)
+  loop_end [axis=:statuses]
+  %v233 = load_input [key=:income]
+  %v234 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v233, :v234) [fn=:core.min] [] -> float
+  %v235 = constant [value=0.062] [] -> float
+  %v187 = kernel_call (:acc1, :v235) [fn=:core.mul:numeric] [] -> float
+  %v236 = constant [value=0.0145] [] -> float
+  %v190 = kernel_call (:v233, :v236) [fn=:core.mul:numeric] [] -> float
+  %v191 = kernel_call (:v187, :v190) [fn=:core.add] [] -> float
+  %arr248 = array_init
+  %statuses_el237 = loop_start (:v217) [axis=:statuses, index=:statuses_i238]
+    %v239 = load_input [key=:income]
+    %v240 = load_field (:statuses_el237) [field=:addl_threshold]
+    %v198 = kernel_call (:v239, :v240) [fn=:core.sub] [statuses] -> float
+    %v241 = constant [value=0] [] -> integer
+    %acc2 = kernel_call (:v198, :v241) [fn=:core.max] [statuses] -> float
+    %v242 = constant [value=0.009] [] -> float
+    %v204 = kernel_call (:acc2, :v242) [fn=:core.mul:numeric] [statuses] -> float
+    %v205 = kernel_call (:v191, :v204) [fn=:core.add] [statuses] -> float
+    %v244 = index_read (:arr243, :statuses_i238)
+    %v206 = kernel_call (:v244, :v205) [fn=:core.add] [statuses] -> float
+    array_push (:arr248, :v206)
+  loop_end [axis=:statuses]
+  %v245 = load_input [key=:state_rate]
+  %v209 = kernel_call (:v233, :v245) [fn=:core.mul:numeric] [] -> float
+  %arr253 = array_init
+  %statuses_el246 = loop_start (:v217) [axis=:statuses, index=:statuses_i247]
+    %v249 = index_read (:arr248, :statuses_i247)
+    %v211 = kernel_call (:v249, :v209) [fn=:core.add] [statuses] -> float
+    array_push (:arr253, :v211)
+  loop_end [axis=:statuses]
+  %v250 = load_input [key=:local_rate]
+  %v214 = kernel_call (:v233, :v250) [fn=:core.mul:numeric] [] -> float
+  %arr256 = array_init
+  %statuses_el251 = loop_start (:v217) [axis=:statuses, index=:statuses_i252]
+    %v254 = index_read (:arr253, :statuses_i252)
+    %v216 = kernel_call (:v254, :v214) [fn=:core.add] [statuses] -> float
+    %v255 = load_input [key=:income]
+    %v133 = kernel_call (:v255, :v216) [fn=:core.sub] [statuses] -> float
+    array_push (:arr256, :v133)
+  loop_end [axis=:statuses]
+function take_home:
+  %v224 = load_input [key=:statuses]
+  %arr250 = array_init
+  %statuses_el225 = loop_start (:v224) [axis=:statuses, index=:statuses_i226]
+    %v227 = load_input [key=:income]
+    %v228 = load_field (:statuses_el225) [field=:std]
+    %v145 = kernel_call (:v227, :v228) [fn=:core.sub] [statuses] -> float
+    %v229 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v145, :v229) [fn=:core.max] [statuses] -> float
+    %v230 = load_field (:statuses_el225) [field=:rates]
+    %acc239 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el231 = loop_start (:v230) [axis=:rates, index=:rates_i232]
+      %v233 = load_field (:rates_el231) [field=:lo]
+      %v155 = kernel_call (:acc0, :v233) [fn=:core.sub] [statuses, rates] -> float
+      %v234 = load_field (:rates_el231) [field=:hi]
+      %v235 = constant [value=-1] [] -> integer
+      %v165 = kernel_call (:v234, :v235) [fn=:core.eq] [statuses, rates] -> boolean
+      %v236 = constant [value=100000000000.0] [] -> float
+      %v173 = select (:v165, :v236, :v234) [statuses, rates] -> float
+      %v179 = kernel_call (:v173, :v233) [fn=:core.sub] [statuses, rates] -> float
+      %v237 = constant [value=0] [] -> integer
+      %v180 = kernel_call (:v155, :v237, :v179) [fn=:core.clamp] [statuses, rates] -> float
+      %v238 = load_field (:rates_el231) [field=:rate]
+      %v186 = kernel_call (:v180, :v238) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc239, :v186) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v187 = acc_load (:acc239) [] -> float
+    array_push (:arr250, :v187)
+  loop_end [axis=:statuses]
+  %v240 = load_input [key=:income]
+  %v241 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v240, :v241) [fn=:core.min] [] -> float
+  %v242 = constant [value=0.062] [] -> float
+  %v193 = kernel_call (:acc1, :v242) [fn=:core.mul:numeric] [] -> float
+  %v243 = constant [value=0.0145] [] -> float
+  %v196 = kernel_call (:v240, :v243) [fn=:core.mul:numeric] [] -> float
+  %v197 = kernel_call (:v193, :v196) [fn=:core.add] [] -> float
+  %arr255 = array_init
+  %statuses_el244 = loop_start (:v224) [axis=:statuses, index=:statuses_i245]
+    %v246 = load_input [key=:income]
+    %v247 = load_field (:statuses_el244) [field=:addl_threshold]
+    %v204 = kernel_call (:v246, :v247) [fn=:core.sub] [statuses] -> float
+    %v248 = constant [value=0] [] -> integer
+    %acc2 = kernel_call (:v204, :v248) [fn=:core.max] [statuses] -> float
+    %v249 = constant [value=0.009] [] -> float
+    %v210 = kernel_call (:acc2, :v249) [fn=:core.mul:numeric] [statuses] -> float
+    %v211 = kernel_call (:v197, :v210) [fn=:core.add] [statuses] -> float
+    %v251 = index_read (:arr250, :statuses_i245)
+    %v212 = kernel_call (:v251, :v211) [fn=:core.add] [statuses] -> float
+    array_push (:arr255, :v212)
+  loop_end [axis=:statuses]
+  %v252 = load_input [key=:state_rate]
+  %v215 = kernel_call (:v240, :v252) [fn=:core.mul:numeric] [] -> float
+  %arr260 = array_init
+  %statuses_el253 = loop_start (:v224) [axis=:statuses, index=:statuses_i254]
+    %v256 = index_read (:arr255, :statuses_i254)
+    %v217 = kernel_call (:v256, :v215) [fn=:core.add] [statuses] -> float
+    array_push (:arr260, :v217)
+  loop_end [axis=:statuses]
+  %v257 = load_input [key=:local_rate]
+  %v220 = kernel_call (:v240, :v257) [fn=:core.mul:numeric] [] -> float
+  %arr264 = array_init
+  %statuses_el258 = loop_start (:v224) [axis=:statuses, index=:statuses_i259]
+    %v261 = index_read (:arr260, :statuses_i259)
+    %v222 = kernel_call (:v261, :v220) [fn=:core.add] [statuses] -> float
+    %v262 = load_input [key=:income]
+    %v223 = kernel_call (:v262, :v222) [fn=:core.sub] [statuses] -> float
+    %v263 = load_input [key=:retirement_contrib]
+    %v137 = kernel_call (:v223, :v263) [fn=:core.sub] [statuses] -> float
+    array_push (:arr264, :v137)
+  loop_end [axis=:statuses]
+function summary:
+  %v725 = load_input [key=:statuses]
+  %arr746 = array_init
+  %arr748 = array_init
+  %statuses_el726 = loop_start (:v725) [axis=:statuses, index=:statuses_i727]
+    %v728 = load_input [key=:income]
+    %v729 = load_field (:statuses_el726) [field=:std]
+    %v168 = kernel_call (:v728, :v729) [fn=:core.sub] [statuses] -> float
+    %v730 = constant [value=0] [] -> integer
+    %acc0 = kernel_call (:v168, :v730) [fn=:core.max] [statuses] -> float
+    %v731 = load_field (:statuses_el726) [field=:rates]
+    %acc740 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %acc741 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %rates_el732 = loop_start (:v731) [axis=:rates, index=:rates_i733]
+      %v734 = load_field (:rates_el732) [field=:lo]
+      %v178 = kernel_call (:acc0, :v734) [fn=:core.gte] [statuses, rates] -> boolean
+      %v735 = load_field (:rates_el732) [field=:hi]
+      %v736 = constant [value=-1] [] -> integer
+      %v196 = kernel_call (:v735, :v736) [fn=:core.eq] [statuses, rates] -> boolean
+      %v737 = constant [value=100000000000.0] [] -> float
+      %v204 = select (:v196, :v737, :v735) [statuses, rates] -> float
+      %v205 = kernel_call (:acc0, :v204) [fn=:core.lt] [statuses, rates] -> boolean
+      %v206 = kernel_call (:v178, :v205) [fn=:core.and] [statuses, rates] -> boolean
+      %v738 = load_field (:rates_el732) [field=:rate]
+      %v739 = constant [value=0] [] -> integer
+      %v214 = select (:v206, :v738, :v739) [statuses, rates] -> float
+      acc_step (:acc740, :v214) [fn=:agg.sum, nil_init=false]
+      %v231 = kernel_call (:acc0, :v734) [fn=:core.sub] [statuses, rates] -> float
+      %v255 = kernel_call (:v204, :v734) [fn=:core.sub] [statuses, rates] -> float
+      %v256 = kernel_call (:v231, :v739, :v255) [fn=:core.clamp] [statuses, rates] -> float
+      %v262 = kernel_call (:v256, :v738) [fn=:core.mul:numeric] [statuses, rates] -> float
+      acc_step (:acc741, :v262) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:rates]
+    %v215 = acc_load (:acc740) [] -> float
+    array_push (:arr748, :v215)
+    %v263 = acc_load (:acc741) [] -> float
+    array_push (:arr746, :v263)
+  loop_end [axis=:statuses]
+  %v742 = load_input [key=:income]
+  %v743 = constant [value=1.0] [] -> float
+  %acc3 = kernel_call (:v742, :v743) [fn=:core.max] [] -> float
+  %arr769 = array_init
+  %statuses_el744 = loop_start (:v725) [axis=:statuses, index=:statuses_i745]
+    %v747 = index_read (:arr746, :statuses_i745)
+    %v269 = kernel_call (:v747, :acc3) [fn=:core.div] [statuses] -> float
+    %v749 = index_read (:arr748, :statuses_i745)
+    %v144 = make_object (:v749, :v269, :v747) [keys=[:marginal, :effective, :tax]] [statuses] -> hash
+    array_push (:arr769, :v144)
+  loop_end [axis=:statuses]
+  %v750 = constant [value=168600.0] [] -> float
+  %acc5 = kernel_call (:v742, :v750) [fn=:core.min] [] -> float
+  %v751 = constant [value=0.062] [] -> float
+  %v323 = kernel_call (:acc5, :v751) [fn=:core.mul:numeric] [] -> float
+  %v752 = constant [value=0.0145] [] -> float
+  %v326 = kernel_call (:v742, :v752) [fn=:core.mul:numeric] [] -> float
+  %v327 = kernel_call (:v323, :v326) [fn=:core.add] [] -> float
+  %arr764 = array_init
+  %arr771 = array_init
+  %statuses_el753 = loop_start (:v725) [axis=:statuses, index=:statuses_i754]
+    %v755 = load_input [key=:income]
+    %v756 = load_field (:statuses_el753) [field=:addl_threshold]
+    %v334 = kernel_call (:v755, :v756) [fn=:core.sub] [statuses] -> float
+    %v757 = constant [value=0] [] -> integer
+    %acc6 = kernel_call (:v334, :v757) [fn=:core.max] [statuses] -> float
+    %v758 = constant [value=0.009] [] -> float
+    %v340 = kernel_call (:acc6, :v758) [fn=:core.mul:numeric] [statuses] -> float
+    %v341 = kernel_call (:v327, :v340) [fn=:core.add] [statuses] -> float
+    array_push (:arr764, :v341)
+    %v347 = kernel_call (:v341, :acc3) [fn=:core.div] [statuses] -> float
+    %v147 = make_object (:v347, :v341) [keys=[:effective, :tax]] [statuses] -> hash
+    array_push (:arr771, :v147)
+  loop_end [axis=:statuses]
+  %v759 = load_input [key=:state_rate]
+  %v374 = kernel_call (:v742, :v759) [fn=:core.mul:numeric] [] -> float
+  %v151 = make_object (:v759, :v759, :v374) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %v760 = load_input [key=:local_rate]
+  %v377 = kernel_call (:v742, :v760) [fn=:core.mul:numeric] [] -> float
+  %v155 = make_object (:v760, :v760, :v377) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %arr773 = array_init
+  %statuses_el761 = loop_start (:v725) [axis=:statuses, index=:statuses_i762]
+    %v763 = index_read (:arr746, :statuses_i762)
+    %v765 = index_read (:arr764, :statuses_i762)
+    %v450 = kernel_call (:v763, :v765) [fn=:core.add] [statuses] -> float
+    %v455 = kernel_call (:v450, :v374) [fn=:core.add] [statuses] -> float
+    %v460 = kernel_call (:v455, :v377) [fn=:core.add] [statuses] -> float
+    %v466 = kernel_call (:v460, :acc3) [fn=:core.div] [statuses] -> float
+    %v158 = make_object (:v466, :v460) [keys=[:effective, :tax]] [statuses] -> hash
+    %v766 = load_input [key=:income]
+    %v635 = kernel_call (:v766, :v460) [fn=:core.sub] [statuses] -> float
+    %v767 = load_input [key=:retirement_contrib]
+    %v724 = kernel_call (:v635, :v767) [fn=:core.sub] [statuses] -> float
+    %v768 = load_field (:statuses_el761) [field=:name]
+    %v770 = index_read (:arr769, :statuses_i762)
+    %v772 = index_read (:arr771, :statuses_i762)
+    %v162 = make_object (:v768, :v770, :v772, :v151, :v155, :v158, :v635, :v767, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash
+    array_push (:arr773, :v162)
+  loop_end [axis=:statuses]

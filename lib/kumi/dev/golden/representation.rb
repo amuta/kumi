@@ -31,13 +31,7 @@ module Kumi
         Representation.new("dfir", extension: "txt"),
         Representation.new("dfir_optimized", extension: "txt"),
         Representation.new("vecir", extension: "txt"),
-        Representation.new("lir_00_unoptimized", extension: "txt"),
-        Representation.new("lir_01_hoist_scalar_references", extension: "txt"),
-        Representation.new("lir_02_inlined", extension: "txt"),
-        Representation.new("lir_04_1_loop_fusion", extension: "txt"),
-        Representation.new("lir_03_cse", extension: "txt"),
-        Representation.new("lir_04_loop_invcm", extension: "txt"),
-        Representation.new("lir_06_const_prop", extension: "txt"),
+        Representation.new("loopir", extension: "txt"),
         Representation.new("schema_ruby", extension: "rb"),
         Representation.new("schema_javascript", extension: "mjs")
       ].freeze

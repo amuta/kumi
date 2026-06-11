@@ -1,27 +1,60 @@
 # Agent Reference
 
-Helpful commands for inspecting and debugging Kumi IRs.
+A toolbox for inspecting and debugging the compiler pipeline. The pipeline is
+SNAST → DFIR → VecIR → LoopIR → Ruby/JS emitters; see
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
-## DFIR Investigation
+## Inspect One Layer for One Schema
 
-- **Regenerate goldens for a schema (all IR dumps + outputs):**
-  ```bash
-  bundle exec bin/kumi golden update <schema>
-  # e.g.
-  bundle exec bin/kumi golden update multi_loop_reduction
-  ```
+```bash
+bundle exec bin/kumi pp <repr> <schema.kumi>
+# reprs: ast, input_plan, nast, snast, dfir, dfir_optimized, vecir, loopir,
+#        schema_ruby, schema_javascript
+bundle exec bin/kumi pp loopir golden/multi_loop_reduction/schema.kumi
+```
 
-- **Inspect a schema’s DFIR dump:**
-  ```bash
-  sed -n '1,160p' golden/<schema>/expected/dfir.txt
-  rg -n "function" golden/<schema>/expected/dfir.txt
-  ```
+This is the fastest way to surface a lowering crash in a specific layer.
 
-- **Search across all goldens for patterns (nested loops, axes, etc.):**
-  ```bash
-  rg -n "reduce" golden -g"dfir*.txt"
-  rg -n "axis_shift" golden -g"dfir*.txt"
-  ```
+## Sweep for Crashes
 
-Use the snippets above as a toolbox when iterating on IR passes or reviewing
-golden diffs.
+```bash
+for d in golden/*/; do
+  bundle exec bin/kumi pp loopir "$d/schema.kumi" >/dev/null || echo "$d"
+done
+```
+
+## Phase-Scoped Golden Checks
+
+```bash
+bundle exec bin/kumi golden_v2 verify --repr loop            # one layer, all schemas
+bundle exec bin/kumi golden_v2 diff --repr df <schema>       # unified diff
+bundle exec bin/kumi golden_v2 update --repr vec,loop        # regenerate layers
+```
+
+Groups: `frontend`, `df`, `vec`, `loop`, `codegen`, `all`.
+
+## Runtime Ground Truth
+
+```bash
+bundle exec bin/kumi golden test            # regenerate + execute Ruby and JS
+bundle exec bin/kumi golden test <schema>
+```
+
+## Search Goldens Instead of Reading Them
+
+Some golden artifacts are large (`game_of_life`, `us_tax_2024`) — grep them:
+
+```bash
+rg -n "reduce" golden -g"dfir*.txt"
+rg -n "axis_shift" golden -g"vecir.txt"
+rg -n "function" golden/<schema>/expected/loopir.txt
+```
+
+## Other Useful Commands
+
+```bash
+bundle exec bin/kumi analyze <schema> --dump <state_key>   # inspect analyzer state
+bundle exec rspec                                          # full test suite
+```
+
+`tmp/` is gitignored and a good place for debug scripts.

@@ -1,0 +1,43 @@
+function regional_sales:
+  %v7 = load_input [key=:regions]
+  %arr15 = array_init
+  %regions_el8 = loop_start (:v7) [axis=:regions, index=:regions_i9]
+    %v10 = load_field (:regions_el8) [field=:sales]
+    %acc14 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %sales_el11 = loop_start (:v10) [axis=:sales, index=:sales_i12]
+      %v13 = load_field (:sales_el11) [field=:amount]
+      acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:sales]
+    %v6 = acc_load (:acc14) [] -> integer
+    array_push (:arr15, :v6)
+  loop_end [axis=:regions]
+function total_sales:
+  %v15 = load_input [key=:regions]
+  %acc23 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %regions_el16 = loop_start (:v15) [axis=:regions, index=:regions_i17]
+    %v18 = load_field (:regions_el16) [field=:sales]
+    %acc22 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %sales_el19 = loop_start (:v18) [axis=:sales, index=:sales_i20]
+      %v21 = load_field (:sales_el19) [field=:amount]
+      acc_step (:acc22, :v21) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:sales]
+    %v14 = acc_load (:acc22) [] -> integer
+    acc_step (:acc23, :v14) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:regions]
+  %v8 = acc_load (:acc23) [] -> integer
+function adjusted_total:
+  %v19 = load_input [key=:regions]
+  %acc27 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %regions_el20 = loop_start (:v19) [axis=:regions, index=:regions_i21]
+    %v22 = load_field (:regions_el20) [field=:sales]
+    %acc26 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %sales_el23 = loop_start (:v22) [axis=:sales, index=:sales_i24]
+      %v25 = load_field (:sales_el23) [field=:amount]
+      acc_step (:acc26, :v25) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:sales]
+    %v17 = acc_load (:acc26) [] -> integer
+    acc_step (:acc27, :v17) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:regions]
+  %v18 = acc_load (:acc27) [] -> integer
+  %v28 = load_input [key=:adjustment]
+  %v11 = kernel_call (:v18, :v28) [fn=:core.add] [] -> integer

@@ -564,4 +564,4 @@ function summary:
   %v724 = map (:v635, :v723) [fn=:core.sub] [statuses] -> float
   %vec_tmp1 = axis_broadcast (:v151) [from_axes=[], to_axes=[:statuses]] [statuses] -> hash
   %vec_tmp2 = axis_broadcast (:v155) [from_axes=[], to_axes=[:statuses]] [statuses] -> hash
-  %v162 = make_object (:v140, :v144, :v147, :vec_tmp1, :vec_tmp2, :v158, :v635, :vec_tmp3, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash
+  %v162 = make_object (:v140, :v144, :v147, :vec_tmp1, :vec_tmp2, :v158, :v635, :v723, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash

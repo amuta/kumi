@@ -12,8 +12,12 @@ module Kumi
               vec_module = get_state(:vec_module, required: false)
               return state unless vec_module
 
-              loop_module = Kumi::IR::Loop::Module.from_vec(vec_module)
-              optimized = Kumi::IR::Loop::Pipeline.run(graph: loop_module, context: {})
+              context = {
+                input_plans: get_state(:precomputed_plan_by_fqn, required: false) || {},
+                registry: get_state(:registry, required: true)
+              }
+              loop_module = Kumi::IR::Loop::Module.from_vec(vec_module, context: context)
+              optimized = Kumi::IR::Loop::Pipeline.run(graph: loop_module, context: context)
               state.with(:loop_module, optimized.freeze)
             end
           end

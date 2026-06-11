@@ -1,0 +1,28 @@
+function price:
+  %v3 = load_input [key=:unit_price]
+  %v2 = kernel_call (:v3) [fn=:core.to_decimal] [] -> decimal
+function rate:
+  %v5 = load_input [key=:tax_rate]
+  %v4 = kernel_call (:v5) [fn=:core.to_decimal] [] -> decimal
+function subtotal:
+  %v10 = load_input [key=:unit_price]
+  %v9 = kernel_call (:v10) [fn=:core.to_decimal] [] -> decimal
+  %v11 = load_input [key=:quantity]
+  %v7 = kernel_call (:v9, :v11) [fn=:core.mul:numeric] [] -> integer
+function tax_amount:
+  %v17 = load_input [key=:unit_price]
+  %v12 = kernel_call (:v17) [fn=:core.to_decimal] [] -> decimal
+  %v18 = load_input [key=:quantity]
+  %v14 = kernel_call (:v12, :v18) [fn=:core.mul:numeric] [] -> integer
+  %v19 = load_input [key=:tax_rate]
+  %v16 = kernel_call (:v19) [fn=:core.to_decimal] [] -> decimal
+  %v10 = kernel_call (:v14, :v16) [fn=:core.mul:numeric] [] -> integer
+function total:
+  %v25 = load_input [key=:unit_price]
+  %v15 = kernel_call (:v25) [fn=:core.to_decimal] [] -> decimal
+  %v26 = load_input [key=:quantity]
+  %v17 = kernel_call (:v15, :v26) [fn=:core.mul:numeric] [] -> integer
+  %v27 = load_input [key=:tax_rate]
+  %v23 = kernel_call (:v27) [fn=:core.to_decimal] [] -> decimal
+  %v24 = kernel_call (:v17, :v23) [fn=:core.mul:numeric] [] -> integer
+  %v13 = kernel_call (:v17, :v24) [fn=:core.add] [] -> integer

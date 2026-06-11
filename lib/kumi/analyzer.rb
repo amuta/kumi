@@ -18,8 +18,8 @@ module Kumi
       Passes::InputAccessPlannerPass           # 9. Plans access strategies for input fields.
     ].freeze
 
-    # Pipeline passes for the determinisitic NAST->LIR approach
-    HIR_TO_LIR_PASSES = [
+    # Lowering pipeline: NAST -> SNAST -> DFIR -> VecIR -> LoopIR
+    LOWERING_PASSES = [
       Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
@@ -34,25 +34,13 @@ module Kumi
       Passes::Vec::LowerPass,                  # Lowers DFIR into VecIR and stores it in analysis state
       Passes::VecValidatePass,                 # Validates VecIR invariants before Loop lowering
       Passes::Loop::LowerPass,                 # Lowers VecIR into LoopIR and stores it in analysis state
-      Passes::LoopValidatePass,                # Validates LoopIR invariants before LIR/codegen
-      Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
-      Passes::LIR::HoistScalarReferencesPass,
-      Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
-      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::InstructionSchedulingPass,
-      Passes::LIR::LoopFusionPass,
-      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
-      Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
-      Passes::LIR::LoopInvariantCodeMotionPass,
-      Passes::LIR::ConstantPropagationPass # Produces lir_06_const_prop for goldens
-      # Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
+      Passes::LoopValidatePass                 # Validates LoopIR invariants before codegen
     ].freeze
 
-    RUBY_TARGET_PASSES = [
+    TARGET_PASSES = [
       Passes::Codegen::LoopRubyPass, # Generates Ruby code from LoopIR
       Passes::Codegen::LoopJsPass
-    ]
+    ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
@@ -63,13 +51,15 @@ module Kumi
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
       state, stopped = run_analysis_passes(schema, passes, state, errors)
       return create_analysis_result(state) if stopped
+
       handle_analysis_errors(errors) unless errors.empty?
 
-      state, stopped = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
+      state, stopped = run_analysis_passes(schema, LOWERING_PASSES, state, errors)
       return create_analysis_result(state) if stopped
+
       handle_analysis_errors(errors) unless errors.empty?
 
-      state, = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
+      state, = run_analysis_passes(schema, TARGET_PASSES, state, errors)
 
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)

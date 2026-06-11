@@ -1,0 +1,24 @@
+function interest:
+  %v7 = load_input [key=:amount]
+  %v8 = constant [value=1.05] [] -> float
+  %v3 = kernel_call (:v7, :v8) [fn=:core.mul:numeric] [] -> float
+  %v9 = load_input [key=:rate]
+  %v6 = kernel_call (:v3, :v9) [fn=:core.mul:numeric] [] -> decimal
+function total_over_periods:
+  %v15 = load_input [key=:amount]
+  %v16 = constant [value=1.05] [] -> float
+  %v11 = kernel_call (:v15, :v16) [fn=:core.mul:numeric] [] -> float
+  %v17 = load_input [key=:rate]
+  %v14 = kernel_call (:v11, :v17) [fn=:core.mul:numeric] [] -> decimal
+  %v18 = load_input [key=:periods]
+  %v8 = kernel_call (:v14, :v18) [fn=:core.mul:numeric] [] -> integer
+function doubled:
+  %v20 = load_input [key=:amount]
+  %v21 = constant [value=1.05] [] -> float
+  %v14 = kernel_call (:v20, :v21) [fn=:core.mul:numeric] [] -> float
+  %v22 = load_input [key=:rate]
+  %v19 = kernel_call (:v14, :v22) [fn=:core.mul:numeric] [] -> decimal
+  %v23 = load_input [key=:periods]
+  %v18 = kernel_call (:v19, :v23) [fn=:core.mul:numeric] [] -> integer
+  %v24 = constant [value=2] [] -> integer
+  %v11 = kernel_call (:v18, :v24) [fn=:core.mul:numeric] [] -> integer

@@ -1,0 +1,42 @@
+function tuple:
+  %v6 = constant [value=1] [] -> integer
+  %v7 = constant [value=2] [] -> integer
+  %v8 = constant [value=3] [] -> integer
+  %v9 = load_input [key=:x]
+  %v5 = make_object (:v6, :v7, :v8, :v9) [keys=[:_0, :_1, :_2, :_3]] [] -> tuple<integer, integer, integer, integer>
+function max_1:
+  %v12 = constant [value=1] [] -> integer
+  %v13 = constant [value=2] [] -> integer
+  %acc0 = kernel_call (:v12, :v13) [fn=:core.max] [] -> integer
+  %v14 = constant [value=3] [] -> integer
+  %acc1 = kernel_call (:acc0, :v14) [fn=:core.max] [] -> integer
+  %v15 = load_input [key=:x]
+  %acc2 = kernel_call (:acc1, :v15) [fn=:core.max] [] -> integer
+function max_2:
+  %v13 = constant [value=1] [] -> integer
+  %v14 = constant [value=2] [] -> integer
+  %acc0 = kernel_call (:v13, :v14) [fn=:core.max] [] -> integer
+  %v15 = constant [value=3] [] -> integer
+  %acc1 = kernel_call (:acc0, :v15) [fn=:core.max] [] -> integer
+  %v16 = load_input [key=:x]
+  %acc2 = kernel_call (:acc1, :v16) [fn=:core.max] [] -> integer
+  %v17 = constant [value=1000] [] -> integer
+  %acc3 = kernel_call (:acc2, :v17) [fn=:core.max] [] -> integer
+function min_1:
+  %v21 = constant [value=1] [] -> integer
+  %v22 = constant [value=2] [] -> integer
+  %acc0 = kernel_call (:v21, :v22) [fn=:core.min] [] -> integer
+  %v23 = constant [value=3] [] -> integer
+  %acc1 = kernel_call (:acc0, :v23) [fn=:core.min] [] -> integer
+  %v24 = load_input [key=:x]
+  %acc2 = kernel_call (:acc1, :v24) [fn=:core.min] [] -> integer
+function min_2:
+  %v22 = constant [value=1] [] -> integer
+  %v23 = constant [value=2] [] -> integer
+  %acc0 = kernel_call (:v22, :v23) [fn=:core.min] [] -> integer
+  %v24 = constant [value=3] [] -> integer
+  %acc1 = kernel_call (:acc0, :v24) [fn=:core.min] [] -> integer
+  %v25 = load_input [key=:x]
+  %acc2 = kernel_call (:acc1, :v25) [fn=:core.min] [] -> integer
+  %v26 = constant [value=-100] [] -> integer
+  %acc3 = kernel_call (:acc2, :v26) [fn=:core.min] [] -> integer

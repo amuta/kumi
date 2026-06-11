@@ -1,0 +1,6 @@
+function double:
+  %v6 = load_input [key=:x]
+  %v7 = load_field (:v6) [field=:y]
+  %v8 = load_field (:v7) [field=:z]
+  %v9 = constant [value=2] [] -> integer
+  %v5 = kernel_call (:v8, :v9) [fn=:core.mul:numeric] [] -> integer

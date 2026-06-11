@@ -7,6 +7,8 @@ module Kumi
         module Codegen
           module Loop
             module Js
+              # Serializes LoopIR into JavaScript. Every opcode maps to a fixed
+              # syntax shape; all semantic decisions were made by Loop::Lower.
               class Emitter
                 def initialize(registry)
                   @registry = registry
@@ -34,12 +36,10 @@ module Kumi
                 def to_s = @out.join
 
                 def emit_function(fn)
-                  @reg_axes = build_axes_map(fn)
                   write "export function _#{fn.name}(input) {"
                   indented do
                     fn.entry_block.instructions.each do |instr|
-                      line = emit_instruction(instr)
-                      write line if line
+                      emit_instruction(instr)
                     end
                     write "return #{reg(fn.return_reg)};"
                   end
@@ -49,118 +49,87 @@ module Kumi
                 def emit_instruction(instr)
                   case instr.opcode
                   when :constant
-                    "let #{reg(instr.result)} = #{format_literal(instr.attributes[:value])};"
+                    write "let #{reg(instr.result)} = #{format_literal(instr.attributes[:value])};"
                   when :load_input
                     key = instr.attributes[:key]
-                    "let #{reg(instr.result)} = input[\"#{key}\"];"
+                    write "let #{reg(instr.result)} = input[\"#{key}\"];"
                   when :load_field
                     field = instr.attributes[:field]
-                    obj = reg(instr.inputs.first)
-                    if vector_axes?(axes_for(instr.inputs.first))
-                      "let #{reg(instr.result)} = #{obj}.map(el => el[\"#{field}\"]);"
-                    else
-                      "let #{reg(instr.result)} = #{obj}[\"#{field}\"];"
-                    end
+                    write "let #{reg(instr.result)} = #{reg(instr.inputs.first)}[\"#{field}\"];"
                   when :kernel_call
-                    fn_id = instr.attributes[:fn]
-                    out_axes = axes_for(instr.result)
-                    if vector_axes?(out_axes)
-                      vector_kernel_call(instr, fn_id)
-                    else
-                      args = instr.inputs.map { reg(_1) }
-                      "let #{reg(instr.result)} = #{kernel_expr(fn_id, args)};"
-                    end
+                    args = instr.inputs.map { reg(_1) }
+                    write "let #{reg(instr.result)} = #{kernel_expr(instr.attributes[:fn], args)};"
                   when :select
-                    out_axes = axes_for(instr.result)
-                    if vector_axes?(out_axes)
-                      vector_select(instr)
-                    else
-                      cond, on_true, on_false = instr.inputs.map { reg(_1) }
-                      "let #{reg(instr.result)} = #{cond} ? #{on_true} : #{on_false};"
-                    end
+                    cond, on_true, on_false = instr.inputs.map { reg(_1) }
+                    write "let #{reg(instr.result)} = #{cond} ? #{on_true} : #{on_false};"
                   when :make_object
                     keys = Array(instr.attributes[:keys])
                     values = instr.inputs.map { reg(_1) }
-                    out_axes = axes_for(instr.result)
-                    if vector_axes?(out_axes)
-                      raise "Loop JS codegen does not yet support vector make_object"
-                    end
-                    "let #{reg(instr.result)} = #{format_object(keys, values)};"
-                  when :reduce
-                    reduce_expr = fold_inline_expr(instr)
-                    "let #{reg(instr.result)} = #{reduce_expr};"
+                    write "let #{reg(instr.result)} = #{format_object(keys, values)};"
+                  when :ref
+                    write "let #{reg(instr.result)} = #{reg(instr.inputs.first)};"
+                  when :loop_start
+                    source = reg(instr.inputs.first)
+                    elem = reg(instr.result)
+                    idx = reg(instr.attributes[:index])
+                    write "for (let #{idx} = 0; #{idx} < #{source}.length; #{idx}++) {"
+                    @indent += 1
+                    write "let #{elem} = #{source}[#{idx}];"
+                  when :loop_end
+                    @indent -= 1
+                    write "}"
+                  when :array_init
+                    write "let #{reg(instr.result)} = [];"
+                  when :array_push
+                    write "#{reg(instr.inputs[0])}.push(#{reg(instr.inputs[1])});"
+                  when :array_len
+                    write "let #{reg(instr.result)} = #{reg(instr.inputs.first)}.length;"
+                  when :index_read
+                    write "let #{reg(instr.result)} = #{reg(instr.inputs[0])}[#{reg(instr.inputs[1])}];"
+                  when :shift_read
+                    emit_shift_read(instr)
+                  when :shift_in_bounds
+                    index, length = instr.inputs.map { reg(_1) }
+                    out = reg(instr.result)
+                    offset = instr.attributes[:offset]
+                    write "let #{out}_j = #{index} - (#{offset});"
+                    write "let #{out} = #{out}_j >= 0 && #{out}_j < #{length};"
+                  when :acc_init
+                    init = instr.attributes[:nil_init] ? "null" : format_literal(instr.attributes[:init])
+                    write "let #{reg(instr.result)} = #{init};"
+                  when :acc_step
+                    emit_acc_step(instr)
+                  when :acc_load
+                    write "let #{reg(instr.result)} = #{reg(instr.inputs.first)};"
                   else
                     raise "Loop JS codegen does not support #{instr.opcode.inspect}"
                   end
                 end
 
-                def vector_kernel_call(instr, fn_id)
-                  args = instr.inputs
-                  arg_axes = args.map { axes_for(_1) }
-                  array_indexes = arg_axes.each_index.select { |i| vector_axes?(arg_axes[i]) }
-                  raise "Loop JS codegen only supports 1D vectors" if arg_axes.any? { |ax| ax.size > 1 }
+                def emit_shift_read(instr)
+                  array, index, length = instr.inputs.map { reg(_1) }
+                  out = reg(instr.result)
+                  offset = instr.attributes[:offset]
 
-                  if array_indexes.empty?
-                    expr = kernel_expr(fn_id, args.map { reg(_1) })
-                    return "let #{reg(instr.result)} = #{expr};"
+                  case instr.attributes[:policy]
+                  when :wrap
+                    write "let #{out} = #{array}[(((#{index} - (#{offset})) % #{length}) + #{length}) % #{length}];"
+                  when :clamp
+                    write "let #{out} = #{array}[Math.min(Math.max(#{index} - (#{offset}), 0), #{length} - 1)];"
+                  else
+                    raise "Loop JS codegen does not support shift policy #{instr.attributes[:policy].inspect}"
                   end
-
-                  if array_indexes.size == 1
-                    arr_idx = array_indexes.first
-                    arr_reg = reg(args[arr_idx])
-                    var = "el"
-                    expr_args = args.map.with_index do |arg, idx|
-                      idx == arr_idx ? var : reg(arg)
-                    end
-                    expr = kernel_expr(fn_id, expr_args)
-                    return "let #{reg(instr.result)} = #{arr_reg}.map(#{var} => #{expr});"
-                  end
-
-                  vars = array_indexes.map.with_index { |_idx, i| "v#{i}" }
-                  array_regs = array_indexes.map { |idx| reg(args[idx]) }
-                  expr_args = args.map.with_index do |_arg, idx|
-                    pos = array_indexes.index(idx)
-                    pos ? vars[pos] : reg(args[idx])
-                  end
-                  expr = kernel_expr(fn_id, expr_args)
-                  "let #{reg(instr.result)} = #{array_regs.first}.map((_, i) => { const [#{vars.join(', ')}] = [#{array_regs.join(', ')}].map(arr => arr[i]); return #{expr}; });"
                 end
 
-                def vector_select(instr)
-                  args = instr.inputs
-                  arg_axes = args.map { axes_for(_1) }
-                  array_indexes = arg_axes.each_index.select { |i| vector_axes?(arg_axes[i]) }
-                  raise "Loop JS codegen only supports 1D vectors" if arg_axes.any? { |ax| ax.size > 1 }
+                def emit_acc_step(instr)
+                  acc = reg(instr.inputs[0])
+                  value = reg(instr.inputs[1])
+                  kernel = @registry.kernel_for(instr.attributes[:fn], target: :javascript)
+                  template = kernel.inline
+                  raise "Missing inline for #{instr.attributes[:fn]}" if template.nil? || template.strip.empty?
 
-                  if array_indexes.empty?
-                    cond, on_true, on_false = args.map { reg(_1) }
-                    return "let #{reg(instr.result)} = #{cond} ? #{on_true} : #{on_false};"
-                  end
-
-                  vars = array_indexes.map.with_index { |_idx, i| "v#{i}" }
-                  array_regs = array_indexes.map { |idx| reg(args[idx]) }
-                  expr_args = args.map.with_index do |_arg, idx|
-                    pos = array_indexes.index(idx)
-                    pos ? vars[pos] : reg(args[idx])
-                  end
-                  cond, on_true, on_false = expr_args
-                  expr = "#{cond} ? #{on_true} : #{on_false}"
-
-                  if array_regs.size == 1
-                    return "let #{reg(instr.result)} = #{array_regs.first}.map(#{vars.first} => #{expr});"
-                  end
-
-                  "let #{reg(instr.result)} = #{array_regs.first}.map((_, i) => { const [#{vars.join(', ')}] = [#{array_regs.join(', ')}].map(arr => arr[i]); return #{expr}; });"
-                end
-
-                def fold_inline_expr(instr)
-                  fn_id = instr.attributes[:fn]
-                  arg = reg(instr.inputs.first)
-                  kernel = @registry.kernel_for(fn_id, target: :javascript)
-                  inline = kernel.fold_inline
-                  raise "Missing fold_inline for #{fn_id}" if inline.nil? || inline.strip.empty?
-
-                  apply_inline(inline, [arg])
+                  step = template.strip.gsub("$0", acc).gsub("$1", value)
+                  write "#{acc} #{step};"
                 end
 
                 def kernel_expr(fn_id, args)
@@ -193,33 +162,15 @@ module Kumi
 
                   name = sym.to_s
                   return "t#{name[1..]}" if name.start_with?("v") && name[1..].to_i.to_s == name[1..]
+
                   name
-                end
-
-                def build_axes_map(fn)
-                  map = {}
-                  fn.entry_block.instructions.each do |instr|
-                    map[instr.result] = Array(instr.axes) if instr.result
-                  end
-                  map
-                end
-
-                def axes_for(reg_name)
-                  Array(@reg_axes[reg_name])
-                end
-
-                def vector_axes?(axes)
-                  axes && !axes.empty?
                 end
 
                 def format_literal(value)
                   case value
-                  when String
-                    value.inspect
-                  when Symbol
-                    value.inspect
-                  else
-                    value.inspect
+                  when nil then "null"
+                  when Symbol then value.to_s.inspect
+                  else value.inspect
                   end
                 end
 

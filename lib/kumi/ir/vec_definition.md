@@ -97,6 +97,6 @@ pipeline has already performed inlining and tuple/array canonicalization.
 
 ## Notes for Backends
 
-VecIR is designed to lower cleanly into a loop materialization layer
-(LoopIR/LIR) for Ruby/JS codegen. A future BufIR can sit after LoopIR for
+VecIR is designed to lower cleanly into the loop materialization layer
+(LoopIR) for Ruby/JS codegen. A future BufIR can sit after LoopIR for
 targets that need explicit allocation and lifetime control before codegen.

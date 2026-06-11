@@ -1,0 +1,33 @@
+function app_name:
+  %v3 = load_input [key=:config]
+  %v4 = load_field (:v3) [field=:app_name]
+function all_flags:
+  %v6 = load_input [key=:config]
+  %v7 = load_field (:v6) [field=:feature_flags]
+  %arr11 = array_init
+  %feature_flags_el8 = loop_start (:v7) [axis=:feature_flags, index=:feature_flags_i9]
+    %v10 = ref (:feature_flags_el8) [feature_flags] -> string
+    array_push (:arr11, :v10)
+  loop_end [axis=:feature_flags]
+function server_hostnames:
+  %v10 = load_input [key=:config]
+  %v11 = load_field (:v10) [field=:servers]
+  %arr16 = array_init
+  %servers_el12 = loop_start (:v11) [axis=:servers, index=:servers_i13]
+    %v14 = load_field (:servers_el12) [field=:hostname]
+    %v15 = ref (:v14) [servers] -> string
+    array_push (:arr16, :v15)
+  loop_end [axis=:servers]
+function server_count:
+  %v13 = load_input [key=:config]
+  %v14 = load_field (:v13) [field=:servers]
+  %v12 = kernel_call (:v14) [fn=:core.array_size] [] -> integer
+function total_ports:
+  %v18 = load_input [key=:config]
+  %v19 = load_field (:v18) [field=:servers]
+  %acc23 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %servers_el20 = loop_start (:v19) [axis=:servers, index=:servers_i21]
+    %v22 = load_field (:servers_el20) [field=:port]
+    acc_step (:acc23, :v22) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:servers]
+  %v17 = acc_load (:acc23) [] -> integer

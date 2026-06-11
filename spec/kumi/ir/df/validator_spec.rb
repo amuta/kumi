@@ -126,4 +126,43 @@ RSpec.describe Kumi::IR::DF::Validator do
     expect { described_class.validate!(graph) }
       .to raise_error(ArgumentError, /load_field must preserve or expand axes/)
   end
+
+  describe "registry coherence" do
+    let(:registry) { Kumi::RegistryV2.load }
+
+    def map_graph(fn)
+      graph_with(
+        df_ops::Constant.new(result: :v1, value: 1, axes: [], dtype: int_type, metadata: { axes: [], dtype: int_type }),
+        df_ops::Constant.new(result: :v2, value: 2, axes: [], dtype: int_type, metadata: { axes: [], dtype: int_type }),
+        df_ops::Map.new(result: :out, fn: fn, args: %i[v1 v2], axes: [], dtype: int_type,
+                        metadata: { axes: [], dtype: int_type })
+      )
+    end
+
+    it "accepts function references that resolve to kernels for every target" do
+      expect(described_class.validate!(map_graph(:"core.add"), registry: registry)).to be_a(Kumi::IR::DF::Graph)
+    end
+
+    it "rejects function references the registry does not know" do
+      expect { described_class.validate!(map_graph(:"core.definitely_missing"), registry: registry) }
+        .to raise_error(ArgumentError, /map :out in function :demo references :"core\.definitely_missing".*unknown function/)
+    end
+
+    it "rejects functions without a kernel for an enabled target" do
+      partial = Class.new do
+        def kernel_for(id, target:)
+          raise "no kernel for #{id} on #{target}" if target == :javascript
+
+          :kernel
+        end
+      end.new
+
+      expect { described_class.validate!(map_graph(:"core.add"), registry: partial) }
+        .to raise_error(ArgumentError, /no kernel for core\.add on javascript/)
+    end
+
+    it "skips the check when no registry is given" do
+      expect { described_class.validate!(map_graph(:"core.definitely_missing")) }.not_to raise_error
+    end
+  end
 end

@@ -215,7 +215,7 @@ RSpec.describe Kumi::Core::Analyzer::Checkpoint do
       skipping = !!resume_at
 
       # Simulate the pass loop from analyzer.rb with actual current passes
-      # Note: DEFAULT_PASSES and HIR_TO_LIR_PASSES are run separately
+      # Note: DEFAULT_PASSES and LOWERING_PASSES are run separately
       passes = %w[
         NameIndexer
         InputCollector

@@ -3,11 +3,8 @@
 This directory contains the compiler IR stack that sits between SNAST and
 target code generation.
 
-This README describes the intended final shape of that stack.
-
 For the broader compiler view, see
-[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md). For the staged migration
-plan, see [docs/IR_GOALS_AND_PLAN.md](../../docs/IR_GOALS_AND_PLAN.md).
+[docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md).
 
 ## Goals
 
@@ -20,7 +17,7 @@ The core goals are:
 - boundary validators define and enforce invariants
 - emitters become mechanical serializers over normalized IR
 
-The desired pipeline is:
+The pipeline is:
 
 ```text
 SNAST
@@ -86,6 +83,8 @@ It should:
 
 LoopIR is the last semantic layer before storage concerns.
 
+See [loop_definition.md](./loop_definition.md).
+
 ### BufIR
 
 BufIR is the explicit storage/materialization layer.
@@ -138,7 +137,8 @@ responsibility.
 
 IR work should be verified by stage, not only end-to-end.
 
-The intended inspection flow uses `golden_v2`:
+The inspection flow uses `golden_v2` (or `bin/kumi pp <repr> <schema>` for a
+single schema):
 
 ```bash
 bundle exec bin/kumi golden_v2 verify --repr frontend <schema>

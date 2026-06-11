@@ -1,0 +1,14 @@
+function meta:
+  %v14 = load_input [key=:width]
+  %v15 = load_input [key=:height]
+  %v4 = make_object (:v14, :v15) [keys=[:width, :height]] [] -> hash
+  %v16 = constant [value="random"] [] -> string
+  %v17 = constant [value=0.3] [] -> float
+  %v7 = make_object (:v16, :v17) [keys=[:kind, :density]] [] -> hash
+  %v18 = constant [value="#0f1219"] [] -> string
+  %v19 = constant [value="#10b981"] [] -> string
+  %v11 = make_object (:v18, :v19) [keys=[:0, :1]] [] -> hash
+  %v20 = constant [value=10] [] -> integer
+  %v12 = make_object (:v20, :v11) [keys=[:cellSize, :palette]] [] -> hash
+  %v21 = constant [value="grid2d"] [] -> string
+  %v13 = make_object (:v21, :v4, :v7, :v12) [keys=[:render, :size, :prefill, :ui]] [] -> hash

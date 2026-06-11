@@ -6,6 +6,9 @@ require "mutex_m"
 
 AUTOLOADER = Zeitwerk::Loader.for_gem
 AUTOLOADER.ignore("#{__dir__}/kumi-cli")
+AUTOLOADER.ignore("#{__dir__}/kumi/dev/golden_schema_modules.rb")
+AUTOLOADER.ignore("#{__dir__}/kumi/ir/vec/ops/core_ops.rb")
+AUTOLOADER.ignore("#{__dir__}/kumi/ir/loop/ops/core_ops.rb")
 AUTOLOADER.inflector.inflect(
   "assemble_irv2_pass" => "AssembleIRV2Pass",
   "ast_emitter" => "ASTEmitter",
@@ -21,12 +24,7 @@ AUTOLOADER.inflector.inflect(
   "ir_execution_schedule_pass" => "IRExecutionSchedulePass",
   "irv2" => "IRV2",
   "irv2_formatter" => "IRV2Formatter",
-  "lir" => "LIR",
-  "lir_ruby_codegen_pass" => "LIRRubyCodegenPass",
-  "lir_printer" => "LIRPrinter",
-  "local_cse_pass" => "LocalCSEPass",
   "lower_to_ir_pass" => "LowerToIRPass",
-  "lower_to_lir_pass" => "LowerToLIRPass",
   "lower_to_dfir_pass" => "LowerToDFIRPass",
   "lower_to_irv2_pass" => "LowerToIRV2Pass",
   "load_input_cse" => "LoadInputCSE",

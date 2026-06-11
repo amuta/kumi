@@ -1,0 +1,31 @@
+function users:
+  %v8 = load_input [key=:users]
+  %arr13 = array_init
+  %users_el9 = loop_start (:v8) [axis=:users, index=:users_i10]
+    %v11 = load_field (:users_el9) [field=:name]
+    %v12 = load_field (:users_el9) [field=:state]
+    %v7 = make_object (:v11, :v12) [keys=[:name, :state]] [users] -> hash
+    array_push (:arr13, :v7)
+  loop_end [axis=:users]
+function is_john:
+  %v14 = load_input [key=:users]
+  %arr19 = array_init
+  %users_el15 = loop_start (:v14) [axis=:users, index=:users_i16]
+    %v17 = load_field (:users_el15) [field=:name]
+    %v18 = constant [value="John"] [] -> string
+    %v13 = kernel_call (:v17, :v18) [fn=:core.eq] [users] -> boolean
+    array_push (:arr19, :v13)
+  loop_end [axis=:users]
+function john_user:
+  %v32 = load_input [key=:users]
+  %arr39 = array_init
+  %users_el33 = loop_start (:v32) [axis=:users, index=:users_i34]
+    %v35 = load_field (:users_el33) [field=:name]
+    %v36 = constant [value="John"] [] -> string
+    %v24 = kernel_call (:v35, :v36) [fn=:core.eq] [users] -> boolean
+    %v37 = load_field (:users_el33) [field=:state]
+    %v31 = make_object (:v35, :v37) [keys=[:name, :state]] [users] -> hash
+    %v38 = constant [value="NOT_JOHN"] [] -> string
+    %v18 = select (:v24, :v31, :v38) [users] -> hash
+    array_push (:arr39, :v18)
+  loop_end [axis=:users]

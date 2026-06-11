@@ -79,6 +79,19 @@ bin/kumi golden test           # Run all tests
 bin/kumi golden update EXAMPLE # Regenerate expected files
 ```
 
+## Debugging the Compiler Pipeline
+
+The pipeline (SNAST → DFIR → VecIR → LoopIR → emitters) can be inspected one
+layer at a time — see [ARCHITECTURE.md](ARCHITECTURE.md):
+
+```bash
+bin/kumi pp loopir <schema.kumi>              # print one representation
+bin/kumi golden_v2 verify --repr df           # snapshot-check one layer
+bin/kumi golden_v2 diff --repr codegen <name> # unified diff for a schema
+```
+
+[AGENTS.md](AGENTS.md) collects more inspection recipes.
+
 ---
 
 *For more development documentation, see the other guides in this directory.*
