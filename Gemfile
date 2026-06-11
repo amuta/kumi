@@ -13,7 +13,6 @@ gem "mutex_m", "~> 0.3.0"
 gem "parslet", "~> 2.0"
 gem "pry", "~> 0.15.2"
 gem "rake", "~> 13.0"
-gem "rdoc", "~> 7.2"
 gem "rspec", "~> 3.0"
 gem "rubocop", "~> 1.21"
 gem "rubocop-performance", "~> 1.25"
@@ -24,6 +23,7 @@ gem "simplecov", "~> 0.21"
 gem "kumi-parser", "0.0.30"
 
 group :development do
+  gem "rdoc", "~> 7.2"
   gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"
 end
