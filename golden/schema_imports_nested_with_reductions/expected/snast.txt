@@ -1,7 +1,7 @@
 (SNAST
   (VALUE order_subtotals
     (ImportCall :subtotal
-      (items (InputRef orders.order.items key_chain=[]) :: [orders] -> array)
+      (items (InputRef orders.order.items key_chain=[]) :: [orders] -> array<any>)
     ) :: [orders] -> integer
   ) :: [orders] -> integer
   (VALUE total_before_tax

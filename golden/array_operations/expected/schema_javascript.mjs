@@ -1,56 +1,65 @@
 export function _subtotals(input) {
-  let out = [];
-  let t1 = input["items"];
-  t1.forEach((items_el_2, items_i_3) => {
-    let t4 = items_el_2["price"];
-    let t5 = items_el_2["quantity"];
-    let t6 = t4 * t5;
-    out.push(t6);
-  });
-  return out;
+  let t8 = input["items"];
+  let arr13 = [];
+  for (let items_i10 = 0; items_i10 < t8.length; items_i10++) {
+    let items_el9 = t8[items_i10];
+    let t11 = items_el9["price"];
+    let t12 = items_el9["quantity"];
+    let t7 = t11 * t12;
+    arr13.push(t7);
+  }
+  return arr13;
 }
 
 export function _discounted_price(input) {
-  let out = [];
-  let t7 = input["items"];
-  t7.forEach((items_el_8, items_i_9) => {
-    let t10 = items_el_8["price"];
-    let t12 = t10 * 0.9;
-    out.push(t12);
-  });
-  return out;
+  let t14 = input["items"];
+  let arr19 = [];
+  for (let items_i16 = 0; items_i16 < t14.length; items_i16++) {
+    let items_el15 = t14[items_i16];
+    let t17 = items_el15["price"];
+    let t18 = 0.9;
+    let t13 = t17 * t18;
+    arr19.push(t13);
+  }
+  return arr19;
 }
 
 export function _is_valid_quantity(input) {
-  let out = [];
-  let t13 = input["items"];
-  t13.forEach((items_el_14, items_i_15) => {
-    let t16 = items_el_14["quantity"];
-    let t18 = t16 > 0;
-    out.push(t18);
-  });
-  return out;
+  let t20 = input["items"];
+  let arr25 = [];
+  for (let items_i22 = 0; items_i22 < t20.length; items_i22++) {
+    let items_el21 = t20[items_i22];
+    let t23 = items_el21["quantity"];
+    let t24 = 0;
+    let t19 = t23 > t24;
+    arr25.push(t19);
+  }
+  return arr25;
 }
 
 export function _expensive_items(input) {
-  let out = [];
-  let t19 = input["items"];
-  t19.forEach((items_el_20, items_i_21) => {
-    let t22 = items_el_20["price"];
-    let t24 = t22 > 100.0;
-    out.push(t24);
-  });
-  return out;
+  let t26 = input["items"];
+  let arr31 = [];
+  for (let items_i28 = 0; items_i28 < t26.length; items_i28++) {
+    let items_el27 = t26[items_i28];
+    let t29 = items_el27["price"];
+    let t30 = 100.0;
+    let t25 = t29 > t30;
+    arr31.push(t25);
+  }
+  return arr31;
 }
 
 export function _electronics(input) {
-  let out = [];
-  let t25 = input["items"];
-  t25.forEach((items_el_26, items_i_27) => {
-    let t28 = items_el_26["category"];
-    let t30 = t28 == "electronics";
-    out.push(t30);
-  });
-  return out;
+  let t32 = input["items"];
+  let arr37 = [];
+  for (let items_i34 = 0; items_i34 < t32.length; items_i34++) {
+    let items_el33 = t32[items_i34];
+    let t35 = items_el33["category"];
+    let t36 = "electronics";
+    let t31 = t35 == t36;
+    arr37.push(t31);
+  }
+  return arr37;
 }
 

@@ -1,78 +1,95 @@
 export function _total_payroll(input) {
-  let out = [];
-  let t1 = input["departments"];
-  t1.forEach((departments_el_2, departments_i_3) => {
-    let acc_4 = 0;
-    let t5 = departments_el_2["employees"];
-    t5.forEach((employees_el_6, employees_i_7) => {
-      let t8 = employees_el_6["salary"];
-      acc_4 += t8;
-    });
-    out.push(acc_4);
-  });
-  return out;
+  let t7 = input["departments"];
+  let arr15 = [];
+  for (let departments_i9 = 0; departments_i9 < t7.length; departments_i9++) {
+    let departments_el8 = t7[departments_i9];
+    let t10 = departments_el8["employees"];
+    let acc14 = 0;
+    for (let employees_i12 = 0; employees_i12 < t10.length; employees_i12++) {
+      let employees_el11 = t10[employees_i12];
+      let t13 = employees_el11["salary"];
+      acc14 += t13;
+    }
+    let t6 = acc14;
+    arr15.push(t6);
+  }
+  return arr15;
 }
 
 export function _payroll_tax(input) {
-  let out = [];
-  let t10 = input["departments"];
-  t10.forEach((departments_el_11, departments_i_12) => {
-    let acc40 = 0;
-    let t41 = departments_el_11["employees"];
-    t41.forEach((t42, t43) => {
-      let t44 = t42["salary"];
-      acc40 += t44;
-    });
-    let t15 = acc40 * 0.15;
-    out.push(t15);
-  });
-  return out;
+  let t17 = input["departments"];
+  let arr26 = [];
+  for (let departments_i19 = 0; departments_i19 < t17.length; departments_i19++) {
+    let departments_el18 = t17[departments_i19];
+    let t20 = departments_el18["employees"];
+    let acc24 = 0;
+    for (let employees_i22 = 0; employees_i22 < t20.length; employees_i22++) {
+      let employees_el21 = t20[employees_i22];
+      let t23 = employees_el21["salary"];
+      acc24 += t23;
+    }
+    let t16 = acc24;
+    let t25 = 0.15;
+    let t10 = t16 * t25;
+    arr26.push(t10);
+  }
+  return arr26;
 }
 
 export function _manager_count(input) {
-  let out = [];
-  let t16 = input["departments"];
-  t16.forEach((departments_el_17, departments_i_18) => {
-    let acc_19 = 0;
-    let t20 = departments_el_17["employees"];
-    t20.forEach((employees_el_21, employees_i_22) => {
-      let t23 = employees_el_21["role"];
-      let t25 = t23 == "manager";
-      let t28 = t25 ? 1 : 0;
-      acc_19 += t28;
-    });
-    out.push(acc_19);
-  });
-  return out;
+  let t25 = input["departments"];
+  let arr36 = [];
+  for (let departments_i27 = 0; departments_i27 < t25.length; departments_i27++) {
+    let departments_el26 = t25[departments_i27];
+    let t28 = departments_el26["employees"];
+    let acc35 = 0;
+    for (let employees_i30 = 0; employees_i30 < t28.length; employees_i30++) {
+      let employees_el29 = t28[employees_i30];
+      let t31 = employees_el29["role"];
+      let t32 = "manager";
+      let t18 = t31 == t32;
+      let t33 = 1;
+      let t34 = 0;
+      let t23 = t18 ? t33 : t34;
+      acc35 += t23;
+    }
+    let t24 = acc35;
+    arr36.push(t24);
+  }
+  return arr36;
 }
 
 export function _department_summary(input) {
-  let out = [];
-  let t30 = input["departments"];
-  t30.forEach((departments_el_31, departments_i_32) => {
-    let t33 = departments_el_31["name"];
-    let acc48 = 0;
-    let t49 = departments_el_31["employees"];
-    let acc60 = 0;
+  let t61 = input["departments"];
+  let arr78 = [];
+  for (let departments_i63 = 0; departments_i63 < t61.length; departments_i63++) {
+    let departments_el62 = t61[departments_i63];
+    let t64 = departments_el62["employees"];
     let acc68 = 0;
-    t49.forEach((t50, t51) => {
-      let t52 = t50["salary"];
-      acc48 += t52;
-      acc60 += t52;
-      let t72 = t50["role"];
-      let t74 = t72 == "manager";
-      let t77 = t74 ? 1 : 0;
-      acc68 += t77;
-    });
-    let t57 = acc60 * 0.15;
-    let t37 = {
-      "name": t33,
-      "payroll": acc48,
-      "tax": t57,
-      "managers": acc68
-    };
-    out.push(t37);
-  });
-  return out;
+    for (let employees_i66 = 0; employees_i66 < t64.length; employees_i66++) {
+      let employees_el65 = t64[employees_i66];
+      let t67 = employees_el65["salary"];
+      acc68 += t67;
+    }
+    let t37 = acc68;
+    let t69 = 0.15;
+    let t46 = t37 * t69;
+    let acc76 = 0;
+    for (let employees_i71 = 0; employees_i71 < t64.length; employees_i71++) {
+      let employees_el70 = t64[employees_i71];
+      let t72 = employees_el70["role"];
+      let t73 = "manager";
+      let t54 = t72 == t73;
+      let t74 = 1;
+      let t75 = 0;
+      let t59 = t54 ? t74 : t75;
+      acc76 += t59;
+    }
+    let t60 = acc76;
+    let t77 = departments_el62["name"];
+    let t31 = { "name": t77, "payroll": t37, "tax": t46, "managers": t60 };
+    arr78.push(t31);
+  }
+  return arr78;
 }
 

@@ -6,7 +6,7 @@
   ) :: [] -> integer
   (VALUE items_count
     (Call :core.array_size
-      (InputRef items key_chain=[]) :: [] -> array
+      (InputRef items key_chain=[]) :: [] -> array<integer>
     ) :: [] -> integer
   ) :: [] -> integer
   (VALUE summary

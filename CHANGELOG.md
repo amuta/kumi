@@ -1,5 +1,23 @@
 ## [Unreleased]
 
+## [0.0.35] – 2026-06-11
+### Added
+- **Dataflow IR Pipeline:** New DF IR graph, typed operations, validation, import inlining, broadcast simplification, CSE, load deduplication, tuple/object canonicalization, and golden artifact coverage.
+- **Vector IR Pipeline:** New VecIR builder, lowerer, validator, axis canonicalization, constant propagation, GVN, DCE, peephole simplification, stencil detection, and focused specs.
+- **Loop IR Pipeline:** New LoopIR builder/lowerer/validator and Ruby/JavaScript loop codegen path replacing the legacy LIR codegen pipeline.
+- **IR Tooling:** Shared IR base types, pass pipeline infrastructure, pretty printers, SNAST factory helpers, and expanded golden v2 output artifacts for DF/Vec/Loop stages.
+- **Regression Coverage:** External installed-gem loading spec that builds and installs the gem in an isolated `GEM_HOME` so runtime packaging issues are caught.
+
+### Changed
+- Removed the legacy LIR pipeline and refreshed golden outputs to the DF/Vec/Loop representation stack.
+- Updated generated Ruby and JavaScript output to use the LoopIR-backed codegen path.
+- Hardened kernel definitions and docs around numeric reductions, string aggregations, arithmetic helpers, and min/max empty-array behavior.
+- Revised architecture, schema import, golden test, and development documentation around the new IR pipeline.
+
+### Fixed
+- Runtime `require "kumi"` no longer loads golden-test support files or leaks the Zeitwerk loader as a top-level `AUTOLOADER` constant.
+- Golden shared schemas are loaded only through `Kumi.load_shared_schemas!`, preserving test support behavior without coupling it to normal gem loading.
+
 ## [0.0.33] – 2025-11-05
 ### Added
 - **Peephole Optimization Helper:** `Kumi::Core::LIR::Peephole` plus specs for safer peephole transforms, inline Ruby clamp kernel, richer LIR dumps, and refreshed golden files

@@ -37,6 +37,9 @@ module Kumi
         when Kumi::Core::NAST::InputRef
           "(InputRef #{node.path.inspect})"
 
+        when Kumi::Core::NAST::IndexRef
+          "(IndexRef :#{node.name})"
+
         when Kumi::Core::NAST::Ref
           "(Ref #{node.name})"
 

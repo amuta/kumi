@@ -1,0 +1,12 @@
+{
+  "regions": [
+    {
+      "sales": [{"amount": 5}, {"amount": 9}],
+      "tags": [{"label": "a"}, {"label": "b"}]
+    },
+    {
+      "sales": [],
+      "tags": []
+    }
+  ]
+}

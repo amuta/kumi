@@ -7,6 +7,32 @@ functions:
       param: number
     aliases: ["abs"]
 
+  - id: core.max
+    kind: elementwise
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
+    constraint_semantics:
+      pure_combiner: true
+      commutativity: true
+      associativity: true
+
+  - id: core.min
+    kind: elementwise
+    params:
+      - { name: left_operand, dtype: numeric }
+      - { name: right_operand, dtype: numeric }
+    dtype:
+      rule: promote
+      params: [left_operand, right_operand]
+    constraint_semantics:
+      pure_combiner: true
+      commutativity: true
+      associativity: true
+
   - id: core.add
     kind: elementwise
     params:

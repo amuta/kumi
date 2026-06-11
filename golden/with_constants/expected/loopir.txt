@@ -1,0 +1,9 @@
+function scores:
+  %v5 = constant [value=100] [] -> integer
+  %v6 = constant [value=85] [] -> integer
+  %v7 = constant [value=92] [] -> integer
+  %v4 = make_object (:v5, :v6, :v7) [keys=[:_0, :_1, :_2]] [] -> tuple<integer, integer, integer>
+function first_score:
+  %v6 = constant [value=100] [] -> integer
+function second_score:
+  %v7 = constant [value=85] [] -> integer

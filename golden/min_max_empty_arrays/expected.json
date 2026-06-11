@@ -1,0 +1,7 @@
+{
+  "region_max": [9, null],
+  "region_min": [5, null],
+  "region_labels": ["ab", ""],
+  "best_region_sale": 9,
+  "worst_region_sale": 5
+}

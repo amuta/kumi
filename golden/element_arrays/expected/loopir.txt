@@ -1,0 +1,92 @@
+function cube:
+  %v2 = load_input [key=:cube]
+function layer:
+  %v4 = load_input [key=:cube]
+  %arr8 = array_init
+  %cube_el5 = loop_start (:v4) [axis=:cube, index=:cube_i6]
+    %v7 = ref (:cube_el5) [cube] -> array<array<integer>>
+    array_push (:arr8, :v7)
+  loop_end [axis=:cube]
+function row:
+  %v7 = load_input [key=:cube]
+  %arr13 = array_init
+  %cube_el8 = loop_start (:v7) [axis=:cube, index=:cube_i9]
+    %arr14 = array_init
+    %layer_el10 = loop_start (:cube_el8) [axis=:layer, index=:layer_i11]
+      %v12 = ref (:layer_el10) [cube, layer] -> array<integer>
+      array_push (:arr14, :v12)
+    loop_end [axis=:layer]
+    array_push (:arr13, :arr14)
+  loop_end [axis=:cube]
+function cell:
+  %v11 = load_input [key=:cube]
+  %arr19 = array_init
+  %cube_el12 = loop_start (:v11) [axis=:cube, index=:cube_i13]
+    %arr20 = array_init
+    %layer_el14 = loop_start (:cube_el12) [axis=:layer, index=:layer_i15]
+      %arr21 = array_init
+      %row_el16 = loop_start (:layer_el14) [axis=:row, index=:row_i17]
+        %v18 = ref (:row_el16) [cube, layer, row] -> integer
+        array_push (:arr21, :v18)
+      loop_end [axis=:row]
+      array_push (:arr20, :arr21)
+    loop_end [axis=:layer]
+    array_push (:arr19, :arr20)
+  loop_end [axis=:cube]
+function cell_over_limit:
+  %v18 = load_input [key=:cube]
+  %arr26 = array_init
+  %cube_el19 = loop_start (:v18) [axis=:cube, index=:cube_i20]
+    %arr27 = array_init
+    %layer_el21 = loop_start (:cube_el19) [axis=:layer, index=:layer_i22]
+      %arr28 = array_init
+      %row_el23 = loop_start (:layer_el21) [axis=:row, index=:row_i24]
+        %v25 = constant [value=100] [] -> integer
+        %v17 = kernel_call (:row_el23, :v25) [fn=:core.gt] [cube, layer, row] -> boolean
+        array_push (:arr28, :v17)
+      loop_end [axis=:row]
+      array_push (:arr27, :arr28)
+    loop_end [axis=:layer]
+    array_push (:arr26, :arr27)
+  loop_end [axis=:cube]
+function cell_sum:
+  %v34 = load_input [key=:cube]
+  %arr44 = array_init
+  %cube_el35 = loop_start (:v34) [axis=:cube, index=:cube_i36]
+    %arr45 = array_init
+    %layer_el37 = loop_start (:cube_el35) [axis=:layer, index=:layer_i38]
+      %acc43 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+      %row_el39 = loop_start (:layer_el37) [axis=:row, index=:row_i40]
+        %v41 = constant [value=100] [] -> integer
+        %v33 = kernel_call (:row_el39, :v41) [fn=:core.gt] [cube, layer, row] -> boolean
+        %v42 = constant [value=0] [] -> integer
+        %v25 = select (:v33, :row_el39, :v42) [cube, layer, row] -> integer
+        acc_step (:acc43, :v25) [fn=:agg.sum, nil_init=false]
+      loop_end [axis=:row]
+      %v26 = acc_load (:acc43) [] -> integer
+      array_push (:arr45, :v26)
+    loop_end [axis=:layer]
+    array_push (:arr44, :arr45)
+  loop_end [axis=:cube]
+function count_over_limit:
+  %v43 = load_input [key=:cube]
+  %acc55 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %cube_el44 = loop_start (:v43) [axis=:cube, index=:cube_i45]
+    %acc54 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %layer_el46 = loop_start (:cube_el44) [axis=:layer, index=:layer_i47]
+      %acc53 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+      %row_el48 = loop_start (:layer_el46) [axis=:row, index=:row_i49]
+        %v50 = constant [value=100] [] -> integer
+        %v42 = kernel_call (:row_el48, :v50) [fn=:core.gt] [cube, layer, row] -> boolean
+        %v51 = constant [value=1] [] -> integer
+        %v52 = constant [value=0] [] -> integer
+        %v32 = select (:v42, :v51, :v52) [cube, layer, row] -> integer
+        acc_step (:acc53, :v32) [fn=:agg.sum, nil_init=false]
+      loop_end [axis=:row]
+      %v33 = acc_load (:acc53) [] -> integer
+      acc_step (:acc54, :v33) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:layer]
+    %v34 = acc_load (:acc54) [] -> integer
+    acc_step (:acc55, :v34) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:cube]
+  %v35 = acc_load (:acc55) [] -> integer

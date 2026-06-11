@@ -76,7 +76,7 @@ module Kumi
           @plans << Core::Analyzer::Plans::InputPlan.new(
             source_path: path_segs.map(&:to_sym),
             axes: axes,
-            dtype: node.type,
+            dtype: infer_node_dtype(node),
             key_policy: @defaults[:key_policy],
             missing_policy: @defaults[:on_missing],
             navigation_steps: steps,
@@ -148,7 +148,7 @@ module Kumi
           @plans << Core::Analyzer::Plans::InputPlan.new(
             source_path: [],               # synthetic (not an actual declared field path)
             axes: axes,
-            dtype: :integer,               # indices are integers
+            dtype: Kumi::Core::Types.scalar(:integer), # indices are integers
             key_policy: @defaults[:key_policy],
             missing_policy: @defaults[:on_missing],
             navigation_steps: idx_steps,
@@ -156,6 +156,37 @@ module Kumi
           )
 
           @index_table[idx_name] = { axes: axes, fqn: idx_fqn }
+        end
+
+        def infer_node_dtype(node)
+          case node.container
+          when :array
+            Kumi::Core::Types.array(array_element_type(node))
+          else
+            coerce_scalar_type(node.type)
+          end
+        end
+
+        def array_element_type(node)
+          return Kumi::Core::Types.scalar(:any) unless node.children && !node.children.empty?
+
+          if node.children.size == 1
+            infer_node_dtype(node.children.values.first)
+          else
+            # TODO: encode structured element types instead of collapsing to hash.
+            Kumi::Core::Types.scalar(:hash)
+          end
+        end
+
+        def coerce_scalar_type(kind)
+          return kind if kind.is_a?(Kumi::Core::Types::Type)
+          return Kumi::Core::Types.scalar(:any) if kind.nil?
+
+          if kind.is_a?(Symbol) && Kumi::Core::Types::Validator.valid_kind?(kind)
+            Kumi::Core::Types.scalar(kind)
+          else
+            Kumi::Core::Types.scalar(:any)
+          end
         end
       end
     end

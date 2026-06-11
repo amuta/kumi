@@ -1,0 +1,27 @@
+(SNAST
+  (VALUE region_max
+    (Reduce :agg.max over [sales]
+      (InputRef regions.region.sales.sale.amount key_chain=[]) :: [regions, sales] -> integer
+    ) :: [regions] -> integer
+  ) :: [regions] -> integer
+  (VALUE region_min
+    (Reduce :agg.min over [sales]
+      (InputRef regions.region.sales.sale.amount key_chain=[]) :: [regions, sales] -> integer
+    ) :: [regions] -> integer
+  ) :: [regions] -> integer
+  (VALUE region_labels
+    (Reduce :agg.join over [tags]
+      (InputRef regions.region.tags.tag.label key_chain=[]) :: [regions, tags] -> string
+    ) :: [regions] -> string
+  ) :: [regions] -> string
+  (VALUE best_region_sale
+    (Reduce :agg.max over [regions]
+      (Ref region_max) :: [regions] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+  (VALUE worst_region_sale
+    (Reduce :agg.min over [regions]
+      (Ref region_min) :: [regions] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

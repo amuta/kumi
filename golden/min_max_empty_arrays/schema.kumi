@@ -1,0 +1,24 @@
+schema do
+  input do
+    array :regions do
+      hash :region do
+        array :sales do
+          hash :sale do
+            integer :amount
+          end
+        end
+        array :tags do
+          hash :tag do
+            string :label
+          end
+        end
+      end
+    end
+  end
+
+  value :region_max, fn(:max, input.regions.region.sales.sale.amount)
+  value :region_min, fn(:min, input.regions.region.sales.sale.amount)
+  value :region_labels, fn(:join, input.regions.region.tags.tag.label)
+  value :best_region_sale, fn(:max, region_max)
+  value :worst_region_sale, fn(:min, region_min)
+end

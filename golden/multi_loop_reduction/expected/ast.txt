@@ -1,0 +1,39 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :value :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :total_value
+      (CallExpression :sum
+        (InputElementReference items.item.value)
+      )
+    )
+    (ValueDeclaration :half_total
+      (CallExpression :multiply
+        (DeclarationReference :total_value)
+        (Literal 0.5)
+      )
+    )
+    (ValueDeclaration :high_value_sum
+      (CallExpression :sum
+        (CallExpression :select
+          (CallExpression :>
+            (InputElementReference items.item.value)
+            (DeclarationReference :half_total)
+          )
+          (InputElementReference items.item.value)
+          (Literal 0)
+        )
+      )
+    )
+  ]
+  traits: []
+)

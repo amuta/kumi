@@ -1,0 +1,694 @@
+function a:
+  %v4 = load_input [key=:rows]
+  %arr10 = array_init
+  %rows_el5 = loop_start (:v4) [axis=:rows, index=:rows_i6]
+    %arr11 = array_init
+    %col_el7 = loop_start (:rows_el5) [axis=:col, index=:col_i8]
+      %v9 = ref (:col_el7) [rows, col] -> integer
+      array_push (:arr11, :v9)
+    loop_end [axis=:col]
+    array_push (:arr10, :arr11)
+  loop_end [axis=:rows]
+function n:
+  %v9 = load_input [key=:rows]
+  %arr20 = array_init
+  %rows_el10 = loop_start (:v9) [axis=:rows, index=:rows_i11]
+    %arr21 = array_init
+    %col_el12 = loop_start (:rows_el10) [axis=:col, index=:col_i13]
+      %v14 = load_input [key=:rows]
+      %v15 = array_len (:v14)
+      %v16 = shift_read (:v14, :rows_i11, :v15) [offset=-1, policy=:clamp] [] -> integer
+      %v17 = index_read (:v16, :col_i13)
+      %v18 = shift_in_bounds (:rows_i11, :v15) [offset=-1] [] -> :boolean
+      %v19 = constant [value=0] [] -> integer
+      %v4 = select (:v18, :v17, :v19) [rows, col] -> integer
+      array_push (:arr21, :v4)
+    loop_end [axis=:col]
+    array_push (:arr20, :arr21)
+  loop_end [axis=:rows]
+function s:
+  %v11 = load_input [key=:rows]
+  %arr22 = array_init
+  %rows_el12 = loop_start (:v11) [axis=:rows, index=:rows_i13]
+    %arr23 = array_init
+    %col_el14 = loop_start (:rows_el12) [axis=:col, index=:col_i15]
+      %v16 = load_input [key=:rows]
+      %v17 = array_len (:v16)
+      %v18 = shift_read (:v16, :rows_i13, :v17) [offset=1, policy=:clamp] [] -> integer
+      %v19 = index_read (:v18, :col_i15)
+      %v20 = shift_in_bounds (:rows_i13, :v17) [offset=1] [] -> :boolean
+      %v21 = constant [value=0] [] -> integer
+      %v6 = select (:v20, :v19, :v21) [rows, col] -> integer
+      array_push (:arr23, :v6)
+    loop_end [axis=:col]
+    array_push (:arr22, :arr23)
+  loop_end [axis=:rows]
+function w:
+  %v13 = load_input [key=:rows]
+  %arr22 = array_init
+  %rows_el14 = loop_start (:v13) [axis=:rows, index=:rows_i15]
+    %arr23 = array_init
+    %col_el16 = loop_start (:rows_el14) [axis=:col, index=:col_i17]
+      %v18 = array_len (:rows_el14)
+      %v19 = shift_read (:rows_el14, :col_i17, :v18) [offset=-1, policy=:clamp] [] -> integer
+      %v20 = shift_in_bounds (:col_i17, :v18) [offset=-1] [] -> :boolean
+      %v21 = constant [value=0] [] -> integer
+      %v8 = select (:v20, :v19, :v21) [rows, col] -> integer
+      array_push (:arr23, :v8)
+    loop_end [axis=:col]
+    array_push (:arr22, :arr23)
+  loop_end [axis=:rows]
+function e:
+  %v15 = load_input [key=:rows]
+  %arr24 = array_init
+  %rows_el16 = loop_start (:v15) [axis=:rows, index=:rows_i17]
+    %arr25 = array_init
+    %col_el18 = loop_start (:rows_el16) [axis=:col, index=:col_i19]
+      %v20 = array_len (:rows_el16)
+      %v21 = shift_read (:rows_el16, :col_i19, :v20) [offset=1, policy=:clamp] [] -> integer
+      %v22 = shift_in_bounds (:col_i19, :v20) [offset=1] [] -> :boolean
+      %v23 = constant [value=0] [] -> integer
+      %v10 = select (:v22, :v21, :v23) [rows, col] -> integer
+      array_push (:arr25, :v10)
+    loop_end [axis=:col]
+    array_push (:arr24, :arr25)
+  loop_end [axis=:rows]
+function nw:
+  %v18 = load_input [key=:rows]
+  %arr29 = array_init
+  %arr37 = array_init
+  %rows_el19 = loop_start (:v18) [axis=:rows, index=:rows_i20]
+    %arr30 = array_init
+    %col_el21 = loop_start (:rows_el19) [axis=:col, index=:col_i22]
+      %v23 = load_input [key=:rows]
+      %v24 = array_len (:v23)
+      %v25 = shift_read (:v23, :rows_i20, :v24) [offset=-1, policy=:clamp] [] -> integer
+      %v26 = index_read (:v25, :col_i22)
+      %v27 = shift_in_bounds (:rows_i20, :v24) [offset=-1] [] -> :boolean
+      %v28 = constant [value=0] [] -> integer
+      %v17 = select (:v27, :v26, :v28) [rows, col] -> integer
+      array_push (:arr30, :v17)
+    loop_end [axis=:col]
+    array_push (:arr29, :arr30)
+    %arr38 = array_init
+    %col_el31 = loop_start (:rows_el19) [axis=:col, index=:col_i32]
+      %v33 = array_len (:arr30)
+      %v34 = shift_read (:arr30, :col_i32, :v33) [offset=-1, policy=:clamp] [] -> integer
+      %v35 = shift_in_bounds (:col_i32, :v33) [offset=-1] [] -> :boolean
+      %v36 = constant [value=0] [] -> integer
+      %v12 = select (:v35, :v34, :v36) [rows, col] -> integer
+      array_push (:arr38, :v12)
+    loop_end [axis=:col]
+    array_push (:arr37, :arr38)
+  loop_end [axis=:rows]
+function ne:
+  %v20 = load_input [key=:rows]
+  %arr31 = array_init
+  %arr39 = array_init
+  %rows_el21 = loop_start (:v20) [axis=:rows, index=:rows_i22]
+    %arr32 = array_init
+    %col_el23 = loop_start (:rows_el21) [axis=:col, index=:col_i24]
+      %v25 = load_input [key=:rows]
+      %v26 = array_len (:v25)
+      %v27 = shift_read (:v25, :rows_i22, :v26) [offset=-1, policy=:clamp] [] -> integer
+      %v28 = index_read (:v27, :col_i24)
+      %v29 = shift_in_bounds (:rows_i22, :v26) [offset=-1] [] -> :boolean
+      %v30 = constant [value=0] [] -> integer
+      %v19 = select (:v29, :v28, :v30) [rows, col] -> integer
+      array_push (:arr32, :v19)
+    loop_end [axis=:col]
+    array_push (:arr31, :arr32)
+    %arr40 = array_init
+    %col_el33 = loop_start (:rows_el21) [axis=:col, index=:col_i34]
+      %v35 = array_len (:arr32)
+      %v36 = shift_read (:arr32, :col_i34, :v35) [offset=1, policy=:clamp] [] -> integer
+      %v37 = shift_in_bounds (:col_i34, :v35) [offset=1] [] -> :boolean
+      %v38 = constant [value=0] [] -> integer
+      %v14 = select (:v37, :v36, :v38) [rows, col] -> integer
+      array_push (:arr40, :v14)
+    loop_end [axis=:col]
+    array_push (:arr39, :arr40)
+  loop_end [axis=:rows]
+function sw:
+  %v22 = load_input [key=:rows]
+  %arr33 = array_init
+  %arr41 = array_init
+  %rows_el23 = loop_start (:v22) [axis=:rows, index=:rows_i24]
+    %arr34 = array_init
+    %col_el25 = loop_start (:rows_el23) [axis=:col, index=:col_i26]
+      %v27 = load_input [key=:rows]
+      %v28 = array_len (:v27)
+      %v29 = shift_read (:v27, :rows_i24, :v28) [offset=1, policy=:clamp] [] -> integer
+      %v30 = index_read (:v29, :col_i26)
+      %v31 = shift_in_bounds (:rows_i24, :v28) [offset=1] [] -> :boolean
+      %v32 = constant [value=0] [] -> integer
+      %v21 = select (:v31, :v30, :v32) [rows, col] -> integer
+      array_push (:arr34, :v21)
+    loop_end [axis=:col]
+    array_push (:arr33, :arr34)
+    %arr42 = array_init
+    %col_el35 = loop_start (:rows_el23) [axis=:col, index=:col_i36]
+      %v37 = array_len (:arr34)
+      %v38 = shift_read (:arr34, :col_i36, :v37) [offset=-1, policy=:clamp] [] -> integer
+      %v39 = shift_in_bounds (:col_i36, :v37) [offset=-1] [] -> :boolean
+      %v40 = constant [value=0] [] -> integer
+      %v16 = select (:v39, :v38, :v40) [rows, col] -> integer
+      array_push (:arr42, :v16)
+    loop_end [axis=:col]
+    array_push (:arr41, :arr42)
+  loop_end [axis=:rows]
+function se:
+  %v24 = load_input [key=:rows]
+  %arr35 = array_init
+  %arr43 = array_init
+  %rows_el25 = loop_start (:v24) [axis=:rows, index=:rows_i26]
+    %arr36 = array_init
+    %col_el27 = loop_start (:rows_el25) [axis=:col, index=:col_i28]
+      %v29 = load_input [key=:rows]
+      %v30 = array_len (:v29)
+      %v31 = shift_read (:v29, :rows_i26, :v30) [offset=1, policy=:clamp] [] -> integer
+      %v32 = index_read (:v31, :col_i28)
+      %v33 = shift_in_bounds (:rows_i26, :v30) [offset=1] [] -> :boolean
+      %v34 = constant [value=0] [] -> integer
+      %v23 = select (:v33, :v32, :v34) [rows, col] -> integer
+      array_push (:arr36, :v23)
+    loop_end [axis=:col]
+    array_push (:arr35, :arr36)
+    %arr44 = array_init
+    %col_el37 = loop_start (:rows_el25) [axis=:col, index=:col_i38]
+      %v39 = array_len (:arr36)
+      %v40 = shift_read (:arr36, :col_i38, :v39) [offset=1, policy=:clamp] [] -> integer
+      %v41 = shift_in_bounds (:col_i38, :v39) [offset=1] [] -> :boolean
+      %v42 = constant [value=0] [] -> integer
+      %v18 = select (:v41, :v40, :v42) [rows, col] -> integer
+      array_push (:arr44, :v18)
+    loop_end [axis=:col]
+    array_push (:arr43, :arr44)
+  loop_end [axis=:rows]
+function neighbors:
+  %v66 = load_input [key=:rows]
+  %arr88 = array_init
+  %arr99 = array_init
+  %arr110 = array_init
+  %arr113 = array_init
+  %arr116 = array_init
+  %rows_el67 = loop_start (:v66) [axis=:rows, index=:rows_i68]
+    %arr89 = array_init
+    %arr100 = array_init
+    %arr111 = array_init
+    %arr114 = array_init
+    %col_el69 = loop_start (:rows_el67) [axis=:col, index=:col_i70]
+      %v71 = load_input [key=:rows]
+      %v72 = array_len (:v71)
+      %v73 = shift_read (:v71, :rows_i68, :v72) [offset=-1, policy=:clamp] [] -> integer
+      %v74 = index_read (:v73, :col_i70)
+      %v75 = shift_in_bounds (:rows_i68, :v72) [offset=-1] [] -> :boolean
+      %v76 = constant [value=0] [] -> integer
+      %v33 = select (:v75, :v74, :v76) [rows, col] -> integer
+      array_push (:arr89, :v33)
+      %v77 = shift_read (:v71, :rows_i68, :v72) [offset=1, policy=:clamp] [] -> integer
+      %v78 = index_read (:v77, :col_i70)
+      %v79 = shift_in_bounds (:rows_i68, :v72) [offset=1] [] -> :boolean
+      %v80 = constant [value=0] [] -> integer
+      %v37 = select (:v79, :v78, :v80) [rows, col] -> integer
+      array_push (:arr100, :v37)
+      %v81 = array_len (:rows_el67)
+      %v82 = shift_read (:rows_el67, :col_i70, :v81) [offset=-1, policy=:clamp] [] -> integer
+      %v83 = shift_in_bounds (:col_i70, :v81) [offset=-1] [] -> :boolean
+      %v84 = constant [value=0] [] -> integer
+      %v41 = select (:v83, :v82, :v84) [rows, col] -> integer
+      array_push (:arr111, :v41)
+      %v85 = shift_read (:rows_el67, :col_i70, :v81) [offset=1, policy=:clamp] [] -> integer
+      %v86 = shift_in_bounds (:col_i70, :v81) [offset=1] [] -> :boolean
+      %v87 = constant [value=0] [] -> integer
+      %v45 = select (:v86, :v85, :v87) [rows, col] -> integer
+      array_push (:arr114, :v45)
+    loop_end [axis=:col]
+    array_push (:arr113, :arr114)
+    array_push (:arr110, :arr111)
+    array_push (:arr99, :arr100)
+    array_push (:arr88, :arr89)
+    %arr117 = array_init
+    %col_el90 = loop_start (:rows_el67) [axis=:col, index=:col_i91]
+      %v92 = array_len (:arr89)
+      %v93 = shift_read (:arr89, :col_i91, :v92) [offset=-1, policy=:clamp] [] -> integer
+      %v94 = shift_in_bounds (:col_i91, :v92) [offset=-1] [] -> :boolean
+      %v95 = constant [value=0] [] -> integer
+      %v50 = select (:v94, :v93, :v95) [rows, col] -> integer
+      %v96 = shift_read (:arr89, :col_i91, :v92) [offset=1, policy=:clamp] [] -> integer
+      %v97 = shift_in_bounds (:col_i91, :v92) [offset=1] [] -> :boolean
+      %v98 = constant [value=0] [] -> integer
+      %v55 = select (:v97, :v96, :v98) [rows, col] -> integer
+      %v101 = array_len (:arr100)
+      %v102 = shift_read (:arr100, :col_i91, :v101) [offset=-1, policy=:clamp] [] -> integer
+      %v103 = shift_in_bounds (:col_i91, :v101) [offset=-1] [] -> :boolean
+      %v104 = constant [value=0] [] -> integer
+      %v60 = select (:v103, :v102, :v104) [rows, col] -> integer
+      %v105 = shift_read (:arr100, :col_i91, :v101) [offset=1, policy=:clamp] [] -> integer
+      %v106 = shift_in_bounds (:col_i91, :v101) [offset=1] [] -> :boolean
+      %v107 = constant [value=0] [] -> integer
+      %v65 = select (:v106, :v105, :v107) [rows, col] -> integer
+      %v108 = index_read (:arr89, :col_i91)
+      %v109 = index_read (:arr100, :col_i91)
+      %acc0 = kernel_call (:v108, :v109) [fn=:core.add] [rows, col] -> integer
+      %v112 = index_read (:arr111, :col_i91)
+      %acc1 = kernel_call (:acc0, :v112) [fn=:core.add] [rows, col] -> integer
+      %v115 = index_read (:arr114, :col_i91)
+      %acc2 = kernel_call (:acc1, :v115) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v50) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v55) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v60) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v65) [fn=:core.add] [rows, col] -> integer
+      array_push (:arr117, :acc6)
+    loop_end [axis=:col]
+    array_push (:arr116, :arr117)
+  loop_end [axis=:rows]
+function alive:
+  %v37 = load_input [key=:rows]
+  %arr43 = array_init
+  %rows_el38 = loop_start (:v37) [axis=:rows, index=:rows_i39]
+    %arr44 = array_init
+    %col_el40 = loop_start (:rows_el38) [axis=:col, index=:col_i41]
+      %v42 = constant [value=0] [] -> integer
+      %v33 = kernel_call (:col_el40, :v42) [fn=:core.gt] [rows, col] -> boolean
+      array_push (:arr44, :v33)
+    loop_end [axis=:col]
+    array_push (:arr43, :arr44)
+  loop_end [axis=:rows]
+function n3_alive:
+  %v74 = load_input [key=:rows]
+  %arr96 = array_init
+  %arr107 = array_init
+  %arr118 = array_init
+  %arr121 = array_init
+  %arr125 = array_init
+  %rows_el75 = loop_start (:v74) [axis=:rows, index=:rows_i76]
+    %arr97 = array_init
+    %arr108 = array_init
+    %arr119 = array_init
+    %arr122 = array_init
+    %col_el77 = loop_start (:rows_el75) [axis=:col, index=:col_i78]
+      %v79 = load_input [key=:rows]
+      %v80 = array_len (:v79)
+      %v81 = shift_read (:v79, :rows_i76, :v80) [offset=-1, policy=:clamp] [] -> integer
+      %v82 = index_read (:v81, :col_i78)
+      %v83 = shift_in_bounds (:rows_i76, :v80) [offset=-1] [] -> :boolean
+      %v84 = constant [value=0] [] -> integer
+      %v41 = select (:v83, :v82, :v84) [rows, col] -> integer
+      array_push (:arr97, :v41)
+      %v85 = shift_read (:v79, :rows_i76, :v80) [offset=1, policy=:clamp] [] -> integer
+      %v86 = index_read (:v85, :col_i78)
+      %v87 = shift_in_bounds (:rows_i76, :v80) [offset=1] [] -> :boolean
+      %v88 = constant [value=0] [] -> integer
+      %v45 = select (:v87, :v86, :v88) [rows, col] -> integer
+      array_push (:arr108, :v45)
+      %v89 = array_len (:rows_el75)
+      %v90 = shift_read (:rows_el75, :col_i78, :v89) [offset=-1, policy=:clamp] [] -> integer
+      %v91 = shift_in_bounds (:col_i78, :v89) [offset=-1] [] -> :boolean
+      %v92 = constant [value=0] [] -> integer
+      %v49 = select (:v91, :v90, :v92) [rows, col] -> integer
+      array_push (:arr119, :v49)
+      %v93 = shift_read (:rows_el75, :col_i78, :v89) [offset=1, policy=:clamp] [] -> integer
+      %v94 = shift_in_bounds (:col_i78, :v89) [offset=1] [] -> :boolean
+      %v95 = constant [value=0] [] -> integer
+      %v53 = select (:v94, :v93, :v95) [rows, col] -> integer
+      array_push (:arr122, :v53)
+    loop_end [axis=:col]
+    array_push (:arr121, :arr122)
+    array_push (:arr118, :arr119)
+    array_push (:arr107, :arr108)
+    array_push (:arr96, :arr97)
+    %arr126 = array_init
+    %col_el98 = loop_start (:rows_el75) [axis=:col, index=:col_i99]
+      %v100 = array_len (:arr97)
+      %v101 = shift_read (:arr97, :col_i99, :v100) [offset=-1, policy=:clamp] [] -> integer
+      %v102 = shift_in_bounds (:col_i99, :v100) [offset=-1] [] -> :boolean
+      %v103 = constant [value=0] [] -> integer
+      %v58 = select (:v102, :v101, :v103) [rows, col] -> integer
+      %v104 = shift_read (:arr97, :col_i99, :v100) [offset=1, policy=:clamp] [] -> integer
+      %v105 = shift_in_bounds (:col_i99, :v100) [offset=1] [] -> :boolean
+      %v106 = constant [value=0] [] -> integer
+      %v63 = select (:v105, :v104, :v106) [rows, col] -> integer
+      %v109 = array_len (:arr108)
+      %v110 = shift_read (:arr108, :col_i99, :v109) [offset=-1, policy=:clamp] [] -> integer
+      %v111 = shift_in_bounds (:col_i99, :v109) [offset=-1] [] -> :boolean
+      %v112 = constant [value=0] [] -> integer
+      %v68 = select (:v111, :v110, :v112) [rows, col] -> integer
+      %v113 = shift_read (:arr108, :col_i99, :v109) [offset=1, policy=:clamp] [] -> integer
+      %v114 = shift_in_bounds (:col_i99, :v109) [offset=1] [] -> :boolean
+      %v115 = constant [value=0] [] -> integer
+      %v73 = select (:v114, :v113, :v115) [rows, col] -> integer
+      %v116 = index_read (:arr97, :col_i99)
+      %v117 = index_read (:arr108, :col_i99)
+      %acc0 = kernel_call (:v116, :v117) [fn=:core.add] [rows, col] -> integer
+      %v120 = index_read (:arr119, :col_i99)
+      %acc1 = kernel_call (:acc0, :v120) [fn=:core.add] [rows, col] -> integer
+      %v123 = index_read (:arr122, :col_i99)
+      %acc2 = kernel_call (:acc1, :v123) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v58) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v63) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v68) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v73) [fn=:core.add] [rows, col] -> integer
+      %v124 = constant [value=3] [] -> integer
+      %v37 = kernel_call (:acc6, :v124) [fn=:core.eq] [rows, col] -> boolean
+      array_push (:arr126, :v37)
+    loop_end [axis=:col]
+    array_push (:arr125, :arr126)
+  loop_end [axis=:rows]
+function n2_alive:
+  %v78 = load_input [key=:rows]
+  %arr100 = array_init
+  %arr111 = array_init
+  %arr122 = array_init
+  %arr125 = array_init
+  %arr129 = array_init
+  %rows_el79 = loop_start (:v78) [axis=:rows, index=:rows_i80]
+    %arr101 = array_init
+    %arr112 = array_init
+    %arr123 = array_init
+    %arr126 = array_init
+    %col_el81 = loop_start (:rows_el79) [axis=:col, index=:col_i82]
+      %v83 = load_input [key=:rows]
+      %v84 = array_len (:v83)
+      %v85 = shift_read (:v83, :rows_i80, :v84) [offset=-1, policy=:clamp] [] -> integer
+      %v86 = index_read (:v85, :col_i82)
+      %v87 = shift_in_bounds (:rows_i80, :v84) [offset=-1] [] -> :boolean
+      %v88 = constant [value=0] [] -> integer
+      %v45 = select (:v87, :v86, :v88) [rows, col] -> integer
+      array_push (:arr101, :v45)
+      %v89 = shift_read (:v83, :rows_i80, :v84) [offset=1, policy=:clamp] [] -> integer
+      %v90 = index_read (:v89, :col_i82)
+      %v91 = shift_in_bounds (:rows_i80, :v84) [offset=1] [] -> :boolean
+      %v92 = constant [value=0] [] -> integer
+      %v49 = select (:v91, :v90, :v92) [rows, col] -> integer
+      array_push (:arr112, :v49)
+      %v93 = array_len (:rows_el79)
+      %v94 = shift_read (:rows_el79, :col_i82, :v93) [offset=-1, policy=:clamp] [] -> integer
+      %v95 = shift_in_bounds (:col_i82, :v93) [offset=-1] [] -> :boolean
+      %v96 = constant [value=0] [] -> integer
+      %v53 = select (:v95, :v94, :v96) [rows, col] -> integer
+      array_push (:arr123, :v53)
+      %v97 = shift_read (:rows_el79, :col_i82, :v93) [offset=1, policy=:clamp] [] -> integer
+      %v98 = shift_in_bounds (:col_i82, :v93) [offset=1] [] -> :boolean
+      %v99 = constant [value=0] [] -> integer
+      %v57 = select (:v98, :v97, :v99) [rows, col] -> integer
+      array_push (:arr126, :v57)
+    loop_end [axis=:col]
+    array_push (:arr125, :arr126)
+    array_push (:arr122, :arr123)
+    array_push (:arr111, :arr112)
+    array_push (:arr100, :arr101)
+    %arr130 = array_init
+    %col_el102 = loop_start (:rows_el79) [axis=:col, index=:col_i103]
+      %v104 = array_len (:arr101)
+      %v105 = shift_read (:arr101, :col_i103, :v104) [offset=-1, policy=:clamp] [] -> integer
+      %v106 = shift_in_bounds (:col_i103, :v104) [offset=-1] [] -> :boolean
+      %v107 = constant [value=0] [] -> integer
+      %v62 = select (:v106, :v105, :v107) [rows, col] -> integer
+      %v108 = shift_read (:arr101, :col_i103, :v104) [offset=1, policy=:clamp] [] -> integer
+      %v109 = shift_in_bounds (:col_i103, :v104) [offset=1] [] -> :boolean
+      %v110 = constant [value=0] [] -> integer
+      %v67 = select (:v109, :v108, :v110) [rows, col] -> integer
+      %v113 = array_len (:arr112)
+      %v114 = shift_read (:arr112, :col_i103, :v113) [offset=-1, policy=:clamp] [] -> integer
+      %v115 = shift_in_bounds (:col_i103, :v113) [offset=-1] [] -> :boolean
+      %v116 = constant [value=0] [] -> integer
+      %v72 = select (:v115, :v114, :v116) [rows, col] -> integer
+      %v117 = shift_read (:arr112, :col_i103, :v113) [offset=1, policy=:clamp] [] -> integer
+      %v118 = shift_in_bounds (:col_i103, :v113) [offset=1] [] -> :boolean
+      %v119 = constant [value=0] [] -> integer
+      %v77 = select (:v118, :v117, :v119) [rows, col] -> integer
+      %v120 = index_read (:arr101, :col_i103)
+      %v121 = index_read (:arr112, :col_i103)
+      %acc0 = kernel_call (:v120, :v121) [fn=:core.add] [rows, col] -> integer
+      %v124 = index_read (:arr123, :col_i103)
+      %acc1 = kernel_call (:acc0, :v124) [fn=:core.add] [rows, col] -> integer
+      %v127 = index_read (:arr126, :col_i103)
+      %acc2 = kernel_call (:acc1, :v127) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v62) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v67) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v72) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v77) [fn=:core.add] [rows, col] -> integer
+      %v128 = constant [value=2] [] -> integer
+      %v41 = kernel_call (:acc6, :v128) [fn=:core.eq] [rows, col] -> boolean
+      array_push (:arr130, :v41)
+    loop_end [axis=:col]
+    array_push (:arr129, :arr130)
+  loop_end [axis=:rows]
+function keep_alive:
+  %v92 = load_input [key=:rows]
+  %arr114 = array_init
+  %arr125 = array_init
+  %arr136 = array_init
+  %arr139 = array_init
+  %arr144 = array_init
+  %rows_el93 = loop_start (:v92) [axis=:rows, index=:rows_i94]
+    %arr115 = array_init
+    %arr126 = array_init
+    %arr137 = array_init
+    %arr140 = array_init
+    %col_el95 = loop_start (:rows_el93) [axis=:col, index=:col_i96]
+      %v97 = load_input [key=:rows]
+      %v98 = array_len (:v97)
+      %v99 = shift_read (:v97, :rows_i94, :v98) [offset=-1, policy=:clamp] [] -> integer
+      %v100 = index_read (:v99, :col_i96)
+      %v101 = shift_in_bounds (:rows_i94, :v98) [offset=-1] [] -> :boolean
+      %v102 = constant [value=0] [] -> integer
+      %v48 = select (:v101, :v100, :v102) [rows, col] -> integer
+      array_push (:arr115, :v48)
+      %v103 = shift_read (:v97, :rows_i94, :v98) [offset=1, policy=:clamp] [] -> integer
+      %v104 = index_read (:v103, :col_i96)
+      %v105 = shift_in_bounds (:rows_i94, :v98) [offset=1] [] -> :boolean
+      %v106 = constant [value=0] [] -> integer
+      %v52 = select (:v105, :v104, :v106) [rows, col] -> integer
+      array_push (:arr126, :v52)
+      %v107 = array_len (:rows_el93)
+      %v108 = shift_read (:rows_el93, :col_i96, :v107) [offset=-1, policy=:clamp] [] -> integer
+      %v109 = shift_in_bounds (:col_i96, :v107) [offset=-1] [] -> :boolean
+      %v110 = constant [value=0] [] -> integer
+      %v56 = select (:v109, :v108, :v110) [rows, col] -> integer
+      array_push (:arr137, :v56)
+      %v111 = shift_read (:rows_el93, :col_i96, :v107) [offset=1, policy=:clamp] [] -> integer
+      %v112 = shift_in_bounds (:col_i96, :v107) [offset=1] [] -> :boolean
+      %v113 = constant [value=0] [] -> integer
+      %v60 = select (:v112, :v111, :v113) [rows, col] -> integer
+      array_push (:arr140, :v60)
+    loop_end [axis=:col]
+    array_push (:arr139, :arr140)
+    array_push (:arr136, :arr137)
+    array_push (:arr125, :arr126)
+    array_push (:arr114, :arr115)
+    %arr145 = array_init
+    %col_el116 = loop_start (:rows_el93) [axis=:col, index=:col_i117]
+      %v118 = array_len (:arr115)
+      %v119 = shift_read (:arr115, :col_i117, :v118) [offset=-1, policy=:clamp] [] -> integer
+      %v120 = shift_in_bounds (:col_i117, :v118) [offset=-1] [] -> :boolean
+      %v121 = constant [value=0] [] -> integer
+      %v65 = select (:v120, :v119, :v121) [rows, col] -> integer
+      %v122 = shift_read (:arr115, :col_i117, :v118) [offset=1, policy=:clamp] [] -> integer
+      %v123 = shift_in_bounds (:col_i117, :v118) [offset=1] [] -> :boolean
+      %v124 = constant [value=0] [] -> integer
+      %v70 = select (:v123, :v122, :v124) [rows, col] -> integer
+      %v127 = array_len (:arr126)
+      %v128 = shift_read (:arr126, :col_i117, :v127) [offset=-1, policy=:clamp] [] -> integer
+      %v129 = shift_in_bounds (:col_i117, :v127) [offset=-1] [] -> :boolean
+      %v130 = constant [value=0] [] -> integer
+      %v75 = select (:v129, :v128, :v130) [rows, col] -> integer
+      %v131 = shift_read (:arr126, :col_i117, :v127) [offset=1, policy=:clamp] [] -> integer
+      %v132 = shift_in_bounds (:col_i117, :v127) [offset=1] [] -> :boolean
+      %v133 = constant [value=0] [] -> integer
+      %v80 = select (:v132, :v131, :v133) [rows, col] -> integer
+      %v134 = index_read (:arr115, :col_i117)
+      %v135 = index_read (:arr126, :col_i117)
+      %acc0 = kernel_call (:v134, :v135) [fn=:core.add] [rows, col] -> integer
+      %v138 = index_read (:arr137, :col_i117)
+      %acc1 = kernel_call (:acc0, :v138) [fn=:core.add] [rows, col] -> integer
+      %v141 = index_read (:arr140, :col_i117)
+      %acc2 = kernel_call (:acc1, :v141) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v65) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v70) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v75) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v80) [fn=:core.add] [rows, col] -> integer
+      %v142 = constant [value=2] [] -> integer
+      %v85 = kernel_call (:acc6, :v142) [fn=:core.eq] [rows, col] -> boolean
+      %v143 = constant [value=0] [] -> integer
+      %v91 = kernel_call (:col_el116, :v143) [fn=:core.gt] [rows, col] -> boolean
+      %v44 = kernel_call (:v85, :v91) [fn=:core.and] [rows, col] -> boolean
+      array_push (:arr145, :v44)
+    loop_end [axis=:col]
+    array_push (:arr144, :arr145)
+  loop_end [axis=:rows]
+function next_alive:
+  %v137 = load_input [key=:rows]
+  %arr159 = array_init
+  %arr170 = array_init
+  %arr181 = array_init
+  %arr184 = array_init
+  %arr190 = array_init
+  %rows_el138 = loop_start (:v137) [axis=:rows, index=:rows_i139]
+    %arr160 = array_init
+    %arr171 = array_init
+    %arr182 = array_init
+    %arr185 = array_init
+    %col_el140 = loop_start (:rows_el138) [axis=:col, index=:col_i141]
+      %v142 = load_input [key=:rows]
+      %v143 = array_len (:v142)
+      %v144 = shift_read (:v142, :rows_i139, :v143) [offset=-1, policy=:clamp] [] -> integer
+      %v145 = index_read (:v144, :col_i141)
+      %v146 = shift_in_bounds (:rows_i139, :v143) [offset=-1] [] -> :boolean
+      %v147 = constant [value=0] [] -> integer
+      %v51 = select (:v146, :v145, :v147) [rows, col] -> integer
+      array_push (:arr160, :v51)
+      %v148 = shift_read (:v142, :rows_i139, :v143) [offset=1, policy=:clamp] [] -> integer
+      %v149 = index_read (:v148, :col_i141)
+      %v150 = shift_in_bounds (:rows_i139, :v143) [offset=1] [] -> :boolean
+      %v151 = constant [value=0] [] -> integer
+      %v55 = select (:v150, :v149, :v151) [rows, col] -> integer
+      array_push (:arr171, :v55)
+      %v152 = array_len (:rows_el138)
+      %v153 = shift_read (:rows_el138, :col_i141, :v152) [offset=-1, policy=:clamp] [] -> integer
+      %v154 = shift_in_bounds (:col_i141, :v152) [offset=-1] [] -> :boolean
+      %v155 = constant [value=0] [] -> integer
+      %v59 = select (:v154, :v153, :v155) [rows, col] -> integer
+      array_push (:arr182, :v59)
+      %v156 = shift_read (:rows_el138, :col_i141, :v152) [offset=1, policy=:clamp] [] -> integer
+      %v157 = shift_in_bounds (:col_i141, :v152) [offset=1] [] -> :boolean
+      %v158 = constant [value=0] [] -> integer
+      %v63 = select (:v157, :v156, :v158) [rows, col] -> integer
+      array_push (:arr185, :v63)
+    loop_end [axis=:col]
+    array_push (:arr184, :arr185)
+    array_push (:arr181, :arr182)
+    array_push (:arr170, :arr171)
+    array_push (:arr159, :arr160)
+    %arr191 = array_init
+    %col_el161 = loop_start (:rows_el138) [axis=:col, index=:col_i162]
+      %v163 = array_len (:arr160)
+      %v164 = shift_read (:arr160, :col_i162, :v163) [offset=-1, policy=:clamp] [] -> integer
+      %v165 = shift_in_bounds (:col_i162, :v163) [offset=-1] [] -> :boolean
+      %v166 = constant [value=0] [] -> integer
+      %v68 = select (:v165, :v164, :v166) [rows, col] -> integer
+      %v167 = shift_read (:arr160, :col_i162, :v163) [offset=1, policy=:clamp] [] -> integer
+      %v168 = shift_in_bounds (:col_i162, :v163) [offset=1] [] -> :boolean
+      %v169 = constant [value=0] [] -> integer
+      %v73 = select (:v168, :v167, :v169) [rows, col] -> integer
+      %v172 = array_len (:arr171)
+      %v173 = shift_read (:arr171, :col_i162, :v172) [offset=-1, policy=:clamp] [] -> integer
+      %v174 = shift_in_bounds (:col_i162, :v172) [offset=-1] [] -> :boolean
+      %v175 = constant [value=0] [] -> integer
+      %v78 = select (:v174, :v173, :v175) [rows, col] -> integer
+      %v176 = shift_read (:arr171, :col_i162, :v172) [offset=1, policy=:clamp] [] -> integer
+      %v177 = shift_in_bounds (:col_i162, :v172) [offset=1] [] -> :boolean
+      %v178 = constant [value=0] [] -> integer
+      %v83 = select (:v177, :v176, :v178) [rows, col] -> integer
+      %v179 = index_read (:arr160, :col_i162)
+      %v180 = index_read (:arr171, :col_i162)
+      %acc0 = kernel_call (:v179, :v180) [fn=:core.add] [rows, col] -> integer
+      %v183 = index_read (:arr182, :col_i162)
+      %acc1 = kernel_call (:acc0, :v183) [fn=:core.add] [rows, col] -> integer
+      %v186 = index_read (:arr185, :col_i162)
+      %acc2 = kernel_call (:acc1, :v186) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v68) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v73) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v78) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v83) [fn=:core.add] [rows, col] -> integer
+      %v187 = constant [value=3] [] -> integer
+      %v88 = kernel_call (:acc6, :v187) [fn=:core.eq] [rows, col] -> boolean
+      %v188 = constant [value=2] [] -> integer
+      %v129 = kernel_call (:acc6, :v188) [fn=:core.eq] [rows, col] -> boolean
+      %v189 = constant [value=0] [] -> integer
+      %v135 = kernel_call (:col_el161, :v189) [fn=:core.gt] [rows, col] -> boolean
+      %v136 = kernel_call (:v129, :v135) [fn=:core.and] [rows, col] -> boolean
+      %v47 = kernel_call (:v88, :v136) [fn=:core.or] [rows, col] -> boolean
+      array_push (:arr191, :v47)
+    loop_end [axis=:col]
+    array_push (:arr190, :arr191)
+  loop_end [axis=:rows]
+function next_state:
+  %v144 = load_input [key=:rows]
+  %arr166 = array_init
+  %arr177 = array_init
+  %arr188 = array_init
+  %arr191 = array_init
+  %arr198 = array_init
+  %rows_el145 = loop_start (:v144) [axis=:rows, index=:rows_i146]
+    %arr167 = array_init
+    %arr178 = array_init
+    %arr189 = array_init
+    %arr192 = array_init
+    %col_el147 = loop_start (:rows_el145) [axis=:col, index=:col_i148]
+      %v149 = load_input [key=:rows]
+      %v150 = array_len (:v149)
+      %v151 = shift_read (:v149, :rows_i146, :v150) [offset=-1, policy=:clamp] [] -> integer
+      %v152 = index_read (:v151, :col_i148)
+      %v153 = shift_in_bounds (:rows_i146, :v150) [offset=-1] [] -> :boolean
+      %v154 = constant [value=0] [] -> integer
+      %v57 = select (:v153, :v152, :v154) [rows, col] -> integer
+      array_push (:arr167, :v57)
+      %v155 = shift_read (:v149, :rows_i146, :v150) [offset=1, policy=:clamp] [] -> integer
+      %v156 = index_read (:v155, :col_i148)
+      %v157 = shift_in_bounds (:rows_i146, :v150) [offset=1] [] -> :boolean
+      %v158 = constant [value=0] [] -> integer
+      %v61 = select (:v157, :v156, :v158) [rows, col] -> integer
+      array_push (:arr178, :v61)
+      %v159 = array_len (:rows_el145)
+      %v160 = shift_read (:rows_el145, :col_i148, :v159) [offset=-1, policy=:clamp] [] -> integer
+      %v161 = shift_in_bounds (:col_i148, :v159) [offset=-1] [] -> :boolean
+      %v162 = constant [value=0] [] -> integer
+      %v65 = select (:v161, :v160, :v162) [rows, col] -> integer
+      array_push (:arr189, :v65)
+      %v163 = shift_read (:rows_el145, :col_i148, :v159) [offset=1, policy=:clamp] [] -> integer
+      %v164 = shift_in_bounds (:col_i148, :v159) [offset=1] [] -> :boolean
+      %v165 = constant [value=0] [] -> integer
+      %v69 = select (:v164, :v163, :v165) [rows, col] -> integer
+      array_push (:arr192, :v69)
+    loop_end [axis=:col]
+    array_push (:arr191, :arr192)
+    array_push (:arr188, :arr189)
+    array_push (:arr177, :arr178)
+    array_push (:arr166, :arr167)
+    %arr199 = array_init
+    %col_el168 = loop_start (:rows_el145) [axis=:col, index=:col_i169]
+      %v170 = array_len (:arr167)
+      %v171 = shift_read (:arr167, :col_i169, :v170) [offset=-1, policy=:clamp] [] -> integer
+      %v172 = shift_in_bounds (:col_i169, :v170) [offset=-1] [] -> :boolean
+      %v173 = constant [value=0] [] -> integer
+      %v74 = select (:v172, :v171, :v173) [rows, col] -> integer
+      %v174 = shift_read (:arr167, :col_i169, :v170) [offset=1, policy=:clamp] [] -> integer
+      %v175 = shift_in_bounds (:col_i169, :v170) [offset=1] [] -> :boolean
+      %v176 = constant [value=0] [] -> integer
+      %v79 = select (:v175, :v174, :v176) [rows, col] -> integer
+      %v179 = array_len (:arr178)
+      %v180 = shift_read (:arr178, :col_i169, :v179) [offset=-1, policy=:clamp] [] -> integer
+      %v181 = shift_in_bounds (:col_i169, :v179) [offset=-1] [] -> :boolean
+      %v182 = constant [value=0] [] -> integer
+      %v84 = select (:v181, :v180, :v182) [rows, col] -> integer
+      %v183 = shift_read (:arr178, :col_i169, :v179) [offset=1, policy=:clamp] [] -> integer
+      %v184 = shift_in_bounds (:col_i169, :v179) [offset=1] [] -> :boolean
+      %v185 = constant [value=0] [] -> integer
+      %v89 = select (:v184, :v183, :v185) [rows, col] -> integer
+      %v186 = index_read (:arr167, :col_i169)
+      %v187 = index_read (:arr178, :col_i169)
+      %acc0 = kernel_call (:v186, :v187) [fn=:core.add] [rows, col] -> integer
+      %v190 = index_read (:arr189, :col_i169)
+      %acc1 = kernel_call (:acc0, :v190) [fn=:core.add] [rows, col] -> integer
+      %v193 = index_read (:arr192, :col_i169)
+      %acc2 = kernel_call (:acc1, :v193) [fn=:core.add] [rows, col] -> integer
+      %acc3 = kernel_call (:acc2, :v74) [fn=:core.add] [rows, col] -> integer
+      %acc4 = kernel_call (:acc3, :v79) [fn=:core.add] [rows, col] -> integer
+      %acc5 = kernel_call (:acc4, :v84) [fn=:core.add] [rows, col] -> integer
+      %acc6 = kernel_call (:acc5, :v89) [fn=:core.add] [rows, col] -> integer
+      %v194 = constant [value=3] [] -> integer
+      %v94 = kernel_call (:acc6, :v194) [fn=:core.eq] [rows, col] -> boolean
+      %v195 = constant [value=2] [] -> integer
+      %v135 = kernel_call (:acc6, :v195) [fn=:core.eq] [rows, col] -> boolean
+      %v196 = constant [value=0] [] -> integer
+      %v141 = kernel_call (:col_el168, :v196) [fn=:core.gt] [rows, col] -> boolean
+      %v142 = kernel_call (:v135, :v141) [fn=:core.and] [rows, col] -> boolean
+      %v143 = kernel_call (:v94, :v142) [fn=:core.or] [rows, col] -> boolean
+      %v197 = constant [value=1] [] -> integer
+      %v53 = select (:v143, :v197, :v196) [rows, col] -> integer
+      array_push (:arr199, :v53)
+    loop_end [axis=:col]
+    array_push (:arr198, :arr199)
+  loop_end [axis=:rows]

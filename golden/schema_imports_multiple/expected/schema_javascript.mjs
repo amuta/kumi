@@ -1,40 +1,49 @@
 export function _tax_amount(input) {
-  let t1 = input["amount"];
-  let t2 = Kumi.TestSharedSchemas.Tax.from({'amount': t1})._tax;
-  return t2;
+  let t5 = input["amount"];
+  let t6 = 0.15;
+  let t4 = t5 * t6;
+  return t4;
 }
 
 export function _price_after_tax(input) {
-  let t3 = input["amount"];
-  let t14 = Kumi.TestSharedSchemas.Tax.from({'amount': t3})._tax;
-  let t5 = t3 + t14;
+  let t10 = input["amount"];
+  let t11 = 0.15;
+  let t9 = t10 * t11;
+  let t5 = t10 + t9;
   return t5;
 }
 
 export function _discounted_price(input) {
-  let t15 = input["amount"];
-  let t19 = Kumi.TestSharedSchemas.Tax.from({'amount': t15})._tax;
-  let t17 = t15 + t19;
-  let t7 = input["discount_rate"];
-  let t8 = Kumi.TestSharedSchemas.Discount.from({'price': t17, 'rate': t7})._discounted;
-  return t8;
+  let t18 = input["amount"];
+  let t19 = 0.15;
+  let t14 = t18 * t19;
+  let t12 = t18 + t14;
+  let t20 = 1.0;
+  let t21 = input["discount_rate"];
+  let t16 = t20 - t21;
+  let t17 = t12 * t16;
+  return t17;
 }
 
 export function _discount_amount(input) {
-  let t20 = input["amount"];
-  let t24 = Kumi.TestSharedSchemas.Tax.from({'amount': t20})._tax;
-  let t22 = t20 + t24;
-  let t10 = input["discount_rate"];
-  let t11 = Kumi.TestSharedSchemas.Discount.from({'price': t22, 'rate': t10})._savings;
-  return t11;
+  let t19 = input["amount"];
+  let t20 = 0.15;
+  let t17 = t19 * t20;
+  let t15 = t19 + t17;
+  let t21 = input["discount_rate"];
+  let t18 = t15 * t21;
+  return t18;
 }
 
 export function _final_price(input) {
-  let t28 = input["amount"];
-  let t32 = Kumi.TestSharedSchemas.Tax.from({'amount': t28})._tax;
-  let t30 = t28 + t32;
-  let t26 = input["discount_rate"];
-  let t27 = Kumi.TestSharedSchemas.Discount.from({'price': t30, 'rate': t26})._discounted;
-  return t27;
+  let t24 = input["amount"];
+  let t25 = 0.15;
+  let t20 = t24 * t25;
+  let t16 = t24 + t20;
+  let t26 = 1.0;
+  let t27 = input["discount_rate"];
+  let t22 = t26 - t27;
+  let t23 = t16 * t22;
+  return t23;
 }
 

@@ -1,94 +1,90 @@
 export function _shift_right_zero(input) {
-  let out = [];
-  let t1 = input["cells"];
-  let t4 = t1.length;
-  let t12 = t4 - 1;
-  t1.forEach((cells_el_2, cells_i_3) => {
-    let t6 = cells_i_3 - 1;
-    let t8 = t6 >= 0;
-    let t9 = t6 < t4;
-    let t14 = Math.min(Math.max(t6, 0), t12);
-    let t10 = t8 && t9;
-    let t15 = t1[t14];
-    let t17 = t10 ? t15 : 0;
-    out.push(t17);
-  });
-  return out;
+  let t4 = input["cells"];
+  let arr12 = [];
+  for (let cells_i6 = 0; cells_i6 < t4.length; cells_i6++) {
+    let cells_el5 = t4[cells_i6];
+    let t7 = input["cells"];
+    let t8 = t7.length;
+    let t9 = t7[Math.min(Math.max(cells_i6 - (1), 0), t8 - 1)];
+    let t10_j = cells_i6 - (1);
+    let t10 = t10_j >= 0 && t10_j < t8;
+    let t11 = 0;
+    let t1 = t10 ? t9 : t11;
+    arr12.push(t1);
+  }
+  return arr12;
 }
 
 export function _shift_left_zero(input) {
-  let out = [];
-  let t18 = input["cells"];
-  let t21 = t18.length;
-  let t29 = t21 - 1;
-  t18.forEach((cells_el_19, cells_i_20) => {
-    let t23 = cells_i_20 - -1;
-    let t25 = t23 >= 0;
-    let t26 = t23 < t21;
-    let t31 = Math.min(Math.max(t23, 0), t29);
-    let t27 = t25 && t26;
-    let t32 = t18[t31];
-    let t34 = t27 ? t32 : 0;
-    out.push(t34);
-  });
-  return out;
+  let t7 = input["cells"];
+  let arr15 = [];
+  for (let cells_i9 = 0; cells_i9 < t7.length; cells_i9++) {
+    let cells_el8 = t7[cells_i9];
+    let t10 = input["cells"];
+    let t11 = t10.length;
+    let t12 = t10[Math.min(Math.max(cells_i9 - (-1), 0), t11 - 1)];
+    let t13_j = cells_i9 - (-1);
+    let t13 = t13_j >= 0 && t13_j < t11;
+    let t14 = 0;
+    let t4 = t13 ? t12 : t14;
+    arr15.push(t4);
+  }
+  return arr15;
 }
 
 export function _shift_right_clamp(input) {
-  let out = [];
-  let t35 = input["cells"];
-  let t38 = t35.length;
-  let t42 = t38 - 1;
-  t35.forEach((cells_el_36, cells_i_37) => {
-    let t40 = cells_i_37 - 1;
-    let t44 = Math.min(Math.max(t40, 0), t42);
-    let t45 = t35[t44];
-    out.push(t45);
-  });
-  return out;
+  let t10 = input["cells"];
+  let arr16 = [];
+  for (let cells_i12 = 0; cells_i12 < t10.length; cells_i12++) {
+    let cells_el11 = t10[cells_i12];
+    let t13 = input["cells"];
+    let t14 = t13.length;
+    let t15 = t13[Math.min(Math.max(cells_i12 - (1), 0), t14 - 1)];
+    let t7 = t15;
+    arr16.push(t7);
+  }
+  return arr16;
 }
 
 export function _shift_left_clamp(input) {
-  let out = [];
-  let t46 = input["cells"];
-  let t49 = t46.length;
-  let t53 = t49 - 1;
-  t46.forEach((cells_el_47, cells_i_48) => {
-    let t51 = cells_i_48 - -1;
-    let t55 = Math.min(Math.max(t51, 0), t53);
-    let t56 = t46[t55];
-    out.push(t56);
-  });
-  return out;
+  let t13 = input["cells"];
+  let arr19 = [];
+  for (let cells_i15 = 0; cells_i15 < t13.length; cells_i15++) {
+    let cells_el14 = t13[cells_i15];
+    let t16 = input["cells"];
+    let t17 = t16.length;
+    let t18 = t16[Math.min(Math.max(cells_i15 - (-1), 0), t17 - 1)];
+    let t10 = t18;
+    arr19.push(t10);
+  }
+  return arr19;
 }
 
 export function _shift_right_wrap(input) {
-  let out = [];
-  let t57 = input["cells"];
-  let t60 = t57.length;
-  t57.forEach((cells_el_58, cells_i_59) => {
-    let t62 = cells_i_59 - 1;
-    let t63 = ((t62 % t60) + t60) % t60;
-    let t64 = t63 + t60;
-    let t65 = ((t64 % t60) + t60) % t60;
-    let t66 = t57[t65];
-    out.push(t66);
-  });
-  return out;
+  let t16 = input["cells"];
+  let arr22 = [];
+  for (let cells_i18 = 0; cells_i18 < t16.length; cells_i18++) {
+    let cells_el17 = t16[cells_i18];
+    let t19 = input["cells"];
+    let t20 = t19.length;
+    let t21 = t19[(((cells_i18 - (1)) % t20) + t20) % t20];
+    let t13 = t21;
+    arr22.push(t13);
+  }
+  return arr22;
 }
 
 export function _shift_left_wrap(input) {
-  let out = [];
-  let t67 = input["cells"];
-  let t70 = t67.length;
-  t67.forEach((cells_el_68, cells_i_69) => {
-    let t72 = cells_i_69 - -1;
-    let t73 = ((t72 % t70) + t70) % t70;
-    let t74 = t73 + t70;
-    let t75 = ((t74 % t70) + t70) % t70;
-    let t76 = t67[t75];
-    out.push(t76);
-  });
-  return out;
+  let t19 = input["cells"];
+  let arr25 = [];
+  for (let cells_i21 = 0; cells_i21 < t19.length; cells_i21++) {
+    let cells_el20 = t19[cells_i21];
+    let t22 = input["cells"];
+    let t23 = t22.length;
+    let t24 = t22[(((cells_i21 - (-1)) % t23) + t23) % t23];
+    let t16 = t24;
+    arr25.push(t16);
+  }
+  return arr25;
 }
 

@@ -1,0 +1,37 @@
+function region_max:
+  %v1 = load_input [key=:regions, chain=[]] [regions, sales] -> integer
+  %v2 = load_field (:v1) [field=:region] [regions, sales] -> integer
+  %v3 = load_field (:v2) [field=:sales] [regions, sales] -> integer
+  %v4 = load_field (:v3) [field=:sale] [regions, sales] -> integer
+  %v5 = load_field (:v4) [field=:amount] [regions, sales] -> integer
+  %v6 = reduce (:v5) [fn=:agg.max, over_axes=[:sales]] [regions] -> integer
+function region_min:
+  %v7 = load_input [key=:regions, chain=[]] [regions, sales] -> integer
+  %v8 = load_field (:v7) [field=:region] [regions, sales] -> integer
+  %v9 = load_field (:v8) [field=:sales] [regions, sales] -> integer
+  %v10 = load_field (:v9) [field=:sale] [regions, sales] -> integer
+  %v11 = load_field (:v10) [field=:amount] [regions, sales] -> integer
+  %v12 = reduce (:v11) [fn=:agg.min, over_axes=[:sales]] [regions] -> integer
+function region_labels:
+  %v13 = load_input [key=:regions, chain=[]] [regions, tags] -> string
+  %v14 = load_field (:v13) [field=:region] [regions, tags] -> string
+  %v15 = load_field (:v14) [field=:tags] [regions, tags] -> string
+  %v16 = load_field (:v15) [field=:tag] [regions, tags] -> string
+  %v17 = load_field (:v16) [field=:label] [regions, tags] -> string
+  %v18 = reduce (:v17) [fn=:agg.join, over_axes=[:tags]] [regions] -> string
+function best_region_sale:
+  %v21 = load_input [key=:regions, chain=[]] [regions, sales] -> integer
+  %v22 = load_field (:v21) [field=:region] [regions, sales] -> integer
+  %v23 = load_field (:v22) [field=:sales] [regions, sales] -> integer
+  %v24 = load_field (:v23) [field=:sale] [regions, sales] -> integer
+  %v25 = load_field (:v24) [field=:amount] [regions, sales] -> integer
+  %v26 = reduce (:v25) [fn=:agg.max, over_axes=[:sales]] [regions] -> integer
+  %v20 = reduce (:v26) [fn=:agg.max, over_axes=[:regions]] [] -> integer
+function worst_region_sale:
+  %v23 = load_input [key=:regions, chain=[]] [regions, sales] -> integer
+  %v24 = load_field (:v23) [field=:region] [regions, sales] -> integer
+  %v25 = load_field (:v24) [field=:sales] [regions, sales] -> integer
+  %v26 = load_field (:v25) [field=:sale] [regions, sales] -> integer
+  %v27 = load_field (:v26) [field=:amount] [regions, sales] -> integer
+  %v28 = reduce (:v27) [fn=:agg.min, over_axes=[:sales]] [regions] -> integer
+  %v22 = reduce (:v28) [fn=:agg.min, over_axes=[:regions]] [] -> integer

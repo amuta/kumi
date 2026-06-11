@@ -1,0 +1,37 @@
+function total_value:
+  %v5 = load_input [key=:items]
+  %acc9 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el6 = loop_start (:v5) [axis=:items, index=:items_i7]
+    %v8 = load_field (:items_el6) [field=:value]
+    acc_step (:acc9, :v8) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v4 = acc_load (:acc9) [] -> integer
+function half_total:
+  %v12 = load_input [key=:items]
+  %acc16 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el13 = loop_start (:v12) [axis=:items, index=:items_i14]
+    %v15 = load_field (:items_el13) [field=:value]
+    acc_step (:acc16, :v15) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v11 = acc_load (:acc16) [] -> integer
+  %v17 = constant [value=0.5] [] -> float
+  %v7 = kernel_call (:v11, :v17) [fn=:core.mul:numeric] [] -> float
+function high_value_sum:
+  %v27 = load_input [key=:items]
+  %acc31 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el28 = loop_start (:v27) [axis=:items, index=:items_i29]
+    %v30 = load_field (:items_el28) [field=:value]
+    acc_step (:acc31, :v30) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v24 = acc_load (:acc31) [] -> integer
+  %v32 = constant [value=0.5] [] -> float
+  %v26 = kernel_call (:v24, :v32) [fn=:core.mul:numeric] [] -> float
+  %acc37 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el33 = loop_start (:v27) [axis=:items, index=:items_i34]
+    %v35 = load_field (:items_el33) [field=:value]
+    %v13 = kernel_call (:v35, :v26) [fn=:core.gt] [items] -> boolean
+    %v36 = constant [value=0] [] -> integer
+    %v19 = select (:v13, :v35, :v36) [items] -> integer
+    acc_step (:acc37, :v19) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v20 = acc_load (:acc37) [] -> integer

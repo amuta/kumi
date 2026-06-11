@@ -1,296 +1,240 @@
 export function _shift_cols_right_zero(input) {
-  let out = [];
-  let t1 = input["rows"];
-  let t6 = t1.length;
-  t1.forEach((rows_el_2, rows_i_3) => {
-    let out_1 = [];
-    let t7 = ((rows_i_3 % t6) + t6) % t6;
-    let t8 = t7 + t6;
-    let t9 = ((t8 % t6) + t6) % t6;
-    let t10 = t1[t9];
-    let t11 = t10.length;
-    let t19 = t11 - 1;
-    rows_el_2.forEach((col_el_4, col_i_5) => {
-      let t13 = col_i_5 - 1;
-      let t15 = t13 >= 0;
-      let t16 = t13 < t11;
-      let t17 = t15 && t16;
-      let t21 = Math.min(Math.max(t13, 0), t19);
-      let t22 = t10[t21];
-      let t24 = t17 ? t22 : 0;
-      out_1.push(t24);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t5 = input["rows"];
+  let arr14 = [];
+  for (let rows_i7 = 0; rows_i7 < t5.length; rows_i7++) {
+    let rows_el6 = t5[rows_i7];
+    let arr15 = [];
+    for (let col_i9 = 0; col_i9 < rows_el6.length; col_i9++) {
+      let col_el8 = rows_el6[col_i9];
+      let t10 = rows_el6.length;
+      let t11 = rows_el6[Math.min(Math.max(col_i9 - (1), 0), t10 - 1)];
+      let t12_j = col_i9 - (1);
+      let t12 = t12_j >= 0 && t12_j < t10;
+      let t13 = 0;
+      let t1 = t12 ? t11 : t13;
+      arr15.push(t1);
+    }
+    arr14.push(arr15);
+  }
+  return arr14;
 }
 
 export function _shift_cols_right_clamp(input) {
-  let out = [];
-  let t25 = input["rows"];
-  let t30 = t25.length;
-  t25.forEach((rows_el_26, rows_i_27) => {
-    let out_1 = [];
-    let t31 = ((rows_i_27 % t30) + t30) % t30;
-    let t32 = t31 + t30;
-    let t33 = ((t32 % t30) + t30) % t30;
-    let t34 = t25[t33];
-    let t35 = t34.length;
-    let t39 = t35 - 1;
-    rows_el_26.forEach((col_el_28, col_i_29) => {
-      let t37 = col_i_29 - 1;
-      let t41 = Math.min(Math.max(t37, 0), t39);
-      let t42 = t34[t41];
-      out_1.push(t42);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t9 = input["rows"];
+  let arr16 = [];
+  for (let rows_i11 = 0; rows_i11 < t9.length; rows_i11++) {
+    let rows_el10 = t9[rows_i11];
+    let arr17 = [];
+    for (let col_i13 = 0; col_i13 < rows_el10.length; col_i13++) {
+      let col_el12 = rows_el10[col_i13];
+      let t14 = rows_el10.length;
+      let t15 = rows_el10[Math.min(Math.max(col_i13 - (1), 0), t14 - 1)];
+      let t5 = t15;
+      arr17.push(t5);
+    }
+    arr16.push(arr17);
+  }
+  return arr16;
 }
 
 export function _shift_cols_right_wrap(input) {
-  let out = [];
-  let t43 = input["rows"];
-  let t48 = t43.length;
-  t43.forEach((rows_el_44, rows_i_45) => {
-    let out_1 = [];
-    let t49 = ((rows_i_45 % t48) + t48) % t48;
-    let t50 = t49 + t48;
-    let t51 = ((t50 % t48) + t48) % t48;
-    let t52 = t43[t51];
-    let t53 = t52.length;
-    rows_el_44.forEach((col_el_46, col_i_47) => {
-      let t55 = col_i_47 - 1;
-      let t56 = ((t55 % t53) + t53) % t53;
-      let t57 = t56 + t53;
-      let t58 = ((t57 % t53) + t53) % t53;
-      let t59 = t52[t58];
-      out_1.push(t59);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t13 = input["rows"];
+  let arr20 = [];
+  for (let rows_i15 = 0; rows_i15 < t13.length; rows_i15++) {
+    let rows_el14 = t13[rows_i15];
+    let arr21 = [];
+    for (let col_i17 = 0; col_i17 < rows_el14.length; col_i17++) {
+      let col_el16 = rows_el14[col_i17];
+      let t18 = rows_el14.length;
+      let t19 = rows_el14[(((col_i17 - (1)) % t18) + t18) % t18];
+      let t9 = t19;
+      arr21.push(t9);
+    }
+    arr20.push(arr21);
+  }
+  return arr20;
 }
 
 export function _shift_cols_left_zero(input) {
-  let out = [];
-  let t60 = input["rows"];
-  let t65 = t60.length;
-  t60.forEach((rows_el_61, rows_i_62) => {
-    let out_1 = [];
-    let t66 = ((rows_i_62 % t65) + t65) % t65;
-    let t67 = t66 + t65;
-    let t68 = ((t67 % t65) + t65) % t65;
-    let t69 = t60[t68];
-    let t70 = t69.length;
-    let t78 = t70 - 1;
-    rows_el_61.forEach((col_el_63, col_i_64) => {
-      let t72 = col_i_64 - -1;
-      let t74 = t72 >= 0;
-      let t75 = t72 < t70;
-      let t76 = t74 && t75;
-      let t80 = Math.min(Math.max(t72, 0), t78);
-      let t81 = t69[t80];
-      let t83 = t76 ? t81 : 0;
-      out_1.push(t83);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t17 = input["rows"];
+  let arr26 = [];
+  for (let rows_i19 = 0; rows_i19 < t17.length; rows_i19++) {
+    let rows_el18 = t17[rows_i19];
+    let arr27 = [];
+    for (let col_i21 = 0; col_i21 < rows_el18.length; col_i21++) {
+      let col_el20 = rows_el18[col_i21];
+      let t22 = rows_el18.length;
+      let t23 = rows_el18[Math.min(Math.max(col_i21 - (-1), 0), t22 - 1)];
+      let t24_j = col_i21 - (-1);
+      let t24 = t24_j >= 0 && t24_j < t22;
+      let t25 = 0;
+      let t13 = t24 ? t23 : t25;
+      arr27.push(t13);
+    }
+    arr26.push(arr27);
+  }
+  return arr26;
 }
 
 export function _shift_cols_left_clamp(input) {
-  let out = [];
-  let t84 = input["rows"];
-  let t89 = t84.length;
-  t84.forEach((rows_el_85, rows_i_86) => {
-    let out_1 = [];
-    let t90 = ((rows_i_86 % t89) + t89) % t89;
-    let t91 = t90 + t89;
-    let t92 = ((t91 % t89) + t89) % t89;
-    let t93 = t84[t92];
-    let t94 = t93.length;
-    let t98 = t94 - 1;
-    rows_el_85.forEach((col_el_87, col_i_88) => {
-      let t96 = col_i_88 - -1;
-      let t100 = Math.min(Math.max(t96, 0), t98);
-      let t101 = t93[t100];
-      out_1.push(t101);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t21 = input["rows"];
+  let arr28 = [];
+  for (let rows_i23 = 0; rows_i23 < t21.length; rows_i23++) {
+    let rows_el22 = t21[rows_i23];
+    let arr29 = [];
+    for (let col_i25 = 0; col_i25 < rows_el22.length; col_i25++) {
+      let col_el24 = rows_el22[col_i25];
+      let t26 = rows_el22.length;
+      let t27 = rows_el22[Math.min(Math.max(col_i25 - (-1), 0), t26 - 1)];
+      let t17 = t27;
+      arr29.push(t17);
+    }
+    arr28.push(arr29);
+  }
+  return arr28;
 }
 
 export function _shift_cols_left_wrap(input) {
-  let out = [];
-  let t102 = input["rows"];
-  let t107 = t102.length;
-  t102.forEach((rows_el_103, rows_i_104) => {
-    let out_1 = [];
-    let t108 = ((rows_i_104 % t107) + t107) % t107;
-    let t109 = t108 + t107;
-    let t110 = ((t109 % t107) + t107) % t107;
-    let t111 = t102[t110];
-    let t112 = t111.length;
-    rows_el_103.forEach((col_el_105, col_i_106) => {
-      let t114 = col_i_106 - -1;
-      let t115 = ((t114 % t112) + t112) % t112;
-      let t116 = t115 + t112;
-      let t117 = ((t116 % t112) + t112) % t112;
-      let t118 = t111[t117];
-      out_1.push(t118);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t25 = input["rows"];
+  let arr32 = [];
+  for (let rows_i27 = 0; rows_i27 < t25.length; rows_i27++) {
+    let rows_el26 = t25[rows_i27];
+    let arr33 = [];
+    for (let col_i29 = 0; col_i29 < rows_el26.length; col_i29++) {
+      let col_el28 = rows_el26[col_i29];
+      let t30 = rows_el26.length;
+      let t31 = rows_el26[(((col_i29 - (-1)) % t30) + t30) % t30];
+      let t21 = t31;
+      arr33.push(t21);
+    }
+    arr32.push(arr33);
+  }
+  return arr32;
 }
 
 export function _shift_rows_down_zero(input) {
-  let out = [];
-  let t119 = input["rows"];
-  let t124 = t119.length;
-  let t132 = t124 - 1;
-  t119.forEach((rows_el_120, rows_i_121) => {
-    let out_1 = [];
-    let t126 = rows_i_121 - 1;
-    let t128 = t126 >= 0;
-    let t129 = t126 < t124;
-    let t134 = Math.min(Math.max(t126, 0), t132);
-    let t130 = t128 && t129;
-    let t135 = t119[t134];
-    let t136 = t135.length;
-    rows_el_120.forEach((col_el_122, col_i_123) => {
-      let t137 = ((col_i_123 % t136) + t136) % t136;
-      let t138 = t137 + t136;
-      let t139 = ((t138 % t136) + t136) % t136;
-      let t140 = t135[t139];
-      let t142 = t130 ? t140 : 0;
-      out_1.push(t142);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t29 = input["rows"];
+  let arr40 = [];
+  for (let rows_i31 = 0; rows_i31 < t29.length; rows_i31++) {
+    let rows_el30 = t29[rows_i31];
+    let arr41 = [];
+    for (let col_i33 = 0; col_i33 < rows_el30.length; col_i33++) {
+      let col_el32 = rows_el30[col_i33];
+      let t34 = input["rows"];
+      let t35 = t34.length;
+      let t36 = t34[Math.min(Math.max(rows_i31 - (1), 0), t35 - 1)];
+      let t37 = t36[col_i33];
+      let t38_j = rows_i31 - (1);
+      let t38 = t38_j >= 0 && t38_j < t35;
+      let t39 = 0;
+      let t25 = t38 ? t37 : t39;
+      arr41.push(t25);
+    }
+    arr40.push(arr41);
+  }
+  return arr40;
 }
 
 export function _shift_rows_down_clamp(input) {
-  let out = [];
-  let t143 = input["rows"];
-  let t148 = t143.length;
-  let t152 = t148 - 1;
-  t143.forEach((rows_el_144, rows_i_145) => {
-    let out_1 = [];
-    let t150 = rows_i_145 - 1;
-    let t154 = Math.min(Math.max(t150, 0), t152);
-    let t155 = t143[t154];
-    let t156 = t155.length;
-    rows_el_144.forEach((col_el_146, col_i_147) => {
-      let t157 = ((col_i_147 % t156) + t156) % t156;
-      let t158 = t157 + t156;
-      let t159 = ((t158 % t156) + t156) % t156;
-      let t160 = t155[t159];
-      out_1.push(t160);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t33 = input["rows"];
+  let arr42 = [];
+  for (let rows_i35 = 0; rows_i35 < t33.length; rows_i35++) {
+    let rows_el34 = t33[rows_i35];
+    let arr43 = [];
+    for (let col_i37 = 0; col_i37 < rows_el34.length; col_i37++) {
+      let col_el36 = rows_el34[col_i37];
+      let t38 = input["rows"];
+      let t39 = t38.length;
+      let t40 = t38[Math.min(Math.max(rows_i35 - (1), 0), t39 - 1)];
+      let t41 = t40[col_i37];
+      let t29 = t41;
+      arr43.push(t29);
+    }
+    arr42.push(arr43);
+  }
+  return arr42;
 }
 
 export function _shift_rows_down_wrap(input) {
-  let out = [];
-  let t161 = input["rows"];
-  let t166 = t161.length;
-  t161.forEach((rows_el_162, rows_i_163) => {
-    let out_1 = [];
-    let t168 = rows_i_163 - 1;
-    let t169 = ((t168 % t166) + t166) % t166;
-    let t170 = t169 + t166;
-    let t171 = ((t170 % t166) + t166) % t166;
-    let t172 = t161[t171];
-    let t173 = t172.length;
-    rows_el_162.forEach((col_el_164, col_i_165) => {
-      let t174 = ((col_i_165 % t173) + t173) % t173;
-      let t175 = t174 + t173;
-      let t176 = ((t175 % t173) + t173) % t173;
-      let t177 = t172[t176];
-      out_1.push(t177);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t37 = input["rows"];
+  let arr46 = [];
+  for (let rows_i39 = 0; rows_i39 < t37.length; rows_i39++) {
+    let rows_el38 = t37[rows_i39];
+    let arr47 = [];
+    for (let col_i41 = 0; col_i41 < rows_el38.length; col_i41++) {
+      let col_el40 = rows_el38[col_i41];
+      let t42 = input["rows"];
+      let t43 = t42.length;
+      let t44 = t42[(((rows_i39 - (1)) % t43) + t43) % t43];
+      let t45 = t44[col_i41];
+      let t33 = t45;
+      arr47.push(t33);
+    }
+    arr46.push(arr47);
+  }
+  return arr46;
 }
 
 export function _shift_rows_up_zero(input) {
-  let out = [];
-  let t178 = input["rows"];
-  let t183 = t178.length;
-  let t191 = t183 - 1;
-  t178.forEach((rows_el_179, rows_i_180) => {
-    let out_1 = [];
-    let t185 = rows_i_180 - -1;
-    let t187 = t185 >= 0;
-    let t188 = t185 < t183;
-    let t193 = Math.min(Math.max(t185, 0), t191);
-    let t189 = t187 && t188;
-    let t194 = t178[t193];
-    let t195 = t194.length;
-    rows_el_179.forEach((col_el_181, col_i_182) => {
-      let t196 = ((col_i_182 % t195) + t195) % t195;
-      let t197 = t196 + t195;
-      let t198 = ((t197 % t195) + t195) % t195;
-      let t199 = t194[t198];
-      let t201 = t189 ? t199 : 0;
-      out_1.push(t201);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t41 = input["rows"];
+  let arr52 = [];
+  for (let rows_i43 = 0; rows_i43 < t41.length; rows_i43++) {
+    let rows_el42 = t41[rows_i43];
+    let arr53 = [];
+    for (let col_i45 = 0; col_i45 < rows_el42.length; col_i45++) {
+      let col_el44 = rows_el42[col_i45];
+      let t46 = input["rows"];
+      let t47 = t46.length;
+      let t48 = t46[Math.min(Math.max(rows_i43 - (-1), 0), t47 - 1)];
+      let t49 = t48[col_i45];
+      let t50_j = rows_i43 - (-1);
+      let t50 = t50_j >= 0 && t50_j < t47;
+      let t51 = 0;
+      let t37 = t50 ? t49 : t51;
+      arr53.push(t37);
+    }
+    arr52.push(arr53);
+  }
+  return arr52;
 }
 
 export function _shift_rows_up_clamp(input) {
-  let out = [];
-  let t202 = input["rows"];
-  let t207 = t202.length;
-  let t211 = t207 - 1;
-  t202.forEach((rows_el_203, rows_i_204) => {
-    let out_1 = [];
-    let t209 = rows_i_204 - -1;
-    let t213 = Math.min(Math.max(t209, 0), t211);
-    let t214 = t202[t213];
-    let t215 = t214.length;
-    rows_el_203.forEach((col_el_205, col_i_206) => {
-      let t216 = ((col_i_206 % t215) + t215) % t215;
-      let t217 = t216 + t215;
-      let t218 = ((t217 % t215) + t215) % t215;
-      let t219 = t214[t218];
-      out_1.push(t219);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t45 = input["rows"];
+  let arr54 = [];
+  for (let rows_i47 = 0; rows_i47 < t45.length; rows_i47++) {
+    let rows_el46 = t45[rows_i47];
+    let arr55 = [];
+    for (let col_i49 = 0; col_i49 < rows_el46.length; col_i49++) {
+      let col_el48 = rows_el46[col_i49];
+      let t50 = input["rows"];
+      let t51 = t50.length;
+      let t52 = t50[Math.min(Math.max(rows_i47 - (-1), 0), t51 - 1)];
+      let t53 = t52[col_i49];
+      let t41 = t53;
+      arr55.push(t41);
+    }
+    arr54.push(arr55);
+  }
+  return arr54;
 }
 
 export function _shift_rows_up_wrap(input) {
-  let out = [];
-  let t220 = input["rows"];
-  let t225 = t220.length;
-  t220.forEach((rows_el_221, rows_i_222) => {
-    let out_1 = [];
-    let t227 = rows_i_222 - -1;
-    let t228 = ((t227 % t225) + t225) % t225;
-    let t229 = t228 + t225;
-    let t230 = ((t229 % t225) + t225) % t225;
-    let t231 = t220[t230];
-    let t232 = t231.length;
-    rows_el_221.forEach((col_el_223, col_i_224) => {
-      let t233 = ((col_i_224 % t232) + t232) % t232;
-      let t234 = t233 + t232;
-      let t235 = ((t234 % t232) + t232) % t232;
-      let t236 = t231[t235];
-      out_1.push(t236);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t49 = input["rows"];
+  let arr58 = [];
+  for (let rows_i51 = 0; rows_i51 < t49.length; rows_i51++) {
+    let rows_el50 = t49[rows_i51];
+    let arr59 = [];
+    for (let col_i53 = 0; col_i53 < rows_el50.length; col_i53++) {
+      let col_el52 = rows_el50[col_i53];
+      let t54 = input["rows"];
+      let t55 = t54.length;
+      let t56 = t54[(((rows_i51 - (-1)) % t55) + t55) % t55];
+      let t57 = t56[col_i53];
+      let t45 = t57;
+      arr59.push(t45);
+    }
+    arr58.push(arr59);
+  }
+  return arr58;
 }
 

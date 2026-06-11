@@ -1,0 +1,164 @@
+function global_offset_plus:
+  %v4 = load_input [key=:global_offset]
+  %v5 = constant [value=1.0] [] -> float
+  %v3 = kernel_call (:v4, :v5) [fn=:core.add] [] -> float
+function batch_bias:
+  %v13 = load_input [key=:global_offset]
+  %v14 = constant [value=1.0] [] -> float
+  %v12 = kernel_call (:v13, :v14) [fn=:core.add] [] -> float
+  %v15 = load_input [key=:batch]
+  %arr19 = array_init
+  %batch_el16 = loop_start (:v15) [axis=:batch, index=:batch_i17]
+    %v18 = load_field (:batch_el16) [field=:mean]
+    %v9 = kernel_call (:v18, :v12) [fn=:core.add] [batch] -> float
+    array_push (:arr19, :v9)
+  loop_end [axis=:batch]
+function row_scale2:
+  %v18 = load_input [key=:batch]
+  %arr26 = array_init
+  %batch_el19 = loop_start (:v18) [axis=:batch, index=:batch_i20]
+    %v21 = load_field (:batch_el19) [field=:row]
+    %arr27 = array_init
+    %row_el22 = loop_start (:v21) [axis=:row, index=:row_i23]
+      %v24 = load_field (:row_el22) [field=:scale]
+      %v25 = constant [value=2.0] [] -> float
+      %v17 = kernel_call (:v24, :v25) [fn=:core.mul:numeric] [batch, row] -> float
+      array_push (:arr27, :v17)
+    loop_end [axis=:row]
+    array_push (:arr26, :arr27)
+  loop_end [axis=:batch]
+function elem_affine:
+  %v47 = load_input [key=:batch]
+  %arr70 = array_init
+  %batch_el48 = loop_start (:v47) [axis=:batch, index=:batch_i49]
+    %v50 = load_field (:batch_el48) [field=:row]
+    %arr71 = array_init
+    %row_el51 = loop_start (:v50) [axis=:row, index=:row_i52]
+      %v53 = load_field (:row_el51) [field=:scale]
+      %v54 = constant [value=2.0] [] -> float
+      %v38 = kernel_call (:v53, :v54) [fn=:core.mul:numeric] [batch, row] -> float
+      %v55 = load_field (:row_el51) [field=:col]
+      %arr72 = array_init
+      %col_el56 = loop_start (:v55) [axis=:col, index=:col_i57]
+        %v58 = load_field (:col_el56) [field=:val]
+        %v27 = kernel_call (:v58, :v38) [fn=:core.mul:numeric] [batch, row, col] -> float
+        array_push (:arr72, :v27)
+      loop_end [axis=:col]
+      array_push (:arr71, :arr72)
+    loop_end [axis=:row]
+    array_push (:arr70, :arr71)
+  loop_end [axis=:batch]
+  %v59 = load_input [key=:global_offset]
+  %v60 = constant [value=1.0] [] -> float
+  %v44 = kernel_call (:v59, :v60) [fn=:core.add] [] -> float
+  %arr76 = array_init
+  %batch_el61 = loop_start (:v47) [axis=:batch, index=:batch_i62]
+    %v63 = load_field (:batch_el61) [field=:mean]
+    %v46 = kernel_call (:v63, :v44) [fn=:core.add] [batch] -> float
+    %v64 = load_field (:batch_el61) [field=:row]
+    %arr77 = array_init
+    %row_el65 = loop_start (:v64) [axis=:row, index=:row_i66]
+      %v67 = load_field (:row_el65) [field=:col]
+      %arr78 = array_init
+      %col_el68 = loop_start (:v67) [axis=:col, index=:col_i69]
+        %v73 = index_read (:arr70, :batch_i62)
+        %v74 = index_read (:v73, :row_i66)
+        %v75 = index_read (:v74, :col_i69)
+        %v30 = kernel_call (:v75, :v46) [fn=:core.add] [batch, row, col] -> float
+        array_push (:arr78, :v30)
+      loop_end [axis=:col]
+      array_push (:arr77, :arr78)
+    loop_end [axis=:row]
+    array_push (:arr76, :arr77)
+  loop_end [axis=:batch]
+function row_sum_affine:
+  %v60 = load_input [key=:batch]
+  %arr83 = array_init
+  %batch_el61 = loop_start (:v60) [axis=:batch, index=:batch_i62]
+    %v63 = load_field (:batch_el61) [field=:row]
+    %arr84 = array_init
+    %row_el64 = loop_start (:v63) [axis=:row, index=:row_i65]
+      %v66 = load_field (:row_el64) [field=:scale]
+      %v67 = constant [value=2.0] [] -> float
+      %v47 = kernel_call (:v66, :v67) [fn=:core.mul:numeric] [batch, row] -> float
+      %v68 = load_field (:row_el64) [field=:col]
+      %arr85 = array_init
+      %col_el69 = loop_start (:v68) [axis=:col, index=:col_i70]
+        %v71 = load_field (:col_el69) [field=:val]
+        %v49 = kernel_call (:v71, :v47) [fn=:core.mul:numeric] [batch, row, col] -> float
+        array_push (:arr85, :v49)
+      loop_end [axis=:col]
+      array_push (:arr84, :arr85)
+    loop_end [axis=:row]
+    array_push (:arr83, :arr84)
+  loop_end [axis=:batch]
+  %v72 = load_input [key=:global_offset]
+  %v73 = constant [value=1.0] [] -> float
+  %v55 = kernel_call (:v72, :v73) [fn=:core.add] [] -> float
+  %arr90 = array_init
+  %batch_el74 = loop_start (:v60) [axis=:batch, index=:batch_i75]
+    %v76 = load_field (:batch_el74) [field=:mean]
+    %v57 = kernel_call (:v76, :v55) [fn=:core.add] [batch] -> float
+    %v77 = load_field (:batch_el74) [field=:row]
+    %arr91 = array_init
+    %row_el78 = loop_start (:v77) [axis=:row, index=:row_i79]
+      %v80 = load_field (:row_el78) [field=:col]
+      %acc89 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+      %col_el81 = loop_start (:v80) [axis=:col, index=:col_i82]
+        %v86 = index_read (:arr83, :batch_i75)
+        %v87 = index_read (:v86, :row_i79)
+        %v88 = index_read (:v87, :col_i82)
+        %v59 = kernel_call (:v88, :v57) [fn=:core.add] [batch, row, col] -> float
+        acc_step (:acc89, :v59) [fn=:agg.sum, nil_init=false]
+      loop_end [axis=:col]
+      %v32 = acc_load (:acc89) [] -> float
+      array_push (:arr91, :v32)
+    loop_end [axis=:row]
+    array_push (:arr90, :arr91)
+  loop_end [axis=:batch]
+function batch_total_affine:
+  %v63 = load_input [key=:batch]
+  %arr86 = array_init
+  %batch_el64 = loop_start (:v63) [axis=:batch, index=:batch_i65]
+    %v66 = load_field (:batch_el64) [field=:row]
+    %arr87 = array_init
+    %row_el67 = loop_start (:v66) [axis=:row, index=:row_i68]
+      %v69 = load_field (:row_el67) [field=:scale]
+      %v70 = constant [value=2.0] [] -> float
+      %v49 = kernel_call (:v69, :v70) [fn=:core.mul:numeric] [batch, row] -> float
+      %v71 = load_field (:row_el67) [field=:col]
+      %arr88 = array_init
+      %col_el72 = loop_start (:v71) [axis=:col, index=:col_i73]
+        %v74 = load_field (:col_el72) [field=:val]
+        %v51 = kernel_call (:v74, :v49) [fn=:core.mul:numeric] [batch, row, col] -> float
+        array_push (:arr88, :v51)
+      loop_end [axis=:col]
+      array_push (:arr87, :arr88)
+    loop_end [axis=:row]
+    array_push (:arr86, :arr87)
+  loop_end [axis=:batch]
+  %v75 = load_input [key=:global_offset]
+  %v76 = constant [value=1.0] [] -> float
+  %v57 = kernel_call (:v75, :v76) [fn=:core.add] [] -> float
+  %arr94 = array_init
+  %batch_el77 = loop_start (:v63) [axis=:batch, index=:batch_i78]
+    %v79 = load_field (:batch_el77) [field=:mean]
+    %v59 = kernel_call (:v79, :v57) [fn=:core.add] [batch] -> float
+    %v80 = load_field (:batch_el77) [field=:row]
+    %acc93 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %row_el81 = loop_start (:v80) [axis=:row, index=:row_i82]
+      %v83 = load_field (:row_el81) [field=:col]
+      %acc92 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+      %col_el84 = loop_start (:v83) [axis=:col, index=:col_i85]
+        %v89 = index_read (:arr86, :batch_i78)
+        %v90 = index_read (:v89, :row_i82)
+        %v91 = index_read (:v90, :col_i85)
+        %v61 = kernel_call (:v91, :v59) [fn=:core.add] [batch, row, col] -> float
+        acc_step (:acc92, :v61) [fn=:agg.sum, nil_init=false]
+      loop_end [axis=:col]
+      %v62 = acc_load (:acc92) [] -> float
+      acc_step (:acc93, :v62) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:row]
+    %v34 = acc_load (:acc93) [] -> float
+    array_push (:arr94, :v34)
+  loop_end [axis=:batch]

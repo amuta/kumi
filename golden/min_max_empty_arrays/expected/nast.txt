@@ -1,0 +1,27 @@
+(NAST
+  (VALUE region_max
+    (Call :max
+    (InputRef [:regions, :region, :sales, :sale, :amount])
+  )
+  )
+  (VALUE region_min
+    (Call :min
+    (InputRef [:regions, :region, :sales, :sale, :amount])
+  )
+  )
+  (VALUE region_labels
+    (Call :join
+    (InputRef [:regions, :region, :tags, :tag, :label])
+  )
+  )
+  (VALUE best_region_sale
+    (Call :max
+    (Ref region_max)
+  )
+  )
+  (VALUE worst_region_sale
+    (Call :min
+    (Ref region_min)
+  )
+  )
+)

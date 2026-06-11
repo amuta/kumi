@@ -1,58 +1,56 @@
 export function _roll_right(input) {
-  let out = [];
-  let t1 = input["cells"];
-  let t4 = t1.length;
-  t1.forEach((cells_el_2, cells_i_3) => {
-    let t6 = cells_i_3 - 1;
-    let t7 = ((t6 % t4) + t4) % t4;
-    let t8 = t7 + t4;
-    let t9 = ((t8 % t4) + t4) % t4;
-    let t10 = t1[t9];
-    out.push(t10);
-  });
-  return out;
+  let t4 = input["cells"];
+  let arr10 = [];
+  for (let cells_i6 = 0; cells_i6 < t4.length; cells_i6++) {
+    let cells_el5 = t4[cells_i6];
+    let t7 = input["cells"];
+    let t8 = t7.length;
+    let t9 = t7[(((cells_i6 - (1)) % t8) + t8) % t8];
+    let t1 = t9;
+    arr10.push(t1);
+  }
+  return arr10;
 }
 
 export function _roll_left(input) {
-  let out = [];
-  let t11 = input["cells"];
-  let t14 = t11.length;
-  t11.forEach((cells_el_12, cells_i_13) => {
-    let t16 = cells_i_13 - -1;
-    let t17 = ((t16 % t14) + t14) % t14;
-    let t18 = t17 + t14;
-    let t19 = ((t18 % t14) + t14) % t14;
-    let t20 = t11[t19];
-    out.push(t20);
-  });
-  return out;
+  let t7 = input["cells"];
+  let arr13 = [];
+  for (let cells_i9 = 0; cells_i9 < t7.length; cells_i9++) {
+    let cells_el8 = t7[cells_i9];
+    let t10 = input["cells"];
+    let t11 = t10.length;
+    let t12 = t10[(((cells_i9 - (-1)) % t11) + t11) % t11];
+    let t4 = t12;
+    arr13.push(t4);
+  }
+  return arr13;
 }
 
 export function _roll_right_clamp(input) {
-  let out = [];
-  let t21 = input["cells"];
-  let t24 = t21.length;
-  let t28 = t24 - 1;
-  t21.forEach((cells_el_22, cells_i_23) => {
-    let t26 = cells_i_23 - 1;
-    let t30 = Math.min(Math.max(t26, 0), t28);
-    let t31 = t21[t30];
-    out.push(t31);
-  });
-  return out;
+  let t10 = input["cells"];
+  let arr16 = [];
+  for (let cells_i12 = 0; cells_i12 < t10.length; cells_i12++) {
+    let cells_el11 = t10[cells_i12];
+    let t13 = input["cells"];
+    let t14 = t13.length;
+    let t15 = t13[Math.min(Math.max(cells_i12 - (1), 0), t14 - 1)];
+    let t7 = t15;
+    arr16.push(t7);
+  }
+  return arr16;
 }
 
 export function _roll_left_clamp(input) {
-  let out = [];
-  let t32 = input["cells"];
-  let t35 = t32.length;
-  let t39 = t35 - 1;
-  t32.forEach((cells_el_33, cells_i_34) => {
-    let t37 = cells_i_34 - -1;
-    let t41 = Math.min(Math.max(t37, 0), t39);
-    let t42 = t32[t41];
-    out.push(t42);
-  });
-  return out;
+  let t13 = input["cells"];
+  let arr19 = [];
+  for (let cells_i15 = 0; cells_i15 < t13.length; cells_i15++) {
+    let cells_el14 = t13[cells_i15];
+    let t16 = input["cells"];
+    let t17 = t16.length;
+    let t18 = t16[Math.min(Math.max(cells_i15 - (-1), 0), t17 - 1)];
+    let t10 = t18;
+    arr19.push(t10);
+  }
+  return arr19;
 }
 

@@ -1,8 +1,9 @@
 export function _double(input) {
-  let t1 = input["x"];
-  let t2 = t1["y"];
-  let t3 = t2["z"];
-  let t5 = t3 * 2;
+  let t6 = input["x"];
+  let t7 = t6["y"];
+  let t8 = t7["z"];
+  let t9 = 2;
+  let t5 = t8 * t9;
   return t5;
 }
 

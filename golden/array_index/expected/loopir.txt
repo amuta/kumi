@@ -1,0 +1,44 @@
+function W:
+  %v4 = load_input [key=:x]
+  %arr7 = array_init
+  %x_el5 = loop_start (:v4) [axis=:x, index=:x_i6]
+    %v3 = kernel_call (:x_el5) [fn=:core.array_size] [x] -> integer
+    array_push (:arr7, :v3)
+  loop_end [axis=:x]
+function box:
+  %v13 = load_input [key=:x]
+  %arr18 = array_init
+  %x_el14 = loop_start (:v13) [axis=:x, index=:x_i15]
+    %v12 = kernel_call (:x_el14) [fn=:core.array_size] [x] -> integer
+    %v6 = kernel_call (:x_i15, :v12) [fn=:core.mul:numeric] [x] -> integer
+    %arr19 = array_init
+    %y_el16 = loop_start (:x_el14) [axis=:y, index=:y_i17]
+      %v9 = kernel_call (:v6, :y_i17) [fn=:core.add] [x, y] -> integer
+      array_push (:arr19, :v9)
+    loop_end [axis=:y]
+    array_push (:arr18, :arr19)
+  loop_end [axis=:x]
+function col_major:
+  %v18 = load_input [key=:x]
+  %v12 = kernel_call (:v18) [fn=:core.array_size] [] -> integer
+  %arr23 = array_init
+  %x_el19 = loop_start (:v18) [axis=:x, index=:x_i20]
+    %arr24 = array_init
+    %y_el21 = loop_start (:x_el19) [axis=:y, index=:y_i22]
+      %v14 = kernel_call (:y_i22, :v12) [fn=:core.mul:numeric] [x, y] -> integer
+      %v17 = kernel_call (:v14, :x_i20) [fn=:core.add] [x, y] -> integer
+      array_push (:arr24, :v17)
+    loop_end [axis=:y]
+    array_push (:arr23, :arr24)
+  loop_end [axis=:x]
+function sum_ij:
+  %v22 = load_input [key=:x]
+  %arr27 = array_init
+  %x_el23 = loop_start (:v22) [axis=:x, index=:x_i24]
+    %arr28 = array_init
+    %y_el25 = loop_start (:x_el23) [axis=:y, index=:y_i26]
+      %v21 = kernel_call (:x_i24, :y_i26) [fn=:core.add] [x, y] -> integer
+      array_push (:arr28, :v21)
+    loop_end [axis=:y]
+    array_push (:arr27, :arr28)
+  loop_end [axis=:x]

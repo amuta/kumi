@@ -1,0 +1,20 @@
+function x_sq:
+  %v4 = load_input [key=:x]
+  %v3 = kernel_call (:v4, :v4) [fn=:core.mul:numeric] [] -> integer
+function y_sq:
+  %v7 = load_input [key=:y]
+  %v6 = kernel_call (:v7, :v7) [fn=:core.mul:numeric] [] -> integer
+function distance_sq:
+  %v16 = load_input [key=:x]
+  %v12 = kernel_call (:v16, :v16) [fn=:core.mul:numeric] [] -> integer
+  %v17 = load_input [key=:y]
+  %v15 = kernel_call (:v17, :v17) [fn=:core.mul:numeric] [] -> integer
+  %v9 = kernel_call (:v12, :v15) [fn=:core.add] [] -> integer
+function distance:
+  %v20 = load_input [key=:x]
+  %v15 = kernel_call (:v20, :v20) [fn=:core.mul:numeric] [] -> integer
+  %v21 = load_input [key=:y]
+  %v18 = kernel_call (:v21, :v21) [fn=:core.mul:numeric] [] -> integer
+  %v19 = kernel_call (:v15, :v18) [fn=:core.add] [] -> integer
+  %v22 = constant [value=0.5] [] -> float
+  %v12 = kernel_call (:v19, :v22) [fn=:core.pow] [] -> float

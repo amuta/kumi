@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "stringio"
 require_relative "printer/irv2_formatter"
 
 module Kumi
@@ -40,8 +41,7 @@ module Kumi
       end
 
       def generate_input_plan(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, return_with_state: :input_metadata)
+        res = analyze_schema(path, stop_after: "InputAccessPlannerPass")
         return nil unless res.state[:input_metadata]
 
         print_input_plan(res.state[:input_metadata])
@@ -92,87 +92,45 @@ module Kumi
       end
 
       def generate_nast(path)
-        schema, = Kumi::Frontends.load(path: path)
         with_stop_after("NormalizeToNASTPass") do
-          res = Kumi::Analyzer.analyze!(schema)
+          res = analyze_schema(path)
           return nil unless res.state[:nast_module]
 
           Kumi::Support::NASTPrinter.print(res.state[:nast_module])
         end
       end
 
-      def generate_lir_00_unoptimized(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_00_unoptimized]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_00_unoptimized])
-      end
-
-      def generate_lir_01_hoist_scalar_references(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_01_hoist_scalar_references]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_01_hoist_scalar_references])
-      end
-
-      def generate_lir_02_inlined(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_02_inlined_ops_by_decl]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_02_inlined_ops_by_decl])
-      end
-
-      def generate_lir_04_1_loop_fusion(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_04_1_loop_fusion]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_04_1_loop_fusion])
-      end
-
-      def generate_lir_03_cse(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_03_cse]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_03_cse])
-      end
-
-      def generate_lir_04_loop_invcm(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_04_loop_invcm]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_04_loop_invcm])
-      end
-
-      def generate_lir_05_global_cse(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_05_global_cse]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_05_global_cse])
-      end
-
-      def generate_lir_06_const_prop(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        raise "Error Generating #{path}" unless res.state[:lir_06_const_prop]
-
-        Kumi::Support::LIRPrinter.print(res.state[:lir_06_const_prop])
-      end
-
       def generate_snast(path)
-        schema, = Kumi::Frontends.load(path: path)
         with_stop_after("SNASTPass") do
-          res = Kumi::Analyzer.analyze!(schema)
+          res = analyze_schema(path)
           raise "Error Generating #{path}" unless res.state[:snast_module]
 
           Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
         end
+      end
+
+      def generate_dfir(path)
+        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
+        graph = res.state[:df_module_unoptimized] or raise "Missing DFIR for #{path}"
+        print_ir_graph(graph)
+      end
+
+      def generate_dfir_optimized(path)
+        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
+        graph = res.state[:df_module] or raise "Missing optimized DFIR for #{path}"
+        print_ir_graph(graph)
+      end
+
+      def generate_vecir(path)
+        res = analyze_schema(path, stop_after: "VecValidatePass", side_tables: true)
+        graph = res.state[:vec_module] or raise "Missing VecIR for #{path}"
+        print_ir_graph(graph)
+      end
+
+      def generate_loopir(path)
+        res = analyze_schema(path, stop_after: "LoopValidatePass", side_tables: true)
+        graph = res.state[:loop_module] or raise "Missing LoopIR for #{path}"
+        print_ir_graph(graph)
       end
 
       def generate_irv2(path)
@@ -223,6 +181,23 @@ module Kumi
         require_relative "../pack"
 
         Kumi::Pack.print(schema: path, targets: %w[ruby])
+      end
+
+      def print_ir_graph(graph)
+        io = StringIO.new
+        Kumi::IR::Printer.print(graph, io: io)
+        io.string
+      end
+
+      def analyze_schema(path, stop_after: nil, **opts)
+        schema, = Kumi::Frontends.load(path: path)
+        if stop_after
+          with_stop_after(stop_after) do
+            Kumi::Analyzer.analyze!(schema, **opts)
+          end
+        else
+          Kumi::Analyzer.analyze!(schema, **opts)
+        end
       end
     end
   end

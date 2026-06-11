@@ -1,52 +1,62 @@
 export function _sum_numbers(input) {
-  let acc_1 = 0;
-  let t2 = input["numbers"];
-  t2.forEach((numbers_el_3, numbers_i_4) => {
-    let t5 = numbers_el_3["value"];
-    acc_1 += t5;
-  });
-  return acc_1;
+  let t5 = input["numbers"];
+  let acc9 = 0;
+  for (let numbers_i7 = 0; numbers_i7 < t5.length; numbers_i7++) {
+    let numbers_el6 = t5[numbers_i7];
+    let t8 = numbers_el6["value"];
+    acc9 += t8;
+  }
+  let t4 = acc9;
+  return t4;
 }
 
 export function _matrix_sums(input) {
-  let out = [];
-  let t7 = input["matrix"];
-  t7.forEach((matrix_el_8, matrix_i_9) => {
-    let acc_10 = 0;
-    let t11 = matrix_el_8["row"];
-    t11.forEach((row_el_12, row_i_13) => {
-      let t14 = row_el_12["cell"];
-      acc_10 += t14;
-    });
-    out.push(acc_10);
-  });
-  return out;
+  let t11 = input["matrix"];
+  let arr19 = [];
+  for (let matrix_i13 = 0; matrix_i13 < t11.length; matrix_i13++) {
+    let matrix_el12 = t11[matrix_i13];
+    let t14 = matrix_el12["row"];
+    let acc18 = 0.0;
+    for (let row_i16 = 0; row_i16 < t14.length; row_i16++) {
+      let row_el15 = t14[row_i16];
+      let t17 = row_el15["cell"];
+      acc18 += t17;
+    }
+    let t10 = acc18;
+    arr19.push(t10);
+  }
+  return arr19;
 }
 
 export function _mixed_array(input) {
-  let out = [];
-  let t16 = input["matrix"];
-  let acc28 = 0;
-  let t29 = input["numbers"];
-  t29.forEach((t30, t31) => {
-    let t32 = t30["value"];
-    acc28 += t32;
-  });
-  let t22 = input["scalar_val"];
-  t16.forEach((matrix_el_17, matrix_i_18) => {
-    let out_1 = [];
-    let t19 = matrix_el_17["row"];
-    t19.forEach((row_el_20, row_i_21) => {
-      let t24 = row_el_20["cell"];
-      let t25 = [t22, acc28, t24];
-      out_1.push(t25);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t23 = input["numbers"];
+  let acc27 = 0;
+  for (let numbers_i25 = 0; numbers_i25 < t23.length; numbers_i25++) {
+    let numbers_el24 = t23[numbers_i25];
+    let t26 = numbers_el24["value"];
+    acc27 += t26;
+  }
+  let t22 = acc27;
+  let t28 = input["matrix"];
+  let arr36 = [];
+  for (let matrix_i30 = 0; matrix_i30 < t28.length; matrix_i30++) {
+    let matrix_el29 = t28[matrix_i30];
+    let t31 = matrix_el29["row"];
+    let arr37 = [];
+    for (let row_i33 = 0; row_i33 < t31.length; row_i33++) {
+      let row_el32 = t31[row_i33];
+      let t34 = input["scalar_val"];
+      let t35 = row_el32["cell"];
+      let t18 = [t34, t22, t35];
+      arr37.push(t18);
+    }
+    arr36.push(arr37);
+  }
+  return arr36;
 }
 
 export function _constant(input) {
-  return 42;
+  let t20 = 42;
+  return t20;
 }
 

@@ -3,9 +3,8 @@
 module Kumi
   module Core
     module Analyzer
-      # Typed plan structures for HIR (High-level Intermediate Representation)
-      # These plans are produced by analyzer passes and consumed by LowerToIRPass
-      # to generate LIR (Low-level IR) operations.
+      # Typed plan structures produced by analyzer passes (e.g. input access
+      # planning) and consumed by the lowering pipeline.
       module Plans
         # Scope plan: defines the dimensional execution context for a declaration
         Scope = Struct.new(:scope, :lifts, :join_hint, :arg_shapes, keyword_init: true) do

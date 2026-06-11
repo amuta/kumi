@@ -23,6 +23,7 @@ gem "simplecov", "~> 0.21"
 gem "kumi-parser", "0.0.30"
 
 group :development do
+  gem "rdoc", "~> 7.2"
   gem "ruby-lsp", "~> 0.26.1"
   gem "ruby-lsp-rspec", "~> 0.1.27"
 end

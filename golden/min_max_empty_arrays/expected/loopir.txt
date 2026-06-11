@@ -1,0 +1,67 @@
+function region_max:
+  %v7 = load_input [key=:regions]
+  %arr15 = array_init
+  %regions_el8 = loop_start (:v7) [axis=:regions, index=:regions_i9]
+    %v10 = load_field (:regions_el8) [field=:sales]
+    %acc14 = acc_init [fn=:agg.max, init=nil, nil_init=true] [] -> integer
+    %sales_el11 = loop_start (:v10) [axis=:sales, index=:sales_i12]
+      %v13 = load_field (:sales_el11) [field=:amount]
+      acc_step (:acc14, :v13) [fn=:agg.max, nil_init=true]
+    loop_end [axis=:sales]
+    %v6 = acc_load (:acc14) [] -> integer
+    array_push (:arr15, :v6)
+  loop_end [axis=:regions]
+function region_min:
+  %v13 = load_input [key=:regions]
+  %arr21 = array_init
+  %regions_el14 = loop_start (:v13) [axis=:regions, index=:regions_i15]
+    %v16 = load_field (:regions_el14) [field=:sales]
+    %acc20 = acc_init [fn=:agg.min, init=nil, nil_init=true] [] -> integer
+    %sales_el17 = loop_start (:v16) [axis=:sales, index=:sales_i18]
+      %v19 = load_field (:sales_el17) [field=:amount]
+      acc_step (:acc20, :v19) [fn=:agg.min, nil_init=true]
+    loop_end [axis=:sales]
+    %v12 = acc_load (:acc20) [] -> integer
+    array_push (:arr21, :v12)
+  loop_end [axis=:regions]
+function region_labels:
+  %v19 = load_input [key=:regions]
+  %arr27 = array_init
+  %regions_el20 = loop_start (:v19) [axis=:regions, index=:regions_i21]
+    %v22 = load_field (:regions_el20) [field=:tags]
+    %acc26 = acc_init [fn=:agg.join, init="", nil_init=false] [] -> string
+    %tags_el23 = loop_start (:v22) [axis=:tags, index=:tags_i24]
+      %v25 = load_field (:tags_el23) [field=:label]
+      acc_step (:acc26, :v25) [fn=:agg.join, nil_init=false]
+    loop_end [axis=:tags]
+    %v18 = acc_load (:acc26) [] -> string
+    array_push (:arr27, :v18)
+  loop_end [axis=:regions]
+function best_region_sale:
+  %v27 = load_input [key=:regions]
+  %acc35 = acc_init [fn=:agg.max, init=nil, nil_init=true] [] -> integer
+  %regions_el28 = loop_start (:v27) [axis=:regions, index=:regions_i29]
+    %v30 = load_field (:regions_el28) [field=:sales]
+    %acc34 = acc_init [fn=:agg.max, init=nil, nil_init=true] [] -> integer
+    %sales_el31 = loop_start (:v30) [axis=:sales, index=:sales_i32]
+      %v33 = load_field (:sales_el31) [field=:amount]
+      acc_step (:acc34, :v33) [fn=:agg.max, nil_init=true]
+    loop_end [axis=:sales]
+    %v26 = acc_load (:acc34) [] -> integer
+    acc_step (:acc35, :v26) [fn=:agg.max, nil_init=true]
+  loop_end [axis=:regions]
+  %v20 = acc_load (:acc35) [] -> integer
+function worst_region_sale:
+  %v29 = load_input [key=:regions]
+  %acc37 = acc_init [fn=:agg.min, init=nil, nil_init=true] [] -> integer
+  %regions_el30 = loop_start (:v29) [axis=:regions, index=:regions_i31]
+    %v32 = load_field (:regions_el30) [field=:sales]
+    %acc36 = acc_init [fn=:agg.min, init=nil, nil_init=true] [] -> integer
+    %sales_el33 = loop_start (:v32) [axis=:sales, index=:sales_i34]
+      %v35 = load_field (:sales_el33) [field=:amount]
+      acc_step (:acc36, :v35) [fn=:agg.min, nil_init=true]
+    loop_end [axis=:sales]
+    %v28 = acc_load (:acc36) [] -> integer
+    acc_step (:acc37, :v28) [fn=:agg.min, nil_init=true]
+  loop_end [axis=:regions]
+  %v22 = acc_load (:acc37) [] -> integer

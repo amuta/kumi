@@ -7,6 +7,16 @@ kernels:
     fn: core.mod
     inline: "= $0 % $1"
   
+  - id: max:ruby:v1
+    fn: core.max
+    inline: "= $0 > $1 ? $0 : $1"
+    impl: "(a, b)\n  a > b ? a : b"
+
+  - id: min:ruby:v1
+    fn: core.min
+    inline: "= $0 < $1 ? $0 : $1"
+    impl: "(a, b)\n  a < b ? a : b"
+
   - id: add:ruby:v1
     fn: core.add
     inline: "= $0 + $1"

@@ -1,0 +1,20 @@
+schema do
+  input do
+    array :items do
+      hash :item do
+        integer :value
+      end
+    end
+  end
+
+  # First reduction computes the global total across all items.
+  value :total_value, fn(:sum, input.items.item.value)
+
+  # Scalar derived from the completed reduction; used by the second loop.
+  value :half_total, total_value * 0.5
+
+  # Second reduction must reopen the items axis because it mixes per-item values
+  # with the scalar half_total in an elementwise select.
+  value :high_value_sum,
+        fn(:sum, select(input.items.item.value > half_total, input.items.item.value, 0))
+end

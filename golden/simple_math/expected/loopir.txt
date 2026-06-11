@@ -1,0 +1,21 @@
+function sum:
+  %v4 = load_input [key=:x]
+  %v5 = load_input [key=:y]
+  %v3 = kernel_call (:v4, :v5) [fn=:core.add] [] -> integer
+function product:
+  %v7 = load_input [key=:x]
+  %v8 = load_input [key=:y]
+  %v6 = kernel_call (:v7, :v8) [fn=:core.mul:numeric] [] -> integer
+function difference:
+  %v10 = load_input [key=:x]
+  %v11 = load_input [key=:y]
+  %v9 = kernel_call (:v10, :v11) [fn=:core.sub] [] -> integer
+function results_array:
+  %v18 = load_input [key=:x]
+  %v19 = constant [value=10] [] -> integer
+  %v13 = kernel_call (:v18, :v19) [fn=:core.add] [] -> integer
+  %v20 = load_input [key=:y]
+  %v21 = constant [value=2] [] -> integer
+  %v16 = kernel_call (:v20, :v21) [fn=:core.mul:numeric] [] -> integer
+  %v22 = constant [value=1] [] -> integer
+  %v17 = make_object (:v22, :v13, :v16) [keys=[:_0, :_1, :_2]] [] -> tuple<integer, integer, integer>

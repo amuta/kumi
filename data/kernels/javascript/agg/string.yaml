@@ -3,3 +3,6 @@ kernels:
     fn: agg.join
     inline: "+= $1"
     fold_inline: "= $0.join('')"
+    # String concatenation identity: join over an empty array is "".
+    identity:
+      string: ""

@@ -1,0 +1,16 @@
+function x_sq:
+  %v1 = load_input [key=:x, chain=[], plan_ref="x"] [] -> integer
+  %v2 = load_input [key=:x, chain=[], plan_ref="x"] [] -> integer
+  %v3 = map (:v1, :v2) [fn=:core.mul:numeric] [] -> integer
+function y_sq:
+  %v4 = load_input [key=:y, chain=[], plan_ref="y"] [] -> integer
+  %v5 = load_input [key=:y, chain=[], plan_ref="y"] [] -> integer
+  %v6 = map (:v4, :v5) [fn=:core.mul:numeric] [] -> integer
+function distance_sq:
+  %v7 = decl_ref [name=:x_sq] [] -> integer
+  %v8 = decl_ref [name=:y_sq] [] -> integer
+  %v9 = map (:v7, :v8) [fn=:core.add] [] -> integer
+function distance:
+  %v10 = decl_ref [name=:distance_sq] [] -> integer
+  %v11 = constant [value=0.5] [] -> float
+  %v12 = map (:v10, :v11) [fn=:core.pow] [] -> float

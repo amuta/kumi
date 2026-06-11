@@ -1,0 +1,76 @@
+function items_subtotal:
+  %v8 = load_input [key=:items]
+  %arr13 = array_init
+  %items_el9 = loop_start (:v8) [axis=:items, index=:items_i10]
+    %v11 = load_field (:items_el9) [field=:price]
+    %v12 = load_field (:items_el9) [field=:qty]
+    %v7 = kernel_call (:v11, :v12) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr13, :v7)
+  loop_end [axis=:items]
+function items_discounted:
+  %v16 = constant [value=1.0] [] -> float
+  %v17 = load_input [key=:discount]
+  %v13 = kernel_call (:v16, :v17) [fn=:core.sub] [] -> float
+  %v18 = load_input [key=:items]
+  %arr22 = array_init
+  %items_el19 = loop_start (:v18) [axis=:items, index=:items_i20]
+    %v21 = load_field (:items_el19) [field=:price]
+    %v15 = kernel_call (:v21, :v13) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr22, :v15)
+  loop_end [axis=:items]
+function items_is_big:
+  %v22 = load_input [key=:items]
+  %arr27 = array_init
+  %items_el23 = loop_start (:v22) [axis=:items, index=:items_i24]
+    %v25 = load_field (:items_el23) [field=:price]
+    %v26 = constant [value=100.0] [] -> float
+    %v21 = kernel_call (:v25, :v26) [fn=:core.gt] [items] -> boolean
+    array_push (:arr27, :v21)
+  loop_end [axis=:items]
+function items_effective:
+  %v42 = load_input [key=:items]
+  %arr49 = array_init
+  %items_el43 = loop_start (:v42) [axis=:items, index=:items_i44]
+    %v45 = load_field (:items_el43) [field=:price]
+    %v46 = constant [value=100.0] [] -> float
+    %v34 = kernel_call (:v45, :v46) [fn=:core.gt] [items] -> boolean
+    %v47 = load_field (:items_el43) [field=:qty]
+    %v41 = kernel_call (:v45, :v47) [fn=:core.mul:numeric] [items] -> float
+    %v48 = constant [value=0.9] [] -> float
+    %v26 = kernel_call (:v41, :v48) [fn=:core.mul:numeric] [items] -> float
+    %v28 = select (:v34, :v26, :v41) [items] -> float
+    array_push (:arr49, :v28)
+  loop_end [axis=:items]
+function total_qty:
+  %v33 = load_input [key=:items]
+  %acc37 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el34 = loop_start (:v33) [axis=:items, index=:items_i35]
+    %v36 = load_field (:items_el34) [field=:qty]
+    acc_step (:acc37, :v36) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v32 = acc_load (:acc37) [] -> integer
+function cart_total:
+  %v42 = load_input [key=:items]
+  %acc47 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %items_el43 = loop_start (:v42) [axis=:items, index=:items_i44]
+    %v45 = load_field (:items_el43) [field=:price]
+    %v46 = load_field (:items_el43) [field=:qty]
+    %v41 = kernel_call (:v45, :v46) [fn=:core.mul:numeric] [items] -> float
+    acc_step (:acc47, :v41) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v34 = acc_load (:acc47) [] -> float
+function cart_total_effective:
+  %v61 = load_input [key=:items]
+  %acc68 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %items_el62 = loop_start (:v61) [axis=:items, index=:items_i63]
+    %v64 = load_field (:items_el62) [field=:price]
+    %v65 = constant [value=100.0] [] -> float
+    %v42 = kernel_call (:v64, :v65) [fn=:core.gt] [items] -> boolean
+    %v66 = load_field (:items_el62) [field=:qty]
+    %v49 = kernel_call (:v64, :v66) [fn=:core.mul:numeric] [items] -> float
+    %v67 = constant [value=0.9] [] -> float
+    %v52 = kernel_call (:v49, :v67) [fn=:core.mul:numeric] [items] -> float
+    %v60 = select (:v42, :v52, :v49) [items] -> float
+    acc_step (:acc68, :v60) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+  %v36 = acc_load (:acc68) [] -> float

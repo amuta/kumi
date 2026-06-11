@@ -1,88 +1,104 @@
 export function _items_subtotal(input) {
-  let out = [];
-  let t1 = input["items"];
-  t1.forEach((items_el_2, items_i_3) => {
-    let t4 = items_el_2["price"];
-    let t5 = items_el_2["qty"];
-    let t6 = t4 * t5;
-    out.push(t6);
-  });
-  return out;
+  let t8 = input["items"];
+  let arr13 = [];
+  for (let items_i10 = 0; items_i10 < t8.length; items_i10++) {
+    let items_el9 = t8[items_i10];
+    let t11 = items_el9["price"];
+    let t12 = items_el9["qty"];
+    let t7 = t11 * t12;
+    arr13.push(t7);
+  }
+  return arr13;
 }
 
 export function _items_discounted(input) {
-  let out = [];
-  let t7 = input["items"];
-  let t12 = input["discount"];
-  let t13 = 1.0 - t12;
-  t7.forEach((items_el_8, items_i_9) => {
-    let t10 = items_el_8["price"];
-    let t14 = t10 * t13;
-    out.push(t14);
-  });
-  return out;
+  let t16 = 1.0;
+  let t17 = input["discount"];
+  let t13 = t16 - t17;
+  let t18 = input["items"];
+  let arr22 = [];
+  for (let items_i20 = 0; items_i20 < t18.length; items_i20++) {
+    let items_el19 = t18[items_i20];
+    let t21 = items_el19["price"];
+    let t15 = t21 * t13;
+    arr22.push(t15);
+  }
+  return arr22;
 }
 
 export function _items_is_big(input) {
-  let out = [];
-  let t15 = input["items"];
-  t15.forEach((items_el_16, items_i_17) => {
-    let t18 = items_el_16["price"];
-    let t20 = t18 > 100.0;
-    out.push(t20);
-  });
-  return out;
+  let t22 = input["items"];
+  let arr27 = [];
+  for (let items_i24 = 0; items_i24 < t22.length; items_i24++) {
+    let items_el23 = t22[items_i24];
+    let t25 = items_el23["price"];
+    let t26 = 100.0;
+    let t21 = t25 > t26;
+    arr27.push(t21);
+  }
+  return arr27;
 }
 
 export function _items_effective(input) {
-  let out = [];
-  let t21 = input["items"];
-  t21.forEach((items_el_22, items_i_23) => {
-    let t49 = items_el_22["price"];
-    let t54 = items_el_22["qty"];
-    let t51 = t49 > 100.0;
-    let t55 = t49 * t54;
-    let t27 = t55 * 0.9;
-    let t29 = t51 ? t27 : t55;
-    out.push(t29);
-  });
-  return out;
+  let t42 = input["items"];
+  let arr49 = [];
+  for (let items_i44 = 0; items_i44 < t42.length; items_i44++) {
+    let items_el43 = t42[items_i44];
+    let t45 = items_el43["price"];
+    let t46 = 100.0;
+    let t34 = t45 > t46;
+    let t47 = items_el43["qty"];
+    let t41 = t45 * t47;
+    let t48 = 0.9;
+    let t26 = t41 * t48;
+    let t28 = t34 ? t26 : t41;
+    arr49.push(t28);
+  }
+  return arr49;
 }
 
 export function _total_qty(input) {
-  let acc_30 = 0.0;
-  let t31 = input["items"];
-  t31.forEach((items_el_32, items_i_33) => {
-    let t34 = items_el_32["qty"];
-    acc_30 += t34;
-  });
-  return acc_30;
+  let t33 = input["items"];
+  let acc37 = 0;
+  for (let items_i35 = 0; items_i35 < t33.length; items_i35++) {
+    let items_el34 = t33[items_i35];
+    let t36 = items_el34["qty"];
+    acc37 += t36;
+  }
+  let t32 = acc37;
+  return t32;
 }
 
 export function _cart_total(input) {
-  let acc_36 = 0.0;
-  let t37 = input["items"];
-  t37.forEach((items_el_38, items_i_39) => {
-    let t61 = items_el_38["price"];
-    let t62 = items_el_38["qty"];
-    let t63 = t61 * t62;
-    acc_36 += t63;
-  });
-  return acc_36;
+  let t42 = input["items"];
+  let acc47 = 0.0;
+  for (let items_i44 = 0; items_i44 < t42.length; items_i44++) {
+    let items_el43 = t42[items_i44];
+    let t45 = items_el43["price"];
+    let t46 = items_el43["qty"];
+    let t41 = t45 * t46;
+    acc47 += t41;
+  }
+  let t34 = acc47;
+  return t34;
 }
 
 export function _cart_total_effective(input) {
-  let acc_42 = 0.0;
-  let t43 = input["items"];
-  t43.forEach((items_el_44, items_i_45) => {
-    let t72 = items_el_44["price"];
-    let t77 = items_el_44["qty"];
-    let t74 = t72 > 100.0;
-    let t78 = t72 * t77;
-    let t68 = t78 * 0.9;
-    let t70 = t74 ? t68 : t78;
-    acc_42 += t70;
-  });
-  return acc_42;
+  let t61 = input["items"];
+  let acc68 = 0.0;
+  for (let items_i63 = 0; items_i63 < t61.length; items_i63++) {
+    let items_el62 = t61[items_i63];
+    let t64 = items_el62["price"];
+    let t65 = 100.0;
+    let t42 = t64 > t65;
+    let t66 = items_el62["qty"];
+    let t49 = t64 * t66;
+    let t67 = 0.9;
+    let t52 = t49 * t67;
+    let t60 = t42 ? t52 : t49;
+    acc68 += t60;
+  }
+  let t36 = acc68;
+  return t36;
 }
 

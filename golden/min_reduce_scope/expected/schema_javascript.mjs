@@ -1,63 +1,78 @@
 export function _dept_total(input) {
-  let out = [];
-  let t1 = input["depts"];
-  t1.forEach((depts_el_2, depts_i_3) => {
-    let acc_4 = 0;
-    let t5 = depts_el_2["teams"];
-    t5.forEach((teams_el_6, teams_i_7) => {
-      let t8 = teams_el_6["headcount"];
-      acc_4 += t8;
-    });
-    out.push(acc_4);
-  });
-  return out;
+  let t7 = input["depts"];
+  let arr15 = [];
+  for (let depts_i9 = 0; depts_i9 < t7.length; depts_i9++) {
+    let depts_el8 = t7[depts_i9];
+    let t10 = depts_el8["teams"];
+    let acc14 = 0;
+    for (let teams_i12 = 0; teams_i12 < t10.length; teams_i12++) {
+      let teams_el11 = t10[teams_i12];
+      let t13 = teams_el11["headcount"];
+      acc14 += t13;
+    }
+    let t6 = acc14;
+    arr15.push(t6);
+  }
+  return arr15;
 }
 
 export function _company_total(input) {
-  let acc_10 = 0;
-  let t11 = input["depts"];
-  t11.forEach((depts_el_12, depts_i_13) => {
-    let acc_14 = 0;
-    let t15 = depts_el_12["teams"];
-    t15.forEach((teams_el_16, teams_i_17) => {
-      let t18 = teams_el_16["headcount"];
-      acc_14 += t18;
-    });
-    acc_10 += acc_14;
-  });
-  return acc_10;
+  let t14 = input["depts"];
+  let acc22 = 0;
+  for (let depts_i16 = 0; depts_i16 < t14.length; depts_i16++) {
+    let depts_el15 = t14[depts_i16];
+    let t17 = depts_el15["teams"];
+    let acc21 = 0;
+    for (let teams_i19 = 0; teams_i19 < t17.length; teams_i19++) {
+      let teams_el18 = t17[teams_i19];
+      let t20 = teams_el18["headcount"];
+      acc21 += t20;
+    }
+    let t12 = acc21;
+    acc22 += t12;
+  }
+  let t13 = acc22;
+  return t13;
 }
 
 export function _big_team(input) {
-  let out = [];
-  let t21 = input["depts"];
-  t21.forEach((depts_el_22, depts_i_23) => {
-    let out_1 = [];
-    let t24 = depts_el_22["teams"];
-    t24.forEach((teams_el_25, teams_i_26) => {
-      let t27 = teams_el_25["headcount"];
-      let t29 = t27 > 10;
-      out_1.push(t29);
-    });
-    out.push(out_1);
-  });
-  return out;
+  let t22 = input["depts"];
+  let arr30 = [];
+  for (let depts_i24 = 0; depts_i24 < t22.length; depts_i24++) {
+    let depts_el23 = t22[depts_i24];
+    let t25 = depts_el23["teams"];
+    let arr31 = [];
+    for (let teams_i27 = 0; teams_i27 < t25.length; teams_i27++) {
+      let teams_el26 = t25[teams_i27];
+      let t28 = teams_el26["headcount"];
+      let t29 = 10;
+      let t21 = t28 > t29;
+      arr31.push(t21);
+    }
+    arr30.push(arr31);
+  }
+  return arr30;
 }
 
 export function _dept_total_masked(input) {
-  let out = [];
-  let t30 = input["depts"];
-  t30.forEach((depts_el_31, depts_i_32) => {
-    let acc_33 = 0;
-    let t34 = depts_el_31["teams"];
-    t34.forEach((teams_el_35, teams_i_36) => {
-      let t44 = teams_el_35["headcount"];
-      let t46 = t44 > 10;
-      let t40 = t46 ? t44 : 0;
-      acc_33 += t40;
-    });
-    out.push(acc_33);
-  });
-  return out;
+  let t40 = input["depts"];
+  let arr50 = [];
+  for (let depts_i42 = 0; depts_i42 < t40.length; depts_i42++) {
+    let depts_el41 = t40[depts_i42];
+    let t43 = depts_el41["teams"];
+    let acc49 = 0;
+    for (let teams_i45 = 0; teams_i45 < t43.length; teams_i45++) {
+      let teams_el44 = t43[teams_i45];
+      let t46 = teams_el44["headcount"];
+      let t47 = 10;
+      let t39 = t46 > t47;
+      let t48 = 0;
+      let t30 = t39 ? t46 : t48;
+      acc49 += t30;
+    }
+    let t31 = acc49;
+    arr50.push(t31);
+  }
+  return arr50;
 }
 

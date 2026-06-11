@@ -1,0 +1,60 @@
+function shift_cols_right_zero:
+  %v2 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v3 = load_field (:v2) [field=:col] [rows, col] -> integer
+  %v4 = load_field (:v3) [field=:v] [rows, col] -> integer
+  %v1 = axis_shift (:v4) [axis=:col, offset=1, policy=:zero] [rows, col] -> integer
+function shift_cols_right_clamp:
+  %v6 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v7 = load_field (:v6) [field=:col] [rows, col] -> integer
+  %v8 = load_field (:v7) [field=:v] [rows, col] -> integer
+  %v5 = axis_shift (:v8) [axis=:col, offset=1, policy=:clamp] [rows, col] -> integer
+function shift_cols_right_wrap:
+  %v10 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v11 = load_field (:v10) [field=:col] [rows, col] -> integer
+  %v12 = load_field (:v11) [field=:v] [rows, col] -> integer
+  %v9 = axis_shift (:v12) [axis=:col, offset=1, policy=:wrap] [rows, col] -> integer
+function shift_cols_left_zero:
+  %v14 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v15 = load_field (:v14) [field=:col] [rows, col] -> integer
+  %v16 = load_field (:v15) [field=:v] [rows, col] -> integer
+  %v13 = axis_shift (:v16) [axis=:col, offset=-1, policy=:zero] [rows, col] -> integer
+function shift_cols_left_clamp:
+  %v18 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v19 = load_field (:v18) [field=:col] [rows, col] -> integer
+  %v20 = load_field (:v19) [field=:v] [rows, col] -> integer
+  %v17 = axis_shift (:v20) [axis=:col, offset=-1, policy=:clamp] [rows, col] -> integer
+function shift_cols_left_wrap:
+  %v22 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v23 = load_field (:v22) [field=:col] [rows, col] -> integer
+  %v24 = load_field (:v23) [field=:v] [rows, col] -> integer
+  %v21 = axis_shift (:v24) [axis=:col, offset=-1, policy=:wrap] [rows, col] -> integer
+function shift_rows_down_zero:
+  %v26 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v27 = load_field (:v26) [field=:col] [rows, col] -> integer
+  %v28 = load_field (:v27) [field=:v] [rows, col] -> integer
+  %v25 = axis_shift (:v28) [axis=:rows, offset=1, policy=:zero] [rows, col] -> integer
+function shift_rows_down_clamp:
+  %v30 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v31 = load_field (:v30) [field=:col] [rows, col] -> integer
+  %v32 = load_field (:v31) [field=:v] [rows, col] -> integer
+  %v29 = axis_shift (:v32) [axis=:rows, offset=1, policy=:clamp] [rows, col] -> integer
+function shift_rows_down_wrap:
+  %v34 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v35 = load_field (:v34) [field=:col] [rows, col] -> integer
+  %v36 = load_field (:v35) [field=:v] [rows, col] -> integer
+  %v33 = axis_shift (:v36) [axis=:rows, offset=1, policy=:wrap] [rows, col] -> integer
+function shift_rows_up_zero:
+  %v38 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v39 = load_field (:v38) [field=:col] [rows, col] -> integer
+  %v40 = load_field (:v39) [field=:v] [rows, col] -> integer
+  %v37 = axis_shift (:v40) [axis=:rows, offset=-1, policy=:zero] [rows, col] -> integer
+function shift_rows_up_clamp:
+  %v42 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v43 = load_field (:v42) [field=:col] [rows, col] -> integer
+  %v44 = load_field (:v43) [field=:v] [rows, col] -> integer
+  %v41 = axis_shift (:v44) [axis=:rows, offset=-1, policy=:clamp] [rows, col] -> integer
+function shift_rows_up_wrap:
+  %v46 = load_input [key=:rows, chain=[]] [rows, col] -> integer
+  %v47 = load_field (:v46) [field=:col] [rows, col] -> integer
+  %v48 = load_field (:v47) [field=:v] [rows, col] -> integer
+  %v45 = axis_shift (:v48) [axis=:rows, offset=-1, policy=:wrap] [rows, col] -> integer

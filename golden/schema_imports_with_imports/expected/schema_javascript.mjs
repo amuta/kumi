@@ -1,13 +1,15 @@
 export function _tax_result(input) {
-  let t1 = input["amount"];
-  let t2 = Kumi.TestSharedSchemas.Tax.from({'amount': t1})._tax;
-  return t2;
+  let t5 = input["amount"];
+  let t6 = 0.15;
+  let t4 = t5 * t6;
+  return t4;
 }
 
 export function _total(input) {
-  let t3 = input["amount"];
-  let t7 = Kumi.TestSharedSchemas.Tax.from({'amount': t3})._tax;
-  let t5 = t3 + t7;
+  let t10 = input["amount"];
+  let t11 = 0.15;
+  let t9 = t10 * t11;
+  let t5 = t10 + t9;
   return t5;
 }
 

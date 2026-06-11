@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+module Kumi
+  module IR
+    module DF
+      module Passes
+        class LoadDedup < Kumi::IR::Passes::Base
+          def run(graph:, context: {})
+            functions = graph.functions.values.map { |fn| rewrite_function(fn) }
+            Kumi::IR::DF::Graph.new(name: graph.name, functions: functions)
+          end
+
+          private
+
+          def rewrite_function(fn)
+            new_blocks = fn.blocks.map { |block| rewrite_block(block) }
+            Kumi::IR::DF::Function.new(
+              name: fn.name,
+              parameters: fn.parameters,
+              blocks: new_blocks,
+              return_stamp: fn.return_stamp
+            )
+          end
+
+          def rewrite_block(block)
+            replacements = {}
+            load_inputs = {}
+            load_fields = {}
+            new_instructions = []
+
+            block.each do |instr|
+              new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
+              result = instr.defs.first
+
+              case instr.opcode
+              when :load_input
+                key = load_input_key(instr)
+                if key && load_inputs[key]
+                  replacements[result] = load_inputs[key] if result
+                  next
+                end
+                cloned = Support::InstructionCloner.clone(instr, new_inputs)
+                new_instructions << cloned
+                load_inputs[key] = cloned.defs.first if key && cloned.defs.first
+              when :load_field
+                key = load_field_key(instr, new_inputs)
+                cache = field_cache_for(instr, load_fields)
+                if key && cache[key]
+                  replacements[result] = cache[key] if result
+                  next
+                end
+                cloned = Support::InstructionCloner.clone(instr, new_inputs)
+                new_instructions << cloned
+                cache[key] = cloned.defs.first if key && cloned.defs.first
+              else
+                cloned = Support::InstructionCloner.clone(instr, new_inputs)
+                new_instructions << cloned
+              end
+            end
+
+            Kumi::IR::Base::Block.new(name: block.name, instructions: new_instructions)
+          end
+
+          def load_input_key(instr)
+            attrs = instr.attributes || {}
+            [
+              attrs[:plan_ref] || attrs[:key],
+              Array(attrs[:chain]),
+              Array(instr.axes),
+              instr.dtype
+            ]
+          end
+
+          def load_field_key(instr, inputs)
+            attrs = instr.attributes || {}
+            [
+              inputs.first,
+              attrs[:field],
+              attrs[:plan_ref],
+              Array(instr.axes),
+              instr.dtype
+            ]
+          end
+
+          def field_cache_for(instr, caches)
+            key = instr.uses.first
+            caches[key] ||= {}
+          end
+        end
+      end
+    end
+  end
+end

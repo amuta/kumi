@@ -89,13 +89,35 @@ when "golden"
       Kumi::Dev::Golden.update!
       exit(Kumi::Dev::Golden.test_all_codegen! ? 0 : 1)
     end
-  when "test_lir"
-    if names&.any?
-      Kumi::Dev::Golden.update!(*names)
-      exit(Kumi::Dev::Golden.test_lir_codegen!(*names) ? 0 : 1)
-    end
   else
     abort "kumi golden <list|update|verify|diff|test>"
+  end
+
+when "golden_v2"
+  Kumi.load_shared_schemas!
+  Kumi::Dev::Golden.precompile_schemas!
+
+  sub = ARGV.shift or abort "kumi golden_v2 <list|reprs|update|verify|diff> [options] [name1 name2 ...]"
+  opts = {}
+  OptionParser.new do |o|
+    o.on("--frontend MODE") { |v| ENV["KUMI_PARSER"] = v }
+    o.on("--repr LIST", "Comma-separated representations or groups") { |v| opts[:reprs] = v }
+  end.parse!(ARGV)
+  names = ARGV.dup if %w[update verify diff].include?(sub)
+
+  case sub
+  when "list"
+    Kumi::Dev::GoldenV2.list
+  when "reprs"
+    Kumi::Dev::GoldenV2.reprs
+  when "update"
+    exit(Kumi::Dev::GoldenV2.update!(*names, reprs: opts[:reprs]) ? 0 : 1)
+  when "verify"
+    exit(Kumi::Dev::GoldenV2.verify!(*names, reprs: opts[:reprs]) ? 0 : 1)
+  when "diff"
+    exit(Kumi::Dev::GoldenV2.diff!(*names, reprs: opts[:reprs]) ? 0 : 1)
+  else
+    abort "kumi golden_v2 <list|reprs|update|verify|diff>"
   end
 
 when "diff"

@@ -18,8 +18,8 @@ module Kumi
       Passes::InputAccessPlannerPass           # 9. Plans access strategies for input fields.
     ].freeze
 
-    # Pipeline passes for the determinisitic NAST->LIR approach
-    HIR_TO_LIR_PASSES = [
+    # Lowering pipeline: NAST -> SNAST -> DFIR -> VecIR -> LoopIR
+    LOWERING_PASSES = [
       Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
       Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
@@ -29,25 +29,18 @@ module Kumi
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
-      Passes::LIR::LowerPass,                  # Lowers the schema to LIR (LIR Structs)
-      Passes::LIR::HoistScalarReferencesPass,
-      Passes::LIR::InlineDeclarationsPass,     # Inlines LoadDeclaration when site axes == decl axes
-      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::InstructionSchedulingPass,
-      Passes::LIR::LoopFusionPass,
-      Passes::LIR::LocalCSEPass,               # Local CSE optimization for pure LIR operations
-      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
-      Passes::LIR::KernelBindingPass, # Binds kernels to LIR operations
-      Passes::LIR::LoopInvariantCodeMotionPass
-      # Passes::LIR::ValidationPass # Validates LIR structural and contextual correctness
+      Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
+      Passes::DFValidatePass,                  # Validates DFIR invariants before Vec lowering
+      Passes::Vec::LowerPass,                  # Lowers DFIR into VecIR and stores it in analysis state
+      Passes::VecValidatePass,                 # Validates VecIR invariants before Loop lowering
+      Passes::Loop::LowerPass,                 # Lowers VecIR into LoopIR and stores it in analysis state
+      Passes::LoopValidatePass                 # Validates LoopIR invariants before codegen
     ].freeze
 
-    RUBY_TARGET_PASSES = [
-      Passes::LIR::ConstantPropagationPass, # Ruby uses this Intra-block constant propagation
-      Passes::LIR::DeadCodeEliminationPass, # Removes dead code
-      Passes::Codegen::RubyPass, # Generates ruby code from LIR
-      Passes::Codegen::JsPass
-    ]
+    TARGET_PASSES = [
+      Passes::Codegen::LoopRubyPass, # Generates Ruby code from LoopIR
+      Passes::Codegen::LoopJsPass
+    ].freeze
 
     def self.analyze!(schema, passes: DEFAULT_PASSES, registry: nil, **opts)
       errors = []
@@ -59,10 +52,14 @@ module Kumi
       state, stopped = run_analysis_passes(schema, passes, state, errors)
       return create_analysis_result(state) if stopped
 
-      state, stopped = run_analysis_passes(schema, HIR_TO_LIR_PASSES, state, errors)
+      handle_analysis_errors(errors) unless errors.empty?
+
+      state, stopped = run_analysis_passes(schema, LOWERING_PASSES, state, errors)
       return create_analysis_result(state) if stopped
 
-      state, = run_analysis_passes(schema, RUBY_TARGET_PASSES, state, errors)
+      handle_analysis_errors(errors) unless errors.empty?
+
+      state, = run_analysis_passes(schema, TARGET_PASSES, state, errors)
 
       handle_analysis_errors(errors) unless errors.empty?
       create_analysis_result(state)
@@ -81,18 +78,14 @@ module Kumi
       filtered_passes = if resume_at
                           passes.each_with_index do |pass_class, idx|
                             pass_name = pass_class.name.split("::").last
-                            if pass_name == resume_at
-                              break passes[idx..]
-                            end
+                            break passes[idx..] if pass_name == resume_at
                           end.flatten.compact
                         else
                           passes
                         end
 
       # Check for error threshold pass
-      if !errors.empty? && filtered_passes.include?(ERROR_THRESHOLD_PASS)
-        raise handle_analysis_errors(errors)
-      end
+      raise handle_analysis_errors(errors) if !errors.empty? && filtered_passes.include?(ERROR_THRESHOLD_PASS)
 
       # Use PassManager for orchestration
       manager = Core::Analyzer::PassManager.new(filtered_passes)

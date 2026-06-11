@@ -1,0 +1,45 @@
+function subtotals:
+  %v8 = load_input [key=:items]
+  %arr13 = array_init
+  %items_el9 = loop_start (:v8) [axis=:items, index=:items_i10]
+    %v11 = load_field (:items_el9) [field=:price]
+    %v12 = load_field (:items_el9) [field=:quantity]
+    %v7 = kernel_call (:v11, :v12) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr13, :v7)
+  loop_end [axis=:items]
+function discounted_price:
+  %v14 = load_input [key=:items]
+  %arr19 = array_init
+  %items_el15 = loop_start (:v14) [axis=:items, index=:items_i16]
+    %v17 = load_field (:items_el15) [field=:price]
+    %v18 = constant [value=0.9] [] -> float
+    %v13 = kernel_call (:v17, :v18) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr19, :v13)
+  loop_end [axis=:items]
+function is_valid_quantity:
+  %v20 = load_input [key=:items]
+  %arr25 = array_init
+  %items_el21 = loop_start (:v20) [axis=:items, index=:items_i22]
+    %v23 = load_field (:items_el21) [field=:quantity]
+    %v24 = constant [value=0] [] -> integer
+    %v19 = kernel_call (:v23, :v24) [fn=:core.gt] [items] -> boolean
+    array_push (:arr25, :v19)
+  loop_end [axis=:items]
+function expensive_items:
+  %v26 = load_input [key=:items]
+  %arr31 = array_init
+  %items_el27 = loop_start (:v26) [axis=:items, index=:items_i28]
+    %v29 = load_field (:items_el27) [field=:price]
+    %v30 = constant [value=100.0] [] -> float
+    %v25 = kernel_call (:v29, :v30) [fn=:core.gt] [items] -> boolean
+    array_push (:arr31, :v25)
+  loop_end [axis=:items]
+function electronics:
+  %v32 = load_input [key=:items]
+  %arr37 = array_init
+  %items_el33 = loop_start (:v32) [axis=:items, index=:items_i34]
+    %v35 = load_field (:items_el33) [field=:category]
+    %v36 = constant [value="electronics"] [] -> string
+    %v31 = kernel_call (:v35, :v36) [fn=:core.eq] [items] -> boolean
+    array_push (:arr37, :v31)
+  loop_end [axis=:items]

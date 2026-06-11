@@ -1,0 +1,95 @@
+function total_payroll:
+  %v7 = load_input [key=:departments]
+  %arr15 = array_init
+  %departments_el8 = loop_start (:v7) [axis=:departments, index=:departments_i9]
+    %v10 = load_field (:departments_el8) [field=:employees]
+    %acc14 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %employees_el11 = loop_start (:v10) [axis=:employees, index=:employees_i12]
+      %v13 = load_field (:employees_el11) [field=:salary]
+      acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:employees]
+    %v6 = acc_load (:acc14) [] -> integer
+    array_push (:arr15, :v6)
+  loop_end [axis=:departments]
+function manager_count:
+  %v21 = load_input [key=:departments]
+  %arr32 = array_init
+  %departments_el22 = loop_start (:v21) [axis=:departments, index=:departments_i23]
+    %v24 = load_field (:departments_el22) [field=:employees]
+    %acc31 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %employees_el25 = loop_start (:v24) [axis=:employees, index=:employees_i26]
+      %v27 = load_field (:employees_el25) [field=:role]
+      %v28 = constant [value="manager"] [] -> string
+      %v14 = kernel_call (:v27, :v28) [fn=:core.eq] [departments, employees] -> boolean
+      %v29 = constant [value=1] [] -> integer
+      %v30 = constant [value=0] [] -> integer
+      %v19 = select (:v14, :v29, :v30) [departments, employees] -> integer
+      acc_step (:acc31, :v19) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:employees]
+    %v20 = acc_load (:acc31) [] -> integer
+    array_push (:arr32, :v20)
+  loop_end [axis=:departments]
+function senior_employee_count:
+  %v35 = load_input [key=:departments]
+  %arr46 = array_init
+  %departments_el36 = loop_start (:v35) [axis=:departments, index=:departments_i37]
+    %v38 = load_field (:departments_el36) [field=:employees]
+    %acc45 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %employees_el39 = loop_start (:v38) [axis=:employees, index=:employees_i40]
+      %v41 = load_field (:employees_el39) [field=:role]
+      %v42 = constant [value="senior"] [] -> string
+      %v28 = kernel_call (:v41, :v42) [fn=:core.eq] [departments, employees] -> boolean
+      %v43 = constant [value=1] [] -> integer
+      %v44 = constant [value=0] [] -> integer
+      %v33 = select (:v28, :v43, :v44) [departments, employees] -> integer
+      acc_step (:acc45, :v33) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:employees]
+    %v34 = acc_load (:acc45) [] -> integer
+    array_push (:arr46, :v34)
+  loop_end [axis=:departments]
+function max_salary:
+  %v41 = load_input [key=:departments]
+  %arr49 = array_init
+  %departments_el42 = loop_start (:v41) [axis=:departments, index=:departments_i43]
+    %v44 = load_field (:departments_el42) [field=:employees]
+    %acc48 = acc_init [fn=:agg.max, init=nil, nil_init=true] [] -> integer
+    %employees_el45 = loop_start (:v44) [axis=:employees, index=:employees_i46]
+      %v47 = load_field (:employees_el45) [field=:salary]
+      acc_step (:acc48, :v47) [fn=:agg.max, nil_init=true]
+    loop_end [axis=:employees]
+    %v40 = acc_load (:acc48) [] -> integer
+    array_push (:arr49, :v40)
+  loop_end [axis=:departments]
+function department_summary:
+  %v89 = load_input [key=:departments]
+  %arr106 = array_init
+  %departments_el90 = loop_start (:v89) [axis=:departments, index=:departments_i91]
+    %v92 = load_field (:departments_el90) [field=:employees]
+    %acc96 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %acc101 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %acc103 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %acc104 = acc_init [fn=:agg.max, init=nil, nil_init=true] [] -> integer
+    %employees_el93 = loop_start (:v92) [axis=:employees, index=:employees_i94]
+      %v95 = load_field (:employees_el93) [field=:salary]
+      acc_step (:acc96, :v95) [fn=:agg.sum, nil_init=false]
+      %v97 = load_field (:employees_el93) [field=:role]
+      %v98 = constant [value="manager"] [] -> string
+      %v62 = kernel_call (:v97, :v98) [fn=:core.eq] [departments, employees] -> boolean
+      %v99 = constant [value=1] [] -> integer
+      %v100 = constant [value=0] [] -> integer
+      %v67 = select (:v62, :v99, :v100) [departments, employees] -> integer
+      acc_step (:acc101, :v67) [fn=:agg.sum, nil_init=false]
+      %v102 = constant [value="senior"] [] -> string
+      %v76 = kernel_call (:v97, :v102) [fn=:core.eq] [departments, employees] -> boolean
+      %v81 = select (:v76, :v99, :v100) [departments, employees] -> integer
+      acc_step (:acc103, :v81) [fn=:agg.sum, nil_init=false]
+      acc_step (:acc104, :v95) [fn=:agg.max, nil_init=true]
+    loop_end [axis=:employees]
+    %v54 = acc_load (:acc96) [] -> integer
+    %v68 = acc_load (:acc101) [] -> integer
+    %v82 = acc_load (:acc103) [] -> integer
+    %v88 = acc_load (:acc104) [] -> integer
+    %v105 = load_field (:departments_el90) [field=:name]
+    %v48 = make_object (:v105, :v54, :v68, :v82, :v88) [keys=[:name, :total_payroll, :manager_count, :senior_count, :top_salary]] [departments] -> hash
+    array_push (:arr106, :v48)
+  loop_end [axis=:departments]

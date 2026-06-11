@@ -7,6 +7,14 @@ kernels:
     fn: core.mod
     inline: "= (($0 % $1) + $1) % $1"
 
+  - id: max:javascript:v1
+    fn: core.max
+    inline: "= Math.max($0, $1)"
+
+  - id: min:javascript:v1
+    fn: core.min
+    inline: "= Math.min($0, $1)"
+
   - id: add:javascript:v1
     fn: core.add
     inline: "= $0 + $1"

@@ -1,40 +1,32 @@
 # Golden Tests Guide
 
-Golden tests verify schema compilation and execution correctness across all stages: parsing → code generation → execution.
+Golden tests verify schema compilation and execution end to end: every schema
+under `golden/` is compiled through the full pipeline, its intermediate
+representations are snapshot-checked, and the generated Ruby and JavaScript
+are executed against real input and compared to expected output.
 
 ## Structure
 
-A golden test contains:
-- **schema.kumi** - Schema under test
-- **input.json** - Test input data
-- **expected.json** - Expected execution output
-- **expected/** - Generated intermediate representations (AST, NAST, SNAST, LIR, codegen)
-
 ```
 golden/my_test/
-├── schema.kumi
-├── input.json
-├── expected.json
-└── expected/
-    ├── ast.txt
-    ├── nast.txt
-    ├── snast.txt
+├── schema.kumi        # Schema under test
+├── input.json         # Test input (may contain multiple named cases)
+├── expected.json      # Expected execution output
+└── expected/          # Generated representations (auto-created)
+    ├── ast.txt  input_plan.txt  nast.txt  snast.txt
+    ├── dfir.txt  dfir_optimized.txt  vecir.txt  loopir.txt
     ├── schema_ruby.rb
-    ├── schema_javascript.mjs
-    └── lir_*.txt
+    └── schema_javascript.mjs
 ```
 
-## Creating a Golden Test
+## Creating a Test
 
-### Step 1: Plan
-What feature? Complexity level? Edge cases?
-
-### Step 2: Create directory
 ```bash
 mkdir -p golden/my_test
 ```
 
-### Step 3: Write schema.kumi
+**schema.kumi** — keep it focused on one feature (10–30 lines):
+
 ```ruby
 schema do
   input do
@@ -46,195 +38,130 @@ schema do
 end
 ```
 
-Keep schemas focused on one feature (10-30 lines).
+**input.json:**
 
-### Step 4: Create input.json
 ```json
-{
-  "age": 30,
-  "salary": 100000.0
-}
+{ "age": 30, "salary": 100000.0 }
 ```
 
-Use realistic, round numbers for easy verification.
+**expected.json** — calculate by hand first:
 
-### Step 5: Create expected.json
 ```json
-{
-  "adjusted": 105000.0
-}
+{ "adjusted": 105000.0 }
 ```
 
-Calculate by hand first. Verify math.
+Then generate and run:
 
-### Step 6: Generate representations
 ```bash
-bin/kumi golden update my_test
+bin/kumi golden update my_test   # writes expected/ representations
+bin/kumi golden test my_test     # executes Ruby + JS against input.json
+git add golden/my_test/
 ```
-
-This creates `expected/` with all intermediate files.
-
-### Step 7: Test
-```bash
-bin/kumi golden test my_test
-```
-
-Expected: `✓ my_test: PASS`
 
 ## Commands
+
+There are two harnesses with different jobs.
+
+**`golden` — runtime ground truth.** Regenerates representations, then
+executes the generated Ruby and JavaScript and compares results to
+`expected.json`:
 
 | Command | Purpose |
 |---------|---------|
 | `bin/kumi golden list` | List all tests |
-| `bin/kumi golden update [name]` | Generate expected files |
-| `bin/kumi golden test [name]` | Run test |
-| `bin/kumi golden diff [name]` | See changes |
+| `bin/kumi golden test [names...]` | Regenerate + execute |
+| `bin/kumi golden update [names...]` | Regenerate expected files |
+| `bin/kumi golden verify [names...]` | Diff representations only |
 
-Use multiple names: `bin/kumi golden test test1 test2`
+**`golden_v2` — phase-scoped snapshots.** Verifies one IR layer at a time, so
+a broken later phase never hides an earlier one:
 
-## Common Issues
+| Command | Purpose |
+|---------|---------|
+| `bin/kumi golden_v2 verify --repr <group>` | Check one layer across schemas |
+| `bin/kumi golden_v2 update --repr <group>` | Regenerate one layer |
+| `bin/kumi golden_v2 diff --repr <group>` | Show unified diffs |
+| `bin/kumi golden_v2 reprs` | List representations and groups |
 
-**"Output doesn't match"**
-- Recalculate expected.json by hand
-- Check input.json values
-- Regenerate: `bin/kumi golden update my_test`
+Groups: `frontend` (ast, input_plan, nast, snast), `df`, `vec`, `loop`,
+`codegen`, `all`.
 
-**"Schema fails to compile"**
+## Debugging a Failure
+
+Work from the earliest layer outward:
+
 ```bash
-bin/kumi analyze golden/my_test/schema.kumi
-```
+# Print a single representation for one schema (fastest feedback)
+bin/kumi pp loopir golden/my_test/schema.kumi
+bin/kumi pp dfir_optimized golden/my_test/schema.kumi
 
-**"Generated code is wrong"**
-```bash
+# Find which schemas crash a lowering phase
+for d in golden/*/; do bin/kumi pp loopir "$d/schema.kumi" >/dev/null || echo "$d"; done
+
+# Inspect generated code
 cat golden/my_test/expected/schema_ruby.rb
-cat golden/my_test/expected/lir_00_unoptimized.txt
 ```
+
+Large goldens (`game_of_life`, `us_tax_2024`) are huge — grep them rather
+than reading whole files.
 
 ## Patterns
 
-### Array Vectorization
-When testing operations on arrays with multiple dimensions:
+**Broadcast and reduce** (from `golden/simple_math`-style schemas):
 
 ```ruby
 schema do
   input do
-    people: [{name: string, salary: float}]
-    department: string
+    array :items do
+      hash :item do
+        integer :quantity
+        integer :unit_price
+      end
+    end
   end
 
-  let total = fn(:sum, input.people.salary)
-  value avg, total / fn(:size, input.people)
+  value :line_totals, input.items.item.quantity * input.items.item.unit_price
+  value :subtotal, fn(:sum, line_totals)
 end
 ```
 
-### Cascade Logic
-```ruby
-schema do
-  input { age: integer }
-
-  value category,
-    on input.age < 18 do
-      "youth"
-    on input.age < 65 do
-      "adult"
-    base
-      "senior"
-end
-```
-
-### Error Handling
-Schema compilation errors are caught at compile time:
+**Cascade logic** (from `golden/cascade_logic`):
 
 ```ruby
 schema do
-  input { age: integer }
-  value invalid, unknown_function(input.age)
+  input do
+    integer :x
+    integer :y
+  end
+
+  trait :x_positive, input.x > 0
+  trait :y_positive, input.y > 0
+
+  value :status do
+    on y_positive, x_positive, "both positive"
+    on x_positive, "x positive"
+    on y_positive, "y positive"
+    base "neither positive"
+  end
 end
 ```
-
-Result: `✗ invalid_function: SKIP (Compilation Error)`
 
 ## Best Practices
 
-1. **Test one feature per schema** - Keep it focused
-2. **Use descriptive names** - `cascade_logic`, not `test1`
-3. **Round numbers** - Easier to verify by hand
-4. **Review generated code** - Check `expected/schema_ruby.rb`
-5. **Test edge cases** - Null, zero, negative values
-6. **Commit to git** - Track all files including `expected/`
+1. **One feature per schema** — `cascade_logic`, not `test1`
+2. **Round numbers** — easy to verify by hand
+3. **Review the generated code** — `expected/schema_ruby.rb` is part of the
+   contract; readable diffs are the point
+4. **Test edge cases** — empty arrays, null, zero, negative values
+5. **Commit `expected/`** — golden diffs in review are how regressions are
+   caught
 
-## Maintenance
-
-### Update Expected Files
-
-When behavior changes intentionally:
+## Updating After Intentional Changes
 
 ```bash
 bin/kumi golden update my_test
-git diff golden/my_test/expected/
-# Review changes
-git add golden/my_test/expected/
+git diff golden/my_test/expected/   # review every changed line
 ```
 
-### View Differences
-
-```bash
-bin/kumi golden diff my_test
-```
-
-Shows side-by-side comparison of what changed.
-
-## Example: Complete Workflow
-
-Create `golden/eligibility/`:
-
-**schema.kumi:**
-```ruby
-schema do
-  input do
-    integer :age
-  end
-
-  value :can_vote, input.age >= 18
-  value :can_drink, input.age >= 21
-end
-```
-
-**input.json:**
-```json
-{
-  "age": 25
-}
-```
-
-**expected.json:**
-```json
-{
-  "can_vote": true,
-  "can_drink": true
-}
-```
-
-**Generate and test:**
-```bash
-bin/kumi golden update eligibility
-bin/kumi golden test eligibility
-```
-
-Result: `✓ eligibility: PASS`
-
-## Quick Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| "File not found" | Make sure you're in `golden/` directory |
-| "Floating point mismatch" | Check precision in input/expected |
-| "Test passes locally but fails in CI" | Look for non-deterministic IR generation |
-
-## Next Steps
-
-1. List existing tests: `bin/kumi golden list`
-2. Review a simple one: `cat golden/simple_math/`
-3. Create your first test following this guide
-4. Verify it passes
-5. Review generated code to understand compilation
+A compiler change should only alter the layers it claims to touch — if a
+DFIR-only change shows up in `loopir.txt` diffs, that's a finding.
