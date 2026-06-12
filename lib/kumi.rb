@@ -19,6 +19,7 @@ module Kumi
     "df_validate_pass" => "DFValidatePass",
     "global_cse_pass" => "GlobalCSEPass",
     "ir_dependency_pass" => "IRDependencyPass",
+    "ir_validate_pass" => "IRValidatePass",
     "ir" => "IR",
     "ir_dump" => "IRDump",
     "ir_render" => "IRRender",
