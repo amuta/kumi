@@ -43,20 +43,10 @@ module Kumi
               when NAST::Ref
                 decl = @snast.decls.fetch(x.name) { raise "unknown declaration #{x.name}" }
                 walk.call(decl.body)
-              when NAST::Select
-                walk.call(x.cond)
-                walk.call(x.on_true)
-                walk.call(x.on_false)
-              when NAST::Reduce, NAST::Fold
-                walk.call(x.arg)
-              when NAST::Call, NAST::Tuple, NAST::ImportCall
-                x.args.each { walk.call(_1) }
-              when NAST::Hash
-                x.pairs.each { walk.call(_1) }
-              when NAST::Pair
-                walk.call(x.value)
               when NAST::IndexRef
                 found ||= x.input_fqn
+              else
+                x.children.each { |child| walk.call(child) }
               end
             end
 

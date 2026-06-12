@@ -25,26 +25,10 @@ module Kumi
 
           def annotate!(node, by_fqn)
             case node
-            when NAST::Module
-              node.decls.each_value { |d| annotate!(d, by_fqn) }
-            when NAST::Declaration
-              annotate!(node.body, by_fqn)
             when NAST::InputRef
               annotate_input_ref!(node, by_fqn)
-            when NAST::Tuple, NAST::Call, NAST::ImportCall
-              node.args.each { |a| annotate!(a, by_fqn) }
-            when NAST::Hash
-              node.pairs.each { |p| annotate!(p.value, by_fqn) }
-            when NAST::Pair
-              annotate!(node.value, by_fqn)
-            when NAST::Select
-              annotate!(node.cond, by_fqn)
-              annotate!(node.on_true, by_fqn)
-              annotate!(node.on_false, by_fqn)
-            when NAST::Reduce, NAST::Fold
-              annotate!(node.arg, by_fqn)
-            when NAST::IndexRef
-              # no-op
+            else
+              node.children.each { |child| annotate!(child, by_fqn) }
             end
           end
 
