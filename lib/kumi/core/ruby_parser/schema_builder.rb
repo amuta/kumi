@@ -8,7 +8,7 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll import].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll import codegen].freeze
 
         def initialize(context)
           @context = context
@@ -70,6 +70,23 @@ module Kumi
           import_decl = Kumi::Syntax::ImportDeclaration.new(names, from, loc: @context.current_location)
           @context.imports << import_decl
           @context.imported_names.merge(names)
+        end
+
+        def codegen(**kwargs)
+          update_location
+          unknown = kwargs.keys - %i[streaming]
+          unless unknown.empty?
+            raise_syntax_error(
+              "unknown codegen option(s): #{unknown.map(&:inspect).join(', ')}",
+              location: @context.current_location
+            )
+          end
+
+          if kwargs.key?(:streaming) && ![true, false].include?(kwargs[:streaming])
+            raise_syntax_error("codegen streaming: must be true or false", location: @context.current_location)
+          end
+
+          @context.merge_root_hint(:codegen, kwargs)
         end
 
         def fn(fn_name, *args, **kwargs)

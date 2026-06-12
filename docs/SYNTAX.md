@@ -5,6 +5,9 @@
 ### File Structure
 ```kumi
 schema do
+  # Optional schema-level generation hints
+  codegen streaming: true
+
   input do
     # Input shape declarations
   end
@@ -29,6 +32,21 @@ let   :name, expr    # Intermediate value
 value :name, expr    # Output value
 trait :name, expr    # Boolean mask
 ```
+
+### Codegen Hints
+```kumi
+schema do
+  codegen streaming: true
+
+  input do
+    # ...
+  end
+
+  value :next_state, ...
+end
+```
+
+`codegen streaming: true` keeps normal JavaScript exports and adds `_name_stream(input, target = {})` exports for each output. For direct array outputs, pass an array target to reuse it in-place, or pass an object target to receive `target["name"]`.
 
 ### Operators
 

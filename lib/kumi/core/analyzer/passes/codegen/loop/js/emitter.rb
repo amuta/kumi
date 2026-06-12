@@ -16,11 +16,12 @@ module Kumi
                   @indent = 0
                 end
 
-                def emit(loop_module, schema_digest: nil)
+                def emit(loop_module, schema_digest: nil, streaming: false)
                   reset!
 
                   loop_module.each_function do |fn|
                     emit_function(fn)
+                    emit_streaming_function(fn) if streaming
                   end
 
                   to_s
@@ -38,15 +39,42 @@ module Kumi
                 def emit_function(fn)
                   write "export function _#{fn.name}(input) {"
                   indented do
-                    fn.entry_block.instructions.each do |instr|
-                      emit_instruction(instr)
-                    end
+                    emit_instructions(fn)
                     write "return #{reg(fn.return_reg)};"
                   end
                   write "}\n"
                 end
 
-                def emit_instruction(instr)
+                def emit_streaming_function(fn)
+                  write "export function _#{fn.name}_stream(input, target = {}) {"
+                  indented do
+                    return_array_reg = direct_return_array_reg(fn)
+                    if return_array_reg
+                      write "let __streamTarget = Array.isArray(target) ? target : target[\"#{fn.name}\"];"
+                      write "if (!Array.isArray(__streamTarget)) {"
+                      indented do
+                        write "__streamTarget = [];"
+                        write "if (target && typeof target === \"object\" && !Array.isArray(target)) target[\"#{fn.name}\"] = __streamTarget;"
+                      end
+                      write "} else {"
+                      indented { write "__streamTarget.length = 0;" }
+                      write "}"
+                    end
+
+                    emit_instructions(fn, stream_return_array_reg: return_array_reg)
+                    write "if (target && typeof target === \"object\" && !Array.isArray(target)) target[\"#{fn.name}\"] = #{reg(fn.return_reg)};"
+                    write "return #{reg(fn.return_reg)};"
+                  end
+                  write "}\n"
+                end
+
+                def emit_instructions(fn, stream_return_array_reg: nil)
+                  fn.entry_block.instructions.each do |instr|
+                    emit_instruction(instr, stream_return_array_reg: stream_return_array_reg)
+                  end
+                end
+
+                def emit_instruction(instr, stream_return_array_reg: nil)
                   case instr.opcode
                   when :constant
                     write "let #{reg(instr.result)} = #{format_literal(instr.attributes[:value])};"
@@ -79,7 +107,11 @@ module Kumi
                     @indent -= 1
                     write "}"
                   when :array_init
-                    write "let #{reg(instr.result)} = [];"
+                    if stream_return_array_reg == instr.result
+                      write "let #{reg(instr.result)} = __streamTarget;"
+                    else
+                      write "let #{reg(instr.result)} = [];"
+                    end
                   when :array_push
                     write "#{reg(instr.inputs[0])}.push(#{reg(instr.inputs[1])});"
                   when :array_len
@@ -104,6 +136,12 @@ module Kumi
                   else
                     raise "Loop JS codegen does not support #{instr.opcode.inspect}"
                   end
+                end
+
+                def direct_return_array_reg(fn)
+                  fn.entry_block.instructions.any? do |instr|
+                    instr.opcode == :array_init && instr.result == fn.return_reg
+                  end ? fn.return_reg : nil
                 end
 
                 def emit_shift_read(instr)

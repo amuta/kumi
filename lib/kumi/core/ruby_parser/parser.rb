@@ -45,7 +45,7 @@ module Kumi
         end
 
         def build_syntax_tree
-          Root.new(@context.inputs, @context.values, @context.traits, @context.imports)
+          Root.new(@context.inputs, @context.values, @context.traits, @context.imports, hints: @context.root_hints)
         end
 
         def handle_parse_error(error)
