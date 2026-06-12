@@ -1,24 +1,21 @@
 # frozen_string_literal: true
 
-require "kumi/ir/loop"
-
 module Kumi
   module Core
     module Analyzer
       module Passes
         module Loop
-          class LowerPass < PassBase
-            def run(_errors)
-              vec_module = get_state(:vec_module, required: false)
-              return state unless vec_module
+          class LowerPass < IRLowerPass
+            lowers from: :vec_module, to: :loop_module
+            reads :registry
+            optional_reads :precomputed_plan_by_fqn
 
-              context = {
-                input_plans: get_state(:precomputed_plan_by_fqn, required: false) || {},
-                registry: get_state(:registry, required: true)
-              }
+            private
+
+            def lower(vec_module)
+              context = { input_plans: precomputed_plan_by_fqn || {}, registry: registry }
               loop_module = Kumi::IR::Loop::Module.from_vec(vec_module, context: context)
-              optimized = Kumi::IR::Loop::Pipeline.run(graph: loop_module, context: context)
-              state.with(:loop_module, optimized.freeze)
+              Kumi::IR::Loop::Pipeline.run(graph: loop_module, context: context)
             end
           end
         end
