@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class AttachAnchorsPass < PassBase
+          reads :snast_module
+          writes :anchor_by_decl
+
           NAST = Kumi::Core::NAST
 
           def run(_errors)

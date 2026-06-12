@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class OutputSchemaPass < PassBase
+          reads :snast_module, :hints
+          writes :output_schema
+
           def run(_errors)
             snast_module = get_state(:snast_module)
             return state unless snast_module

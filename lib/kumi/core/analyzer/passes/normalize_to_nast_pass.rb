@@ -5,6 +5,10 @@ module Kumi
     module Analyzer
       module Passes
         class NormalizeToNASTPass < PassBase
+          reads :declarations, :evaluation_order, :index_table, :registry
+          optional_reads :imported_schemas
+          writes :nast_module
+
           NAST = Kumi::Core::NAST
           SELECT_ID = Kumi::RegistryV2::SELECT_ID
 

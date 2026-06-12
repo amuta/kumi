@@ -4,12 +4,10 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # Extracts dimensional and type metadata from NAST tree
-        # Uses minimal function specs to resolve Call nodes and propagate types
-        #
-        # Input:  state[:nast_module], state[:input_table] (chain-free; must include :axes and :dtype per path)
-        # Output: state[:metadata_table], state[:declaration_table]
         class NASTDimensionalAnalyzerPass < PassBase
+          reads :nast_module, :input_table, :registry
+          optional_reads :imported_schemas
+          writes :metadata_table, :declaration_table
           def run(errors)
             nast_module  = get_state(:nast_module, required: true)
             @input_table = get_state(:input_table, required: true)

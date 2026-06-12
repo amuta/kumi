@@ -6,8 +6,10 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # AttachTerminalInfoPass with debug tracing
         class AttachTerminalInfoPass < PassBase
+          reads :snast_module, :input_table
+          writes
+
           NAST = Kumi::Core::NAST
 
           def run(_errors)

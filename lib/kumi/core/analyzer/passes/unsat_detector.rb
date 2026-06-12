@@ -4,15 +4,9 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Detect unsatisfiable constraints using formal constraint semantics
-        # DEPENDENCIES: :declarations, :input_metadata, :registry, SNAST representation
-        # INTERFACE: new(schema, state).run(errors)
-        #
-        # Detects when constraints are clearly unsatisfiable using constraint propagation:
-        # 1. Same variable with contradicting equality values (v == 5 AND v == 10)
-        # 2. Values violating input domain constraints
-        # 3. Constraints derived through arithmetic operations that violate domains
         class UnsatDetector < VisitorPass
+          reads :declarations, :input_metadata, :registry
+          writes
           include Syntax
 
           COMPARATORS = %i[> < >= <= == !=].freeze
