@@ -5,6 +5,7 @@ module Kumi
     module Analyzer
       module Passes
         class SemanticConstraintValidator < VisitorPass
+          optional_reads :registry, :imported_schemas
           writes
 
           def run(errors)
