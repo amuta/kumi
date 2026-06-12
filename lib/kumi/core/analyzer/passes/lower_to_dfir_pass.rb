@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "kumi/ir/df"
-
 module Kumi
   module Core
     module Analyzer
