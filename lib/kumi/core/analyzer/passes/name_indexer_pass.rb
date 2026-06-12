@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class NameIndexer < PassBase
+        class NameIndexerPass < PassBase
           writes :declarations, :imported_declarations, :hints
 
           def run(errors)

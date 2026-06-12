@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class DependencyResolver < PassBase
+        class DependencyResolverPass < PassBase
           reads :declarations, :input_metadata, :imported_schemas
           writes :dependencies, :dependents, :leaves
 

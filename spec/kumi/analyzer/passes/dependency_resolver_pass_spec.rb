@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Core::Analyzer::Passes::DependencyResolver do
+RSpec.describe Kumi::Core::Analyzer::Passes::DependencyResolverPass do
   include ASTFactory
 
   let(:state) { Kumi::Core::Analyzer::AnalysisState.new(declarations: definitions, input_metadata: input_meta) }

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Core::Analyzer::Passes::NameIndexer do
+RSpec.describe Kumi::Core::Analyzer::Passes::NameIndexerPass do
   include ASTFactory
 
   # compact location literal

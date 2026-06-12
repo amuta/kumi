@@ -6,13 +6,13 @@ RSpec.describe Kumi::Core::Analyzer::PassFailure do
       failure = described_class.new(
         message: "Duplicate definition",
         phase: 0,
-        pass_name: "NameIndexer",
+        pass_name: "NameIndexerPass",
         location: Kumi::Syntax::Location.new(file: "test.kumi", line: 5, column: 1)
       )
 
       expect(failure.message).to eq("Duplicate definition")
       expect(failure.phase).to eq(0)
-      expect(failure.pass_name).to eq("NameIndexer")
+      expect(failure.pass_name).to eq("NameIndexerPass")
       expect(failure.location).to be_a(Kumi::Syntax::Location)
     end
 
@@ -20,7 +20,7 @@ RSpec.describe Kumi::Core::Analyzer::PassFailure do
       failure = described_class.new(
         message: "Generic error",
         phase: 1,
-        pass_name: "InputCollector",
+        pass_name: "InputCollectorPass",
         location: nil
       )
 
@@ -35,26 +35,26 @@ RSpec.describe Kumi::Core::Analyzer::PassFailure do
       failure = described_class.new(
         message: "Duplicate definition",
         phase: 0,
-        pass_name: "NameIndexer",
+        pass_name: "NameIndexerPass",
         location: location
       )
 
       output = failure.to_s
       expect(output).to include("Duplicate definition")
-      expect(output).to include("NameIndexer")
+      expect(output).to include("NameIndexerPass")
     end
 
     it "formats error without location" do
       failure = described_class.new(
         message: "Generic error",
         phase: 1,
-        pass_name: "InputCollector",
+        pass_name: "InputCollectorPass",
         location: nil
       )
 
       output = failure.to_s
       expect(output).to include("Generic error")
-      expect(output).to include("InputCollector")
+      expect(output).to include("InputCollectorPass")
     end
   end
 end

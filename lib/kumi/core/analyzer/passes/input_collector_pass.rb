@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class InputCollector < PassBase
+        class InputCollectorPass < PassBase
           writes :input_metadata
 
           Node = Struct.new(:type, :domain, :container, :children, :access_mode, :child_steps, :define_index, keyword_init: true) do

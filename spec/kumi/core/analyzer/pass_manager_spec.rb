@@ -5,14 +5,14 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
 
   describe ".new" do
     it "stores passes in order" do
-      passes = [Kumi::Core::Analyzer::Passes::NameIndexer, Kumi::Core::Analyzer::Passes::InputCollector]
+      passes = [Kumi::Core::Analyzer::Passes::NameIndexerPass, Kumi::Core::Analyzer::Passes::InputCollectorPass]
       manager = described_class.new(passes)
 
       expect(manager.passes).to eq(passes)
     end
 
     it "initializes with empty error list" do
-      passes = [Kumi::Core::Analyzer::Passes::NameIndexer]
+      passes = [Kumi::Core::Analyzer::Passes::NameIndexerPass]
       manager = described_class.new(passes)
 
       expect(manager.errors).to be_empty
@@ -22,7 +22,7 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
   describe "#run" do
     context "with single pass" do
       it "executes pass and returns result with state and phase info" do
-        passes = [Kumi::Core::Analyzer::Passes::NameIndexer]
+        passes = [Kumi::Core::Analyzer::Passes::NameIndexerPass]
         manager = described_class.new(passes)
 
         syntax_tree = syntax(:root, [], [attr(:x, lit(1))], [], loc: loc)
@@ -34,7 +34,7 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
       end
 
       it "captures errors from pass execution" do
-        passes = [Kumi::Core::Analyzer::Passes::NameIndexer]
+        passes = [Kumi::Core::Analyzer::Passes::NameIndexerPass]
         manager = described_class.new(passes)
 
         dup_attr = attr(:dup, lit(1))
@@ -51,8 +51,8 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
     context "with multiple passes" do
       it "executes passes in sequence and accumulates state" do
         passes = [
-          Kumi::Core::Analyzer::Passes::NameIndexer,
-          Kumi::Core::Analyzer::Passes::InputCollector
+          Kumi::Core::Analyzer::Passes::NameIndexerPass,
+          Kumi::Core::Analyzer::Passes::InputCollectorPass
         ]
         manager = described_class.new(passes)
 
@@ -68,8 +68,8 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
 
       it "stops execution on first error" do
         passes = [
-          Kumi::Core::Analyzer::Passes::NameIndexer,
-          Kumi::Core::Analyzer::Passes::InputCollector
+          Kumi::Core::Analyzer::Passes::NameIndexerPass,
+          Kumi::Core::Analyzer::Passes::InputCollectorPass
         ]
         manager = described_class.new(passes)
 
@@ -86,8 +86,8 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
 
       it "tracks which phase failed" do
         passes = [
-          Kumi::Core::Analyzer::Passes::NameIndexer,
-          Kumi::Core::Analyzer::Passes::InputCollector
+          Kumi::Core::Analyzer::Passes::NameIndexerPass,
+          Kumi::Core::Analyzer::Passes::InputCollectorPass
         ]
         manager = described_class.new(passes)
 
@@ -97,15 +97,15 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
 
         result = manager.run(syntax_tree)
 
-        expect(result.failed_at_phase).to eq(0) # NameIndexer is phase 0
+        expect(result.failed_at_phase).to eq(0) # NameIndexerPass is phase 0
       end
     end
 
     context "when all passes succeed" do
       it "marks result as successful" do
         passes = [
-          Kumi::Core::Analyzer::Passes::NameIndexer,
-          Kumi::Core::Analyzer::Passes::InputCollector
+          Kumi::Core::Analyzer::Passes::NameIndexerPass,
+          Kumi::Core::Analyzer::Passes::InputCollectorPass
         ]
         manager = described_class.new(passes)
 

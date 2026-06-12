@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class SemanticConstraintValidator < VisitorPass
+        class SemanticConstraintValidatorPass < VisitorPass
           optional_reads :registry, :imported_schemas
           writes
 

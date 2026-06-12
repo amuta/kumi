@@ -21,13 +21,13 @@ module DebugPrinters
       when Kumi::Syntax::Literal then print_literal(obj)
 
       # Analyzer objects and structs
-      when Kumi::Core::Analyzer::Passes::NameIndexer then "NameIndexer"
+      when Kumi::Core::Analyzer::Passes::NameIndexerPass then "NameIndexerPass"
       when Kumi::Core::Analyzer::Structs::InputMeta then print_input_meta(obj)
       when Kumi::Core::Analyzer::Structs::AccessPlan then print_access_plan(obj)
       when Kumi::Core::Analyzer::Plans::Scope then print_scope_plan(obj)
       when Kumi::Core::Analyzer::Plans::Reduce then print_reduce_plan(obj)
       when Kumi::Core::Analyzer::Plans::Join then print_join_plan(obj)
-      when Kumi::Core::Analyzer::Passes::DependencyResolver::DependencyEdge then print_dependency_edge(obj)
+      when Kumi::Core::Analyzer::Passes::DependencyResolverPass::DependencyEdge then print_dependency_edge(obj)
 
       # IR objects
       when Kumi::Core::IR::Module then print_ir_module(obj)

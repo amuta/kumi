@@ -30,7 +30,7 @@ module Kumi
     "lower_to_ir_pass" => "LowerToIRPass",
     "lower_to_dfir_pass" => "LowerToDFIRPass",
     "lower_to_irv2_pass" => "LowerToIRV2Pass",
-    "load_input_cse" => "LoadInputCSE",
+    "load_input_cse_pass" => "LoadInputCSEPass",
     "nast" => "NAST",
     "normalize_to_nast_pass" => "NormalizeToNASTPass",
     "nast_dimensional_analyzer_pass" => "NASTDimensionalAnalyzerPass",

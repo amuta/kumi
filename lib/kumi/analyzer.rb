@@ -7,14 +7,14 @@ module Kumi
     ERROR_THRESHOLD_PASS = Passes::NormalizeToNASTPass
 
     DEFAULT_PASSES = [
-      Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
+      Passes::NameIndexerPass,                     # 1. Finds all names and checks for duplicates.
       Passes::ImportAnalysisPass,              # 2. Loads source schemas for imports (NEW).
-      Passes::InputCollector,                  # 3. Collects field metadata from input declarations.
+      Passes::InputCollectorPass,                  # 3. Collects field metadata from input declarations.
       Passes::InputFormSchemaPass,             # 4. Builds minimal form schema from input metadata.
-      Passes::DeclarationValidator,            # 5. Checks the basic structure of each rule.
-      Passes::SemanticConstraintValidator,     # 6. Validates DSL semantic constraints at AST level.
-      Passes::DependencyResolver,              # 7. Builds the dependency graph with conditional dependencies.
-      Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
+      Passes::DeclarationValidatorPass,            # 5. Checks the basic structure of each rule.
+      Passes::SemanticConstraintValidatorPass,     # 6. Validates DSL semantic constraints at AST level.
+      Passes::DependencyResolverPass,              # 7. Builds the dependency graph with conditional dependencies.
+      Passes::ToposorterPass,                      # 8. Creates the final evaluation order, allowing safe cycles.
       Passes::InputAccessPlannerPass           # 9. Plans access strategies for input fields.
     ].freeze
 
@@ -24,7 +24,7 @@ module Kumi
       Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
       Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
       Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Passes::UnsatDetector,                   # Detects impossible constraints with resolved function IDs and SNAST metadata
+      Passes::UnsatDetectorPass,                   # Detects impossible constraints with resolved function IDs and SNAST metadata
       Passes::OutputSchemaPass,                # Builds minimal output schema from SNAST
       Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
       Passes::AttachAnchorsPass,

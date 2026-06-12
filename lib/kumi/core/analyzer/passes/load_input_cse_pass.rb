@@ -25,7 +25,7 @@ module Kumi
         #
         # DEBUG:
         # - Set DEBUG_LOAD_CSE=1 to see optimization decisions
-        class LoadInputCSE < PassBase
+        class LoadInputCSEPass < PassBase
           def run(_errors)
             ir = get_state(:ir_module, required: true)
             return state unless ir&.decls

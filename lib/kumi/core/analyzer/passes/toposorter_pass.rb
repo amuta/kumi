@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class Toposorter < PassBase
+        class ToposorterPass < PassBase
           optional_reads :declarations, :dependencies
           writes :evaluation_order
 

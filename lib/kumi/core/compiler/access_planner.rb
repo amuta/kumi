@@ -8,7 +8,7 @@ module Kumi
     module Compiler
       # Generates deterministic access plans from normalized input metadata.
       #
-      # Metadata expectations (produced by InputCollector):
+      # Metadata expectations (produced by InputCollectorPass):
       # - Each node has:
       #     :container   => :scalar | :read | :array
       #     :children    => { name => meta }  (optional)

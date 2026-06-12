@@ -10,7 +10,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
     end
 
     let(:passes) do
-      [Kumi::Core::Analyzer::Passes::NameIndexer]
+      [Kumi::Core::Analyzer::Passes::NameIndexerPass]
     end
 
     it "runs passes successfully and returns correct state type" do
@@ -53,8 +53,8 @@ RSpec.describe "Analyzer refactoring with PassManager" do
 
     it "respects stop_after checkpoint" do
       two_passes = [
-        Kumi::Core::Analyzer::Passes::NameIndexer,
-        Kumi::Core::Analyzer::Passes::InputCollector
+        Kumi::Core::Analyzer::Passes::NameIndexerPass,
+        Kumi::Core::Analyzer::Passes::InputCollectorPass
       ]
 
       state = Kumi::Core::Analyzer::AnalysisState.new
@@ -83,8 +83,8 @@ RSpec.describe "Analyzer refactoring with PassManager" do
 
     it "runs multiple passes and accumulates state" do
       two_passes = [
-        Kumi::Core::Analyzer::Passes::NameIndexer,
-        Kumi::Core::Analyzer::Passes::InputCollector
+        Kumi::Core::Analyzer::Passes::NameIndexerPass,
+        Kumi::Core::Analyzer::Passes::InputCollectorPass
       ]
 
       state = Kumi::Core::Analyzer::AnalysisState.new
@@ -94,7 +94,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
 
       # Both passes should have contributed to state
       expect(result_state).to have_key(:declarations)
-      # InputCollector adds input_metadata (if there were inputs)
+      # InputCollectorPass adds input_metadata (if there were inputs)
       # For this schema with no inputs, it still runs
       expect(result_state).to be_a(Kumi::Core::Analyzer::AnalysisState)
     end
@@ -136,7 +136,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
   describe "backward compatibility" do
     it "maintains same return signature (state, stopped)" do
       schema = syntax(:root, [], [attr(:x, lit(1))], [], loc: loc)
-      passes = [Kumi::Core::Analyzer::Passes::NameIndexer]
+      passes = [Kumi::Core::Analyzer::Passes::NameIndexerPass]
 
       state = Kumi::Core::Analyzer::AnalysisState.new
       errors = []

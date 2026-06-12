@@ -3,7 +3,7 @@
 module PassTestHelper
   # Helper to run a single pass and get the result state
   # Usage:
-  #   state = run_pass(NameIndexer) do
+  #   state = run_pass(NameIndexerPass) do
   #     input do
   #       integer :x
   #     end
@@ -26,7 +26,7 @@ module PassTestHelper
 
   # Helper to run multiple passes in sequence
   # Usage:
-  #   result = run_passes([NameIndexer, InputCollector]) do
+  #   result = run_passes([NameIndexerPass, InputCollectorPass]) do
   #     input do
   #       array :items do
   #         float :price
@@ -54,7 +54,7 @@ module PassTestHelper
 
   # Helper to assert pass succeeded with no errors
   # Usage:
-  #   result = run_pass(NameIndexer) { ... }
+  #   result = run_pass(NameIndexerPass) { ... }
   #   expect_pass_success(result)
   def expect_pass_success(result)
     expect(result[:success?]).to be true, "Pass failed with errors: #{result[:errors].map(&:to_s).join(', ')}"
@@ -64,7 +64,7 @@ module PassTestHelper
 
   # Helper to assert pass failed with errors
   # Usage:
-  #   result = run_pass(NameIndexer) { ... }
+  #   result = run_pass(NameIndexerPass) { ... }
   #   expect_pass_errors(result, count: 1, message: /duplicate/)
   def expect_pass_errors(result, count: nil, message: nil)
     expect(result[:success?]).to be false
@@ -82,7 +82,7 @@ module PassTestHelper
 
   # Helper to assert specific state keys exist after pass
   # Usage:
-  #   result = run_pass(NameIndexer) { ... }
+  #   result = run_pass(NameIndexerPass) { ... }
   #   expect_state_keys(result, :declarations)
   def expect_state_keys(result, *keys)
     state = result[:state]

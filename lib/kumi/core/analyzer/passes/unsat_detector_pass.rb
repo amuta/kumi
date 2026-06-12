@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class UnsatDetector < VisitorPass
+        class UnsatDetectorPass < VisitorPass
           reads :declarations, :input_metadata, :registry
           writes
           include Syntax

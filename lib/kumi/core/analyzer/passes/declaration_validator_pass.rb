@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        class DeclarationValidator < VisitorPass
+        class DeclarationValidatorPass < VisitorPass
           writes
 
           def run(errors)

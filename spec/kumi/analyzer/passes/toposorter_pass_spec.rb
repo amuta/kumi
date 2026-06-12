@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Kumi::Core::Analyzer::Passes::Toposorter do
+RSpec.describe Kumi::Core::Analyzer::Passes::ToposorterPass do
   include ASTFactory
 
   def toposort(graph_spec)
