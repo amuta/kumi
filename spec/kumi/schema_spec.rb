@@ -149,6 +149,73 @@ RSpec.describe Kumi::Schema do
         expect(content).to include("export")
       end
 
+      it "does not emit streaming javascript exports by default" do
+        output_path = File.join(output_dir, "schema.mjs")
+        test_class.write_source(output_path, platform: :javascript)
+
+        content = File.read(output_path)
+        expect(content).not_to include("_adult_stream")
+      end
+
+      it "emits and runs streaming javascript exports when requested" do
+        streaming_schema = Class.new do
+          extend Kumi::Schema
+        end
+
+        streaming_schema.schema do
+          codegen streaming: true
+
+          input do
+            array :items do
+              hash :item do
+                float :price
+              end
+            end
+            float :tax_rate
+          end
+
+          value :gross_prices, input.items.item.price * (input.tax_rate + 1.0)
+          value :tax_multiplier, input.tax_rate + 1.0
+        end
+
+        output_path = File.join(output_dir, "streaming_schema.mjs")
+        streaming_schema.write_source(output_path, platform: :javascript)
+        content = File.read(output_path)
+
+        expect(content).to include("export function _gross_prices(input)")
+        expect(content).to include("export function _gross_prices_stream(input, target = {})")
+        expect(content).to include("export function _tax_multiplier_stream(input, target = {})")
+
+        runner = <<~JS
+          const mod = await import(process.argv[1]);
+          const input = { items: [{ price: 10.0 }, { price: 20.0 }], tax_rate: 0.1 };
+          const pricesTarget = [999];
+          const scalarTarget = {};
+          const normal = mod._gross_prices(input);
+          const streamed = mod._gross_prices_stream(input, pricesTarget);
+          const taxMultiplier = mod._tax_multiplier_stream(input, scalarTarget);
+          console.log(JSON.stringify({
+            normal,
+            streamed,
+            pricesTarget,
+            sameArray: streamed === pricesTarget,
+            taxMultiplier,
+            scalarTarget
+          }));
+        JS
+
+        stdout, stderr, status = Open3.capture3("node", "--input-type=module", "-e", runner, output_path)
+        expect(status).to be_success, stderr
+
+        result = JSON.parse(stdout)
+        expect(result["normal"]).to eq([11.0, 22.0])
+        expect(result["streamed"]).to eq([11.0, 22.0])
+        expect(result["pricesTarget"]).to eq([11.0, 22.0])
+        expect(result["sameArray"]).to be true
+        expect(result["taxMultiplier"]).to eq(1.1)
+        expect(result["scalarTarget"]).to eq("tax_multiplier" => 1.1)
+      end
+
       it "creates parent directories if they don't exist" do
         output_path = File.join(output_dir, "nested", "deep", "schema.rb")
         test_class.write_source(output_path, platform: :ruby)
