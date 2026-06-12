@@ -1,4 +1,13 @@
 ## [Unreleased]
+### Added
+- Streaming JS exports accept typed-array targets (`Float32Array`, `Float64Array`, …) for scalar array outputs, written by cursor with a `RangeError` when the buffer is too small.
+- Streaming JS exports now reuse the target's existing storage end to end: record elements and nested row arrays are mutated in place instead of reallocated, and intermediate scratch arrays persist at module scope. Per-frame allocation for array outputs drops to zero in steady state (~2–5× faster frames, ~40× less GC time on simulation-style schemas).
+
+### Changed
+- Streaming exports throw a `TypeError` when the target aliases an input array (silent zero-length corruption before; feedback loops must double-buffer) and when a typed-array target is passed for record outputs (silently produced an empty buffer before).
+
+### Fixed
+- Ruby DSL `let` raised `ArgumentError: struct size differs` since 0.0.37 (`inline: true` leaked into the `ValueDeclaration` struct instead of the `hints:` channel; the text frontend was unaffected).
 
 ## [0.0.37] – 2026-06-11
 ### Added

@@ -48,6 +48,12 @@ end
 
 `codegen streaming: true` keeps normal JavaScript exports and adds `_name_stream(input, target = {})` exports for each output. For direct array outputs, pass an array target to reuse it in-place, or pass an object target to receive `target["name"]`.
 
+Streaming exports own the target's storage: elements (including record objects and nested row arrays) are mutated in place across calls and the array is truncated to the new length, so steady-state calls allocate nothing. Consequences:
+
+- **Feedback loops must double-buffer.** Feeding the target back as an input array throws a `TypeError` — alternate between two targets instead.
+- **Scalar array outputs accept typed-array targets** (`Float32Array`, `Float64Array`, …). The buffer is filled by cursor; a buffer smaller than the output throws a `RangeError`. Record outputs require a plain `Array` target (`TypeError` otherwise).
+- Don't hold references to elements across calls expecting snapshots — copy what you need to keep.
+
 ### Operators
 
 **Arithmetic:** `+` `-` `*` `/` `**` `%`
