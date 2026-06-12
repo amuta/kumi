@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.0.37] – 2026-06-11
+### Added
+- Streaming hints for JS codegen
+
 ## [0.0.35] – 2026-06-11
 ### Added
 - **Dataflow IR Pipeline:** New DF IR graph, typed operations, validation, import inlining, broadcast simplification, CSE, load deduplication, tuple/object canonicalization, and golden artifact coverage.
