@@ -4,11 +4,10 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Build dependency graph and detect conditional dependencies in cascades
-        # DEPENDENCIES: :declarations from NameIndexer, :inputs from InputCollector
-        # PRODUCES: :dependencies, :dependents, :leaves - Dependency analysis results
-        # INTERFACE: new(schema, state).run(errors)
         class DependencyResolver < PassBase
+          reads :declarations, :input_metadata, :imported_schemas
+          writes :dependencies, :dependents, :leaves
+
           # Enhanced edge with conditional flag and cascade metadata
           class DependencyEdge
             attr_reader :to, :type, :via, :conditional, :cascade_owner

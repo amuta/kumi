@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class InputFormSchemaPass < PassBase
+          reads :input_metadata
+          writes :input_form_schema
+
           def run(_errors)
             input_metadata = get_state(:input_metadata)
             return state unless input_metadata

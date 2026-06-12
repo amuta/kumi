@@ -4,11 +4,10 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Compute topological ordering of declarations, blocking all cycles
-        # DEPENDENCIES: :dependencies from DependencyResolver, :declarations from NameIndexer
-        # PRODUCES: :evaluation_order - Array of declaration names in evaluation order
-        # INTERFACE: new(schema, state).run(errors)
         class Toposorter < PassBase
+          optional_reads :declarations, :dependencies
+          writes :evaluation_order
+
           def run(errors)
             dependency_graph = get_state(:dependencies, required: false) || {}
             definitions = get_state(:declarations, required: false) || {}

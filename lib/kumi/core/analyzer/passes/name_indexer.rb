@@ -4,13 +4,9 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Build definitions index and detect duplicate names
-        # DEPENDENCIES: None (first pass in pipeline)
-        # PRODUCES: :declarations - Hash mapping names to declaration nodes
-        #            - annotates hints to declarations (e.g. inlining)
-        #           :imported_declarations - Hash of lazy import references
-        # INTERFACE: new(schema, state).run(errors)
         class NameIndexer < PassBase
+          writes :declarations, :imported_declarations, :hints
+
           def run(errors)
             definitions = {}
             imported_declarations = {}

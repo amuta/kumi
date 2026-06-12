@@ -4,18 +4,9 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Validate DSL semantic constraints at the AST level
-        # DEPENDENCIES: :definitions
-        # PRODUCES: None (validation only)
-        # INTERFACE: new(schema, state).run(errors)
-        #
-        # This pass enforces semantic constraints that must hold regardless of which parser
-        # was used to construct the AST. It validates:
-        # 1. Cascade conditions are only trait references (DeclarationReference nodes)
-        # 2. Trait expressions evaluate to boolean values (CallExpression nodes)
-        # 3. Function names exist in the function registry
-        # 4. Expression types are valid for their context
         class SemanticConstraintValidator < VisitorPass
+          writes
+
           def run(errors)
             @registry = state[:registry]
             # Visit value and trait declarations

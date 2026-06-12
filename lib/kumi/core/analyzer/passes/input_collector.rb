@@ -5,6 +5,8 @@ module Kumi
     module Analyzer
       module Passes
         class InputCollector < PassBase
+          writes :input_metadata
+
           Node = Struct.new(:type, :domain, :container, :children, :access_mode, :child_steps, :define_index, keyword_init: true) do
             def as_json(*)
               {

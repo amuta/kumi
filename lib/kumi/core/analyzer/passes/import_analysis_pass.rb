@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class ImportAnalysisPass < PassBase
+          reads :imported_declarations
+          writes :imported_schemas
+
           def run(errors)
             imported_decls = get_state(:imported_declarations)
             imported_schemas = {}

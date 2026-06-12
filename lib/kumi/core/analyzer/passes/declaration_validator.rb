@@ -4,11 +4,9 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # RESPONSIBILITY: Perform local structural validation on each declaration
-        # DEPENDENCIES: :definitions
-        # PRODUCES: None (validation only)
-        # INTERFACE: new(schema, state).run(errors)
         class DeclarationValidator < VisitorPass
+          writes
+
           def run(errors)
             each_decl do |decl|
               visit(decl) { |node| validate_node(node, errors) }
