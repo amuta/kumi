@@ -22,7 +22,10 @@ module Kumi
             instrumentation.before(state)
 
             begin
+              enforce_reads!(pass_class, pass_name, state)
+              contract_before = state.to_h
               state = execute_pass(pass_class, pass_name, syntax_tree, state, errors, options)
+              enforce_writes!(pass_class, pass_name, contract_before, state)
             rescue StandardError => e
               error_obj = capture_exception(pass_name, e, errors)
               instrumentation.after_failure(e)
@@ -51,6 +54,27 @@ module Kumi
           else
             pass_instance.run(errors)
           end
+        end
+
+        def enforce_reads!(pass_class, pass_name, state)
+          return unless pass_class.respond_to?(:contract_declared?) && pass_class.contract_declared?
+
+          missing = pass_class.declared_reads.reject { |key| state.key?(key) }
+          return if missing.empty?
+
+          raise "#{pass_name} declares reads #{missing.inspect} but they are missing from analysis state"
+        end
+
+        def enforce_writes!(pass_class, pass_name, before, state)
+          return unless pass_class.respond_to?(:contract_declared?) && pass_class.contract_declared?
+          return unless state.is_a?(AnalysisState)
+
+          after = state.to_h
+          changed = after.keys.select { |key| !before.key?(key) || !before[key].equal?(after[key]) }
+          undeclared = changed - pass_class.declared_writes
+          return if undeclared.empty?
+
+          raise "#{pass_name} wrote undeclared state keys #{undeclared.inspect} (declared writes: #{pass_class.declared_writes.inspect})"
         end
 
         def capture_exception(pass_name, exception, errors)
