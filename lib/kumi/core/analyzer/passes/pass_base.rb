@@ -9,6 +9,61 @@ module Kumi
           include Kumi::Syntax
           include Kumi::Core::ErrorReporting
 
+          class << self
+            def reads(*keys)
+              keys.each do |key|
+                own_reads << key
+                define_method(key) { get_state(key) }
+              end
+              mark_contract!
+            end
+
+            def optional_reads(*keys)
+              keys.each do |key|
+                own_optional_reads << key
+                define_method(key) { state[key] }
+              end
+              mark_contract!
+            end
+
+            def writes(*keys)
+              own_writes.concat(keys)
+              mark_contract!
+            end
+
+            def declared_reads
+              inherited_contract(:declared_reads) + own_reads
+            end
+
+            def declared_optional_reads
+              inherited_contract(:declared_optional_reads) + own_optional_reads
+            end
+
+            def declared_writes
+              inherited_contract(:declared_writes) + own_writes
+            end
+
+            def contract_declared?
+              return true if defined?(@contract_declared) && @contract_declared
+
+              superclass.respond_to?(:contract_declared?) && superclass.contract_declared?
+            end
+
+            private
+
+            def mark_contract!
+              @contract_declared = true
+            end
+
+            def own_reads = @own_reads ||= []
+            def own_optional_reads = @own_optional_reads ||= []
+            def own_writes = @own_writes ||= []
+
+            def inherited_contract(method_name)
+              superclass.respond_to?(method_name) ? superclass.public_send(method_name) : []
+            end
+          end
+
           # @param schema [Syntax::Root] The schema to analyze
           # @param state [AnalysisState] Current analysis state
           def initialize(schema, state)
