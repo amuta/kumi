@@ -16,8 +16,7 @@ module Kumi
       end
 
       class Instruction
-        attr_reader :opcode, :result, :inputs, :attributes, :metadata, :effects
-        attr_reader :axes, :dtype
+        attr_reader :opcode, :result, :inputs, :attributes, :metadata, :effects, :axes, :dtype
 
         def initialize(opcode:, result: nil, inputs: [], attributes: {}, metadata: {}, effects: Effects::NONE)
           @opcode     = opcode.to_sym
@@ -71,34 +70,22 @@ module Kumi
         end
 
         def validate!
-          unless @opcode.is_a?(Symbol)
-            raise ArgumentError, "invalid #{self.class}: opcode must be a Symbol"
-          end
+          raise ArgumentError, "invalid #{self.class}: opcode must be a Symbol" unless @opcode.is_a?(Symbol)
 
-          if @result && !@result.is_a?(Symbol)
-            raise ArgumentError, "invalid #{self.class}: result must be a Symbol or nil"
-          end
+          raise ArgumentError, "invalid #{self.class}: result must be a Symbol or nil" if @result && !@result.is_a?(Symbol)
 
-          unless @inputs.is_a?(Array)
-            raise ArgumentError, "invalid #{self.class}: inputs must be an Array"
-          end
+          raise ArgumentError, "invalid #{self.class}: inputs must be an Array" unless @inputs.is_a?(Array)
 
           bad_inputs = @inputs.reject { |input| input.is_a?(Symbol) }
-          if bad_inputs.any?
-            raise ArgumentError, "invalid #{self.class}: inputs must be Symbols (bad: #{bad_inputs.inspect})"
-          end
+          raise ArgumentError, "invalid #{self.class}: inputs must be Symbols (bad: #{bad_inputs.inspect})" if bad_inputs.any?
 
-          unless @attributes.is_a?(Hash)
-            raise ArgumentError, "invalid #{self.class}: attributes must be a Hash"
-          end
+          raise ArgumentError, "invalid #{self.class}: attributes must be a Hash" unless @attributes.is_a?(Hash)
 
           unless @attributes.keys.all? { |key| key.is_a?(Symbol) }
             raise ArgumentError, "invalid #{self.class}: attributes keys must be Symbols"
           end
 
-          unless @metadata.is_a?(Hash)
-            raise ArgumentError, "invalid #{self.class}: metadata must be a Hash"
-          end
+          raise ArgumentError, "invalid #{self.class}: metadata must be a Hash" unless @metadata.is_a?(Hash)
 
           axes = @metadata[:axes]
           if axes && !(axes.is_a?(Array) && axes.all? { |axis| axis.is_a?(Symbol) })
@@ -109,9 +96,7 @@ module Kumi
           if dtype
             type_class = defined?(Kumi::Core::Types::Type) ? Kumi::Core::Types::Type : nil
             valid_dtype = dtype.is_a?(Symbol) || (type_class && dtype.is_a?(type_class))
-            unless valid_dtype
-              raise ArgumentError, "invalid #{self.class}: dtype must be a Symbol or Types::Type"
-            end
+            raise ArgumentError, "invalid #{self.class}: dtype must be a Symbol or Types::Type" unless valid_dtype
           end
 
           self
@@ -161,8 +146,10 @@ module Kumi
         def normalize_effects(effects)
           Array(effects).each_with_object(Set.new) do |eff, acc|
             next if eff.nil?
+
             sym = eff.to_sym
             raise ArgumentError, "unknown effect #{eff.inspect}" unless Effects::ALL.include?(sym)
+
             acc << sym
           end.freeze
         end

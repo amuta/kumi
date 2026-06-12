@@ -17,9 +17,8 @@ module Kumi
 
     def [](declaration_name)
       method_name = "_#{declaration_name}"
-      unless @compiled_module.respond_to?(method_name)
-        raise KeyError, "Unknown declaration: #{declaration_name}"
-      end
+      raise KeyError, "Unknown declaration: #{declaration_name}" unless @compiled_module.respond_to?(method_name)
+
       @compiled_module.public_send(method_name, @input)
     end
 
@@ -134,7 +133,7 @@ module Kumi
         @__kumi_compiled_module__.singleton_methods(false).each do |method_name|
           wrapper.define_method(method_name, @__kumi_compiled_module__.method(method_name).to_proc)
         end
-        self.extend(wrapper)
+        extend(wrapper)
 
         @kumi_compiled = true
       end

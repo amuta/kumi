@@ -35,11 +35,14 @@ module Kumi
                   metadata: metadata
                 )
               when :constant
-                Ops::Constant.new(result: result, value: attrs[:value], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::Constant.new(result: result, value: attrs[:value], axes: metadata[:axes] || instr.axes,
+                                  dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :decl_ref
-                Ops::DeclRef.new(result: result, name: attrs[:name], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::DeclRef.new(result: result, name: attrs[:name], axes: metadata[:axes] || instr.axes,
+                                 dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :map
-                Ops::Map.new(result: result, fn: attrs[:fn], args: inputs, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::Map.new(result: result, fn: attrs[:fn], args: inputs, axes: metadata[:axes] || instr.axes,
+                             dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :select
                 Ops::Select.new(
                   result: result,
@@ -51,25 +54,35 @@ module Kumi
                   metadata: metadata
                 )
               when :reduce
-                Ops::Reduce.new(result: result, fn: attrs[:fn], arg: inputs.first, over_axes: attrs[:over_axes], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::Reduce.new(result: result, fn: attrs[:fn], arg: inputs.first, over_axes: attrs[:over_axes],
+                                axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :fold
-                Ops::Fold.new(result: result, fn: attrs[:fn], arg: inputs.first, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::Fold.new(result: result, fn: attrs[:fn], arg: inputs.first, axes: metadata[:axes] || instr.axes,
+                              dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :make_object
-                Ops::MakeObject.new(result: result, inputs: inputs, keys: attrs[:keys], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::MakeObject.new(result: result, inputs: inputs, keys: attrs[:keys], axes: metadata[:axes] || instr.axes,
+                                    dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :array_build
-                Ops::ArrayBuild.new(result: result, elements: inputs, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::ArrayBuild.new(result: result, elements: inputs, axes: metadata[:axes] || instr.axes,
+                                    dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :array_get
-                Ops::ArrayGet.new(result: result, array: inputs[0], index: inputs[1], oob: attrs[:oob], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::ArrayGet.new(result: result, array: inputs[0], index: inputs[1], oob: attrs[:oob],
+                                  axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :array_len
-                Ops::ArrayLen.new(result: result, array: inputs.first, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::ArrayLen.new(result: result, array: inputs.first, axes: metadata[:axes] || instr.axes,
+                                  dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :axis_index
-                Ops::AxisIndex.new(result: result, axis: attrs[:axis], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::AxisIndex.new(result: result, axis: attrs[:axis], axes: metadata[:axes] || instr.axes,
+                                   dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :axis_shift
-                Ops::AxisShift.new(result: result, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::AxisShift.new(result: result, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset],
+                                   policy: attrs[:policy], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :axis_broadcast
-                Ops::AxisBroadcast.new(result: result, value: inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes] || metadata[:axes] || instr.axes, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::AxisBroadcast.new(result: result, value: inputs.first, from_axes: attrs[:from_axes],
+                                       to_axes: attrs[:to_axes] || metadata[:axes] || instr.axes, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :import_call
-                Ops::ImportCall.new(result: result, fn_name: attrs[:fn_name], source_module: attrs[:source_module], args: inputs, mapping_keys: attrs[:mapping_keys], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+                Ops::ImportCall.new(result: result, fn_name: attrs[:fn_name], source_module: attrs[:source_module], args: inputs,
+                                    mapping_keys: attrs[:mapping_keys], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               else
                 instr
               end

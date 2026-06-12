@@ -63,7 +63,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
       # Stop after first pass (using internal API)
       Kumi::Core::Analyzer::Checkpoint.stop_after
 
-      result_state, stopped = Kumi::Analyzer.run_analysis_passes(simple_schema, two_passes, state, errors)
+      result_state, = Kumi::Analyzer.run_analysis_passes(simple_schema, two_passes, state, errors)
 
       # May or may not stop depending on checkpoint configuration
       expect(result_state).to be_a(Kumi::Core::Analyzer::AnalysisState)

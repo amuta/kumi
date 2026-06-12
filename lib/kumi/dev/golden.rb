@@ -15,11 +15,11 @@ module Kumi
     module Golden
       # Precompile shared schemas so __kumi_syntax_tree__ is available for imports
       def self.precompile_schemas!
-        if defined?(Kumi::TestSharedSchemas)
-          Kumi::TestSharedSchemas.constants.each do |const|
-            mod = Kumi::TestSharedSchemas.const_get(const)
-            mod.runner if mod.is_a?(Module) && mod.respond_to?(:runner)
-          end
+        return unless defined?(Kumi::TestSharedSchemas)
+
+        Kumi::TestSharedSchemas.constants.each do |const|
+          mod = Kumi::TestSharedSchemas.const_get(const)
+          mod.runner if mod.is_a?(Module) && mod.respond_to?(:runner)
         end
       end
 

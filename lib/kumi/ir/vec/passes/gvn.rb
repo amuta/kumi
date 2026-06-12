@@ -55,6 +55,7 @@ module Kumi
           def build_signature(instr, inputs)
             return nil unless instr.result
             return nil if instr.opcode == :load_input
+
             instr.value_signature(inputs: inputs, include_axes: true, include_dtype: true)
           end
         end

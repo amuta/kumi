@@ -9,7 +9,7 @@ module IRHelpers
     raise ArgumentError, "block required" unless body
 
     snast_factory.build do |b|
-      b.declaration(name, axes:, dtype:, **opts) { body.call }
+      b.declaration(name, axes:, dtype:, **opts, &body)
     end
   end
 

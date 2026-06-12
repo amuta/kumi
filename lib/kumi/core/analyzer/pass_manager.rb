@@ -31,13 +31,13 @@ module Kumi
             begin
               pass_instance = pass_class.new(syntax_tree, state)
 
-              if options[:profiling_enabled]
-                state = Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
-                  pass_instance.run(errors)
-                end
-              else
-                state = pass_instance.run(errors)
-              end
+              state = if options[:profiling_enabled]
+                        Dev::Profiler.phase("analyzer.pass", pass: pass_name) do
+                          pass_instance.run(errors)
+                        end
+                      else
+                        pass_instance.run(errors)
+                      end
             rescue StandardError => e
               # Capture exception context
               location_hint = e.backtrace&.first
@@ -76,9 +76,7 @@ module Kumi
             end
 
             # Type checking (PassManager enforces AnalysisState)
-            unless state.is_a?(AnalysisState)
-              raise "Pass #{pass_name} returned #{state.class}, expected AnalysisState"
-            end
+            raise "Pass #{pass_name} returned #{state.class}, expected AnalysisState" unless state.is_a?(AnalysisState)
 
             # Debug logging with state diff
             if debug_on
@@ -110,7 +108,7 @@ module Kumi
             Checkpoint.leaving(pass_name:, idx: phase_index, state:) if options[:checkpoint_enabled]
 
             # Handle errors
-            if !errors.empty?
+            unless errors.empty?
               phase = ExecutionPhase.new(pass_class: pass_class, index: phase_index)
               converted_errors = errors.map do |error|
                 PassFailure.new(
@@ -128,9 +126,7 @@ module Kumi
             end
 
             # Check stop_after
-            if options[:stop_after] && pass_name == options[:stop_after]
-              return ExecutionResult.success(final_state: state, stopped: true)
-            end
+            return ExecutionResult.success(final_state: state, stopped: true) if options[:stop_after] && pass_name == options[:stop_after]
           end
 
           ExecutionResult.success(final_state: state)

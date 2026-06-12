@@ -69,7 +69,8 @@ RSpec.describe Kumi::IR::DF::Validator do
         dtype: int_type,
         metadata: { axes: %i[rows], dtype: int_type }
       ),
-      df_ops::Reduce.new(result: :sum, fn: :"agg.sum", arg: :v1, axes: %i[rows], over_axes: [], dtype: int_type, metadata: { axes: %i[rows], dtype: int_type })
+      df_ops::Reduce.new(result: :sum, fn: :"agg.sum", arg: :v1, axes: %i[rows], over_axes: [], dtype: int_type,
+                         metadata: { axes: %i[rows], dtype: int_type })
     )
 
     expect { described_class.validate!(graph) }

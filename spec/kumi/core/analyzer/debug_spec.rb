@@ -105,7 +105,7 @@ RSpec.describe Kumi::Analyzer do
       it "flushes logs and emits error payload on exception" do
         allow(Kumi::Core::Analyzer::Debug).to receive(:drain_log).and_return([{ level: :info, id: :pre_error }])
 
-        final_state, stopped = described_class.run_analysis_passes(schema, [ErrorPass], initial_state, errors)
+        _, stopped = described_class.run_analysis_passes(schema, [ErrorPass], initial_state, errors)
 
         expect(errors).not_to be_empty
         expect(errors.first.message).to match(/boom/)

@@ -34,9 +34,8 @@ RSpec.describe "Schema import parsing" do
         value :result, ref(:result)
       end
 
-      expect(ast.imports[0].names).to eq([:tax, :shipping])
+      expect(ast.imports[0].names).to eq(%i[tax shipping])
     end
-
 
     it "errors on import without from:" do
       expect do

@@ -55,9 +55,7 @@ module Kumi
           end
 
           def canonical_reg(reg, replacements)
-            while replacements.key?(reg)
-              reg = replacements[reg]
-            end
+            reg = replacements[reg] while replacements.key?(reg)
             reg
           end
 

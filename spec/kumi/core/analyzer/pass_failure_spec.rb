@@ -57,5 +57,4 @@ RSpec.describe Kumi::Core::Analyzer::PassFailure do
       expect(output).to include("InputCollector")
     end
   end
-
 end

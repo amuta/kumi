@@ -27,9 +27,11 @@ module Kumi
               when :select
                 Ops::Select.new(result:, cond: inputs[0], on_true: inputs[1], on_false: inputs[2], axes:, dtype:, metadata:)
               when :axis_broadcast
-                Ops::AxisBroadcast.new(result:, value: inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes], dtype:, metadata:)
+                Ops::AxisBroadcast.new(result:, value: inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes], dtype:,
+                                       metadata:)
               when :axis_shift
-                Ops::AxisShift.new(result:, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy], axes:, dtype:, metadata:)
+                Ops::AxisShift.new(result:, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy],
+                                   axes:, dtype:, metadata:)
               when :axis_index
                 Ops::AxisIndex.new(result:, axis: attrs[:axis], axes:, dtype:, metadata:)
               when :reduce

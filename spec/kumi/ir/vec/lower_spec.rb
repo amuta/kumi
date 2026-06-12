@@ -12,7 +12,8 @@ RSpec.describe Kumi::IR::Vec::Module do
     builder = Kumi::IR::DF::Builder.new(ir_module: graph, function: function)
 
     alive = builder.load_input(result: :alive, key: :alive, axes: %i[row col], dtype: int_type)
-    north = builder.axis_shift(result: :north, source: alive, axis: :row, offset: -1, policy: :zero, axes: %i[row col], dtype: int_type, metadata: {})
+    north = builder.axis_shift(result: :north, source: alive, axis: :row, offset: -1, policy: :zero, axes: %i[row col], dtype: int_type,
+                               metadata: {})
     sum = builder.map(result: :sum, fn: :"core.add", args: [alive, north], axes: %i[row col], dtype: int_type, metadata: {})
     builder.make_object(result: :cell, inputs: [sum], keys: [:value], axes: %i[row col], dtype: ir_types.scalar(:hash), metadata: {})
 

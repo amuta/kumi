@@ -9,8 +9,8 @@ module PassTestHelper
   #     end
   #     value :double, input.x * 2
   #   end
-  def run_pass(pass_class, initial_state = nil, &schema_block)
-    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&schema_block)
+  def run_pass(pass_class, initial_state = nil, &)
+    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
     state = initial_state || Kumi::Core::Analyzer::AnalysisState.new
     errors = []
 
@@ -34,15 +34,15 @@ module PassTestHelper
   #     end
   #     value :total, fn(:sum, input.items.price)
   #   end
-  def run_passes(pass_classes, &schema_block)
-    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&schema_block)
+  def run_passes(pass_classes, &)
+    syntax_tree = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&)
     state = Kumi::Core::Analyzer::AnalysisState.new
     errors = []
 
     pass_classes.each do |pass_class|
       pass_instance = pass_class.new(syntax_tree, state)
       state = pass_instance.run(errors)
-      break if !errors.empty? # Stop on first error
+      break unless errors.empty? # Stop on first error
     end
 
     {
@@ -70,12 +70,10 @@ module PassTestHelper
     expect(result[:success?]).to be false
     expect(result[:errors]).not_to be_empty
 
-    if count
-      expect(result[:errors].size).to eq(count)
-    end
+    expect(result[:errors].size).to eq(count) if count
 
     if message
-      messages = result[:errors].map(&:message).join(', ')
+      messages = result[:errors].map(&:message).join(", ")
       expect(messages).to match(message)
     end
 

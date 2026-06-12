@@ -117,5 +117,4 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
       end
     end
   end
-
 end

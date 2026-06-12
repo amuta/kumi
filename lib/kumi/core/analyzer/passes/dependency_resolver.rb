@@ -71,7 +71,10 @@ module Kumi
             when ImportCall
               # Check that imported name exists
               imported_schemas = get_state(:imported_schemas) || {}
-              report_error(errors, "undefined import reference `#{node.fn_name}`", location: node.loc) unless imported_schemas.key?(node.fn_name)
+              unless imported_schemas.key?(node.fn_name)
+                report_error(errors, "undefined import reference `#{node.fn_name}`",
+                             location: node.loc)
+              end
 
               add_dependency_edge(graph, reverse_deps, decl.name, node.fn_name, :import_call, node.fn_name)
             when Literal

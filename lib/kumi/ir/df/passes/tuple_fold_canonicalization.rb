@@ -79,6 +79,7 @@ module Kumi
             fn = instr.attributes[:fn]&.to_sym
             combiner = tuple_fold_combiner_for(fn)
             return nil unless combiner
+
             source = inputs.first
             array_info = array_defs[source]
             return nil unless array_info && array_info[:exclusive]
@@ -123,6 +124,7 @@ module Kumi
 
           def scalar_from_tuple(dtype)
             return nil unless dtype.respond_to?(:element_types)
+
             dtype.element_types.first
           end
 
@@ -139,7 +141,11 @@ module Kumi
           def tuple_fold_combiner_for(fn)
             return nil unless fn && @registry
 
-            function = @registry.function(fn.to_s) rescue nil
+            function = begin
+              @registry.function(fn.to_s)
+            rescue StandardError
+              nil
+            end
             return nil unless function
 
             options = function.respond_to?(:options) ? function.options : nil

@@ -34,7 +34,7 @@ RSpec.describe Kumi::IR::Vec::Validator do
 
   it "rejects unsupported opcodes" do
     block = function.entry_block
-    block.append(Kumi::IR::DF::Ops::ArrayBuild.new(result: :tuple, elements: [], axes: [], dtype: tuple_type = ir_types.tuple([])))
+    block.append(Kumi::IR::DF::Ops::ArrayBuild.new(result: :tuple, elements: [], axes: [], dtype: ir_types.tuple([])))
 
     expect { described_class.validate!(vec_module) }.to raise_error(ArgumentError, /does not support opcode/)
   end

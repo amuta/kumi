@@ -109,8 +109,10 @@ RSpec.describe Kumi::IR::DF::Lower do
         hash = snast_factory.hash(
           pairs: [
             snast_factory.pair(key: :name, value: name, axes: %i[departments], dtype: types.scalar(:string)),
-            snast_factory.pair(key: :total_payroll, value: snast_factory.ref(name: :total_payroll, axes: %i[departments], dtype: types.scalar(:integer)), axes: %i[departments], dtype: types.scalar(:integer)),
-            snast_factory.pair(key: :manager_count, value: snast_factory.ref(name: :manager_count, axes: %i[departments], dtype: types.scalar(:integer)), axes: %i[departments], dtype: types.scalar(:integer))
+            snast_factory.pair(key: :total_payroll,
+                               value: snast_factory.ref(name: :total_payroll, axes: %i[departments], dtype: types.scalar(:integer)), axes: %i[departments], dtype: types.scalar(:integer)),
+            snast_factory.pair(key: :manager_count,
+                               value: snast_factory.ref(name: :manager_count, axes: %i[departments], dtype: types.scalar(:integer)), axes: %i[departments], dtype: types.scalar(:integer))
           ],
           axes: %i[departments],
           dtype: types.scalar(:hash)

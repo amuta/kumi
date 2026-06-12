@@ -382,15 +382,10 @@ module Kumi
             end
           end
 
-          if spec.respond_to?(key)
-            spec.public_send(key)
-          else
-            nil
-          end
+          spec.public_send(key) if spec.respond_to?(key)
         rescue StandardError
           nil
         end
-
       end
     end
   end

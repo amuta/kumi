@@ -24,7 +24,7 @@ module Kumi
 
         def emit(opcode, **kwargs)
           ensure_block!
-          instr = instruction_class.new(**{ opcode: }.merge(kwargs))
+          instr = instruction_class.new(opcode:, **kwargs)
           @current_block.append(instr)
         end
 

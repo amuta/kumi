@@ -176,7 +176,7 @@ module Kumi
             # The compiled schema handles its own internal dependencies.
 
             # Normalize the arguments (the values being passed)
-            args = node.input_mapping.map do |param_name, caller_expr|
+            args = node.input_mapping.map do |_param_name, caller_expr|
               normalize_expr(caller_expr, errors)
             end
 
