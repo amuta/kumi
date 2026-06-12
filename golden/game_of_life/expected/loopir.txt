@@ -75,7 +75,6 @@ function e:
   loop_end [axis=:rows]
 function nw:
   %v18 = load_input [key=:rows]
-  %arr29 = array_init
   %arr37 = array_init
   %rows_el19 = loop_start (:v18) [axis=:rows, index=:rows_i20]
     %arr30 = array_init
@@ -89,7 +88,6 @@ function nw:
       %v17 = select (:v27, :v26, :v28) [rows, col] -> integer
       array_push (:arr30, :v17)
     loop_end [axis=:col]
-    array_push (:arr29, :arr30)
     %arr38 = array_init
     %col_el31 = loop_start (:rows_el19) [axis=:col, index=:col_i32]
       %v33 = array_len (:arr30)
@@ -103,7 +101,6 @@ function nw:
   loop_end [axis=:rows]
 function ne:
   %v20 = load_input [key=:rows]
-  %arr31 = array_init
   %arr39 = array_init
   %rows_el21 = loop_start (:v20) [axis=:rows, index=:rows_i22]
     %arr32 = array_init
@@ -117,7 +114,6 @@ function ne:
       %v19 = select (:v29, :v28, :v30) [rows, col] -> integer
       array_push (:arr32, :v19)
     loop_end [axis=:col]
-    array_push (:arr31, :arr32)
     %arr40 = array_init
     %col_el33 = loop_start (:rows_el21) [axis=:col, index=:col_i34]
       %v35 = array_len (:arr32)
@@ -131,7 +127,6 @@ function ne:
   loop_end [axis=:rows]
 function sw:
   %v22 = load_input [key=:rows]
-  %arr33 = array_init
   %arr41 = array_init
   %rows_el23 = loop_start (:v22) [axis=:rows, index=:rows_i24]
     %arr34 = array_init
@@ -145,7 +140,6 @@ function sw:
       %v21 = select (:v31, :v30, :v32) [rows, col] -> integer
       array_push (:arr34, :v21)
     loop_end [axis=:col]
-    array_push (:arr33, :arr34)
     %arr42 = array_init
     %col_el35 = loop_start (:rows_el23) [axis=:col, index=:col_i36]
       %v37 = array_len (:arr34)
@@ -159,7 +153,6 @@ function sw:
   loop_end [axis=:rows]
 function se:
   %v24 = load_input [key=:rows]
-  %arr35 = array_init
   %arr43 = array_init
   %rows_el25 = loop_start (:v24) [axis=:rows, index=:rows_i26]
     %arr36 = array_init
@@ -173,7 +166,6 @@ function se:
       %v23 = select (:v33, :v32, :v34) [rows, col] -> integer
       array_push (:arr36, :v23)
     loop_end [axis=:col]
-    array_push (:arr35, :arr36)
     %arr44 = array_init
     %col_el37 = loop_start (:rows_el25) [axis=:col, index=:col_i38]
       %v39 = array_len (:arr36)
@@ -187,10 +179,6 @@ function se:
   loop_end [axis=:rows]
 function neighbors:
   %v66 = load_input [key=:rows]
-  %arr88 = array_init
-  %arr99 = array_init
-  %arr110 = array_init
-  %arr113 = array_init
   %arr116 = array_init
   %rows_el67 = loop_start (:v66) [axis=:rows, index=:rows_i68]
     %arr89 = array_init
@@ -224,10 +212,6 @@ function neighbors:
       %v45 = select (:v86, :v85, :v87) [rows, col] -> integer
       array_push (:arr114, :v45)
     loop_end [axis=:col]
-    array_push (:arr113, :arr114)
-    array_push (:arr110, :arr111)
-    array_push (:arr99, :arr100)
-    array_push (:arr88, :arr89)
     %arr117 = array_init
     %col_el90 = loop_start (:rows_el67) [axis=:col, index=:col_i91]
       %v92 = array_len (:arr89)
@@ -277,10 +261,6 @@ function alive:
   loop_end [axis=:rows]
 function n3_alive:
   %v74 = load_input [key=:rows]
-  %arr96 = array_init
-  %arr107 = array_init
-  %arr118 = array_init
-  %arr121 = array_init
   %arr125 = array_init
   %rows_el75 = loop_start (:v74) [axis=:rows, index=:rows_i76]
     %arr97 = array_init
@@ -314,10 +294,6 @@ function n3_alive:
       %v53 = select (:v94, :v93, :v95) [rows, col] -> integer
       array_push (:arr122, :v53)
     loop_end [axis=:col]
-    array_push (:arr121, :arr122)
-    array_push (:arr118, :arr119)
-    array_push (:arr107, :arr108)
-    array_push (:arr96, :arr97)
     %arr126 = array_init
     %col_el98 = loop_start (:rows_el75) [axis=:col, index=:col_i99]
       %v100 = array_len (:arr97)
@@ -357,10 +333,6 @@ function n3_alive:
   loop_end [axis=:rows]
 function n2_alive:
   %v78 = load_input [key=:rows]
-  %arr100 = array_init
-  %arr111 = array_init
-  %arr122 = array_init
-  %arr125 = array_init
   %arr129 = array_init
   %rows_el79 = loop_start (:v78) [axis=:rows, index=:rows_i80]
     %arr101 = array_init
@@ -394,10 +366,6 @@ function n2_alive:
       %v57 = select (:v98, :v97, :v99) [rows, col] -> integer
       array_push (:arr126, :v57)
     loop_end [axis=:col]
-    array_push (:arr125, :arr126)
-    array_push (:arr122, :arr123)
-    array_push (:arr111, :arr112)
-    array_push (:arr100, :arr101)
     %arr130 = array_init
     %col_el102 = loop_start (:rows_el79) [axis=:col, index=:col_i103]
       %v104 = array_len (:arr101)
@@ -437,10 +405,6 @@ function n2_alive:
   loop_end [axis=:rows]
 function keep_alive:
   %v92 = load_input [key=:rows]
-  %arr114 = array_init
-  %arr125 = array_init
-  %arr136 = array_init
-  %arr139 = array_init
   %arr144 = array_init
   %rows_el93 = loop_start (:v92) [axis=:rows, index=:rows_i94]
     %arr115 = array_init
@@ -474,10 +438,6 @@ function keep_alive:
       %v60 = select (:v112, :v111, :v113) [rows, col] -> integer
       array_push (:arr140, :v60)
     loop_end [axis=:col]
-    array_push (:arr139, :arr140)
-    array_push (:arr136, :arr137)
-    array_push (:arr125, :arr126)
-    array_push (:arr114, :arr115)
     %arr145 = array_init
     %col_el116 = loop_start (:rows_el93) [axis=:col, index=:col_i117]
       %v118 = array_len (:arr115)
@@ -520,10 +480,6 @@ function keep_alive:
   loop_end [axis=:rows]
 function next_alive:
   %v137 = load_input [key=:rows]
-  %arr159 = array_init
-  %arr170 = array_init
-  %arr181 = array_init
-  %arr184 = array_init
   %arr190 = array_init
   %rows_el138 = loop_start (:v137) [axis=:rows, index=:rows_i139]
     %arr160 = array_init
@@ -557,10 +513,6 @@ function next_alive:
       %v63 = select (:v157, :v156, :v158) [rows, col] -> integer
       array_push (:arr185, :v63)
     loop_end [axis=:col]
-    array_push (:arr184, :arr185)
-    array_push (:arr181, :arr182)
-    array_push (:arr170, :arr171)
-    array_push (:arr159, :arr160)
     %arr191 = array_init
     %col_el161 = loop_start (:rows_el138) [axis=:col, index=:col_i162]
       %v163 = array_len (:arr160)
@@ -606,10 +558,6 @@ function next_alive:
   loop_end [axis=:rows]
 function next_state:
   %v144 = load_input [key=:rows]
-  %arr166 = array_init
-  %arr177 = array_init
-  %arr188 = array_init
-  %arr191 = array_init
   %arr198 = array_init
   %rows_el145 = loop_start (:v144) [axis=:rows, index=:rows_i146]
     %arr167 = array_init
@@ -643,10 +591,6 @@ function next_state:
       %v69 = select (:v164, :v163, :v165) [rows, col] -> integer
       array_push (:arr192, :v69)
     loop_end [axis=:col]
-    array_push (:arr191, :arr192)
-    array_push (:arr188, :arr189)
-    array_push (:arr177, :arr178)
-    array_push (:arr166, :arr167)
     %arr199 = array_init
     %col_el168 = loop_start (:rows_el145) [axis=:col, index=:col_i169]
       %v170 = array_len (:arr167)

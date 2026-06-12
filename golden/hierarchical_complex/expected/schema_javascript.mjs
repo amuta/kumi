@@ -87,8 +87,6 @@ export function _top_team(input) {
 
 export function _employee_bonus(input) {
   let t117 = input["regions"];
-  let arr137 = [];
-  let arr142 = [];
   let arr151 = [];
   for (let regions_i119 = 0; regions_i119 < t117.length; regions_i119++) {
     let regions_el118 = t117[regions_i119];
@@ -149,8 +147,6 @@ export function _employee_bonus(input) {
       arr138.push(arr139);
     }
     arr151.push(arr152);
-    arr142.push(arr143);
-    arr137.push(arr138);
   }
   return arr151;
 }

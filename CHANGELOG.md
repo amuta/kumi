@@ -1,5 +1,9 @@
 ## [Unreleased]
 ### Added
+- LoopIR optimization pipeline (`Kumi::IR::Loop::Pipeline`), previously empty, now runs two passes on every compile:
+  - **LoopFusion** — merges sibling loops over the same axis and source into one traversal, hoisting independent scalar barriers above the loop. Stencil consumers (shifts, lengths, re-iteration of a partially built array) and accumulator reads correctly block fusion.
+  - **ArrayContraction** — replaces intermediate arrays that are filled and read back at the same index within one loop with the scalar that fills them, eliminating the materialization entirely.
+  Generated code for both Ruby and JavaScript backends shrinks ~2× on multi-statement schemas (e.g. `us_tax_2024`'s `fed_eff` drops from two loops plus an intermediate array to one fused loop). Streaming JS for simulation-style schemas reaches hand-written-kernel speed (orbital example, 100k records: 19.6ms → 2.6ms per frame vs 2.6ms hand-written with the same output contract).
 - Streaming JS exports accept typed-array targets (`Float32Array`, `Float64Array`, …) for scalar array outputs, written by cursor with a `RangeError` when the buffer is too small.
 - Streaming JS exports now reuse the target's existing storage end to end: record elements and nested row arrays are mutated in place instead of reallocated, and intermediate scratch arrays persist at module scope. Per-frame allocation for array outputs drops to zero in steady state (~2–5× faster frames, ~40× less GC time on simulation-style schemas).
 

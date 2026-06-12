@@ -41,7 +41,10 @@ export function _row_scale2(input) {
 
 export function _elem_affine(input) {
   let t47 = input["batch"];
-  let arr70 = [];
+  let t59 = input["global_offset"];
+  let t60 = 1.0;
+  let t44 = t59 + t60;
+  let arr76 = [];
   for (let batch_i49 = 0; batch_i49 < t47.length; batch_i49++) {
     let batch_el48 = t47[batch_i49];
     let t50 = batch_el48["row"];
@@ -61,17 +64,9 @@ export function _elem_affine(input) {
       }
       arr71.push(arr72);
     }
-    arr70.push(arr71);
-  }
-  let t59 = input["global_offset"];
-  let t60 = 1.0;
-  let t44 = t59 + t60;
-  let arr76 = [];
-  for (let batch_i62 = 0; batch_i62 < t47.length; batch_i62++) {
-    let batch_el61 = t47[batch_i62];
-    let t63 = batch_el61["mean"];
+    let t63 = batch_el48["mean"];
     let t46 = t63 + t44;
-    let t64 = batch_el61["row"];
+    let t64 = batch_el48["row"];
     let arr77 = [];
     for (let row_i66 = 0; row_i66 < t64.length; row_i66++) {
       let row_el65 = t64[row_i66];
@@ -79,8 +74,7 @@ export function _elem_affine(input) {
       let arr78 = [];
       for (let col_i69 = 0; col_i69 < t67.length; col_i69++) {
         let col_el68 = t67[col_i69];
-        let t73 = arr70[batch_i62];
-        let t74 = t73[row_i66];
+        let t74 = arr71[row_i66];
         let t75 = t74[col_i69];
         let t30 = t75 + t46;
         arr78.push(t30);
@@ -94,7 +88,10 @@ export function _elem_affine(input) {
 
 export function _row_sum_affine(input) {
   let t60 = input["batch"];
-  let arr83 = [];
+  let t72 = input["global_offset"];
+  let t73 = 1.0;
+  let t55 = t72 + t73;
+  let arr90 = [];
   for (let batch_i62 = 0; batch_i62 < t60.length; batch_i62++) {
     let batch_el61 = t60[batch_i62];
     let t63 = batch_el61["row"];
@@ -114,17 +111,9 @@ export function _row_sum_affine(input) {
       }
       arr84.push(arr85);
     }
-    arr83.push(arr84);
-  }
-  let t72 = input["global_offset"];
-  let t73 = 1.0;
-  let t55 = t72 + t73;
-  let arr90 = [];
-  for (let batch_i75 = 0; batch_i75 < t60.length; batch_i75++) {
-    let batch_el74 = t60[batch_i75];
-    let t76 = batch_el74["mean"];
+    let t76 = batch_el61["mean"];
     let t57 = t76 + t55;
-    let t77 = batch_el74["row"];
+    let t77 = batch_el61["row"];
     let arr91 = [];
     for (let row_i79 = 0; row_i79 < t77.length; row_i79++) {
       let row_el78 = t77[row_i79];
@@ -132,8 +121,7 @@ export function _row_sum_affine(input) {
       let acc89 = 0.0;
       for (let col_i82 = 0; col_i82 < t80.length; col_i82++) {
         let col_el81 = t80[col_i82];
-        let t86 = arr83[batch_i75];
-        let t87 = t86[row_i79];
+        let t87 = arr84[row_i79];
         let t88 = t87[col_i82];
         let t59 = t88 + t57;
         acc89 += t59;
@@ -148,7 +136,10 @@ export function _row_sum_affine(input) {
 
 export function _batch_total_affine(input) {
   let t63 = input["batch"];
-  let arr86 = [];
+  let t75 = input["global_offset"];
+  let t76 = 1.0;
+  let t57 = t75 + t76;
+  let arr94 = [];
   for (let batch_i65 = 0; batch_i65 < t63.length; batch_i65++) {
     let batch_el64 = t63[batch_i65];
     let t66 = batch_el64["row"];
@@ -168,17 +159,9 @@ export function _batch_total_affine(input) {
       }
       arr87.push(arr88);
     }
-    arr86.push(arr87);
-  }
-  let t75 = input["global_offset"];
-  let t76 = 1.0;
-  let t57 = t75 + t76;
-  let arr94 = [];
-  for (let batch_i78 = 0; batch_i78 < t63.length; batch_i78++) {
-    let batch_el77 = t63[batch_i78];
-    let t79 = batch_el77["mean"];
+    let t79 = batch_el64["mean"];
     let t59 = t79 + t57;
-    let t80 = batch_el77["row"];
+    let t80 = batch_el64["row"];
     let acc93 = 0.0;
     for (let row_i82 = 0; row_i82 < t80.length; row_i82++) {
       let row_el81 = t80[row_i82];
@@ -186,8 +169,7 @@ export function _batch_total_affine(input) {
       let acc92 = 0.0;
       for (let col_i85 = 0; col_i85 < t83.length; col_i85++) {
         let col_el84 = t83[col_i85];
-        let t89 = arr86[batch_i78];
-        let t90 = t89[row_i82];
+        let t90 = arr87[row_i82];
         let t91 = t90[col_i85];
         let t61 = t91 + t59;
         acc92 += t61;

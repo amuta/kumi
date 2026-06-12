@@ -238,7 +238,10 @@ export function _fed_marg(input) {
 
 export function _fed_eff(input) {
   let t124 = input["statuses"];
-  let arr144 = [];
+  let t140 = input["income"];
+  let t141 = 1.0;
+  let acc1 = Math.max(t140, t141);
+  let arr146 = [];
   for (let statuses_i126 = 0; statuses_i126 < t124.length; statuses_i126++) {
     let statuses_el125 = t124[statuses_i126];
     let t127 = input["income"];
@@ -265,16 +268,7 @@ export function _fed_eff(input) {
       acc139 += t122;
     }
     let t123 = acc139;
-    arr144.push(t123);
-  }
-  let t140 = input["income"];
-  let t141 = 1.0;
-  let acc1 = Math.max(t140, t141);
-  let arr146 = [];
-  for (let statuses_i143 = 0; statuses_i143 < t124.length; statuses_i143++) {
-    let statuses_el142 = t124[statuses_i143];
-    let t145 = arr144[statuses_i143];
-    let t75 = t145 / acc1;
+    let t75 = t123 / acc1;
     arr146.push(t75);
   }
   return arr146;
@@ -369,7 +363,9 @@ export function _fica_eff(input) {
   let t122 = t138 * t141;
   let t123 = t119 + t122;
   let t142 = input["statuses"];
-  let arr152 = [];
+  let t149 = 1.0;
+  let acc2 = Math.max(t138, t149);
+  let arr154 = [];
   for (let statuses_i144 = 0; statuses_i144 < t142.length; statuses_i144++) {
     let statuses_el143 = t142[statuses_i144];
     let t145 = input["income"];
@@ -380,15 +376,7 @@ export function _fica_eff(input) {
     let t148 = 0.009;
     let t136 = acc1 * t148;
     let t137 = t123 + t136;
-    arr152.push(t137);
-  }
-  let t149 = 1.0;
-  let acc2 = Math.max(t138, t149);
-  let arr154 = [];
-  for (let statuses_i151 = 0; statuses_i151 < t142.length; statuses_i151++) {
-    let statuses_el150 = t142[statuses_i151];
-    let t153 = arr152[statuses_i151];
-    let t113 = t153 / acc2;
+    let t113 = t137 / acc2;
     arr154.push(t113);
   }
   return arr154;
@@ -396,7 +384,19 @@ export function _fica_eff(input) {
 
 export function _total_tax(input) {
   let t201 = input["statuses"];
-  let arr227 = [];
+  let t217 = input["income"];
+  let t218 = 168600.0;
+  let acc1 = Math.min(t217, t218);
+  let t219 = 0.062;
+  let t176 = acc1 * t219;
+  let t220 = 0.0145;
+  let t179 = t217 * t220;
+  let t180 = t176 + t179;
+  let t229 = input["state_rate"];
+  let t197 = t217 * t229;
+  let t234 = input["local_rate"];
+  let t200 = t217 * t234;
+  let arr239 = [];
   for (let statuses_i203 = 0; statuses_i203 < t201.length; statuses_i203++) {
     let statuses_el202 = t201[statuses_i203];
     let t204 = input["income"];
@@ -423,47 +423,17 @@ export function _total_tax(input) {
       acc216 += t169;
     }
     let t170 = acc216;
-    arr227.push(t170);
-  }
-  let t217 = input["income"];
-  let t218 = 168600.0;
-  let acc1 = Math.min(t217, t218);
-  let t219 = 0.062;
-  let t176 = acc1 * t219;
-  let t220 = 0.0145;
-  let t179 = t217 * t220;
-  let t180 = t176 + t179;
-  let arr232 = [];
-  for (let statuses_i222 = 0; statuses_i222 < t201.length; statuses_i222++) {
-    let statuses_el221 = t201[statuses_i222];
     let t223 = input["income"];
-    let t224 = statuses_el221["addl_threshold"];
+    let t224 = statuses_el202["addl_threshold"];
     let t187 = t223 - t224;
     let t225 = 0;
     let acc2 = Math.max(t187, t225);
     let t226 = 0.009;
     let t193 = acc2 * t226;
     let t194 = t180 + t193;
-    let t228 = arr227[statuses_i222];
-    let t116 = t228 + t194;
-    arr232.push(t116);
-  }
-  let t229 = input["state_rate"];
-  let t197 = t217 * t229;
-  let arr237 = [];
-  for (let statuses_i231 = 0; statuses_i231 < t201.length; statuses_i231++) {
-    let statuses_el230 = t201[statuses_i231];
-    let t233 = arr232[statuses_i231];
-    let t119 = t233 + t197;
-    arr237.push(t119);
-  }
-  let t234 = input["local_rate"];
-  let t200 = t217 * t234;
-  let arr239 = [];
-  for (let statuses_i236 = 0; statuses_i236 < t201.length; statuses_i236++) {
-    let statuses_el235 = t201[statuses_i236];
-    let t238 = arr237[statuses_i236];
-    let t122 = t238 + t200;
+    let t116 = t170 + t194;
+    let t119 = t116 + t197;
+    let t122 = t119 + t200;
     arr239.push(t122);
   }
   return arr239;
@@ -471,7 +441,21 @@ export function _total_tax(input) {
 
 export function _total_eff(input) {
   let t213 = input["statuses"];
-  let arr239 = [];
+  let t229 = input["income"];
+  let t230 = 168600.0;
+  let acc1 = Math.min(t229, t230);
+  let t231 = 0.062;
+  let t183 = acc1 * t231;
+  let t232 = 0.0145;
+  let t186 = t229 * t232;
+  let t187 = t183 + t186;
+  let t241 = input["state_rate"];
+  let t205 = t229 * t241;
+  let t246 = input["local_rate"];
+  let t210 = t229 * t246;
+  let t251 = 1.0;
+  let acc3 = Math.max(t229, t251);
+  let arr256 = [];
   for (let statuses_i215 = 0; statuses_i215 < t213.length; statuses_i215++) {
     let statuses_el214 = t213[statuses_i215];
     let t216 = input["income"];
@@ -498,56 +482,18 @@ export function _total_eff(input) {
       acc228 += t176;
     }
     let t177 = acc228;
-    arr239.push(t177);
-  }
-  let t229 = input["income"];
-  let t230 = 168600.0;
-  let acc1 = Math.min(t229, t230);
-  let t231 = 0.062;
-  let t183 = acc1 * t231;
-  let t232 = 0.0145;
-  let t186 = t229 * t232;
-  let t187 = t183 + t186;
-  let arr244 = [];
-  for (let statuses_i234 = 0; statuses_i234 < t213.length; statuses_i234++) {
-    let statuses_el233 = t213[statuses_i234];
     let t235 = input["income"];
-    let t236 = statuses_el233["addl_threshold"];
+    let t236 = statuses_el214["addl_threshold"];
     let t194 = t235 - t236;
     let t237 = 0;
     let acc2 = Math.max(t194, t237);
     let t238 = 0.009;
     let t200 = acc2 * t238;
     let t201 = t187 + t200;
-    let t240 = arr239[statuses_i234];
-    let t202 = t240 + t201;
-    arr244.push(t202);
-  }
-  let t241 = input["state_rate"];
-  let t205 = t229 * t241;
-  let arr249 = [];
-  for (let statuses_i243 = 0; statuses_i243 < t213.length; statuses_i243++) {
-    let statuses_el242 = t213[statuses_i243];
-    let t245 = arr244[statuses_i243];
-    let t207 = t245 + t205;
-    arr249.push(t207);
-  }
-  let t246 = input["local_rate"];
-  let t210 = t229 * t246;
-  let arr254 = [];
-  for (let statuses_i248 = 0; statuses_i248 < t213.length; statuses_i248++) {
-    let statuses_el247 = t213[statuses_i248];
-    let t250 = arr249[statuses_i248];
-    let t212 = t250 + t210;
-    arr254.push(t212);
-  }
-  let t251 = 1.0;
-  let acc3 = Math.max(t229, t251);
-  let arr256 = [];
-  for (let statuses_i253 = 0; statuses_i253 < t213.length; statuses_i253++) {
-    let statuses_el252 = t213[statuses_i253];
-    let t255 = arr254[statuses_i253];
-    let t129 = t255 / acc3;
+    let t202 = t177 + t201;
+    let t207 = t202 + t205;
+    let t212 = t207 + t210;
+    let t129 = t212 / acc3;
     arr256.push(t129);
   }
   return arr256;
@@ -555,7 +501,19 @@ export function _total_eff(input) {
 
 export function _after_tax(input) {
   let t217 = input["statuses"];
-  let arr243 = [];
+  let t233 = input["income"];
+  let t234 = 168600.0;
+  let acc1 = Math.min(t233, t234);
+  let t235 = 0.062;
+  let t187 = acc1 * t235;
+  let t236 = 0.0145;
+  let t190 = t233 * t236;
+  let t191 = t187 + t190;
+  let t245 = input["state_rate"];
+  let t209 = t233 * t245;
+  let t250 = input["local_rate"];
+  let t214 = t233 * t250;
+  let arr256 = [];
   for (let statuses_i219 = 0; statuses_i219 < t217.length; statuses_i219++) {
     let statuses_el218 = t217[statuses_i219];
     let t220 = input["income"];
@@ -582,47 +540,17 @@ export function _after_tax(input) {
       acc232 += t180;
     }
     let t181 = acc232;
-    arr243.push(t181);
-  }
-  let t233 = input["income"];
-  let t234 = 168600.0;
-  let acc1 = Math.min(t233, t234);
-  let t235 = 0.062;
-  let t187 = acc1 * t235;
-  let t236 = 0.0145;
-  let t190 = t233 * t236;
-  let t191 = t187 + t190;
-  let arr248 = [];
-  for (let statuses_i238 = 0; statuses_i238 < t217.length; statuses_i238++) {
-    let statuses_el237 = t217[statuses_i238];
     let t239 = input["income"];
-    let t240 = statuses_el237["addl_threshold"];
+    let t240 = statuses_el218["addl_threshold"];
     let t198 = t239 - t240;
     let t241 = 0;
     let acc2 = Math.max(t198, t241);
     let t242 = 0.009;
     let t204 = acc2 * t242;
     let t205 = t191 + t204;
-    let t244 = arr243[statuses_i238];
-    let t206 = t244 + t205;
-    arr248.push(t206);
-  }
-  let t245 = input["state_rate"];
-  let t209 = t233 * t245;
-  let arr253 = [];
-  for (let statuses_i247 = 0; statuses_i247 < t217.length; statuses_i247++) {
-    let statuses_el246 = t217[statuses_i247];
-    let t249 = arr248[statuses_i247];
-    let t211 = t249 + t209;
-    arr253.push(t211);
-  }
-  let t250 = input["local_rate"];
-  let t214 = t233 * t250;
-  let arr256 = [];
-  for (let statuses_i252 = 0; statuses_i252 < t217.length; statuses_i252++) {
-    let statuses_el251 = t217[statuses_i252];
-    let t254 = arr253[statuses_i252];
-    let t216 = t254 + t214;
+    let t206 = t181 + t205;
+    let t211 = t206 + t209;
+    let t216 = t211 + t214;
     let t255 = input["income"];
     let t133 = t255 - t216;
     arr256.push(t133);
@@ -632,7 +560,19 @@ export function _after_tax(input) {
 
 export function _take_home(input) {
   let t224 = input["statuses"];
-  let arr250 = [];
+  let t240 = input["income"];
+  let t241 = 168600.0;
+  let acc1 = Math.min(t240, t241);
+  let t242 = 0.062;
+  let t193 = acc1 * t242;
+  let t243 = 0.0145;
+  let t196 = t240 * t243;
+  let t197 = t193 + t196;
+  let t252 = input["state_rate"];
+  let t215 = t240 * t252;
+  let t257 = input["local_rate"];
+  let t220 = t240 * t257;
+  let arr264 = [];
   for (let statuses_i226 = 0; statuses_i226 < t224.length; statuses_i226++) {
     let statuses_el225 = t224[statuses_i226];
     let t227 = input["income"];
@@ -659,47 +599,17 @@ export function _take_home(input) {
       acc239 += t186;
     }
     let t187 = acc239;
-    arr250.push(t187);
-  }
-  let t240 = input["income"];
-  let t241 = 168600.0;
-  let acc1 = Math.min(t240, t241);
-  let t242 = 0.062;
-  let t193 = acc1 * t242;
-  let t243 = 0.0145;
-  let t196 = t240 * t243;
-  let t197 = t193 + t196;
-  let arr255 = [];
-  for (let statuses_i245 = 0; statuses_i245 < t224.length; statuses_i245++) {
-    let statuses_el244 = t224[statuses_i245];
     let t246 = input["income"];
-    let t247 = statuses_el244["addl_threshold"];
+    let t247 = statuses_el225["addl_threshold"];
     let t204 = t246 - t247;
     let t248 = 0;
     let acc2 = Math.max(t204, t248);
     let t249 = 0.009;
     let t210 = acc2 * t249;
     let t211 = t197 + t210;
-    let t251 = arr250[statuses_i245];
-    let t212 = t251 + t211;
-    arr255.push(t212);
-  }
-  let t252 = input["state_rate"];
-  let t215 = t240 * t252;
-  let arr260 = [];
-  for (let statuses_i254 = 0; statuses_i254 < t224.length; statuses_i254++) {
-    let statuses_el253 = t224[statuses_i254];
-    let t256 = arr255[statuses_i254];
-    let t217 = t256 + t215;
-    arr260.push(t217);
-  }
-  let t257 = input["local_rate"];
-  let t220 = t240 * t257;
-  let arr264 = [];
-  for (let statuses_i259 = 0; statuses_i259 < t224.length; statuses_i259++) {
-    let statuses_el258 = t224[statuses_i259];
-    let t261 = arr260[statuses_i259];
-    let t222 = t261 + t220;
+    let t212 = t187 + t211;
+    let t217 = t212 + t215;
+    let t222 = t217 + t220;
     let t262 = input["income"];
     let t223 = t262 - t222;
     let t263 = input["retirement_contrib"];
@@ -711,8 +621,23 @@ export function _take_home(input) {
 
 export function _summary(input) {
   let t725 = input["statuses"];
-  let arr746 = [];
-  let arr748 = [];
+  let t742 = input["income"];
+  let t743 = 1.0;
+  let acc3 = Math.max(t742, t743);
+  let t750 = 168600.0;
+  let acc5 = Math.min(t742, t750);
+  let t751 = 0.062;
+  let t323 = acc5 * t751;
+  let t752 = 0.0145;
+  let t326 = t742 * t752;
+  let t327 = t323 + t326;
+  let t759 = input["state_rate"];
+  let t374 = t742 * t759;
+  let t151 = { "marginal": t759, "effective": t759, "tax": t374 };
+  let t760 = input["local_rate"];
+  let t377 = t742 * t760;
+  let t155 = { "marginal": t760, "effective": t760, "tax": t377 };
+  let arr773 = [];
   for (let statuses_i727 = 0; statuses_i727 < t725.length; statuses_i727++) {
     let statuses_el726 = t725[statuses_i727];
     let t728 = input["income"];
@@ -745,58 +670,20 @@ export function _summary(input) {
       acc741 += t262;
     }
     let t215 = acc740;
-    arr748.push(t215);
     let t263 = acc741;
-    arr746.push(t263);
-  }
-  let t742 = input["income"];
-  let t743 = 1.0;
-  let acc3 = Math.max(t742, t743);
-  let arr769 = [];
-  for (let statuses_i745 = 0; statuses_i745 < t725.length; statuses_i745++) {
-    let statuses_el744 = t725[statuses_i745];
-    let t747 = arr746[statuses_i745];
-    let t269 = t747 / acc3;
-    let t749 = arr748[statuses_i745];
-    let t144 = { "marginal": t749, "effective": t269, "tax": t747 };
-    arr769.push(t144);
-  }
-  let t750 = 168600.0;
-  let acc5 = Math.min(t742, t750);
-  let t751 = 0.062;
-  let t323 = acc5 * t751;
-  let t752 = 0.0145;
-  let t326 = t742 * t752;
-  let t327 = t323 + t326;
-  let arr764 = [];
-  let arr771 = [];
-  for (let statuses_i754 = 0; statuses_i754 < t725.length; statuses_i754++) {
-    let statuses_el753 = t725[statuses_i754];
+    let t269 = t263 / acc3;
+    let t144 = { "marginal": t215, "effective": t269, "tax": t263 };
     let t755 = input["income"];
-    let t756 = statuses_el753["addl_threshold"];
+    let t756 = statuses_el726["addl_threshold"];
     let t334 = t755 - t756;
     let t757 = 0;
     let acc6 = Math.max(t334, t757);
     let t758 = 0.009;
     let t340 = acc6 * t758;
     let t341 = t327 + t340;
-    arr764.push(t341);
     let t347 = t341 / acc3;
     let t147 = { "effective": t347, "tax": t341 };
-    arr771.push(t147);
-  }
-  let t759 = input["state_rate"];
-  let t374 = t742 * t759;
-  let t151 = { "marginal": t759, "effective": t759, "tax": t374 };
-  let t760 = input["local_rate"];
-  let t377 = t742 * t760;
-  let t155 = { "marginal": t760, "effective": t760, "tax": t377 };
-  let arr773 = [];
-  for (let statuses_i762 = 0; statuses_i762 < t725.length; statuses_i762++) {
-    let statuses_el761 = t725[statuses_i762];
-    let t763 = arr746[statuses_i762];
-    let t765 = arr764[statuses_i762];
-    let t450 = t763 + t765;
+    let t450 = t263 + t341;
     let t455 = t450 + t374;
     let t460 = t455 + t377;
     let t466 = t460 / acc3;
@@ -805,10 +692,8 @@ export function _summary(input) {
     let t635 = t766 - t460;
     let t767 = input["retirement_contrib"];
     let t724 = t635 - t767;
-    let t768 = statuses_el761["name"];
-    let t770 = arr769[statuses_i762];
-    let t772 = arr771[statuses_i762];
-    let t162 = { "filing_status": t768, "federal": t770, "fica": t772, "state": t151, "local": t155, "total": t158, "after_tax": t635, "retirement_contrib": t767, "take_home": t724 };
+    let t768 = statuses_el726["name"];
+    let t162 = { "filing_status": t768, "federal": t144, "fica": t147, "state": t151, "local": t155, "total": t158, "after_tax": t635, "retirement_contrib": t767, "take_home": t724 };
     arr773.push(t162);
   }
   return arr773;
