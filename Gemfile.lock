@@ -19,7 +19,7 @@ GEM
     docile (1.4.1)
     erb (6.0.4)
     json (2.15.1)
-    kumi-parser (0.0.31)
+    kumi-parser (0.0.32)
       parslet (~> 2.0)
       zeitwerk (~> 2.6)
     language_server-protocol (3.17.0.5)
@@ -113,7 +113,7 @@ DEPENDENCIES
   bigdecimal (~> 3.1.0)
   csv
   kumi!
-  kumi-parser (= 0.0.31)
+  kumi-parser (= 0.0.32)
   mutex_m (~> 0.3.0)
   parslet (~> 2.0)
   pry (~> 0.15.2)

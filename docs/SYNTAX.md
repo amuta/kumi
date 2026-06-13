@@ -158,6 +158,22 @@ Broadcasting (a lower-rank value lines up against the new grid) and reduction
 is just the one piece that lets an array meet a second, independent copy of
 itself.
 
+**Performance tip — share the nest.** Each output value compiles to its own
+loop, so two separate `value`s that each sum over a `cross` run the O(n²) nest
+*twice*. When you need several pairwise results from the same grid (e.g. both
+force components), return them from **one** value as an object so they share a
+single nest:
+
+```kumi
+# Two passes (avoid for large n):
+value :ax, fn(:sum, mj * dx * inv_r3)
+value :ay, fn(:sum, mj * dy * inv_r3)
+
+# One fused pass (preferred):
+value :accel, { ax: fn(:sum, mj * dx * inv_r3),
+                ay: fn(:sum, mj * dy * inv_r3) }
+```
+
 ### Common Patterns
 
 **Filter and aggregate:**

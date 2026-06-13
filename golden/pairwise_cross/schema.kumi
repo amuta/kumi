@@ -10,8 +10,8 @@ schema do
   end
 
   let :xi, input.bodies.body.x
-  let :xj, fn(:cross, input.bodies.body.x)
-  let :mj, fn(:cross, input.bodies.body.m)
+  let :xj, cross(input.bodies.body.x)
+  let :mj, cross(input.bodies.body.m)
   let :dx, xj - xi
   let :dist, fn(:abs, dx) + input.eps
   value :accel, fn(:sum, mj * dx / (dist * dist * dist))
