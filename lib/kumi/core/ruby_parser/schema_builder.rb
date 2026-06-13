@@ -8,7 +8,7 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll import codegen].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross import codegen].freeze
 
         def initialize(context)
           @context = context
@@ -117,6 +117,11 @@ module Kumi
         def shift(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
           Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        def cross(*args, **kwargs)
+          args_expr = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(:cross, args_expr, kwargs, loc: @context.current_location)
         end
 
         def method_missing(method_name, *args, &)

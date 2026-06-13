@@ -1,5 +1,10 @@
 # Pairwise / cross-axis design notes
 
+> **Status: implemented.** `cross` ships as a DSL primitive + `axis_cross` IR op.
+> Verified end-to-end (Ruby + JS, bit-identical) on 1-D N-body; golden case
+> `golden/pairwise_cross`. The notes below describe the design as built.
+
+
 ## What's already possible (verified)
 
 A **decomposable** pairwise reduction — one that factors as

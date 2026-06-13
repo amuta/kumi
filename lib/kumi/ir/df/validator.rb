@@ -19,6 +19,7 @@ module Kumi
           axis_index
           import_call
           axis_shift
+          axis_cross
           axis_broadcast
         ].freeze
 

@@ -32,6 +32,9 @@ module Kumi
               when :axis_shift
                 Ops::AxisShift.new(result:, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy],
                                    axes:, dtype:, metadata:)
+              when :axis_cross
+                Ops::AxisCross.new(result:, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
+                                   axes:, dtype:, metadata:)
               when :axis_index
                 Ops::AxisIndex.new(result:, axis: attrs[:axis], axes:, dtype:, metadata:)
               when :reduce

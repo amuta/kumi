@@ -1,0 +1,62 @@
+(Root
+  inputs: [
+    (InputDeclaration :bodies :array :body
+      [
+        (InputDeclaration :body :hash
+          [
+            (InputDeclaration :x :float)
+            (InputDeclaration :m :float)
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :eps :float)
+  ]
+  values: [
+    (ValueDeclaration :xi
+      (InputElementReference bodies.body.x)
+    )
+    (ValueDeclaration :xj
+      (CallExpression :cross
+        (InputElementReference bodies.body.x)
+      )
+    )
+    (ValueDeclaration :mj
+      (CallExpression :cross
+        (InputElementReference bodies.body.m)
+      )
+    )
+    (ValueDeclaration :dx
+      (CallExpression :subtract
+        (DeclarationReference :xj)
+        (DeclarationReference :xi)
+      )
+    )
+    (ValueDeclaration :dist
+      (CallExpression :add
+        (CallExpression :abs
+          (DeclarationReference :dx)
+        )
+        (InputReference :eps)
+      )
+    )
+    (ValueDeclaration :accel
+      (CallExpression :sum
+        (CallExpression :divide
+          (CallExpression :multiply
+            (DeclarationReference :mj)
+            (DeclarationReference :dx)
+          )
+          (CallExpression :multiply
+            (CallExpression :multiply
+              (DeclarationReference :dist)
+              (DeclarationReference :dist)
+            )
+            (DeclarationReference :dist)
+          )
+        )
+      )
+    )
+  ]
+  traits: []
+)

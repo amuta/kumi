@@ -84,6 +84,25 @@ module Kumi
           end
         end
 
+        class AxisCross < Node
+          opcode :axis_cross
+
+          def initialize(source:, axis:, source_axis:, **kwargs)
+            attrs = {
+              axis: axis.to_sym,
+              source_axis: source_axis.to_sym
+            }
+            axes = kwargs[:axes] || (extract_axes(source) + [attrs[:axis]])
+            super(inputs: [source], attributes: attrs, axes:, **kwargs)
+          end
+
+          private
+
+          def extract_axes(source)
+            source.respond_to?(:axes) ? source.axes : []
+          end
+        end
+
         class AxisIndex < Node
           opcode :axis_index
 

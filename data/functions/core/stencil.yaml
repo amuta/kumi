@@ -9,6 +9,22 @@ functions:
       policy: wrap          # wrap|clamp
       axis_offset: 0
 
+  # Re-exposes the source array under a fresh, independent axis (the
+  # broadcast-dual of a reduction). Lowered specially: it introduces a new
+  # innermost loop over the same carrier so an array can be combined with
+  # itself (e.g. all-pairs / N-body). Axis stamping lives in the dimensional
+  # analyzer; this entry exists so resolution/validation treat cross as a
+  # known unary call.
+  - id: cross
+    kind: elementwise
+    params: [{ name: source }]
+    dtype:
+      rule: same_as
+      param: source
+    constraint_semantics:
+      domain_effect: NONE
+      pure_combiner: false
+
   - id: shift
     kind: elementwise
     params: [{ name: source }, { name: offset }]

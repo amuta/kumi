@@ -1,0 +1,46 @@
+(SNAST
+  (VALUE xi
+    (InputRef bodies.body.x key_chain=[]) :: [bodies] -> float
+  ) :: [bodies] -> float
+  (VALUE xj
+    (Call :cross
+      (InputRef bodies.body.x key_chain=[]) :: [bodies] -> float
+    ) :: [bodies, bodies__x] -> float
+  ) :: [bodies, bodies__x] -> float
+  (VALUE mj
+    (Call :cross
+      (InputRef bodies.body.m key_chain=[]) :: [bodies] -> float
+    ) :: [bodies, bodies__x] -> float
+  ) :: [bodies, bodies__x] -> float
+  (VALUE dx
+    (Call :core.sub
+      (Ref xj) :: [bodies, bodies__x] -> float
+      (Ref xi) :: [bodies] -> float
+    ) :: [bodies, bodies__x] -> float
+  ) :: [bodies, bodies__x] -> float
+  (VALUE dist
+    (Call :core.add
+      (Call :core.abs
+        (Ref dx) :: [bodies, bodies__x] -> float
+      ) :: [bodies, bodies__x] -> float
+      (InputRef eps key_chain=[]) :: [] -> float
+    ) :: [bodies, bodies__x] -> float
+  ) :: [bodies, bodies__x] -> float
+  (VALUE accel
+    (Reduce :agg.sum over [bodies__x]
+      (Call :core.div
+        (Call :core.mul:numeric
+          (Ref mj) :: [bodies, bodies__x] -> float
+          (Ref dx) :: [bodies, bodies__x] -> float
+        ) :: [bodies, bodies__x] -> float
+        (Call :core.mul:numeric
+          (Call :core.mul:numeric
+            (Ref dist) :: [bodies, bodies__x] -> float
+            (Ref dist) :: [bodies, bodies__x] -> float
+          ) :: [bodies, bodies__x] -> float
+          (Ref dist) :: [bodies, bodies__x] -> float
+        ) :: [bodies, bodies__x] -> float
+      ) :: [bodies, bodies__x] -> float
+    ) :: [bodies] -> float
+  ) :: [bodies] -> float
+)

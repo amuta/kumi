@@ -77,6 +77,9 @@ module Kumi
               when :axis_shift
                 Ops::AxisShift.new(result: result, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset],
                                    policy: attrs[:policy], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
+              when :axis_cross
+                Ops::AxisCross.new(result: result, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
+                                   axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               when :axis_broadcast
                 Ops::AxisBroadcast.new(result: result, value: inputs.first, from_axes: attrs[:from_axes],
                                        to_axes: attrs[:to_axes] || metadata[:axes] || instr.axes, axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)

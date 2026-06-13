@@ -12,6 +12,7 @@ module Kumi
           select
           axis_broadcast
           axis_shift
+          axis_cross
           axis_index
           reduce
           make_object

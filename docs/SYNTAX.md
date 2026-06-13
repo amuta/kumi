@@ -46,12 +46,11 @@ schema do
 end
 ```
 
-`codegen streaming: true` keeps normal JavaScript exports and adds `_name_stream(input, target = {})` exports for each output. For direct array outputs, pass an array target to reuse it in-place, or pass an object target to receive `target["name"]`.
+`codegen streaming: true` keeps normal JavaScript exports and adds `_name_stream(input, target = {})` exports for each output. Streaming exports use an output object target: `_name_stream(input, target)` writes and returns `target["name"]`.
 
 Streaming exports own the target's storage: elements (including record objects and nested row arrays) are mutated in place across calls and the array is truncated to the new length, so steady-state calls allocate nothing. Consequences:
 
-- **Feedback loops must double-buffer.** Feeding the target back as an input array throws a `TypeError` — alternate between two targets instead.
-- **Scalar array outputs accept typed-array targets** (`Float32Array`, `Float64Array`, …). The buffer is filled by cursor; a buffer smaller than the output throws a `RangeError`. Record outputs require a plain `Array` target (`TypeError` otherwise).
+- **Feedback loops must double-buffer.** Alternate between two output target objects before feeding streamed arrays back as inputs.
 - Don't hold references to elements across calls expecting snapshots — copy what you need to keep.
 
 ### Operators
@@ -82,6 +81,8 @@ Streaming exports own the target's storage: elements (including record objects a
 **Arithmetic:**
 - `fn(:abs, x)` — Absolute value
 - `fn(:clamp, x, lo, hi)` — Clamp to range
+- `fn(:sqrt, x)` — Square root (returns float)
+- `fn(:sin, x)` / `fn(:cos, x)` — Sine / cosine, radians (returns float)
 
 **Type Conversion:**
 - `fn(:to_decimal, x)` — Convert to decimal
@@ -130,6 +131,32 @@ roll(expr, offset, policy: :wrap)
 # Index access
 index(:name)  # Get index value (requires array declared with index: :name)
 ```
+
+### All-Pairs (`cross`)
+```kumi
+# cross — re-expose an array under a fresh, independent axis so it can be
+# combined with itself. Turns a 1-D array into a 2-D (i × j) grid; a reduce
+# then collapses the new axis back. This is what makes all-pairs / N-body math
+# expressible. Cost is O(n²), so reach for it only when you truly need pairs.
+cross(expr)        # Ruby DSL
+fn(:cross, expr)   # portable form (text + Ruby)
+```
+
+```kumi
+# Example: 1-D gravitational acceleration (sum over all other bodies)
+let :xi, input.bodies.body.x          # axis [:bodies]      — body i
+let :xj, cross(input.bodies.body.x)   # axis [:bodies, :bodies__x] — body j
+let :mj, cross(input.bodies.body.m)
+let :dx, xj - xi                      # i × j grid of differences
+let :dist, fn(:abs, dx) + input.eps
+value :accel, fn(:sum, mj * dx / (dist * dist * dist))  # reduce j → per-body i
+```
+
+`cross` introduces a new innermost axis named `<source>__x` (e.g. `:bodies__x`).
+Broadcasting (a lower-rank value lines up against the new grid) and reduction
+(`fn(:sum, …)` collapses the innermost axis) work exactly as elsewhere — `cross`
+is just the one piece that lets an array meet a second, independent copy of
+itself.
 
 ### Common Patterns
 

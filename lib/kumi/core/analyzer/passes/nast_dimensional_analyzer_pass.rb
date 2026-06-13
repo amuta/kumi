@@ -7,7 +7,7 @@ module Kumi
         class NASTDimensionalAnalyzerPass < PassBase
           reads :nast_module, :input_table, :registry
           optional_reads :imported_schemas
-          writes :metadata_table, :declaration_table
+          writes :metadata_table, :declaration_table, :cross_axes
           def run(errors)
             nast_module  = get_state(:nast_module, required: true)
             @input_table = get_state(:input_table, required: true)
@@ -17,6 +17,7 @@ module Kumi
 
             @metadata_table    = {}
             @declaration_table = {}
+            @cross_axes        = {}
 
             debug "Analyzing NAST module with #{nast_module.decls.size} declarations"
             debug "Function specs loaded: #{@function_specs.keys.join(', ')}"
@@ -28,6 +29,7 @@ module Kumi
 
             state.with(:metadata_table, @metadata_table.freeze)
                  .with(:declaration_table, @declaration_table.freeze)
+                 .with(:cross_axes, @cross_axes.freeze)
           end
 
           private
@@ -67,6 +69,8 @@ module Kumi
           end
 
           def analyze_call_expression(call, errors)
+            return analyze_cross(call, errors) if call.fn == :cross
+
             # Step 1: Analyze arguments to get their types and scopes
             arg_metadata = call.args.map { |arg| analyze_expression(arg, errors) }
             arg_types    = arg_metadata.map { |m| m[:type] }
@@ -160,6 +164,40 @@ module Kumi
 
             debug "    Call #{function_spec.id}: (#{arg_types.join(', ')}) -> #{result_type} in #{result_scope.inspect}"
             { type: result_type, scope: result_scope }
+          end
+
+          # `cross(v)` re-exposes v's carrier under a fresh, independent axis so
+          # the same array can be combined with itself into a rank-2 (A x A')
+          # intermediate. It is the broadcast-dual of a reduction: reduction drops
+          # the innermost axis token, cross appends a new one over the same
+          # carrier. A later `fn(:sum, ...)` over the rank-2 value reduces the new
+          # (innermost) axis back to A.
+          def analyze_cross(call, errors)
+            raise Kumi::Core::Errors::SemanticError, "cross expects exactly one argument" unless call.args.size == 1
+
+            inner = analyze_expression(call.args.first, errors)
+            src_scope = Array(inner[:scope])
+            if src_scope.empty?
+              raise Kumi::Core::Errors::SemanticError, "cross requires an array argument (got a scalar)"
+            end
+
+            parent_axis = src_scope.last
+            child_axis  = :"#{parent_axis}__x"
+            result_scope = src_scope + [child_axis]
+
+            @cross_axes[child_axis] = parent_axis
+
+            @metadata_table[node_id(call)] = {
+              kind: :cross,
+              cross_axis: child_axis,
+              source_axis: parent_axis,
+              result_type: inner[:type],
+              result_scope: result_scope,
+              arg_scopes: [src_scope]
+            }.freeze
+
+            debug "    Cross: #{src_scope.inspect} -> #{result_scope.inspect} (new axis #{child_axis})"
+            { type: inner[:type], scope: result_scope }
           end
 
           def analyze_import_call(call, errors)

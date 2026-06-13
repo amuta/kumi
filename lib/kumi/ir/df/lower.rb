@@ -109,6 +109,7 @@ module Kumi
 
         def emit_call(node, builder)
           return emit_axis_shift(node, builder) if %i[shift roll].include?(node.fn)
+          return emit_axis_cross(node, builder) if node.fn == :cross
 
           args = []
           node.args.each do |arg_node|
@@ -264,6 +265,26 @@ module Kumi
             offset: offset,
             policy: opts[:policy],
             axes: axes_of(node),
+            dtype: dtype_of(node),
+            metadata: {}
+          )
+        end
+
+        def emit_axis_cross(node, builder)
+          source_node = node.args.first
+          raise "cross requires a source" unless source_node
+
+          node_axes   = axes_of(node)
+          source_axes = axes_of(source_node)
+          new_axis    = node_axes.last
+          source_axis = source_axes.last
+
+          builder.axis_cross(
+            result: next_reg,
+            source: lower_expr(source_node, builder),
+            axis: new_axis,
+            source_axis: source_axis,
+            axes: node_axes,
             dtype: dtype_of(node),
             metadata: {}
           )

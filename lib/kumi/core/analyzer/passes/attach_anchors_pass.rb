@@ -6,12 +6,14 @@ module Kumi
       module Passes
         class AttachAnchorsPass < PassBase
           reads :snast_module
+          optional_reads :cross_axes
           writes :anchor_by_decl
 
           NAST = Kumi::Core::NAST
 
           def run(_errors)
             @snast = get_state(:snast_module, required: true)
+            @cross_axes = get_state(:cross_axes, required: false) || {}
 
             out = {}
             @snast.decls.each do |name, decl|
@@ -32,7 +34,11 @@ module Kumi
           private
 
           def pick_anchor_fqn(node, wanted_axes)
-            return nil if Array(wanted_axes).empty?
+            # A cross axis shares its parent's carrier, so the anchor only needs
+            # to cover the underlying (non-cross) axes; drop cross tokens before
+            # matching against input refs.
+            wanted_axes = Array(wanted_axes).reject { |ax| @cross_axes.key?(ax) }
+            return nil if wanted_axes.empty?
 
             found = nil
             walk = lambda do |x|

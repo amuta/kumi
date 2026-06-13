@@ -1,0 +1,18 @@
+schema do
+  input do
+    array :bodies, index: :body do
+      hash :body do
+        float :x
+        float :m
+      end
+    end
+    float :eps
+  end
+
+  let :xi, input.bodies.body.x
+  let :xj, fn(:cross, input.bodies.body.x)
+  let :mj, fn(:cross, input.bodies.body.m)
+  let :dx, xj - xi
+  let :dist, fn(:abs, dx) + input.eps
+  value :accel, fn(:sum, mj * dx / (dist * dist * dist))
+end
