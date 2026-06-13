@@ -125,4 +125,32 @@ RSpec.describe Kumi::IR::DF::Passes::ImportInlining do
     instrs = optimized.fetch_function(:foo).entry_block.instructions
     expect(instrs.map(&:opcode)).to eq([:import_call])
   end
+
+  describe "observability boundary" do
+    let(:pass) { described_class.new }
+
+    it "logs a benign skip with its reason when KUMI_DEBUG_IMPORT_INLINING=1" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("KUMI_DEBUG_IMPORT_INLINING").and_return("1")
+
+      expect { pass.send(:skip, :tax, "callee references declarations") }
+        .to output(/\[ImportInlining\] skip :tax: callee references declarations/).to_stderr
+    end
+
+    it "is silent when the debug env var is unset" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("KUMI_DEBUG_IMPORT_INLINING").and_return(nil)
+
+      expect { pass.send(:skip, :tax, "x") }.not_to output.to_stderr
+    end
+
+    it "returns nil from skip so the import_call is left in place" do
+      expect(pass.send(:skip, :tax, "x")).to be_nil
+    end
+
+    it "raises a clear error from abort_inline on a committed-then-broken inline" do
+      expect { pass.send(:abort_inline, :tax, "use :v9 unmapped") }
+        .to raise_error(Kumi::Core::Errors::SemanticError, /ImportInlining failed for :tax: use :v9 unmapped/)
+    end
+  end
 end

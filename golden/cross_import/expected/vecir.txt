@@ -1,0 +1,8 @@
+function result:
+  %v1 = load_input [key=:vals, chain=[]] [] -> array<any>
+  %v3 = load_field (:v1) [field=:v] [vals] -> float
+  %v4 = load_field (:v3) [field=:a] [vals] -> float
+  %v5 = axis_cross (:v4) [axis=:vals__x, source_axis=:vals] [vals, vals__x] -> float
+  %v6 = axis_broadcast (:v4) [from_axes=[:vals], to_axes=[:vals, :vals__x]] [vals, vals__x] -> float
+  %v7 = map (:v5, :v6) [fn=:core.sub] [vals, vals__x] -> float
+  %v8 = reduce (:v7) [fn=:agg.sum, over_axes=[:vals__x]] [vals] -> float

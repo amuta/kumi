@@ -1,0 +1,15 @@
+import :pairsum, from: Kumi::TestSharedSchemas::Pairwise
+
+schema do
+  input do
+    array :vals, index: :v do
+      hash :v do
+        float :a
+      end
+    end
+  end
+
+  # The imported pairsum uses `cross` internally; after import inlining its
+  # all-pairs nest must survive into this caller's compiled code.
+  value :result, pairsum(vals: input.vals)
+end

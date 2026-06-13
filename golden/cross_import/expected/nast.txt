@@ -1,0 +1,7 @@
+(NAST
+  (VALUE result
+    (ImportCall :pairsum
+    (vals (InputRef [:vals]))
+  )
+  )
+)

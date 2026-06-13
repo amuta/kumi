@@ -74,14 +74,18 @@ module Kumi
           def inline_import(instr, resolved_inputs, loader, reg_gen, caller_defs)
             attrs = instr.attributes || {}
             fn_name = attrs[:fn_name]&.to_sym
-            return nil unless fn_name
+            return skip(nil, "import_call has no fn_name") unless fn_name
 
             callee = loader.function(fn_name)
-            return nil unless callee
-            return nil if references_declarations?(callee)
+            # Not-yet-available / unresolved imports legitimately stay as an
+            # import_call for the interpreter path — these are expected skips.
+            return skip(fn_name, "callee not found in loader") unless callee
+            return skip(fn_name, "callee references declarations (not self-contained)") if references_declarations?(callee)
 
             mapping_keys = Array(attrs[:mapping_keys]).map(&:to_sym)
-            return nil unless mapping_keys.length == resolved_inputs.length
+            unless mapping_keys.length == resolved_inputs.length
+              return skip(fn_name, "arg count mismatch: #{mapping_keys.length} keys vs #{resolved_inputs.length} inputs")
+            end
 
             call_axes = Array(instr.axes).map(&:to_sym)
             arg_map = mapping_keys.zip(resolved_inputs).to_h
@@ -93,8 +97,12 @@ module Kumi
             inliner = Kumi::IR::DF::ImportInliner.new(axis_map: axes_map, extra_axes: extra_axes)
             remapped_fn = inliner.remap_function(callee)
 
-            block = remapped_fn.entry_block
-            return nil unless block
+            # Past this point we have committed to inlining: the callee resolved,
+            # is self-contained, and arity matched. Any failure here is a broken
+            # IR contract, not a benign "can't inline this" — fail loudly rather
+            # than silently dropping to a slower (and likely also-broken) path.
+            block = remapped_fn.entry_block or
+              abort_inline(fn_name, "remapped callee has no entry block")
 
             value_map = {}
             emitted = []
@@ -102,15 +110,17 @@ module Kumi
             block.instructions.each do |callee_instr|
               if callee_instr.opcode == :load_input
                 key = callee_instr.attributes[:key]&.to_sym
-                arg_reg = arg_map[key]
-                return nil unless arg_reg
+                arg_reg = arg_map[key] or
+                  abort_inline(fn_name, "load_input #{key.inspect} has no matching argument")
 
                 value_map[callee_instr.defs.first] = arg_reg
                 next
               end
 
               new_inputs = callee_instr.uses.map do |reg|
-                value_map.fetch(reg) { return nil }
+                value_map.fetch(reg) do
+                  abort_inline(fn_name, "use #{reg.inspect} unmapped while inlining #{callee_instr.opcode}")
+                end
               end
 
               callee_result = callee_instr.defs.first
@@ -130,10 +140,29 @@ module Kumi
               value_map[callee_result] = new_result if callee_result
             end
 
-            final_reg = value_map[block.instructions.reverse.find { |instr| instr.defs.any? }&.defs&.first]
-            return nil unless final_reg
+            final_reg = value_map[block.instructions.reverse.find { |instr| instr.defs.any? }&.defs&.first] or
+              abort_inline(fn_name, "no final result register after inlining")
 
             [emitted, final_reg]
+          end
+
+          # Benign skip: the import legitimately can't be inlined and stays as an
+          # import_call. Logged (KUMI_DEBUG_IMPORT_INLINING=1) so a lost fusion
+          # opportunity is never silent. Returns nil so the caller leaves the op.
+          def skip(fn_name, reason)
+            if ENV["KUMI_DEBUG_IMPORT_INLINING"] == "1"
+              warn "[ImportInlining] skip #{fn_name.inspect}: #{reason} (left as import_call)"
+            end
+            nil
+          end
+
+          # Contract violation: inlining was committed and then hit an
+          # impossible state. Raising beats a silent slow path that would also
+          # be wrong — surfaces the real bug at compile time.
+          def abort_inline(fn_name, reason)
+            raise Kumi::Core::Errors::SemanticError,
+                  "ImportInlining failed for #{fn_name.inspect}: #{reason}. " \
+                  "This indicates malformed IR at the import boundary; please report it."
           end
 
           # Canonicalizes axis identity at the inlining boundary: every callee

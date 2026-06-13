@@ -682,9 +682,26 @@ module Kumi
             # Cross axes re-iterate an existing carrier under a fresh index. They
             # share their source axis's carrier (its head_path) but open as a new
             # innermost loop, independent of the parent element.
-            @cross_axes.each do |child_axis, source_axis|
+            #
+            # The child->source mapping is read straight off the axis_cross ops in
+            # this function, not an external side-table — so a cross that arrived
+            # via import inlining (where the caller never analyzed it) is handled
+            # exactly like a local one. The analyzer-supplied @cross_axes is
+            # merged as a fallback for any op the scan can't see.
+            cross_sources = @cross_axes.dup
+            @instrs.each do |instr|
+              next unless instr.opcode == :axis_cross
+
+              child = instr.attributes[:axis]&.to_sym
+              source = instr.attributes[:source_axis]&.to_sym
+              cross_sources[child] = source if child && source
+            end
+
+            cross_sources.each do |child_axis, source_axis|
               src = table[source_axis] or
-                raise ArgumentError, "LoopIR cross axis #{child_axis.inspect} has no carrier for source #{source_axis.inspect}"
+                raise ArgumentError,
+                      "LoopIR cross axis #{child_axis.inspect} has no carrier for source #{source_axis.inspect} " \
+                      "(open axes: #{table.keys.inspect})"
               head_path = src[:head_path] or
                 raise ArgumentError, "LoopIR cross axis #{child_axis.inspect} only supports root-array sources for now"
 
