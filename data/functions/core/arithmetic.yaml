@@ -7,6 +7,30 @@ functions:
       param: number
     aliases: ["abs"]
 
+  - id: core.sqrt
+    kind: elementwise
+    params: [{ name: number, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["sqrt"]
+
+  - id: core.sin
+    kind: elementwise
+    params: [{ name: angle, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["sin"]
+
+  - id: core.cos
+    kind: elementwise
+    params: [{ name: angle, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["cos"]
+
   - id: core.max
     kind: elementwise
     params:
