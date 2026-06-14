@@ -45,7 +45,13 @@ module Kumi
               when :make_object
                 Ops::MakeObject.new(result:, inputs: inputs, keys: attrs[:keys], axes:, dtype:, metadata:)
               else
-                instr
+                # No clone branch would silently keep the original inputs/result,
+                # corrupting references when a Vec pass remaps registers. Every
+                # Vec opcode must have a clone branch — fail loudly if one is missing.
+                raise ArgumentError,
+                      "InstructionCloner has no clone branch for Vec opcode #{instr.opcode.inspect}. " \
+                      "Add one here (it must thread `inputs`/`result`/`attrs`), otherwise register " \
+                      "remapping in Vec passes will silently corrupt references to this instruction."
               end
             end
           end

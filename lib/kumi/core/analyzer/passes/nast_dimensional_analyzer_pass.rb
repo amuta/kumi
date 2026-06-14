@@ -395,7 +395,25 @@ module Kumi
             merged = merge_with_outer_axes(list)
             return merged if merged
 
-            raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{list.max_by(&:length).inspect} vs #{candidate.inspect}"
+            raise Kumi::Core::Errors::SemanticError, axis_merge_error(list, candidate)
+          end
+
+          # Explain an axis-merge failure in domain terms, distinguishing a plain
+          # tree/prefix mismatch from a case that involved `outer` (so the author
+          # isn't left guessing why two arrays wouldn't combine).
+          def axis_merge_error(list, candidate)
+            involved_outer = list.flatten.uniq.any? { |a| @outer_axes&.key?(a) }
+            bound_of = ->(axes) { axes.reject { |a| @outer_axes&.key?(a) } }
+            details = "axes #{list.map(&:inspect).join(' and ')}"
+
+            if involved_outer
+              "cannot combine #{details}: their bound axes #{list.map { |a| bound_of.call(a).inspect }.join(' vs ')} " \
+                "come from different arrays. `outer` only pairs ONE surrounding array with the outer'd one — " \
+                "reduce (e.g. fn(:sum, ...)) one side to a shared level before combining."
+            else
+              "cannot combine #{details}: they come from different/unrelated arrays and neither axis list is a " \
+                "prefix of the other. Reduce one to a shared level (e.g. fn(:sum, ...)) before combining them."
+            end
           end
 
           # Combine axis-lists that diverge only on free (outer-introduced) axes.

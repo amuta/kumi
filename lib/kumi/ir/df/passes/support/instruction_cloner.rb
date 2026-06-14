@@ -90,7 +90,15 @@ module Kumi
                 Ops::ImportCall.new(result: result, fn_name: attrs[:fn_name], source_module: attrs[:source_module], args: inputs,
                                     mapping_keys: attrs[:mapping_keys], axes: metadata[:axes] || instr.axes, dtype: metadata[:dtype] || instr.dtype, metadata: metadata)
               else
-                instr
+                # No clone branch for this opcode. Returning `instr` unchanged
+                # would silently keep its ORIGINAL inputs/result, so any DF pass
+                # that remaps registers (dedup, inlining, CSE) would leave a
+                # dangling reference and produce a wrong result with no error.
+                # Fail loudly instead — every DF opcode must have a clone branch.
+                raise ArgumentError,
+                      "InstructionCloner has no clone branch for DF opcode #{instr.opcode.inspect}. " \
+                      "Add one here (it must thread `inputs`/`result`/`attrs`), otherwise register " \
+                      "remapping in DF passes will silently corrupt references to this instruction."
               end
             end
           end

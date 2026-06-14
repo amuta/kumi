@@ -104,7 +104,11 @@ module Kumi
         @__kumi_analyzer_result__ = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
 
         schema_digest = @__kumi_syntax_tree__.digest
-        cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}.rb")
+        # Fold the compiler fingerprint into the cache filename so a changed
+        # compiler invalidates stale generated code even when the schema digest
+        # is identical (otherwise editing the compiler silently reuses old code).
+        code_version = Kumi.configuration.code_version
+        cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}-#{code_version}.rb")
 
         # This is the core JIT vs. AOT logic.
         case Kumi.configuration.compilation_mode

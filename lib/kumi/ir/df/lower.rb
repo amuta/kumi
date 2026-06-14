@@ -369,8 +369,13 @@ module Kumi
           # Normal broadcast adds INNER axes (from is a prefix of to). An `outer`
           # value lives on the inner pairing axis and must broadcast across the
           # surrounding bound axis, i.e. from is a SUFFIX of to — also legal.
+          # Anything else is a real bug in axis computation upstream, not a
+          # user error, so surface it with full context rather than a bare raise.
           unless prefix?(from_axes, to_axes) || suffix?(from_axes, to_axes)
-            raise "cannot broadcast #{from_axes.inspect} to #{to_axes.inspect}"
+            raise Kumi::Core::Errors::SemanticError,
+                  "DF align_axes cannot broadcast #{from_axes.inspect} to #{to_axes.inspect}: " \
+                  "the source axes are neither a prefix (inner broadcast) nor a suffix (outer/`outer` " \
+                  "broadcast) of the target. This means the axis stamps disagree before lowering."
           end
 
           builder.axis_broadcast(
