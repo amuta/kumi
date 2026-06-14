@@ -1,0 +1,29 @@
+{
+  "department_summary": [
+    {
+      "manager_count": 1.0,
+      "name": "Engineering",
+      "total_payroll": 400000.0
+    },
+    {
+      "manager_count": 1.0,
+      "name": "Sales",
+      "total_payroll": 285000.0
+    },
+    {
+      "manager_count": 0.0,
+      "name": "HR",
+      "total_payroll": 75000.0
+    }
+  ],
+  "manager_count": [
+    1.0,
+    1.0,
+    0.0
+  ],
+  "total_payroll": [
+    400000.0,
+    285000.0,
+    75000.0
+  ]
+}

@@ -2,11 +2,22 @@
 
 require "fileutils"
 require "tempfile"
-require_relative "golden"
 
 module Kumi
   module Dev
     module GoldenV2
+      # Precompile shared schemas so their syntax trees are available to import
+      # goldens (their JS needs the generated shared modules). No-op when the
+      # shared schemas aren't loaded.
+      def self.precompile_schemas!
+        return unless defined?(Kumi::TestSharedSchemas)
+
+        Kumi::TestSharedSchemas.constants.each do |const|
+          mod = Kumi::TestSharedSchemas.const_get(const)
+          mod.runner if mod.is_a?(Module) && mod.respond_to?(:runner)
+        end
+      end
+
       Representation = Struct.new(:name, :extension, :generator_method, keyword_init: true) do
         def filename
           "#{name}.#{extension}"
@@ -29,7 +40,11 @@ module Kumi
         Representation.new(name: "vecir", extension: "txt", generator_method: :generate_vecir),
         Representation.new(name: "loopir", extension: "txt", generator_method: :generate_loopir),
         Representation.new(name: "schema_ruby", extension: "rb", generator_method: :generate_schema_ruby),
-        Representation.new(name: "schema_javascript", extension: "mjs", generator_method: :generate_schema_javascript)
+        Representation.new(name: "schema_javascript", extension: "mjs", generator_method: :generate_schema_javascript),
+        # Executes the generated Ruby + JS against input.json, snapshots the
+        # outputs, and asserts Ruby == JS. No-ops (nil) for schemas without an
+        # input.json. This is the runtime + bit-identical-parity coverage.
+        Representation.new(name: "runtime", extension: "json", generator_method: :generate_runtime)
       ].freeze
 
       GROUPS = {
@@ -38,6 +53,7 @@ module Kumi
         "vec" => %w[vecir],
         "loop" => %w[loopir],
         "codegen" => %w[schema_ruby schema_javascript],
+        "runtime" => %w[runtime],
         "all" => REPRESENTATIONS.map(&:name)
       }.freeze
 
@@ -142,7 +158,7 @@ module Kumi
 
             each_representation(reprs) do |repr|
               result = verify_representation(schema_name, schema_path, repr)
-              failures << result unless result[:status] == :passed
+              failures << result unless %i[passed skipped].include?(result[:status])
             end
 
             if failures.empty?
@@ -233,10 +249,19 @@ module Kumi
 
         def verify_representation(schema_name, schema_path, repr)
           expected_file = File.join(base_dir, schema_name, "expected", repr.filename)
-          return { status: :missing_expected, repr: } unless File.exist?(expected_file)
-
           actual = generate(repr, schema_path)
           return actual.merge(repr:) if actual[:status] == :error
+
+          unless File.exist?(expected_file)
+            # A representation that legitimately produces no output for this
+            # schema (e.g. `runtime` with no input.json) is not a failure — it
+            # simply doesn't apply. Only flag a missing expected file when the
+            # generator actually produced output that should have been recorded.
+            return { status: :skipped, repr: } if actual[:output].nil?
+
+            return { status: :missing_expected, repr: }
+          end
+
           return { status: :missing_actual, repr: } if actual[:output].nil?
 
           expected = File.read(expected_file)

@@ -1,0 +1,11 @@
+{
+  "company_total": 67.0,
+  "dept_total": [
+    35.0,
+    32.0
+  ],
+  "dept_total_masked": [
+    27.0,
+    20.0
+  ]
+}

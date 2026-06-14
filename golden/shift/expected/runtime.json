@@ -1,0 +1,38 @@
+{
+  "shift_left_clamp": [
+    2.0,
+    3.0,
+    4.0,
+    4.0
+  ],
+  "shift_left_wrap": [
+    2.0,
+    3.0,
+    4.0,
+    1.0
+  ],
+  "shift_left_zero": [
+    2.0,
+    3.0,
+    4.0,
+    0.0
+  ],
+  "shift_right_clamp": [
+    1.0,
+    1.0,
+    2.0,
+    3.0
+  ],
+  "shift_right_wrap": [
+    4.0,
+    1.0,
+    2.0,
+    3.0
+  ],
+  "shift_right_zero": [
+    0.0,
+    1.0,
+    2.0,
+    3.0
+  ]
+}

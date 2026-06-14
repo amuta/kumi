@@ -1,0 +1,17 @@
+{
+  "discounted_price": [
+    135.0,
+    67.5,
+    180.0
+  ],
+  "is_valid_quantity": [
+    true,
+    true,
+    true
+  ],
+  "subtotals": [
+    300.0,
+    75.0,
+    600.0
+  ]
+}

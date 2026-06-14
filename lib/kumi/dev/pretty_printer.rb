@@ -165,6 +165,14 @@ module Kumi
         res.state[:javascript_codegen_files]["codegen.mjs"]
       end
 
+      # Executes the generated Ruby + JS against the golden's input.json and
+      # snapshots the outputs (also asserting Ruby == JS). Returns nil when the
+      # golden has no input.json (text-only). See GoldenRuntime.
+      def generate_runtime(path)
+        require_relative "golden_runtime"
+        GoldenRuntime.snapshot(path)
+      end
+
       def generate_planning(path)
         require_relative "../codegen/planning"
 

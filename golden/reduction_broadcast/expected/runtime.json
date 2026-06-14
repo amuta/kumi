@@ -1,0 +1,14 @@
+{
+  "avg_headcount_per_dept": [
+    10.0,
+    20.0
+  ],
+  "dept_headcount": [
+    30.0,
+    40.0
+  ],
+  "teams_per_dept": [
+    3.0,
+    2.0
+  ]
+}

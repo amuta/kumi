@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "prefill": {
+      "density": 0.3,
+      "kind": "random"
+    },
+    "render": "grid2d",
+    "size": {
+      "height": 5.0,
+      "width": 10.0
+    },
+    "ui": {
+      "cellSize": 10.0,
+      "palette": {
+        "0": "#0f1219",
+        "1": "#10b981"
+      }
+    }
+  }
+}

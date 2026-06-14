@@ -1,0 +1,10 @@
+{
+  "__ruby_js_parity_skipped": "imports",
+  "outputs": {
+    "discount_amount": 11.5,
+    "discounted_price": 103.5,
+    "final_price": 103.5,
+    "price_after_tax": 115.0,
+    "tax_amount": 15.0
+  }
+}

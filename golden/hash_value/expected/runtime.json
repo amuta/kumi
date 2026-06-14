@@ -1,0 +1,19 @@
+{
+  "john_user": [
+    {
+      "name": "John",
+      "state": "CA"
+    },
+    "NOT_JOHN"
+  ],
+  "users": [
+    {
+      "name": "John",
+      "state": "CA"
+    },
+    {
+      "name": "Jane",
+      "state": "MI"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "department_summary": [
+    {
+      "manager_count": 1.0,
+      "name": "Engineering",
+      "senior_count": 1.0,
+      "top_salary": 150000.0,
+      "total_payroll": 400000.0
+    },
+    {
+      "manager_count": 1.0,
+      "name": "Sales",
+      "senior_count": 1.0,
+      "top_salary": 120000.0,
+      "total_payroll": 395000.0
+    },
+    {
+      "manager_count": 0.0,
+      "name": "HR",
+      "senior_count": 0.0,
+      "top_salary": 75000.0,
+      "total_payroll": 75000.0
+    }
+  ],
+  "manager_count": [
+    1.0,
+    1.0,
+    0.0
+  ],
+  "max_salary": [
+    150000.0,
+    120000.0,
+    75000.0
+  ],
+  "senior_employee_count": [
+    1.0,
+    1.0,
+    0.0
+  ],
+  "total_payroll": [
+    400000.0,
+    395000.0,
+    75000.0
+  ]
+}

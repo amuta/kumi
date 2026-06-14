@@ -1,0 +1,11 @@
+{
+  "__ruby_js_parity_skipped": "imports",
+  "outputs": {
+    "item_taxes": [
+      15.0,
+      30.0,
+      45.0
+    ],
+    "total_tax": 90.0
+  }
+}

@@ -16,5 +16,10 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - run: bundle exec rspec --format progress
-      - run: bundle exec bin/kumi golden test
+      # Golden suite (v2): IR + codegen snapshots, plus runtime execution and
+      # Ruby/JS bit-identical parity. Replaces the old `golden test` (v1).
+      - run: bundle exec bin/kumi golden_v2 verify

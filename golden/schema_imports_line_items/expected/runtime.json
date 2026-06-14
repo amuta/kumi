@@ -1,0 +1,8 @@
+{
+  "__ruby_js_parity_skipped": "imports",
+  "outputs": {
+    "order_subtotal": 175.0,
+    "tax_amount": 1750.0,
+    "total": 1925.0
+  }
+}

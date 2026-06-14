@@ -1,0 +1,10 @@
+{
+  "__ruby_js_parity_skipped": "decimal (Ruby BigDecimal vs JS float)",
+  "outputs": {
+    "price": 19.99,
+    "rate": 0.08,
+    "subtotal": 99.95,
+    "tax_amount": 7.996,
+    "total": 107.946
+  }
+}
