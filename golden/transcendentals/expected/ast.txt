@@ -1,0 +1,48 @@
+(Root
+  inputs: [
+    (InputDeclaration :xs :array :i
+      [
+        (InputDeclaration :i :hash
+          [
+            (InputDeclaration :v :float)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :e
+      (CallExpression :exp
+        (InputElementReference xs.i.v)
+      )
+    )
+    (ValueDeclaration :l
+      (CallExpression :log
+        (InputElementReference xs.i.v)
+      )
+    )
+    (ValueDeclaration :t
+      (CallExpression :tanh
+        (InputElementReference xs.i.v)
+      )
+    )
+    (ValueDeclaration :neg
+      (CallExpression :subtract
+        (Literal 0.0)
+        (InputElementReference xs.i.v)
+      )
+    )
+    (ValueDeclaration :sigmoid
+      (CallExpression :divide
+        (Literal 1.0)
+        (CallExpression :add
+          (Literal 1.0)
+          (CallExpression :exp
+            (DeclarationReference :neg)
+          )
+        )
+      )
+    )
+  ]
+  traits: []
+)

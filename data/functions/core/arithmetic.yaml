@@ -31,6 +31,30 @@ functions:
       kind: float
     aliases: ["cos"]
 
+  - id: core.exp
+    kind: elementwise
+    params: [{ name: number, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["exp"]
+
+  - id: core.log
+    kind: elementwise
+    params: [{ name: number, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["log"]
+
+  - id: core.tanh
+    kind: elementwise
+    params: [{ name: number, dtype: numeric }]
+    dtype:
+      rule: scalar
+      kind: float
+    aliases: ["tanh"]
+
   - id: core.max
     kind: elementwise
     params:

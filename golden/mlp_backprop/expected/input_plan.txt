@@ -1,0 +1,17 @@
+hidden: array (array) access_mode=element
+  └─> j: element_access
+  j: hash (hash)
+    └─> w2: property_access
+    └─> b1: property_access
+    └─> win: property_access → array_loop
+    w2: float
+    b1: float
+    win: array (array) access_mode=element
+      └─> i: element_access
+      i: hash (hash)
+        └─> w: property_access
+        └─> x: property_access
+        w: float
+        x: float
+b_out: float
+y: float

@@ -1,0 +1,99 @@
+function pre:
+  %v1 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden, win] -> float
+  %v2 = load_field (:v1) [field=:j, plan_ref="hidden.j"] [hidden, win] -> float
+  %v3 = load_field (:v2) [field=:win, plan_ref="hidden.j.win"] [hidden, win] -> float
+  %v4 = load_field (:v3) [field=:i, plan_ref="hidden.j.win.i"] [hidden, win] -> float
+  %v5 = load_field (:v4) [field=:w, plan_ref="hidden.j.win.i.w"] [hidden, win] -> float
+  %v6 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden, win] -> float
+  %v7 = load_field (:v6) [field=:j, plan_ref="hidden.j"] [hidden, win] -> float
+  %v8 = load_field (:v7) [field=:win, plan_ref="hidden.j.win"] [hidden, win] -> float
+  %v9 = load_field (:v8) [field=:i, plan_ref="hidden.j.win.i"] [hidden, win] -> float
+  %v10 = load_field (:v9) [field=:x, plan_ref="hidden.j.win.i.x"] [hidden, win] -> float
+  %v11 = map (:v5, :v10) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v13 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden] -> float
+  %v14 = load_field (:v13) [field=:j, plan_ref="hidden.j"] [hidden] -> float
+  %v15 = load_field (:v14) [field=:b1, plan_ref="hidden.j.b1"] [hidden] -> float
+  %v16 = map (:v12, :v15) [fn=:core.add] [hidden] -> float
+function h:
+  %v17 = decl_ref [name=:pre] [hidden] -> float
+  %v18 = map (:v17) [fn=:core.tanh] [hidden] -> float
+function o_pre:
+  %v19 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden] -> float
+  %v20 = load_field (:v19) [field=:j, plan_ref="hidden.j"] [hidden] -> float
+  %v21 = load_field (:v20) [field=:w2, plan_ref="hidden.j.w2"] [hidden] -> float
+  %v22 = decl_ref [name=:h] [hidden] -> float
+  %v23 = map (:v21, :v22) [fn=:core.mul:numeric] [hidden] -> float
+  %v24 = reduce (:v23) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v25 = load_input [key=:b_out, chain=[], plan_ref="b_out"] [] -> float
+  %v26 = map (:v24, :v25) [fn=:core.add] [] -> float
+function o:
+  %v27 = constant [value=1.0] [] -> float
+  %v28 = constant [value=1.0] [] -> float
+  %v29 = constant [value=0.0] [] -> float
+  %v30 = decl_ref [name=:o_pre] [] -> float
+  %v31 = map (:v29, :v30) [fn=:core.sub] [] -> float
+  %v32 = map (:v31) [fn=:core.exp] [] -> float
+  %v33 = map (:v28, :v32) [fn=:core.add] [] -> float
+  %v34 = map (:v27, :v33) [fn=:core.div] [] -> float
+function output:
+  %v35 = decl_ref [name=:o] [] -> float
+function oc:
+  %v36 = decl_ref [name=:o] [] -> float
+  %v37 = constant [value=1.0e-06] [] -> float
+  %v38 = constant [value=0.999999] [] -> float
+  %v39 = map (:v36, :v37, :v38) [fn=:core.clamp] [] -> float
+function loss:
+  %v40 = constant [value=0.0] [] -> float
+  %v41 = load_input [key=:y, chain=[], plan_ref="y"] [] -> float
+  %v42 = decl_ref [name=:oc] [] -> float
+  %v43 = map (:v42) [fn=:core.log] [] -> float
+  %v44 = map (:v41, :v43) [fn=:core.mul:numeric] [] -> float
+  %v45 = constant [value=1.0] [] -> float
+  %v46 = load_input [key=:y, chain=[], plan_ref="y"] [] -> float
+  %v47 = map (:v45, :v46) [fn=:core.sub] [] -> float
+  %v48 = constant [value=1.0] [] -> float
+  %v49 = decl_ref [name=:oc] [] -> float
+  %v50 = map (:v48, :v49) [fn=:core.sub] [] -> float
+  %v51 = map (:v50) [fn=:core.log] [] -> float
+  %v52 = map (:v47, :v51) [fn=:core.mul:numeric] [] -> float
+  %v53 = map (:v44, :v52) [fn=:core.add] [] -> float
+  %v54 = map (:v40, :v53) [fn=:core.sub] [] -> float
+function dpre_out:
+  %v55 = decl_ref [name=:o] [] -> float
+  %v56 = load_input [key=:y, chain=[], plan_ref="y"] [] -> float
+  %v57 = map (:v55, :v56) [fn=:core.sub] [] -> float
+function dh:
+  %v58 = decl_ref [name=:dpre_out] [] -> float
+  %v59 = axis_broadcast (:v58) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v60 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden] -> float
+  %v61 = load_field (:v60) [field=:j, plan_ref="hidden.j"] [hidden] -> float
+  %v62 = load_field (:v61) [field=:w2, plan_ref="hidden.j.w2"] [hidden] -> float
+  %v63 = map (:v59, :v62) [fn=:core.mul:numeric] [hidden] -> float
+function dpre:
+  %v64 = decl_ref [name=:dh] [hidden] -> float
+  %v65 = constant [value=1.0] [] -> float
+  %v66 = axis_broadcast (:v65) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v67 = decl_ref [name=:h] [hidden] -> float
+  %v68 = decl_ref [name=:h] [hidden] -> float
+  %v69 = map (:v67, :v68) [fn=:core.mul:numeric] [hidden] -> float
+  %v70 = map (:v66, :v69) [fn=:core.sub] [hidden] -> float
+  %v71 = map (:v64, :v70) [fn=:core.mul:numeric] [hidden] -> float
+function grad_b_out:
+  %v72 = decl_ref [name=:dpre_out] [] -> float
+function grad_w2:
+  %v73 = decl_ref [name=:dpre_out] [] -> float
+  %v74 = axis_broadcast (:v73) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v75 = decl_ref [name=:h] [hidden] -> float
+  %v76 = map (:v74, :v75) [fn=:core.mul:numeric] [hidden] -> float
+function grad_b1:
+  %v77 = decl_ref [name=:dpre] [hidden] -> float
+function grad_w1:
+  %v78 = decl_ref [name=:dpre] [hidden] -> float
+  %v79 = axis_broadcast (:v78) [from_axes=[:hidden], to_axes=[:hidden, :win]] [hidden, win] -> float
+  %v80 = load_input [key=:hidden, chain=[], plan_ref="hidden"] [hidden, win] -> float
+  %v81 = load_field (:v80) [field=:j, plan_ref="hidden.j"] [hidden, win] -> float
+  %v82 = load_field (:v81) [field=:win, plan_ref="hidden.j.win"] [hidden, win] -> float
+  %v83 = load_field (:v82) [field=:i, plan_ref="hidden.j.win.i"] [hidden, win] -> float
+  %v84 = load_field (:v83) [field=:x, plan_ref="hidden.j.win.i.x"] [hidden, win] -> float
+  %v85 = map (:v79, :v84) [fn=:core.mul:numeric] [hidden, win] -> float

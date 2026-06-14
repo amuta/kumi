@@ -15,6 +15,18 @@ kernels:
     fn: core.cos
     inline: "= Math.cos($0)"
 
+  - id: exp:ruby:v1
+    fn: core.exp
+    inline: "= Math.exp($0)"
+
+  - id: log:ruby:v1
+    fn: core.log
+    inline: "= Math.log($0)"
+
+  - id: tanh:ruby:v1
+    fn: core.tanh
+    inline: "= Math.tanh($0)"
+
   - id: mod.ruby:v1
     fn: core.mod
     inline: "= $0 % $1"

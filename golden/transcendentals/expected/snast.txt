@@ -1,0 +1,34 @@
+(SNAST
+  (VALUE e
+    (Call :core.exp
+      (InputRef xs.i.v key_chain=[]) :: [xs] -> float
+    ) :: [xs] -> float
+  ) :: [xs] -> float
+  (VALUE l
+    (Call :core.log
+      (InputRef xs.i.v key_chain=[]) :: [xs] -> float
+    ) :: [xs] -> float
+  ) :: [xs] -> float
+  (VALUE t
+    (Call :core.tanh
+      (InputRef xs.i.v key_chain=[]) :: [xs] -> float
+    ) :: [xs] -> float
+  ) :: [xs] -> float
+  (VALUE neg
+    (Call :core.sub
+      (Const 0.0) :: [] -> float
+      (InputRef xs.i.v key_chain=[]) :: [xs] -> float
+    ) :: [xs] -> float
+  ) :: [xs] -> float
+  (VALUE sigmoid
+    (Call :core.div
+      (Const 1.0) :: [] -> float
+      (Call :core.add
+        (Const 1.0) :: [] -> float
+        (Call :core.exp
+          (Ref neg) :: [xs] -> float
+        ) :: [xs] -> float
+      ) :: [xs] -> float
+    ) :: [xs] -> float
+  ) :: [xs] -> float
+)

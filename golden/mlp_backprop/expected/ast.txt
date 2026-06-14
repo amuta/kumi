@@ -1,0 +1,147 @@
+(Root
+  inputs: [
+    (InputDeclaration :hidden :array :j
+      [
+        (InputDeclaration :j :hash
+          [
+            (InputDeclaration :w2 :float)
+            (InputDeclaration :b1 :float)
+            (InputDeclaration :win :array :i
+              [
+                (InputDeclaration :i :hash
+                  [
+                    (InputDeclaration :w :float)
+                    (InputDeclaration :x :float)
+                  ]
+                )
+              ]
+            )
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :b_out :float)
+    (InputDeclaration :y :float)
+  ]
+  values: [
+    (ValueDeclaration :pre
+      (CallExpression :add
+        (CallExpression :sum
+          (CallExpression :multiply
+            (InputElementReference hidden.j.win.i.w)
+            (InputElementReference hidden.j.win.i.x)
+          )
+        )
+        (InputElementReference hidden.j.b1)
+      )
+    )
+    (ValueDeclaration :h
+      (CallExpression :tanh
+        (DeclarationReference :pre)
+      )
+    )
+    (ValueDeclaration :o_pre
+      (CallExpression :add
+        (CallExpression :sum
+          (CallExpression :multiply
+            (InputElementReference hidden.j.w2)
+            (DeclarationReference :h)
+          )
+        )
+        (InputReference :b_out)
+      )
+    )
+    (ValueDeclaration :o
+      (CallExpression :divide
+        (Literal 1.0)
+        (CallExpression :add
+          (Literal 1.0)
+          (CallExpression :exp
+            (CallExpression :subtract
+              (Literal 0.0)
+              (DeclarationReference :o_pre)
+            )
+          )
+        )
+      )
+    )
+    (ValueDeclaration :output
+      (DeclarationReference :o)
+    )
+    (ValueDeclaration :oc
+      (CallExpression :clamp
+        (DeclarationReference :o)
+        (Literal 1.0e-06)
+        (Literal 0.999999)
+      )
+    )
+    (ValueDeclaration :loss
+      (CallExpression :subtract
+        (Literal 0.0)
+        (CallExpression :add
+          (CallExpression :multiply
+            (InputReference :y)
+            (CallExpression :log
+              (DeclarationReference :oc)
+            )
+          )
+          (CallExpression :multiply
+            (CallExpression :subtract
+              (Literal 1.0)
+              (InputReference :y)
+            )
+            (CallExpression :log
+              (CallExpression :subtract
+                (Literal 1.0)
+                (DeclarationReference :oc)
+              )
+            )
+          )
+        )
+      )
+    )
+    (ValueDeclaration :dpre_out
+      (CallExpression :subtract
+        (DeclarationReference :o)
+        (InputReference :y)
+      )
+    )
+    (ValueDeclaration :dh
+      (CallExpression :multiply
+        (DeclarationReference :dpre_out)
+        (InputElementReference hidden.j.w2)
+      )
+    )
+    (ValueDeclaration :dpre
+      (CallExpression :multiply
+        (DeclarationReference :dh)
+        (CallExpression :subtract
+          (Literal 1.0)
+          (CallExpression :multiply
+            (DeclarationReference :h)
+            (DeclarationReference :h)
+          )
+        )
+      )
+    )
+    (ValueDeclaration :grad_b_out
+      (DeclarationReference :dpre_out)
+    )
+    (ValueDeclaration :grad_w2
+      (CallExpression :multiply
+        (DeclarationReference :dpre_out)
+        (DeclarationReference :h)
+      )
+    )
+    (ValueDeclaration :grad_b1
+      (DeclarationReference :dpre)
+    )
+    (ValueDeclaration :grad_w1
+      (CallExpression :multiply
+        (DeclarationReference :dpre)
+        (InputElementReference hidden.j.win.i.x)
+      )
+    )
+  ]
+  traits: []
+)

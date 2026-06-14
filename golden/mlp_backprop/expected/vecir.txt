@@ -1,0 +1,374 @@
+function pre:
+  %v1 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v2 = load_field (:v1) [field=:j] [hidden, win] -> float
+  %v3 = load_field (:v2) [field=:win] [hidden, win] -> float
+  %v4 = load_field (:v3) [field=:i] [hidden, win] -> float
+  %v5 = load_field (:v4) [field=:w] [hidden, win] -> float
+  %v10 = load_field (:v4) [field=:x] [hidden, win] -> float
+  %v11 = map (:v5, :v10) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v12 = reduce (:v11) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v13 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v14 = load_field (:v13) [field=:j] [hidden] -> float
+  %v15 = load_field (:v14) [field=:b1] [hidden] -> float
+  %v16 = map (:v12, :v15) [fn=:core.add] [hidden] -> float
+function h:
+  %v19 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v20 = load_field (:v19) [field=:j] [hidden, win] -> float
+  %v21 = load_field (:v20) [field=:win] [hidden, win] -> float
+  %v22 = load_field (:v21) [field=:i] [hidden, win] -> float
+  %v23 = load_field (:v22) [field=:w] [hidden, win] -> float
+  %v28 = load_field (:v22) [field=:x] [hidden, win] -> float
+  %v29 = map (:v23, :v28) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v30 = reduce (:v29) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v31 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v32 = load_field (:v31) [field=:j] [hidden] -> float
+  %v33 = load_field (:v32) [field=:b1] [hidden] -> float
+  %v34 = map (:v30, :v33) [fn=:core.add] [hidden] -> float
+  %v18 = map (:v34) [fn=:core.tanh] [hidden] -> float
+function o_pre:
+  %v19 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v20 = load_field (:v19) [field=:j] [hidden] -> float
+  %v21 = load_field (:v20) [field=:w2] [hidden] -> float
+  %v27 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v28 = load_field (:v27) [field=:j] [hidden, win] -> float
+  %v29 = load_field (:v28) [field=:win] [hidden, win] -> float
+  %v30 = load_field (:v29) [field=:i] [hidden, win] -> float
+  %v31 = load_field (:v30) [field=:w] [hidden, win] -> float
+  %v36 = load_field (:v30) [field=:x] [hidden, win] -> float
+  %v37 = map (:v31, :v36) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v38 = reduce (:v37) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v41 = load_field (:v20) [field=:b1] [hidden] -> float
+  %v42 = map (:v38, :v41) [fn=:core.add] [hidden] -> float
+  %v43 = map (:v42) [fn=:core.tanh] [hidden] -> float
+  %v23 = map (:v21, :v43) [fn=:core.mul:numeric] [hidden] -> float
+  %v24 = reduce (:v23) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v25 = load_input [key=:b_out, chain=[]] [] -> float
+  %v26 = map (:v24, :v25) [fn=:core.add] [] -> float
+function o:
+  %v27 = constant [value=1.0] [] -> float
+  %v29 = constant [value=0.0] [] -> float
+  %v35 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v36 = load_field (:v35) [field=:j] [hidden] -> float
+  %v37 = load_field (:v36) [field=:w2] [hidden] -> float
+  %v38 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v39 = load_field (:v38) [field=:j] [hidden, win] -> float
+  %v40 = load_field (:v39) [field=:win] [hidden, win] -> float
+  %v41 = load_field (:v40) [field=:i] [hidden, win] -> float
+  %v42 = load_field (:v41) [field=:w] [hidden, win] -> float
+  %v47 = load_field (:v41) [field=:x] [hidden, win] -> float
+  %v48 = map (:v42, :v47) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v49 = reduce (:v48) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v52 = load_field (:v36) [field=:b1] [hidden] -> float
+  %v53 = map (:v49, :v52) [fn=:core.add] [hidden] -> float
+  %v54 = map (:v53) [fn=:core.tanh] [hidden] -> float
+  %v55 = map (:v37, :v54) [fn=:core.mul:numeric] [hidden] -> float
+  %v56 = reduce (:v55) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v57 = load_input [key=:b_out, chain=[]] [] -> float
+  %v58 = map (:v56, :v57) [fn=:core.add] [] -> float
+  %v31 = map (:v29, :v58) [fn=:core.sub] [] -> float
+  %v32 = map (:v31) [fn=:core.exp] [] -> float
+  %v33 = map (:v27, :v32) [fn=:core.add] [] -> float
+  %v34 = map (:v27, :v33) [fn=:core.div] [] -> float
+function output:
+  %v36 = constant [value=1.0] [] -> float
+  %v38 = constant [value=0.0] [] -> float
+  %v39 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v40 = load_field (:v39) [field=:j] [hidden] -> float
+  %v41 = load_field (:v40) [field=:w2] [hidden] -> float
+  %v42 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v43 = load_field (:v42) [field=:j] [hidden, win] -> float
+  %v44 = load_field (:v43) [field=:win] [hidden, win] -> float
+  %v45 = load_field (:v44) [field=:i] [hidden, win] -> float
+  %v46 = load_field (:v45) [field=:w] [hidden, win] -> float
+  %v51 = load_field (:v45) [field=:x] [hidden, win] -> float
+  %v52 = map (:v46, :v51) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v53 = reduce (:v52) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v56 = load_field (:v40) [field=:b1] [hidden] -> float
+  %v57 = map (:v53, :v56) [fn=:core.add] [hidden] -> float
+  %v58 = map (:v57) [fn=:core.tanh] [hidden] -> float
+  %v59 = map (:v41, :v58) [fn=:core.mul:numeric] [hidden] -> float
+  %v60 = reduce (:v59) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v61 = load_input [key=:b_out, chain=[]] [] -> float
+  %v62 = map (:v60, :v61) [fn=:core.add] [] -> float
+  %v63 = map (:v38, :v62) [fn=:core.sub] [] -> float
+  %v64 = map (:v63) [fn=:core.exp] [] -> float
+  %v65 = map (:v36, :v64) [fn=:core.add] [] -> float
+  %v66 = map (:v36, :v65) [fn=:core.div] [] -> float
+function oc:
+  %v40 = constant [value=1.0] [] -> float
+  %v42 = constant [value=0.0] [] -> float
+  %v43 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v44 = load_field (:v43) [field=:j] [hidden] -> float
+  %v45 = load_field (:v44) [field=:w2] [hidden] -> float
+  %v46 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v47 = load_field (:v46) [field=:j] [hidden, win] -> float
+  %v48 = load_field (:v47) [field=:win] [hidden, win] -> float
+  %v49 = load_field (:v48) [field=:i] [hidden, win] -> float
+  %v50 = load_field (:v49) [field=:w] [hidden, win] -> float
+  %v55 = load_field (:v49) [field=:x] [hidden, win] -> float
+  %v56 = map (:v50, :v55) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v57 = reduce (:v56) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v60 = load_field (:v44) [field=:b1] [hidden] -> float
+  %v61 = map (:v57, :v60) [fn=:core.add] [hidden] -> float
+  %v62 = map (:v61) [fn=:core.tanh] [hidden] -> float
+  %v63 = map (:v45, :v62) [fn=:core.mul:numeric] [hidden] -> float
+  %v64 = reduce (:v63) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v65 = load_input [key=:b_out, chain=[]] [] -> float
+  %v66 = map (:v64, :v65) [fn=:core.add] [] -> float
+  %v67 = map (:v42, :v66) [fn=:core.sub] [] -> float
+  %v68 = map (:v67) [fn=:core.exp] [] -> float
+  %v69 = map (:v40, :v68) [fn=:core.add] [] -> float
+  %v70 = map (:v40, :v69) [fn=:core.div] [] -> float
+  %v37 = constant [value=1.0e-06] [] -> float
+  %v38 = constant [value=0.999999] [] -> float
+  %v39 = map (:v70, :v37, :v38) [fn=:core.clamp] [] -> float
+function loss:
+  %v40 = constant [value=0.0] [] -> float
+  %v41 = load_input [key=:y, chain=[]] [] -> float
+  %v55 = constant [value=1.0] [] -> float
+  %v58 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v59 = load_field (:v58) [field=:j] [hidden] -> float
+  %v60 = load_field (:v59) [field=:w2] [hidden] -> float
+  %v61 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v62 = load_field (:v61) [field=:j] [hidden, win] -> float
+  %v63 = load_field (:v62) [field=:win] [hidden, win] -> float
+  %v64 = load_field (:v63) [field=:i] [hidden, win] -> float
+  %v65 = load_field (:v64) [field=:w] [hidden, win] -> float
+  %v70 = load_field (:v64) [field=:x] [hidden, win] -> float
+  %v71 = map (:v65, :v70) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v72 = reduce (:v71) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v75 = load_field (:v59) [field=:b1] [hidden] -> float
+  %v76 = map (:v72, :v75) [fn=:core.add] [hidden] -> float
+  %v77 = map (:v76) [fn=:core.tanh] [hidden] -> float
+  %v78 = map (:v60, :v77) [fn=:core.mul:numeric] [hidden] -> float
+  %v79 = reduce (:v78) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v80 = load_input [key=:b_out, chain=[]] [] -> float
+  %v81 = map (:v79, :v80) [fn=:core.add] [] -> float
+  %v82 = map (:v40, :v81) [fn=:core.sub] [] -> float
+  %v83 = map (:v82) [fn=:core.exp] [] -> float
+  %v84 = map (:v55, :v83) [fn=:core.add] [] -> float
+  %v85 = map (:v55, :v84) [fn=:core.div] [] -> float
+  %v86 = constant [value=1.0e-06] [] -> float
+  %v87 = constant [value=0.999999] [] -> float
+  %v88 = map (:v85, :v86, :v87) [fn=:core.clamp] [] -> float
+  %v43 = map (:v88) [fn=:core.log] [] -> float
+  %v44 = map (:v41, :v43) [fn=:core.mul:numeric] [] -> float
+  %v47 = map (:v55, :v41) [fn=:core.sub] [] -> float
+  %v50 = map (:v55, :v88) [fn=:core.sub] [] -> float
+  %v51 = map (:v50) [fn=:core.log] [] -> float
+  %v52 = map (:v47, :v51) [fn=:core.mul:numeric] [] -> float
+  %v53 = map (:v44, :v52) [fn=:core.add] [] -> float
+  %v54 = map (:v40, :v53) [fn=:core.sub] [] -> float
+function dpre_out:
+  %v58 = constant [value=1.0] [] -> float
+  %v60 = constant [value=0.0] [] -> float
+  %v61 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v62 = load_field (:v61) [field=:j] [hidden] -> float
+  %v63 = load_field (:v62) [field=:w2] [hidden] -> float
+  %v64 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v65 = load_field (:v64) [field=:j] [hidden, win] -> float
+  %v66 = load_field (:v65) [field=:win] [hidden, win] -> float
+  %v67 = load_field (:v66) [field=:i] [hidden, win] -> float
+  %v68 = load_field (:v67) [field=:w] [hidden, win] -> float
+  %v73 = load_field (:v67) [field=:x] [hidden, win] -> float
+  %v74 = map (:v68, :v73) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v75 = reduce (:v74) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v78 = load_field (:v62) [field=:b1] [hidden] -> float
+  %v79 = map (:v75, :v78) [fn=:core.add] [hidden] -> float
+  %v80 = map (:v79) [fn=:core.tanh] [hidden] -> float
+  %v81 = map (:v63, :v80) [fn=:core.mul:numeric] [hidden] -> float
+  %v82 = reduce (:v81) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v83 = load_input [key=:b_out, chain=[]] [] -> float
+  %v84 = map (:v82, :v83) [fn=:core.add] [] -> float
+  %v85 = map (:v60, :v84) [fn=:core.sub] [] -> float
+  %v86 = map (:v85) [fn=:core.exp] [] -> float
+  %v87 = map (:v58, :v86) [fn=:core.add] [] -> float
+  %v88 = map (:v58, :v87) [fn=:core.div] [] -> float
+  %v56 = load_input [key=:y, chain=[]] [] -> float
+  %v57 = map (:v88, :v56) [fn=:core.sub] [] -> float
+function dh:
+  %v64 = constant [value=1.0] [] -> float
+  %v66 = constant [value=0.0] [] -> float
+  %v67 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v68 = load_field (:v67) [field=:j] [hidden] -> float
+  %v69 = load_field (:v68) [field=:w2] [hidden] -> float
+  %v70 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v71 = load_field (:v70) [field=:j] [hidden, win] -> float
+  %v72 = load_field (:v71) [field=:win] [hidden, win] -> float
+  %v73 = load_field (:v72) [field=:i] [hidden, win] -> float
+  %v74 = load_field (:v73) [field=:w] [hidden, win] -> float
+  %v79 = load_field (:v73) [field=:x] [hidden, win] -> float
+  %v80 = map (:v74, :v79) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v81 = reduce (:v80) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v84 = load_field (:v68) [field=:b1] [hidden] -> float
+  %v85 = map (:v81, :v84) [fn=:core.add] [hidden] -> float
+  %v86 = map (:v85) [fn=:core.tanh] [hidden] -> float
+  %v87 = map (:v69, :v86) [fn=:core.mul:numeric] [hidden] -> float
+  %v88 = reduce (:v87) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v89 = load_input [key=:b_out, chain=[]] [] -> float
+  %v90 = map (:v88, :v89) [fn=:core.add] [] -> float
+  %v91 = map (:v66, :v90) [fn=:core.sub] [] -> float
+  %v92 = map (:v91) [fn=:core.exp] [] -> float
+  %v93 = map (:v64, :v92) [fn=:core.add] [] -> float
+  %v94 = map (:v64, :v93) [fn=:core.div] [] -> float
+  %v95 = load_input [key=:y, chain=[]] [] -> float
+  %v96 = map (:v94, :v95) [fn=:core.sub] [] -> float
+  %v59 = axis_broadcast (:v96) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v63 = map (:v59, :v69) [fn=:core.mul:numeric] [hidden] -> float
+function dpre:
+  %v72 = constant [value=1.0] [] -> float
+  %v74 = constant [value=0.0] [] -> float
+  %v75 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v76 = load_field (:v75) [field=:j] [hidden] -> float
+  %v77 = load_field (:v76) [field=:w2] [hidden] -> float
+  %v78 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v79 = load_field (:v78) [field=:j] [hidden, win] -> float
+  %v80 = load_field (:v79) [field=:win] [hidden, win] -> float
+  %v81 = load_field (:v80) [field=:i] [hidden, win] -> float
+  %v82 = load_field (:v81) [field=:w] [hidden, win] -> float
+  %v87 = load_field (:v81) [field=:x] [hidden, win] -> float
+  %v88 = map (:v82, :v87) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v89 = reduce (:v88) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v92 = load_field (:v76) [field=:b1] [hidden] -> float
+  %v93 = map (:v89, :v92) [fn=:core.add] [hidden] -> float
+  %v94 = map (:v93) [fn=:core.tanh] [hidden] -> float
+  %v95 = map (:v77, :v94) [fn=:core.mul:numeric] [hidden] -> float
+  %v96 = reduce (:v95) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v97 = load_input [key=:b_out, chain=[]] [] -> float
+  %v98 = map (:v96, :v97) [fn=:core.add] [] -> float
+  %v99 = map (:v74, :v98) [fn=:core.sub] [] -> float
+  %v100 = map (:v99) [fn=:core.exp] [] -> float
+  %v101 = map (:v72, :v100) [fn=:core.add] [] -> float
+  %v102 = map (:v72, :v101) [fn=:core.div] [] -> float
+  %v103 = load_input [key=:y, chain=[]] [] -> float
+  %v104 = map (:v102, :v103) [fn=:core.sub] [] -> float
+  %v105 = axis_broadcast (:v104) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v109 = map (:v105, :v77) [fn=:core.mul:numeric] [hidden] -> float
+  %v66 = axis_broadcast (:v72) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v69 = map (:v94, :v94) [fn=:core.mul:numeric] [hidden] -> float
+  %v70 = map (:v66, :v69) [fn=:core.sub] [hidden] -> float
+  %v71 = map (:v109, :v70) [fn=:core.mul:numeric] [hidden] -> float
+function grad_b_out:
+  %v73 = constant [value=1.0] [] -> float
+  %v75 = constant [value=0.0] [] -> float
+  %v76 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v77 = load_field (:v76) [field=:j] [hidden] -> float
+  %v78 = load_field (:v77) [field=:w2] [hidden] -> float
+  %v79 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v80 = load_field (:v79) [field=:j] [hidden, win] -> float
+  %v81 = load_field (:v80) [field=:win] [hidden, win] -> float
+  %v82 = load_field (:v81) [field=:i] [hidden, win] -> float
+  %v83 = load_field (:v82) [field=:w] [hidden, win] -> float
+  %v88 = load_field (:v82) [field=:x] [hidden, win] -> float
+  %v89 = map (:v83, :v88) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v90 = reduce (:v89) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v93 = load_field (:v77) [field=:b1] [hidden] -> float
+  %v94 = map (:v90, :v93) [fn=:core.add] [hidden] -> float
+  %v95 = map (:v94) [fn=:core.tanh] [hidden] -> float
+  %v96 = map (:v78, :v95) [fn=:core.mul:numeric] [hidden] -> float
+  %v97 = reduce (:v96) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v98 = load_input [key=:b_out, chain=[]] [] -> float
+  %v99 = map (:v97, :v98) [fn=:core.add] [] -> float
+  %v100 = map (:v75, :v99) [fn=:core.sub] [] -> float
+  %v101 = map (:v100) [fn=:core.exp] [] -> float
+  %v102 = map (:v73, :v101) [fn=:core.add] [] -> float
+  %v103 = map (:v73, :v102) [fn=:core.div] [] -> float
+  %v104 = load_input [key=:y, chain=[]] [] -> float
+  %v105 = map (:v103, :v104) [fn=:core.sub] [] -> float
+function grad_w2:
+  %v77 = constant [value=1.0] [] -> float
+  %v79 = constant [value=0.0] [] -> float
+  %v80 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v81 = load_field (:v80) [field=:j] [hidden] -> float
+  %v82 = load_field (:v81) [field=:w2] [hidden] -> float
+  %v83 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v84 = load_field (:v83) [field=:j] [hidden, win] -> float
+  %v85 = load_field (:v84) [field=:win] [hidden, win] -> float
+  %v86 = load_field (:v85) [field=:i] [hidden, win] -> float
+  %v87 = load_field (:v86) [field=:w] [hidden, win] -> float
+  %v92 = load_field (:v86) [field=:x] [hidden, win] -> float
+  %v93 = map (:v87, :v92) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v94 = reduce (:v93) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v97 = load_field (:v81) [field=:b1] [hidden] -> float
+  %v98 = map (:v94, :v97) [fn=:core.add] [hidden] -> float
+  %v99 = map (:v98) [fn=:core.tanh] [hidden] -> float
+  %v100 = map (:v82, :v99) [fn=:core.mul:numeric] [hidden] -> float
+  %v101 = reduce (:v100) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v102 = load_input [key=:b_out, chain=[]] [] -> float
+  %v103 = map (:v101, :v102) [fn=:core.add] [] -> float
+  %v104 = map (:v79, :v103) [fn=:core.sub] [] -> float
+  %v105 = map (:v104) [fn=:core.exp] [] -> float
+  %v106 = map (:v77, :v105) [fn=:core.add] [] -> float
+  %v107 = map (:v77, :v106) [fn=:core.div] [] -> float
+  %v108 = load_input [key=:y, chain=[]] [] -> float
+  %v109 = map (:v107, :v108) [fn=:core.sub] [] -> float
+  %v74 = axis_broadcast (:v109) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v76 = map (:v74, :v99) [fn=:core.mul:numeric] [hidden] -> float
+function grad_b1:
+  %v78 = constant [value=1.0] [] -> float
+  %v80 = constant [value=0.0] [] -> float
+  %v81 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v82 = load_field (:v81) [field=:j] [hidden] -> float
+  %v83 = load_field (:v82) [field=:w2] [hidden] -> float
+  %v84 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v85 = load_field (:v84) [field=:j] [hidden, win] -> float
+  %v86 = load_field (:v85) [field=:win] [hidden, win] -> float
+  %v87 = load_field (:v86) [field=:i] [hidden, win] -> float
+  %v88 = load_field (:v87) [field=:w] [hidden, win] -> float
+  %v93 = load_field (:v87) [field=:x] [hidden, win] -> float
+  %v94 = map (:v88, :v93) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v95 = reduce (:v94) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v98 = load_field (:v82) [field=:b1] [hidden] -> float
+  %v99 = map (:v95, :v98) [fn=:core.add] [hidden] -> float
+  %v100 = map (:v99) [fn=:core.tanh] [hidden] -> float
+  %v101 = map (:v83, :v100) [fn=:core.mul:numeric] [hidden] -> float
+  %v102 = reduce (:v101) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v103 = load_input [key=:b_out, chain=[]] [] -> float
+  %v104 = map (:v102, :v103) [fn=:core.add] [] -> float
+  %v105 = map (:v80, :v104) [fn=:core.sub] [] -> float
+  %v106 = map (:v105) [fn=:core.exp] [] -> float
+  %v107 = map (:v78, :v106) [fn=:core.add] [] -> float
+  %v108 = map (:v78, :v107) [fn=:core.div] [] -> float
+  %v109 = load_input [key=:y, chain=[]] [] -> float
+  %v110 = map (:v108, :v109) [fn=:core.sub] [] -> float
+  %v111 = axis_broadcast (:v110) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v115 = map (:v111, :v83) [fn=:core.mul:numeric] [hidden] -> float
+  %v117 = axis_broadcast (:v78) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v152 = map (:v100, :v100) [fn=:core.mul:numeric] [hidden] -> float
+  %v153 = map (:v117, :v152) [fn=:core.sub] [hidden] -> float
+  %v154 = map (:v115, :v153) [fn=:core.mul:numeric] [hidden] -> float
+function grad_w1:
+  %v86 = constant [value=1.0] [] -> float
+  %v88 = constant [value=0.0] [] -> float
+  %v89 = load_input [key=:hidden, chain=[]] [hidden] -> float
+  %v90 = load_field (:v89) [field=:j] [hidden] -> float
+  %v91 = load_field (:v90) [field=:w2] [hidden] -> float
+  %v92 = load_input [key=:hidden, chain=[]] [hidden, win] -> float
+  %v93 = load_field (:v92) [field=:j] [hidden, win] -> float
+  %v94 = load_field (:v93) [field=:win] [hidden, win] -> float
+  %v95 = load_field (:v94) [field=:i] [hidden, win] -> float
+  %v96 = load_field (:v95) [field=:w] [hidden, win] -> float
+  %v101 = load_field (:v95) [field=:x] [hidden, win] -> float
+  %v102 = map (:v96, :v101) [fn=:core.mul:numeric] [hidden, win] -> float
+  %v103 = reduce (:v102) [fn=:agg.sum, over_axes=[:win]] [hidden] -> float
+  %v106 = load_field (:v90) [field=:b1] [hidden] -> float
+  %v107 = map (:v103, :v106) [fn=:core.add] [hidden] -> float
+  %v108 = map (:v107) [fn=:core.tanh] [hidden] -> float
+  %v109 = map (:v91, :v108) [fn=:core.mul:numeric] [hidden] -> float
+  %v110 = reduce (:v109) [fn=:agg.sum, over_axes=[:hidden]] [] -> float
+  %v111 = load_input [key=:b_out, chain=[]] [] -> float
+  %v112 = map (:v110, :v111) [fn=:core.add] [] -> float
+  %v113 = map (:v88, :v112) [fn=:core.sub] [] -> float
+  %v114 = map (:v113) [fn=:core.exp] [] -> float
+  %v115 = map (:v86, :v114) [fn=:core.add] [] -> float
+  %v116 = map (:v86, :v115) [fn=:core.div] [] -> float
+  %v117 = load_input [key=:y, chain=[]] [] -> float
+  %v118 = map (:v116, :v117) [fn=:core.sub] [] -> float
+  %v119 = axis_broadcast (:v118) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v123 = map (:v119, :v91) [fn=:core.mul:numeric] [hidden] -> float
+  %v125 = axis_broadcast (:v86) [from_axes=[], to_axes=[:hidden]] [hidden] -> float
+  %v160 = map (:v108, :v108) [fn=:core.mul:numeric] [hidden] -> float
+  %v161 = map (:v125, :v160) [fn=:core.sub] [hidden] -> float
+  %v162 = map (:v123, :v161) [fn=:core.mul:numeric] [hidden] -> float
+  %v79 = axis_broadcast (:v162) [from_axes=[:hidden], to_axes=[:hidden, :win]] [hidden, win] -> float
+  %v85 = map (:v79, :v101) [fn=:core.mul:numeric] [hidden, win] -> float
