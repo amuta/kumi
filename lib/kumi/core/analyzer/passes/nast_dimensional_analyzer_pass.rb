@@ -180,9 +180,7 @@ module Kumi
 
             inner = analyze_expression(call.args.first, errors)
             src_scope = Array(inner[:scope])
-            if src_scope.empty?
-              raise Kumi::Core::Errors::SemanticError, "cross requires an array argument (got a scalar)"
-            end
+            raise Kumi::Core::Errors::SemanticError, "cross requires an array argument (got a scalar)" if src_scope.empty?
 
             parent_axis = src_scope.last
             child_axis  = :"#{parent_axis}__x"
@@ -395,13 +393,13 @@ module Kumi
             merged = merge_with_outer_axes(list)
             return merged if merged
 
-            raise Kumi::Core::Errors::SemanticError, axis_merge_error(list, candidate)
+            raise Kumi::Core::Errors::SemanticError, axis_merge_error(list)
           end
 
           # Explain an axis-merge failure in domain terms, distinguishing a plain
           # tree/prefix mismatch from a case that involved `outer` (so the author
           # isn't left guessing why two arrays wouldn't combine).
-          def axis_merge_error(list, candidate)
+          def axis_merge_error(list)
             involved_outer = list.flatten.uniq.any? { |a| @outer_axes&.key?(a) }
             bound_of = ->(axes) { axes.reject { |a| @outer_axes&.key?(a) } }
             details = "axes #{list.map(&:inspect).join(' and ')}"

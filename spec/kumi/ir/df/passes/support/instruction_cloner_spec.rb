@@ -8,21 +8,25 @@ require "spec_helper"
 # (dedup / inlining / CSE) and producing wrong results with no error.
 RSpec.describe Kumi::IR::DF::Passes::Support::InstructionCloner do
   # Minimal instruction double carrying just what `clone` reads.
-  FakeInstr = Struct.new(:opcode, :uses, :defs, :attributes, :metadata, :dtype, :axes, :result, keyword_init: true) do
-    def initialize(**kw)
-      super(uses: [], defs: [], attributes: {}, metadata: nil, dtype: nil, axes: [], **kw)
-    end
+  let(:instr_struct) do
+    Struct.new(:opcode, :uses, :defs, :attributes, :metadata, :dtype, :axes, :result, keyword_init: true)
+  end
+
+  def fake_instr(**attrs)
+    instr_struct.new(
+      { uses: [], defs: [], attributes: {}, metadata: nil, dtype: nil, axes: [] }.merge(attrs)
+    )
   end
 
   it "raises a clear error for an opcode with no clone branch" do
-    instr = FakeInstr.new(opcode: :totally_unknown_op, result: :r1)
+    instr = fake_instr(opcode: :totally_unknown_op, result: :r1)
 
     expect { described_class.clone(instr, []) }
       .to raise_error(ArgumentError, /no clone branch for DF opcode :totally_unknown_op/)
   end
 
   it "clones a known opcode threading the new inputs and result" do
-    instr = FakeInstr.new(opcode: :map, uses: [:old_in], attributes: { fn: :add }, dtype: :float, axes: [], result: :old_out)
+    instr = fake_instr(opcode: :map, uses: [:old_in], attributes: { fn: :add }, dtype: :float, result: :old_out)
 
     cloned = described_class.clone(instr, [:new_in], result: :new_out)
 

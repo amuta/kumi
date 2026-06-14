@@ -237,6 +237,7 @@ Metrics/BlockLength:
     - 'lib/kumi/core/ir/execution_engine/interpreter.rb'
     - 'lib/kumi/core/ruby_parser/dsl_cascade_builder.rb'
     - 'lib/kumi/core/ruby_parser/sugar.rb'
+    - 'lib/kumi/ir/df/passes/import_inlining.rb'
     - 'lib/kumi/ir/df/passes/load_dedup.rb'
     - 'lib/kumi/ir/df/passes/tuple_fold_canonicalization.rb'
     - 'lib/kumi/ir/loop/lower.rb'
@@ -252,6 +253,7 @@ Metrics/BlockNesting:
 Metrics/ClassLength:
   Exclude:
     - 'lib/kumi/core/analyzer/debug.rb'
+    - 'lib/kumi/core/analyzer/pass_manager.rb'
     - 'lib/kumi/core/analyzer/passes/attach_terminal_info_pass.rb'
     - 'lib/kumi/core/analyzer/passes/codegen/loop/js/emitter.rb'
     - 'lib/kumi/core/analyzer/passes/codegen/loop/ruby/emitter.rb'
@@ -513,7 +515,7 @@ Naming/MethodParameterName:
     - 'spec/kumi/ir/df/validator_spec.rb'
     - 'spec/kumi/ir/loop/passes_spec.rb'
 
-# Offense count: 2
+# Offense count: 3
 # Configuration parameters: Mode, AllowedMethods, AllowedPatterns, AllowBangMethods, WaywardPredicates.
 # AllowedMethods: call
 # WaywardPredicates: nonzero?
@@ -585,6 +587,7 @@ RSpec/EmptyExampleGroup:
 RSpec/ExampleLength:
   Exclude:
     - 'spec/integration/flattening_functions_spec.rb'
+    - 'spec/integration/outer_axis_spec.rb'
     - 'spec/kumi/core/analyzer/checkpoint_spec.rb'
     - 'spec/kumi/ir/df/lower_spec.rb'
     - 'spec/kumi/ir/df/passes/import_inlining_spec.rb'

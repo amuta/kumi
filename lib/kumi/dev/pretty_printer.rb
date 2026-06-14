@@ -92,77 +92,57 @@ module Kumi
       end
 
       def generate_nast(path)
-        with_stop_after("NormalizeToNASTPass") do
-          res = analyze_schema(path)
-          return nil unless res.state[:nast_module]
-
-          Kumi::Support::NASTPrinter.print(res.state[:nast_module])
-        end
+        res = analyze_schema(path, stop_after: "NormalizeToNASTPass")
+        mod = res.state[:nast_module] or raise "Missing NAST for #{path}"
+        Kumi::Support::NASTPrinter.print(mod)
       end
 
       def generate_snast(path)
-        with_stop_after("SNASTPass") do
-          res = analyze_schema(path)
-          raise "Error Generating #{path}" unless res.state[:snast_module]
-
-          Kumi::Support::SNASTPrinter.print(res.state[:snast_module])
-        end
+        res = analyze_schema(path, stop_after: "SNASTPass")
+        mod = res.state[:snast_module] or raise "Missing SNAST for #{path}"
+        Kumi::Support::SNASTPrinter.print(mod)
       end
 
-      def generate_dfir(path)
-        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
-        graph = res.state[:df_module_unoptimized] or raise "Missing DFIR for #{path}"
+      # The IR-graph stages differ only in the pass to stop after and the state
+      # key to render — one row each instead of a copy-pasted method. :label is
+      # what the "Missing …" diagnostic prints.
+      IR_GRAPH_STAGES = {
+        dfir: { stop_after: "DFValidatePass", state_key: :df_module_unoptimized, label: "DFIR" },
+        dfir_optimized: { stop_after: "DFValidatePass", state_key: :df_module, label: "optimized DFIR" },
+        vecir: { stop_after: "VecValidatePass", state_key: :vec_module, label: "VecIR" },
+        loopir: { stop_after: "LoopValidatePass", state_key: :loop_module, label: "LoopIR" }
+      }.freeze
+
+      # Stages that run the full analyzer (side tables on) and render one state
+      # key. :render maps the state value to text.
+      ANALYZED_STAGES = {
+        irv2: { state_key: :irv2, render: ->(v) { Printer::WidthAwareJson.dump(v) } },
+        binding_manifest: { state_key: :binding_manifest, render: ->(v) { Printer::WidthAwareJson.dump(v) } },
+        schema_ruby: { state_key: :ruby_codegen_files, render: ->(v) { v["codegen.rb"] } },
+        schema_javascript: { state_key: :javascript_codegen_files, render: ->(v) { v["codegen.mjs"] } }
+      }.freeze
+
+      # define_method under `module_function` mode (above) exports these as
+      # callable module methods, same as the literal `def generate_*` forms.
+      IR_GRAPH_STAGES.each_key do |kind|
+        define_method(:"generate_#{kind}") { |path| generate_ir_graph(path, **IR_GRAPH_STAGES[kind]) }
+      end
+
+      ANALYZED_STAGES.each_key do |kind|
+        define_method(:"generate_#{kind}") { |path| generate_analyzed(path, **ANALYZED_STAGES[kind]) }
+      end
+
+      def generate_ir_graph(path, stop_after:, state_key:, label:)
+        res = analyze_schema(path, stop_after: stop_after, side_tables: true)
+        graph = res.state[state_key] or raise "Missing #{label} for #{path}"
         print_ir_graph(graph)
       end
 
-      def generate_dfir_optimized(path)
-        res = analyze_schema(path, stop_after: "DFValidatePass", side_tables: true)
-        graph = res.state[:df_module] or raise "Missing optimized DFIR for #{path}"
-        print_ir_graph(graph)
-      end
-
-      def generate_vecir(path)
-        res = analyze_schema(path, stop_after: "VecValidatePass", side_tables: true)
-        graph = res.state[:vec_module] or raise "Missing VecIR for #{path}"
-        print_ir_graph(graph)
-      end
-
-      def generate_loopir(path)
-        res = analyze_schema(path, stop_after: "LoopValidatePass", side_tables: true)
-        graph = res.state[:loop_module] or raise "Missing LoopIR for #{path}"
-        print_ir_graph(graph)
-      end
-
-      def generate_irv2(path)
+      def generate_analyzed(path, state_key:, render:)
         schema, = Kumi::Frontends.load(path: path)
         res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:irv2]
-
-        Printer::WidthAwareJson.dump(res.state[:irv2])
-      end
-
-      def generate_binding_manifest(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:binding_manifest]
-
-        Printer::WidthAwareJson.dump(res.state[:binding_manifest])
-      end
-
-      def generate_schema_ruby(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:ruby_codegen_files]
-
-        res.state[:ruby_codegen_files]["codegen.rb"]
-      end
-
-      def generate_schema_javascript(path)
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:javascript_codegen_files]
-
-        res.state[:javascript_codegen_files]["codegen.mjs"]
+        value = res.state[state_key] or return nil
+        render.call(value)
       end
 
       # Executes the generated Ruby + JS against the golden's input.json and

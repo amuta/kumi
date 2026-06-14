@@ -13,6 +13,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
   it "builds a rank-2 (pixels x lights) grid from two arrays" do
     schema = Class.new do
       extend Kumi::Schema
+
       schema do
         input do
           array :pixels, index: :p do
@@ -43,6 +44,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
   it "reduces the paired axis back to one value per outer element" do
     schema = Class.new do
       extend Kumi::Schema
+
       schema do
         input do
           array :pixels, index: :p do
@@ -62,7 +64,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
         let :olx, outer(input.lights.l.lx)
         let :oglow, outer(input.lights.l.glow)
         let :dx, px - olx
-        let :denom, dx * dx + input.soft
+        let :denom, (dx * dx) + input.soft
         let :contrib, oglow / denom
         value :brightness, fn(:sum, contrib)
       end
@@ -76,7 +78,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
 
     b = result[:brightness]
     expect(b.size).to eq(3)
-    expect(b[2]).to be > b[1]            # pixel on top of light1 is brightest
+    expect(b[2]).to be > b[1] # pixel on top of light1 is brightest
     expect(b[1]).to be > b[0]
     expect(b[2]).to be_within(0.01).of(203.846)
   end
@@ -84,6 +86,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
   it "works alongside cross in the same schema" do
     schema = Class.new do
       extend Kumi::Schema
+
       schema do
         input do
           array :pixels, index: :p do
@@ -113,13 +116,14 @@ RSpec.describe "outer (cross-array all-pairs)" do
       lights: [{ lx: 0.0 }, { lx: 0.5 }]
     )
 
-    expect(result[:near_count]).to eq([2, 0])  # px0 near both lights, px5 near none
+    expect(result[:near_count]).to eq([2, 0]) # px0 near both lights, px5 near none
     expect(result[:light_spread]).to eq([0.5, 0.5])
   end
 
   it "produces bit-identical Ruby and JavaScript output" do
     schema = Class.new do
       extend Kumi::Schema
+
       schema do
         input do
           array :pixels, index: :p do
@@ -139,7 +143,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
         let :olx, outer(input.lights.l.lx)
         let :oglow, outer(input.lights.l.glow)
         let :dx, px - olx
-        let :denom, dx * dx + input.soft
+        let :denom, (dx * dx) + input.soft
         let :contrib, oglow / denom
         value :brightness, fn(:sum, contrib)
       end
@@ -158,7 +162,7 @@ RSpec.describe "outer (cross-array all-pairs)" do
       js = File.read(path)
     end
 
-    expect(js).to include("lights__o")  # the inner pairing loop ships in JS
+    expect(js).to include("lights__o") # the inner pairing loop ships in JS
     expect(ruby_result.size).to eq(3)
     expect(ruby_result[2]).to be_within(0.01).of(203.846)
   end

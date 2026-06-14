@@ -137,12 +137,6 @@ module Kumi
                     @managed_arrays.key?(reg) || @persisted_scratch.key?(reg)
                   end
 
-                  # Typed-array targets can only hold scalars; reject them when the
-                  # returned array is filled with records or nested arrays.
-                  def record_elements?
-                    @managed_objects.value?(@target_reg) || @managed_arrays.value?(@target_reg)
-                  end
-
                   private
 
                   def direct_return_array_reg(fn)
@@ -178,38 +172,16 @@ module Kumi
 
                   write "export function _#{fn.name}_stream(input, target = {}) {"
                   indented do
-                    if plan.target_reg
-                      write "let __streamTarget = (Array.isArray(target) || ArrayBuffer.isView(target)) ? target : target[\"#{fn.name}\"];"
-                      write "let __streamTyped = ArrayBuffer.isView(__streamTarget);"
-                      write "if (!Array.isArray(__streamTarget) && !__streamTyped) {"
-                      indented do
-                        write "__streamTarget = [];"
-                        guard = %(target && typeof target === "object" && !ArrayBuffer.isView(target))
-                        write %(if (#{guard}) target["#{fn.name}"] = __streamTarget;)
-                      end
-                      write "}"
-                      if plan.record_elements?
-                        msg = "_#{fn.name}_stream: output elements are records; pass a plain Array target"
-                        write %(if (__streamTyped) throw new TypeError("#{msg}");)
-                      end
-                    end
+                    write "let __streamTarget = target[\"#{fn.name}\"] ?? (target[\"#{fn.name}\"] = []);" if plan.target_reg
 
                     emit_instructions(fn, plan: plan)
 
                     if plan.target_reg
                       target_var = reg(plan.target_reg)
                       cursor = cursor_name(plan.target_reg)
-                      write "if (__streamTyped) {"
-                      indented do
-                        msg = %("_#{fn.name}_stream: target holds " + __streamTarget.length + " elements, needed " + #{cursor})
-                        write %(if (#{cursor} > __streamTarget.length) throw new RangeError(#{msg});)
-                      end
-                      write "} else {"
-                      indented { write "#{target_var}.length = #{cursor};" }
-                      write "}"
+                      write "#{target_var}.length = #{cursor};"
                     end
-                    guard = %(target && typeof target === "object" && !Array.isArray(target) && !ArrayBuffer.isView(target))
-                    write %(if (#{guard}) target["#{fn.name}"] = #{reg(fn.return_reg)};)
+                    write %(target["#{fn.name}"] = #{reg(fn.return_reg)};)
                     write "return #{reg(fn.return_reg)};"
                   end
                   write "}\n"
@@ -229,10 +201,6 @@ module Kumi
                   when :load_input
                     key = instr.attributes[:key]
                     write "let #{reg(instr.result)} = input[\"#{key}\"];"
-                    if plan&.target_reg && @loop_depth.zero?
-                      msg = %(_#{fn.name}_stream: target aliases input \\"#{key}\\"; double-buffer feedback loops)
-                      write %(if (#{reg(instr.result)} === __streamTarget) throw new TypeError("#{msg}");)
-                    end
                   when :load_field
                     field = instr.attributes[:field]
                     write "let #{reg(instr.result)} = #{reg(instr.inputs.first)}[\"#{field}\"];"
@@ -297,7 +265,7 @@ module Kumi
                     write "let #{out} = __streamTarget;"
                   elsif (parent = plan.managed_arrays[instr.result])
                     write "let #{out} = #{reg(parent)}[#{cursor_name(parent)}];"
-                    write "if (!Array.isArray(#{out})) #{out} = [];"
+                    write "#{out} ??= [];"
                   else
                     write "let #{out} = #{scratch_name(fn, instr.result)};"
                   end
@@ -327,10 +295,11 @@ module Kumi
                   out = reg(instr.result)
                   write "let #{out} = #{reg(parent)}[#{cursor_name(parent)}];"
                   if tuple_keys?(keys)
-                    write "if (!Array.isArray(#{out})) #{out} = new Array(#{keys.size}); else #{out}.length = #{keys.size};"
+                    write "#{out} ??= new Array(#{keys.size});"
+                    write "#{out}.length = #{keys.size};"
                     values.each_with_index { |v, i| write "#{out}[#{i}] = #{v};" }
                   else
-                    write "if (#{out} === null || typeof #{out} !== \"object\" || Array.isArray(#{out})) #{out} = {};"
+                    write "#{out} ??= {};"
                     keys.zip(values).each { |k, v| write "#{out}[\"#{k}\"] = #{v};" }
                   end
                 end

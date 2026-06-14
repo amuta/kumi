@@ -43,7 +43,7 @@ module Kumi
             # A purely-outer decl (axes are only outer tokens) anchors on the
             # source array of those outer axes.
             if bound_axes.empty?
-              outer_src = Array(wanted_axes).map { |ax| @outer_axes[ax] }.compact
+              outer_src = Array(wanted_axes).filter_map { |ax| @outer_axes[ax] }
               return pick_anchor_for_source_axes(node, outer_src) unless outer_src.empty?
 
               return nil

@@ -185,22 +185,24 @@ RSpec.describe Kumi::Schema do
         expect(content).to include("export function _gross_prices(input)")
         expect(content).to include("export function _gross_prices_stream(input, target = {})")
         expect(content).to include("export function _tax_multiplier_stream(input, target = {})")
+        expect(content).not_to include("Array.isArray")
+        expect(content).not_to include("ArrayBuffer.isView")
+        expect(content).not_to include("TypeError")
+        expect(content).not_to include("RangeError")
 
         runner = <<~JS
           const mod = await import(process.argv[1]);
           const input = { items: [{ price: 10.0 }, { price: 20.0 }], tax_rate: 0.1 };
-          const pricesTarget = [999];
-          const scalarTarget = {};
+          const target = { gross_prices: [999] };
           const normal = mod._gross_prices(input);
-          const streamed = mod._gross_prices_stream(input, pricesTarget);
-          const taxMultiplier = mod._tax_multiplier_stream(input, scalarTarget);
+          const streamed = mod._gross_prices_stream(input, target);
+          const taxMultiplier = mod._tax_multiplier_stream(input, target);
           console.log(JSON.stringify({
             normal,
             streamed,
-            pricesTarget,
-            sameArray: streamed === pricesTarget,
+            target,
+            sameArray: streamed === target.gross_prices,
             taxMultiplier,
-            scalarTarget
           }));
         JS
 
@@ -210,60 +212,13 @@ RSpec.describe Kumi::Schema do
         result = JSON.parse(stdout)
         expect(result["normal"]).to eq([11.0, 22.0])
         expect(result["streamed"]).to eq([11.0, 22.0])
-        expect(result["pricesTarget"]).to eq([11.0, 22.0])
+        expect(result["target"]["gross_prices"]).to eq([11.0, 22.0])
         expect(result["sameArray"]).to be true
         expect(result["taxMultiplier"]).to eq(1.1)
-        expect(result["scalarTarget"]).to eq("tax_multiplier" => 1.1)
+        expect(result["target"]["tax_multiplier"]).to eq(1.1)
       end
 
-      it "supports typed-array targets for scalar streaming outputs" do
-        streaming_schema = Class.new do
-          extend Kumi::Schema
-        end
-
-        streaming_schema.schema do
-          codegen streaming: true
-
-          input do
-            array :cells do
-              float :v
-            end
-            float :k
-          end
-
-          value :scaled, input.cells.v * input.k
-        end
-
-        output_path = File.join(output_dir, "typed_streaming.mjs")
-        streaming_schema.write_source(output_path, platform: :javascript)
-
-        runner = <<~JS
-          const mod = await import(process.argv[1]);
-          const input = { cells: new Float64Array([1, 2, 3]), k: 10 };
-          const f32 = new Float32Array(3);
-          const out = mod._scaled_stream(input, f32);
-          let overflow = null;
-          try { mod._scaled_stream({ cells: [1, 2, 3, 4], k: 1 }, new Float32Array(2)); }
-          catch (e) { overflow = e.constructor.name; }
-          console.log(JSON.stringify({
-            filled: Array.from(f32),
-            sameBuffer: out === f32,
-            noExpando: !Object.keys(f32).includes("scaled"),
-            overflow
-          }));
-        JS
-
-        stdout, stderr, status = Open3.capture3("node", "--input-type=module", "-e", runner, output_path)
-        expect(status).to be_success, stderr
-
-        result = JSON.parse(stdout)
-        expect(result["filled"]).to eq([10.0, 20.0, 30.0])
-        expect(result["sameBuffer"]).to be true
-        expect(result["noExpando"]).to be true
-        expect(result["overflow"]).to eq("RangeError")
-      end
-
-      it "reuses record elements, truncates, and guards aliasing in streaming outputs" do
+      it "reuses record elements and truncates streaming outputs" do
         streaming_schema = Class.new do
           extend Kumi::Schema
         end
@@ -290,22 +245,16 @@ RSpec.describe Kumi::Schema do
         runner = <<~JS
           const mod = await import(process.argv[1]);
           const input = { bodies: [{ x: 1 }, { x: 2 }, { x: 3 }], dt: 0.5 };
-          const target = [];
+          const target = {};
           mod._next_bodies_stream(input, target);
-          const refs = target.map((o) => o);
-          const first = target.map((o) => o.x);
+          const refs = target.next_bodies.map((o) => o);
+          const first = target.next_bodies.map((o) => o.x);
           mod._next_bodies_stream({ ...input, dt: 1.0 }, target);
-          const reused = target.every((o, i) => o === refs[i]);
-          const second = target.map((o) => o.x);
+          const reused = target.next_bodies.every((o, i) => o === refs[i]);
+          const second = target.next_bodies.map((o) => o.x);
           mod._next_bodies_stream({ bodies: [{ x: 9 }], dt: 0 }, target);
-          const truncated = target.length;
-          let alias = null;
-          try { mod._next_bodies_stream({ bodies: target, dt: 0 }, target); }
-          catch (e) { alias = e.constructor.name + ":" + /alias/.test(e.message); }
-          let typed = null;
-          try { mod._next_bodies_stream(input, new Float64Array(3)); }
-          catch (e) { typed = e.constructor.name; }
-          console.log(JSON.stringify({ first, second, reused, truncated, alias, typed }));
+          const truncated = target.next_bodies.length;
+          console.log(JSON.stringify({ first, second, reused, truncated }));
         JS
 
         stdout, stderr, status = Open3.capture3("node", "--input-type=module", "-e", runner, output_path)
@@ -316,8 +265,6 @@ RSpec.describe Kumi::Schema do
         expect(result["second"]).to eq([2.0, 3.0, 4.0])
         expect(result["reused"]).to be true
         expect(result["truncated"]).to eq(1)
-        expect(result["alias"]).to eq("TypeError:true")
-        expect(result["typed"]).to eq("TypeError")
       end
 
       it "streams nested array outputs with row and record reuse matching normal output" do
@@ -350,18 +297,18 @@ RSpec.describe Kumi::Schema do
           const mod = await import(process.argv[1]);
           const mk = () => [[{ a: 1 }, { a: 2 }], [{ a: 3 }, { a: 4 }]];
           const input = { rows: mk(), k: 2 };
-          const target = [];
+          const target = {};
           const streamed = mod._next_cells_stream(input, target);
           const streamedJson = JSON.stringify(streamed);
           const normal = mod._next_cells(input);
-          const rowRefs = target.map((r) => r);
-          const cellRefs = target.map((r) => r.map((c) => c));
+          const rowRefs = target.next_cells.map((r) => r);
+          const cellRefs = target.next_cells.map((r) => r.map((c) => c));
           mod._next_cells_stream({ rows: mk(), k: 3 }, target);
-          const rowsReused = target.every((r, i) => r === rowRefs[i]);
-          const cellsReused = target.every((r, i) => r.every((c, j) => c === cellRefs[i][j]));
+          const rowsReused = target.next_cells.every((r, i) => r === rowRefs[i]);
+          const cellsReused = target.next_cells.every((r, i) => r.every((c, j) => c === cellRefs[i][j]));
           console.log(JSON.stringify({
             match: streamedJson === JSON.stringify(normal),
-            second: target.map((r) => r.map((c) => c.a)),
+            second: target.next_cells.map((r) => r.map((c) => c.a)),
             rowsReused,
             cellsReused
           }));

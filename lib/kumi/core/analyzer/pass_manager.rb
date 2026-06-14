@@ -1,10 +1,34 @@
 # frozen_string_literal: true
 
+require "timeout"
+
 module Kumi
   module Core
     module Analyzer
+      # Raised when a single analysis pass exceeds its wall-clock budget. This
+      # turns a runaway / non-terminating pass into a located failure ("which
+      # pass, how long, how big the input was") instead of an indefinite hang.
+      class PassBudgetError < StandardError
+        attr_reader :pass_name, :elapsed_ms, :budget_ms
+
+        def initialize(pass_name:, elapsed_ms:, budget_ms:, size_hint: nil)
+          @pass_name = pass_name
+          @elapsed_ms = elapsed_ms
+          @budget_ms = budget_ms
+          size = size_hint ? " (#{size_hint})" : ""
+          super("Pass #{pass_name} exceeded its compile budget: ran > #{budget_ms}ms#{size}. " \
+                "This usually means the schema is too large or hit a pathological " \
+                "compile path. Raise the budget with KUMI_PASS_BUDGET_MS or simplify the schema.")
+        end
+      end
+
       class PassManager
         attr_reader :passes, :errors
+
+        # Default per-pass wall-clock budget in milliseconds. 0 disables the
+        # check. Overridable via the KUMI_PASS_BUDGET_MS env var or the
+        # :pass_budget_ms option. A generous default so only true runaways trip.
+        DEFAULT_PASS_BUDGET_MS = 20_000
 
         def initialize(passes)
           @passes = passes
@@ -49,11 +73,55 @@ module Kumi
         def execute_pass(pass_class, pass_name, syntax_tree, state, errors, options)
           pass_instance = pass_class.new(syntax_tree, state)
 
-          if options[:profiling_enabled]
-            Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
-          else
-            pass_instance.run(errors)
+          with_budget(pass_name, syntax_tree, options) do
+            if options[:profiling_enabled]
+              Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
+            else
+              pass_instance.run(errors)
+            end
           end
+        end
+
+        # Run the block under a wall-clock budget. On timeout we raise a
+        # PassBudgetError (caught by run's rescue and surfaced as a normal,
+        # located pass failure) instead of letting the compile hang forever.
+        def with_budget(pass_name, syntax_tree, options, &)
+          budget_ms = pass_budget_ms(options)
+          return yield if budget_ms <= 0
+
+          started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          begin
+            Timeout.timeout(budget_ms / 1000.0, &)
+          rescue Timeout::Error
+            elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+            raise PassBudgetError.new(
+              pass_name: pass_name,
+              elapsed_ms: elapsed_ms,
+              budget_ms: budget_ms,
+              size_hint: size_hint(syntax_tree)
+            )
+          end
+        end
+
+        def pass_budget_ms(options)
+          return options[:pass_budget_ms].to_i if options.key?(:pass_budget_ms)
+
+          env = ENV.fetch("KUMI_PASS_BUDGET_MS", nil)
+          return env.to_i if env && !env.empty?
+
+          DEFAULT_PASS_BUDGET_MS
+        end
+
+        # Best-effort "how big is this schema" string for the error message.
+        def size_hint(syntax_tree)
+          decls = []
+          decls.concat(Array(syntax_tree.values)) if syntax_tree.respond_to?(:values)
+          decls.concat(Array(syntax_tree.traits)) if syntax_tree.respond_to?(:traits)
+          return nil if decls.empty?
+
+          "#{decls.size} declarations"
+        rescue StandardError
+          nil
         end
 
         def enforce_reads!(pass_class, pass_name, state)

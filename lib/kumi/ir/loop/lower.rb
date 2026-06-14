@@ -33,7 +33,7 @@ module Kumi
           loop_module = Loop::Module.new(name: @vec_module.name)
           @vec_module.each_function do |vec_function|
             lowering = FunctionLowering.new(vec_function, plans: plans, registry: registry, cross_axes: cross_axes,
-                                            outer_axes: outer_axes)
+                                                          outer_axes: outer_axes)
             loop_module.add_function(lowering.call)
           end
           loop_module
@@ -334,7 +334,7 @@ module Kumi
           def open_axis(axis, depth)
             info = @axis_table[axis] or raise ArgumentError, "LoopIR has no carrier for axis #{axis.inspect}"
 
-            if info[:kind] == :cross || info[:kind] == :outer
+            if %i[cross outer].include?(info[:kind])
               # Re-iterate a carrier under a fresh index, independent of the
               # enclosing element. For :cross that carrier is the surrounding
               # array itself (A x A'); for :outer it's a different root array

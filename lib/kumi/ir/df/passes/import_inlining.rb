@@ -150,9 +150,7 @@ module Kumi
           # import_call. Logged (KUMI_DEBUG_IMPORT_INLINING=1) so a lost fusion
           # opportunity is never silent. Returns nil so the caller leaves the op.
           def skip(fn_name, reason)
-            if ENV["KUMI_DEBUG_IMPORT_INLINING"] == "1"
-              warn "[ImportInlining] skip #{fn_name.inspect}: #{reason} (left as import_call)"
-            end
+            warn "[ImportInlining] skip #{fn_name.inspect}: #{reason} (left as import_call)" if ENV["KUMI_DEBUG_IMPORT_INLINING"] == "1"
             nil
           end
 

@@ -366,6 +366,7 @@ module Kumi
           from_axes = Array(from_axes)
           to_axes = Array(to_axes)
           return reg if from_axes == to_axes
+
           # Normal broadcast adds INNER axes (from is a prefix of to). An `outer`
           # value lives on the inner pairing axis and must broadcast across the
           # surrounding bound axis, i.e. from is a SUFFIX of to — also legal.
