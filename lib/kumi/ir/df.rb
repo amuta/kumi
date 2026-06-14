@@ -83,6 +83,10 @@ module Kumi
           append Ops::AxisCross.new(result:, source:, axis:, source_axis:, axes:, dtype:, metadata:)
         end
 
+        def axis_outer(result:, source:, axis:, source_axis:, axes:, dtype:, metadata: {})
+          append Ops::AxisOuter.new(result:, source:, axis:, source_axis:, axes:, dtype:, metadata:)
+        end
+
         def axis_broadcast(result:, value:, from_axes:, to_axes:, dtype:, metadata: {})
           append Ops::AxisBroadcast.new(result:, value:, from_axes:, to_axes:, axes: to_axes, dtype:, metadata:)
         end

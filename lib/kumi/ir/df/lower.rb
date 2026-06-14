@@ -110,6 +110,7 @@ module Kumi
         def emit_call(node, builder)
           return emit_axis_shift(node, builder) if %i[shift roll].include?(node.fn)
           return emit_axis_cross(node, builder) if node.fn == :cross
+          return emit_axis_outer(node, builder) if node.fn == :outer
 
           args = []
           node.args.each do |arg_node|
@@ -290,6 +291,29 @@ module Kumi
           )
         end
 
+        def emit_axis_outer(node, builder)
+          source_node = node.args.first
+          raise "outer requires a source" unless source_node
+
+          # The outer node is stamped with the minted alias axis (e.g. [:lights__o]);
+          # its source array carries the real axis (e.g. :lights). The alias opens a
+          # fresh innermost loop over that other array's carrier, paired with the
+          # surrounding (outer) axis downstream.
+          node_axes   = axes_of(node)
+          outer_axis  = node_axes.last
+          source_axis = axes_of(source_node).last
+
+          builder.axis_outer(
+            result: next_reg,
+            source: lower_expr(source_node, builder),
+            axis: outer_axis,
+            source_axis: source_axis,
+            axes: node_axes,
+            dtype: dtype_of(node),
+            metadata: {}
+          )
+        end
+
         def dtype_of(node)
           normalize_dtype(node.meta.dig(:stamp, :dtype))
         end
@@ -342,7 +366,12 @@ module Kumi
           from_axes = Array(from_axes)
           to_axes = Array(to_axes)
           return reg if from_axes == to_axes
-          raise "cannot broadcast #{from_axes.inspect} to #{to_axes.inspect}" unless prefix?(from_axes, to_axes)
+          # Normal broadcast adds INNER axes (from is a prefix of to). An `outer`
+          # value lives on the inner pairing axis and must broadcast across the
+          # surrounding bound axis, i.e. from is a SUFFIX of to — also legal.
+          unless prefix?(from_axes, to_axes) || suffix?(from_axes, to_axes)
+            raise "cannot broadcast #{from_axes.inspect} to #{to_axes.inspect}"
+          end
 
           builder.axis_broadcast(
             result: next_reg,
@@ -356,6 +385,13 @@ module Kumi
 
         def prefix?(lhs, rhs)
           lhs.each_with_index.all? { |ax, idx| rhs[idx] == ax }
+        end
+
+        def suffix?(lhs, rhs)
+          return false if lhs.length > rhs.length
+
+          offset = rhs.length - lhs.length
+          lhs.each_with_index.all? { |ax, idx| rhs[offset + idx] == ax }
         end
 
         def function_options(fn)

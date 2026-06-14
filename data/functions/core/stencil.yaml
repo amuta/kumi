@@ -25,6 +25,22 @@ functions:
       domain_effect: NONE
       pure_combiner: false
 
+  # Re-exposes a value from a DIFFERENT array as a fresh inner axis, so two
+  # distinct arrays can be paired all-pairs (A x B). Where `cross` self-joins one
+  # array, `outer` joins two. Lowered specially: it opens a new innermost loop
+  # over the *other* array's carrier. Axis stamping lives in the dimensional
+  # analyzer; this entry exists so resolution/validation treat outer as a known
+  # unary call.
+  - id: outer
+    kind: elementwise
+    params: [{ name: source }]
+    dtype:
+      rule: same_as
+      param: source
+    constraint_semantics:
+      domain_effect: NONE
+      pure_combiner: false
+
   - id: shift
     kind: elementwise
     params: [{ name: source }, { name: offset }]

@@ -7,7 +7,7 @@ module Kumi
         class NASTDimensionalAnalyzerPass < PassBase
           reads :nast_module, :input_table, :registry
           optional_reads :imported_schemas
-          writes :metadata_table, :declaration_table, :cross_axes
+          writes :metadata_table, :declaration_table, :cross_axes, :outer_axes
           def run(errors)
             nast_module  = get_state(:nast_module, required: true)
             @input_table = get_state(:input_table, required: true)
@@ -18,6 +18,7 @@ module Kumi
             @metadata_table    = {}
             @declaration_table = {}
             @cross_axes        = {}
+            @outer_axes        = {}
 
             debug "Analyzing NAST module with #{nast_module.decls.size} declarations"
             debug "Function specs loaded: #{@function_specs.keys.join(', ')}"
@@ -30,6 +31,7 @@ module Kumi
             state.with(:metadata_table, @metadata_table.freeze)
                  .with(:declaration_table, @declaration_table.freeze)
                  .with(:cross_axes, @cross_axes.freeze)
+                 .with(:outer_axes, @outer_axes.freeze)
           end
 
           private
@@ -70,6 +72,7 @@ module Kumi
 
           def analyze_call_expression(call, errors)
             return analyze_cross(call, errors) if call.fn == :cross
+            return analyze_outer(call, errors) if call.fn == :outer
 
             # Step 1: Analyze arguments to get their types and scopes
             arg_metadata = call.args.map { |arg| analyze_expression(arg, errors) }
@@ -197,6 +200,40 @@ module Kumi
             }.freeze
 
             debug "    Cross: #{src_scope.inspect} -> #{result_scope.inspect} (new axis #{child_axis})"
+            { type: inner[:type], scope: result_scope }
+          end
+
+          # `outer(v)` re-exposes a value from a DIFFERENT array as a fresh inner
+          # axis. Unlike cross (which mints a `__x` alias over the SAME carrier),
+          # outer keeps the source's real axis but tags it as "free": when later
+          # combined with an unrelated outer scope, the free axis attaches as the
+          # innermost axis instead of erroring. That turns `pixel_x - outer(lx)`
+          # into a (pixels x lights) grid, which `fn(:sum, ...)` reduces back.
+          def analyze_outer(call, errors)
+            raise Kumi::Core::Errors::SemanticError, "outer expects exactly one argument" unless call.args.size == 1
+
+            inner = analyze_expression(call.args.first, errors)
+            src_scope = Array(inner[:scope])
+            raise Kumi::Core::Errors::SemanticError, "outer requires an array argument (got a scalar)" if src_scope.empty?
+
+            # Mint a distinct axis alias for the outer carrier so it never clashes
+            # with a direct use of the same array, and tag it free so the merge
+            # rule appends it as an inner axis against the surrounding scope.
+            source_axis = src_scope.last
+            outer_axis  = :"#{source_axis}__o"
+            result_scope = src_scope[0...-1] + [outer_axis]
+            @outer_axes[outer_axis] = source_axis
+
+            @metadata_table[node_id(call)] = {
+              kind: :outer,
+              outer_axis: outer_axis,
+              source_axis: source_axis,
+              result_type: inner[:type],
+              result_scope: result_scope,
+              arg_scopes: [src_scope]
+            }.freeze
+
+            debug "    Outer: #{src_scope.inspect} -> #{result_scope.inspect} (free axis #{outer_axis} over #{source_axis})"
             { type: inner[:type], scope: result_scope }
           end
 
@@ -347,12 +384,42 @@ module Kumi
             return [] if list.empty?
 
             candidate = list.max_by(&:length)
-            list.each do |axes|
-              unless axes.each_with_index.all? { |tok, i| candidate[i] == tok }
-                raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{axes.inspect} vs #{candidate.inspect}"
-              end
+            mergeable = list.all? do |axes|
+              axes.each_with_index.all? { |tok, i| candidate[i] == tok }
             end
-            candidate
+            return candidate if mergeable
+
+            # Plain prefix merge failed. If the divergence is purely due to `outer`
+            # (free) axes, build the outer product: the shared bound prefix plus
+            # every free axis encountered, in stable order.
+            merged = merge_with_outer_axes(list)
+            return merged if merged
+
+            raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{list.max_by(&:length).inspect} vs #{candidate.inspect}"
+          end
+
+          # Combine axis-lists that diverge only on free (outer-introduced) axes.
+          # Each list splits into [bound prefix, free axes]; the bound prefixes
+          # must be prefix-compatible, then we append the union of free axes.
+          # Returns nil if the lists diverge on a BOUND axis (a real error).
+          def merge_with_outer_axes(list)
+            return nil if @outer_axes.nil? || @outer_axes.empty?
+
+            bound_lists = []
+            free_axes   = []
+            list.each do |axes|
+              bound_lists << axes.reject { |a| @outer_axes.key?(a) }
+              axes.each { |a| free_axes << a if @outer_axes.key?(a) && !free_axes.include?(a) }
+            end
+            return nil if free_axes.empty?
+
+            bound_candidate = bound_lists.max_by(&:length) || []
+            ok = bound_lists.all? do |b|
+              b.each_with_index.all? { |tok, i| bound_candidate[i] == tok }
+            end
+            return nil unless ok
+
+            bound_candidate + free_axes
           end
 
           def node_id(node) = "#{node.class}_#{node.id}"

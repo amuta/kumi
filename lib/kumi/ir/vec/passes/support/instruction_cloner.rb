@@ -35,6 +35,9 @@ module Kumi
               when :axis_cross
                 Ops::AxisCross.new(result:, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
                                    axes:, dtype:, metadata:)
+              when :axis_outer
+                Ops::AxisOuter.new(result:, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
+                                   axes:, dtype:, metadata:)
               when :axis_index
                 Ops::AxisIndex.new(result:, axis: attrs[:axis], axes:, dtype:, metadata:)
               when :reduce

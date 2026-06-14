@@ -6,7 +6,7 @@ module Kumi
       module Passes
         class AttachAnchorsPass < PassBase
           reads :snast_module
-          optional_reads :cross_axes
+          optional_reads :cross_axes, :outer_axes
           writes :anchor_by_decl
 
           NAST = Kumi::Core::NAST
@@ -14,6 +14,7 @@ module Kumi
           def run(_errors)
             @snast = get_state(:snast_module, required: true)
             @cross_axes = get_state(:cross_axes, required: false) || {}
+            @outer_axes = get_state(:outer_axes, required: false) || {}
 
             out = {}
             @snast.decls.each do |name, decl|
@@ -34,12 +35,21 @@ module Kumi
           private
 
           def pick_anchor_fqn(node, wanted_axes)
-            # A cross axis shares its parent's carrier, so the anchor only needs
-            # to cover the underlying (non-cross) axes; drop cross tokens before
-            # matching against input refs.
-            wanted_axes = Array(wanted_axes).reject { |ax| @cross_axes.key?(ax) }
-            return nil if wanted_axes.empty?
+            # A cross axis shares its parent's carrier; an outer axis is anchored
+            # by its own source array (matched separately below). For the primary
+            # prefix match, drop both kinds of synthetic axes.
+            bound_axes = Array(wanted_axes).reject { |ax| @cross_axes.key?(ax) || @outer_axes.key?(ax) }
 
+            # A purely-outer decl (axes are only outer tokens) anchors on the
+            # source array of those outer axes.
+            if bound_axes.empty?
+              outer_src = Array(wanted_axes).map { |ax| @outer_axes[ax] }.compact
+              return pick_anchor_for_source_axes(node, outer_src) unless outer_src.empty?
+
+              return nil
+            end
+
+            wanted_axes = bound_axes
             found = nil
             walk = lambda do |x|
               case x
@@ -58,6 +68,26 @@ module Kumi
 
             walk.call(node)
             found or raise "no anchor for axes #{wanted_axes.inspect}"
+          end
+
+          # Find the input array whose axes match the given (real) source axes —
+          # used to anchor a decl whose axes are purely outer tokens.
+          def pick_anchor_for_source_axes(node, source_axes)
+            found = nil
+            walk = lambda do |x|
+              case x
+              when NAST::InputRef
+                found ||= ir_fqn(x) if prefix?(source_axes, axes_of(x))
+              when NAST::Ref
+                walk.call(@snast.decls.fetch(x.name).body)
+              when NAST::IndexRef
+                found ||= x.input_fqn
+              else
+                x.children.each { |child| walk.call(child) }
+              end
+            end
+            walk.call(node)
+            found or raise "no anchor for outer source axes #{source_axes.inspect}"
           end
 
           def axes_of(n) = Array(n.meta[:stamp]&.dig(:axes))

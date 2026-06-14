@@ -20,6 +20,7 @@ module Kumi
           import_call
           axis_shift
           axis_cross
+          axis_outer
           axis_broadcast
         ].freeze
 
