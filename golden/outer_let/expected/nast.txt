@@ -1,0 +1,78 @@
+(NAST
+  (VALUE t
+    (Call :multiply
+    (Call :to_float
+      (InputRef [:step])
+    )
+    (Const 0.03)
+  )
+  )
+  (VALUE px
+    (InputRef [:pixels, :p, :px])
+  )
+  (VALUE lbx
+    (Call :outer
+    (InputRef [:lights, :l, :bx])
+  )
+  )
+  (VALUE lr
+    (Call :outer
+    (InputRef [:lights, :l, :r])
+  )
+  )
+  (VALUE lph
+    (Call :outer
+    (InputRef [:lights, :l, :ph])
+  )
+  )
+  (VALUE lglow
+    (Call :outer
+    (InputRef [:lights, :l, :glow])
+  )
+  )
+  (VALUE lwr
+    (Call :outer
+    (InputRef [:lights, :l, :wr])
+  )
+  )
+  (VALUE lx
+    (Call :add
+    (Ref lbx)
+    (Call :multiply
+      (Call :cos
+        (Call :add
+          (Ref t)
+          (Ref lph)
+        )
+      )
+      (Ref lr)
+    )
+  )
+  )
+  (VALUE dx
+    (Call :subtract
+    (Ref px)
+    (Ref lx)
+  )
+  )
+  (VALUE intensity
+    (Call :divide
+    (Ref lglow)
+    (Call :add
+      (Call :multiply
+        (Ref dx)
+        (Ref dx)
+      )
+      (Const 0.01)
+    )
+  )
+  )
+  (VALUE brightness
+    (Call :sum
+    (Call :multiply
+      (Ref intensity)
+      (Ref lwr)
+    )
+  )
+  )
+)

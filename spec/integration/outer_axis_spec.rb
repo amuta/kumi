@@ -166,4 +166,68 @@ RSpec.describe "outer (cross-array all-pairs)" do
     expect(ruby_result.size).to eq(3)
     expect(ruby_result[2]).to be_within(0.01).of(203.846)
   end
+
+  # Regression: a let that lives purely on the outer (lights) axis — built by
+  # chaining outer() reads, with no dependence on the outer-consuming (pixel)
+  # axis — used to be materialized as a per-light array and then indexed by the
+  # PIXEL loop variable when consumed in the pixels x lights grid, reading nil
+  # past the light count ("nil can't be coerced into Float"). The materialized
+  # read must index by the value's own (light) axis, not by positional depth.
+  it "reads a pure-outer let correctly when consumed against the other axis" do
+    schema = Class.new do
+      extend Kumi::Schema
+
+      schema do
+        input do
+          array :pixels, index: :p do
+            hash :p do
+              float :px
+            end
+          end
+          array :lights, index: :l do
+            hash :l do
+              float :bx
+              float :r
+              float :ph
+              float :glow
+              float :wr
+            end
+          end
+          integer :step
+        end
+        let :t, fn(:to_float, input.step) * 0.03
+        let :px, input.pixels.p.px
+        let :lbx, outer(input.lights.l.bx)
+        let :lr, outer(input.lights.l.r)
+        let :lph, outer(input.lights.l.ph)
+        let :lglow, outer(input.lights.l.glow)
+        let :lwr, outer(input.lights.l.wr)
+        # lx is pure-outer: lights axis only, no pixel dependence.
+        let :lx, lbx + fn(:cos, t + lph) * lr
+        let :dx, px - lx
+        let :intensity, lglow / ((dx * dx) + 0.01)
+        value :brightness, fn(:sum, intensity * lwr)
+      end
+    end
+
+    pixels = [{ px: -1.0 }, { px: 0.0 }, { px: 0.5 }, { px: 0.9 }]
+    lights = [
+      { bx: 0.1, r: 0.3, ph: 0.2, glow: 0.02, wr: 1.0 },
+      { bx: -0.2, r: 0.4, ph: 1.1, glow: 0.015, wr: 0.8 },
+      { bx: 0.3, r: 0.5, ph: 2.0, glow: 0.03, wr: 0.5 }
+    ]
+    result = schema.from(pixels: pixels, lights: lights, step: 7)[:brightness]
+
+    t = 7 * 0.03
+    expected = pixels.map do |pixel|
+      lights.sum do |light|
+        lx = light[:bx] + Math.cos(t + light[:ph]) * light[:r]
+        dx = pixel[:px] - lx
+        (light[:glow] / ((dx * dx) + 0.01)) * light[:wr]
+      end
+    end
+
+    expect(result.size).to eq(pixels.size)
+    result.each_with_index { |v, i| expect(v).to be_within(1e-9).of(expected[i]) }
+  end
 end

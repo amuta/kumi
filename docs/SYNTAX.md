@@ -9,7 +9,7 @@ schema do
   codegen streaming: true
 
   input do
-    # Input shape declarations
+    # Input shape declarations — see INPUTS.md
   end
 
   # Declarations: let, value, trait
@@ -174,6 +174,34 @@ value :accel, { ax: fn(:sum, mj * dx * inv_r3),
                 ay: fn(:sum, mj * dy * inv_r3) }
 ```
 
+### All-Pairs Across Two Arrays (`outer`)
+
+Where `cross` self-joins **one** array (A × A'), `outer` pairs **two different**
+arrays all-pairs (A × B). It re-exposes a value from another array as a fresh
+inner axis, so an element of array A can meet every element of array B.
+
+```kumi
+outer(expr)        # Ruby DSL and text schema sugar
+fn(:outer, expr)   # portable function form
+```
+
+```kumi
+# Example: per-pixel brightness summed over every light (pixels × lights grid).
+let :px,    input.pixels.p.px           # axis [:pixels]
+let :lx,    outer(input.lights.l.x)     # axis [:pixels, :lights__o] — every light per pixel
+let :lglow, outer(input.lights.l.glow)
+let :dx,    px - lx                      # pixels × lights grid of differences
+let :intensity, lglow / (dx * dx + input.soft)
+value :brightness, fn(:sum, intensity)  # reduce the light axis → per-pixel value
+```
+
+`outer` opens a new innermost axis named `<source>__o` over the *other* array's
+carrier. As with `cross`, broadcasting and reduction then behave normally. A
+`let` built purely from `outer(...)` reads (e.g. `lx` above) lives only on that
+inner axis and can be reused freely against the outer array — the chain
+`outer → let → combine with the other axis → reduce` is the idiomatic shape (see
+the `raster-field` example, which renders an entire framebuffer this way).
+
 ### Common Patterns
 
 **Filter and aggregate:**
@@ -206,127 +234,9 @@ value :row_major, (index(:i) * W) + index(:j)
 
 ### 1) Input Shapes
 
-#### Scalars
-
-Scalar inputs represent single values:
-
-```kumi
-input do
-  integer :x
-  float :rate
-  decimal :price        # Precise decimal for money calculations
-  string :name
-end
-```
-
-**Example:**
-```kumi
-schema do
-  input do
-    integer :x
-    integer :y
-  end
-
-  value :sum, input.x + input.y
-  value :product, input.x * input.y
-end
-```
-
-#### Arrays
-
-Arrays represent sequences. Navigate using dot notation through each level.
-
-**1D Array:**
-```kumi
-input do
-  array :cells do
-    integer :value     # Access: input.cells.value
-  end
-end
-```
-
-**2D Array (grid):**
-```kumi
-input do
-  array :rows do
-    array :col do
-      integer :v       # Access: input.rows.col.v
-    end
-  end
-end
-```
-
-**3D Array (cube):**
-```kumi
-input do
-  array :cube do
-    array :layer do
-      array :row do
-        integer :cell  # Access: input.cube.layer.row.cell
-      end
-    end
-  end
-end
-```
-
-#### Arrays of Hashes
-
-Common pattern for structured collections:
-
-```kumi
-input do
-  array :items do
-    hash :item do
-      float :price
-      integer :quantity
-      string :category
-    end
-  end
-end
-
-# Access: input.items.item.price
-#         input.items.item.quantity
-```
-
-#### Hashes
-
-Hashes represent structured data with named fields:
-
-```kumi
-input do
-  hash :config do
-    string :app_name
-    array :servers do
-      hash :server do
-        string :hostname
-        integer :port
-      end
-    end
-  end
-end
-
-# Access scalar: input.config.app_name
-# Access nested: input.config.servers.server.hostname
-```
-
-#### Arrays with Named Indices
-
-Declare indices to access position values:
-
-```kumi
-input do
-  array :x, index: :i do
-    array :y, index: :j do
-      integer :_           # Placeholder (value unused)
-    end
-  end
-end
-
-# Use in expressions
-let :W, fn(:array_size, input.x.y)
-value :row_major, (index(:i) * W) + index(:j)
-value :col_major, (index(:j) * fn(:array_size, input.x)) + index(:i)
-```
+Input declarations (scalars, arrays, hashes, nesting, named indices, and the
+**element rule** — always name an array's element) have their own reference:
+**[INPUTS.md](INPUTS.md)**.
 
 ### 2) Declarations
 

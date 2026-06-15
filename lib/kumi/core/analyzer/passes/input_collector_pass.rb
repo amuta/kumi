@@ -56,11 +56,36 @@ module Kumi
 
               if node.container == :array
                 chsz = (node.children || {}).size
-                report_error(errors, "Array at '#{cur_path}' must have exactly one child (declares the element)") unless chsz == 1
+                report_error(errors, array_arity_error(cur_path, chsz)) unless chsz == 1
                 node.access_mode = :element
               end
 
               validate_arity!(node.children || {}, errors, path: path + [name])
+            end
+          end
+
+          # An array declares exactly one child: the named element it maps over.
+          # Kumi maps by default, so the element MUST be named — that name is the
+          # per-element binding you reference in the schema body. The two failure
+          # modes (no element, several elements) each get targeted guidance.
+          def array_arity_error(path, child_count)
+            base = "Array input '#{path}' must declare exactly one element (got #{child_count}). " \
+                   "Kumi maps over arrays by default, so the element needs a name to map onto."
+            if child_count.zero?
+              base + " Name the element with a single child, e.g.\n" \
+                     "  array :#{path.split('.').last} do\n" \
+                     "    float :value          # scalar element, referenced as input.#{path.split('.').last}.value\n" \
+                     "  end\n" \
+                     "Use a `hash` child instead when each element has several fields, " \
+                     "or a nested `array` child for an array of arrays."
+            else
+              base + " Wrap multiple fields in a single `hash` element rather than declaring them side by side, e.g.\n" \
+                     "  array :#{path.split('.').last}, index: :i do\n" \
+                     "    hash :i do\n" \
+                     "      float :a\n" \
+                     "      float :b\n" \
+                     "    end\n" \
+                     "  end"
             end
           end
 

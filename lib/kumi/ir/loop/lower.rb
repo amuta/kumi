@@ -459,8 +459,26 @@ module Kumi
             arrays = @materialized.fetch(reg)
             k = shared_prefix_length(site.loop_chain)
             cur = arrays[k]
-            (k...site.loop_chain.size).each { |j| cur = emit_index_read(cur, @stack[j].idx) }
+            (k...site.loop_chain.size).each do |j|
+              cur = emit_index_read(cur, index_for_level(site.loop_chain[j]))
+            end
             cur
+          end
+
+          # The materialized arrays are nested in the def site's loop_chain axis
+          # order, which need not match the consumer's open-stack order (an
+          # `outer`/`cross` value defined over a single inner axis can be read
+          # inside a wider nest that opens other axes first). Index each level by
+          # the currently-open instance whose axis matches that def-chain level,
+          # not by positional depth.
+          def index_for_level(def_instance)
+            return def_instance.idx if @stack.any? { |i| i.equal?(def_instance) }
+
+            match = @stack.find { |i| i.axis == def_instance.axis } or
+              raise ArgumentError,
+                    "LoopIR cannot read value defined over axis #{def_instance.axis.inspect}: " \
+                    "no open loop for it (open: #{@stack.map(&:axis).inspect})"
+            match.idx
           end
 
           def shared_prefix_length(chain)
