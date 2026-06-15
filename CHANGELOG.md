@@ -10,6 +10,7 @@
 ### Changed
 - Streaming exports throw a `TypeError` when the target aliases an input array (silent zero-length corruption before; feedback loops must double-buffer) and when a typed-array target is passed for record outputs (silently produced an empty buffer before).
 - Array input arity errors now explain the element rule (Kumi maps over arrays by default, so the element must be named) and show the correct single-child form, instead of a cryptic type error.
+- The schema digest (compiled module name + compile-cache key) no longer folds in `RUBY_VERSION`. Generated code is plain Ruby with identical semantics across supported Rubies, so the digest is now Ruby-version-independent; this also lets the codegen goldens verify across the full CI Ruby matrix.
 
 ### Fixed
 - Ruby DSL `let` raised `ArgumentError: struct size differs` since 0.0.37 (`inline: true` leaked into the `ValueDeclaration` struct instead of the `hints:` channel; the text frontend was unaffected).
