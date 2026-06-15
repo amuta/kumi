@@ -1,0 +1,72 @@
+name: Publish docs artifacts
+
+# Regenerates the documentation-portal artifacts (function reference, worked
+# pipeline transformations, examples) and pushes them into the kumi-docs repo,
+# which builds and deploys the site. Only the generated directories are
+# touched; all hand-written prose in kumi-docs is left alone.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/functions/**"
+      - "data/kernels/**"
+      - "golden/**"
+      - "lib/**"
+      - "tasks/docs_portal.rake"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_WITHOUT: development
+    steps:
+      - name: Checkout kumi-core
+        uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Generate portal artifacts
+        run: bundle exec rake docs:portal
+
+      - name: Checkout kumi-docs
+        uses: actions/checkout@v4
+        with:
+          repository: amuta/kumi-docs
+          token: ${{ secrets.KUMI_DOCS_TOKEN }}
+          path: kumi-docs
+
+      - name: Copy generated artifacts
+        run: |
+          set -euo pipefail
+          src=tmp/docs-artifacts
+          dst=kumi-docs/docs
+
+          # Generated content lives only under these paths; replace wholesale.
+          rm -rf "$dst/reference/generated/pipeline" \
+                 "$dst/reference/generated/functions.md" \
+                 "$dst/examples"
+          mkdir -p "$dst/reference/generated"
+          cp "$src/reference/functions.md" "$dst/reference/generated/functions.md"
+          cp -r "$src/reference/pipeline"   "$dst/reference/generated/pipeline"
+          cp -r "$src/examples"             "$dst/examples"
+
+      - name: Commit and push to kumi-docs
+        run: |
+          set -euo pipefail
+          cd kumi-docs
+          git config user.name  "kumi-docs-bot"
+          git config user.email "docs-bot@users.noreply.github.com"
+          # Restrict staging to generated paths so prose is never affected.
+          git add docs/reference/generated docs/examples
+          if git diff --cached --quiet; then
+            echo "No documentation changes to publish."
+            exit 0
+          fi
+          git commit -m "docs: regenerate portal artifacts from kumi-core@${GITHUB_SHA::8}"
+          git push
