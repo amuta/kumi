@@ -33,9 +33,7 @@ module Kumi
             kept = []
             instructions.reverse_each do |instr|
               result = instr.result
-              if result && !live.include?(result)
-                next
-              end
+              next if result && !live.include?(result)
 
               kept << instr
               instr.uses.each do |input|

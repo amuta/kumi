@@ -39,9 +39,7 @@ module Kumi
             ref = extract_plan_ref(entry) || normalize_fqn_key(key)
             next unless ref
 
-            if refs.key?(ref)
-              raise ArgumentError, "DFIR access contract has ambiguous input plan for #{ref.inspect}"
-            end
+            raise ArgumentError, "DFIR access contract has ambiguous input plan for #{ref.inspect}" if refs.key?(ref)
 
             refs[ref] = ref
           end
@@ -49,10 +47,10 @@ module Kumi
           refs
         end
 
-        def each_entry(table)
+        def each_entry(table, &)
           case table
           when Hash
-            table.each { |key, entry| yield key, entry }
+            table.each(&)
           when Array
             table.each { |entry| yield nil, entry }
           end

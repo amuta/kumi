@@ -27,10 +27,13 @@ module Kumi
         def call
           plans = @context[:input_plans] || {}
           registry = @context[:registry]
+          cross_axes = @context[:cross_axes] || {}
+          outer_axes = @context[:outer_axes] || {}
 
           loop_module = Loop::Module.new(name: @vec_module.name)
           @vec_module.each_function do |vec_function|
-            lowering = FunctionLowering.new(vec_function, plans: plans, registry: registry)
+            lowering = FunctionLowering.new(vec_function, plans: plans, registry: registry, cross_axes: cross_axes,
+                                                          outer_axes: outer_axes)
             loop_module.add_function(lowering.call)
           end
           loop_module
@@ -62,10 +65,12 @@ module Kumi
         class FunctionLowering
           ZERO_FILLS = { "integer" => 0, "float" => 0.0, "boolean" => false, "string" => "" }.freeze
 
-          def initialize(vec_function, plans:, registry:)
+          def initialize(vec_function, plans:, registry:, cross_axes: {}, outer_axes: {})
             @fn = vec_function
             @plans = plans
             @registry = registry
+            @cross_axes = cross_axes || {}
+            @outer_axes = outer_axes || {}
 
             @instrs = vec_function.blocks.flat_map(&:instructions)
             @by_reg = @instrs.each_with_object({}) { |i, h| h[i.result] = i if i.result }
@@ -99,7 +104,7 @@ module Kumi
 
           def lower_instruction(instr)
             case instr.opcode
-            when :constant, :load_input, :load_field, :axis_broadcast, :axis_index
+            when :constant, :load_input, :load_field, :axis_broadcast, :axis_index, :axis_outer
               nil # lazy: emitted at use sites
             when :map
               emit_simple(instr) do |args|
@@ -118,6 +123,8 @@ module Kumi
               end
             when :axis_shift
               lower_shift(instr)
+            when :axis_cross
+              lower_cross(instr)
             when :reduce
               lower_reduce(instr)
             else
@@ -232,6 +239,30 @@ module Kumi
             record_def(instr.result, node)
           end
 
+          # axis_cross: result at (i, j) = source[j]. We open the nest to the
+          # cross axes (introducing the inner cross loop) and read the source
+          # load chain with its source-axis loop redirected to the cross loop's
+          # index, so the value depends on j rather than i.
+          def lower_cross(instr)
+            src = instr.uses.first
+            axes = Array(instr.axes)
+            new_axis = instr.attributes[:axis].to_sym
+            source_axis = instr.attributes[:source_axis].to_sym
+
+            src = resolve_alias(src)
+            src_instr = @by_reg[src]
+            unless load_chain?(src_instr)
+              raise ArgumentError, "cross currently supports input-backed sources only (got #{src_instr&.opcode.inspect})"
+            end
+
+            align_nest(axes)
+            value = chain_read(src, cross: { source_axis: source_axis, new_axis: new_axis })
+
+            node = Ops::Ref.new(result: instr.result, value: value, axes: axes, dtype: instr.dtype)
+            emit(node)
+            record_def(instr.result, node)
+          end
+
           def materialized_shift_read(src, shift_info)
             pos = shift_info[:pos]
             site = @def_sites.fetch(src)
@@ -303,7 +334,13 @@ module Kumi
           def open_axis(axis, depth)
             info = @axis_table[axis] or raise ArgumentError, "LoopIR has no carrier for axis #{axis.inspect}"
 
-            if info[:parent].nil?
+            if %i[cross outer].include?(info[:kind])
+              # Re-iterate a carrier under a fresh index, independent of the
+              # enclosing element. For :cross that carrier is the surrounding
+              # array itself (A x A'); for :outer it's a different root array
+              # (A x B). Either way it opens as a new innermost loop.
+              source = emit_nav_path(info[:head_path])
+            elsif info[:parent].nil?
               raise ArgumentError, "axis #{axis} carrier expects depth 0" unless depth.zero?
 
               source = emit_nav_path(info[:head_path])
@@ -392,6 +429,14 @@ module Kumi
               end
             when :load_input, :load_field
               chain_read(reg)
+            when :axis_outer
+              # Read the OTHER array's element at the (already-open) outer loop's
+              # index. The surrounding nest is open by the consumer, so the value
+              # varies over the inner pairing axis as intended.
+              new_axis    = instr.attributes[:axis].to_sym
+              source_axis = instr.attributes[:source_axis].to_sym
+              src = resolve_alias(instr.uses.first)
+              chain_read(src, cross: { source_axis: source_axis, new_axis: new_axis })
             when :axis_index
               axis = instr.attributes[:axis].to_sym
               instance = @stack.find { |i| i.axis == axis } or
@@ -414,8 +459,26 @@ module Kumi
             arrays = @materialized.fetch(reg)
             k = shared_prefix_length(site.loop_chain)
             cur = arrays[k]
-            (k...site.loop_chain.size).each { |j| cur = emit_index_read(cur, @stack[j].idx) }
+            (k...site.loop_chain.size).each do |j|
+              cur = emit_index_read(cur, index_for_level(site.loop_chain[j]))
+            end
             cur
+          end
+
+          # The materialized arrays are nested in the def site's loop_chain axis
+          # order, which need not match the consumer's open-stack order (an
+          # `outer`/`cross` value defined over a single inner axis can be read
+          # inside a wider nest that opens other axes first). Index each level by
+          # the currently-open instance whose axis matches that def-chain level,
+          # not by positional depth.
+          def index_for_level(def_instance)
+            return def_instance.idx if @stack.any? { |i| i.equal?(def_instance) }
+
+            match = @stack.find { |i| i.axis == def_instance.axis } or
+              raise ArgumentError,
+                    "LoopIR cannot read value defined over axis #{def_instance.axis.inspect}: " \
+                    "no open loop for it (open: #{@stack.map(&:axis).inspect})"
+            match.idx
           end
 
           def shared_prefix_length(chain)
@@ -491,7 +554,7 @@ module Kumi
           # array itself rather than its elements.
           # With `shift:`, the loop at `shift[:pos]` is read at a shifted index
           # instead of through its open element register.
-          def chain_read(reg, shift: nil)
+          def chain_read(reg, shift: nil, cross: nil)
             fqn = chain_segments(reg).join(".")
             plan = @plans[fqn] or raise ArgumentError, "LoopIR access contract missing input plan for #{fqn.inspect}"
 
@@ -509,7 +572,13 @@ module Kumi
               when "array_loop"
                 break if depth == limit
 
-                if shift && depth == shift[:pos]
+                if cross && step[:axis].to_sym == cross[:source_axis]
+                  # Read the source array at the independent cross index instead
+                  # of the enclosing source-axis index.
+                  instance = @stack.find { |i| i.axis == cross[:new_axis] } or
+                    raise ArgumentError, "LoopIR cross loop #{cross[:new_axis].inspect} not open"
+                  cur = instance.elem
+                elsif shift && depth == shift[:pos]
                   array = resolve_chain_keys(cur, keys_after_loop, depth)
                   cur = emit_shift_read(array, shift)
                 elsif shift && depth > shift[:pos]
@@ -638,6 +707,58 @@ module Kumi
 
                 table[axis] = entry
               end
+            end
+
+            # Cross axes re-iterate an existing carrier under a fresh index. They
+            # share their source axis's carrier (its head_path) but open as a new
+            # innermost loop, independent of the parent element.
+            #
+            # The child->source mapping is read straight off the axis_cross ops in
+            # this function, not an external side-table — so a cross that arrived
+            # via import inlining (where the caller never analyzed it) is handled
+            # exactly like a local one. The analyzer-supplied @cross_axes is
+            # merged as a fallback for any op the scan can't see.
+            cross_sources = @cross_axes.dup
+            @instrs.each do |instr|
+              next unless instr.opcode == :axis_cross
+
+              child = instr.attributes[:axis]&.to_sym
+              source = instr.attributes[:source_axis]&.to_sym
+              cross_sources[child] = source if child && source
+            end
+
+            cross_sources.each do |child_axis, source_axis|
+              src = table[source_axis] or
+                raise ArgumentError,
+                      "LoopIR cross axis #{child_axis.inspect} has no carrier for source #{source_axis.inspect} " \
+                      "(open axes: #{table.keys.inspect})"
+              head_path = src[:head_path] or
+                raise ArgumentError, "LoopIR cross axis #{child_axis.inspect} only supports root-array sources for now"
+
+              table[child_axis] = { kind: :cross, source_axis: source_axis, head_path: head_path }
+            end
+
+            # Outer axes re-iterate a DIFFERENT array's carrier as a fresh inner
+            # loop (the A x B pairing). Carrier is the other root array's own
+            # head_path rather than the surrounding axis's.
+            outer_sources = @outer_axes.dup
+            @instrs.each do |instr|
+              next unless instr.opcode == :axis_outer
+
+              child = instr.attributes[:axis]&.to_sym
+              source = instr.attributes[:source_axis]&.to_sym
+              outer_sources[child] = source if child && source
+            end
+
+            outer_sources.each do |child_axis, source_axis|
+              src = table[source_axis] or
+                raise ArgumentError,
+                      "LoopIR outer axis #{child_axis.inspect} has no carrier for source #{source_axis.inspect} " \
+                      "(open axes: #{table.keys.inspect})"
+              head_path = src[:head_path] or
+                raise ArgumentError, "LoopIR outer axis #{child_axis.inspect} only supports root-array sources for now"
+
+              table[child_axis] = { kind: :outer, source_axis: source_axis, head_path: head_path }
             end
 
             table

@@ -1,0 +1,46 @@
+function e:
+  %v5 = load_input [key=:xs]
+  %arr9 = array_init
+  %xs_el6 = loop_start (:v5) [axis=:xs, index=:xs_i7]
+    %v8 = load_field (:xs_el6) [field=:v]
+    %v4 = kernel_call (:v8) [fn=:core.exp] [xs] -> float
+    array_push (:arr9, :v4)
+  loop_end [axis=:xs]
+function l:
+  %v9 = load_input [key=:xs]
+  %arr13 = array_init
+  %xs_el10 = loop_start (:v9) [axis=:xs, index=:xs_i11]
+    %v12 = load_field (:xs_el10) [field=:v]
+    %v8 = kernel_call (:v12) [fn=:core.log] [xs] -> float
+    array_push (:arr13, :v8)
+  loop_end [axis=:xs]
+function t:
+  %v13 = load_input [key=:xs]
+  %arr17 = array_init
+  %xs_el14 = loop_start (:v13) [axis=:xs, index=:xs_i15]
+    %v16 = load_field (:xs_el14) [field=:v]
+    %v12 = kernel_call (:v16) [fn=:core.tanh] [xs] -> float
+    array_push (:arr17, :v12)
+  loop_end [axis=:xs]
+function neg:
+  %v19 = load_input [key=:xs]
+  %arr24 = array_init
+  %xs_el20 = loop_start (:v19) [axis=:xs, index=:xs_i21]
+    %v22 = constant [value=0.0] [] -> float
+    %v23 = load_field (:xs_el20) [field=:v]
+    %v18 = kernel_call (:v22, :v23) [fn=:core.sub] [xs] -> float
+    array_push (:arr24, :v18)
+  loop_end [axis=:xs]
+function sigmoid:
+  %v33 = load_input [key=:xs]
+  %arr39 = array_init
+  %xs_el34 = loop_start (:v33) [axis=:xs, index=:xs_i35]
+    %v36 = constant [value=0.0] [] -> float
+    %v37 = load_field (:xs_el34) [field=:v]
+    %v32 = kernel_call (:v36, :v37) [fn=:core.sub] [xs] -> float
+    %v24 = kernel_call (:v32) [fn=:core.exp] [xs] -> float
+    %v38 = constant [value=1.0] [] -> float
+    %v25 = kernel_call (:v38, :v24) [fn=:core.add] [xs] -> float
+    %v26 = kernel_call (:v38, :v25) [fn=:core.div] [xs] -> float
+    array_push (:arr39, :v26)
+  loop_end [axis=:xs]

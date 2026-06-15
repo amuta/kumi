@@ -8,7 +8,7 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll import codegen].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross outer import codegen].freeze
 
         def initialize(context)
           @context = context
@@ -19,7 +19,7 @@ module Kumi
           validate_value_args(name, expr, blk)
 
           expression = blk ? build_cascade(&blk) : ensure_syntax(expr)
-          @context.values << Kumi::Syntax::ValueDeclaration.new(name, expression, inline: true, loc: @context.current_location)
+          @context.values << Kumi::Syntax::ValueDeclaration.new(name, expression, hints: { inline: true }, loc: @context.current_location)
         end
 
         def value(name = nil, expr = nil, &blk)
@@ -117,6 +117,21 @@ module Kumi
         def shift(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
           Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        def cross(*args, **kwargs)
+          args_expr = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(:cross, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        # `outer(v)` re-exposes a value from a DIFFERENT array as a fresh inner
+        # axis, so it can be paired all-pairs with the surrounding (outer) axis.
+        # Where `cross` self-joins one array (A x A'), `outer` joins two distinct
+        # arrays (A x B): `pixel_x - outer(light_x)` builds the (pixels x lights)
+        # grid, then `fn(:sum, ...)` reduces the light axis back to per-pixel.
+        def outer(*args, **kwargs)
+          args_expr = args.map { ensure_syntax(_1) }
+          Kumi::Syntax::CallExpression.new(:outer, args_expr, kwargs, loc: @context.current_location)
         end
 
         def method_missing(method_name, *args, &)

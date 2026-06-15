@@ -105,9 +105,7 @@ module Kumi
         def merge_stamp(meta, axes:, dtype:)
           out = meta.dup
           s = stamp(axes:, dtype:)
-          if s
-            out[:stamp] = (out[:stamp] || {}).merge(s)
-          end
+          out[:stamp] = (out[:stamp] || {}).merge(s) if s
           out
         end
 
@@ -132,7 +130,7 @@ module Kumi
           def declaration(name, **opts, &block)
             raise ArgumentError, "declaration requires block" unless block
 
-            body = block.call
+            body = yield
             @decls[name.to_sym] = SnastFactory.declaration(name, body:, **opts)
           end
 

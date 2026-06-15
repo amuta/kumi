@@ -1,0 +1,31 @@
+function e:
+  %v1 = load_input [key=:xs, chain=[], plan_ref="xs"] [xs] -> float
+  %v2 = load_field (:v1) [field=:i, plan_ref="xs.i"] [xs] -> float
+  %v3 = load_field (:v2) [field=:v, plan_ref="xs.i.v"] [xs] -> float
+  %v4 = map (:v3) [fn=:core.exp] [xs] -> float
+function l:
+  %v5 = load_input [key=:xs, chain=[], plan_ref="xs"] [xs] -> float
+  %v6 = load_field (:v5) [field=:i, plan_ref="xs.i"] [xs] -> float
+  %v7 = load_field (:v6) [field=:v, plan_ref="xs.i.v"] [xs] -> float
+  %v8 = map (:v7) [fn=:core.log] [xs] -> float
+function t:
+  %v9 = load_input [key=:xs, chain=[], plan_ref="xs"] [xs] -> float
+  %v10 = load_field (:v9) [field=:i, plan_ref="xs.i"] [xs] -> float
+  %v11 = load_field (:v10) [field=:v, plan_ref="xs.i.v"] [xs] -> float
+  %v12 = map (:v11) [fn=:core.tanh] [xs] -> float
+function neg:
+  %v13 = constant [value=0.0] [] -> float
+  %v14 = axis_broadcast (:v13) [from_axes=[], to_axes=[:xs]] [xs] -> float
+  %v15 = load_input [key=:xs, chain=[], plan_ref="xs"] [xs] -> float
+  %v16 = load_field (:v15) [field=:i, plan_ref="xs.i"] [xs] -> float
+  %v17 = load_field (:v16) [field=:v, plan_ref="xs.i.v"] [xs] -> float
+  %v18 = map (:v14, :v17) [fn=:core.sub] [xs] -> float
+function sigmoid:
+  %v19 = constant [value=1.0] [] -> float
+  %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:xs]] [xs] -> float
+  %v21 = constant [value=1.0] [] -> float
+  %v22 = axis_broadcast (:v21) [from_axes=[], to_axes=[:xs]] [xs] -> float
+  %v23 = decl_ref [name=:neg] [xs] -> float
+  %v24 = map (:v23) [fn=:core.exp] [xs] -> float
+  %v25 = map (:v22, :v24) [fn=:core.add] [xs] -> float
+  %v26 = map (:v20, :v25) [fn=:core.div] [xs] -> float

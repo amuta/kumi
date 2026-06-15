@@ -13,12 +13,13 @@ module Kumi
           @instructions = instructions.dup
         end
 
-        def each(&block)
-          @instructions.each(&block)
+        def each(&)
+          @instructions.each(&)
         end
 
         def append(instr)
           raise ArgumentError, "instruction required" unless instr.is_a?(Instruction)
+
           @instructions << instr
           instr
         end

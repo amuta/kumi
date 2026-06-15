@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [0.0.40] – 2026-06-15
+### Added
+- LoopIR optimization pipeline (`Kumi::IR::Loop::Pipeline`), previously empty, now runs two passes on every compile:
+  - **LoopFusion** — merges sibling loops over the same axis and source into one traversal, hoisting independent scalar barriers above the loop. Stencil consumers (shifts, lengths, re-iteration of a partially built array) and accumulator reads correctly block fusion.
+  - **ArrayContraction** — replaces intermediate arrays that are filled and read back at the same index within one loop with the scalar that fills them, eliminating the materialization entirely.
+- `outer(...)` usable from text schemas (requires kumi-parser ≥ 0.0.33, now the pinned version). Golden `outer_let` covers the text path with Ruby/JS parity.
+
+### Changed
+- Streaming exports throw a `TypeError` when the target aliases an input array (silent zero-length corruption before; feedback loops must double-buffer) and when a typed-array target is passed for record outputs (silently produced an empty buffer before).
+- Array input arity errors now explain the element rule (Kumi maps over arrays by default, so the element must be named) and show the correct single-child form, instead of a cryptic type error.
+- The schema digest (compiled module name + compile-cache key) no longer folds in `RUBY_VERSION`. Generated code is plain Ruby with identical semantics across supported Rubies, so the digest is now Ruby-version-independent; this also lets the codegen goldens verify across the full CI Ruby matrix.
+
+### Fixed
+- Ruby DSL `let` raised `ArgumentError: struct size differs` since 0.0.37 (`inline: true` leaked into the `ValueDeclaration` struct instead of the `hints:` channel; the text frontend was unaffected).
+- `outer`/`cross` value used through a `let` that lives purely on the inner pairing axis (no dependence on the outer-consuming axis) read `nil` past the inner array's length (`nil can't be coerced into Float`). The materialized read indexed by positional loop depth instead of by the value's own axis; it now matches by axis. Affected both Ruby and JS codegen.
+
 ## [0.0.37] – 2026-06-11
 ### Added
 - Streaming hints for JS codegen

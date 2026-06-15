@@ -146,7 +146,7 @@ module Kumi
           end.join(' ')}"
 
           @plans << Core::Analyzer::Plans::InputPlan.new(
-            source_path: [],               # synthetic (not an actual declared field path)
+            source_path: [], # synthetic (not an actual declared field path)
             axes: axes,
             dtype: Kumi::Core::Types.scalar(:integer), # indices are integers
             key_policy: @defaults[:key_policy],

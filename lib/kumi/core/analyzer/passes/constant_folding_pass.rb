@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class ConstantFoldingPass < PassBase
+          reads :nast_module, :evaluation_order, :registry
+          writes :nast_module
+
           NAST = Kumi::Core::NAST
 
           def run(_errors)

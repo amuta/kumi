@@ -261,31 +261,31 @@ RSpec.describe Kumi::RegistryV2::Loader do
             aliases: [structured]
       YAML
 
-      # Write temp file
-      require "tempfile"
-      file = Tempfile.new(["test", ".yaml"])
-      file.write(yaml_content)
-      file.close
+      # load_functions globs the directory recursively, so the fixture must live
+      # in its OWN isolated dir — pointing at the shared system temp dir would
+      # pick up unrelated YAML (other tempfiles, real function defs) and trip the
+      # duplicate-id guard.
+      require "tmpdir"
+      Dir.mktmpdir("kumi-loader-spec") do |dir|
+        File.write(File.join(dir, "functions.yaml"), yaml_content)
 
-      # Load functions
-      funcs = described_class.load_functions(File.dirname(file.path), Kumi::RegistryV2::Function)
+        funcs = described_class.load_functions(dir, Kumi::RegistryV2::Function)
 
-      expect(funcs).to have_key("test.legacy")
-      expect(funcs).to have_key("test.structured")
+        expect(funcs).to have_key("test.legacy")
+        expect(funcs).to have_key("test.structured")
 
-      # Both should have working dtype rules
-      legacy_fn = funcs["test.legacy"]
-      structured_fn = funcs["test.structured"]
+        # Both should have working dtype rules
+        legacy_fn = funcs["test.legacy"]
+        structured_fn = funcs["test.structured"]
 
-      int_type = Kumi::Core::Types.scalar(:integer)
+        int_type = Kumi::Core::Types.scalar(:integer)
 
-      legacy_result = legacy_fn.dtype_rule.call({ x: int_type })
-      structured_result = structured_fn.dtype_rule.call({ y: int_type })
+        legacy_result = legacy_fn.dtype_rule.call({ x: int_type })
+        structured_result = structured_fn.dtype_rule.call({ y: int_type })
 
-      expect(legacy_result).to eq(int_type)
-      expect(structured_result).to eq(int_type)
-
-      file.unlink
+        expect(legacy_result).to eq(int_type)
+        expect(structured_result).to eq(int_type)
+      end
     end
   end
 end

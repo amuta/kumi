@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "digest"
 
 module Kumi
   # Holds the configuration state for the Kumi compiler and runtime.
@@ -33,9 +34,39 @@ module Kumi
       @compilation_mode = default_compilation_mode
       @force_recompile = false
       @decimal_coercion_mode = :automatic
+      @code_version = nil
     end
 
+    # A fingerprint of the COMPILER itself, folded into cache keys so that a
+    # change to the analyzer/codegen invalidates cached generated code even when
+    # the schema (and thus its digest) is unchanged. Without this, editing the
+    # compiler and re-running silently reuses stale generated code from
+    # `cache_path` — a debugging trap. Override (e.g. to the gem version in
+    # production) via `Kumi.configure { |c| c.code_version = ... }`.
+    def code_version
+      @code_version ||= compute_code_version
+    end
+
+    attr_writer :code_version
+
     private
+
+    # Hash the mtimes of the gem's Ruby sources. Cheap, requires no build step,
+    # and changes whenever any compiler file is edited. Falls back to the gem
+    # version string if the source tree can't be read (e.g. packaged gem).
+    def compute_code_version
+      env = ENV.fetch("KUMI_CODE_VERSION", nil)
+      return env if env && !env.strip.empty?
+
+      lib_dir = File.expand_path("..", __dir__) # .../lib/kumi -> .../lib
+      files = Dir.glob(File.join(lib_dir, "**", "*.rb"))
+      raise "no sources" if files.empty?
+
+      stamp = files.sort.map { |f| "#{f}:#{File.mtime(f).to_i}" }.join("\n")
+      "#{Kumi::VERSION}-#{Digest::SHA256.hexdigest(stamp)[0, 12]}"
+    rescue StandardError
+      Kumi::VERSION
+    end
 
     # Provides a sensible default cache path.
     # It prefers the Rails cache directory if available, otherwise uses the

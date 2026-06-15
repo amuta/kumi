@@ -67,8 +67,8 @@ This message appears at schema compilation time, catching bugs before execution.
 
 ## When UNSAT Detection Runs
 
-UNSAT detection runs in the analyzer's lowering pipeline (the `UnsatDetector`
-pass, right after SNAST is built), at which point:
+UNSAT detection runs in the analyzer's lowering pipeline (the `UnsatDetectorPass`,
+right after SNAST is built), at which point:
 - Function IDs are resolved
 - Type information is inferred
 - Dimensional metadata is computed

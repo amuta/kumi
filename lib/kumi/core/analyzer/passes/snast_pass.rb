@@ -4,28 +4,9 @@ module Kumi
   module Core
     module Analyzer
       module Passes
-        # Semantic NAST Pass (SNAST)
-        # - Rewrites intrinsic control and reductions into first-class nodes.
-        # - Attaches semantic stamps to every node: meta[:stamp] = { axes:, dtype: }.
-        # - Uses side tables for types/scopes; no meta[:plan].
-        #
-        # Reduction rule (default sugar):
-        #   If not explicitly annotated, a reduction over arguments reduces the LAST axis:
-        #     a = lub_by_prefix(arg_axes_list)
-        #     over = [a.last]; out_axes = a[0...-1]
-        #
-        # Inputs (state):
-        #   :nast_module          => Kumi::Core::NAST::Module (topologically ordered)
-        #   :metadata_table       => Hash[node_key => { result_scope:, result_type:, arg_scopes?: ... }]
-        #   :declaration_table    => Hash[name => { result_scope:, result_type: }]
-        #   :input_table          => [{path_fqn:, axes:, dtype:}] or Hash[path_fqn] => { axes:, dtype: }
-        #
-        # Output (state):
-        #   :snast_module         => Kumi::Core::NAST::Module (with NAST::Select / NAST::Reduce nodes)
-        #
-        # TODO: If downstream never keys by node ids, consider removing dependence on node.id.
-        # TODO: Use Error helpers with provenance
         class SNASTPass < PassBase
+          reads :nast_module, :metadata_table, :declaration_table, :input_table, :index_table, :registry
+          writes :snast_module
           def run(errors)
             @nast_module       = get_state(:nast_module,       required: true)
             @metadata_table    = get_state(:metadata_table,    required: true)

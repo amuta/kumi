@@ -1,0 +1,120 @@
+(SNAST
+  (VALUE pre
+    (Call :core.add
+      (Reduce :agg.sum over [win]
+        (Call :core.mul:numeric
+          (InputRef hidden.j.win.i.w key_chain=[]) :: [hidden, win] -> float
+          (InputRef hidden.j.win.i.x key_chain=[]) :: [hidden, win] -> float
+        ) :: [hidden, win] -> float
+      ) :: [hidden] -> float
+      (InputRef hidden.j.b1 key_chain=[]) :: [hidden] -> float
+    ) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE h
+    (Call :core.tanh
+      (Ref pre) :: [hidden] -> float
+    ) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE o_pre
+    (Call :core.add
+      (Reduce :agg.sum over [hidden]
+        (Call :core.mul:numeric
+          (InputRef hidden.j.w2 key_chain=[]) :: [hidden] -> float
+          (Ref h) :: [hidden] -> float
+        ) :: [hidden] -> float
+      ) :: [] -> float
+      (InputRef b_out key_chain=[]) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE o
+    (Call :core.div
+      (Const 1.0) :: [] -> float
+      (Call :core.add
+        (Const 1.0) :: [] -> float
+        (Call :core.exp
+          (Call :core.sub
+            (Const 0.0) :: [] -> float
+            (Ref o_pre) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE output
+    (Ref o) :: [] -> float
+  ) :: [] -> float
+  (VALUE oc
+    (Call :core.clamp
+      (Ref o) :: [] -> float
+      (Const 1.0e-06) :: [] -> float
+      (Const 0.999999) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE loss
+    (Call :core.sub
+      (Const 0.0) :: [] -> float
+      (Call :core.add
+        (Call :core.mul:numeric
+          (InputRef y key_chain=[]) :: [] -> float
+          (Call :core.log
+            (Ref oc) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+        (Call :core.mul:numeric
+          (Call :core.sub
+            (Const 1.0) :: [] -> float
+            (InputRef y key_chain=[]) :: [] -> float
+          ) :: [] -> float
+          (Call :core.log
+            (Call :core.sub
+              (Const 1.0) :: [] -> float
+              (Ref oc) :: [] -> float
+            ) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE dpre_out
+    (Call :core.sub
+      (Ref o) :: [] -> float
+      (InputRef y key_chain=[]) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE dh
+    (Call :core.mul:numeric
+      (Ref dpre_out) :: [] -> float
+      (InputRef hidden.j.w2 key_chain=[]) :: [hidden] -> float
+    ) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE dpre
+    (Call :core.mul:numeric
+      (Ref dh) :: [hidden] -> float
+      (Call :core.sub
+        (Const 1.0) :: [] -> float
+        (Call :core.mul:numeric
+          (Ref h) :: [hidden] -> float
+          (Ref h) :: [hidden] -> float
+        ) :: [hidden] -> float
+      ) :: [hidden] -> float
+    ) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE grad_b_out
+    (Ref dpre_out) :: [] -> float
+  ) :: [] -> float
+  (VALUE grad_w2
+    (Call :core.mul:numeric
+      (Ref dpre_out) :: [] -> float
+      (Ref h) :: [hidden] -> float
+    ) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE grad_b1
+    (Ref dpre) :: [hidden] -> float
+  ) :: [hidden] -> float
+  (VALUE grad_w1
+    (Call :core.mul:numeric
+      (Ref dpre) :: [hidden] -> float
+      (InputRef hidden.j.win.i.x key_chain=[]) :: [hidden, win] -> float
+    ) :: [hidden, win] -> float
+  ) :: [hidden, win] -> float
+)

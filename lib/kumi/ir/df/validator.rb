@@ -19,6 +19,8 @@ module Kumi
           axis_index
           import_call
           axis_shift
+          axis_cross
+          axis_outer
           axis_broadcast
         ].freeze
 
@@ -83,9 +85,7 @@ module Kumi
           case instr.opcode
           when :load_input
             chain = Array(instr.attributes[:chain])
-            if instr.attributes[:plan_ref] && !chain.empty?
-              raise ArgumentError, "DFIR load_input with plan_ref must be root-only"
-            end
+            raise ArgumentError, "DFIR load_input with plan_ref must be root-only" if instr.attributes[:plan_ref] && !chain.empty?
           when :load_field
             source = defs[instr.inputs.first]
             if source && !prefix_axes?(Array(source.axes), Array(instr.axes))

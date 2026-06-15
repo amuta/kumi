@@ -6,6 +6,9 @@ module Kumi
       module Passes
         module Codegen
           class LoopJsPass < PassBase
+            reads :loop_module, :registry, :schema_digest
+            writes :javascript_codegen_files
+
             def run(_errors)
               loop_module = get_state(:loop_module, required: true)
               registry = get_state(:registry, required: true)

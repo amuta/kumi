@@ -18,8 +18,7 @@ module Kumi
 
         content = File.read(full_path)
         # Parse using the standard parser
-        root = Kumi::Core::RubyParser::Dsl.build_syntax_tree { instance_eval(content) }
-        root
+        Kumi::Core::RubyParser::Dsl.build_syntax_tree { instance_eval(content) }
       end
 
       # Wrap a schema root in a module that can be used for imports
@@ -32,18 +31,18 @@ module Kumi
 
         # Get or create parent module
         parent = if parent_path == "Object"
-          Object
-        else
-          parts.inject(Object) do |mod, part|
-            if mod.const_defined?(part, false)
-              mod.const_get(part)
-            else
-              new_mod = Module.new
-              mod.const_set(part, new_mod)
-              new_mod
-            end
-          end
-        end
+                   Object
+                 else
+                   parts.inject(Object) do |mod, part|
+                     if mod.const_defined?(part, false)
+                       mod.const_get(part)
+                     else
+                       new_mod = Module.new
+                       mod.const_set(part, new_mod)
+                       new_mod
+                     end
+                   end
+                 end
 
         # Analyze the schema to get metadata
         analyzed_state = analyze_schema(schema_root)
@@ -79,8 +78,6 @@ module Kumi
         parent.const_set(module_name, schema_module)
         schema_module
       end
-
-      private
 
       def self.analyze_schema(schema_root)
         # Run full analysis on the schema

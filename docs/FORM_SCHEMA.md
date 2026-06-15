@@ -82,4 +82,4 @@ input discount: float
 
 ## Implementation
 
-The `InputFormSchemaPass` runs after `InputCollector` in the analyzer pipeline and produces a clean schema containing only type information needed for form generation, excluding internal metadata like access modes and navigation steps.
+The `InputFormSchemaPass` runs after `InputCollectorPass` in the analyzer pipeline and produces a clean schema containing only type information needed for form generation, excluding internal metadata like access modes and navigation steps.

@@ -5,6 +5,7 @@ module Kumi
     module Loop
       autoload :Ops, "kumi/ir/loop/ops"
       autoload :Lower, "kumi/ir/loop/lower"
+      autoload :Passes, "kumi/ir/loop/passes"
       autoload :Pipeline, "kumi/ir/loop/pipeline"
       autoload :Builder, "kumi/ir/loop/builder"
       autoload :Validator, "kumi/ir/loop/validator"

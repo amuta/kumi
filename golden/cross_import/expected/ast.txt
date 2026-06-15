@@ -1,0 +1,21 @@
+(Root
+  inputs: [
+    (InputDeclaration :vals :array :v
+      [
+        (InputDeclaration :v :hash
+          [
+            (InputDeclaration :a :float)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :result
+      (ImportCall :pairsum
+        (vals (InputReference :vals))
+      )
+    )
+  ]
+  traits: []
+)

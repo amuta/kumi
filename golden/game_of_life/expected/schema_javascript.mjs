@@ -104,7 +104,6 @@ export function _e(input) {
 
 export function _nw(input) {
   let t18 = input["rows"];
-  let arr29 = [];
   let arr37 = [];
   for (let rows_i20 = 0; rows_i20 < t18.length; rows_i20++) {
     let rows_el19 = t18[rows_i20];
@@ -121,7 +120,6 @@ export function _nw(input) {
       let t17 = t27 ? t26 : t28;
       arr30.push(t17);
     }
-    arr29.push(arr30);
     let arr38 = [];
     for (let col_i32 = 0; col_i32 < rows_el19.length; col_i32++) {
       let col_el31 = rows_el19[col_i32];
@@ -140,7 +138,6 @@ export function _nw(input) {
 
 export function _ne(input) {
   let t20 = input["rows"];
-  let arr31 = [];
   let arr39 = [];
   for (let rows_i22 = 0; rows_i22 < t20.length; rows_i22++) {
     let rows_el21 = t20[rows_i22];
@@ -157,7 +154,6 @@ export function _ne(input) {
       let t19 = t29 ? t28 : t30;
       arr32.push(t19);
     }
-    arr31.push(arr32);
     let arr40 = [];
     for (let col_i34 = 0; col_i34 < rows_el21.length; col_i34++) {
       let col_el33 = rows_el21[col_i34];
@@ -176,7 +172,6 @@ export function _ne(input) {
 
 export function _sw(input) {
   let t22 = input["rows"];
-  let arr33 = [];
   let arr41 = [];
   for (let rows_i24 = 0; rows_i24 < t22.length; rows_i24++) {
     let rows_el23 = t22[rows_i24];
@@ -193,7 +188,6 @@ export function _sw(input) {
       let t21 = t31 ? t30 : t32;
       arr34.push(t21);
     }
-    arr33.push(arr34);
     let arr42 = [];
     for (let col_i36 = 0; col_i36 < rows_el23.length; col_i36++) {
       let col_el35 = rows_el23[col_i36];
@@ -212,7 +206,6 @@ export function _sw(input) {
 
 export function _se(input) {
   let t24 = input["rows"];
-  let arr35 = [];
   let arr43 = [];
   for (let rows_i26 = 0; rows_i26 < t24.length; rows_i26++) {
     let rows_el25 = t24[rows_i26];
@@ -229,7 +222,6 @@ export function _se(input) {
       let t23 = t33 ? t32 : t34;
       arr36.push(t23);
     }
-    arr35.push(arr36);
     let arr44 = [];
     for (let col_i38 = 0; col_i38 < rows_el25.length; col_i38++) {
       let col_el37 = rows_el25[col_i38];
@@ -248,10 +240,6 @@ export function _se(input) {
 
 export function _neighbors(input) {
   let t66 = input["rows"];
-  let arr88 = [];
-  let arr99 = [];
-  let arr110 = [];
-  let arr113 = [];
   let arr116 = [];
   for (let rows_i68 = 0; rows_i68 < t66.length; rows_i68++) {
     let rows_el67 = t66[rows_i68];
@@ -291,10 +279,6 @@ export function _neighbors(input) {
       let t45 = t86 ? t85 : t87;
       arr114.push(t45);
     }
-    arr113.push(arr114);
-    arr110.push(arr111);
-    arr99.push(arr100);
-    arr88.push(arr89);
     let arr117 = [];
     for (let col_i91 = 0; col_i91 < rows_el67.length; col_i91++) {
       let col_el90 = rows_el67[col_i91];
@@ -357,10 +341,6 @@ export function _alive(input) {
 
 export function _n3_alive(input) {
   let t74 = input["rows"];
-  let arr96 = [];
-  let arr107 = [];
-  let arr118 = [];
-  let arr121 = [];
   let arr125 = [];
   for (let rows_i76 = 0; rows_i76 < t74.length; rows_i76++) {
     let rows_el75 = t74[rows_i76];
@@ -400,10 +380,6 @@ export function _n3_alive(input) {
       let t53 = t94 ? t93 : t95;
       arr122.push(t53);
     }
-    arr121.push(arr122);
-    arr118.push(arr119);
-    arr107.push(arr108);
-    arr96.push(arr97);
     let arr126 = [];
     for (let col_i99 = 0; col_i99 < rows_el75.length; col_i99++) {
       let col_el98 = rows_el75[col_i99];
@@ -451,10 +427,6 @@ export function _n3_alive(input) {
 
 export function _n2_alive(input) {
   let t78 = input["rows"];
-  let arr100 = [];
-  let arr111 = [];
-  let arr122 = [];
-  let arr125 = [];
   let arr129 = [];
   for (let rows_i80 = 0; rows_i80 < t78.length; rows_i80++) {
     let rows_el79 = t78[rows_i80];
@@ -494,10 +466,6 @@ export function _n2_alive(input) {
       let t57 = t98 ? t97 : t99;
       arr126.push(t57);
     }
-    arr125.push(arr126);
-    arr122.push(arr123);
-    arr111.push(arr112);
-    arr100.push(arr101);
     let arr130 = [];
     for (let col_i103 = 0; col_i103 < rows_el79.length; col_i103++) {
       let col_el102 = rows_el79[col_i103];
@@ -545,10 +513,6 @@ export function _n2_alive(input) {
 
 export function _keep_alive(input) {
   let t92 = input["rows"];
-  let arr114 = [];
-  let arr125 = [];
-  let arr136 = [];
-  let arr139 = [];
   let arr144 = [];
   for (let rows_i94 = 0; rows_i94 < t92.length; rows_i94++) {
     let rows_el93 = t92[rows_i94];
@@ -588,10 +552,6 @@ export function _keep_alive(input) {
       let t60 = t112 ? t111 : t113;
       arr140.push(t60);
     }
-    arr139.push(arr140);
-    arr136.push(arr137);
-    arr125.push(arr126);
-    arr114.push(arr115);
     let arr145 = [];
     for (let col_i117 = 0; col_i117 < rows_el93.length; col_i117++) {
       let col_el116 = rows_el93[col_i117];
@@ -642,10 +602,6 @@ export function _keep_alive(input) {
 
 export function _next_alive(input) {
   let t137 = input["rows"];
-  let arr159 = [];
-  let arr170 = [];
-  let arr181 = [];
-  let arr184 = [];
   let arr190 = [];
   for (let rows_i139 = 0; rows_i139 < t137.length; rows_i139++) {
     let rows_el138 = t137[rows_i139];
@@ -685,10 +641,6 @@ export function _next_alive(input) {
       let t63 = t157 ? t156 : t158;
       arr185.push(t63);
     }
-    arr184.push(arr185);
-    arr181.push(arr182);
-    arr170.push(arr171);
-    arr159.push(arr160);
     let arr191 = [];
     for (let col_i162 = 0; col_i162 < rows_el138.length; col_i162++) {
       let col_el161 = rows_el138[col_i162];
@@ -742,10 +694,6 @@ export function _next_alive(input) {
 
 export function _next_state(input) {
   let t144 = input["rows"];
-  let arr166 = [];
-  let arr177 = [];
-  let arr188 = [];
-  let arr191 = [];
   let arr198 = [];
   for (let rows_i146 = 0; rows_i146 < t144.length; rows_i146++) {
     let rows_el145 = t144[rows_i146];
@@ -785,10 +733,6 @@ export function _next_state(input) {
       let t69 = t164 ? t163 : t165;
       arr192.push(t69);
     }
-    arr191.push(arr192);
-    arr188.push(arr189);
-    arr177.push(arr178);
-    arr166.push(arr167);
     let arr199 = [];
     for (let col_i169 = 0; col_i169 < rows_el145.length; col_i169++) {
       let col_el168 = rows_el145[col_i169];

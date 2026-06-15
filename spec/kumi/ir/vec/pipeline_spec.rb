@@ -19,10 +19,14 @@ RSpec.describe Kumi::IR::Vec::Pipeline do
 
   it "runs the default pipeline and keeps VecIR tuple-free" do
     base = builder.load_input(result: :base, key: :alive, axes: %i[rows col], dtype: int_type)
-    north = builder.axis_shift(result: :north, source: base, axis: :rows, offset: -1, policy: :zero, axes: %i[rows col], dtype: int_type, metadata: {})
-    south = builder.axis_shift(result: :south, source: base, axis: :rows, offset: 1, policy: :zero, axes: %i[rows col], dtype: int_type, metadata: {})
-    east = builder.axis_shift(result: :east, source: base, axis: :col, offset: 1, policy: :zero, axes: %i[rows col], dtype: int_type, metadata: {})
-    west = builder.axis_shift(result: :west, source: base, axis: :col, offset: -1, policy: :zero, axes: %i[rows col], dtype: int_type, metadata: {})
+    north = builder.axis_shift(result: :north, source: base, axis: :rows, offset: -1, policy: :zero, axes: %i[rows col], dtype: int_type,
+                               metadata: {})
+    south = builder.axis_shift(result: :south, source: base, axis: :rows, offset: 1, policy: :zero, axes: %i[rows col], dtype: int_type,
+                               metadata: {})
+    east = builder.axis_shift(result: :east, source: base, axis: :col, offset: 1, policy: :zero, axes: %i[rows col], dtype: int_type,
+                              metadata: {})
+    west = builder.axis_shift(result: :west, source: base, axis: :col, offset: -1, policy: :zero, axes: %i[rows col], dtype: int_type,
+                              metadata: {})
 
     builder.map(result: :sum1, fn: :"core.add", args: [north, south], axes: %i[rows col], dtype: int_type, metadata: {})
     builder.select(result: :alive, cond: base, on_true: east, on_false: west, axes: %i[rows col], dtype: int_type, metadata: {})

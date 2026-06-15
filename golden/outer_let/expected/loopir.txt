@@ -1,0 +1,173 @@
+function t:
+  %v5 = load_input [key=:step]
+  %v2 = kernel_call (:v5) [fn=:core.to_float] [] -> float
+  %v6 = constant [value=0.03] [] -> float
+  %v4 = kernel_call (:v2, :v6) [fn=:core.mul:numeric] [] -> float
+function px:
+  %v8 = load_input [key=:pixels]
+  %arr13 = array_init
+  %pixels_el9 = loop_start (:v8) [axis=:pixels, index=:pixels_i10]
+    %v11 = load_field (:pixels_el9) [field=:px]
+    %v12 = ref (:v11) [pixels] -> float
+    array_push (:arr13, :v12)
+  loop_end [axis=:pixels]
+function lbx:
+  %v12 = load_input [key=:lights]
+  %arr17 = array_init
+  %lights__o_el13 = loop_start (:v12) [axis=:lights__o, index=:lights__o_i14]
+    %v15 = load_field (:lights__o_el13) [field=:bx]
+    %v16 = ref (:v15) [lights__o] -> float
+    array_push (:arr17, :v16)
+  loop_end [axis=:lights__o]
+function lr:
+  %v16 = load_input [key=:lights]
+  %arr21 = array_init
+  %lights__o_el17 = loop_start (:v16) [axis=:lights__o, index=:lights__o_i18]
+    %v19 = load_field (:lights__o_el17) [field=:r]
+    %v20 = ref (:v19) [lights__o] -> float
+    array_push (:arr21, :v20)
+  loop_end [axis=:lights__o]
+function lph:
+  %v20 = load_input [key=:lights]
+  %arr25 = array_init
+  %lights__o_el21 = loop_start (:v20) [axis=:lights__o, index=:lights__o_i22]
+    %v23 = load_field (:lights__o_el21) [field=:ph]
+    %v24 = ref (:v23) [lights__o] -> float
+    array_push (:arr25, :v24)
+  loop_end [axis=:lights__o]
+function lglow:
+  %v24 = load_input [key=:lights]
+  %arr29 = array_init
+  %lights__o_el25 = loop_start (:v24) [axis=:lights__o, index=:lights__o_i26]
+    %v27 = load_field (:lights__o_el25) [field=:glow]
+    %v28 = ref (:v27) [lights__o] -> float
+    array_push (:arr29, :v28)
+  loop_end [axis=:lights__o]
+function lwr:
+  %v28 = load_input [key=:lights]
+  %arr33 = array_init
+  %lights__o_el29 = loop_start (:v28) [axis=:lights__o, index=:lights__o_i30]
+    %v31 = load_field (:lights__o_el29) [field=:wr]
+    %v32 = ref (:v31) [lights__o] -> float
+    array_push (:arr33, :v32)
+  loop_end [axis=:lights__o]
+function lx:
+  %v53 = load_input [key=:step]
+  %v42 = kernel_call (:v53) [fn=:core.to_float] [] -> float
+  %v54 = constant [value=0.03] [] -> float
+  %v44 = kernel_call (:v42, :v54) [fn=:core.mul:numeric] [] -> float
+  %v55 = load_input [key=:lights]
+  %arr61 = array_init
+  %lights__o_el56 = loop_start (:v55) [axis=:lights__o, index=:lights__o_i57]
+    %v58 = load_field (:lights__o_el56) [field=:ph]
+    %v32 = kernel_call (:v44, :v58) [fn=:core.add] [lights__o] -> float
+    %v33 = kernel_call (:v32) [fn=:core.cos] [lights__o] -> float
+    %v59 = load_field (:lights__o_el56) [field=:r]
+    %v35 = kernel_call (:v33, :v59) [fn=:core.mul:numeric] [lights__o] -> float
+    %v60 = load_field (:lights__o_el56) [field=:bx]
+    %v36 = kernel_call (:v60, :v35) [fn=:core.add] [lights__o] -> float
+    array_push (:arr61, :v36)
+  loop_end [axis=:lights__o]
+function dx:
+  %v66 = load_input [key=:step]
+  %v50 = kernel_call (:v66) [fn=:core.to_float] [] -> float
+  %v67 = constant [value=0.03] [] -> float
+  %v52 = kernel_call (:v50, :v67) [fn=:core.mul:numeric] [] -> float
+  %v68 = load_input [key=:lights]
+  %arr81 = array_init
+  %lights__o_el69 = loop_start (:v68) [axis=:lights__o, index=:lights__o_i70]
+    %v71 = load_field (:lights__o_el69) [field=:ph]
+    %v58 = kernel_call (:v52, :v71) [fn=:core.add] [lights__o] -> float
+    %v59 = kernel_call (:v58) [fn=:core.cos] [lights__o] -> float
+    %v72 = load_field (:lights__o_el69) [field=:r]
+    %v64 = kernel_call (:v59, :v72) [fn=:core.mul:numeric] [lights__o] -> float
+    %v73 = load_field (:lights__o_el69) [field=:bx]
+    %v65 = kernel_call (:v73, :v64) [fn=:core.add] [lights__o] -> float
+    array_push (:arr81, :v65)
+  loop_end [axis=:lights__o]
+  %v74 = load_input [key=:pixels]
+  %arr83 = array_init
+  %pixels_el75 = loop_start (:v74) [axis=:pixels, index=:pixels_i76]
+    %v77 = load_input [key=:lights]
+    %arr84 = array_init
+    %lights__o_el78 = loop_start (:v77) [axis=:lights__o, index=:lights__o_i79]
+      %v80 = load_field (:pixels_el75) [field=:px]
+      %v82 = index_read (:arr81, :lights__o_i79)
+      %v41 = kernel_call (:v80, :v82) [fn=:core.sub] [pixels, lights__o] -> float
+      array_push (:arr84, :v41)
+    loop_end [axis=:lights__o]
+    array_push (:arr83, :arr84)
+  loop_end [axis=:pixels]
+function intensity:
+  %v82 = load_input [key=:step]
+  %v64 = kernel_call (:v82) [fn=:core.to_float] [] -> float
+  %v83 = constant [value=0.03] [] -> float
+  %v66 = kernel_call (:v64, :v83) [fn=:core.mul:numeric] [] -> float
+  %v84 = load_input [key=:lights]
+  %arr97 = array_init
+  %lights__o_el85 = loop_start (:v84) [axis=:lights__o, index=:lights__o_i86]
+    %v87 = load_field (:lights__o_el85) [field=:ph]
+    %v72 = kernel_call (:v66, :v87) [fn=:core.add] [lights__o] -> float
+    %v73 = kernel_call (:v72) [fn=:core.cos] [lights__o] -> float
+    %v88 = load_field (:lights__o_el85) [field=:r]
+    %v78 = kernel_call (:v73, :v88) [fn=:core.mul:numeric] [lights__o] -> float
+    %v89 = load_field (:lights__o_el85) [field=:bx]
+    %v79 = kernel_call (:v89, :v78) [fn=:core.add] [lights__o] -> float
+    array_push (:arr97, :v79)
+  loop_end [axis=:lights__o]
+  %v90 = load_input [key=:pixels]
+  %arr101 = array_init
+  %pixels_el91 = loop_start (:v90) [axis=:pixels, index=:pixels_i92]
+    %v93 = load_input [key=:lights]
+    %arr102 = array_init
+    %lights__o_el94 = loop_start (:v93) [axis=:lights__o, index=:lights__o_i95]
+      %v96 = load_field (:pixels_el91) [field=:px]
+      %v98 = index_read (:arr97, :lights__o_i95)
+      %v81 = kernel_call (:v96, :v98) [fn=:core.sub] [pixels, lights__o] -> float
+      %v46 = kernel_call (:v81, :v81) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+      %v99 = constant [value=0.01] [] -> float
+      %v49 = kernel_call (:v46, :v99) [fn=:core.add] [pixels, lights__o] -> float
+      %v100 = load_field (:lights__o_el94) [field=:glow]
+      %v50 = kernel_call (:v100, :v49) [fn=:core.div] [pixels, lights__o] -> float
+      array_push (:arr102, :v50)
+    loop_end [axis=:lights__o]
+    array_push (:arr101, :arr102)
+  loop_end [axis=:pixels]
+function brightness:
+  %v124 = load_input [key=:step]
+  %v70 = kernel_call (:v124) [fn=:core.to_float] [] -> float
+  %v125 = constant [value=0.03] [] -> float
+  %v72 = kernel_call (:v70, :v125) [fn=:core.mul:numeric] [] -> float
+  %v126 = load_input [key=:lights]
+  %arr139 = array_init
+  %lights__o_el127 = loop_start (:v126) [axis=:lights__o, index=:lights__o_i128]
+    %v129 = load_field (:lights__o_el127) [field=:ph]
+    %v78 = kernel_call (:v72, :v129) [fn=:core.add] [lights__o] -> float
+    %v79 = kernel_call (:v78) [fn=:core.cos] [lights__o] -> float
+    %v130 = load_field (:lights__o_el127) [field=:r]
+    %v84 = kernel_call (:v79, :v130) [fn=:core.mul:numeric] [lights__o] -> float
+    %v131 = load_field (:lights__o_el127) [field=:bx]
+    %v85 = kernel_call (:v131, :v84) [fn=:core.add] [lights__o] -> float
+    array_push (:arr139, :v85)
+  loop_end [axis=:lights__o]
+  %v132 = load_input [key=:pixels]
+  %arr145 = array_init
+  %pixels_el133 = loop_start (:v132) [axis=:pixels, index=:pixels_i134]
+    %v135 = load_input [key=:lights]
+    %acc144 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %lights__o_el136 = loop_start (:v135) [axis=:lights__o, index=:lights__o_i137]
+      %v138 = load_field (:pixels_el133) [field=:px]
+      %v140 = index_read (:arr139, :lights__o_i137)
+      %v87 = kernel_call (:v138, :v140) [fn=:core.sub] [pixels, lights__o] -> float
+      %v115 = kernel_call (:v87, :v87) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+      %v141 = constant [value=0.01] [] -> float
+      %v118 = kernel_call (:v115, :v141) [fn=:core.add] [pixels, lights__o] -> float
+      %v142 = load_field (:lights__o_el136) [field=:glow]
+      %v119 = kernel_call (:v142, :v118) [fn=:core.div] [pixels, lights__o] -> float
+      %v143 = load_field (:lights__o_el136) [field=:wr]
+      %v54 = kernel_call (:v119, :v143) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+      acc_step (:acc144, :v54) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:lights__o]
+    %v55 = acc_load (:acc144) [] -> float
+    array_push (:arr145, :v55)
+  loop_end [axis=:pixels]

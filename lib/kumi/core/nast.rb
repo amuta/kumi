@@ -24,6 +24,10 @@ module Kumi
         def accept(visitor)
           visitor.visit_node(self)
         end
+
+        def children = []
+
+        def each_child(&) = children.each(&)
       end
 
       class Const < Node
@@ -99,6 +103,8 @@ module Kumi
         def accept(visitor)
           visitor.visit_call(self)
         end
+
+        def children = args
       end
 
       class ImportCall < Node
@@ -115,6 +121,8 @@ module Kumi
         def accept(visitor)
           visitor.respond_to?(:visit_import_call) ? visitor.visit_import_call(self) : super
         end
+
+        def children = args
       end
 
       class Tuple < Node
@@ -128,6 +136,8 @@ module Kumi
         def accept(visitor)
           visitor.visit_tuple(self)
         end
+
+        def children = args
       end
 
       class Pair < Node
@@ -142,6 +152,8 @@ module Kumi
         def accept(visitor)
           visitor.visit_pair(self)
         end
+
+        def children = [key, value].grep(Node)
       end
 
       class Hash < Node
@@ -155,6 +167,8 @@ module Kumi
         def accept(visitor)
           visitor.visit_hash(self)
         end
+
+        def children = pairs
       end
 
       # Control: ternary select (pure, eager)
@@ -171,6 +185,8 @@ module Kumi
         def accept(visitor)
           visitor.respond_to?(:visit_select) ? visitor.visit_select(self) : super
         end
+
+        def children = [cond, on_true, on_false]
       end
 
       # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
@@ -186,6 +202,8 @@ module Kumi
         def accept(visitor)
           visitor.respond_to?(:visit_fold) ? visitor.visit_fold(self) : super
         end
+
+        def children = [arg]
       end
 
       # Semantic reduction over explicit axes, with kernel id (e.g., :"agg.sum")
@@ -202,6 +220,8 @@ module Kumi
         def accept(visitor)
           visitor.respond_to?(:visit_reduce) ? visitor.visit_reduce(self) : super
         end
+
+        def children = [arg]
       end
 
       class Declaration < Node
@@ -217,6 +237,8 @@ module Kumi
           visitor.visit_declaration(self)
         end
 
+        def children = [body]
+
         def kind
           meta[:kind]
         end
@@ -226,6 +248,8 @@ module Kumi
         def accept(visitor)
           visitor.visit_module(self)
         end
+
+        def children = decls.values
       end
     end
   end

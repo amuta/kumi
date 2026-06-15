@@ -1,0 +1,43 @@
+schema do
+  # A 2-H-1 neural net: tanh hidden, sigmoid output, BCE loss. The schema
+  # computes the forward pass, the loss, and the FULL backward pass (every
+  # gradient). A harness applies the gradients and loops — this is one step.
+  # Each hidden unit carries its input column (w + co-located x) so the matmul
+  # Sum_i W1[j][i]*x_i aligns on the nested :win axis.
+  input do
+    array :hidden, index: :j do
+      hash :j do
+        float :w2
+        float :b1
+        array :win, index: :i do
+          hash :i do
+            float :w
+            float :x
+          end
+        end
+      end
+    end
+    float :b_out
+    float :y
+  end
+
+  # ---- forward ----
+  let :pre,   fn(:sum, input.hidden.j.win.i.w * input.hidden.j.win.i.x) + input.hidden.j.b1
+  let :h,     fn(:tanh, pre)
+  let :o_pre, fn(:sum, input.hidden.j.w2 * h) + input.b_out
+  let :o,     1.0 / (1.0 + fn(:exp, 0.0 - o_pre))
+  value :output, o
+  let :oc,    fn(:clamp, o, 0.000001, 0.999999)
+  value :loss, 0.0 - (input.y * fn(:log, oc) + (1.0 - input.y) * fn(:log, 1.0 - oc))
+
+  # ---- backward (chain rule) ----
+  let :dpre_out, o - input.y
+  let :dh,       dpre_out * input.hidden.j.w2
+  let :dpre,     dh * (1.0 - h * h)
+
+  # ---- gradients ----
+  value :grad_b_out, dpre_out
+  value :grad_w2,    dpre_out * h
+  value :grad_b1,    dpre
+  value :grad_w1,    dpre * input.hidden.j.win.i.x
+end

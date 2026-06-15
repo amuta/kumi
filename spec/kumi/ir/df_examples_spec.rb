@@ -32,11 +32,15 @@ RSpec.describe "IR::DF Examples" do
   describe "Reduction retains axis metadata" do
     it "records reducer axes and over_axes" do
       _graph, fn, builder = new_builder(:total_payroll)
-      departments = builder.load_input(result: :departments, key: :departments, axes: %i[departments employees], dtype: int_type)
-      dept = builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments employees], dtype: int_type)
-      employees = builder.load_field(result: :departments_employees, object: :departments_dept, field: :employees, axes: %i[departments employees], dtype: int_type)
-      emp = builder.load_field(result: :departments_emp, object: :departments_employees, field: :emp, axes: %i[departments employees], dtype: int_type)
-      salaries = builder.load_field(result: :salaries, object: :departments_emp, field: :salary, axes: %i[departments employees], dtype: int_type)
+      builder.load_input(result: :departments, key: :departments, axes: %i[departments employees], dtype: int_type)
+      builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments employees],
+                         dtype: int_type)
+      builder.load_field(result: :departments_employees, object: :departments_dept, field: :employees,
+                         axes: %i[departments employees], dtype: int_type)
+      builder.load_field(result: :departments_emp, object: :departments_employees, field: :emp, axes: %i[departments employees],
+                         dtype: int_type)
+      builder.load_field(result: :salaries, object: :departments_emp, field: :salary, axes: %i[departments employees],
+                         dtype: int_type)
 
       builder.reduce(
         result: :total_payroll,
@@ -58,11 +62,16 @@ RSpec.describe "IR::DF Examples" do
   describe "Select used as predicate before reduction" do
     it "keeps select elementwise before the reduce" do
       _graph, fn, builder = new_builder(:manager_count)
-      departments = builder.load_input(result: :departments, key: :departments, axes: %i[departments employees], dtype: ir_types.scalar(:string))
-      dept = builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments employees], dtype: ir_types.scalar(:string))
-      employees = builder.load_field(result: :departments_employees, object: :departments_dept, field: :employees, axes: %i[departments employees], dtype: ir_types.scalar(:string))
-      emp = builder.load_field(result: :departments_emp, object: :departments_employees, field: :emp, axes: %i[departments employees], dtype: ir_types.scalar(:string))
-      roles = builder.load_field(result: :roles, object: :departments_emp, field: :role, axes: %i[departments employees], dtype: ir_types.scalar(:string))
+      builder.load_input(result: :departments, key: :departments, axes: %i[departments employees],
+                         dtype: ir_types.scalar(:string))
+      builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments employees],
+                         dtype: ir_types.scalar(:string))
+      builder.load_field(result: :departments_employees, object: :departments_dept, field: :employees,
+                         axes: %i[departments employees], dtype: ir_types.scalar(:string))
+      builder.load_field(result: :departments_emp, object: :departments_employees, field: :emp, axes: %i[departments employees],
+                         dtype: ir_types.scalar(:string))
+      builder.load_field(result: :roles, object: :departments_emp, field: :role, axes: %i[departments employees],
+                         dtype: ir_types.scalar(:string))
       builder.constant(result: :manager_label, value: "manager", axes: [], dtype: ir_types.scalar(:string))
       builder.constant(result: :one, value: 1, axes: [], dtype: int_type)
       builder.constant(result: :zero, value: 0, axes: [], dtype: int_type)
@@ -103,8 +112,9 @@ RSpec.describe "IR::DF Examples" do
   describe "Object assembly references other declarations" do
     it "builds elementwise hashes referencing declaration refs" do
       _graph, fn, builder = new_builder(:department_summary)
-      departments = builder.load_input(result: :departments, key: :departments, axes: %i[departments], dtype: ir_types.scalar(:string))
-      dept = builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments], dtype: ir_types.scalar(:string))
+      builder.load_input(result: :departments, key: :departments, axes: %i[departments], dtype: ir_types.scalar(:string))
+      builder.load_field(result: :departments_dept, object: :departments, field: :dept, axes: %i[departments],
+                         dtype: ir_types.scalar(:string))
       builder.load_field(result: :name, object: :departments_dept, field: :name, axes: %i[departments], dtype: ir_types.scalar(:string))
       builder.decl_ref(result: :total_payroll, name: :total_payroll, axes: %i[departments], dtype: int_type)
       builder.decl_ref(result: :manager_count, name: :manager_count, axes: %i[departments], dtype: int_type)
@@ -150,7 +160,8 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:idx, axes: [:rows], dtype: ir_types.scalar(:integer)) { idx }
       end
 
-      lowering = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {}, input_metadata: {})
+      lowering = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {},
+                                         input_metadata: {})
       graph = lowering.call
       instrs = graph.fetch_function(:idx).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:axis_index)
@@ -163,7 +174,8 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:fold_sum, axes: [:rows], dtype: int_type) { fold }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :core_sum), input_table: {}, input_metadata: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :core_sum), input_table: {},
+                                      input_metadata: {}).call
       instrs = graph.fetch_function(:fold_sum).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:fold)
     end
@@ -182,7 +194,8 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:imported, axes: [], dtype: int_type) { import }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {}, input_metadata: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {},
+                                      input_metadata: {}).call
       instrs = graph.fetch_function(:imported).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:import_call)
     end
@@ -214,6 +227,7 @@ RSpec.describe "IR::DF Examples" do
       expect(shift.attributes[:axis]).to eq(:cells)
       expect(shift.attributes[:offset]).to eq(1)
     end
+
     it "broadcasts scalar arguments to target axes" do
       int = ir_types.scalar(:integer)
       snast = snast_factory.build do |b|
@@ -223,7 +237,8 @@ RSpec.describe "IR::DF Examples" do
         b.declaration(:broadcast_add, axes: %i[rows], dtype: int) { call }
       end
 
-      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :"core.add"), input_table: {}, input_metadata: {}).call
+      graph = Kumi::IR::DF::Lower.new(snast_module: snast, registry: double(resolve_function: :"core.add"), input_table: {},
+                                      input_metadata: {}).call
       instrs = graph.fetch_function(:broadcast_add).entry_block.instructions
       expect(instrs.map(&:opcode)).to include(:axis_broadcast)
     end

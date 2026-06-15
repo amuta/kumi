@@ -67,8 +67,6 @@ function top_team:
   loop_end [axis=:regions]
 function employee_bonus:
   %v117 = load_input [key=:regions]
-  %arr137 = array_init
-  %arr142 = array_init
   %arr151 = array_init
   %regions_el118 = loop_start (:v117) [axis=:regions, index=:regions_i119]
     %v120 = load_field (:regions_el118) [field=:offices]
@@ -124,6 +122,4 @@ function employee_bonus:
       array_push (:arr138, :arr139)
     loop_end [axis=:offices]
     array_push (:arr151, :arr152)
-    array_push (:arr142, :arr143)
-    array_push (:arr137, :arr138)
   loop_end [axis=:regions]

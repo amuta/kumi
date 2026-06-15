@@ -17,9 +17,8 @@ module Kumi
 
     def [](declaration_name)
       method_name = "_#{declaration_name}"
-      unless @compiled_module.respond_to?(method_name)
-        raise KeyError, "Unknown declaration: #{declaration_name}"
-      end
+      raise KeyError, "Unknown declaration: #{declaration_name}" unless @compiled_module.respond_to?(method_name)
+
       @compiled_module.public_send(method_name, @input)
     end
 
@@ -105,7 +104,11 @@ module Kumi
         @__kumi_analyzer_result__ = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
 
         schema_digest = @__kumi_syntax_tree__.digest
-        cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}.rb")
+        # Fold the compiler fingerprint into the cache filename so a changed
+        # compiler invalidates stale generated code even when the schema digest
+        # is identical (otherwise editing the compiler silently reuses old code).
+        code_version = Kumi.configuration.code_version
+        cache_path = File.join(Kumi.configuration.cache_path, "#{schema_digest}-#{code_version}.rb")
 
         # This is the core JIT vs. AOT logic.
         case Kumi.configuration.compilation_mode
@@ -134,7 +137,7 @@ module Kumi
         @__kumi_compiled_module__.singleton_methods(false).each do |method_name|
           wrapper.define_method(method_name, @__kumi_compiled_module__.method(method_name).to_proc)
         end
-        self.extend(wrapper)
+        extend(wrapper)
 
         @kumi_compiled = true
       end

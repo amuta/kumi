@@ -27,9 +27,17 @@ module Kumi
               when :select
                 Ops::Select.new(result:, cond: inputs[0], on_true: inputs[1], on_false: inputs[2], axes:, dtype:, metadata:)
               when :axis_broadcast
-                Ops::AxisBroadcast.new(result:, value: inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes], dtype:, metadata:)
+                Ops::AxisBroadcast.new(result:, value: inputs.first, from_axes: attrs[:from_axes], to_axes: attrs[:to_axes], dtype:,
+                                       metadata:)
               when :axis_shift
-                Ops::AxisShift.new(result:, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy], axes:, dtype:, metadata:)
+                Ops::AxisShift.new(result:, source: inputs.first, axis: attrs[:axis], offset: attrs[:offset], policy: attrs[:policy],
+                                   axes:, dtype:, metadata:)
+              when :axis_cross
+                Ops::AxisCross.new(result:, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
+                                   axes:, dtype:, metadata:)
+              when :axis_outer
+                Ops::AxisOuter.new(result:, source: inputs.first, axis: attrs[:axis], source_axis: attrs[:source_axis],
+                                   axes:, dtype:, metadata:)
               when :axis_index
                 Ops::AxisIndex.new(result:, axis: attrs[:axis], axes:, dtype:, metadata:)
               when :reduce
@@ -37,7 +45,13 @@ module Kumi
               when :make_object
                 Ops::MakeObject.new(result:, inputs: inputs, keys: attrs[:keys], axes:, dtype:, metadata:)
               else
-                instr
+                # No clone branch would silently keep the original inputs/result,
+                # corrupting references when a Vec pass remaps registers. Every
+                # Vec opcode must have a clone branch — fail loudly if one is missing.
+                raise ArgumentError,
+                      "InstructionCloner has no clone branch for Vec opcode #{instr.opcode.inspect}. " \
+                      "Add one here (it must thread `inputs`/`result`/`attrs`), otherwise register " \
+                      "remapping in Vec passes will silently corrupt references to this instruction."
               end
             end
           end

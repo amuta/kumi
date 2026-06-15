@@ -1,0 +1,145 @@
+function t:
+  %v1 = load_input [key=:step, chain=[], plan_ref="step"] [] -> integer
+  %v2 = map (:v1) [fn=:core.to_float] [] -> float
+  %v3 = constant [value=0.03] [] -> float
+  %v4 = map (:v2, :v3) [fn=:core.mul:numeric] [] -> float
+function px:
+  %v5 = load_input [key=:pixels, chain=[], plan_ref="pixels"] [pixels] -> float
+  %v6 = load_field (:v5) [field=:p, plan_ref="pixels.p"] [pixels] -> float
+  %v7 = load_field (:v6) [field=:px, plan_ref="pixels.p.px"] [pixels] -> float
+function lbx:
+  %v9 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v10 = load_field (:v9) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v11 = load_field (:v10) [field=:bx, plan_ref="lights.l.bx"] [lights] -> float
+  %v8 = axis_outer (:v11) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+function lr:
+  %v13 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v14 = load_field (:v13) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v15 = load_field (:v14) [field=:r, plan_ref="lights.l.r"] [lights] -> float
+  %v12 = axis_outer (:v15) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+function lph:
+  %v17 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v18 = load_field (:v17) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v19 = load_field (:v18) [field=:ph, plan_ref="lights.l.ph"] [lights] -> float
+  %v16 = axis_outer (:v19) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+function lglow:
+  %v21 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v22 = load_field (:v21) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v23 = load_field (:v22) [field=:glow, plan_ref="lights.l.glow"] [lights] -> float
+  %v20 = axis_outer (:v23) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+function lwr:
+  %v25 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v26 = load_field (:v25) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v27 = load_field (:v26) [field=:wr, plan_ref="lights.l.wr"] [lights] -> float
+  %v24 = axis_outer (:v27) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+function lx:
+  %v37 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v38 = load_field (:v37) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v39 = load_field (:v38) [field=:bx, plan_ref="lights.l.bx"] [lights] -> float
+  %v40 = axis_outer (:v39) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v41 = load_input [key=:step, chain=[], plan_ref="step"] [] -> integer
+  %v42 = map (:v41) [fn=:core.to_float] [] -> float
+  %v43 = constant [value=0.03] [] -> float
+  %v44 = map (:v42, :v43) [fn=:core.mul:numeric] [] -> float
+  %v30 = axis_broadcast (:v44) [from_axes=[], to_axes=[:lights__o]] [lights__o] -> float
+  %v47 = load_field (:v38) [field=:ph, plan_ref="lights.l.ph"] [lights] -> float
+  %v48 = axis_outer (:v47) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v32 = map (:v30, :v48) [fn=:core.add] [lights__o] -> float
+  %v33 = map (:v32) [fn=:core.cos] [lights__o] -> float
+  %v51 = load_field (:v38) [field=:r, plan_ref="lights.l.r"] [lights] -> float
+  %v52 = axis_outer (:v51) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v35 = map (:v33, :v52) [fn=:core.mul:numeric] [lights__o] -> float
+  %v36 = map (:v40, :v35) [fn=:core.add] [lights__o] -> float
+function dx:
+  %v42 = load_input [key=:pixels, chain=[], plan_ref="pixels"] [pixels] -> float
+  %v43 = load_field (:v42) [field=:p, plan_ref="pixels.p"] [pixels] -> float
+  %v44 = load_field (:v43) [field=:px, plan_ref="pixels.p.px"] [pixels] -> float
+  %v38 = axis_broadcast (:v44) [from_axes=[:pixels], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v45 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v46 = load_field (:v45) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v47 = load_field (:v46) [field=:bx, plan_ref="lights.l.bx"] [lights] -> float
+  %v48 = axis_outer (:v47) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v49 = load_input [key=:step, chain=[], plan_ref="step"] [] -> integer
+  %v50 = map (:v49) [fn=:core.to_float] [] -> float
+  %v51 = constant [value=0.03] [] -> float
+  %v52 = map (:v50, :v51) [fn=:core.mul:numeric] [] -> float
+  %v53 = axis_broadcast (:v52) [from_axes=[], to_axes=[:lights__o]] [lights__o] -> float
+  %v56 = load_field (:v46) [field=:ph, plan_ref="lights.l.ph"] [lights] -> float
+  %v57 = axis_outer (:v56) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v58 = map (:v53, :v57) [fn=:core.add] [lights__o] -> float
+  %v59 = map (:v58) [fn=:core.cos] [lights__o] -> float
+  %v62 = load_field (:v46) [field=:r, plan_ref="lights.l.r"] [lights] -> float
+  %v63 = axis_outer (:v62) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v64 = map (:v59, :v63) [fn=:core.mul:numeric] [lights__o] -> float
+  %v65 = map (:v48, :v64) [fn=:core.add] [lights__o] -> float
+  %v40 = axis_broadcast (:v65) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v41 = map (:v38, :v40) [fn=:core.sub] [pixels, lights__o] -> float
+function intensity:
+  %v51 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v52 = load_field (:v51) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v53 = load_field (:v52) [field=:glow, plan_ref="lights.l.glow"] [lights] -> float
+  %v54 = axis_outer (:v53) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v43 = axis_broadcast (:v54) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v55 = load_input [key=:pixels, chain=[], plan_ref="pixels"] [pixels] -> float
+  %v56 = load_field (:v55) [field=:p, plan_ref="pixels.p"] [pixels] -> float
+  %v57 = load_field (:v56) [field=:px, plan_ref="pixels.p.px"] [pixels] -> float
+  %v58 = axis_broadcast (:v57) [from_axes=[:pixels], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v61 = load_field (:v52) [field=:bx, plan_ref="lights.l.bx"] [lights] -> float
+  %v62 = axis_outer (:v61) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v63 = load_input [key=:step, chain=[], plan_ref="step"] [] -> integer
+  %v64 = map (:v63) [fn=:core.to_float] [] -> float
+  %v65 = constant [value=0.03] [] -> float
+  %v66 = map (:v64, :v65) [fn=:core.mul:numeric] [] -> float
+  %v67 = axis_broadcast (:v66) [from_axes=[], to_axes=[:lights__o]] [lights__o] -> float
+  %v70 = load_field (:v52) [field=:ph, plan_ref="lights.l.ph"] [lights] -> float
+  %v71 = axis_outer (:v70) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v72 = map (:v67, :v71) [fn=:core.add] [lights__o] -> float
+  %v73 = map (:v72) [fn=:core.cos] [lights__o] -> float
+  %v76 = load_field (:v52) [field=:r, plan_ref="lights.l.r"] [lights] -> float
+  %v77 = axis_outer (:v76) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v78 = map (:v73, :v77) [fn=:core.mul:numeric] [lights__o] -> float
+  %v79 = map (:v62, :v78) [fn=:core.add] [lights__o] -> float
+  %v80 = axis_broadcast (:v79) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v81 = map (:v58, :v80) [fn=:core.sub] [pixels, lights__o] -> float
+  %v46 = map (:v81, :v81) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+  %v47 = constant [value=0.01] [] -> float
+  %v48 = axis_broadcast (:v47) [from_axes=[], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v49 = map (:v46, :v48) [fn=:core.add] [pixels, lights__o] -> float
+  %v50 = map (:v43, :v49) [fn=:core.div] [pixels, lights__o] -> float
+function brightness:
+  %v56 = load_input [key=:lights, chain=[], plan_ref="lights"] [lights] -> float
+  %v57 = load_field (:v56) [field=:l, plan_ref="lights.l"] [lights] -> float
+  %v58 = load_field (:v57) [field=:glow, plan_ref="lights.l.glow"] [lights] -> float
+  %v59 = axis_outer (:v58) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v60 = axis_broadcast (:v59) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v61 = load_input [key=:pixels, chain=[], plan_ref="pixels"] [pixels] -> float
+  %v62 = load_field (:v61) [field=:p, plan_ref="pixels.p"] [pixels] -> float
+  %v63 = load_field (:v62) [field=:px, plan_ref="pixels.p.px"] [pixels] -> float
+  %v64 = axis_broadcast (:v63) [from_axes=[:pixels], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v67 = load_field (:v57) [field=:bx, plan_ref="lights.l.bx"] [lights] -> float
+  %v68 = axis_outer (:v67) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v69 = load_input [key=:step, chain=[], plan_ref="step"] [] -> integer
+  %v70 = map (:v69) [fn=:core.to_float] [] -> float
+  %v71 = constant [value=0.03] [] -> float
+  %v72 = map (:v70, :v71) [fn=:core.mul:numeric] [] -> float
+  %v73 = axis_broadcast (:v72) [from_axes=[], to_axes=[:lights__o]] [lights__o] -> float
+  %v76 = load_field (:v57) [field=:ph, plan_ref="lights.l.ph"] [lights] -> float
+  %v77 = axis_outer (:v76) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v78 = map (:v73, :v77) [fn=:core.add] [lights__o] -> float
+  %v79 = map (:v78) [fn=:core.cos] [lights__o] -> float
+  %v82 = load_field (:v57) [field=:r, plan_ref="lights.l.r"] [lights] -> float
+  %v83 = axis_outer (:v82) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v84 = map (:v79, :v83) [fn=:core.mul:numeric] [lights__o] -> float
+  %v85 = map (:v68, :v84) [fn=:core.add] [lights__o] -> float
+  %v86 = axis_broadcast (:v85) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v87 = map (:v64, :v86) [fn=:core.sub] [pixels, lights__o] -> float
+  %v115 = map (:v87, :v87) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+  %v116 = constant [value=0.01] [] -> float
+  %v117 = axis_broadcast (:v116) [from_axes=[], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v118 = map (:v115, :v117) [fn=:core.add] [pixels, lights__o] -> float
+  %v119 = map (:v60, :v118) [fn=:core.div] [pixels, lights__o] -> float
+  %v122 = load_field (:v57) [field=:wr, plan_ref="lights.l.wr"] [lights] -> float
+  %v123 = axis_outer (:v122) [axis=:lights__o, source_axis=:lights] [lights__o] -> float
+  %v53 = axis_broadcast (:v123) [from_axes=[:lights__o], to_axes=[:pixels, :lights__o]] [pixels, lights__o] -> float
+  %v54 = map (:v119, :v53) [fn=:core.mul:numeric] [pixels, lights__o] -> float
+  %v55 = reduce (:v54) [fn=:agg.sum, over_axes=[:lights__o]] [pixels] -> float

@@ -52,13 +52,11 @@ module Kumi
 
           def simplify_map(instr, inputs)
             fn = instr.attributes[:fn]
-            return nil unless fn == :"core.or" || fn == :"core.and"
+            return nil unless %i[core.or core.and].include?(fn)
 
-            if inputs[0] == inputs[1]
-              inputs[0]
-            else
-              nil
-            end
+            return unless inputs[0] == inputs[1]
+
+            inputs[0]
           end
         end
       end

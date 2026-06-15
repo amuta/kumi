@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class ImportAnalysisPass < PassBase
+          reads :imported_declarations
+          writes :imported_schemas
+
           def run(errors)
             imported_decls = get_state(:imported_declarations)
             imported_schemas = {}
@@ -28,7 +31,8 @@ module Kumi
               rescue NoMethodError
                 report_error(
                   errors,
-                  "cannot import `#{name}` from #{qualified_ref(source_module_ref, source_module)}: not a Kumi schema (missing __kumi_syntax_tree__)",
+                  "cannot import `#{name}` from #{qualified_ref(source_module_ref,
+                                                                source_module)}: not a Kumi schema (missing __kumi_syntax_tree__)",
                   location: meta[:loc]
                 )
                 next
@@ -47,7 +51,7 @@ module Kumi
 
               begin
                 analyzed_state = Kumi::Analyzer.analyze!(syntax_tree).state
-              rescue => e
+              rescue StandardError => e
                 report_error(
                   errors,
                   "failed to analyze imported schema from #{qualified_ref(source_module_ref, source_module)}: #{e.class}: #{e.message}",
@@ -81,6 +85,7 @@ module Kumi
           def qualified_ref(ref, mod = nil)
             return mod if mod
             return ref if ref
+
             "(unknown)"
           end
         end

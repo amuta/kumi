@@ -1,0 +1,32 @@
+schema do
+  input do
+    array :pixels, index: :p do
+      hash :p do
+        float :px
+      end
+    end
+    array :lights, index: :l do
+      hash :l do
+        float :bx
+        float :r
+        float :ph
+        float :glow
+        float :wr
+      end
+    end
+    integer :step
+  end
+
+  let :t, fn(:to_float, input.step) * 0.03
+  let :px, input.pixels.p.px
+  let :lbx, outer(input.lights.l.bx)
+  let :lr, outer(input.lights.l.r)
+  let :lph, outer(input.lights.l.ph)
+  let :lglow, outer(input.lights.l.glow)
+  let :lwr, outer(input.lights.l.wr)
+
+  let :lx, lbx + fn(:cos, t + lph) * lr
+  let :dx, px - lx
+  let :intensity, lglow / (dx * dx + 0.01)
+  value :brightness, fn(:sum, intensity * lwr)
+end

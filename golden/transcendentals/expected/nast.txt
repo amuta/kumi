@@ -1,0 +1,34 @@
+(NAST
+  (VALUE e
+    (Call :exp
+    (InputRef [:xs, :i, :v])
+  )
+  )
+  (VALUE l
+    (Call :log
+    (InputRef [:xs, :i, :v])
+  )
+  )
+  (VALUE t
+    (Call :tanh
+    (InputRef [:xs, :i, :v])
+  )
+  )
+  (VALUE neg
+    (Call :subtract
+    (Const 0.0)
+    (InputRef [:xs, :i, :v])
+  )
+  )
+  (VALUE sigmoid
+    (Call :divide
+    (Const 1.0)
+    (Call :add
+      (Const 1.0)
+      (Call :exp
+        (Ref neg)
+      )
+    )
+  )
+  )
+)

@@ -1,0 +1,78 @@
+(SNAST
+  (VALUE t
+    (Call :core.mul:numeric
+      (Call :core.to_float
+        (InputRef step key_chain=[]) :: [] -> integer
+      ) :: [] -> float
+      (Const 0.03) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE px
+    (InputRef pixels.p.px key_chain=[]) :: [pixels] -> float
+  ) :: [pixels] -> float
+  (VALUE lbx
+    (Call :outer
+      (InputRef lights.l.bx key_chain=[]) :: [lights] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE lr
+    (Call :outer
+      (InputRef lights.l.r key_chain=[]) :: [lights] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE lph
+    (Call :outer
+      (InputRef lights.l.ph key_chain=[]) :: [lights] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE lglow
+    (Call :outer
+      (InputRef lights.l.glow key_chain=[]) :: [lights] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE lwr
+    (Call :outer
+      (InputRef lights.l.wr key_chain=[]) :: [lights] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE lx
+    (Call :core.add
+      (Ref lbx) :: [lights__o] -> float
+      (Call :core.mul:numeric
+        (Call :core.cos
+          (Call :core.add
+            (Ref t) :: [] -> float
+            (Ref lph) :: [lights__o] -> float
+          ) :: [lights__o] -> float
+        ) :: [lights__o] -> float
+        (Ref lr) :: [lights__o] -> float
+      ) :: [lights__o] -> float
+    ) :: [lights__o] -> float
+  ) :: [lights__o] -> float
+  (VALUE dx
+    (Call :core.sub
+      (Ref px) :: [pixels] -> float
+      (Ref lx) :: [lights__o] -> float
+    ) :: [pixels, lights__o] -> float
+  ) :: [pixels, lights__o] -> float
+  (VALUE intensity
+    (Call :core.div
+      (Ref lglow) :: [lights__o] -> float
+      (Call :core.add
+        (Call :core.mul:numeric
+          (Ref dx) :: [pixels, lights__o] -> float
+          (Ref dx) :: [pixels, lights__o] -> float
+        ) :: [pixels, lights__o] -> float
+        (Const 0.01) :: [] -> float
+      ) :: [pixels, lights__o] -> float
+    ) :: [pixels, lights__o] -> float
+  ) :: [pixels, lights__o] -> float
+  (VALUE brightness
+    (Reduce :agg.sum over [lights__o]
+      (Call :core.mul:numeric
+        (Ref intensity) :: [pixels, lights__o] -> float
+        (Ref lwr) :: [lights__o] -> float
+      ) :: [pixels, lights__o] -> float
+    ) :: [pixels] -> float
+  ) :: [pixels] -> float
+)

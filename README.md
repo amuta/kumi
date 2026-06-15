@@ -175,6 +175,7 @@ The playground's example picker groups these by theme (language tour, business l
 ## Documentation
 
 - **[Syntax Reference](docs/SYNTAX.md)** — DSL syntax, types, operators, functions
+- **[Input Shapes](docs/INPUTS.md)** — declaring scalars, arrays, hashes, and the element rule
 - **[Functions Reference](docs/FUNCTIONS.md)** — auto-generated docs for all functions and kernels ([machine-readable JSON](docs/functions-reference.json))
 - **[Schema Imports](docs/SCHEMA_IMPORTS.md)** — composing and reusing schemas
 - **[Architecture](docs/ARCHITECTURE.md)** — the compiler pipeline and IR stack

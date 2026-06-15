@@ -2,7 +2,31 @@ kernels:
   - id: abs:ruby:v1
     fn: core.abs
     inline: "= $0.abs"
-  
+
+  - id: sqrt:ruby:v1
+    fn: core.sqrt
+    inline: "= Math.sqrt($0)"
+
+  - id: sin:ruby:v1
+    fn: core.sin
+    inline: "= Math.sin($0)"
+
+  - id: cos:ruby:v1
+    fn: core.cos
+    inline: "= Math.cos($0)"
+
+  - id: exp:ruby:v1
+    fn: core.exp
+    inline: "= Math.exp($0)"
+
+  - id: log:ruby:v1
+    fn: core.log
+    inline: "= Math.log($0)"
+
+  - id: tanh:ruby:v1
+    fn: core.tanh
+    inline: "= Math.tanh($0)"
+
   - id: mod.ruby:v1
     fn: core.mod
     inline: "= $0 % $1"

@@ -4,11 +4,11 @@ RSpec.describe Kumi::Core::Analyzer::ExecutionPhase do
   describe ".new" do
     it "stores pass class and index" do
       phase = described_class.new(
-        pass_class: Kumi::Core::Analyzer::Passes::NameIndexer,
+        pass_class: Kumi::Core::Analyzer::Passes::NameIndexerPass,
         index: 0
       )
 
-      expect(phase.pass_class).to eq(Kumi::Core::Analyzer::Passes::NameIndexer)
+      expect(phase.pass_class).to eq(Kumi::Core::Analyzer::Passes::NameIndexerPass)
       expect(phase.index).to eq(0)
     end
   end
@@ -16,11 +16,11 @@ RSpec.describe Kumi::Core::Analyzer::ExecutionPhase do
   describe "#pass_name" do
     it "returns readable pass name" do
       phase = described_class.new(
-        pass_class: Kumi::Core::Analyzer::Passes::NameIndexer,
+        pass_class: Kumi::Core::Analyzer::Passes::NameIndexerPass,
         index: 0
       )
 
-      expect(phase.pass_name).to eq("NameIndexer")
+      expect(phase.pass_name).to eq("NameIndexerPass")
     end
 
     it "handles nested class names" do
@@ -43,11 +43,11 @@ RSpec.describe Kumi::Core::Analyzer::ExecutionPhase do
   describe "#to_s" do
     it "returns readable string representation" do
       phase = described_class.new(
-        pass_class: Kumi::Core::Analyzer::Passes::NameIndexer,
+        pass_class: Kumi::Core::Analyzer::Passes::NameIndexerPass,
         index: 0
       )
 
-      expect(phase.to_s).to include("NameIndexer")
+      expect(phase.to_s).to include("NameIndexerPass")
       expect(phase.to_s).to include("0")
     end
   end

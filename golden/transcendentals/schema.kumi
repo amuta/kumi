@@ -1,0 +1,16 @@
+schema do
+  input do
+    array :xs, index: :i do
+      hash :i do
+        float :v
+      end
+    end
+  end
+
+  # exp / log / tanh and a sigmoid composed from exp (the activation an MLP uses).
+  value :e, fn(:exp, input.xs.i.v)
+  value :l, fn(:log, input.xs.i.v)
+  value :t, fn(:tanh, input.xs.i.v)
+  let :neg, 0.0 - input.xs.i.v
+  value :sigmoid, 1.0 / (1.0 + fn(:exp, neg))
+end

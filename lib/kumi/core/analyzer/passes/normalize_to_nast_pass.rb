@@ -5,6 +5,10 @@ module Kumi
     module Analyzer
       module Passes
         class NormalizeToNASTPass < PassBase
+          reads :declarations, :evaluation_order, :index_table, :registry
+          optional_reads :imported_schemas
+          writes :nast_module
+
           NAST = Kumi::Core::NAST
           SELECT_ID = Kumi::RegistryV2::SELECT_ID
 
@@ -176,7 +180,7 @@ module Kumi
             # The compiled schema handles its own internal dependencies.
 
             # Normalize the arguments (the values being passed)
-            args = node.input_mapping.map do |param_name, caller_expr|
+            args = node.input_mapping.map do |_param_name, caller_expr|
               normalize_expr(caller_expr, errors)
             end
 

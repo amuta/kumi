@@ -71,9 +71,7 @@ module Kumi
         def remap_attributes(instr)
           attrs = instr.attributes ? instr.attributes.dup : {}
 
-          if attrs.key?(:axis) && attrs[:axis]
-            attrs[:axis] = remap_axis(attrs[:axis])
-          end
+          attrs[:axis] = remap_axis(attrs[:axis]) if attrs.key?(:axis) && attrs[:axis]
 
           %i[from_axes to_axes over_axes].each do |key|
             next unless attrs[key]

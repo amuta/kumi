@@ -28,6 +28,21 @@ module Kumi
             create_array_field_with_block(name_or_elem_type, kwargs, &)
           elsif kwargs.any?
             create_array_field(name_or_elem_type, kwargs)
+          elsif name_or_elem_type.is_a?(Symbol)
+            # A bare `array :xs` input with no block names the array but not its
+            # element. Kumi maps over arrays by default, so the element MUST be
+            # named — that name is the per-element binding you reference in the
+            # body. Guide the user to the one-child form.
+            raise_syntax_error(
+              "Array input '#{name_or_elem_type}' needs a block that names its element. " \
+              "Kumi maps over arrays by default, so the element needs a name to map onto, e.g.\n" \
+              "  array :#{name_or_elem_type} do\n" \
+              "    float :value          # scalar element, referenced as input.#{name_or_elem_type}.value\n" \
+              "  end\n" \
+              "Use a `hash` child when each element has several fields, " \
+              "or a nested `array` child for an array of arrays.",
+              location: @context.current_location
+            )
           else
             Kumi::Core::Types.array(name_or_elem_type)
           end

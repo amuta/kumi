@@ -1,0 +1,46 @@
+(NAST
+  (VALUE xi
+    (InputRef [:bodies, :body, :x])
+  )
+  (VALUE xj
+    (Call :cross
+    (InputRef [:bodies, :body, :x])
+  )
+  )
+  (VALUE mj
+    (Call :cross
+    (InputRef [:bodies, :body, :m])
+  )
+  )
+  (VALUE dx
+    (Call :subtract
+    (Ref xj)
+    (Ref xi)
+  )
+  )
+  (VALUE dist
+    (Call :add
+    (Call :abs
+      (Ref dx)
+    )
+    (InputRef [:eps])
+  )
+  )
+  (VALUE accel
+    (Call :sum
+    (Call :divide
+      (Call :multiply
+        (Ref mj)
+        (Ref dx)
+      )
+      (Call :multiply
+        (Call :multiply
+          (Ref dist)
+          (Ref dist)
+        )
+        (Ref dist)
+      )
+    )
+  )
+  )
+)

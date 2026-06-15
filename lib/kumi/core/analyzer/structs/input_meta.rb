@@ -4,7 +4,7 @@ module Kumi
   module Core
     module Analyzer
       module Structs
-        # Represents metadata for a single input field produced by InputCollector
+        # Represents metadata for a single input field produced by InputCollectorPass
         InputMeta = Struct.new(
           :type,
           :domain,

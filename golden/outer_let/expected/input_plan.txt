@@ -1,0 +1,19 @@
+pixels: array (array) access_mode=element
+  └─> p: element_access
+  p: hash (hash)
+    └─> px: property_access
+    px: float
+lights: array (array) access_mode=element
+  └─> l: element_access
+  l: hash (hash)
+    └─> bx: property_access
+    └─> r: property_access
+    └─> ph: property_access
+    └─> glow: property_access
+    └─> wr: property_access
+    bx: float
+    r: float
+    ph: float
+    glow: float
+    wr: float
+step: integer

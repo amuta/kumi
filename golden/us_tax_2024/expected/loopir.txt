@@ -185,7 +185,10 @@ function fed_marg:
   loop_end [axis=:statuses]
 function fed_eff:
   %v124 = load_input [key=:statuses]
-  %arr144 = array_init
+  %v140 = load_input [key=:income]
+  %v141 = constant [value=1.0] [] -> float
+  %acc1 = kernel_call (:v140, :v141) [fn=:core.max] [] -> float
+  %arr146 = array_init
   %statuses_el125 = loop_start (:v124) [axis=:statuses, index=:statuses_i126]
     %v127 = load_input [key=:income]
     %v128 = load_field (:statuses_el125) [field=:std]
@@ -210,15 +213,7 @@ function fed_eff:
       acc_step (:acc139, :v122) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v123 = acc_load (:acc139) [] -> float
-    array_push (:arr144, :v123)
-  loop_end [axis=:statuses]
-  %v140 = load_input [key=:income]
-  %v141 = constant [value=1.0] [] -> float
-  %acc1 = kernel_call (:v140, :v141) [fn=:core.max] [] -> float
-  %arr146 = array_init
-  %statuses_el142 = loop_start (:v124) [axis=:statuses, index=:statuses_i143]
-    %v145 = index_read (:arr144, :statuses_i143)
-    %v75 = kernel_call (:v145, :acc1) [fn=:core.div] [statuses] -> float
+    %v75 = kernel_call (:v123, :acc1) [fn=:core.div] [statuses] -> float
     array_push (:arr146, :v75)
   loop_end [axis=:statuses]
 function ss_wage_base:
@@ -284,7 +279,9 @@ function fica_eff:
   %v122 = kernel_call (:v138, :v141) [fn=:core.mul:numeric] [] -> float
   %v123 = kernel_call (:v119, :v122) [fn=:core.add] [] -> float
   %v142 = load_input [key=:statuses]
-  %arr152 = array_init
+  %v149 = constant [value=1.0] [] -> float
+  %acc2 = kernel_call (:v138, :v149) [fn=:core.max] [] -> float
+  %arr154 = array_init
   %statuses_el143 = loop_start (:v142) [axis=:statuses, index=:statuses_i144]
     %v145 = load_input [key=:income]
     %v146 = load_field (:statuses_el143) [field=:addl_threshold]
@@ -294,19 +291,24 @@ function fica_eff:
     %v148 = constant [value=0.009] [] -> float
     %v136 = kernel_call (:acc1, :v148) [fn=:core.mul:numeric] [statuses] -> float
     %v137 = kernel_call (:v123, :v136) [fn=:core.add] [statuses] -> float
-    array_push (:arr152, :v137)
-  loop_end [axis=:statuses]
-  %v149 = constant [value=1.0] [] -> float
-  %acc2 = kernel_call (:v138, :v149) [fn=:core.max] [] -> float
-  %arr154 = array_init
-  %statuses_el150 = loop_start (:v142) [axis=:statuses, index=:statuses_i151]
-    %v153 = index_read (:arr152, :statuses_i151)
-    %v113 = kernel_call (:v153, :acc2) [fn=:core.div] [statuses] -> float
+    %v113 = kernel_call (:v137, :acc2) [fn=:core.div] [statuses] -> float
     array_push (:arr154, :v113)
   loop_end [axis=:statuses]
 function total_tax:
   %v201 = load_input [key=:statuses]
-  %arr227 = array_init
+  %v217 = load_input [key=:income]
+  %v218 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v217, :v218) [fn=:core.min] [] -> float
+  %v219 = constant [value=0.062] [] -> float
+  %v176 = kernel_call (:acc1, :v219) [fn=:core.mul:numeric] [] -> float
+  %v220 = constant [value=0.0145] [] -> float
+  %v179 = kernel_call (:v217, :v220) [fn=:core.mul:numeric] [] -> float
+  %v180 = kernel_call (:v176, :v179) [fn=:core.add] [] -> float
+  %v229 = load_input [key=:state_rate]
+  %v197 = kernel_call (:v217, :v229) [fn=:core.mul:numeric] [] -> float
+  %v234 = load_input [key=:local_rate]
+  %v200 = kernel_call (:v217, :v234) [fn=:core.mul:numeric] [] -> float
+  %arr239 = array_init
   %statuses_el202 = loop_start (:v201) [axis=:statuses, index=:statuses_i203]
     %v204 = load_input [key=:income]
     %v205 = load_field (:statuses_el202) [field=:std]
@@ -331,49 +333,36 @@ function total_tax:
       acc_step (:acc216, :v169) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v170 = acc_load (:acc216) [] -> float
-    array_push (:arr227, :v170)
-  loop_end [axis=:statuses]
-  %v217 = load_input [key=:income]
-  %v218 = constant [value=168600.0] [] -> float
-  %acc1 = kernel_call (:v217, :v218) [fn=:core.min] [] -> float
-  %v219 = constant [value=0.062] [] -> float
-  %v176 = kernel_call (:acc1, :v219) [fn=:core.mul:numeric] [] -> float
-  %v220 = constant [value=0.0145] [] -> float
-  %v179 = kernel_call (:v217, :v220) [fn=:core.mul:numeric] [] -> float
-  %v180 = kernel_call (:v176, :v179) [fn=:core.add] [] -> float
-  %arr232 = array_init
-  %statuses_el221 = loop_start (:v201) [axis=:statuses, index=:statuses_i222]
     %v223 = load_input [key=:income]
-    %v224 = load_field (:statuses_el221) [field=:addl_threshold]
+    %v224 = load_field (:statuses_el202) [field=:addl_threshold]
     %v187 = kernel_call (:v223, :v224) [fn=:core.sub] [statuses] -> float
     %v225 = constant [value=0] [] -> integer
     %acc2 = kernel_call (:v187, :v225) [fn=:core.max] [statuses] -> float
     %v226 = constant [value=0.009] [] -> float
     %v193 = kernel_call (:acc2, :v226) [fn=:core.mul:numeric] [statuses] -> float
     %v194 = kernel_call (:v180, :v193) [fn=:core.add] [statuses] -> float
-    %v228 = index_read (:arr227, :statuses_i222)
-    %v116 = kernel_call (:v228, :v194) [fn=:core.add] [statuses] -> float
-    array_push (:arr232, :v116)
-  loop_end [axis=:statuses]
-  %v229 = load_input [key=:state_rate]
-  %v197 = kernel_call (:v217, :v229) [fn=:core.mul:numeric] [] -> float
-  %arr237 = array_init
-  %statuses_el230 = loop_start (:v201) [axis=:statuses, index=:statuses_i231]
-    %v233 = index_read (:arr232, :statuses_i231)
-    %v119 = kernel_call (:v233, :v197) [fn=:core.add] [statuses] -> float
-    array_push (:arr237, :v119)
-  loop_end [axis=:statuses]
-  %v234 = load_input [key=:local_rate]
-  %v200 = kernel_call (:v217, :v234) [fn=:core.mul:numeric] [] -> float
-  %arr239 = array_init
-  %statuses_el235 = loop_start (:v201) [axis=:statuses, index=:statuses_i236]
-    %v238 = index_read (:arr237, :statuses_i236)
-    %v122 = kernel_call (:v238, :v200) [fn=:core.add] [statuses] -> float
+    %v116 = kernel_call (:v170, :v194) [fn=:core.add] [statuses] -> float
+    %v119 = kernel_call (:v116, :v197) [fn=:core.add] [statuses] -> float
+    %v122 = kernel_call (:v119, :v200) [fn=:core.add] [statuses] -> float
     array_push (:arr239, :v122)
   loop_end [axis=:statuses]
 function total_eff:
   %v213 = load_input [key=:statuses]
-  %arr239 = array_init
+  %v229 = load_input [key=:income]
+  %v230 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v229, :v230) [fn=:core.min] [] -> float
+  %v231 = constant [value=0.062] [] -> float
+  %v183 = kernel_call (:acc1, :v231) [fn=:core.mul:numeric] [] -> float
+  %v232 = constant [value=0.0145] [] -> float
+  %v186 = kernel_call (:v229, :v232) [fn=:core.mul:numeric] [] -> float
+  %v187 = kernel_call (:v183, :v186) [fn=:core.add] [] -> float
+  %v241 = load_input [key=:state_rate]
+  %v205 = kernel_call (:v229, :v241) [fn=:core.mul:numeric] [] -> float
+  %v246 = load_input [key=:local_rate]
+  %v210 = kernel_call (:v229, :v246) [fn=:core.mul:numeric] [] -> float
+  %v251 = constant [value=1.0] [] -> float
+  %acc3 = kernel_call (:v229, :v251) [fn=:core.max] [] -> float
+  %arr256 = array_init
   %statuses_el214 = loop_start (:v213) [axis=:statuses, index=:statuses_i215]
     %v216 = load_input [key=:income]
     %v217 = load_field (:statuses_el214) [field=:std]
@@ -398,57 +387,35 @@ function total_eff:
       acc_step (:acc228, :v176) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v177 = acc_load (:acc228) [] -> float
-    array_push (:arr239, :v177)
-  loop_end [axis=:statuses]
-  %v229 = load_input [key=:income]
-  %v230 = constant [value=168600.0] [] -> float
-  %acc1 = kernel_call (:v229, :v230) [fn=:core.min] [] -> float
-  %v231 = constant [value=0.062] [] -> float
-  %v183 = kernel_call (:acc1, :v231) [fn=:core.mul:numeric] [] -> float
-  %v232 = constant [value=0.0145] [] -> float
-  %v186 = kernel_call (:v229, :v232) [fn=:core.mul:numeric] [] -> float
-  %v187 = kernel_call (:v183, :v186) [fn=:core.add] [] -> float
-  %arr244 = array_init
-  %statuses_el233 = loop_start (:v213) [axis=:statuses, index=:statuses_i234]
     %v235 = load_input [key=:income]
-    %v236 = load_field (:statuses_el233) [field=:addl_threshold]
+    %v236 = load_field (:statuses_el214) [field=:addl_threshold]
     %v194 = kernel_call (:v235, :v236) [fn=:core.sub] [statuses] -> float
     %v237 = constant [value=0] [] -> integer
     %acc2 = kernel_call (:v194, :v237) [fn=:core.max] [statuses] -> float
     %v238 = constant [value=0.009] [] -> float
     %v200 = kernel_call (:acc2, :v238) [fn=:core.mul:numeric] [statuses] -> float
     %v201 = kernel_call (:v187, :v200) [fn=:core.add] [statuses] -> float
-    %v240 = index_read (:arr239, :statuses_i234)
-    %v202 = kernel_call (:v240, :v201) [fn=:core.add] [statuses] -> float
-    array_push (:arr244, :v202)
-  loop_end [axis=:statuses]
-  %v241 = load_input [key=:state_rate]
-  %v205 = kernel_call (:v229, :v241) [fn=:core.mul:numeric] [] -> float
-  %arr249 = array_init
-  %statuses_el242 = loop_start (:v213) [axis=:statuses, index=:statuses_i243]
-    %v245 = index_read (:arr244, :statuses_i243)
-    %v207 = kernel_call (:v245, :v205) [fn=:core.add] [statuses] -> float
-    array_push (:arr249, :v207)
-  loop_end [axis=:statuses]
-  %v246 = load_input [key=:local_rate]
-  %v210 = kernel_call (:v229, :v246) [fn=:core.mul:numeric] [] -> float
-  %arr254 = array_init
-  %statuses_el247 = loop_start (:v213) [axis=:statuses, index=:statuses_i248]
-    %v250 = index_read (:arr249, :statuses_i248)
-    %v212 = kernel_call (:v250, :v210) [fn=:core.add] [statuses] -> float
-    array_push (:arr254, :v212)
-  loop_end [axis=:statuses]
-  %v251 = constant [value=1.0] [] -> float
-  %acc3 = kernel_call (:v229, :v251) [fn=:core.max] [] -> float
-  %arr256 = array_init
-  %statuses_el252 = loop_start (:v213) [axis=:statuses, index=:statuses_i253]
-    %v255 = index_read (:arr254, :statuses_i253)
-    %v129 = kernel_call (:v255, :acc3) [fn=:core.div] [statuses] -> float
+    %v202 = kernel_call (:v177, :v201) [fn=:core.add] [statuses] -> float
+    %v207 = kernel_call (:v202, :v205) [fn=:core.add] [statuses] -> float
+    %v212 = kernel_call (:v207, :v210) [fn=:core.add] [statuses] -> float
+    %v129 = kernel_call (:v212, :acc3) [fn=:core.div] [statuses] -> float
     array_push (:arr256, :v129)
   loop_end [axis=:statuses]
 function after_tax:
   %v217 = load_input [key=:statuses]
-  %arr243 = array_init
+  %v233 = load_input [key=:income]
+  %v234 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v233, :v234) [fn=:core.min] [] -> float
+  %v235 = constant [value=0.062] [] -> float
+  %v187 = kernel_call (:acc1, :v235) [fn=:core.mul:numeric] [] -> float
+  %v236 = constant [value=0.0145] [] -> float
+  %v190 = kernel_call (:v233, :v236) [fn=:core.mul:numeric] [] -> float
+  %v191 = kernel_call (:v187, :v190) [fn=:core.add] [] -> float
+  %v245 = load_input [key=:state_rate]
+  %v209 = kernel_call (:v233, :v245) [fn=:core.mul:numeric] [] -> float
+  %v250 = load_input [key=:local_rate]
+  %v214 = kernel_call (:v233, :v250) [fn=:core.mul:numeric] [] -> float
+  %arr256 = array_init
   %statuses_el218 = loop_start (:v217) [axis=:statuses, index=:statuses_i219]
     %v220 = load_input [key=:income]
     %v221 = load_field (:statuses_el218) [field=:std]
@@ -473,51 +440,36 @@ function after_tax:
       acc_step (:acc232, :v180) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v181 = acc_load (:acc232) [] -> float
-    array_push (:arr243, :v181)
-  loop_end [axis=:statuses]
-  %v233 = load_input [key=:income]
-  %v234 = constant [value=168600.0] [] -> float
-  %acc1 = kernel_call (:v233, :v234) [fn=:core.min] [] -> float
-  %v235 = constant [value=0.062] [] -> float
-  %v187 = kernel_call (:acc1, :v235) [fn=:core.mul:numeric] [] -> float
-  %v236 = constant [value=0.0145] [] -> float
-  %v190 = kernel_call (:v233, :v236) [fn=:core.mul:numeric] [] -> float
-  %v191 = kernel_call (:v187, :v190) [fn=:core.add] [] -> float
-  %arr248 = array_init
-  %statuses_el237 = loop_start (:v217) [axis=:statuses, index=:statuses_i238]
     %v239 = load_input [key=:income]
-    %v240 = load_field (:statuses_el237) [field=:addl_threshold]
+    %v240 = load_field (:statuses_el218) [field=:addl_threshold]
     %v198 = kernel_call (:v239, :v240) [fn=:core.sub] [statuses] -> float
     %v241 = constant [value=0] [] -> integer
     %acc2 = kernel_call (:v198, :v241) [fn=:core.max] [statuses] -> float
     %v242 = constant [value=0.009] [] -> float
     %v204 = kernel_call (:acc2, :v242) [fn=:core.mul:numeric] [statuses] -> float
     %v205 = kernel_call (:v191, :v204) [fn=:core.add] [statuses] -> float
-    %v244 = index_read (:arr243, :statuses_i238)
-    %v206 = kernel_call (:v244, :v205) [fn=:core.add] [statuses] -> float
-    array_push (:arr248, :v206)
-  loop_end [axis=:statuses]
-  %v245 = load_input [key=:state_rate]
-  %v209 = kernel_call (:v233, :v245) [fn=:core.mul:numeric] [] -> float
-  %arr253 = array_init
-  %statuses_el246 = loop_start (:v217) [axis=:statuses, index=:statuses_i247]
-    %v249 = index_read (:arr248, :statuses_i247)
-    %v211 = kernel_call (:v249, :v209) [fn=:core.add] [statuses] -> float
-    array_push (:arr253, :v211)
-  loop_end [axis=:statuses]
-  %v250 = load_input [key=:local_rate]
-  %v214 = kernel_call (:v233, :v250) [fn=:core.mul:numeric] [] -> float
-  %arr256 = array_init
-  %statuses_el251 = loop_start (:v217) [axis=:statuses, index=:statuses_i252]
-    %v254 = index_read (:arr253, :statuses_i252)
-    %v216 = kernel_call (:v254, :v214) [fn=:core.add] [statuses] -> float
+    %v206 = kernel_call (:v181, :v205) [fn=:core.add] [statuses] -> float
+    %v211 = kernel_call (:v206, :v209) [fn=:core.add] [statuses] -> float
+    %v216 = kernel_call (:v211, :v214) [fn=:core.add] [statuses] -> float
     %v255 = load_input [key=:income]
     %v133 = kernel_call (:v255, :v216) [fn=:core.sub] [statuses] -> float
     array_push (:arr256, :v133)
   loop_end [axis=:statuses]
 function take_home:
   %v224 = load_input [key=:statuses]
-  %arr250 = array_init
+  %v240 = load_input [key=:income]
+  %v241 = constant [value=168600.0] [] -> float
+  %acc1 = kernel_call (:v240, :v241) [fn=:core.min] [] -> float
+  %v242 = constant [value=0.062] [] -> float
+  %v193 = kernel_call (:acc1, :v242) [fn=:core.mul:numeric] [] -> float
+  %v243 = constant [value=0.0145] [] -> float
+  %v196 = kernel_call (:v240, :v243) [fn=:core.mul:numeric] [] -> float
+  %v197 = kernel_call (:v193, :v196) [fn=:core.add] [] -> float
+  %v252 = load_input [key=:state_rate]
+  %v215 = kernel_call (:v240, :v252) [fn=:core.mul:numeric] [] -> float
+  %v257 = load_input [key=:local_rate]
+  %v220 = kernel_call (:v240, :v257) [fn=:core.mul:numeric] [] -> float
+  %arr264 = array_init
   %statuses_el225 = loop_start (:v224) [axis=:statuses, index=:statuses_i226]
     %v227 = load_input [key=:income]
     %v228 = load_field (:statuses_el225) [field=:std]
@@ -542,44 +494,17 @@ function take_home:
       acc_step (:acc239, :v186) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v187 = acc_load (:acc239) [] -> float
-    array_push (:arr250, :v187)
-  loop_end [axis=:statuses]
-  %v240 = load_input [key=:income]
-  %v241 = constant [value=168600.0] [] -> float
-  %acc1 = kernel_call (:v240, :v241) [fn=:core.min] [] -> float
-  %v242 = constant [value=0.062] [] -> float
-  %v193 = kernel_call (:acc1, :v242) [fn=:core.mul:numeric] [] -> float
-  %v243 = constant [value=0.0145] [] -> float
-  %v196 = kernel_call (:v240, :v243) [fn=:core.mul:numeric] [] -> float
-  %v197 = kernel_call (:v193, :v196) [fn=:core.add] [] -> float
-  %arr255 = array_init
-  %statuses_el244 = loop_start (:v224) [axis=:statuses, index=:statuses_i245]
     %v246 = load_input [key=:income]
-    %v247 = load_field (:statuses_el244) [field=:addl_threshold]
+    %v247 = load_field (:statuses_el225) [field=:addl_threshold]
     %v204 = kernel_call (:v246, :v247) [fn=:core.sub] [statuses] -> float
     %v248 = constant [value=0] [] -> integer
     %acc2 = kernel_call (:v204, :v248) [fn=:core.max] [statuses] -> float
     %v249 = constant [value=0.009] [] -> float
     %v210 = kernel_call (:acc2, :v249) [fn=:core.mul:numeric] [statuses] -> float
     %v211 = kernel_call (:v197, :v210) [fn=:core.add] [statuses] -> float
-    %v251 = index_read (:arr250, :statuses_i245)
-    %v212 = kernel_call (:v251, :v211) [fn=:core.add] [statuses] -> float
-    array_push (:arr255, :v212)
-  loop_end [axis=:statuses]
-  %v252 = load_input [key=:state_rate]
-  %v215 = kernel_call (:v240, :v252) [fn=:core.mul:numeric] [] -> float
-  %arr260 = array_init
-  %statuses_el253 = loop_start (:v224) [axis=:statuses, index=:statuses_i254]
-    %v256 = index_read (:arr255, :statuses_i254)
-    %v217 = kernel_call (:v256, :v215) [fn=:core.add] [statuses] -> float
-    array_push (:arr260, :v217)
-  loop_end [axis=:statuses]
-  %v257 = load_input [key=:local_rate]
-  %v220 = kernel_call (:v240, :v257) [fn=:core.mul:numeric] [] -> float
-  %arr264 = array_init
-  %statuses_el258 = loop_start (:v224) [axis=:statuses, index=:statuses_i259]
-    %v261 = index_read (:arr260, :statuses_i259)
-    %v222 = kernel_call (:v261, :v220) [fn=:core.add] [statuses] -> float
+    %v212 = kernel_call (:v187, :v211) [fn=:core.add] [statuses] -> float
+    %v217 = kernel_call (:v212, :v215) [fn=:core.add] [statuses] -> float
+    %v222 = kernel_call (:v217, :v220) [fn=:core.add] [statuses] -> float
     %v262 = load_input [key=:income]
     %v223 = kernel_call (:v262, :v222) [fn=:core.sub] [statuses] -> float
     %v263 = load_input [key=:retirement_contrib]
@@ -588,8 +513,23 @@ function take_home:
   loop_end [axis=:statuses]
 function summary:
   %v725 = load_input [key=:statuses]
-  %arr746 = array_init
-  %arr748 = array_init
+  %v742 = load_input [key=:income]
+  %v743 = constant [value=1.0] [] -> float
+  %acc3 = kernel_call (:v742, :v743) [fn=:core.max] [] -> float
+  %v750 = constant [value=168600.0] [] -> float
+  %acc5 = kernel_call (:v742, :v750) [fn=:core.min] [] -> float
+  %v751 = constant [value=0.062] [] -> float
+  %v323 = kernel_call (:acc5, :v751) [fn=:core.mul:numeric] [] -> float
+  %v752 = constant [value=0.0145] [] -> float
+  %v326 = kernel_call (:v742, :v752) [fn=:core.mul:numeric] [] -> float
+  %v327 = kernel_call (:v323, :v326) [fn=:core.add] [] -> float
+  %v759 = load_input [key=:state_rate]
+  %v374 = kernel_call (:v742, :v759) [fn=:core.mul:numeric] [] -> float
+  %v151 = make_object (:v759, :v759, :v374) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %v760 = load_input [key=:local_rate]
+  %v377 = kernel_call (:v742, :v760) [fn=:core.mul:numeric] [] -> float
+  %v155 = make_object (:v760, :v760, :v377) [keys=[:marginal, :effective, :tax]] [] -> hash
+  %arr773 = array_init
   %statuses_el726 = loop_start (:v725) [axis=:statuses, index=:statuses_i727]
     %v728 = load_input [key=:income]
     %v729 = load_field (:statuses_el726) [field=:std]
@@ -620,55 +560,20 @@ function summary:
       acc_step (:acc741, :v262) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:rates]
     %v215 = acc_load (:acc740) [] -> float
-    array_push (:arr748, :v215)
     %v263 = acc_load (:acc741) [] -> float
-    array_push (:arr746, :v263)
-  loop_end [axis=:statuses]
-  %v742 = load_input [key=:income]
-  %v743 = constant [value=1.0] [] -> float
-  %acc3 = kernel_call (:v742, :v743) [fn=:core.max] [] -> float
-  %arr769 = array_init
-  %statuses_el744 = loop_start (:v725) [axis=:statuses, index=:statuses_i745]
-    %v747 = index_read (:arr746, :statuses_i745)
-    %v269 = kernel_call (:v747, :acc3) [fn=:core.div] [statuses] -> float
-    %v749 = index_read (:arr748, :statuses_i745)
-    %v144 = make_object (:v749, :v269, :v747) [keys=[:marginal, :effective, :tax]] [statuses] -> hash
-    array_push (:arr769, :v144)
-  loop_end [axis=:statuses]
-  %v750 = constant [value=168600.0] [] -> float
-  %acc5 = kernel_call (:v742, :v750) [fn=:core.min] [] -> float
-  %v751 = constant [value=0.062] [] -> float
-  %v323 = kernel_call (:acc5, :v751) [fn=:core.mul:numeric] [] -> float
-  %v752 = constant [value=0.0145] [] -> float
-  %v326 = kernel_call (:v742, :v752) [fn=:core.mul:numeric] [] -> float
-  %v327 = kernel_call (:v323, :v326) [fn=:core.add] [] -> float
-  %arr764 = array_init
-  %arr771 = array_init
-  %statuses_el753 = loop_start (:v725) [axis=:statuses, index=:statuses_i754]
+    %v269 = kernel_call (:v263, :acc3) [fn=:core.div] [statuses] -> float
+    %v144 = make_object (:v215, :v269, :v263) [keys=[:marginal, :effective, :tax]] [statuses] -> hash
     %v755 = load_input [key=:income]
-    %v756 = load_field (:statuses_el753) [field=:addl_threshold]
+    %v756 = load_field (:statuses_el726) [field=:addl_threshold]
     %v334 = kernel_call (:v755, :v756) [fn=:core.sub] [statuses] -> float
     %v757 = constant [value=0] [] -> integer
     %acc6 = kernel_call (:v334, :v757) [fn=:core.max] [statuses] -> float
     %v758 = constant [value=0.009] [] -> float
     %v340 = kernel_call (:acc6, :v758) [fn=:core.mul:numeric] [statuses] -> float
     %v341 = kernel_call (:v327, :v340) [fn=:core.add] [statuses] -> float
-    array_push (:arr764, :v341)
     %v347 = kernel_call (:v341, :acc3) [fn=:core.div] [statuses] -> float
     %v147 = make_object (:v347, :v341) [keys=[:effective, :tax]] [statuses] -> hash
-    array_push (:arr771, :v147)
-  loop_end [axis=:statuses]
-  %v759 = load_input [key=:state_rate]
-  %v374 = kernel_call (:v742, :v759) [fn=:core.mul:numeric] [] -> float
-  %v151 = make_object (:v759, :v759, :v374) [keys=[:marginal, :effective, :tax]] [] -> hash
-  %v760 = load_input [key=:local_rate]
-  %v377 = kernel_call (:v742, :v760) [fn=:core.mul:numeric] [] -> float
-  %v155 = make_object (:v760, :v760, :v377) [keys=[:marginal, :effective, :tax]] [] -> hash
-  %arr773 = array_init
-  %statuses_el761 = loop_start (:v725) [axis=:statuses, index=:statuses_i762]
-    %v763 = index_read (:arr746, :statuses_i762)
-    %v765 = index_read (:arr764, :statuses_i762)
-    %v450 = kernel_call (:v763, :v765) [fn=:core.add] [statuses] -> float
+    %v450 = kernel_call (:v263, :v341) [fn=:core.add] [statuses] -> float
     %v455 = kernel_call (:v450, :v374) [fn=:core.add] [statuses] -> float
     %v460 = kernel_call (:v455, :v377) [fn=:core.add] [statuses] -> float
     %v466 = kernel_call (:v460, :acc3) [fn=:core.div] [statuses] -> float
@@ -677,9 +582,7 @@ function summary:
     %v635 = kernel_call (:v766, :v460) [fn=:core.sub] [statuses] -> float
     %v767 = load_input [key=:retirement_contrib]
     %v724 = kernel_call (:v635, :v767) [fn=:core.sub] [statuses] -> float
-    %v768 = load_field (:statuses_el761) [field=:name]
-    %v770 = index_read (:arr769, :statuses_i762)
-    %v772 = index_read (:arr771, :statuses_i762)
-    %v162 = make_object (:v768, :v770, :v772, :v151, :v155, :v158, :v635, :v767, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash
+    %v768 = load_field (:statuses_el726) [field=:name]
+    %v162 = make_object (:v768, :v144, :v147, :v151, :v155, :v158, :v635, :v767, :v724) [keys=[:filing_status, :federal, :fica, :state, :local, :total, :after_tax, :retirement_contrib, :take_home]] [statuses] -> hash
     array_push (:arr773, :v162)
   loop_end [axis=:statuses]

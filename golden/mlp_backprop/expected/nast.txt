@@ -1,0 +1,120 @@
+(NAST
+  (VALUE pre
+    (Call :add
+    (Call :sum
+      (Call :multiply
+        (InputRef [:hidden, :j, :win, :i, :w])
+        (InputRef [:hidden, :j, :win, :i, :x])
+      )
+    )
+    (InputRef [:hidden, :j, :b1])
+  )
+  )
+  (VALUE h
+    (Call :tanh
+    (Ref pre)
+  )
+  )
+  (VALUE o_pre
+    (Call :add
+    (Call :sum
+      (Call :multiply
+        (InputRef [:hidden, :j, :w2])
+        (Ref h)
+      )
+    )
+    (InputRef [:b_out])
+  )
+  )
+  (VALUE o
+    (Call :divide
+    (Const 1.0)
+    (Call :add
+      (Const 1.0)
+      (Call :exp
+        (Call :subtract
+          (Const 0.0)
+          (Ref o_pre)
+        )
+      )
+    )
+  )
+  )
+  (VALUE output
+    (Ref o)
+  )
+  (VALUE oc
+    (Call :clamp
+    (Ref o)
+    (Const 1.0e-06)
+    (Const 0.999999)
+  )
+  )
+  (VALUE loss
+    (Call :subtract
+    (Const 0.0)
+    (Call :add
+      (Call :multiply
+        (InputRef [:y])
+        (Call :log
+          (Ref oc)
+        )
+      )
+      (Call :multiply
+        (Call :subtract
+          (Const 1.0)
+          (InputRef [:y])
+        )
+        (Call :log
+          (Call :subtract
+            (Const 1.0)
+            (Ref oc)
+          )
+        )
+      )
+    )
+  )
+  )
+  (VALUE dpre_out
+    (Call :subtract
+    (Ref o)
+    (InputRef [:y])
+  )
+  )
+  (VALUE dh
+    (Call :multiply
+    (Ref dpre_out)
+    (InputRef [:hidden, :j, :w2])
+  )
+  )
+  (VALUE dpre
+    (Call :multiply
+    (Ref dh)
+    (Call :subtract
+      (Const 1.0)
+      (Call :multiply
+        (Ref h)
+        (Ref h)
+      )
+    )
+  )
+  )
+  (VALUE grad_b_out
+    (Ref dpre_out)
+  )
+  (VALUE grad_w2
+    (Call :multiply
+    (Ref dpre_out)
+    (Ref h)
+  )
+  )
+  (VALUE grad_b1
+    (Ref dpre)
+  )
+  (VALUE grad_w1
+    (Call :multiply
+    (Ref dpre)
+    (InputRef [:hidden, :j, :win, :i, :x])
+  )
+  )
+)

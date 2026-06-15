@@ -12,6 +12,8 @@ module Kumi
           select
           axis_broadcast
           axis_shift
+          axis_cross
+          axis_outer
           axis_index
           reduce
           make_object
@@ -41,14 +43,10 @@ module Kumi
         end
 
         def validate_instruction(instr)
-          unless ALLOWED_OPS.include?(instr.opcode)
-            raise ArgumentError, "VecIR does not support opcode #{instr.opcode}"
-          end
+          raise ArgumentError, "VecIR does not support opcode #{instr.opcode}" unless ALLOWED_OPS.include?(instr.opcode)
 
           dtype = instr.metadata[:dtype] || instr.dtype
-          if dtype.respond_to?(:element_types) && instr.opcode != :make_object
-            raise ArgumentError, "VecIR disallows tuple dtype (#{dtype})"
-          end
+          raise ArgumentError, "VecIR disallows tuple dtype (#{dtype})" if dtype.respond_to?(:element_types) && instr.opcode != :make_object
 
           case instr.opcode
           when :axis_broadcast

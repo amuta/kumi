@@ -7,38 +7,38 @@ module Kumi
     ERROR_THRESHOLD_PASS = Passes::NormalizeToNASTPass
 
     DEFAULT_PASSES = [
-      Passes::NameIndexer,                     # 1. Finds all names and checks for duplicates.
-      Passes::ImportAnalysisPass,              # 2. Loads source schemas for imports (NEW).
-      Passes::InputCollector,                  # 3. Collects field metadata from input declarations.
-      Passes::InputFormSchemaPass,             # 4. Builds minimal form schema from input metadata.
-      Passes::DeclarationValidator,            # 5. Checks the basic structure of each rule.
-      Passes::SemanticConstraintValidator,     # 6. Validates DSL semantic constraints at AST level.
-      Passes::DependencyResolver,              # 7. Builds the dependency graph with conditional dependencies.
-      Passes::Toposorter,                      # 8. Creates the final evaluation order, allowing safe cycles.
-      Passes::InputAccessPlannerPass           # 9. Plans access strategies for input fields.
+      Passes::NameIndexerPass,
+      Passes::ImportAnalysisPass,
+      Passes::InputCollectorPass,
+      Passes::InputFormSchemaPass,
+      Passes::DeclarationValidatorPass,
+      Passes::SemanticConstraintValidatorPass,
+      Passes::DependencyResolverPass,
+      Passes::ToposorterPass,
+      Passes::InputAccessPlannerPass
     ].freeze
 
     # Lowering pipeline: NAST -> SNAST -> DFIR -> VecIR -> LoopIR
     LOWERING_PASSES = [
-      Passes::NormalizeToNASTPass,             # Normalizes AST to uniform NAST representation
-      Passes::ConstantFoldingPass,             # Folds constant expressions in NAST
-      Passes::NASTDimensionalAnalyzerPass,     # Extracts dimensional and type metadata from NAST
-      Passes::SNASTPass,                       # Creates Semantic NAST with dimensional stamps and execution plans
-      Passes::UnsatDetector,                   # Detects impossible constraints with resolved function IDs and SNAST metadata
-      Passes::OutputSchemaPass,                # Builds minimal output schema from SNAST
-      Passes::AttachTerminalInfoPass,          # Attaches key_chain info to InputRef nodes
+      Passes::NormalizeToNASTPass,
+      Passes::ConstantFoldingPass,
+      Passes::NASTDimensionalAnalyzerPass,
+      Passes::SNASTPass,
+      Passes::UnsatDetectorPass,
+      Passes::OutputSchemaPass,
+      Passes::AttachTerminalInfoPass,
       Passes::AttachAnchorsPass,
       Passes::PrecomputeAccessPathsPass,
-      Passes::LowerToDFIRPass,                 # Lowers SNAST into DFIR and stores it in analysis state
-      Passes::DFValidatePass,                  # Validates DFIR invariants before Vec lowering
-      Passes::Vec::LowerPass,                  # Lowers DFIR into VecIR and stores it in analysis state
-      Passes::VecValidatePass,                 # Validates VecIR invariants before Loop lowering
-      Passes::Loop::LowerPass,                 # Lowers VecIR into LoopIR and stores it in analysis state
-      Passes::LoopValidatePass                 # Validates LoopIR invariants before codegen
+      Passes::LowerToDFIRPass,
+      Passes::DFValidatePass,
+      Passes::Vec::LowerPass,
+      Passes::VecValidatePass,
+      Passes::Loop::LowerPass,
+      Passes::LoopValidatePass
     ].freeze
 
     TARGET_PASSES = [
-      Passes::Codegen::LoopRubyPass, # Generates Ruby code from LoopIR
+      Passes::Codegen::LoopRubyPass,
       Passes::Codegen::LoopJsPass
     ].freeze
 

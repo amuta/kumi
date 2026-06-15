@@ -1,0 +1,106 @@
+(Root
+  inputs: [
+    (InputDeclaration :pixels :array :p
+      [
+        (InputDeclaration :p :hash
+          [
+            (InputDeclaration :px :float)
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :lights :array :l
+      [
+        (InputDeclaration :l :hash
+          [
+            (InputDeclaration :bx :float)
+            (InputDeclaration :r :float)
+            (InputDeclaration :ph :float)
+            (InputDeclaration :glow :float)
+            (InputDeclaration :wr :float)
+          ]
+        )
+      ]
+    )
+    (InputDeclaration :step :integer)
+  ]
+  values: [
+    (ValueDeclaration :t
+      (CallExpression :multiply
+        (CallExpression :to_float
+          (InputReference :step)
+        )
+        (Literal 0.03)
+      )
+    )
+    (ValueDeclaration :px
+      (InputElementReference pixels.p.px)
+    )
+    (ValueDeclaration :lbx
+      (CallExpression :outer
+        (InputElementReference lights.l.bx)
+      )
+    )
+    (ValueDeclaration :lr
+      (CallExpression :outer
+        (InputElementReference lights.l.r)
+      )
+    )
+    (ValueDeclaration :lph
+      (CallExpression :outer
+        (InputElementReference lights.l.ph)
+      )
+    )
+    (ValueDeclaration :lglow
+      (CallExpression :outer
+        (InputElementReference lights.l.glow)
+      )
+    )
+    (ValueDeclaration :lwr
+      (CallExpression :outer
+        (InputElementReference lights.l.wr)
+      )
+    )
+    (ValueDeclaration :lx
+      (CallExpression :add
+        (DeclarationReference :lbx)
+        (CallExpression :multiply
+          (CallExpression :cos
+            (CallExpression :add
+              (DeclarationReference :t)
+              (DeclarationReference :lph)
+            )
+          )
+          (DeclarationReference :lr)
+        )
+      )
+    )
+    (ValueDeclaration :dx
+      (CallExpression :subtract
+        (DeclarationReference :px)
+        (DeclarationReference :lx)
+      )
+    )
+    (ValueDeclaration :intensity
+      (CallExpression :divide
+        (DeclarationReference :lglow)
+        (CallExpression :add
+          (CallExpression :multiply
+            (DeclarationReference :dx)
+            (DeclarationReference :dx)
+          )
+          (Literal 0.01)
+        )
+      )
+    )
+    (ValueDeclaration :brightness
+      (CallExpression :sum
+        (CallExpression :multiply
+          (DeclarationReference :intensity)
+          (DeclarationReference :lwr)
+        )
+      )
+    )
+  ]
+  traits: []
+)

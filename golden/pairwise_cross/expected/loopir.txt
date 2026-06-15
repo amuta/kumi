@@ -1,0 +1,92 @@
+function xi:
+  %v4 = load_input [key=:bodies]
+  %arr9 = array_init
+  %bodies_el5 = loop_start (:v4) [axis=:bodies, index=:bodies_i6]
+    %v7 = load_field (:bodies_el5) [field=:x]
+    %v8 = ref (:v7) [bodies] -> float
+    array_push (:arr9, :v8)
+  loop_end [axis=:bodies]
+function xj:
+  %v8 = load_input [key=:bodies]
+  %arr15 = array_init
+  %bodies_el9 = loop_start (:v8) [axis=:bodies, index=:bodies_i10]
+    %v11 = load_input [key=:bodies]
+    %arr16 = array_init
+    %bodies__x_el12 = loop_start (:v11) [axis=:bodies__x, index=:bodies__x_i13]
+      %v14 = load_field (:bodies__x_el12) [field=:x]
+      %v4 = ref (:v14) [bodies, bodies__x] -> float
+      array_push (:arr16, :v4)
+    loop_end [axis=:bodies__x]
+    array_push (:arr15, :arr16)
+  loop_end [axis=:bodies]
+function mj:
+  %v12 = load_input [key=:bodies]
+  %arr19 = array_init
+  %bodies_el13 = loop_start (:v12) [axis=:bodies, index=:bodies_i14]
+    %v15 = load_input [key=:bodies]
+    %arr20 = array_init
+    %bodies__x_el16 = loop_start (:v15) [axis=:bodies__x, index=:bodies__x_i17]
+      %v18 = load_field (:bodies__x_el16) [field=:m]
+      %v8 = ref (:v18) [bodies, bodies__x] -> float
+      array_push (:arr20, :v8)
+    loop_end [axis=:bodies__x]
+    array_push (:arr19, :arr20)
+  loop_end [axis=:bodies]
+function dx:
+  %v20 = load_input [key=:bodies]
+  %arr28 = array_init
+  %bodies_el21 = loop_start (:v20) [axis=:bodies, index=:bodies_i22]
+    %v23 = load_input [key=:bodies]
+    %arr29 = array_init
+    %bodies__x_el24 = loop_start (:v23) [axis=:bodies__x, index=:bodies__x_i25]
+      %v26 = load_field (:bodies__x_el24) [field=:x]
+      %v19 = ref (:v26) [bodies, bodies__x] -> float
+      %v27 = load_field (:bodies_el21) [field=:x]
+      %v15 = kernel_call (:v19, :v27) [fn=:core.sub] [bodies, bodies__x] -> float
+      array_push (:arr29, :v15)
+    loop_end [axis=:bodies__x]
+    array_push (:arr28, :arr29)
+  loop_end [axis=:bodies]
+function dist:
+  %v30 = load_input [key=:bodies]
+  %arr39 = array_init
+  %bodies_el31 = loop_start (:v30) [axis=:bodies, index=:bodies_i32]
+    %v33 = load_input [key=:bodies]
+    %arr40 = array_init
+    %bodies__x_el34 = loop_start (:v33) [axis=:bodies__x, index=:bodies__x_i35]
+      %v36 = load_field (:bodies__x_el34) [field=:x]
+      %v24 = ref (:v36) [bodies, bodies__x] -> float
+      %v37 = load_field (:bodies_el31) [field=:x]
+      %v29 = kernel_call (:v24, :v37) [fn=:core.sub] [bodies, bodies__x] -> float
+      %v17 = kernel_call (:v29) [fn=:core.abs] [bodies, bodies__x] -> float
+      %v38 = load_input [key=:eps]
+      %v20 = kernel_call (:v17, :v38) [fn=:core.add] [bodies, bodies__x] -> float
+      array_push (:arr40, :v20)
+    loop_end [axis=:bodies__x]
+    array_push (:arr39, :arr40)
+  loop_end [axis=:bodies]
+function accel:
+  %v57 = load_input [key=:bodies]
+  %arr68 = array_init
+  %bodies_el58 = loop_start (:v57) [axis=:bodies, index=:bodies_i59]
+    %v60 = load_input [key=:bodies]
+    %acc67 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %bodies__x_el61 = loop_start (:v60) [axis=:bodies__x, index=:bodies__x_i62]
+      %v63 = load_field (:bodies__x_el61) [field=:m]
+      %v34 = ref (:v63) [bodies, bodies__x] -> float
+      %v64 = load_field (:bodies__x_el61) [field=:x]
+      %v38 = ref (:v64) [bodies, bodies__x] -> float
+      %v65 = load_field (:bodies_el58) [field=:x]
+      %v43 = kernel_call (:v38, :v65) [fn=:core.sub] [bodies, bodies__x] -> float
+      %v23 = kernel_call (:v34, :v43) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+      %v53 = kernel_call (:v43) [fn=:core.abs] [bodies, bodies__x] -> float
+      %v66 = load_input [key=:eps]
+      %v56 = kernel_call (:v53, :v66) [fn=:core.add] [bodies, bodies__x] -> float
+      %v26 = kernel_call (:v56, :v56) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+      %v28 = kernel_call (:v26, :v56) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+      %v29 = kernel_call (:v23, :v28) [fn=:core.div] [bodies, bodies__x] -> float
+      acc_step (:acc67, :v29) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:bodies__x]
+    %v30 = acc_load (:acc67) [] -> float
+    array_push (:arr68, :v30)
+  loop_end [axis=:bodies]

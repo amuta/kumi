@@ -5,6 +5,9 @@ module Kumi
     module Analyzer
       module Passes
         class PrecomputeAccessPathsPass < PassBase
+          reads :input_table
+          writes :precomputed_plan_by_fqn
+
           def run(_errors)
             plans = get_state(:input_table, required: true)
             out   = {}

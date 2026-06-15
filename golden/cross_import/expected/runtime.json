@@ -1,0 +1,10 @@
+{
+  "__ruby_js_parity_skipped": "imports",
+  "outputs": {
+    "result": [
+      4.0,
+      1.0,
+      -5.0
+    ]
+  }
+}

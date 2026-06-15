@@ -29,6 +29,124 @@ module Kumi
 
                 private
 
+                # Decides, per streaming function, which arrays and records can be
+                # materialized into caller-owned or module-persistent buffers
+                # instead of fresh allocations.
+                #
+                # - managed arrays: the returned array plus any array built solely to
+                #   be pushed into a managed array. They are written by cursor and
+                #   truncated, so the previous call's storage is reused.
+                # - managed objects: records built solely to be pushed into a managed
+                #   array. The previous call's element at the same slot is mutated
+                #   instead of allocating a new object.
+                # - persisted scratch: intermediate arrays that are only written by
+                #   push and read by index, hoisted to module scope. Reads are always
+                #   bounded by the current call's loops, so stale tails are inert.
+                class StreamPlan
+                  attr_reader :target_reg, :managed_arrays, :managed_objects, :persisted_scratch
+
+                  def initialize(fn)
+                    @fn = fn
+                    instrs = fn.entry_block.instructions
+
+                    producer_idx = {}
+                    producer = {}
+                    use_count = Hash.new(0)
+                    pushes = [] # [instruction index, parent reg, child reg]
+                    excluded = {}
+                    init_depth = {}
+                    pushed_somewhere = {}
+                    depth = 0
+
+                    instrs.each_with_index do |instr, idx|
+                      if instr.result
+                        producer[instr.result] = instr
+                        producer_idx[instr.result] = idx
+                      end
+                      instr.inputs.each { |r| use_count[r] += 1 }
+                      case instr.opcode
+                      when :array_push
+                        pushes << [idx, instr.inputs[0], instr.inputs[1]]
+                        pushed_somewhere[instr.inputs[1]] = true
+                      when :loop_start
+                        excluded[instr.inputs.first] = true
+                        depth += 1
+                      when :loop_end then depth -= 1
+                      when :array_len then excluded[instr.inputs.first] = true
+                      when :shift_read then excluded[instr.inputs[0]] = true
+                      when :array_init then init_depth[instr.result] = depth
+                      end
+                    end
+
+                    @target_reg = direct_return_array_reg(fn)
+                    @managed_arrays = {} # reg => parent reg (nil for reuse roots)
+                    @managed_objects = {} # reg => parent reg
+                    @persisted_scratch = {}
+
+                    # Persistence is only safe for arrays created once per call whose
+                    # identity never escapes into another array.
+                    instrs.each do |instr|
+                      next unless instr.opcode == :array_init
+                      next if instr.result == @target_reg
+                      next if excluded[instr.result] || pushed_somewhere[instr.result]
+                      next unless init_depth[instr.result].zero?
+
+                      @persisted_scratch[instr.result] = true
+                    end
+
+                    roots = {}
+                    roots[@target_reg] = true if @target_reg
+                    @persisted_scratch.each_key { |r| roots[r] = true }
+                    return if roots.empty?
+
+                    @managed_arrays[@target_reg] = nil if @target_reg
+                    reusable = roots.dup
+                    loop do
+                      changed = false
+                      pushes.each do |push_idx, parent, child|
+                        next unless reusable.key?(parent)
+                        next if reusable.key?(child) || @managed_objects.key?(child)
+
+                        prod = producer[child]
+                        next unless prod
+
+                        case prod.opcode
+                        when :array_init
+                          next if excluded[child]
+
+                          pushes_into = pushes.count { |_, p, _| p == child }
+                          pushed = pushes.count { |_, _, c| c == child }
+                          next unless pushed == 1 && use_count[child] == pushes_into + 1
+
+                          @managed_arrays[child] = parent
+                          reusable[child] = true
+                          changed = true
+                        when :make_object
+                          next unless use_count[child] == 1 && producer_idx[child] + 1 == push_idx
+                          next if Array(prod.attributes[:keys]).empty?
+
+                          @managed_objects[child] = parent
+                          changed = true
+                        end
+                      end
+                      break unless changed
+                    end
+                  end
+
+                  def cursor?(reg)
+                    @managed_arrays.key?(reg) || @persisted_scratch.key?(reg)
+                  end
+
+                  private
+
+                  def direct_return_array_reg(fn)
+                    direct = fn.entry_block.instructions.any? do |instr|
+                      instr.opcode == :array_init && instr.result == fn.return_reg
+                    end
+                    direct ? fn.return_reg : nil
+                  end
+                end
+
                 def reset!
                   @out.clear
                   @indent = 0
@@ -46,35 +164,37 @@ module Kumi
                 end
 
                 def emit_streaming_function(fn)
+                  plan = StreamPlan.new(fn)
+
+                  plan.persisted_scratch.each_key do |scratch|
+                    write "const #{scratch_name(fn, scratch)} = [];"
+                  end
+
                   write "export function _#{fn.name}_stream(input, target = {}) {"
                   indented do
-                    return_array_reg = direct_return_array_reg(fn)
-                    if return_array_reg
-                      write "let __streamTarget = Array.isArray(target) ? target : target[\"#{fn.name}\"];"
-                      write "if (!Array.isArray(__streamTarget)) {"
-                      indented do
-                        write "__streamTarget = [];"
-                        write "if (target && typeof target === \"object\" && !Array.isArray(target)) target[\"#{fn.name}\"] = __streamTarget;"
-                      end
-                      write "} else {"
-                      indented { write "__streamTarget.length = 0;" }
-                      write "}"
-                    end
+                    write "let __streamTarget = target[\"#{fn.name}\"] ?? (target[\"#{fn.name}\"] = []);" if plan.target_reg
 
-                    emit_instructions(fn, stream_return_array_reg: return_array_reg)
-                    write "if (target && typeof target === \"object\" && !Array.isArray(target)) target[\"#{fn.name}\"] = #{reg(fn.return_reg)};"
+                    emit_instructions(fn, plan: plan)
+
+                    if plan.target_reg
+                      target_var = reg(plan.target_reg)
+                      cursor = cursor_name(plan.target_reg)
+                      write "#{target_var}.length = #{cursor};"
+                    end
+                    write %(target["#{fn.name}"] = #{reg(fn.return_reg)};)
                     write "return #{reg(fn.return_reg)};"
                   end
                   write "}\n"
                 end
 
-                def emit_instructions(fn, stream_return_array_reg: nil)
+                def emit_instructions(fn, plan: nil)
+                  @loop_depth = 0
                   fn.entry_block.instructions.each do |instr|
-                    emit_instruction(instr, stream_return_array_reg: stream_return_array_reg)
+                    emit_instruction(instr, fn: fn, plan: plan)
                   end
                 end
 
-                def emit_instruction(instr, stream_return_array_reg: nil)
+                def emit_instruction(instr, fn: nil, plan: nil)
                   case instr.opcode
                   when :constant
                     write "let #{reg(instr.result)} = #{format_literal(instr.attributes[:value])};"
@@ -91,9 +211,7 @@ module Kumi
                     cond, on_true, on_false = instr.inputs.map { reg(_1) }
                     write "let #{reg(instr.result)} = #{cond} ? #{on_true} : #{on_false};"
                   when :make_object
-                    keys = Array(instr.attributes[:keys])
-                    values = instr.inputs.map { reg(_1) }
-                    write "let #{reg(instr.result)} = #{format_object(keys, values)};"
+                    emit_make_object(instr, plan)
                   when :ref
                     write "let #{reg(instr.result)} = #{reg(instr.inputs.first)};"
                   when :loop_start
@@ -102,18 +220,16 @@ module Kumi
                     idx = reg(instr.attributes[:index])
                     write "for (let #{idx} = 0; #{idx} < #{source}.length; #{idx}++) {"
                     @indent += 1
+                    @loop_depth += 1
                     write "let #{elem} = #{source}[#{idx}];"
                   when :loop_end
                     @indent -= 1
+                    @loop_depth -= 1
                     write "}"
                   when :array_init
-                    if stream_return_array_reg == instr.result
-                      write "let #{reg(instr.result)} = __streamTarget;"
-                    else
-                      write "let #{reg(instr.result)} = [];"
-                    end
+                    emit_array_init(instr, fn, plan)
                   when :array_push
-                    write "#{reg(instr.inputs[0])}.push(#{reg(instr.inputs[1])});"
+                    emit_array_push(instr, plan)
                   when :array_len
                     write "let #{reg(instr.result)} = #{reg(instr.inputs.first)}.length;"
                   when :index_read
@@ -138,10 +254,62 @@ module Kumi
                   end
                 end
 
-                def direct_return_array_reg(fn)
-                  fn.entry_block.instructions.any? do |instr|
-                    instr.opcode == :array_init && instr.result == fn.return_reg
-                  end ? fn.return_reg : nil
+                def emit_array_init(instr, fn, plan)
+                  out = reg(instr.result)
+                  if plan.nil? || !plan.cursor?(instr.result)
+                    write "let #{out} = [];"
+                    return
+                  end
+
+                  if instr.result == plan.target_reg
+                    write "let #{out} = __streamTarget;"
+                  elsif (parent = plan.managed_arrays[instr.result])
+                    write "let #{out} = #{reg(parent)}[#{cursor_name(parent)}];"
+                    write "#{out} ??= [];"
+                  else
+                    write "let #{out} = #{scratch_name(fn, instr.result)};"
+                  end
+                  write "let #{cursor_name(instr.result)} = 0;"
+                end
+
+                def emit_array_push(instr, plan)
+                  parent, child = instr.inputs
+                  unless plan&.cursor?(parent)
+                    write "#{reg(parent)}.push(#{reg(child)});"
+                    return
+                  end
+
+                  write "#{reg(child)}.length = #{cursor_name(child)};" if plan.managed_arrays.key?(child)
+                  write "#{reg(parent)}[#{cursor_name(parent)}++] = #{reg(child)};"
+                end
+
+                def emit_make_object(instr, plan)
+                  keys = Array(instr.attributes[:keys])
+                  values = instr.inputs.map { reg(_1) }
+                  parent = plan&.managed_objects&.[](instr.result)
+                  unless parent
+                    write "let #{reg(instr.result)} = #{format_object(keys, values)};"
+                    return
+                  end
+
+                  out = reg(instr.result)
+                  write "let #{out} = #{reg(parent)}[#{cursor_name(parent)}];"
+                  if tuple_keys?(keys)
+                    write "#{out} ??= new Array(#{keys.size});"
+                    write "#{out}.length = #{keys.size};"
+                    values.each_with_index { |v, i| write "#{out}[#{i}] = #{v};" }
+                  else
+                    write "#{out} ??= {};"
+                    keys.zip(values).each { |k, v| write "#{out}[\"#{k}\"] = #{v};" }
+                  end
+                end
+
+                def cursor_name(sym)
+                  "__c#{reg(sym)}"
+                end
+
+                def scratch_name(fn, sym)
+                  "__s_#{fn.name}_#{reg(sym)}"
                 end
 
                 def emit_shift_read(instr)

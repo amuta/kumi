@@ -185,22 +185,24 @@ RSpec.describe Kumi::Schema do
         expect(content).to include("export function _gross_prices(input)")
         expect(content).to include("export function _gross_prices_stream(input, target = {})")
         expect(content).to include("export function _tax_multiplier_stream(input, target = {})")
+        expect(content).not_to include("Array.isArray")
+        expect(content).not_to include("ArrayBuffer.isView")
+        expect(content).not_to include("TypeError")
+        expect(content).not_to include("RangeError")
 
         runner = <<~JS
           const mod = await import(process.argv[1]);
           const input = { items: [{ price: 10.0 }, { price: 20.0 }], tax_rate: 0.1 };
-          const pricesTarget = [999];
-          const scalarTarget = {};
+          const target = { gross_prices: [999] };
           const normal = mod._gross_prices(input);
-          const streamed = mod._gross_prices_stream(input, pricesTarget);
-          const taxMultiplier = mod._tax_multiplier_stream(input, scalarTarget);
+          const streamed = mod._gross_prices_stream(input, target);
+          const taxMultiplier = mod._tax_multiplier_stream(input, target);
           console.log(JSON.stringify({
             normal,
             streamed,
-            pricesTarget,
-            sameArray: streamed === pricesTarget,
+            target,
+            sameArray: streamed === target.gross_prices,
             taxMultiplier,
-            scalarTarget
           }));
         JS
 
@@ -210,10 +212,116 @@ RSpec.describe Kumi::Schema do
         result = JSON.parse(stdout)
         expect(result["normal"]).to eq([11.0, 22.0])
         expect(result["streamed"]).to eq([11.0, 22.0])
-        expect(result["pricesTarget"]).to eq([11.0, 22.0])
+        expect(result["target"]["gross_prices"]).to eq([11.0, 22.0])
         expect(result["sameArray"]).to be true
         expect(result["taxMultiplier"]).to eq(1.1)
-        expect(result["scalarTarget"]).to eq("tax_multiplier" => 1.1)
+        expect(result["target"]["tax_multiplier"]).to eq(1.1)
+      end
+
+      it "reuses record elements and truncates streaming outputs" do
+        streaming_schema = Class.new do
+          extend Kumi::Schema
+        end
+
+        streaming_schema.schema do
+          codegen streaming: true
+
+          input do
+            array :bodies do
+              hash :body do
+                float :x
+              end
+            end
+            float :dt
+          end
+
+          let :x, input.bodies.body.x
+          value :next_bodies, { x: x + input.dt }
+        end
+
+        output_path = File.join(output_dir, "record_streaming.mjs")
+        streaming_schema.write_source(output_path, platform: :javascript)
+
+        runner = <<~JS
+          const mod = await import(process.argv[1]);
+          const input = { bodies: [{ x: 1 }, { x: 2 }, { x: 3 }], dt: 0.5 };
+          const target = {};
+          mod._next_bodies_stream(input, target);
+          const refs = target.next_bodies.map((o) => o);
+          const first = target.next_bodies.map((o) => o.x);
+          mod._next_bodies_stream({ ...input, dt: 1.0 }, target);
+          const reused = target.next_bodies.every((o, i) => o === refs[i]);
+          const second = target.next_bodies.map((o) => o.x);
+          mod._next_bodies_stream({ bodies: [{ x: 9 }], dt: 0 }, target);
+          const truncated = target.next_bodies.length;
+          console.log(JSON.stringify({ first, second, reused, truncated }));
+        JS
+
+        stdout, stderr, status = Open3.capture3("node", "--input-type=module", "-e", runner, output_path)
+        expect(status).to be_success, stderr
+
+        result = JSON.parse(stdout)
+        expect(result["first"]).to eq([1.5, 2.5, 3.5])
+        expect(result["second"]).to eq([2.0, 3.0, 4.0])
+        expect(result["reused"]).to be true
+        expect(result["truncated"]).to eq(1)
+      end
+
+      it "streams nested array outputs with row and record reuse matching normal output" do
+        streaming_schema = Class.new do
+          extend Kumi::Schema
+        end
+
+        streaming_schema.schema do
+          codegen streaming: true
+
+          input do
+            array :rows do
+              array :col do
+                hash :cell do
+                  float :a
+                end
+              end
+            end
+            float :k
+          end
+
+          let :a, input.rows.col.cell.a
+          value :next_cells, { a: a * input.k }
+        end
+
+        output_path = File.join(output_dir, "nested_streaming.mjs")
+        streaming_schema.write_source(output_path, platform: :javascript)
+
+        runner = <<~JS
+          const mod = await import(process.argv[1]);
+          const mk = () => [[{ a: 1 }, { a: 2 }], [{ a: 3 }, { a: 4 }]];
+          const input = { rows: mk(), k: 2 };
+          const target = {};
+          const streamed = mod._next_cells_stream(input, target);
+          const streamedJson = JSON.stringify(streamed);
+          const normal = mod._next_cells(input);
+          const rowRefs = target.next_cells.map((r) => r);
+          const cellRefs = target.next_cells.map((r) => r.map((c) => c));
+          mod._next_cells_stream({ rows: mk(), k: 3 }, target);
+          const rowsReused = target.next_cells.every((r, i) => r === rowRefs[i]);
+          const cellsReused = target.next_cells.every((r, i) => r.every((c, j) => c === cellRefs[i][j]));
+          console.log(JSON.stringify({
+            match: streamedJson === JSON.stringify(normal),
+            second: target.next_cells.map((r) => r.map((c) => c.a)),
+            rowsReused,
+            cellsReused
+          }));
+        JS
+
+        stdout, stderr, status = Open3.capture3("node", "--input-type=module", "-e", runner, output_path)
+        expect(status).to be_success, stderr
+
+        result = JSON.parse(stdout)
+        expect(result["match"]).to be true
+        expect(result["second"]).to eq([[3.0, 6.0], [9.0, 12.0]])
+        expect(result["rowsReused"]).to be true
+        expect(result["cellsReused"]).to be true
       end
 
       it "creates parent directories if they don't exist" do

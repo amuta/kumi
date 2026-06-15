@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require "kumi/ir/df"
-
 module Kumi
   module Core
     module Analyzer
       module Passes
         class LowerToDFIRPass < PassBase
+          reads :snast_module, :input_table, :registry
+          optional_reads :imported_schemas, :precomputed_plan_by_fqn
+          writes :df_module, :df_module_unoptimized
+
           def run(_errors)
             snast_module = get_state(:snast_module, required: true)
             registry = get_state(:registry, required: true)

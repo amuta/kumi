@@ -14,15 +14,16 @@ module Kumi
 
         def add_function(fn)
           raise ArgumentError, "function required" unless fn.is_a?(Function)
+
           @functions[fn.name] = fn
         end
 
-        def fetch_function(name, &blk)
-          @functions.fetch(name.to_sym, &blk)
+        def fetch_function(name, &)
+          @functions.fetch(name.to_sym, &)
         end
 
-        def each_function(&blk)
-          @functions.values.each(&blk)
+        def each_function(&)
+          @functions.values.each(&)
         end
 
         def to_h

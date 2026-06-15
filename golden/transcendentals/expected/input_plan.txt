@@ -1,0 +1,5 @@
+xs: array (array) access_mode=element
+  └─> i: element_access
+  i: hash (hash)
+    └─> v: property_access
+    v: float

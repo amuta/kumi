@@ -18,13 +18,13 @@ module AnalyzerStateHelper
 
     # Map state names to pass indices (mapped to DEFAULT_PASSES only)
     state_to_pass = {
-      name_index: 0,             # NameIndexer
-      input_metadata: 1,         # InputCollector
-      declarations: 1,           # InputCollector also produces declarations
+      name_index: 0,             # NameIndexerPass
+      input_metadata: 1,         # InputCollectorPass
+      declarations: 1,           # InputCollectorPass also produces declarations
       validated: 2,              # InputFormSchemaPass
-      semantic_valid: 3,         # DeclarationValidator
-      dependencies: 4,           # DependencyResolver
-      evaluation_order: 5,       # Toposorter
+      semantic_valid: 3,         # DeclarationValidatorPass
+      dependencies: 4,           # DependencyResolverPass
+      evaluation_order: 5,       # ToposorterPass
       access_plans: 6            # InputAccessPlannerPass
     }
 
@@ -104,7 +104,7 @@ module AnalyzerStateHelper
 
   # Helper to run analysis with custom passes
   # Usage:
-  #   state = analyze_with_passes([Kumi::Core::Analyzer::Passes::NameIndexer]) do
+  #   state = analyze_with_passes([Kumi::Core::Analyzer::Passes::NameIndexerPass]) do
   #     input do
   #       integer :x
   #     end

@@ -1,0 +1,50 @@
+function xi:
+  %v1 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v2 = load_field (:v1) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v3 = load_field (:v2) [field=:x, plan_ref="bodies.body.x"] [bodies] -> float
+function xj:
+  %v5 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v6 = load_field (:v5) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v7 = load_field (:v6) [field=:x, plan_ref="bodies.body.x"] [bodies] -> float
+  %v4 = axis_cross (:v7) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+function mj:
+  %v9 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v10 = load_field (:v9) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v11 = load_field (:v10) [field=:m, plan_ref="bodies.body.m"] [bodies] -> float
+  %v8 = axis_cross (:v11) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+function dx:
+  %v16 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v17 = load_field (:v16) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v18 = load_field (:v17) [field=:x, plan_ref="bodies.body.x"] [bodies] -> float
+  %v19 = axis_cross (:v18) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+  %v14 = axis_broadcast (:v18) [from_axes=[:bodies], to_axes=[:bodies, :bodies__x]] [bodies, bodies__x] -> float
+  %v15 = map (:v19, :v14) [fn=:core.sub] [bodies, bodies__x] -> float
+function dist:
+  %v21 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v22 = load_field (:v21) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v23 = load_field (:v22) [field=:x, plan_ref="bodies.body.x"] [bodies] -> float
+  %v24 = axis_cross (:v23) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+  %v28 = axis_broadcast (:v23) [from_axes=[:bodies], to_axes=[:bodies, :bodies__x]] [bodies, bodies__x] -> float
+  %v29 = map (:v24, :v28) [fn=:core.sub] [bodies, bodies__x] -> float
+  %v17 = map (:v29) [fn=:core.abs] [bodies, bodies__x] -> float
+  %v18 = load_input [key=:eps, chain=[], plan_ref="eps"] [] -> float
+  %v19 = axis_broadcast (:v18) [from_axes=[], to_axes=[:bodies, :bodies__x]] [bodies, bodies__x] -> float
+  %v20 = map (:v17, :v19) [fn=:core.add] [bodies, bodies__x] -> float
+function accel:
+  %v31 = load_input [key=:bodies, chain=[], plan_ref="bodies"] [bodies] -> float
+  %v32 = load_field (:v31) [field=:body, plan_ref="bodies.body"] [bodies] -> float
+  %v33 = load_field (:v32) [field=:m, plan_ref="bodies.body.m"] [bodies] -> float
+  %v34 = axis_cross (:v33) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+  %v37 = load_field (:v32) [field=:x, plan_ref="bodies.body.x"] [bodies] -> float
+  %v38 = axis_cross (:v37) [axis=:bodies__x, source_axis=:bodies] [bodies, bodies__x] -> float
+  %v42 = axis_broadcast (:v37) [from_axes=[:bodies], to_axes=[:bodies, :bodies__x]] [bodies, bodies__x] -> float
+  %v43 = map (:v38, :v42) [fn=:core.sub] [bodies, bodies__x] -> float
+  %v23 = map (:v34, :v43) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+  %v53 = map (:v43) [fn=:core.abs] [bodies, bodies__x] -> float
+  %v54 = load_input [key=:eps, chain=[], plan_ref="eps"] [] -> float
+  %v55 = axis_broadcast (:v54) [from_axes=[], to_axes=[:bodies, :bodies__x]] [bodies, bodies__x] -> float
+  %v56 = map (:v53, :v55) [fn=:core.add] [bodies, bodies__x] -> float
+  %v26 = map (:v56, :v56) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+  %v28 = map (:v26, :v56) [fn=:core.mul:numeric] [bodies, bodies__x] -> float
+  %v29 = map (:v23, :v28) [fn=:core.div] [bodies, bodies__x] -> float
+  %v30 = reduce (:v29) [fn=:agg.sum, over_axes=[:bodies__x]] [bodies] -> float
