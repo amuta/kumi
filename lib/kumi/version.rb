@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Kumi
-  VERSION = "0.0.37"
+  VERSION = "0.0.40"
 end

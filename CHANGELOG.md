@@ -1,4 +1,6 @@
 ## [Unreleased]
+
+## [0.0.40] – 2026-06-15
 ### Added
 - LoopIR optimization pipeline (`Kumi::IR::Loop::Pipeline`), previously empty, now runs two passes on every compile:
   - **LoopFusion** — merges sibling loops over the same axis and source into one traversal, hoisting independent scalar barriers above the loop. Stencil consumers (shifts, lengths, re-iteration of a partially built array) and accumulator reads correctly block fusion.
