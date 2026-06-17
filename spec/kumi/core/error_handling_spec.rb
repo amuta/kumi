@@ -233,8 +233,8 @@ RSpec.describe "Error Handling with Location Information" do
     it "formats error message without location" do
       entry = Kumi::Core::ErrorReporter.create_error("Error without location")
 
-      expect(entry.to_s).to include("at ?")
-      expect(entry.to_s).to include("Error without location")
+      expect(entry.to_s).to eq("Error without location")
+      expect(entry.to_s).not_to include("at ?")
     end
   end
 end
