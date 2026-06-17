@@ -51,6 +51,8 @@ module Kumi
         def hash(name_or_key_type, val_type = nil, **kwargs, &)
           if block_given?
             create_hash_field_with_block(name_or_key_type, kwargs, &)
+          elsif val_type.nil? && name_or_key_type.is_a?(Symbol)
+            create_bare_hash_field(name_or_key_type, kwargs)
           elsif val_type.nil?
             create_hash_field(name_or_key_type, kwargs)
           else
@@ -103,6 +105,19 @@ module Kumi
           @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], nil, loc: @context.current_location)
         end
 
+        def create_bare_hash_field(field_name, options)
+          unknown = options.keys - [:domain]
+          unless unknown.empty?
+            raise_syntax_error(
+              "hash input '#{field_name}' only supports `domain:` without a block. " \
+              "Use `hash :#{field_name} do ... end` for declared fields.",
+              location: @context.current_location
+            )
+          end
+
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, options[:domain], :hash, [], nil, loc: @context.current_location)
+        end
+
         def extract_type(spec)
           spec.is_a?(Hash) && spec[:type] ? spec[:type] : :any
         end
@@ -115,6 +130,17 @@ module Kumi
 
         def create_array_field_with_block(field_name, options, &)
           domain = options[:domain]
+          index_name = options[:index]
+          unknown = options.keys - %i[domain index]
+          unless unknown.empty?
+            raise_syntax_error(
+              "unknown option(s) for array input '#{field_name}': #{unknown.map { |key| "#{key}:" }.join(', ')}",
+              location: @context.current_location
+            )
+          end
+          if index_name && !index_name.is_a?(Symbol)
+            raise_syntax_error("array input '#{field_name}' index: must be a Symbol", location: @context.current_location)
+          end
 
           # Collect children by creating a nested context
           children, = collect_array_children(&)
@@ -126,6 +152,7 @@ module Kumi
             domain,
             :array,
             children,
+            index_name,
             loc: @context.current_location
           )
         end

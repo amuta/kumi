@@ -158,5 +158,7 @@ value :col_major, (index(:j) * fn(:array_size, input.x)) + index(:i)
 ## See also
 
 - [SYNTAX.md](SYNTAX.md) — declarations, operators, functions, control flow.
+- [SYNTAX_NOTES.md](SYNTAX_NOTES.md) — parser differences, mixed nested
+  array/hash recipes, expression literals, and post-parse analyzer errors.
 - All-pairs over arrays: `cross` (one array, A × A') and `outer` (two arrays,
   A × B) in [SYNTAX.md](SYNTAX.md#all-pairs-cross).

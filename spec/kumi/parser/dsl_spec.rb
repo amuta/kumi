@@ -65,6 +65,41 @@ RSpec.describe Kumi::Core::RubyParser::Dsl do
         be_a(Kumi::Syntax::Literal)
       )
     end
+
+    it "can define a bare hash input as a pass-through object" do
+      schema = build_schema do
+        input do
+          hash :metadata
+        end
+
+        value :metadata, input.metadata
+      end
+
+      expect(schema.inputs.size).to eq(1)
+      expect(schema.inputs.first.name).to eq(:metadata)
+      expect(schema.inputs.first.type).to eq(:hash)
+      expect(schema.inputs.first.children).to eq([])
+    end
+
+    it "builds Ruby syntax sugar calls with the same names as the text parser" do
+      schema = build_schema do
+        input do
+          array :cells, index: :i do
+            string :value
+          end
+        end
+
+        value :left, shift(input.cells.value, -1)
+        value :position, index(:i)
+        value :decimal_value, to_decimal(input.cells.value)
+      end
+
+      calls = schema.values.to_h { |decl| [decl.name, decl.expression] }
+      expect(schema.inputs.first.index).to eq(:i)
+      expect(calls[:left].fn_name).to eq(:shift)
+      expect(calls[:position].fn_name).to eq(:index)
+      expect(calls[:decimal_value].fn_name).to eq(:to_decimal)
+    end
   end
 
   describe "schema validation" do

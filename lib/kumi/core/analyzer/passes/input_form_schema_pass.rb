@@ -35,7 +35,7 @@ module Kumi
             when :hash
               {
                 type: :object,
-                fields: node.children.transform_values { |child| node_to_form_field(child) }
+                fields: (node.children || {}).transform_values { |child| node_to_form_field(child) }
               }
             end
           end

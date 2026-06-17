@@ -238,6 +238,10 @@ Input declarations (scalars, arrays, hashes, nesting, named indices, and the
 **element rule** — always name an array's element) have their own reference:
 **[INPUTS.md](INPUTS.md)**.
 
+For parser differences, expression literal edge cases, nested array/hash
+recipes, and post-parse analyzer errors, see
+**[SYNTAX_NOTES.md](SYNTAX_NOTES.md)**.
+
 ### 2) Declarations
 
 #### `let` — Intermediate Values
@@ -298,11 +302,11 @@ trait :exact_match, input.category == "electronics"
 
 **Boolean:**
 ```kumi
-&   |   !
+&   |
 
 trait :premium, is_adult & is_expensive
 trait :eligible, is_member | is_trial
-trait :not_active, !is_active
+trait :not_active, fn(:not, is_active)
 ```
 
 ### 3) Schema Imports

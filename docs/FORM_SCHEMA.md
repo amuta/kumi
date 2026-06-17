@@ -52,13 +52,18 @@ bin/kumi analyze schema.kumi --dump input_form_schema
 
 **Schema:**
 ```kumi
-input items: array {
-  item: hash {
-    name: string
-    price: float
-  }
-}
-input discount: float
+schema do
+  input do
+    array :items do
+      hash :item do
+        string :name
+        float :price
+      end
+    end
+
+    float :discount
+  end
+end
 ```
 
 **Generated Form Schema:**

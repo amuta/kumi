@@ -8,7 +8,8 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross outer import codegen].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross outer index import codegen
+                         to_decimal to_integer to_float to_string].freeze
 
         def initialize(context)
           @context = context
@@ -116,12 +117,24 @@ module Kumi
 
         def shift(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
-          Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
+          Kumi::Syntax::CallExpression.new(:shift, args_expr, kwargs, loc: @context.current_location)
         end
 
         def cross(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
           Kumi::Syntax::CallExpression.new(:cross, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        def index(name)
+          update_location
+          Kumi::Syntax::CallExpression.new(:index, [ensure_syntax(name)], {}, loc: @context.current_location)
+        end
+
+        %i[to_decimal to_integer to_float to_string].each do |fn_name|
+          define_method(fn_name) do |arg|
+            update_location
+            Kumi::Syntax::CallExpression.new(fn_name, [ensure_syntax(arg)], {}, loc: @context.current_location)
+          end
         end
 
         # `outer(v)` re-exposes a value from a DIFFERENT array as a fresh inner
