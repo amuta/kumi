@@ -83,7 +83,7 @@ module Kumi
           end
 
           def visit_call(n)
-            if @registry.function_select?(n.fn)
+            if @registry.select?(n.fn)
               c = n.args[0].accept(self)
               t = n.args[1].accept(self)
               f = n.args[2].accept(self)
@@ -99,7 +99,7 @@ module Kumi
               return stamp!(out, target_axes, dtype_of(t))
             end
 
-            if @registry.function_reduce?(n.fn)
+            if @registry.reduce?(n.fn)
               # Reduce arity is fixed upstream; >1 arg here means the IR is malformed.
               raise Kumi::Core::Errors::CompilerBug, "reduce #{n.fn} has #{n.args.size} args, expected 1" if n.args.size != 1
 
@@ -116,7 +116,7 @@ module Kumi
 
                 fold_node = NAST::Fold.new(
                   id: n.id,
-                  fn: @registry.resolve_function(n.fn),
+                  fn: @registry.resolve_id(n.fn),
                   arg: visited_arg, # The arg is the tuple/reference to the tuple
                   loc: n.loc,
                   meta: n.meta.dup
@@ -145,7 +145,7 @@ module Kumi
                 over_axes = in_axes.drop(out_axes.length)
                 reduce_node = NAST::Reduce.new(
                   id: n.id,
-                  fn: @registry.resolve_function(n.fn),
+                  fn: @registry.resolve_id(n.fn),
                   over: over_axes,
                   arg: visited_arg,
                   loc: n.loc,
@@ -159,7 +159,7 @@ module Kumi
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
             # Use the function ID from metadata (already resolved with type awareness in NASTDimensionalAnalyzerPass)
-            fn_id = m[:function] || @registry.resolve_function(n.fn)
+            fn_id = m[:function] || @registry.resolve_id(n.fn)
             out = n.class.new(id: n.id, fn: fn_id.to_sym, args:, opts: n.opts, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end

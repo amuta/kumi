@@ -10,7 +10,7 @@ module Kumi
           writes :nast_module
 
           NAST = Kumi::Core::NAST
-          SELECT_ID = Kumi::RegistryV2::SELECT_ID
+          SELECT_ID = Kumi::FunctionRegistry::SELECT_ID
 
           def run(errors)
             decls = get_state(:declarations)

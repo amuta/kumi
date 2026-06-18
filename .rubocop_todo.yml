@@ -110,8 +110,7 @@ Lint/NonAtomicFileOperation:
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Lint/RedundantDirGlobSort:
   Exclude:
-    - 'lib/kumi/kernel_registry.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
 
 # Offense count: 2
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -214,7 +213,7 @@ Metrics/AbcSize:
     - 'lib/kumi/doc_generator/formatters/markdown.rb'
     - 'lib/kumi/frontends/text.rb'
     - 'lib/kumi/pack/builder.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'lib/kumi/schema.rb'
     - 'lib/kumi/support/ir_render.rb'
     - 'lib/kumi/support/nast_printer.rb'
@@ -317,7 +316,7 @@ Metrics/CyclomaticComplexity:
     - 'lib/kumi/doc_generator/formatters/markdown.rb'
     - 'lib/kumi/frontends/text.rb'
     - 'lib/kumi/pack/builder.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'lib/kumi/support/nast_printer.rb'
     - 'lib/kumi/support/s_expression_printer.rb'
     - 'lib/kumi/support/snast_printer.rb'
@@ -366,7 +365,7 @@ Metrics/MethodLength:
     - 'lib/kumi/dev/profile_runner.rb'
     - 'lib/kumi/dev/runner.rb'
     - 'lib/kumi/doc_generator/formatters/markdown.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'lib/kumi/schema.rb'
     - 'lib/kumi/support/ir_render.rb'
     - 'lib/kumi/support/nast_printer.rb'
@@ -388,7 +387,7 @@ Metrics/ModuleLength:
     - 'lib/kumi/dev/pretty_printer.rb'
     - 'lib/kumi/dev/profile_runner.rb'
     - 'lib/kumi/pack/builder.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'spec/support/debug_printers.rb'
 
 # Offense count: 30
@@ -432,7 +431,7 @@ Metrics/PerceivedComplexity:
     - 'lib/kumi/doc_generator/formatters/markdown.rb'
     - 'lib/kumi/frontends/text.rb'
     - 'lib/kumi/pack/builder.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'lib/kumi/support/nast_printer.rb'
     - 'lib/kumi/support/s_expression_printer.rb'
     - 'lib/kumi/support/snast_printer.rb'
@@ -509,9 +508,8 @@ Naming/MethodParameterName:
     - 'lib/kumi/ir/testing/snast_factory.rb'
     - 'lib/kumi/ir/vec.rb'
     - 'lib/kumi/ir/vec/ops/core_ops.rb'
-    - 'lib/kumi/kernel_registry.rb'
     - 'lib/kumi/pack/builder.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
     - 'spec/kumi/ir/df/validator_spec.rb'
     - 'spec/kumi/ir/loop/passes_spec.rb'
 
@@ -687,7 +685,7 @@ RSpec/SpecFilePathFormat:
     - 'spec/kumi/json_schema/generator_spec.rb'
     - 'spec/kumi/parser/dsl_spec.rb'
     - 'spec/kumi/parser/expression_converter_spec.rb'
-    - 'spec/kumi/registry_v2/yaml_dtype_loader_spec.rb'
+    - 'spec/kumi/function_registry/yaml_dtype_loader_spec.rb'
     - 'spec/kumi/types/inference_spec.rb'
     - 'spec/kumi/types/normalizer_spec.rb'
     - 'spec/kumi/types/validator_spec.rb'
@@ -800,7 +798,6 @@ Style/FrozenStringLiteralComment:
     - 'lib/kumi/doc_generator/formatters/markdown.rb'
     - 'lib/kumi/doc_generator/loader.rb'
     - 'lib/kumi/doc_generator/merger.rb'
-    - 'lib/kumi/kernel_registry.rb'
     - 'lib/kumi/syntax/location.rb'
     - 'spec/kumi/doc_generator_spec.rb'
     - 'spec/kumi/parser/hash_spec.rb'
@@ -843,7 +840,7 @@ Style/HashExcept:
 Style/HashTransformKeys:
   Exclude:
     - 'lib/kumi/core/analyzer/passes/assemble_irv2_pass.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -886,7 +883,6 @@ Style/MultilineBlockChain:
     - 'lib/kumi/core/ir/execution_engine/profiler.rb'
     - 'lib/kumi/dev/profile_aggregator.rb'
     - 'lib/kumi/dev/profile_runner.rb'
-    - 'lib/kumi/registry_v2.rb'
     - 'spec/integration/location_tracking_spec.rb'
     - 'spec/kumi/parser/expression_converter_spec.rb'
 
@@ -897,7 +893,6 @@ Style/MultilineBlockChain:
 Style/MutableConstant:
   Exclude:
     - 'lib/kumi/core/compiler/access_codegen.rb'
-    - 'lib/kumi/kernel_registry.rb'
 
 # Offense count: 21
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -983,7 +978,7 @@ Style/SymbolProc:
   Exclude:
     - 'lib/kumi/core/analyzer/passes/codegen/loop/ruby/emitter.rb'
     - 'lib/kumi/core/compiler/access_planner_v2.rb'
-    - 'lib/kumi/registry_v2/loader.rb'
+    - 'lib/kumi/function_registry/loader.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).

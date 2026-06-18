@@ -118,7 +118,7 @@ module Kumi
             reg = align_axes(reg, axes_of(arg_node), axes_of(node), dtype_of(arg_node), builder)
             args << reg
           end
-          fn_id = node.meta[:function] || @registry.resolve_function(node.fn)
+          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
           result = next_reg
           builder.map(result:, fn: fn_id, args:, axes: axes_of(node), dtype: dtype_of(node), metadata: {})
         end
@@ -145,7 +145,7 @@ module Kumi
 
         def emit_reduce(node, builder)
           arg = lower_expr(node.arg, builder)
-          fn_id = node.meta[:function] || @registry.resolve_function(node.fn)
+          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
           result = next_reg
           builder.reduce(
             result:,
@@ -161,7 +161,7 @@ module Kumi
         def emit_fold(node, builder)
           arg = lower_expr(node.arg, builder)
           arg = align_axes(arg, axes_of(node.arg), axes_of(node), dtype_of(node.arg), builder)
-          fn_id = node.meta[:function] || @registry.resolve_function(node.fn)
+          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
           out_dtype = fold_result_type(fn_id, dtype_of(node.arg))
           result = next_reg
           builder.fold(

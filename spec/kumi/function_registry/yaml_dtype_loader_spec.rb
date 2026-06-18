@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "kumi/registry_v2/loader"
+require "kumi/function_registry/loader"
 require "kumi/core/functions/type_rules"
 
-RSpec.describe Kumi::RegistryV2::Loader do
+RSpec.describe Kumi::FunctionRegistry::Loader do
   describe ".build_dtype_rule_from_yaml" do
     context "with structured dtype format" do
       it "builds same_as rule from structured hash" do
@@ -269,7 +269,7 @@ RSpec.describe Kumi::RegistryV2::Loader do
       Dir.mktmpdir("kumi-loader-spec") do |dir|
         File.write(File.join(dir, "functions.yaml"), yaml_content)
 
-        funcs = described_class.load_functions(dir, Kumi::RegistryV2::Function)
+        funcs = described_class.load_functions(dir, Kumi::FunctionRegistry::Function)
 
         expect(funcs).to have_key("test.legacy")
         expect(funcs).to have_key("test.structured")

@@ -4,7 +4,7 @@ require "rspec"
 require "tempfile"
 require "yaml"
 
-RSpec.describe Kumi::RegistryV2 do
+RSpec.describe Kumi::FunctionRegistry do
   let(:functions_dir) { create_temp_functions_dir }
   let(:kernels_dir) { create_temp_kernels_dir }
   let(:registry) { described_class.load(functions_dir: functions_dir, kernels_root: kernels_dir) }
@@ -16,12 +16,12 @@ RSpec.describe Kumi::RegistryV2 do
 
   describe ".load" do
     it "successfully loads functions and kernels" do
-      expect(registry).to be_a(Kumi::RegistryV2::Instance)
+      expect(registry).to be_a(Kumi::FunctionRegistry::Instance)
     end
 
     it "loads functions from YAML files" do
-      expect(registry.resolve_function("core.add")).to eq("core.add")
-      expect(registry.function_kind("core.add")).to eq(:elementwise)
+      expect(registry.resolve_id("core.add")).to eq("core.add")
+      expect(registry.function("core.add").kind).to eq(:elementwise)
     end
 
     it "loads kernels from target directories" do
@@ -30,43 +30,53 @@ RSpec.describe Kumi::RegistryV2 do
     end
   end
 
-  describe "function resolution" do
+  describe "#function?" do
+    it "tests existence without raising, for ids and aliases" do
+      expect(registry.function?("core.add")).to be true
+      expect(registry.function?("core.select")).to be true
+      expect(registry.function?(:"core.add")).to be true
+      expect(registry.function?("unknown.func")).to be false
+    end
+  end
+
+  describe "#resolve_id" do
     it "resolves direct function names" do
-      expect(registry.resolve_function("core.add")).to eq("core.add")
-      expect(registry.resolve_function("agg.sum")).to eq("agg.sum")
+      expect(registry.resolve_id("core.add")).to eq("core.add")
+      expect(registry.resolve_id("agg.sum")).to eq("agg.sum")
     end
 
     it "resolves function aliases" do
-      expect(registry.resolve_function("core.select")).to eq("__select__")
-    end
-
-    it "raises error for unknown functions" do
-      expect { registry.resolve_function("unknown.func") }.to raise_error(/unknown function/)
+      expect(registry.resolve_id("core.select")).to eq("__select__")
     end
 
     it "handles string and symbol inputs" do
-      expect(registry.resolve_function("core.add")).to eq("core.add")
-      expect(registry.resolve_function(:"core.add")).to eq("core.add")
+      expect(registry.resolve_id("core.add")).to eq("core.add")
+      expect(registry.resolve_id(:"core.add")).to eq("core.add")
+    end
+
+    it "treats an unvalidated unknown id as a CompilerBug" do
+      expect { registry.resolve_id("unknown.func") }
+        .to raise_error(Kumi::Core::Errors::CompilerBug, /unknown function/)
     end
   end
 
   describe "function classification" do
     it "identifies elementwise functions" do
-      expect(registry.function_kind("core.add")).to eq(:elementwise)
-      expect(registry.function_elementwise?("core.mul")).to be true
-      expect(registry.function_elementwise?("agg.sum")).to be false
+      expect(registry.function("core.add").kind).to eq(:elementwise)
+      expect(registry.function("core.mul").elementwise?).to be true
+      expect(registry.function("agg.sum").elementwise?).to be false
     end
 
     it "identifies reduce functions" do
-      expect(registry.function_kind("agg.sum")).to eq(:reduce)
-      expect(registry.function_reduce?("agg.sum")).to be true
-      expect(registry.function_reduce?("core.add")).to be false
+      expect(registry.function("agg.sum").kind).to eq(:reduce)
+      expect(registry.reduce?("agg.sum")).to be true
+      expect(registry.reduce?("core.add")).to be false
     end
 
     it "identifies select functions via aliases" do
-      expect(registry.function_select?("core.select")).to be true
-      expect(registry.function_select?("__select__")).to be true
-      expect(registry.function_select?("core.add")).to be false
+      expect(registry.select?("core.select")).to be true
+      expect(registry.select?("__select__")).to be true
+      expect(registry.select?("core.add")).to be false
     end
   end
 

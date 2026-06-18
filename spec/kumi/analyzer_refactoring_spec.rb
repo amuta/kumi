@@ -153,7 +153,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
   describe ".analyze!" do
     it "raises immediately when an earlier pipeline reports errors" do
       schema = instance_double("Schema", digest: "digest")
-      allow(Kumi::RegistryV2).to receive(:load).and_return(double("Registry"))
+      allow(Kumi::FunctionRegistry).to receive(:load).and_return(double("Registry"))
 
       error_entry = Kumi::Core::ErrorReporter.create_error("boom", type: :semantic)
       call_count = 0

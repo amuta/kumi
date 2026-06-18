@@ -99,7 +99,7 @@ module Kumi
 
             # Step 2: Resolve function using type-aware overload resolution
             begin
-              resolved_fn_id = @registry.resolve_function_with_types(call.fn.to_s, arg_types)
+              resolved_fn_id = @registry.resolve(call.fn.to_s, arg_types)
               function_spec = @registry.function(resolved_fn_id)
               debug "    Resolved '#{call.fn}' with types #{arg_types.inspect} to #{resolved_fn_id}"
             rescue Core::Functions::OverloadResolver::ResolutionError => e

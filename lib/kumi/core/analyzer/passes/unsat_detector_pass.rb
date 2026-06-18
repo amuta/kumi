@@ -162,7 +162,7 @@ module Kumi
             expr = decl.expression
             return [] unless expr.is_a?(CallExpression)
 
-            fn_id = registry.resolve_function(expr.fn_name)
+            fn_id = registry.resolve_id(expr.fn_name)
             return [] unless fn_id
 
             operation = registry.function(fn_id)

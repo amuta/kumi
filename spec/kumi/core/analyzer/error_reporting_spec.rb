@@ -58,7 +58,7 @@ RSpec.describe "analyzer error reporting" do
       expect(error).to be_a(Kumi::Core::Errors::SemanticError)
       expect(error.message).to include("unknown function `no_such_function`")
       expect(error.message).not_to include("Error in Analysis Pass")
-      expect(error.message).not_to include("registry_v2.rb")
+      expect(error.message).not_to include("function_registry.rb")
       expect(error.message).to match(/line=\d+|:\d+:/)
     end
   end

@@ -47,7 +47,7 @@ module Kumi
       schema_digest = schema.digest
       Core::Analyzer::Checkpoint.stop_after
 
-      registry ||= Kumi::RegistryV2.load
+      registry ||= Kumi::FunctionRegistry.load
       state = Core::Analyzer::AnalysisState.new(opts).with(:registry, registry).with(:schema_digest, schema_digest)
       state, stopped = run_analysis_passes(schema, passes, state, errors)
       return create_analysis_result(state) if stopped
