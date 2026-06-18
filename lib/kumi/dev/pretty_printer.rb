@@ -2,7 +2,6 @@
 
 require "json"
 require "stringio"
-require_relative "printer/irv2_formatter"
 
 module Kumi
   module Dev
@@ -116,8 +115,6 @@ module Kumi
       # Stages that run the full analyzer (side tables on) and render one state
       # key. :render maps the state value to text.
       ANALYZED_STAGES = {
-        irv2: { state_key: :irv2, render: ->(v) { Printer::WidthAwareJson.dump(v) } },
-        binding_manifest: { state_key: :binding_manifest, render: ->(v) { Printer::WidthAwareJson.dump(v) } },
         schema_ruby: { state_key: :ruby_codegen_files, render: ->(v) { v["codegen.rb"] } },
         schema_javascript: { state_key: :javascript_codegen_files, render: ->(v) { v["codegen.mjs"] } }
       }.freeze
@@ -151,24 +148,6 @@ module Kumi
       def generate_runtime(path)
         require_relative "golden_runtime"
         GoldenRuntime.snapshot(path)
-      end
-
-      def generate_planning(path)
-        require_relative "../codegen/planning"
-
-        schema, = Kumi::Frontends.load(path: path)
-        res = Kumi::Analyzer.analyze!(schema, side_tables: true)
-        return nil unless res.state[:irv2]
-
-        bundle = Kumi::Codegen::Planning.from_ir(res.state[:irv2])
-        planning_data = Kumi::Codegen::Planning.to_json(bundle)
-        Printer::WidthAwareJson.dump(planning_data)
-      end
-
-      def generate_pack(path)
-        require_relative "../pack"
-
-        Kumi::Pack.print(schema: path, targets: %w[ruby])
       end
 
       def print_ir_graph(graph)
