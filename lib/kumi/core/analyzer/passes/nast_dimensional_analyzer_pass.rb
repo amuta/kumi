@@ -13,15 +13,12 @@ module Kumi
             @input_table = get_state(:input_table, required: true)
             @registry = get_state(:registry, required: true)
 
-            @function_specs    = Functions::Loader.load_minimal_functions
-
             @metadata_table    = {}
             @declaration_table = {}
             @cross_axes        = {}
             @outer_axes        = {}
 
             debug "Analyzing NAST module with #{nast_module.decls.size} declarations"
-            debug "Function specs loaded: #{@function_specs.keys.join(', ')}"
 
             nast_module.decls.each { |name, decl| analyze_declaration(name, decl, errors) }
 

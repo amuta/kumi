@@ -5,7 +5,7 @@ require "bundler/setup"
 require "optparse"
 require_relative "../lib/kumi"
 
-cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|codegen|pack> ..."
+cmd = ARGV.shift or abort "usage: kumi <parse|analyze|pp|golden|diff|profile|pack> ..."
 
 case cmd
 when "parse"
@@ -133,30 +133,6 @@ when "profile"
   # Run the profiler
   success = Kumi::Dev::ProfileRunner.run(script, opts)
   exit(success ? 0 : 1)
-
-when "codegen"
-  sub = ARGV.shift or abort "kumi codegen <list|build|test|verify> ..."
-  opts = { targets: %w[ruby] }
-  
-  OptionParser.new do |o|
-    o.on("--targets LIST") { |v| opts[:targets] = v.split(",").map(&:strip) }
-    o.on("--output-dir DIR") { |v| opts[:output_dir] = v }
-  end.parse!(ARGV)
-  
-  case sub
-  when "list"   then Kumi::Dev::Codegen.list
-  when "build" 
-    name = ARGV.shift or abort "kumi codegen build <schema_name>"
-    Kumi::Dev::Codegen.build!(name, targets: opts[:targets], output_dir: opts[:output_dir])
-  when "test"   
-    names = ARGV.empty? ? nil : ARGV
-    exit(Kumi::Dev::Codegen.test!(*names) ? 0 : 1)
-  when "verify" 
-    name = ARGV.shift or abort "kumi codegen verify <schema_name>"
-    exit(Kumi::Dev::Codegen.verify!(name) ? 0 : 1)
-  else
-    abort "kumi codegen <list|build|test|verify>"
-  end
 
 when "pack"
   sub = ARGV.shift or abort "kumi pack <build|print> ..."
