@@ -15,7 +15,7 @@ module Kumi
 
         def to_s
           if location
-            "#{pass_name} (phase #{phase}) at #{location}: #{message}"
+            "#{location}: #{pass_name} (phase #{phase}): #{message}"
           else
             "#{pass_name} (phase #{phase}): #{message}"
           end

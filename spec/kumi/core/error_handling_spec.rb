@@ -226,8 +226,7 @@ RSpec.describe "Error Handling with Location Information" do
       location = Kumi::Syntax::Location.new(file: "schema.rb", line: 10, column: 5)
       entry = Kumi::Core::ErrorReporter.create_error("Test error", location: location)
 
-      expect(entry.to_s).to include("schema.rb line=10 column=5")
-      expect(entry.to_s).to include("Test error")
+      expect(entry.to_s).to eq("schema.rb:10:5: Test error")
     end
 
     it "formats error message without location" do
@@ -235,6 +234,42 @@ RSpec.describe "Error Handling with Location Information" do
 
       expect(entry.to_s).to eq("Error without location")
       expect(entry.to_s).not_to include("at ?")
+    end
+  end
+
+  # The whole codebase must render a source location exactly one way: the
+  # editor-clickable `file:line:col` form, produced by Location#to_s and reused
+  # by every error renderer. These lock that in so the old "line=N column=M" /
+  # "at FILE ..." dialects (and the double-location they caused) cannot return.
+  describe "one canonical location format" do
+    let(:loc) { Kumi::Syntax::Location.new(file: "schema.kumi", line: 5, column: 12) }
+
+    it "Location#to_s renders file:line:col" do
+      expect(loc.to_s).to eq("schema.kumi:5:12")
+    end
+
+    it "omits an unknown (zero) column" do
+      no_col = Kumi::Syntax::Location.new(file: "schema.kumi", line: 5, column: 0)
+      expect(no_col.to_s).to eq("schema.kumi:5")
+    end
+
+    it "renders the same string from Location, ErrorEntry, and LocatedError" do
+      entry = Kumi::Core::ErrorReporter.create_error("boom", location: loc)
+      error = Kumi::Core::Errors::SemanticError.new("boom", loc)
+
+      expect(entry.to_s).to eq("schema.kumi:5:12: boom")
+      expect(error.to_s).to eq("schema.kumi:5:12: boom")
+    end
+
+    it "never doubles the location when raised through ErrorReporter" do
+      error = begin
+        Kumi::Core::ErrorReporter.raise_error("boom", location: loc, error_class: Kumi::Core::Errors::SemanticError)
+      rescue Kumi::Core::Errors::SemanticError => e
+        e
+      end
+
+      expect(error.message).to eq("schema.kumi:5:12: boom")
+      expect(error.message.scan("schema.kumi").size).to eq(1)
     end
   end
 end

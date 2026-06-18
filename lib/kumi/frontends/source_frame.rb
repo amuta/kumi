@@ -16,20 +16,13 @@ module Kumi
       def render(error, src:, file_label:)
         loc = location_of(error)
         message = clean_message(error.message)
+        return "#{file_label}: #{message}" unless loc
 
-        if loc
-          frame = code_frame(src, loc.line, loc.column)
-          # Column 0 means "line known, column unknown" (the Ruby frontend can't
-          # recover columns from caller_locations) — omit it rather than print `:0`.
-          header = if loc.column && loc.column >= 1
-                     "#{file_label}:#{loc.line}:#{loc.column}: #{message}"
-                   else
-                     "#{file_label}:#{loc.line}: #{message}"
-                   end
-          frame.empty? ? header : "#{header}\n#{frame}"
-        else
-          "#{file_label}: #{message}"
-        end
+        # Render the header through Location#to_s (the one location dialect),
+        # substituting the caller's file label for the path.
+        header = "#{Kumi::Syntax::Location.new(file: file_label, line: loc.line, column: loc.column)}: #{message}"
+        frame = code_frame(src, loc.line, loc.column)
+        frame.empty? ? header : "#{header}\n#{frame}"
       end
 
       # The structured location, if the error exposes a line and column. Both
@@ -39,22 +32,18 @@ module Kumi
         return nil unless error.respond_to?(:location)
 
         loc = error.location
-        return nil unless loc.respond_to?(:line) && loc.respond_to?(:column)
-        return nil if loc.line.nil? || loc.column.nil?
+        return nil unless loc.respond_to?(:line)
+        return nil if loc.line.nil?
 
         loc
       end
 
-      # Strip any location the message already carries so the header renders it
-      # exactly once. Messages may arrive with a leading `file:line:col:` prefix,
-      # a leading `at FILE line=N column=M:` prefix (ErrorReporter's form), and/or
-      # a trailing `at FILE line=N column=M` suffix (LocatedError#to_s).
+      # Strip the canonical `file:line:col:` / `file:line:` location prefix the
+      # message may already carry (LocatedError#to_s and ErrorEntry#to_s both
+      # prepend it), so render adds the header exactly once. Now that every
+      # location renders one way, this is a single prefix to remove.
       def clean_message(message)
-        message.to_s
-               .sub(/\A\S+:\d+:\d+:\s+/, "")
-               .sub(/\Aat\s+\S+\s+line=\d+\s+column=\d+:\s+/, "")
-               .gsub(/\s+at\s+\S+\s+line=\d+\s+column=\d+/, "")
-               .strip
+        message.to_s.sub(/\A\S+:\d+(?::\d+)?:\s+/, "").strip
       end
 
       def code_frame(src, line, col, context: 2)

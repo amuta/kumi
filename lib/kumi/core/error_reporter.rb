@@ -60,16 +60,11 @@ module Kumi
         private
 
         # Returns nil when there is no usable location, so callers omit the
-        # location segment entirely rather than printing a placeholder.
+        # location segment entirely rather than printing a placeholder. Renders
+        # through Location#to_s so every error speaks the one `file:line:col`
+        # dialect.
         def format_location(loc)
-          case loc
-          when nil
-            nil
-          when Symbol
-            "at #{loc}"
-          when Syntax::Location
-            "at #{loc.file} line=#{loc.line} column=#{loc.column}"
-          end
+          loc&.to_s
         end
       end
 

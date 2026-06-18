@@ -37,22 +37,23 @@ module Kumi
         end
 
         # Format location for error messages, or nil when there is no location
-        # to show — callers must not invent an "at ?" placeholder.
+        # to show — callers must not invent an "at ?" placeholder. Delegates to
+        # Location#to_s so the whole codebase renders locations one way.
         def format_location
           return nil unless @location
 
-          "at #{@location.file} line=#{@location.line} column=#{@location.column}"
+          @location.to_s
         end
 
-        # Append the location once. The underlying message may already carry it
-        # (e.g. aggregated multi-error messages whose entries are pre-located),
-        # in which case we leave it alone rather than duplicating the suffix.
+        # `file:line:col: message`. The location goes in front (the convention
+        # editors and humans scan for) and exactly once: if the underlying
+        # message already starts with this location it is not prepended again.
         def to_s
-          suffix = format_location
+          prefix = format_location
           base = super
-          return base if suffix.nil? || base.include?(suffix)
+          return base if prefix.nil? || base.start_with?("#{prefix}:")
 
-          "#{base} #{suffix}"
+          "#{prefix}: #{base}"
         end
       end
 
