@@ -7,7 +7,8 @@ kernels:
     identity:
       float: 0.0
       integer: 0
-      
+      decimal: 0
+
   - id: agg.count:ruby:v1
     fn: agg.count
     inline: "+= 1"

@@ -182,7 +182,7 @@ module Kumi
           return kind if kind.is_a?(Kumi::Core::Types::Type)
           return Kumi::Core::Types.scalar(:any) if kind.nil?
 
-          if kind.is_a?(Symbol) && Kumi::Core::Types::Validator.valid_kind?(kind)
+          if kind.is_a?(Symbol) && Kumi::Core::Types::Registry.kind?(kind)
             Kumi::Core::Types.scalar(kind)
           else
             Kumi::Core::Types.scalar(:any)

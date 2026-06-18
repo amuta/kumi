@@ -1,7 +1,7 @@
 (SNAST
   (VALUE result
     (ImportCall :pairsum
-      (vals (InputRef vals key_chain=[]) :: [] -> array<any>)
+      (vals (InputRef vals key_chain=[]) :: [] -> array<hash>)
     ) :: [] -> float
   ) :: [] -> float
 )

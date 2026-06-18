@@ -3,202 +3,122 @@
 module Kumi
   module Core
     module Functions
-      # OverloadResolver handles type-aware function overload resolution
-      # Given a function alias/id and argument types, finds the best matching function
-      #
-      # Responsibilities:
-      # - Track all function overloads per alias
-      # - Match argument types against parameter constraints
-      # - Provide clear error messages when resolution fails
+      # Type-aware function overload resolution. Given a function alias/id and the
+      # inferred argument types, picks the overload whose parameter constraints
+      # best match. All constraint matching goes through Types::System, so the
+      # set of accepted kinds (and any per-target policy) lives in one place.
       class OverloadResolver
-        def initialize(functions_by_id)
-          @functions = functions_by_id                # "core.mul" => Function
-          @by_id = functions_by_id                    # Direct lookup
+        def initialize(functions_by_id, type_system: Kumi::Core::Types::System.default)
+          @functions = functions_by_id
           @alias_overloads = build_alias_overloads(functions_by_id)
+          @types = type_system
         end
 
-        # Resolve a function alias or ID to a specific function ID based on argument types
-        #
-        # @param alias_or_id [String, Symbol] Function alias or full function ID
-        # @param arg_types [Array<Symbol>] Inferred types of arguments
-        # @return [String] The resolved function_id
-        # @raise [ResolutionError] If function cannot be resolved
+        # Resolve an alias or id to a concrete function id based on arg types.
+        # Raises ResolutionError (with a precise, argument-level message) on an
+        # arity or type mismatch.
         def resolve(alias_or_id, arg_types)
-          s = alias_or_id.to_s
+          id = alias_or_id.to_s
+          return resolve_single(alias_or_id, id, arg_types) if @functions.key?(id)
 
-          # If it's already a full function ID, validate arity and type constraints
-          if @functions.key?(s)
-            validate_arity!(s, arg_types)
-            fn = @functions[s]
-            score = match_score(fn.params, arg_types)
-            return s if score > 0
-
-            # Type constraints failed
-            raise ResolutionError,
-                  "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
-
-          end
-
-          # Get all candidate overloads for this alias
-          candidates = @alias_overloads[s]
+          candidates = @alias_overloads[id]
           raise ResolutionError, "unknown function #{alias_or_id}" if candidates.nil?
 
-          # Single overload - validate type constraints too
-          if candidates.size == 1
-            fn_id = candidates.first
-            validate_arity!(fn_id, arg_types)
-            fn = @functions[fn_id]
-            score = match_score(fn.params, arg_types)
-            return fn_id if score > 0
+          return resolve_single(alias_or_id, candidates.first, arg_types) if candidates.size == 1
 
-            # Type constraints failed for the only overload
-            raise ResolutionError,
-                  "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
-
-          end
-
-          # Multiple overloads - find best match by type constraints (prefer exact matches)
-          candidates_with_scores = candidates.map do |fn_id|
-            fn = @functions[fn_id]
-            score = match_score(fn.params, arg_types)
-            [fn_id, score]
-          end
-
-          best_match, score = candidates_with_scores.max_by { |_, s| s }
-
-          return best_match if score > 0
-
-          # No match found - provide helpful error
-          raise ResolutionError,
-                "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch"
+          resolve_overloaded(alias_or_id, candidates, arg_types)
         end
 
-        # Get function object by ID (already resolved)
         def function(id)
-          @functions.fetch(id) do
-            raise ResolutionError, "unknown function #{id}"
-          end
+          @functions.fetch(id) { raise ResolutionError, "unknown function #{id}" }
         end
 
-        # Check if a function exists
         def exists?(id)
           @functions.key?(id.to_s)
         end
 
         private
 
-        def build_alias_overloads(functions)
-          # Maps each alias to an array of all function_ids that have that alias
-          functions.values.each_with_object({}) do |func, acc|
-            func.aliases.each do |al|
-              acc[al] ||= []
-              acc[al] << func.id
-            end
+        # A single concrete overload: arity must match, and every constrained
+        # parameter must accept its argument. On failure the message points at
+        # the specific argument(s).
+        def resolve_single(alias_or_id, fn_id, arg_types)
+          fn = @functions[fn_id]
+          validate_arity!(alias_or_id, fn, arg_types)
+          return fn_id if params_match?(fn.params, arg_types)
+
+          raise ResolutionError, mismatch_message(alias_or_id, fn.params, arg_types)
+        end
+
+        # Several overloads share the alias: rank by match score and pick the
+        # best. If none match, report the most precise failure — an arity error
+        # when no overload even accepts this argument count, otherwise a
+        # type-mismatch against the closest-arity overload.
+        def resolve_overloaded(alias_or_id, candidates, arg_types)
+          scored = candidates.map { |fn_id| [fn_id, total_score(@functions[fn_id].params, arg_types)] }
+          best_id, best_score = scored.max_by { |_, score| score }
+          return best_id if best_score.positive?
+
+          arities = candidates.map { |fn_id| @functions[fn_id].params.size }.uniq
+          unless arities.include?(arg_types.size)
+            expected = arities.sort.join(" or ")
+            raise ResolutionError, "#{alias_or_id} expects #{expected} argument(s), got #{arg_types.size}"
           end
+
+          closest = candidates.min_by { |fn_id| (@functions[fn_id].params.size - arg_types.size).abs }
+          raise ResolutionError, mismatch_message(alias_or_id, @functions[closest].params, arg_types)
         end
 
         def params_match?(params, arg_types)
-          # Check arity first
           return false if params.size != arg_types.size
 
-          # Check each parameter constraint
-          params.zip(arg_types).all? do |param, arg_type|
-            param_dtype = param["dtype"]
-            param_dtype.nil? || type_compatible?(param_dtype, arg_type)
-          end
+          params.zip(arg_types).all? { |param, type| @types.compatible?(param["dtype"], type) }
         end
 
-        def match_score(params, arg_types)
-          # Returns match quality: higher is better
-          # 0 = no match, 1+ = match (1 for unconstrained params, higher for exact matches)
-          return 0 unless params_match?(params, arg_types)
+        # Total match quality across all params; 0 if arity or any constraint
+        # fails. Higher means more exact-constraint matches, so exact overloads
+        # win over permissive ones.
+        def total_score(params, arg_types)
+          return 0 if params.size != arg_types.size
 
-          # Count exact constraint matches (all arg_types are Type objects now)
-          exact_matches = params.zip(arg_types).count do |param, arg_type|
-            param_dtype = param["dtype"]
-            score_type_object_match(param_dtype, arg_type)
-          end
+          scores = params.zip(arg_types).map { |param, type| @types.match_score(param["dtype"], type) }
+          return 0 if scores.any?(&:zero?)
 
-          # Return exact_matches + 1 so that: unconstrained=1, one exact=2, all exact=N+1
-          exact_matches + 1
+          scores.sum
         end
 
-        def score_type_object_match(param_dtype, type_obj)
-          constraint = param_dtype&.to_s
-          return false unless constraint
-
-          # Check if it's a type category
-          if TypeCategories.category?(constraint)
-            return false unless type_obj.is_a?(Kumi::Core::Types::ScalarType)
-
-            return TypeCategories.includes?(constraint, type_obj.kind)
-          end
-
-          # Individual scalar type constraints
-          case constraint
-          when "string"
-            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :string
-          when "array"
-            type_obj.is_a?(Kumi::Core::Types::ArrayType)
-          when "integer"
-            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :integer
-          when "float"
-            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :float
-          when "hash"
-            type_obj.is_a?(Kumi::Core::Types::ScalarType) && type_obj.kind == :hash
-          else
-            false
-          end
-        end
-
-        def type_compatible?(param_dtype_str, arg_type)
-          raise ArgumentError, "arg_type must be a Type object, got #{arg_type.inspect}" unless arg_type.is_a?(Kumi::Core::Types::Type)
-
-          # Check if it's a type category
-          if TypeCategories.category?(param_dtype_str)
-            return false unless arg_type.is_a?(Kumi::Core::Types::ScalarType)
-
-            return TypeCategories.includes?(param_dtype_str, arg_type.kind)
-          end
-
-          # Individual scalar type constraints
-          case param_dtype_str
-          when "string"
-            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :string
-          when "array"
-            arg_type.is_a?(Kumi::Core::Types::ArrayType)
-          when "integer"
-            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :integer
-          when "float"
-            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :float
-          when "hash"
-            arg_type.is_a?(Kumi::Core::Types::ScalarType) && arg_type.kind == :hash
-          else
-            # No constraint, any type matches
-            true
-          end
-        end
-
-        def validate_arity!(fn_id, arg_types)
-          fn = @functions[fn_id]
-          return if fn.params.size == arg_types.size
+        def validate_arity!(alias_or_id, function, arg_types)
+          return if function.params.size == arg_types.size
 
           raise ResolutionError,
-                "function #{fn_id} expects #{fn.params.size} arguments, got #{arg_types.size}"
+                "#{alias_or_id} expects #{function.params.size} argument(s), got #{arg_types.size}"
+        end
+
+        # Point the user at exactly which argument is wrong and what was expected.
+        def mismatch_message(alias_or_id, params, arg_types)
+          offending = params.zip(arg_types).filter_map.with_index do |(param, type), i|
+            next if @types.compatible?(param["dtype"], type)
+
+            expected = param["dtype"] || "any"
+            "argument #{i + 1} (#{param['name']}) expected #{expected}, got #{type}"
+          end
+
+          detail = offending.empty? ? "" : ": #{offending.join('; ')}"
+          "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch#{detail}"
+        end
+
+        def build_alias_overloads(functions)
+          functions.values.each_with_object({}) do |func, acc|
+            func.aliases.each do |name|
+              (acc[name] ||= []) << func.id
+            end
+          end
         end
 
         def format_types(arg_types)
           arg_types.map(&:to_s).join(", ")
         end
 
-        def format_param_constraints(params)
-          params.map do |param|
-            dtype = param["dtype"]
-            dtype || "any"
-          end.join(", ")
-        end
-
-        # Custom error for function resolution failures
         class ResolutionError < StandardError; end
       end
     end

@@ -13,18 +13,18 @@
     (Call :core.mul:numeric
       (Ref price) :: [] -> decimal
       (InputRef quantity key_chain=[]) :: [] -> integer
-    ) :: [] -> integer
-  ) :: [] -> integer
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE tax_amount
     (Call :core.mul:numeric
-      (Ref subtotal) :: [] -> integer
+      (Ref subtotal) :: [] -> decimal
       (Ref rate) :: [] -> decimal
-    ) :: [] -> integer
-  ) :: [] -> integer
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE total
     (Call :core.add
-      (Ref subtotal) :: [] -> integer
-      (Ref tax_amount) :: [] -> integer
-    ) :: [] -> integer
-  ) :: [] -> integer
+      (Ref subtotal) :: [] -> decimal
+      (Ref tax_amount) :: [] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
 )

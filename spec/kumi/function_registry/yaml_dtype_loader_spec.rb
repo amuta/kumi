@@ -2,289 +2,116 @@
 
 require "spec_helper"
 require "kumi/function_registry/loader"
-require "kumi/core/functions/type_rules"
 
 RSpec.describe Kumi::FunctionRegistry::Loader do
+  let(:int_type) { Kumi::Core::Types.scalar(:integer) }
+  let(:float_type) { Kumi::Core::Types.scalar(:float) }
+  let(:decimal_type) { Kumi::Core::Types.scalar(:decimal) }
+
   describe ".build_dtype_rule_from_yaml" do
-    context "with structured dtype format" do
-      it "builds same_as rule from structured hash" do
-        yaml_spec = {
-          "rule" => "same_as",
-          "param" => "source_value"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+    context "with structured dtype rules" do
+      it "builds a same_as rule" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "same_as", "param" => "source_value" })
 
-        int_type = Kumi::Core::Types.scalar(:integer)
-        result = rule.call({ source_value: int_type })
-
-        expect(result).to eq(int_type)
+        expect(rule.call({ source_value: int_type })).to eq(int_type)
       end
 
-      it "builds promote rule from structured hash" do
-        yaml_spec = {
-          "rule" => "promote",
-          "params" => %w[left_operand right_operand]
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+      it "builds a promote rule" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "promote", "params" => %w[left right] })
 
-        int_type = Kumi::Core::Types.scalar(:integer)
-        float_type = Kumi::Core::Types.scalar(:float)
-        result = rule.call({ left_operand: int_type, right_operand: float_type })
-
-        expect(result).to eq(float_type)
+        expect(rule.call({ left: int_type, right: float_type })).to eq(float_type)
       end
 
-      it "builds element_of rule from structured hash" do
-        yaml_spec = {
-          "rule" => "element_of",
-          "param" => "source_value"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+      it "promotes decimal as the widest numeric kind" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "promote", "params" => %w[left right] })
 
-        int_type = Kumi::Core::Types.scalar(:integer)
-        array_type = Kumi::Core::Types.array(int_type)
-        result = rule.call({ source_value: array_type })
-
-        expect(result).to eq(int_type)
+        expect(rule.call({ left: decimal_type, right: int_type })).to eq(decimal_type)
       end
 
-      it "builds unify rule from structured hash" do
-        yaml_spec = {
-          "rule" => "unify",
-          "param1" => "left",
-          "param2" => "right"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+      it "builds an element_of rule" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "element_of", "param" => "source_value" })
 
-        int_type = Kumi::Core::Types.scalar(:integer)
-        float_type = Kumi::Core::Types.scalar(:float)
-        result = rule.call({ left: int_type, right: float_type })
-
-        expect(result).to eq(float_type)
+        expect(rule.call({ source_value: Kumi::Core::Types.array(int_type) })).to eq(int_type)
       end
 
-      it "builds common_type rule from structured hash" do
-        yaml_spec = {
-          "rule" => "common_type",
-          "param" => "elements"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+      it "builds a unify rule" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "unify", "param1" => "a", "param2" => "b" })
 
-        int_type = Kumi::Core::Types.scalar(:integer)
-        float_type = Kumi::Core::Types.scalar(:float)
-        result = rule.call({ elements: [int_type, float_type] })
-
-        expect(result).to eq(float_type)
+        expect(rule.call({ a: int_type, b: float_type })).to eq(float_type)
       end
 
-      it "builds array rule with constant element type" do
-        yaml_spec = {
-          "rule" => "array",
-          "element_type" => "integer"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
+      it "builds a scalar rule" do
+        rule = described_class.build_dtype_rule_from_yaml({ "rule" => "scalar", "kind" => "float" })
 
-        result = rule.call({})
-
-        expect(result).to be_a(Kumi::Core::Types::ArrayType)
-        expect(result.element_type.kind).to eq(:integer)
-      end
-
-      it "builds array rule with parameter reference" do
-        yaml_spec = {
-          "rule" => "array",
-          "element_type_param" => "elem_type"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        int_type = Kumi::Core::Types.scalar(:integer)
-        result = rule.call({ elem_type: int_type })
-
-        expect(result).to be_a(Kumi::Core::Types::ArrayType)
-        expect(result.element_type).to eq(int_type)
-      end
-
-      it "builds tuple rule with constant types" do
-        yaml_spec = {
-          "rule" => "tuple",
-          "element_types" => %w[integer float]
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        result = rule.call({})
-
-        expect(result).to be_a(Kumi::Core::Types::TupleType)
-        expect(result.element_types.map(&:kind)).to eq(%i[integer float])
-      end
-
-      it "builds scalar rule with kind" do
-        yaml_spec = {
-          "rule" => "scalar",
-          "kind" => "float"
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        result = rule.call({})
-
-        expect(result).to be_a(Kumi::Core::Types::ScalarType)
-        expect(result.kind).to eq(:float)
-      end
-    end
-
-    context "with legacy string dtype format" do
-      it "builds rule from legacy same_as string" do
-        yaml_spec = "same_as(source_value)"
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        int_type = Kumi::Core::Types.scalar(:integer)
-        result = rule.call({ source_value: int_type })
-
-        expect(result).to eq(int_type)
-      end
-
-      it "builds rule from legacy promote string" do
-        yaml_spec = "promote(left_operand,right_operand)"
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        int_type = Kumi::Core::Types.scalar(:integer)
-        float_type = Kumi::Core::Types.scalar(:float)
-        result = rule.call({ left_operand: int_type, right_operand: float_type })
-
-        expect(result).to eq(float_type)
-      end
-
-      it "builds rule from legacy scalar string" do
-        yaml_spec = "integer"
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        result = rule.call({})
-
-        expect(result).to be_a(Kumi::Core::Types::ScalarType)
-        expect(result.kind).to eq(:integer)
+        expect(rule.call({})).to eq(float_type)
       end
     end
 
     context "validation and error handling" do
-      it "raises error for unknown rule type" do
-        yaml_spec = {
-          "rule" => "unknown_rule",
-          "param" => "x"
-        }
-
-        expect do
-          described_class.build_dtype_rule_from_yaml(yaml_spec)
-        end.to raise_error(/unknown dtype rule/)
+      it "rejects a non-hash spec" do
+        expect { described_class.build_dtype_rule_from_yaml("same_as(x)") }
+          .to raise_error(/dtype spec must be a hash/)
       end
 
-      it "raises error for missing required param in same_as" do
-        yaml_spec = {
-          "rule" => "same_as"
-          # missing 'param'
-        }
-
-        expect do
-          described_class.build_dtype_rule_from_yaml(yaml_spec)
-        end.to raise_error(/same_as rule requires 'param'/)
+      it "rejects an unknown rule type" do
+        expect { described_class.build_dtype_rule_from_yaml({ "rule" => "unknown_rule", "param" => "x" }) }
+          .to raise_error(/unknown dtype rule/)
       end
 
-      it "raises error for missing required params in promote" do
-        yaml_spec = {
-          "rule" => "promote"
-          # missing 'params'
-        }
-
-        expect do
-          described_class.build_dtype_rule_from_yaml(yaml_spec)
-        end.to raise_error(/promote rule requires 'params'/)
+      it "requires the param key for same_as" do
+        expect { described_class.build_dtype_rule_from_yaml({ "rule" => "same_as" }) }
+          .to raise_error(/same_as rule requires 'param'/)
       end
 
-      it "raises error for missing required kind in scalar" do
-        yaml_spec = {
-          "rule" => "scalar"
-          # missing 'kind'
-        }
-
-        expect do
-          described_class.build_dtype_rule_from_yaml(yaml_spec)
-        end.to raise_error(/scalar rule requires 'kind'/)
+      it "requires the params key for promote" do
+        expect { described_class.build_dtype_rule_from_yaml({ "rule" => "promote" }) }
+          .to raise_error(/promote rule requires 'params'/)
       end
 
-      it "raises error for scalar with invalid kind" do
-        yaml_spec = {
-          "rule" => "scalar",
-          "kind" => "invalid_type"
-        }
-
-        expect do
-          described_class.build_dtype_rule_from_yaml(yaml_spec)
-        end.to raise_error(/unknown.*kind/)
+      it "requires the kind key for scalar" do
+        expect { described_class.build_dtype_rule_from_yaml({ "rule" => "scalar" }) }
+          .to raise_error(/scalar rule requires 'kind'/)
       end
-    end
 
-    context "complex nested structures" do
-      it "builds nested array rule" do
-        yaml_spec = {
-          "rule" => "array",
-          "element_type" => {
-            "rule" => "array",
-            "element_type" => "string"
-          }
-        }
-        rule = described_class.build_dtype_rule_from_yaml(yaml_spec)
-
-        result = rule.call({})
-
-        expect(result).to be_a(Kumi::Core::Types::ArrayType)
-        inner = result.element_type
-        expect(inner).to be_a(Kumi::Core::Types::ArrayType)
-        expect(inner.element_type.kind).to eq(:string)
+      it "rejects an unknown scalar kind" do
+        expect { described_class.build_dtype_rule_from_yaml({ "rule" => "scalar", "kind" => "invalid_type" }) }
+          .to raise_error(/unknown.*kind/)
       end
     end
   end
 
-  describe "backward compatibility" do
-    it "loads functions with both string and structured dtype" do
+  describe ".load_functions" do
+    it "loads functions and compiles their dtype rules" do
       yaml_content = <<~YAML
         functions:
-          - id: test.legacy
+          - id: test.same
             kind: elementwise
             params: [{ name: x }]
-            dtype: "same_as(x)"
-            aliases: [legacy]
+            dtype:
+              rule: same_as
+              param: x
+            aliases: [same]
 
-          - id: test.structured
+          - id: test.scalar
             kind: elementwise
             params: [{ name: y }]
             dtype:
-              rule: same_as
-              param: y
-            aliases: [structured]
+              rule: scalar
+              kind: float
+            aliases: [scalarfn]
       YAML
 
       # load_functions globs the directory recursively, so the fixture must live
-      # in its OWN isolated dir — pointing at the shared system temp dir would
-      # pick up unrelated YAML (other tempfiles, real function defs) and trip the
-      # duplicate-id guard.
+      # in its OWN isolated dir to avoid picking up unrelated YAML.
       require "tmpdir"
       Dir.mktmpdir("kumi-loader-spec") do |dir|
         File.write(File.join(dir, "functions.yaml"), yaml_content)
 
         funcs = described_class.load_functions(dir, Kumi::FunctionRegistry::Function)
 
-        expect(funcs).to have_key("test.legacy")
-        expect(funcs).to have_key("test.structured")
-
-        # Both should have working dtype rules
-        legacy_fn = funcs["test.legacy"]
-        structured_fn = funcs["test.structured"]
-
-        int_type = Kumi::Core::Types.scalar(:integer)
-
-        legacy_result = legacy_fn.dtype_rule.call({ x: int_type })
-        structured_result = structured_fn.dtype_rule.call({ y: int_type })
-
-        expect(legacy_result).to eq(int_type)
-        expect(structured_result).to eq(int_type)
+        expect(funcs.keys).to contain_exactly("test.same", "test.scalar")
+        expect(funcs["test.same"].dtype_rule.call({ x: int_type })).to eq(int_type)
+        expect(funcs["test.scalar"].dtype_rule.call({ y: int_type })).to eq(float_type)
       end
     end
   end

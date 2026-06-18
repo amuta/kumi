@@ -14,13 +14,13 @@ module Kumi
             # Already a Type object, return as-is
             type_input
           when Symbol
-            raise ArgumentError, "Invalid type symbol: #{type_input}" unless Validator.valid_kind?(type_input)
+            raise ArgumentError, "Invalid type symbol: #{type_input}" unless Registry.kind?(type_input)
 
             Kumi::Core::Types.scalar(type_input)
 
           when String
             symbol_type = type_input.to_sym
-            raise ArgumentError, "Invalid type string: #{type_input}" unless Validator.valid_kind?(symbol_type)
+            raise ArgumentError, "Invalid type string: #{type_input}" unless Registry.kind?(symbol_type)
 
             Kumi::Core::Types.scalar(symbol_type)
 

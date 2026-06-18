@@ -1,0 +1,57 @@
+(NAST
+  (VALUE price
+    (Call :to_decimal
+    (InputRef [:price_text])
+  )
+  )
+  (VALUE rate
+    (Call :to_decimal
+    (InputRef [:rate_text])
+  )
+  )
+  (VALUE int_times_float
+    (Call :multiply
+    (InputRef [:count])
+    (InputRef [:weight])
+  )
+  )
+  (VALUE decimal_times_int
+    (Call :multiply
+    (Ref price)
+    (InputRef [:count])
+  )
+  )
+  (VALUE decimal_plus_float
+    (Call :add
+    (Ref price)
+    (InputRef [:weight])
+  )
+  )
+  (VALUE float_plus_int
+    (Call :add
+    (InputRef [:weight])
+    (InputRef [:count])
+  )
+  )
+  (VALUE amount_values
+    (Call :to_decimal
+    (InputRef [:amounts, :amount, :value])
+  )
+  )
+  (VALUE scaled_amounts
+    (Call :multiply
+    (Ref amount_values)
+    (Ref rate)
+  )
+  )
+  (VALUE total_scaled
+    (Call :sum
+    (Ref scaled_amounts)
+  )
+  )
+  (VALUE amount_count
+    (Call :size
+    (InputRef [:amounts])
+  )
+  )
+)

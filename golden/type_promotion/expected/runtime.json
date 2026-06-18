@@ -1,0 +1,23 @@
+{
+  "__ruby_js_parity_skipped": "decimal (Ruby BigDecimal vs JS float)",
+  "outputs": {
+    "amount_count": 3.0,
+    "amount_values": [
+      10.0,
+      20.0,
+      30.0
+    ],
+    "decimal_plus_float": 13.0,
+    "decimal_times_int": 31.5,
+    "float_plus_int": 5.5,
+    "int_times_float": 7.5,
+    "price": 10.5,
+    "rate": 1.5,
+    "scaled_amounts": [
+      15.0,
+      30.0,
+      45.0
+    ],
+    "total_scaled": 90.0
+  }
+}

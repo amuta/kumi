@@ -46,7 +46,7 @@ function tax_for_all:
   loop_end [axis=:orders]
   %v13 = acc_load (:acc30) [] -> integer
   %v31 = constant [value=0.15] [] -> float
-  %v20 = kernel_call (:v13, :v31) [fn=:core.mul:numeric] [] -> float
+  %v20 = kernel_call (:v13, :v31) [fn=:core.mul:numeric] [] -> decimal
 function grand_total:
   %v30 = load_input [key=:orders]
   %acc39 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -64,5 +64,5 @@ function grand_total:
   loop_end [axis=:orders]
   %v16 = acc_load (:acc39) [] -> integer
   %v40 = constant [value=0.15] [] -> float
-  %v29 = kernel_call (:v16, :v40) [fn=:core.mul:numeric] [] -> float
-  %v11 = kernel_call (:v16, :v29) [fn=:core.add] [] -> float
+  %v29 = kernel_call (:v16, :v40) [fn=:core.mul:numeric] [] -> decimal
+  %v11 = kernel_call (:v16, :v29) [fn=:core.add] [] -> decimal

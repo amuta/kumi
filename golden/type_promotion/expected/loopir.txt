@@ -1,0 +1,58 @@
+function price:
+  %v3 = load_input [key=:price_text]
+  %v2 = kernel_call (:v3) [fn=:core.to_decimal] [] -> decimal
+function rate:
+  %v5 = load_input [key=:rate_text]
+  %v4 = kernel_call (:v5) [fn=:core.to_decimal] [] -> decimal
+function int_times_float:
+  %v8 = load_input [key=:count]
+  %v9 = load_input [key=:weight]
+  %v7 = kernel_call (:v8, :v9) [fn=:core.mul:numeric] [] -> float
+function decimal_times_int:
+  %v13 = load_input [key=:price_text]
+  %v12 = kernel_call (:v13) [fn=:core.to_decimal] [] -> decimal
+  %v14 = load_input [key=:count]
+  %v10 = kernel_call (:v12, :v14) [fn=:core.mul:numeric] [] -> decimal
+function decimal_plus_float:
+  %v16 = load_input [key=:price_text]
+  %v15 = kernel_call (:v16) [fn=:core.to_decimal] [] -> decimal
+  %v17 = load_input [key=:weight]
+  %v13 = kernel_call (:v15, :v17) [fn=:core.add] [] -> decimal
+function float_plus_int:
+  %v17 = load_input [key=:weight]
+  %v18 = load_input [key=:count]
+  %v16 = kernel_call (:v17, :v18) [fn=:core.add] [] -> float
+function amount_values:
+  %v21 = load_input [key=:amounts]
+  %arr25 = array_init
+  %amounts_el22 = loop_start (:v21) [axis=:amounts, index=:amounts_i23]
+    %v24 = load_field (:amounts_el22) [field=:value]
+    %v20 = kernel_call (:v24) [fn=:core.to_decimal] [amounts] -> decimal
+    array_push (:arr25, :v20)
+  loop_end [axis=:amounts]
+function scaled_amounts:
+  %v31 = load_input [key=:amounts]
+  %v35 = load_input [key=:rate_text]
+  %v30 = kernel_call (:v35) [fn=:core.to_decimal] [] -> decimal
+  %arr40 = array_init
+  %amounts_el32 = loop_start (:v31) [axis=:amounts, index=:amounts_i33]
+    %v34 = load_field (:amounts_el32) [field=:value]
+    %v28 = kernel_call (:v34) [fn=:core.to_decimal] [amounts] -> decimal
+    %v24 = kernel_call (:v28, :v30) [fn=:core.mul:numeric] [amounts] -> decimal
+    array_push (:arr40, :v24)
+  loop_end [axis=:amounts]
+function total_scaled:
+  %v35 = load_input [key=:amounts]
+  %v39 = load_input [key=:rate_text]
+  %v32 = kernel_call (:v39) [fn=:core.to_decimal] [] -> decimal
+  %acc44 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> decimal
+  %amounts_el36 = loop_start (:v35) [axis=:amounts, index=:amounts_i37]
+    %v38 = load_field (:amounts_el36) [field=:value]
+    %v30 = kernel_call (:v38) [fn=:core.to_decimal] [amounts] -> decimal
+    %v34 = kernel_call (:v30, :v32) [fn=:core.mul:numeric] [amounts] -> decimal
+    acc_step (:acc44, :v34) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:amounts]
+  %v26 = acc_load (:acc44) [] -> decimal
+function amount_count:
+  %v29 = load_input [key=:amounts]
+  %v28 = kernel_call (:v29) [fn=:core.array_size] [] -> integer

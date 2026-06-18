@@ -27,7 +27,7 @@ function order_with_shipping:
     loop_end [axis=:items]
     %v18 = acc_load (:acc27) [] -> integer
     %v28 = load_field (:orders_el20) [field=:shipping_cost]
-    %v9 = kernel_call (:v18, :v28) [fn=:core.add] [orders] -> integer
+    %v9 = kernel_call (:v18, :v28) [fn=:core.add] [orders] -> decimal
     array_push (:arr29, :v9)
   loop_end [axis=:orders]
 function order_discounted:
@@ -44,11 +44,11 @@ function order_discounted:
     loop_end [axis=:items]
     %v26 = acc_load (:acc38) [] -> integer
     %v39 = load_field (:orders_el31) [field=:shipping_cost]
-    %v21 = kernel_call (:v26, :v39) [fn=:core.add] [orders] -> integer
+    %v21 = kernel_call (:v26, :v39) [fn=:core.add] [orders] -> decimal
     %v40 = constant [value=1.0] [] -> float
     %v41 = load_input [key=:global_discount_rate]
-    %v28 = kernel_call (:v40, :v41) [fn=:core.sub] [orders] -> float
-    %v29 = kernel_call (:v21, :v28) [fn=:core.mul:numeric] [orders] -> float
+    %v28 = kernel_call (:v40, :v41) [fn=:core.sub] [orders] -> decimal
+    %v29 = kernel_call (:v21, :v28) [fn=:core.mul:numeric] [orders] -> decimal
     array_push (:arr42, :v29)
   loop_end [axis=:orders]
 function order_tax:
@@ -65,13 +65,13 @@ function order_tax:
     loop_end [axis=:items]
     %v31 = acc_load (:acc45) [] -> integer
     %v46 = load_field (:orders_el38) [field=:shipping_cost]
-    %v23 = kernel_call (:v31, :v46) [fn=:core.add] [orders] -> integer
+    %v23 = kernel_call (:v31, :v46) [fn=:core.add] [orders] -> decimal
     %v47 = constant [value=1.0] [] -> float
     %v48 = load_input [key=:global_discount_rate]
-    %v33 = kernel_call (:v47, :v48) [fn=:core.sub] [orders] -> float
-    %v34 = kernel_call (:v23, :v33) [fn=:core.mul:numeric] [orders] -> float
+    %v33 = kernel_call (:v47, :v48) [fn=:core.sub] [orders] -> decimal
+    %v34 = kernel_call (:v23, :v33) [fn=:core.mul:numeric] [orders] -> decimal
     %v49 = constant [value=0.15] [] -> float
-    %v36 = kernel_call (:v34, :v49) [fn=:core.mul:numeric] [orders] -> float
+    %v36 = kernel_call (:v34, :v49) [fn=:core.mul:numeric] [orders] -> decimal
     array_push (:arr50, :v36)
   loop_end [axis=:orders]
 function order_totals:
@@ -88,14 +88,14 @@ function order_totals:
     loop_end [axis=:items]
     %v46 = acc_load (:acc60) [] -> integer
     %v61 = load_field (:orders_el53) [field=:shipping_cost]
-    %v26 = kernel_call (:v46, :v61) [fn=:core.add] [orders] -> integer
+    %v26 = kernel_call (:v46, :v61) [fn=:core.add] [orders] -> decimal
     %v62 = constant [value=1.0] [] -> float
     %v63 = load_input [key=:global_discount_rate]
-    %v48 = kernel_call (:v62, :v63) [fn=:core.sub] [orders] -> float
-    %v49 = kernel_call (:v26, :v48) [fn=:core.mul:numeric] [orders] -> float
+    %v48 = kernel_call (:v62, :v63) [fn=:core.sub] [orders] -> decimal
+    %v49 = kernel_call (:v26, :v48) [fn=:core.mul:numeric] [orders] -> decimal
     %v64 = constant [value=0.15] [] -> float
-    %v51 = kernel_call (:v49, :v64) [fn=:core.mul:numeric] [orders] -> float
-    %v18 = kernel_call (:v49, :v51) [fn=:core.add] [orders] -> float
+    %v51 = kernel_call (:v49, :v64) [fn=:core.mul:numeric] [orders] -> decimal
+    %v18 = kernel_call (:v49, :v51) [fn=:core.add] [orders] -> decimal
     array_push (:arr65, :v18)
   loop_end [axis=:orders]
 function discount_per_order:
@@ -112,12 +112,12 @@ function discount_per_order:
     loop_end [axis=:items]
     %v45 = acc_load (:acc57) [] -> integer
     %v58 = load_field (:orders_el50) [field=:shipping_cost]
-    %v29 = kernel_call (:v45, :v58) [fn=:core.add] [orders] -> integer
+    %v29 = kernel_call (:v45, :v58) [fn=:core.add] [orders] -> decimal
     %v59 = constant [value=1.0] [] -> float
     %v60 = load_input [key=:global_discount_rate]
-    %v47 = kernel_call (:v59, :v60) [fn=:core.sub] [orders] -> float
-    %v48 = kernel_call (:v29, :v47) [fn=:core.mul:numeric] [orders] -> float
-    %v21 = kernel_call (:v29, :v48) [fn=:core.sub] [orders] -> float
+    %v47 = kernel_call (:v59, :v60) [fn=:core.sub] [orders] -> decimal
+    %v48 = kernel_call (:v29, :v47) [fn=:core.mul:numeric] [orders] -> decimal
+    %v21 = kernel_call (:v29, :v48) [fn=:core.sub] [orders] -> decimal
     array_push (:arr61, :v21)
   loop_end [axis=:orders]
 function total_orders:
@@ -130,7 +130,7 @@ function total_orders:
   %v25 = acc_load (:acc30) [] -> integer
 function total_revenue:
   %v62 = load_input [key=:orders]
-  %acc75 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %acc75 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> decimal
   %orders_el63 = loop_start (:v62) [axis=:orders, index=:orders_i64]
     %v65 = load_field (:orders_el63) [field=:items]
     %acc70 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -142,20 +142,20 @@ function total_revenue:
     loop_end [axis=:items]
     %v56 = acc_load (:acc70) [] -> integer
     %v71 = load_field (:orders_el63) [field=:shipping_cost]
-    %v35 = kernel_call (:v56, :v71) [fn=:core.add] [orders] -> integer
+    %v35 = kernel_call (:v56, :v71) [fn=:core.add] [orders] -> decimal
     %v72 = constant [value=1.0] [] -> float
     %v73 = load_input [key=:global_discount_rate]
-    %v58 = kernel_call (:v72, :v73) [fn=:core.sub] [orders] -> float
-    %v59 = kernel_call (:v35, :v58) [fn=:core.mul:numeric] [orders] -> float
+    %v58 = kernel_call (:v72, :v73) [fn=:core.sub] [orders] -> decimal
+    %v59 = kernel_call (:v35, :v58) [fn=:core.mul:numeric] [orders] -> decimal
     %v74 = constant [value=0.15] [] -> float
-    %v61 = kernel_call (:v59, :v74) [fn=:core.mul:numeric] [orders] -> float
-    %v51 = kernel_call (:v59, :v61) [fn=:core.add] [orders] -> float
+    %v61 = kernel_call (:v59, :v74) [fn=:core.mul:numeric] [orders] -> decimal
+    %v51 = kernel_call (:v59, :v61) [fn=:core.add] [orders] -> decimal
     acc_step (:acc75, :v51) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v27 = acc_load (:acc75) [] -> float
+  %v27 = acc_load (:acc75) [] -> decimal
 function total_tax_collected:
   %v52 = load_input [key=:orders]
-  %acc65 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %acc65 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> decimal
   %orders_el53 = loop_start (:v52) [axis=:orders, index=:orders_i54]
     %v55 = load_field (:orders_el53) [field=:items]
     %acc60 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -167,19 +167,19 @@ function total_tax_collected:
     loop_end [axis=:items]
     %v46 = acc_load (:acc60) [] -> integer
     %v61 = load_field (:orders_el53) [field=:shipping_cost]
-    %v37 = kernel_call (:v46, :v61) [fn=:core.add] [orders] -> integer
+    %v37 = kernel_call (:v46, :v61) [fn=:core.add] [orders] -> decimal
     %v62 = constant [value=1.0] [] -> float
     %v63 = load_input [key=:global_discount_rate]
-    %v48 = kernel_call (:v62, :v63) [fn=:core.sub] [orders] -> float
-    %v49 = kernel_call (:v37, :v48) [fn=:core.mul:numeric] [orders] -> float
+    %v48 = kernel_call (:v62, :v63) [fn=:core.sub] [orders] -> decimal
+    %v49 = kernel_call (:v37, :v48) [fn=:core.mul:numeric] [orders] -> decimal
     %v64 = constant [value=0.15] [] -> float
-    %v51 = kernel_call (:v49, :v64) [fn=:core.mul:numeric] [orders] -> float
+    %v51 = kernel_call (:v49, :v64) [fn=:core.mul:numeric] [orders] -> decimal
     acc_step (:acc65, :v51) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v29 = acc_load (:acc65) [] -> float
+  %v29 = acc_load (:acc65) [] -> decimal
 function total_discount_given:
   %v60 = load_input [key=:orders]
-  %acc72 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %acc72 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> decimal
   %orders_el61 = loop_start (:v60) [axis=:orders, index=:orders_i62]
     %v63 = load_field (:orders_el61) [field=:items]
     %acc68 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -191,12 +191,12 @@ function total_discount_given:
     loop_end [axis=:items]
     %v56 = acc_load (:acc68) [] -> integer
     %v69 = load_field (:orders_el61) [field=:shipping_cost]
-    %v39 = kernel_call (:v56, :v69) [fn=:core.add] [orders] -> integer
+    %v39 = kernel_call (:v56, :v69) [fn=:core.add] [orders] -> decimal
     %v70 = constant [value=1.0] [] -> float
     %v71 = load_input [key=:global_discount_rate]
-    %v58 = kernel_call (:v70, :v71) [fn=:core.sub] [orders] -> float
-    %v59 = kernel_call (:v39, :v58) [fn=:core.mul:numeric] [orders] -> float
-    %v51 = kernel_call (:v39, :v59) [fn=:core.sub] [orders] -> float
+    %v58 = kernel_call (:v70, :v71) [fn=:core.sub] [orders] -> decimal
+    %v59 = kernel_call (:v39, :v58) [fn=:core.mul:numeric] [orders] -> decimal
+    %v51 = kernel_call (:v39, :v59) [fn=:core.sub] [orders] -> decimal
     acc_step (:acc72, :v51) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v31 = acc_load (:acc72) [] -> float
+  %v31 = acc_load (:acc72) [] -> decimal

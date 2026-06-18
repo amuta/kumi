@@ -173,15 +173,28 @@ module Kumi
                                             dtype: instr.dtype)
           end
 
+          # A reduction either has a true identity (seed the accumulator with it)
+          # or none at all (seed from the first element via nil_init — e.g. min/max).
+          #
+          # A kernel that DECLARES an identity map but is missing an entry for the
+          # reduction's dtype is a registry gap, not a license to fall back to
+          # nil_init: that path silently double-counts the first element. Fail
+          # loudly instead so a missing identity is a build bug, never a wrong
+          # number.
           def reduction_init(fn, dtype)
             kernel = @registry&.kernel_for(fn, target: :ruby)
             identity = kernel&.identity
-            return [nil, true] unless identity
+            return [nil, true] if identity.nil?
 
             key = dtype.to_s
-            value = identity[key]
-            value = identity["any"] if value.nil? && !identity.key?(key)
-            value.nil? ? [nil, true] : [value, false]
+            value = identity.fetch(key) { identity["any"] }
+            if value.nil?
+              raise Kumi::Core::Errors::CompilerBug,
+                    "reduce #{fn} has an identity map but no identity for dtype #{dtype} " \
+                    "(known: #{identity.keys.join(', ')})"
+            end
+
+            [value, false]
           end
 
           # ---------------------------------------------------------------

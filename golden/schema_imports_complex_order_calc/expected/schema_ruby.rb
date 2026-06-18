@@ -153,7 +153,7 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
 
   def self._total_revenue(input)
     t62 = input["orders"] || input[:orders]
-    acc75 = 0.0
+    acc75 = 0
     t62.each_with_index do |orders_el63, orders_i64|
       t65 = orders_el63["items"] || orders_el63[:items]
       acc70 = 0
@@ -181,7 +181,7 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
 
   def self._total_tax_collected(input)
     t52 = input["orders"] || input[:orders]
-    acc65 = 0.0
+    acc65 = 0
     t52.each_with_index do |orders_el53, orders_i54|
       t55 = orders_el53["items"] || orders_el53[:items]
       acc60 = 0
@@ -208,7 +208,7 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
 
   def self._total_discount_given(input)
     t60 = input["orders"] || input[:orders]
-    acc72 = 0.0
+    acc72 = 0
     t60.each_with_index do |orders_el61, orders_i62|
       t63 = orders_el61["items"] || orders_el61[:items]
       acc68 = 0

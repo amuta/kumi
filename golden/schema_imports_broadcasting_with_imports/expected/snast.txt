@@ -2,11 +2,11 @@
   (VALUE item_taxes
     (ImportCall :tax
       (amount (InputRef items.item.amount key_chain=[]) :: [items] -> decimal)
-    ) :: [items] -> float
-  ) :: [items] -> float
+    ) :: [items] -> decimal
+  ) :: [items] -> decimal
   (VALUE total_tax
     (Reduce :agg.sum over [items]
-      (Ref item_taxes) :: [items] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+      (Ref item_taxes) :: [items] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
 )

@@ -11,8 +11,8 @@ function server_hostnames:
   %v8 = load_field (:v7) [field=:server] [servers] -> string
   %v9 = load_field (:v8) [field=:hostname] [servers] -> string
 function server_count:
-  %v10 = load_input [key=:config, chain=[]] [] -> array<any>
-  %v11 = load_field (:v10) [field=:servers] [] -> array<any>
+  %v10 = load_input [key=:config, chain=[]] [] -> array<hash>
+  %v11 = load_field (:v10) [field=:servers] [] -> array<hash>
   %v12 = map (:v11) [fn=:core.array_size] [] -> integer
 function total_ports:
   %v13 = load_input [key=:config, chain=[]] [servers] -> integer

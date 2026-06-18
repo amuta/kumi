@@ -2,27 +2,27 @@
   (VALUE tax_amount
     (ImportCall :tax
       (amount (InputRef amount key_chain=[]) :: [] -> decimal)
-    ) :: [] -> float
-  ) :: [] -> float
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE price_after_tax
     (Call :core.add
       (InputRef amount key_chain=[]) :: [] -> decimal
-      (Ref tax_amount) :: [] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+      (Ref tax_amount) :: [] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE discounted_price
     (ImportCall :discounted
-      (price (Ref price_after_tax) :: [] -> float)
+      (price (Ref price_after_tax) :: [] -> decimal)
       (rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
-    ) :: [] -> float
-  ) :: [] -> float
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE discount_amount
     (ImportCall :savings
-      (price (Ref price_after_tax) :: [] -> float)
+      (price (Ref price_after_tax) :: [] -> decimal)
       (rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
     ) :: [] -> decimal
   ) :: [] -> decimal
   (VALUE final_price
-    (Ref discounted_price) :: [] -> float
-  ) :: [] -> float
+    (Ref discounted_price) :: [] -> decimal
+  ) :: [] -> decimal
 )

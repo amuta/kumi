@@ -8,8 +8,8 @@ function price_after_discount:
   %v9 = kernel_call (:v13, :v14) [fn=:core.mul:numeric] [] -> decimal
   %v15 = constant [value=1.0] [] -> float
   %v16 = load_input [key=:discount_rate]
-  %v11 = kernel_call (:v15, :v16) [fn=:core.sub] [] -> float
-  %v12 = kernel_call (:v9, :v11) [fn=:core.mul:numeric] [] -> float
+  %v11 = kernel_call (:v15, :v16) [fn=:core.sub] [] -> decimal
+  %v12 = kernel_call (:v9, :v11) [fn=:core.mul:numeric] [] -> decimal
 function discount_amt:
   %v14 = load_input [key=:item_price]
   %v15 = load_input [key=:quantity]
@@ -22,8 +22,8 @@ function final_total:
   %v14 = kernel_call (:v23, :v24) [fn=:core.mul:numeric] [] -> decimal
   %v25 = constant [value=1.0] [] -> float
   %v26 = load_input [key=:discount_rate]
-  %v18 = kernel_call (:v25, :v26) [fn=:core.sub] [] -> float
-  %v19 = kernel_call (:v14, :v18) [fn=:core.mul:numeric] [] -> float
+  %v18 = kernel_call (:v25, :v26) [fn=:core.sub] [] -> decimal
+  %v19 = kernel_call (:v14, :v18) [fn=:core.mul:numeric] [] -> decimal
   %v27 = constant [value=0.15] [] -> float
-  %v21 = kernel_call (:v19, :v27) [fn=:core.mul:numeric] [] -> float
-  %v22 = kernel_call (:v19, :v21) [fn=:core.add] [] -> float
+  %v21 = kernel_call (:v19, :v27) [fn=:core.mul:numeric] [] -> decimal
+  %v22 = kernel_call (:v19, :v21) [fn=:core.add] [] -> decimal

@@ -1,0 +1,57 @@
+(SNAST
+  (VALUE price
+    (Call :core.to_decimal
+      (InputRef price_text key_chain=[]) :: [] -> string
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE rate
+    (Call :core.to_decimal
+      (InputRef rate_text key_chain=[]) :: [] -> string
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE int_times_float
+    (Call :core.mul:numeric
+      (InputRef count key_chain=[]) :: [] -> integer
+      (InputRef weight key_chain=[]) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE decimal_times_int
+    (Call :core.mul:numeric
+      (Ref price) :: [] -> decimal
+      (InputRef count key_chain=[]) :: [] -> integer
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE decimal_plus_float
+    (Call :core.add
+      (Ref price) :: [] -> decimal
+      (InputRef weight key_chain=[]) :: [] -> float
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE float_plus_int
+    (Call :core.add
+      (InputRef weight key_chain=[]) :: [] -> float
+      (InputRef count key_chain=[]) :: [] -> integer
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE amount_values
+    (Call :core.to_decimal
+      (InputRef amounts.amount.value key_chain=[]) :: [amounts] -> string
+    ) :: [amounts] -> decimal
+  ) :: [amounts] -> decimal
+  (VALUE scaled_amounts
+    (Call :core.mul:numeric
+      (Ref amount_values) :: [amounts] -> decimal
+      (Ref rate) :: [] -> decimal
+    ) :: [amounts] -> decimal
+  ) :: [amounts] -> decimal
+  (VALUE total_scaled
+    (Reduce :agg.sum over [amounts]
+      (Ref scaled_amounts) :: [amounts] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
+  (VALUE amount_count
+    (Call :core.array_size
+      (InputRef amounts key_chain=[]) :: [] -> array<hash>
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

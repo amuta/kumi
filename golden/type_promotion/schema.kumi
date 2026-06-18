@@ -1,0 +1,30 @@
+schema do
+  input do
+    integer :count
+    float :weight
+    string :price_text
+    string :rate_text
+    array :amounts do
+      hash :amount do
+        string :value
+      end
+    end
+  end
+
+  let :price, to_decimal(input.price_text)
+  let :rate, to_decimal(input.rate_text)
+
+  # Promotion lattice: decimal > float > integer.
+  value :int_times_float, input.count * input.weight        # float
+  value :decimal_times_int, price * input.count             # decimal
+  value :decimal_plus_float, price + input.weight           # decimal
+  value :float_plus_int, input.weight + input.count         # float
+
+  # Decimal flowing through arithmetic and a reduction. Before the promotion
+  # fix these silently degraded to integer/float and the decimal sum identity
+  # was missing, double-counting the first element.
+  let :amount_values, to_decimal(input.amounts.amount.value)
+  value :scaled_amounts, amount_values * rate               # array<decimal>
+  value :total_scaled, fn(:sum, scaled_amounts)             # decimal
+  value :amount_count, fn(:size, input.amounts)             # integer
+end

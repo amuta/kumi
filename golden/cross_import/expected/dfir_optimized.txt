@@ -1,5 +1,5 @@
 function result:
-  %v1 = load_input [key=:vals, chain=[], plan_ref="vals"] [] -> array<any>
+  %v1 = load_input [key=:vals, chain=[], plan_ref="vals"] [] -> array<hash>
   %v3 = load_field (:v1) [field=:v, plan_ref="vals.v"] [vals] -> float
   %v4 = load_field (:v3) [field=:a, plan_ref="vals.v.a"] [vals] -> float
   %v5 = axis_cross (:v4) [axis=:vals__x, source_axis=:vals] [vals, vals__x] -> float

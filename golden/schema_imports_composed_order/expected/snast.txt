@@ -9,8 +9,8 @@
     (ImportCall :discounted
       (base_price (Ref subtotal) :: [] -> decimal)
       (discount_rate (InputRef discount_rate key_chain=[]) :: [] -> decimal)
-    ) :: [] -> float
-  ) :: [] -> float
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE discount_amt
     (ImportCall :discount_amount
       (base_price (Ref subtotal) :: [] -> decimal)
@@ -19,7 +19,7 @@
   ) :: [] -> decimal
   (VALUE final_total
     (ImportCall :total
-      (amount (Ref price_after_discount) :: [] -> float)
-    ) :: [] -> float
-  ) :: [] -> float
+      (amount (Ref price_after_discount) :: [] -> decimal)
+    ) :: [] -> decimal
+  ) :: [] -> decimal
 )

@@ -1,0 +1,51 @@
+function price:
+  %v1 = load_input [key=:price_text, chain=[]] [] -> string
+  %v2 = map (:v1) [fn=:core.to_decimal] [] -> decimal
+function rate:
+  %v3 = load_input [key=:rate_text, chain=[]] [] -> string
+  %v4 = map (:v3) [fn=:core.to_decimal] [] -> decimal
+function int_times_float:
+  %v5 = load_input [key=:count, chain=[]] [] -> integer
+  %v6 = load_input [key=:weight, chain=[]] [] -> float
+  %v7 = map (:v5, :v6) [fn=:core.mul:numeric] [] -> float
+function decimal_times_int:
+  %v11 = load_input [key=:price_text, chain=[]] [] -> string
+  %v12 = map (:v11) [fn=:core.to_decimal] [] -> decimal
+  %v9 = load_input [key=:count, chain=[]] [] -> integer
+  %v10 = map (:v12, :v9) [fn=:core.mul:numeric] [] -> decimal
+function decimal_plus_float:
+  %v14 = load_input [key=:price_text, chain=[]] [] -> string
+  %v15 = map (:v14) [fn=:core.to_decimal] [] -> decimal
+  %v12 = load_input [key=:weight, chain=[]] [] -> float
+  %v13 = map (:v15, :v12) [fn=:core.add] [] -> decimal
+function float_plus_int:
+  %v14 = load_input [key=:weight, chain=[]] [] -> float
+  %v15 = load_input [key=:count, chain=[]] [] -> integer
+  %v16 = map (:v14, :v15) [fn=:core.add] [] -> float
+function amount_values:
+  %v17 = load_input [key=:amounts, chain=[]] [amounts] -> string
+  %v18 = load_field (:v17) [field=:amount] [amounts] -> string
+  %v19 = load_field (:v18) [field=:value] [amounts] -> string
+  %v20 = map (:v19) [fn=:core.to_decimal] [amounts] -> decimal
+function scaled_amounts:
+  %v25 = load_input [key=:amounts, chain=[]] [amounts] -> string
+  %v26 = load_field (:v25) [field=:amount] [amounts] -> string
+  %v27 = load_field (:v26) [field=:value] [amounts] -> string
+  %v28 = map (:v27) [fn=:core.to_decimal] [amounts] -> decimal
+  %v29 = load_input [key=:rate_text, chain=[]] [] -> string
+  %v30 = map (:v29) [fn=:core.to_decimal] [] -> decimal
+  %v23 = axis_broadcast (:v30) [from_axes=[], to_axes=[:amounts]] [amounts] -> decimal
+  %v24 = map (:v28, :v23) [fn=:core.mul:numeric] [amounts] -> decimal
+function total_scaled:
+  %v27 = load_input [key=:amounts, chain=[]] [amounts] -> string
+  %v28 = load_field (:v27) [field=:amount] [amounts] -> string
+  %v29 = load_field (:v28) [field=:value] [amounts] -> string
+  %v30 = map (:v29) [fn=:core.to_decimal] [amounts] -> decimal
+  %v31 = load_input [key=:rate_text, chain=[]] [] -> string
+  %v32 = map (:v31) [fn=:core.to_decimal] [] -> decimal
+  %v33 = axis_broadcast (:v32) [from_axes=[], to_axes=[:amounts]] [amounts] -> decimal
+  %v34 = map (:v30, :v33) [fn=:core.mul:numeric] [amounts] -> decimal
+  %v26 = reduce (:v34) [fn=:agg.sum, over_axes=[:amounts]] [] -> decimal
+function amount_count:
+  %v27 = load_input [key=:amounts, chain=[]] [] -> array<hash>
+  %v28 = map (:v27) [fn=:core.array_size] [] -> integer

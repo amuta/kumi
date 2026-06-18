@@ -164,7 +164,7 @@ export function _total_orders(input) {
 
 export function _total_revenue(input) {
   let t62 = input["orders"];
-  let acc75 = 0.0;
+  let acc75 = 0;
   for (let orders_i64 = 0; orders_i64 < t62.length; orders_i64++) {
     let orders_el63 = t62[orders_i64];
     let t65 = orders_el63["items"];
@@ -194,7 +194,7 @@ export function _total_revenue(input) {
 
 export function _total_tax_collected(input) {
   let t52 = input["orders"];
-  let acc65 = 0.0;
+  let acc65 = 0;
   for (let orders_i54 = 0; orders_i54 < t52.length; orders_i54++) {
     let orders_el53 = t52[orders_i54];
     let t55 = orders_el53["items"];
@@ -223,7 +223,7 @@ export function _total_tax_collected(input) {
 
 export function _total_discount_given(input) {
   let t60 = input["orders"];
-  let acc72 = 0.0;
+  let acc72 = 0;
   for (let orders_i62 = 0; orders_i62 < t60.length; orders_i62++) {
     let orders_el61 = t60[orders_i62];
     let t63 = orders_el61["items"];
