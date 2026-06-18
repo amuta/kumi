@@ -10,11 +10,10 @@ RSpec.describe Kumi::IR::DF::Lower do
       x = snast_factory.input_ref(path: %i[x], axes: [], dtype: types.scalar(:integer))
       y = snast_factory.input_ref(path: %i[y], axes: [], dtype: types.scalar(:integer))
       body = snast_factory.call(
-        fn: :core_add,
+        fn: :"core.add",
         args: [x, y],
         axes: [],
-        dtype: types.scalar(:integer),
-        meta: { function: :"core.add" }
+        dtype: types.scalar(:integer)
       )
       b.declaration(:sum, axes: [], dtype: types.scalar(:integer)) { body }
     end
@@ -23,10 +22,9 @@ RSpec.describe Kumi::IR::DF::Lower do
   describe "lowering a scalar map" do
     it "produces DF graph instructions" do
       snast = build_simple_math_snast
-      registry = instance_double("Registry", resolve_function: :"core.add")
       lower = described_class.new(
         snast_module: snast,
-        registry: registry,
+        registry: Kumi::FunctionRegistry.load,
         input_table: {}
       )
 
@@ -55,11 +53,10 @@ RSpec.describe Kumi::IR::DF::Lower do
         )
         manager = snast_factory.const("manager", dtype: types.scalar(:string))
         cond = snast_factory.call(
-          fn: :core_eq,
+          fn: :"core.eq",
           args: [roles, manager],
           axes: %i[departments employees],
-          dtype: types.scalar(:boolean),
-          meta: { function: :"core.eq" }
+          dtype: types.scalar(:boolean)
         )
         one = snast_factory.const(1, dtype: types.scalar(:integer))
         zero = snast_factory.const(0, dtype: types.scalar(:integer))
@@ -71,17 +68,16 @@ RSpec.describe Kumi::IR::DF::Lower do
           dtype: types.scalar(:integer)
         )
         reduce = snast_factory.reduce(
-          fn: :agg_sum,
+          fn: :"agg.sum",
           arg: select,
           over: [:employees],
           axes: %i[departments],
-          dtype: types.scalar(:integer),
-          meta: { function: :"agg.sum" }
+          dtype: types.scalar(:integer)
         )
         b.declaration(:manager_count, axes: %i[departments], dtype: types.scalar(:integer)) { reduce }
       end
 
-      lower = described_class.new(snast_module: snast, registry: double(resolve_function: :resolved), input_table: {})
+      lower = described_class.new(snast_module: snast, registry: Kumi::FunctionRegistry.load, input_table: {})
       graph = lower.call
 
       instrs = graph.fetch_function(:manager_count).entry_block.instructions
@@ -120,7 +116,7 @@ RSpec.describe Kumi::IR::DF::Lower do
         b.declaration(:department_summary, axes: %i[departments], dtype: types.scalar(:hash)) { hash }
       end
 
-      lower = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {})
+      lower = described_class.new(snast_module: snast, registry: Kumi::FunctionRegistry.load, input_table: {})
       graph = lower.call
 
       instrs = graph.fetch_function(:department_summary).entry_block.instructions
@@ -149,7 +145,7 @@ RSpec.describe Kumi::IR::DF::Lower do
         b.declaration(:pair, axes: [], dtype: types.array(types.scalar(:integer))) { tuple }
       end
 
-      lower = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: {})
+      lower = described_class.new(snast_module: snast, registry: Kumi::FunctionRegistry.load, input_table: {})
       graph = lower.call
 
       instrs = graph.fetch_function(:pair).entry_block.instructions
@@ -187,7 +183,7 @@ RSpec.describe Kumi::IR::DF::Lower do
         input_plan(%i[rows col alive])
       ]
 
-      lower = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: plans)
+      lower = described_class.new(snast_module: snast, registry: Kumi::FunctionRegistry.load, input_table: plans)
       graph = lower.call
 
       instrs = graph.fetch_function(:alive_value).entry_block.instructions
@@ -215,7 +211,7 @@ RSpec.describe Kumi::IR::DF::Lower do
         input_plan(%i[rows col alive])
       ]
 
-      graph = described_class.new(snast_module: snast, registry: double(resolve_function: :unused), input_table: plans).call
+      graph = described_class.new(snast_module: snast, registry: Kumi::FunctionRegistry.load, input_table: plans).call
 
       load_input = graph.fetch_function(:alive_value).entry_block.instructions.first
       expect(load_input.opcode).to eq(:load_input)
@@ -235,7 +231,7 @@ RSpec.describe Kumi::IR::DF::Lower do
 
       lower = described_class.new(
         snast_module: snast,
-        registry: double(resolve_function: :unused),
+        registry: Kumi::FunctionRegistry.load,
         input_table: [input_plan(%i[rows]), input_plan(%i[rows col])]
       )
 
@@ -256,7 +252,7 @@ RSpec.describe Kumi::IR::DF::Lower do
       expect do
         described_class.new(
           snast_module: snast,
-          registry: double(resolve_function: :unused),
+          registry: Kumi::FunctionRegistry.load,
           input_table: [input_plan(%i[rows]), input_plan(%i[rows])]
         )
       end.to raise_error(ArgumentError, /ambiguous input plan for "rows"/)

@@ -118,7 +118,7 @@ module Kumi
             reg = align_axes(reg, axes_of(arg_node), axes_of(node), dtype_of(arg_node), builder)
             args << reg
           end
-          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
+          fn_id = node.fn
           result = next_reg
           builder.map(result:, fn: fn_id, args:, axes: axes_of(node), dtype: dtype_of(node), metadata: {})
         end
@@ -145,7 +145,7 @@ module Kumi
 
         def emit_reduce(node, builder)
           arg = lower_expr(node.arg, builder)
-          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
+          fn_id = node.fn
           result = next_reg
           builder.reduce(
             result:,
@@ -161,7 +161,7 @@ module Kumi
         def emit_fold(node, builder)
           arg = lower_expr(node.arg, builder)
           arg = align_axes(arg, axes_of(node.arg), axes_of(node), dtype_of(node.arg), builder)
-          fn_id = node.meta[:function] || @registry.resolve_id(node.fn)
+          fn_id = node.fn
           out_dtype = fold_result_type(fn_id, dtype_of(node.arg))
           result = next_reg
           builder.fold(
@@ -401,53 +401,16 @@ module Kumi
         end
 
         def function_options(fn)
-          spec = registry_spec(fn)
-          fetch_spec_attr(spec, :options) || {}
+          @registry.function(fn).options || {}
         end
 
         def fold_result_type(fn_id, input_dtype)
-          spec = registry_spec(fn_id)
-          return input_dtype unless spec
-
-          rule = fetch_spec_attr(spec, :dtype_rule)
-          param_names = fetch_spec_attr(spec, :parameter_names) || [:arg]
+          rule = @registry.function(fn_id).dtype_rule
           return input_dtype unless rule
 
-          begin
-            if rule.respond_to?(:call)
-              named = { param_names.first => input_dtype }
-              rule.call(named) || input_dtype
-            else
-              input_dtype
-            end
-          rescue StandardError
-            input_dtype
-          end
-        end
-
-        def registry_spec(fn)
-          return nil unless @registry.respond_to?(:function)
-
-          @registry.function(fn)
-        rescue StandardError
-          nil
-        end
-
-        def fetch_spec_attr(spec, key)
-          return nil unless spec
-
-          if spec.respond_to?(:[])
-            begin
-              value = spec[key]
-              return value unless value.nil?
-            rescue NameError
-              # struct without that member – ignore
-            end
-          end
-
-          spec.public_send(key) if spec.respond_to?(key)
-        rescue StandardError
-          nil
+          param_names = @registry.function(fn_id).param_names
+          named = { param_names.first => input_dtype }
+          rule.call(named) || input_dtype
         end
       end
     end

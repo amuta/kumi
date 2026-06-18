@@ -195,6 +195,7 @@ module Kumi
             @cross_axes[child_axis] = parent_axis
 
             @metadata_table[node_id(call)] = {
+              function: call.fn,
               kind: :cross,
               cross_axis: child_axis,
               source_axis: parent_axis,
@@ -229,6 +230,7 @@ module Kumi
             @outer_axes[outer_axis] = source_axis
 
             @metadata_table[node_id(call)] = {
+              function: call.fn,
               kind: :outer,
               outer_axis: outer_axis,
               source_axis: source_axis,

@@ -114,9 +114,10 @@ module Kumi
 
                 # We still need to visit the child node to build the SNAST tree
 
+                result_meta = meta_for(n)
                 fold_node = NAST::Fold.new(
                   id: n.id,
-                  fn: @registry.resolve_id(n.fn),
+                  fn: result_meta.fetch(:function).to_sym,
                   arg: visited_arg, # The arg is the tuple/reference to the tuple
                   loc: n.loc,
                   meta: n.meta.dup
@@ -125,7 +126,6 @@ module Kumi
                 # The output type is the reduced scalar type (e.g., :integer for max).
                 # The axes are PRESERVED because a fold is an element-wise operation
                 # on the container of tuples.
-                result_meta = meta_for(n)
                 return stamp!(fold_node, result_meta[:result_scope], result_meta[:result_type])
               else
                 # --- Path for REDUCE (Vectorized Arrays) ---
@@ -145,7 +145,7 @@ module Kumi
                 over_axes = in_axes.drop(out_axes.length)
                 reduce_node = NAST::Reduce.new(
                   id: n.id,
-                  fn: @registry.resolve_id(n.fn),
+                  fn: result_meta.fetch(:function).to_sym,
                   over: over_axes,
                   arg: visited_arg,
                   loc: n.loc,
@@ -155,12 +155,11 @@ module Kumi
               end
             end
 
-            # regular elementwise
+            # regular elementwise: the function id was resolved with type
+            # awareness in NASTDimensionalAnalyzerPass and stored in metadata.
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
-            # Use the function ID from metadata (already resolved with type awareness in NASTDimensionalAnalyzerPass)
-            fn_id = m[:function] || @registry.resolve_id(n.fn)
-            out = n.class.new(id: n.id, fn: fn_id.to_sym, args:, opts: n.opts, loc: n.loc)
+            out = n.class.new(id: n.id, fn: m.fetch(:function).to_sym, args:, opts: n.opts, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end
 

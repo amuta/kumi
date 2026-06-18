@@ -13,26 +13,24 @@ RSpec.describe Kumi::Core::Analyzer::PassManager do
       manager.run(nil, Kumi::Core::Analyzer::AnalysisState.new(initial), [], {})
     end
 
-    it "fails when a declared read is missing from state" do
+    it "raises a CompilerBug when a declared read is missing from state" do
       pass = named_pass("NeedsInputPass") do
         reads :nast_module
         def run(_errors) = state
       end
 
-      result = run_manager(pass)
-      expect(result.failed?).to be(true)
-      expect(result.errors.first.message).to include("nast_module")
+      expect { run_manager(pass) }
+        .to raise_error(Kumi::Core::Errors::CompilerBug, /nast_module/)
     end
 
-    it "fails when a pass writes an undeclared key" do
+    it "raises a CompilerBug when a pass writes an undeclared key" do
       pass = named_pass("SneakyWritePass") do
         writes
         def run(_errors) = state.with(:surprise, 1)
       end
 
-      result = run_manager(pass)
-      expect(result.failed?).to be(true)
-      expect(result.errors.first.message).to include("surprise")
+      expect { run_manager(pass) }
+        .to raise_error(Kumi::Core::Errors::CompilerBug, /surprise/)
     end
 
     it "allows declared writes, including overwriting an existing key" do
