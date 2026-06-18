@@ -23,7 +23,7 @@ module Kumi
           when :ravel        then gen_ravel(plan)
           when :each_indexed then gen_each_indexed(plan)
           else
-            raise "Unknown accessor mode: #{plan.mode.inspect}"
+            raise Kumi::Core::Errors::CompilerBug, "unknown accessor mode: #{plan.mode.inspect}"
           end
         end
 

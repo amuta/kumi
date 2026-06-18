@@ -250,7 +250,7 @@ module Kumi
                   when :acc_load
                     write "let #{reg(instr.result)} = #{reg(instr.inputs.first)};"
                   else
-                    raise "Loop JS codegen does not support #{instr.opcode.inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature, "JS loop codegen does not support opcode #{instr.opcode.inspect}"
                   end
                 end
 
@@ -323,7 +323,8 @@ module Kumi
                   when :clamp
                     write "let #{out} = #{array}[Math.min(Math.max(#{index} - (#{offset}), 0), #{length} - 1)];"
                   else
-                    raise "Loop JS codegen does not support shift policy #{instr.attributes[:policy].inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature,
+                          "JS loop codegen does not support shift policy #{instr.attributes[:policy].inspect}"
                   end
                 end
 
@@ -332,7 +333,9 @@ module Kumi
                   value = reg(instr.inputs[1])
                   kernel = @registry.kernel_for(instr.attributes[:fn], target: :javascript)
                   template = kernel.inline
-                  raise "Missing inline for #{instr.attributes[:fn]}" if template.nil? || template.strip.empty?
+                  if template.nil? || template.strip.empty?
+                    raise Kumi::Core::Errors::UnsupportedFeature, "no JS inline template for #{instr.attributes[:fn].inspect}"
+                  end
 
                   step = template.strip.gsub("$0", acc).gsub("$1", value)
                   write "#{acc} #{step};"
@@ -341,7 +344,10 @@ module Kumi
                 def kernel_expr(fn_id, args)
                   kernel = @registry.kernel_for(fn_id, target: :javascript)
                   inline = kernel.inline
-                  raise "Missing inline kernel for #{fn_id}" if inline.nil? || inline.strip.empty?
+                  if inline.nil? || inline.strip.empty?
+                    raise Kumi::Core::Errors::UnsupportedFeature,
+                          "no JS inline kernel for #{fn_id.inspect}"
+                  end
 
                   apply_inline(inline, args)
                 end

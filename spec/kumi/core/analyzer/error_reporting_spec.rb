@@ -70,4 +70,14 @@ RSpec.describe "analyzer error reporting" do
       expect(bug.message).to include("widget axis desync")
     end
   end
+
+  describe "UnsupportedFeature" do
+    it "names a missing backend capability, distinct from a bug and from a user error" do
+      feat = Kumi::Core::Errors::UnsupportedFeature.new("JS loop codegen does not support opcode :foo")
+
+      expect(feat).to be_a(Kumi::Core::Errors::Error)
+      expect(feat).not_to be_a(Kumi::Core::Errors::CompilerBug)
+      expect(feat).not_to be_a(Kumi::Core::Errors::LocatedError)
+    end
+  end
 end

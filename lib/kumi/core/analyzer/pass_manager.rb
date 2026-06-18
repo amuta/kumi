@@ -56,7 +56,9 @@ module Kumi
               return failure_result(state, [error_obj], pass_class, phase_index)
             end
 
-            raise "Pass #{pass_name} returned #{state.class}, expected AnalysisState" unless state.is_a?(AnalysisState)
+            unless state.is_a?(AnalysisState)
+              raise Kumi::Core::Errors::CompilerBug, "pass #{pass_name} returned #{state.class}, expected AnalysisState"
+            end
 
             instrumentation.after_success(state)
             Checkpoint.leaving(pass_name:, idx: phase_index, state:) if options[:checkpoint_enabled]
@@ -135,7 +137,8 @@ module Kumi
           missing = pass_class.declared_reads.reject { |key| state.key?(key) }
           return if missing.empty?
 
-          raise "#{pass_name} declares reads #{missing.inspect} but they are missing from analysis state"
+          raise Kumi::Core::Errors::CompilerBug,
+                "#{pass_name} declares reads #{missing.inspect} but they are missing from analysis state"
         end
 
         def enforce_writes!(pass_class, pass_name, before, state)
@@ -147,7 +150,8 @@ module Kumi
           undeclared = changed - pass_class.declared_writes
           return if undeclared.empty?
 
-          raise "#{pass_name} wrote undeclared state keys #{undeclared.inspect} (declared writes: #{pass_class.declared_writes.inspect})"
+          raise Kumi::Core::Errors::CompilerBug,
+                "#{pass_name} wrote undeclared state keys #{undeclared.inspect} (declared writes: #{pass_class.declared_writes.inspect})"
         end
 
         def capture_exception(pass_name, exception, errors)
@@ -216,7 +220,7 @@ module Kumi
               next if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) ||
                       (v.is_a?(String) && v.frozen?)
 
-              raise "State[#{k}] not frozen: #{v.class}" unless v.frozen?
+              raise Kumi::Core::Errors::CompilerBug, "State[#{k}] not frozen: #{v.class}" unless v.frozen?
             end
           end
         end

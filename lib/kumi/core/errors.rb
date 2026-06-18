@@ -72,6 +72,12 @@ module Kumi
         end
       end
 
+      # A construct the schema uses is valid but not supported by the current
+      # backend/target (e.g. a codegen target that lacks an opcode or shift
+      # policy). Distinct from CompilerBug (a violated invariant) and from a
+      # user error (the schema is well-formed) — it names the missing capability.
+      class UnsupportedFeature < Error; end
+
       class SemanticError < LocatedError; end
 
       class TypeError < SemanticError; end

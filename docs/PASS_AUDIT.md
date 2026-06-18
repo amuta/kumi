@@ -10,6 +10,19 @@ ordering enforcement, per-pass budget, checkpoint/resume. The problems are in ho
 
 ---
 
+> **STATUS (2026-06-18): F1, F2, F3, F4, F5 DONE + location rendering unified.**
+> Added `Errors::UnsupportedFeature` (a valid construct the backend can't emit) alongside
+> `CompilerBug`. Converted the codegen "does not support opcode/shift-policy/inline" raises
+> (Ruby + JS emitters) to `UnsupportedFeature`; converted the compiler accessor invariants
+> ("unknown accessor mode/operation") and the binder/macro_expander/pass_manager contract
+> invariants to `CompilerBug`. Unified all source-location rendering on one `file:line:col`
+> format (Location#to_s is the single authority; ErrorEntry/LocatedError/PassFailure/SourceFrame
+> all delegate; killed the double-location). Gated by error_reporting_spec + error_handling_spec.
+> DISCOVERY: `compiler/access_planner.rb` (v1, 258 LOC) is DEAD — superseded by
+> `AccessPlannerV2`, zero live refs, no specs; its 7 ArgumentError invariants were left
+> untouched pending deletion (separate cleanup). Remaining: **F6**, **F7**, +delete dead v1.
+> 969 specs, 50/50 goldens.
+>
 > **STATUS (2026-06-18): F1, F2, F4, F5 DONE.** A type mismatch now surfaces as exactly
 > one located error with no internal leaks (was 3). Added `Errors::CompilerBug`; `PassBase`
 > gained `report`/`halt_pass!` (via a `catch(HALT)` in PassManager) and lost the broken

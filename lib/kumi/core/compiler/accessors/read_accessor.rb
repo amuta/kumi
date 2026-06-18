@@ -28,7 +28,7 @@ module Kumi
                   # Should never be present for rank-0 plans
                   raise TypeError, "Array encountered in :read accessor at '#{path_key}'"
                 else
-                  raise "Unknown operation: #{op.inspect}"
+                  raise Kumi::Core::Errors::CompilerBug, "unknown access operation: #{op.inspect}"
                 end
               end
               node

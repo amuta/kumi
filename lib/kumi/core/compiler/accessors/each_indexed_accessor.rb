@@ -73,7 +73,7 @@ module Kumi
                 node.each_with_index { |child, i| walk.call(child, pc + 1, ndx + [i], y) }
 
               else
-                raise "Unknown operation: #{op.inspect}"
+                raise Kumi::Core::Errors::CompilerBug, "unknown access operation: #{op.inspect}"
               end
             end
           end

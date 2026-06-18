@@ -42,7 +42,7 @@ module Kumi
                   node.map { |child| walk.call(child, pc + 1) }
 
                 else
-                  raise "Unknown operation: #{op.inspect}"
+                  raise Kumi::Core::Errors::CompilerBug, "unknown access operation: #{op.inspect}"
                 end
               end
               walk.call(data, 0)

@@ -37,7 +37,7 @@ module Kumi
           when :ravel       then Accessors::RavelAccessor.build(operations, path_key, missing, key_policy)
           when :each_indexed then Accessors::EachIndexedAccessor.build(operations, path_key, missing, key_policy, true)
           else
-            raise "Unknown accessor mode: #{mode.inspect}"
+            raise Kumi::Core::Errors::CompilerBug, "unknown accessor mode: #{mode.inspect}"
           end
         end
       end

@@ -22,7 +22,7 @@ module Kumi
                 segs << :array
                 cur = []
               else
-                raise "Unknown operation: #{ops[i].inspect}"
+                raise Kumi::Core::Errors::CompilerBug, "unknown access operation: #{ops[i].inspect}"
               end
               i += 1
             end
