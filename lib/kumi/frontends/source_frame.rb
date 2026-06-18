@@ -19,7 +19,13 @@ module Kumi
 
         if loc
           frame = code_frame(src, loc.line, loc.column)
-          header = "#{file_label}:#{loc.line}:#{loc.column}: #{message}"
+          # Column 0 means "line known, column unknown" (the Ruby frontend can't
+          # recover columns from caller_locations) — omit it rather than print `:0`.
+          header = if loc.column && loc.column >= 1
+                     "#{file_label}:#{loc.line}:#{loc.column}: #{message}"
+                   else
+                     "#{file_label}:#{loc.line}: #{message}"
+                   end
           frame.empty? ? header : "#{header}\n#{frame}"
         else
           "#{file_label}: #{message}"
@@ -39,11 +45,14 @@ module Kumi
         loc
       end
 
-      # Remove a leading `file:line:col:` prefix and any trailing
-      # `at FILE line=N column=M` suffix so the location is rendered exactly once.
+      # Strip any location the message already carries so the header renders it
+      # exactly once. Messages may arrive with a leading `file:line:col:` prefix,
+      # a leading `at FILE line=N column=M:` prefix (ErrorReporter's form), and/or
+      # a trailing `at FILE line=N column=M` suffix (LocatedError#to_s).
       def clean_message(message)
         message.to_s
                .sub(/\A\S+:\d+:\d+:\s+/, "")
+               .sub(/\Aat\s+\S+\s+line=\d+\s+column=\d+:\s+/, "")
                .gsub(/\s+at\s+\S+\s+line=\d+\s+column=\d+/, "")
                .strip
       end
@@ -56,13 +65,17 @@ module Kumi
 
         from = [line - 1 - context, 0].max
         to   = [line - 1 + context, lines.length - 1].min
-        out  = []
-        (from..to).each do |i|
-          marker = i + 1 == line ? "➤" : " "
-          out << format("%s %4d | %s", marker, i + 1, lines[i].to_s.rstrip)
-          out << format("       | %s^", " " * (col - 1)) if i + 1 == line && col
-        end
-        out.join("\n")
+        (from..to).flat_map { |i| frame_row(lines[i], i + 1, line, col) }.join("\n")
+      end
+
+      # The source line plus, when it is the target line and we know the column,
+      # a caret pointer beneath it. Column 0/nil means "column unknown" — skip it.
+      def frame_row(text, number, target_line, col)
+        marker = number == target_line ? "➤" : " "
+        row = format("%s %4d | %s", marker, number, text.to_s.rstrip)
+        return [row] unless number == target_line && col && col >= 1
+
+        [row, format("       | %s^", " " * (col - 1))]
       end
     end
   end

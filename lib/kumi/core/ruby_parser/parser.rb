@@ -27,9 +27,8 @@ module Kumi
           end
 
           build_syntax_tree
-        rescue ArgumentError => e
-          handle_parse_error(e)
-          raise
+        rescue ArgumentError, NoMethodError => e
+          raise translate_literal_comparison(e) || e
         end
 
         private
@@ -39,7 +38,6 @@ module Kumi
           rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::NumericRefinement")
           rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::StringRefinement")
           rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::ArrayRefinement")
-          rule_block.binding.eval("using Kumi::Core::RubyParser::Sugar::ModuleRefinement")
         rescue RuntimeError, NoMethodError
           # Refinements disabled in method scope - continue without them
         end
@@ -48,22 +46,32 @@ module Kumi
           Root.new(@context.inputs, @context.values, @context.traits, @context.imports, hints: @context.root_hints)
         end
 
-        def handle_parse_error(error)
-          return unless literal_comparison_error?(error)
-
-          warn <<~HINT
-            #{error.backtrace.first.split(':', 2).join(':')}: \
-            Literal‑left comparison failed because the schema block is \
-            defined inside a method (Ruby disallows refinements there).
-
-            • Move the `schema do … end` block to the top level of a class or module, OR
-            • Write the comparison as `input.age >= 80` (preferred), OR
-            • Wrap the literal: `lit(80) <= input.age`.
-          HINT
+        # A literal-on-the-left operator (`80 <= input.age`, `1 + input.x`) fails
+        # when the schema block is defined inside a method, where Ruby disallows
+        # the numeric refinement that would otherwise lift the literal. Without the
+        # refinement, `Integer#<=`/`#+` try to coerce the DSL proxy and Ruby raises
+        # a `coerce`/`comparison of Integer with ...` error. Turn it into a
+        # first-class, located hint instead of leaking the raw Ruby error.
+        def method_scope_refinement_failure?(error)
+          msg = error.message
+          msg.match?(/comparison of Integer with Kumi::Syntax::/i) ||
+            (msg.include?("coerce") && msg.include?("RubyParser"))
         end
 
-        def literal_comparison_error?(error)
-          error.message =~ /comparison of Integer with Kumi::Syntax::/i
+        def translate_literal_comparison(error)
+          return nil unless method_scope_refinement_failure?(error)
+
+          frame = error.backtrace_locations&.find { |f| !f.path.to_s.include?("ruby_parser") }
+          location = frame && Location.new(file: frame.path, line: frame.lineno, column: 0)
+
+          Kumi::Core::Errors::SyntaxError.new(
+            "a literal-on-the-left expression (e.g. `80 <= input.age`) failed " \
+            "because the schema block is defined inside a method, where Ruby " \
+            "disallows the numeric refinement that lifts the literal. Move the " \
+            "`schema do ... end` block to the top level of a class or module, or " \
+            "put the literal on the right: `input.age >= 80`.",
+            location
+          )
         end
       end
     end

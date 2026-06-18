@@ -5,9 +5,9 @@ RSpec.describe "DSL Guard Rails" do
     Kumi::Core::RubyParser::Parser.new.parse(&block)
   end
 
-  it "rejects unknown keywords" do
+  it "rejects unknown keywords with a located syntax error listing valid keywords" do
     expect { build_schema { foobar :x } }
-      .to raise_error(NoMethodError, /unknown DSL keyword `foobar`/)
+      .to raise_error(Kumi::Core::Errors::SyntaxError, /unknown DSL keyword `foobar`.*Valid top-level keywords/m)
   end
 
   it "blocks proxy mutation" do

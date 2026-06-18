@@ -8,10 +8,12 @@ module Kumi
 
         attr_reader :cases
 
-        def initialize(context, loc)
-          @context = context
-          @cases   = []
-          @loc = loc
+        # `expr` is the ExpressionConverter facade: it coerces Ruby values to AST
+        # nodes and builds fn/ref/literal/input nodes. It is NOT the BuildContext.
+        def initialize(expr, loc)
+          @expr  = expr
+          @cases = []
+          @loc   = loc
         end
 
         def on(*args)
@@ -21,7 +23,7 @@ module Kumi
           expr = args.last
 
           trait_bindings = convert_trait_names_to_bindings(trait_names, @loc)
-          condition = @context.fn(:cascade_and, *trait_bindings)
+          condition = @expr.fn(:cascade_and, *trait_bindings)
           result = ensure_syntax(expr)
           add_case(condition, result)
         end
@@ -123,31 +125,31 @@ module Kumi
         end
 
         def ref(name)
-          @context.ref(name)
+          @expr.ref(name)
         end
 
         def fn(name, *args)
-          @context.fn(name, *args)
+          @expr.fn(name, *args)
         end
 
         def create_literal(value)
-          @context.literal(value)
+          @expr.literal(value)
         end
 
         def create_fn(name, args)
-          @context.fn(name, args)
+          @expr.fn(name, args)
         end
 
         def input
-          @context.input
+          @expr.input
         end
 
         def ensure_syntax(expr)
-          @context.ensure_syntax(expr)
+          @expr.ensure_syntax(expr)
         end
 
         def raise_error(message, location)
-          @context.raise_error(message, location)
+          @expr.raise_error(message, location)
         end
 
         def create_binding(name, location)
