@@ -73,7 +73,10 @@ module Kumi
 
           # keys from element(li_from) → collection(li_to)
           def compress_between(steps, li_from, li_to)
-            raise ArgumentError, "order" unless li_from < li_to
+            unless li_from < li_to
+              raise Kumi::Core::Errors::CompilerBug,
+                    "compress_between expects li_from < li_to, got #{li_from} >= #{li_to}"
+            end
 
             keys = []
             ((li_from + 1)..li_to).each do |i|

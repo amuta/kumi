@@ -98,16 +98,11 @@ module Kumi
 
       result = manager.run(schema, state, errors, options)
 
-      # Convert PassFailure errors back to ErrorEntry for consistency
-      if result.failed?
-        result.errors.each do |pass_failure|
-          errors << Core::ErrorReporter.create_error(
-            pass_failure.message,
-            location: pass_failure.location,
-            type: :semantic
-          )
-        end
-      end
+      # `errors` is the canonical accumulator: passes append to it, and
+      # PassManager appends any captured exception to it before deriving
+      # result.errors (PassFailure objects) from the same array. Re-appending
+      # result.errors here would surface every failure a second time, so we
+      # don't — the originals are already in `errors`.
 
       [result.final_state, result.stopped || false]
     end

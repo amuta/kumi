@@ -117,7 +117,7 @@ module Kumi
                       [{ kind: :element_access }]
                     end
                   else
-                    raise "unknown parent container #{node.container.inspect}"
+                    raise Kumi::Core::Errors::CompilerBug, "unknown parent container #{node.container.inspect}"
                   end
 
                 step_str = steps.map { |s| s[:kind] == :array_loop ? "loop(#{s[:axis]})" : s[:kind].to_s.split("_").first }.join(" → ")

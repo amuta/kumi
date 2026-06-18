@@ -71,6 +71,11 @@ module Kumi
             @state = state
           end
 
+          # Sentinel thrown by halt_pass! to stop a pass after a user error has
+          # been recorded, without raising an exception (which PassManager would
+          # otherwise wrap as a second, internal-looking error).
+          HALT = :kumi_pass_halt
+
           # Main pass execution - subclasses implement this
           # @param errors [Array] Error accumulator array
           # @return [AnalysisState] New state after pass execution
@@ -110,13 +115,26 @@ module Kumi
             state[key]
           end
 
-          def error(msg, loc: nil, node: nil)
-            location = loc || node&.loc
-            add_error(@errors, location, msg)
+          # Record a user-facing error in the accumulator. This is the ONE
+          # channel for problems with the user's schema: report it (located) and
+          # let the pass finish or halt — never also `raise`, which would surface
+          # the same error a second time through PassManager's exception capture.
+          # @param errors [Array] the accumulator passed to #run
+          def report(errors, message, location: nil, node: nil, type: :semantic)
+            add_error(errors, location || node&.loc, message, type: type)
           end
 
-          def add_error(errors, location, message)
-            errors << ErrorReporter.create_error(message, location: location, type: :semantic)
+          # Report a user error and stop the pass cleanly. Use when the pass
+          # cannot meaningfully continue past the error (e.g. a later step would
+          # dereference a value the failed step never produced). Returns nothing;
+          # PassManager turns the recorded errors into a located failure.
+          def halt_pass!(errors, message, location: nil, node: nil, type: :semantic)
+            report(errors, message, location: location, node: node, type: type)
+            throw HALT
+          end
+
+          def add_error(errors, location, message, type: :semantic)
+            errors << ErrorReporter.create_error(message, location: location, type: type)
           end
 
           private

@@ -74,11 +74,16 @@ module Kumi
           pass_instance = pass_class.new(syntax_tree, state)
 
           with_budget(pass_name, syntax_tree, options) do
-            if options[:profiling_enabled]
-              Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
-            else
-              pass_instance.run(errors)
-            end
+            # A pass that calls halt_pass! has already recorded a located error
+            # and stops here; we return the unchanged state and let the
+            # non-empty `errors` array drive the failure (no exception wrapping).
+            catch(Passes::PassBase::HALT) do
+              if options[:profiling_enabled]
+                Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
+              else
+                pass_instance.run(errors)
+              end
+            end || state
           end
         end
 

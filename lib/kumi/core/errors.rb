@@ -60,6 +60,17 @@ module Kumi
 
       class AnalysisError < Error; end
 
+      # An internal compiler invariant was violated — a "this should never
+      # happen" condition, not a problem with the user's schema. Raising this
+      # (instead of a bare RuntimeError or a SemanticError) keeps invariant
+      # failures from being presented to users as if they wrote bad input, and
+      # frames them as a bug to report.
+      class CompilerBug < Error
+        def initialize(message)
+          super("internal compiler error (please report): #{message}")
+        end
+      end
+
       class SemanticError < LocatedError; end
 
       class TypeError < SemanticError; end

@@ -90,8 +90,9 @@ module Kumi
               target_axes = lub_by_prefix([axes_of(t), axes_of(f)])
               target_axes = axes_of(c) if target_axes.empty?
               unless prefix?(axes_of(c), target_axes)
-                raise Kumi::Core::Errors::SemanticError,
-                      "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect} at: #{n.loc}"
+                halt_pass!(@errors,
+                           "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect}",
+                           location: n.loc)
               end
 
               out = NAST::Select.new(id: n.id, cond: c, on_true: t, on_false: f, loc: n.loc, meta: n.meta.dup)
@@ -99,7 +100,8 @@ module Kumi
             end
 
             if @registry.function_reduce?(n.fn)
-              raise "Reducers should only have one arg" if n.args.size != 1 # TODO: -> sugar to collapse variadics?
+              # Reduce arity is fixed upstream; >1 arg here means the IR is malformed.
+              raise Kumi::Core::Errors::CompilerBug, "reduce #{n.fn} has #{n.args.size} args, expected 1" if n.args.size != 1
 
               arg_node = n.args.first
               visited_arg = arg_node.accept(self)
@@ -129,15 +131,16 @@ module Kumi
                 # --- Path for REDUCE (Vectorized Arrays) ---
                 in_axes = axes_of(visited_arg)
 
-                if in_axes.empty?
-                  raise Kumi::Core::Errors::SemanticError,
-                        "reduce function called on a non-collection scalar: #{arg_type}"
-                end
+                halt_pass!(@errors, "reduce function called on a non-collection scalar: #{arg_type}", location: n.loc) if in_axes.empty?
 
                 result_meta = meta_for(n)
                 out_axes = Array(result_meta[:result_scope])
 
-                raise Kumi::Core::Errors::SemanticError, "reduce: out axes must prefix arg axes" unless prefix?(out_axes, in_axes)
+                unless prefix?(out_axes, in_axes)
+                  halt_pass!(@errors,
+                             "reduce: out axes #{out_axes.inspect} must prefix arg axes #{in_axes.inspect}",
+                             location: n.loc)
+                end
 
                 over_axes = in_axes.drop(out_axes.length)
                 reduce_node = NAST::Reduce.new(
@@ -193,22 +196,13 @@ module Kumi
 
             cand = list.max_by(&:length) || []
             list.each do |ax|
-              raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{ax.inspect} vs #{cand.inspect}" unless prefix?(ax, cand)
+              raise Kumi::Core::Errors::CompilerBug, "axis prefix mismatch: #{ax.inspect} vs #{cand.inspect}" unless prefix?(ax, cand)
             end
             cand
           end
 
           def prefix?(pre, full)
             pre.each_with_index.all? { |tok, i| full[i] == tok }
-          end
-
-          # Default reduce sugar: over last axis of the LUB of argument axes.
-          # Returns { over:, out_axes: }.
-          def reduce_last_axis(args_axes_list)
-            a = lub_by_prefix(args_axes_list)
-            raise Kumi::Core::Errors::SemanticError, "cannot reduce scalar" if a.empty?
-
-            { over: [a.last], out_axes: a[0...-1] }
           end
 
           def lookup_input(fqn)

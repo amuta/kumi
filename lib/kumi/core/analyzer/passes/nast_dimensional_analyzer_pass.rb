@@ -66,7 +66,7 @@ module Kumi
             when Kumi::Core::NAST::Hash         then analyze_hash(expr, errors)
 
             else
-              raise "Unknown NAST node type: #{expr.class}"
+              raise Kumi::Core::Errors::CompilerBug, "unknown NAST node type: #{expr.class}"
             end
           end
 
@@ -106,7 +106,8 @@ module Kumi
               function_spec = @registry.function(resolved_fn_id)
               debug "    Resolved '#{call.fn}' with types #{arg_types.inspect} to #{resolved_fn_id}"
             rescue Core::Functions::OverloadResolver::ResolutionError => e
-              # Type-aware overload resolution failed - report with location
+              # Type-aware overload resolution failed: record the located error
+              # and stop — there is no resolved function to continue with.
               report_type_error(
                 errors,
                 e.message,
@@ -116,7 +117,7 @@ module Kumi
                   arg_types: arg_types
                 }
               )
-              raise Kumi::Core::Errors::TypeError.new(e.message, call.loc)
+              throw Passes::PassBase::HALT
             rescue StandardError => e
               # Other function resolution errors
               report_semantic_error(
@@ -125,7 +126,7 @@ module Kumi
                 location: call.loc,
                 context: { function: call.fn.to_s }
               )
-              raise Kumi::Core::Errors::SemanticError, e.message
+              throw Passes::PassBase::HALT
             end
 
             # Step 3: Compute result type
@@ -148,11 +149,19 @@ module Kumi
                   arg_types: arg_types
                 }
               )
-              raise Kumi::Core::Errors::TypeError, "Type rule failed for #{function_spec.id}: #{e.message}"
+              throw Passes::PassBase::HALT
             end
 
             over_collection = arg_types.size == 1 && Types.collection?(arg_types[0])
-            result_scope = compute_result_scope(function_spec, arg_scopes, over_collection)
+            # Axis-merge failures originate deep in the scope math without a node
+            # in scope; attach the call's location here and route through the one
+            # reporting channel instead of letting the bare error escape.
+            result_scope =
+              begin
+                compute_result_scope(function_spec, arg_scopes, over_collection)
+              rescue Kumi::Core::Errors::SemanticError => e
+                halt_pass!(errors, e.message, location: call.loc)
+              end
 
             @metadata_table[node_id(call)] = {
               function: function_spec.id,
@@ -176,11 +185,11 @@ module Kumi
           # carrier. A later `fn(:sum, ...)` over the rank-2 value reduces the new
           # (innermost) axis back to A.
           def analyze_cross(call, errors)
-            raise Kumi::Core::Errors::SemanticError, "cross expects exactly one argument" unless call.args.size == 1
+            halt_pass!(errors, "cross expects exactly one argument", location: call.loc) unless call.args.size == 1
 
             inner = analyze_expression(call.args.first, errors)
             src_scope = Array(inner[:scope])
-            raise Kumi::Core::Errors::SemanticError, "cross requires an array argument (got a scalar)" if src_scope.empty?
+            halt_pass!(errors, "cross requires an array argument (got a scalar)", location: call.loc) if src_scope.empty?
 
             parent_axis = src_scope.last
             child_axis  = :"#{parent_axis}__x"
@@ -208,11 +217,11 @@ module Kumi
           # innermost axis instead of erroring. That turns `pixel_x - outer(lx)`
           # into a (pixels x lights) grid, which `fn(:sum, ...)` reduces back.
           def analyze_outer(call, errors)
-            raise Kumi::Core::Errors::SemanticError, "outer expects exactly one argument" unless call.args.size == 1
+            halt_pass!(errors, "outer expects exactly one argument", location: call.loc) unless call.args.size == 1
 
             inner = analyze_expression(call.args.first, errors)
             src_scope = Array(inner[:scope])
-            raise Kumi::Core::Errors::SemanticError, "outer requires an array argument (got a scalar)" if src_scope.empty?
+            halt_pass!(errors, "outer requires an array argument (got a scalar)", location: call.loc) if src_scope.empty?
 
             # Mint a distinct axis alias for the outer carrier so it never clashes
             # with a direct use of the same array, and tag it free so the merge
@@ -325,7 +334,7 @@ module Kumi
           # STRICT: requires entry with :axes and :dtype (no fallbacks)
           def analyze_input_ref(input_ref)
             entry = @input_table.find { |imp| imp[:path_fqn] == input_ref.path_fqn }
-            entry or raise KeyError, "Input path not found in input_table: #{input_ref.path_fqn}"
+            entry or raise Kumi::Core::Errors::CompilerBug, "input path not found in input_table: #{input_ref.path_fqn}"
 
             axes  = entry.axes
             dtype = entry.dtype
@@ -341,7 +350,8 @@ module Kumi
           end
 
           def analyze_index_ref(node, _errors)
-            meta = @input_table.find { _1.path_fqn == node.input_fqn } or raise "Index plan found: #{n.name.inspect}"
+            meta = @input_table.find { _1.path_fqn == node.input_fqn } or
+              raise Kumi::Core::Errors::CompilerBug, "no input plan for index ref #{node.name.inspect} (fqn #{node.input_fqn.inspect})"
             axes = Array(meta[:axes])
             type = Types.scalar(:integer)
 
