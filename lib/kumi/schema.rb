@@ -74,7 +74,7 @@ module Kumi
     end
 
     def write_source(file_path, platform: :ruby)
-      raise "No schema defined" unless @__kumi_syntax_tree__
+      raise Kumi::Core::Errors::ConfigurationError, "no schema defined" unless @__kumi_syntax_tree__
       raise ArgumentError, "platform must be :ruby or :javascript" unless %i[ruby javascript].include?(platform)
 
       result = Kumi::Analyzer.analyze!(@__kumi_syntax_tree__)
@@ -86,7 +86,7 @@ module Kumi
                result.state[:javascript_codegen_files]&.fetch("codegen.mjs", nil)
              end
 
-      raise "Compiler did not produce #{platform}_codegen_files" unless code
+      raise Kumi::Core::Errors::CompilerBug, "compiler did not produce #{platform}_codegen_files" unless code
 
       FileUtils.mkdir_p(File.dirname(file_path))
       File.write(file_path, code)
@@ -116,10 +116,11 @@ module Kumi
           compile_and_write_cache(cache_path, schema_digest) unless File.exist?(cache_path)
         when :aot
           unless File.exist?(cache_path) && !Kumi.configuration.force_recompile
-            raise "Schema #{name} is not precompiled for digest #{schema_digest}. Please run the `kumi:compile` build task."
+            raise Kumi::Core::Errors::ConfigurationError,
+                  "schema #{name} is not precompiled for digest #{schema_digest}. Run the `kumi:compile` build task."
           end
         else
-          raise "Invalid Kumi compilation mode: #{Kumi.configuration.compilation_mode}"
+          raise Kumi::Core::Errors::ConfigurationError, "invalid Kumi compilation mode: #{Kumi.configuration.compilation_mode}"
         end
 
         # Load the dynamically generated but statically cached file.
@@ -146,7 +147,7 @@ module Kumi
     def compile_and_write_cache(cache_path, _digest)
       # 1. Extract the generated code from the final state object.
       compiler_output = @__kumi_analyzer_result__.state[:ruby_codegen_files]["codegen.rb"]
-      raise "Compiler did not produce ruby_codegen_files" unless compiler_output
+      raise Kumi::Core::Errors::CompilerBug, "compiler did not produce ruby_codegen_files" unless compiler_output
 
       FileUtils.mkdir_p(File.dirname(cache_path))
       File.write(cache_path, compiler_output)

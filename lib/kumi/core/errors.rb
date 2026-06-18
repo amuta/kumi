@@ -78,6 +78,12 @@ module Kumi
       # user error (the schema is well-formed) — it names the missing capability.
       class UnsupportedFeature < Error; end
 
+      # Kumi was used or configured incorrectly by the host application: no schema
+      # defined, an unknown compilation mode, a schema not precompiled in :aot
+      # mode. The schema itself may be fine — the call site or configuration is
+      # wrong, so the message tells the operator what to do.
+      class ConfigurationError < Error; end
+
       class SemanticError < LocatedError; end
 
       class TypeError < SemanticError; end

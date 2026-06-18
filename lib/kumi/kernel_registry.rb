@@ -24,11 +24,11 @@ module Kumi
       @by_fn = Hash.new { |h, k| h[k] = [] }
       @by_id = {}
       entries.each { |e| (@by_fn[e.fn] << e) && (@by_id[e.id] = e) }
-      @by_fn.each { |fn, arr| raise "multiple kernels for #{fn}" if arr.size > 1 }
+      @by_fn.each { |fn, arr| raise Kumi::Core::Errors::CompilerBug, "multiple kernels for #{fn}" if arr.size > 1 }
     end
 
     def pick(fn)
-      (@by_fn[fn]&.first || raise("no kernel for #{fn}")).id
+      (@by_fn[fn]&.first || raise(Kumi::Core::Errors::CompilerBug, "no kernel for #{fn}")).id
     end
 
     def registry_ref
@@ -37,16 +37,17 @@ module Kumi
     end
 
     def identity(kernel_id, dtype)
-      e = @by_id[kernel_id] or raise "unknown kernel id #{kernel_id}"
-      identity_map = e.identity or raise "no identity map for #{kernel_id}"
+      e = @by_id[kernel_id] or raise Kumi::Core::Errors::CompilerBug, "unknown kernel id #{kernel_id}"
+      identity_map = e.identity or raise Kumi::Core::Errors::CompilerBug, "no identity map for #{kernel_id}"
 
-      (identity_map[dtype.to_s] || identity_map["any"]) or raise "no identity with dtype `#{dtype}` for #{kernel_id}"
+      (identity_map[dtype.to_s] || identity_map["any"]) or
+        raise Kumi::Core::Errors::CompilerBug, "no identity with dtype `#{dtype}` for #{kernel_id}"
     end
 
     # Late-bind the Ruby implementation
     # Returns implementation structure for the kernel
     def impl_for(kernel_id)
-      e = @by_id[kernel_id] or raise "unknown kernel id #{kernel_id}"
+      e = @by_id[kernel_id] or raise Kumi::Core::Errors::CompilerBug, "unknown kernel id #{kernel_id}"
       e.impl
     end
 

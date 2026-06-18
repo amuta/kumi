@@ -38,7 +38,7 @@ module Kumi
           when String
             build_argument_node(template_part)
           else
-            raise "Invalid expansion template part: #{template_part}"
+            raise Kumi::Core::Errors::CompilerBug, "invalid expansion template part: #{template_part}"
           end
         end
 

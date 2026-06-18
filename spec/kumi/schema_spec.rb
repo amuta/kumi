@@ -360,7 +360,7 @@ RSpec.describe Kumi::Schema do
         output_path = File.join(output_dir, "schema.rb")
         expect do
           test_class.write_source(output_path)
-        end.to raise_error("No schema defined")
+        end.to raise_error(Kumi::Core::Errors::ConfigurationError, /no schema defined/)
       end
     end
   end

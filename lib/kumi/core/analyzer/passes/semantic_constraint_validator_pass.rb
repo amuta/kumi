@@ -85,8 +85,9 @@ module Kumi
             imported_schemas = state[:imported_schemas] || {}
             return if imported_schemas.key?(fn_name)
 
-            # Check if it's a built-in function in the registry
-            return if @registry.resolve_function(fn_name)
+            # Check if it's a built-in function in the registry (non-raising, so
+            # the located error below is what the user actually sees).
+            return if @registry.function?(fn_name)
 
             report_error(
               errors,

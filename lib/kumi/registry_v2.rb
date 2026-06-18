@@ -42,12 +42,20 @@ module Kumi
         @functions.fetch(resolve_function(id))
       end
 
+      # Non-raising existence check. Validation uses this to report an unknown
+      # function as a located user error; resolve_function below assumes the
+      # function exists (it has been validated) and treats a miss as a bug.
+      def function?(id)
+        s = id.to_s
+        @functions.key?(s) || @alias.key?(s)
+      end
+
       def resolve_function(id)
         s = id.to_s
         return s if @functions.key?(s)
 
         @alias.fetch(s) do
-          raise "unknown function #{id}"
+          raise Kumi::Core::Errors::CompilerBug, "unknown function #{id} (should be rejected during validation)"
         end
       end
 
@@ -62,33 +70,35 @@ module Kumi
       def function_elementwise?(id) = function(id).elementwise?
       def function_select?(id)      = resolve_function(id) == SELECT_ID
 
-      # -------- kernels (no changes here) --------
+      # -------- kernels --------
+      # Missing kernels/identities here are invariants: the function resolved, so
+      # a backend kernel should exist. Surface them as bugs, not user errors.
       def kernel_for(id, target:)
         fid = resolve_function(id)
-        @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
+        @kernels[[fid, target.to_sym]] or raise Kumi::Core::Errors::CompilerBug, "no kernel for #{fid} on #{target}"
       end
 
       def kernel_id_for(id, target:)
         fid = resolve_function(id)
-        k = @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
+        k = @kernels[[fid, target.to_sym]] or raise Kumi::Core::Errors::CompilerBug, "no kernel for #{fid} on #{target}"
         k.id
       end
 
       def kernel_identity_for(id, dtype:, target:)
         fid = resolve_function(id)
-        k = @kernels[[fid, target.to_sym]] or raise "no kernel for #{fid} on #{target}"
+        k = @kernels[[fid, target.to_sym]] or raise Kumi::Core::Errors::CompilerBug, "no kernel for #{fid} on #{target}"
 
-        map = k.identity or raise "no identity for #{fid} on #{target}"
+        map = k.identity or raise Kumi::Core::Errors::CompilerBug, "no identity for #{fid} on #{target}"
 
         identity = map[dtype.to_s] || map["any"]
 
         return identity if identity
 
-        raise "no identity for dtype #{dtype} on #{fid}"
+        raise Kumi::Core::Errors::CompilerBug, "no identity for dtype #{dtype} on #{fid}"
       end
 
       def impl_for(kernel_id)
-        (@by_id[kernel_id] or raise "unknown kernel #{kernel_id}").impl
+        (@by_id[kernel_id] or raise Kumi::Core::Errors::CompilerBug, "unknown kernel #{kernel_id}").impl
       end
 
       def registry_ref

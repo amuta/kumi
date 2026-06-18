@@ -44,6 +44,25 @@ RSpec.describe "analyzer error reporting" do
     end
   end
 
+  describe "an unknown function" do
+    subject(:error) do
+      analyze_error do
+        input do
+          integer :x
+        end
+        value :v, fn(:no_such_function, input.x)
+      end
+    end
+
+    it "reports a located error naming the function, with no internal leak" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("unknown function `no_such_function`")
+      expect(error.message).not_to include("Error in Analysis Pass")
+      expect(error.message).not_to include("registry_v2.rb")
+      expect(error.message).to match(/line=\d+|:\d+:/)
+    end
+  end
+
   describe "cross/outer argument validation" do
     it "reports a located error for cross on a scalar, with no leak" do
       error = analyze_error do
