@@ -16,36 +16,9 @@ module Kumi
               key_policy: :indifferent
             }
 
-            # TODO : Allow by input definition on policies or at least general policy definition
-            # plans = Kumi::Core::Compiler::AccessPlanner.plan(input_metadata, options)
-
             planner = Kumi::Core::Compiler::AccessPlannerV2.plan(input_metadata, options, debug_on: debug_enabled?)
-            plans = planner.plans
-            index_table = planner.index_table
 
-            # Quick validation
-            # validate_plans!(plans, errors)
-
-            # Create new state with access plans
-            state.with(:input_table, plans.freeze).with(:index_table, index_table.freeze)
-          end
-
-          private
-
-          def validate_plans!(plans, errors)
-            plans.each do |path, plan_list|
-              add_error(errors, nil, "No access plans generated for path: #{path}") if plan_list.nil? || plan_list.empty?
-
-              plan_list&.each do |plan|
-                unless plan[:operations].is_a?(Array)
-                  add_error(errors, nil, "Invalid operations for path #{path}: expected Array, got #{plan[:operations].class}")
-                end
-
-                unless plan[:mode].is_a?(Symbol)
-                  add_error(errors, nil, "Invalid mode for path #{path}: expected Symbol, got #{plan[:mode].class}")
-                end
-              end
-            end
+            state.with(:input_table, planner.plans.freeze).with(:index_table, planner.index_table.freeze)
           end
         end
       end
