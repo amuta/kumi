@@ -10,6 +10,14 @@ ordering enforcement, per-pass budget, checkpoint/resume. The problems are in ho
 
 ---
 
+> **STATUS (2026-06-18, later): widened beyond passes.** Fixed a SECOND user-facing leak
+> (unknown function `fn(:nope,...)` leaked an internal pass/file path — the validator's
+> existence check called a method that raised instead of returning false; added a non-raising
+> `RegistryV2#function?`). Typed the registry kernel-lookup invariants, IR execution-engine
+> combinator invariants, and schema.rb operational errors: added `Errors::ConfigurationError`
+> (host-app misuse), put the unused `Errors::RuntimeError` to work for align_to's :error policy.
+> ~70 bare `raise "string"` remain in lower-traffic IR-pipeline/dev paths. 971 specs, 50/50 goldens.
+>
 > **STATUS (2026-06-18): F1, F2, F3, F4, F5 DONE + location rendering unified.**
 > Added `Errors::UnsupportedFeature` (a valid construct the backend can't emit) alongside
 > `CompilerBug`. Converted the codegen "does not support opcode/shift-policy/inline" raises
