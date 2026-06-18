@@ -1,0 +1,320 @@
+function b1:
+  %v1 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v2 = constant [value=1937] [] -> integer
+  %v3 = map (:v1, :v2) [fn=:core.lte] [] -> boolean
+function b2:
+  %v4 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v5 = constant [value=1938] [] -> integer
+  %v6 = map (:v4, :v5) [fn=:core.gte] [] -> boolean
+  %v8 = constant [value=1942] [] -> integer
+  %v9 = map (:v4, :v8) [fn=:core.lte] [] -> boolean
+  %v10 = map (:v6, :v9) [fn=:core.and] [] -> boolean
+function b3:
+  %v11 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v12 = constant [value=1943] [] -> integer
+  %v13 = map (:v11, :v12) [fn=:core.gte] [] -> boolean
+  %v15 = constant [value=1954] [] -> integer
+  %v16 = map (:v11, :v15) [fn=:core.lte] [] -> boolean
+  %v17 = map (:v13, :v16) [fn=:core.and] [] -> boolean
+function b4:
+  %v18 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v19 = constant [value=1955] [] -> integer
+  %v20 = map (:v18, :v19) [fn=:core.gte] [] -> boolean
+  %v22 = constant [value=1959] [] -> integer
+  %v23 = map (:v18, :v22) [fn=:core.lte] [] -> boolean
+  %v24 = map (:v20, :v23) [fn=:core.and] [] -> boolean
+function b5:
+  %v25 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v26 = constant [value=1960] [] -> integer
+  %v27 = map (:v25, :v26) [fn=:core.gte] [] -> boolean
+function full_retirement_age:
+  %v60 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v61 = constant [value=1937] [] -> integer
+  %v62 = map (:v60, :v61) [fn=:core.lte] [] -> boolean
+  %v29 = constant [value=65.0] [] -> float
+  %v64 = constant [value=1938] [] -> integer
+  %v65 = map (:v60, :v64) [fn=:core.gte] [] -> boolean
+  %v67 = constant [value=1942] [] -> integer
+  %v68 = map (:v60, :v67) [fn=:core.lte] [] -> boolean
+  %v69 = map (:v65, :v68) [fn=:core.and] [] -> boolean
+  %v34 = map (:v60, :v61) [fn=:core.sub] [] -> integer
+  %v35 = constant [value=2.0] [] -> float
+  %v36 = constant [value=12.0] [] -> float
+  %v37 = map (:v35, :v36) [fn=:core.div] [] -> float
+  %v38 = map (:v34, :v37) [fn=:core.mul:numeric] [] -> float
+  %v39 = map (:v29, :v38) [fn=:core.add] [] -> float
+  %v71 = constant [value=1943] [] -> integer
+  %v72 = map (:v60, :v71) [fn=:core.gte] [] -> boolean
+  %v74 = constant [value=1954] [] -> integer
+  %v75 = map (:v60, :v74) [fn=:core.lte] [] -> boolean
+  %v76 = map (:v72, :v75) [fn=:core.and] [] -> boolean
+  %v41 = constant [value=66.0] [] -> float
+  %v78 = constant [value=1955] [] -> integer
+  %v79 = map (:v60, :v78) [fn=:core.gte] [] -> boolean
+  %v81 = constant [value=1959] [] -> integer
+  %v82 = map (:v60, :v81) [fn=:core.lte] [] -> boolean
+  %v83 = map (:v79, :v82) [fn=:core.and] [] -> boolean
+  %v46 = map (:v60, :v74) [fn=:core.sub] [] -> integer
+  %v50 = map (:v46, :v37) [fn=:core.mul:numeric] [] -> float
+  %v51 = map (:v41, :v50) [fn=:core.add] [] -> float
+  %v85 = constant [value=1960] [] -> integer
+  %v86 = map (:v60, :v85) [fn=:core.gte] [] -> boolean
+  %v53 = constant [value=67.0] [] -> float
+  %v55 = select (:v86, :v53, :v53) [] -> float
+  %v56 = select (:v83, :v51, :v55) [] -> float
+  %v57 = select (:v76, :v41, :v56) [] -> float
+  %v58 = select (:v69, :v39, :v57) [] -> float
+  %v59 = select (:v62, :v29, :v58) [] -> float
+function months_delayed:
+  %v60 = constant [value=0] [] -> integer
+  %v61 = constant [value=12] [] -> integer
+  %v62 = load_input [key=:claiming_age, chain=[], plan_ref="claiming_age"] [] -> integer
+  %v68 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v69 = constant [value=1937] [] -> integer
+  %v70 = map (:v68, :v69) [fn=:core.lte] [] -> boolean
+  %v71 = constant [value=65.0] [] -> float
+  %v73 = constant [value=1938] [] -> integer
+  %v74 = map (:v68, :v73) [fn=:core.gte] [] -> boolean
+  %v76 = constant [value=1942] [] -> integer
+  %v77 = map (:v68, :v76) [fn=:core.lte] [] -> boolean
+  %v78 = map (:v74, :v77) [fn=:core.and] [] -> boolean
+  %v82 = map (:v68, :v69) [fn=:core.sub] [] -> integer
+  %v83 = constant [value=2.0] [] -> float
+  %v84 = constant [value=12.0] [] -> float
+  %v85 = map (:v83, :v84) [fn=:core.div] [] -> float
+  %v86 = map (:v82, :v85) [fn=:core.mul:numeric] [] -> float
+  %v87 = map (:v71, :v86) [fn=:core.add] [] -> float
+  %v89 = constant [value=1943] [] -> integer
+  %v90 = map (:v68, :v89) [fn=:core.gte] [] -> boolean
+  %v92 = constant [value=1954] [] -> integer
+  %v93 = map (:v68, :v92) [fn=:core.lte] [] -> boolean
+  %v94 = map (:v90, :v93) [fn=:core.and] [] -> boolean
+  %v95 = constant [value=66.0] [] -> float
+  %v97 = constant [value=1955] [] -> integer
+  %v98 = map (:v68, :v97) [fn=:core.gte] [] -> boolean
+  %v100 = constant [value=1959] [] -> integer
+  %v101 = map (:v68, :v100) [fn=:core.lte] [] -> boolean
+  %v102 = map (:v98, :v101) [fn=:core.and] [] -> boolean
+  %v106 = map (:v68, :v92) [fn=:core.sub] [] -> integer
+  %v110 = map (:v106, :v85) [fn=:core.mul:numeric] [] -> float
+  %v111 = map (:v95, :v110) [fn=:core.add] [] -> float
+  %v113 = constant [value=1960] [] -> integer
+  %v114 = map (:v68, :v113) [fn=:core.gte] [] -> boolean
+  %v115 = constant [value=67.0] [] -> float
+  %v117 = select (:v114, :v115, :v115) [] -> float
+  %v118 = select (:v102, :v111, :v117) [] -> float
+  %v119 = select (:v94, :v95, :v118) [] -> float
+  %v120 = select (:v78, :v87, :v119) [] -> float
+  %v121 = select (:v70, :v71, :v120) [] -> float
+  %v64 = map (:v62, :v121) [fn=:core.sub] [] -> float
+  %v65 = map (:v61, :v64) [fn=:core.mul:numeric] [] -> float
+  %acc0 = map (:v60, :v65) [fn=:core.max] [] -> integer
+function months_early:
+  %v68 = constant [value=0] [] -> integer
+  %v69 = constant [value=12] [] -> integer
+  %v76 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v77 = constant [value=1937] [] -> integer
+  %v78 = map (:v76, :v77) [fn=:core.lte] [] -> boolean
+  %v79 = constant [value=65.0] [] -> float
+  %v81 = constant [value=1938] [] -> integer
+  %v82 = map (:v76, :v81) [fn=:core.gte] [] -> boolean
+  %v84 = constant [value=1942] [] -> integer
+  %v85 = map (:v76, :v84) [fn=:core.lte] [] -> boolean
+  %v86 = map (:v82, :v85) [fn=:core.and] [] -> boolean
+  %v90 = map (:v76, :v77) [fn=:core.sub] [] -> integer
+  %v91 = constant [value=2.0] [] -> float
+  %v92 = constant [value=12.0] [] -> float
+  %v93 = map (:v91, :v92) [fn=:core.div] [] -> float
+  %v94 = map (:v90, :v93) [fn=:core.mul:numeric] [] -> float
+  %v95 = map (:v79, :v94) [fn=:core.add] [] -> float
+  %v97 = constant [value=1943] [] -> integer
+  %v98 = map (:v76, :v97) [fn=:core.gte] [] -> boolean
+  %v100 = constant [value=1954] [] -> integer
+  %v101 = map (:v76, :v100) [fn=:core.lte] [] -> boolean
+  %v102 = map (:v98, :v101) [fn=:core.and] [] -> boolean
+  %v103 = constant [value=66.0] [] -> float
+  %v105 = constant [value=1955] [] -> integer
+  %v106 = map (:v76, :v105) [fn=:core.gte] [] -> boolean
+  %v108 = constant [value=1959] [] -> integer
+  %v109 = map (:v76, :v108) [fn=:core.lte] [] -> boolean
+  %v110 = map (:v106, :v109) [fn=:core.and] [] -> boolean
+  %v114 = map (:v76, :v100) [fn=:core.sub] [] -> integer
+  %v118 = map (:v114, :v93) [fn=:core.mul:numeric] [] -> float
+  %v119 = map (:v103, :v118) [fn=:core.add] [] -> float
+  %v121 = constant [value=1960] [] -> integer
+  %v122 = map (:v76, :v121) [fn=:core.gte] [] -> boolean
+  %v123 = constant [value=67.0] [] -> float
+  %v125 = select (:v122, :v123, :v123) [] -> float
+  %v126 = select (:v110, :v119, :v125) [] -> float
+  %v127 = select (:v102, :v103, :v126) [] -> float
+  %v128 = select (:v86, :v95, :v127) [] -> float
+  %v129 = select (:v78, :v79, :v128) [] -> float
+  %v71 = load_input [key=:claiming_age, chain=[], plan_ref="claiming_age"] [] -> integer
+  %v72 = map (:v129, :v71) [fn=:core.sub] [] -> float
+  %v73 = map (:v69, :v72) [fn=:core.mul:numeric] [] -> float
+  %acc0 = map (:v68, :v73) [fn=:core.max] [] -> integer
+function months_early_first_36:
+  %v76 = constant [value=36] [] -> integer
+  %v80 = constant [value=0] [] -> integer
+  %v81 = constant [value=12] [] -> integer
+  %v82 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v83 = constant [value=1937] [] -> integer
+  %v84 = map (:v82, :v83) [fn=:core.lte] [] -> boolean
+  %v85 = constant [value=65.0] [] -> float
+  %v87 = constant [value=1938] [] -> integer
+  %v88 = map (:v82, :v87) [fn=:core.gte] [] -> boolean
+  %v90 = constant [value=1942] [] -> integer
+  %v91 = map (:v82, :v90) [fn=:core.lte] [] -> boolean
+  %v92 = map (:v88, :v91) [fn=:core.and] [] -> boolean
+  %v96 = map (:v82, :v83) [fn=:core.sub] [] -> integer
+  %v97 = constant [value=2.0] [] -> float
+  %v98 = constant [value=12.0] [] -> float
+  %v99 = map (:v97, :v98) [fn=:core.div] [] -> float
+  %v100 = map (:v96, :v99) [fn=:core.mul:numeric] [] -> float
+  %v101 = map (:v85, :v100) [fn=:core.add] [] -> float
+  %v103 = constant [value=1943] [] -> integer
+  %v104 = map (:v82, :v103) [fn=:core.gte] [] -> boolean
+  %v106 = constant [value=1954] [] -> integer
+  %v107 = map (:v82, :v106) [fn=:core.lte] [] -> boolean
+  %v108 = map (:v104, :v107) [fn=:core.and] [] -> boolean
+  %v109 = constant [value=66.0] [] -> float
+  %v111 = constant [value=1955] [] -> integer
+  %v112 = map (:v82, :v111) [fn=:core.gte] [] -> boolean
+  %v114 = constant [value=1959] [] -> integer
+  %v115 = map (:v82, :v114) [fn=:core.lte] [] -> boolean
+  %v116 = map (:v112, :v115) [fn=:core.and] [] -> boolean
+  %v120 = map (:v82, :v106) [fn=:core.sub] [] -> integer
+  %v124 = map (:v120, :v99) [fn=:core.mul:numeric] [] -> float
+  %v125 = map (:v109, :v124) [fn=:core.add] [] -> float
+  %v127 = constant [value=1960] [] -> integer
+  %v128 = map (:v82, :v127) [fn=:core.gte] [] -> boolean
+  %v129 = constant [value=67.0] [] -> float
+  %v131 = select (:v128, :v129, :v129) [] -> float
+  %v132 = select (:v116, :v125, :v131) [] -> float
+  %v133 = select (:v108, :v109, :v132) [] -> float
+  %v134 = select (:v92, :v101, :v133) [] -> float
+  %v135 = select (:v84, :v85, :v134) [] -> float
+  %v136 = load_input [key=:claiming_age, chain=[], plan_ref="claiming_age"] [] -> integer
+  %v137 = map (:v135, :v136) [fn=:core.sub] [] -> float
+  %v138 = map (:v81, :v137) [fn=:core.mul:numeric] [] -> float
+  %acc0 = map (:v80, :v138) [fn=:core.max] [] -> integer
+  %acc1 = map (:v76, :acc0) [fn=:core.min] [] -> integer
+function months_early_additional:
+  %v80 = constant [value=0] [] -> integer
+  %v90 = constant [value=12] [] -> integer
+  %v91 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v92 = constant [value=1937] [] -> integer
+  %v93 = map (:v91, :v92) [fn=:core.lte] [] -> boolean
+  %v94 = constant [value=65.0] [] -> float
+  %v96 = constant [value=1938] [] -> integer
+  %v97 = map (:v91, :v96) [fn=:core.gte] [] -> boolean
+  %v99 = constant [value=1942] [] -> integer
+  %v100 = map (:v91, :v99) [fn=:core.lte] [] -> boolean
+  %v101 = map (:v97, :v100) [fn=:core.and] [] -> boolean
+  %v105 = map (:v91, :v92) [fn=:core.sub] [] -> integer
+  %v106 = constant [value=2.0] [] -> float
+  %v107 = constant [value=12.0] [] -> float
+  %v108 = map (:v106, :v107) [fn=:core.div] [] -> float
+  %v109 = map (:v105, :v108) [fn=:core.mul:numeric] [] -> float
+  %v110 = map (:v94, :v109) [fn=:core.add] [] -> float
+  %v112 = constant [value=1943] [] -> integer
+  %v113 = map (:v91, :v112) [fn=:core.gte] [] -> boolean
+  %v115 = constant [value=1954] [] -> integer
+  %v116 = map (:v91, :v115) [fn=:core.lte] [] -> boolean
+  %v117 = map (:v113, :v116) [fn=:core.and] [] -> boolean
+  %v118 = constant [value=66.0] [] -> float
+  %v120 = constant [value=1955] [] -> integer
+  %v121 = map (:v91, :v120) [fn=:core.gte] [] -> boolean
+  %v123 = constant [value=1959] [] -> integer
+  %v124 = map (:v91, :v123) [fn=:core.lte] [] -> boolean
+  %v125 = map (:v121, :v124) [fn=:core.and] [] -> boolean
+  %v129 = map (:v91, :v115) [fn=:core.sub] [] -> integer
+  %v133 = map (:v129, :v108) [fn=:core.mul:numeric] [] -> float
+  %v134 = map (:v118, :v133) [fn=:core.add] [] -> float
+  %v136 = constant [value=1960] [] -> integer
+  %v137 = map (:v91, :v136) [fn=:core.gte] [] -> boolean
+  %v138 = constant [value=67.0] [] -> float
+  %v140 = select (:v137, :v138, :v138) [] -> float
+  %v141 = select (:v125, :v134, :v140) [] -> float
+  %v142 = select (:v117, :v118, :v141) [] -> float
+  %v143 = select (:v101, :v110, :v142) [] -> float
+  %v144 = select (:v93, :v94, :v143) [] -> float
+  %v145 = load_input [key=:claiming_age, chain=[], plan_ref="claiming_age"] [] -> integer
+  %v146 = map (:v144, :v145) [fn=:core.sub] [] -> float
+  %v147 = map (:v90, :v146) [fn=:core.mul:numeric] [] -> float
+  %acc0 = map (:v80, :v147) [fn=:core.max] [] -> integer
+  %v82 = constant [value=36] [] -> integer
+  %v83 = map (:acc0, :v82) [fn=:core.sub] [] -> float
+  %acc1 = map (:v80, :v83) [fn=:core.max] [] -> integer
+  %v86 = constant [value=24] [] -> integer
+  %acc2 = map (:acc1, :v86) [fn=:core.min] [] -> integer
+function adj:
+  %v89 = constant [value=1.0] [] -> float
+  %v114 = constant [value=36] [] -> integer
+  %v115 = constant [value=0] [] -> integer
+  %v116 = constant [value=12] [] -> integer
+  %v117 = load_input [key=:birth_year, chain=[], plan_ref="birth_year"] [] -> integer
+  %v118 = constant [value=1937] [] -> integer
+  %v119 = map (:v117, :v118) [fn=:core.lte] [] -> boolean
+  %v120 = constant [value=65.0] [] -> float
+  %v122 = constant [value=1938] [] -> integer
+  %v123 = map (:v117, :v122) [fn=:core.gte] [] -> boolean
+  %v125 = constant [value=1942] [] -> integer
+  %v126 = map (:v117, :v125) [fn=:core.lte] [] -> boolean
+  %v127 = map (:v123, :v126) [fn=:core.and] [] -> boolean
+  %v131 = map (:v117, :v118) [fn=:core.sub] [] -> integer
+  %v132 = constant [value=2.0] [] -> float
+  %v133 = constant [value=12.0] [] -> float
+  %v134 = map (:v132, :v133) [fn=:core.div] [] -> float
+  %v135 = map (:v131, :v134) [fn=:core.mul:numeric] [] -> float
+  %v136 = map (:v120, :v135) [fn=:core.add] [] -> float
+  %v138 = constant [value=1943] [] -> integer
+  %v139 = map (:v117, :v138) [fn=:core.gte] [] -> boolean
+  %v141 = constant [value=1954] [] -> integer
+  %v142 = map (:v117, :v141) [fn=:core.lte] [] -> boolean
+  %v143 = map (:v139, :v142) [fn=:core.and] [] -> boolean
+  %v144 = constant [value=66.0] [] -> float
+  %v146 = constant [value=1955] [] -> integer
+  %v147 = map (:v117, :v146) [fn=:core.gte] [] -> boolean
+  %v149 = constant [value=1959] [] -> integer
+  %v150 = map (:v117, :v149) [fn=:core.lte] [] -> boolean
+  %v151 = map (:v147, :v150) [fn=:core.and] [] -> boolean
+  %v155 = map (:v117, :v141) [fn=:core.sub] [] -> integer
+  %v159 = map (:v155, :v134) [fn=:core.mul:numeric] [] -> float
+  %v160 = map (:v144, :v159) [fn=:core.add] [] -> float
+  %v162 = constant [value=1960] [] -> integer
+  %v163 = map (:v117, :v162) [fn=:core.gte] [] -> boolean
+  %v164 = constant [value=67.0] [] -> float
+  %v166 = select (:v163, :v164, :v164) [] -> float
+  %v167 = select (:v151, :v160, :v166) [] -> float
+  %v168 = select (:v143, :v144, :v167) [] -> float
+  %v169 = select (:v127, :v136, :v168) [] -> float
+  %v170 = select (:v119, :v120, :v169) [] -> float
+  %v171 = load_input [key=:claiming_age, chain=[], plan_ref="claiming_age"] [] -> integer
+  %v172 = map (:v170, :v171) [fn=:core.sub] [] -> float
+  %v173 = map (:v116, :v172) [fn=:core.mul:numeric] [] -> float
+  %acc0 = map (:v115, :v173) [fn=:core.max] [] -> integer
+  %acc1 = map (:v114, :acc0) [fn=:core.min] [] -> integer
+  %v91 = constant [value=-5.0] [] -> float
+  %v92 = constant [value=9.0] [] -> float
+  %v93 = map (:v91, :v92) [fn=:core.div] [] -> float
+  %v94 = constant [value=0.01] [] -> float
+  %v95 = map (:v93, :v94) [fn=:core.mul:numeric] [] -> float
+  %v96 = map (:acc1, :v95) [fn=:core.mul:numeric] [] -> float
+  %v97 = map (:v89, :v96) [fn=:core.add] [] -> float
+  %v241 = map (:acc0, :v114) [fn=:core.sub] [] -> float
+  %acc3 = map (:v115, :v241) [fn=:core.max] [] -> integer
+  %v244 = constant [value=24] [] -> integer
+  %acc4 = map (:acc3, :v244) [fn=:core.min] [] -> integer
+  %v101 = map (:v91, :v133) [fn=:core.div] [] -> float
+  %v103 = map (:v101, :v94) [fn=:core.mul:numeric] [] -> float
+  %v104 = map (:acc4, :v103) [fn=:core.mul:numeric] [] -> float
+  %v105 = map (:v97, :v104) [fn=:core.add] [] -> float
+  %v304 = map (:v171, :v170) [fn=:core.sub] [] -> float
+  %v305 = map (:v116, :v304) [fn=:core.mul:numeric] [] -> float
+  %acc5 = map (:v115, :v305) [fn=:core.max] [] -> integer
+  %v108 = constant [value=3.0] [] -> float
+  %v109 = map (:v132, :v108) [fn=:core.div] [] -> float
+  %v111 = map (:v109, :v94) [fn=:core.mul:numeric] [] -> float
+  %v112 = map (:acc5, :v111) [fn=:core.mul:numeric] [] -> float
+  %v113 = map (:v105, :v112) [fn=:core.add] [] -> float

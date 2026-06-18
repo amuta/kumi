@@ -1,0 +1,31 @@
+schema do
+  input do
+    integer :birth_year, domain: 1900..2024
+    integer :claiming_age, domain: 62..70
+  end
+
+  trait :b1, input.birth_year <= 1937
+  trait :b2, (input.birth_year >= 1938) & (input.birth_year <= 1942)
+  trait :b3, (input.birth_year >= 1943) & (input.birth_year <= 1954)
+  trait :b4, (input.birth_year >= 1955) & (input.birth_year <= 1959)
+  trait :b5, input.birth_year >= 1960
+
+  value :full_retirement_age do
+    on b1, 65.0
+    on b2, 65.0 + ((input.birth_year - 1937) * (2.0 / 12.0))
+    on b3, 66.0
+    on b4, 66.0 + ((input.birth_year - 1954) * (2.0 / 12.0))
+    on b5, 67.0
+    base 67.0
+  end
+
+  value :months_delayed, fn(:max, [0, 12 * (input.claiming_age - full_retirement_age)])
+  value :months_early, fn(:max, [0, 12 * (full_retirement_age - input.claiming_age)])
+  value :months_early_first_36, fn(:min, [36, months_early])
+  value :months_early_additional, fn(:min, [fn(:max, [0, months_early - 36]), 24])
+
+  value :adj, 1.0 +
+    (months_early_first_36 * (-5.0 / 9.0 * 0.01)) +
+    (months_early_additional * (-5.0 / 12.0 * 0.01)) +
+    (months_delayed * (2.0 / 3.0 * 0.01))
+end

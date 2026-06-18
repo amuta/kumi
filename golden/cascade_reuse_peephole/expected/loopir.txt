@@ -1,0 +1,302 @@
+function b1:
+  %v4 = load_input [key=:birth_year]
+  %v5 = constant [value=1937] [] -> integer
+  %v3 = kernel_call (:v4, :v5) [fn=:core.lte] [] -> boolean
+function b2:
+  %v11 = load_input [key=:birth_year]
+  %v12 = constant [value=1938] [] -> integer
+  %v6 = kernel_call (:v11, :v12) [fn=:core.gte] [] -> boolean
+  %v13 = constant [value=1942] [] -> integer
+  %v9 = kernel_call (:v11, :v13) [fn=:core.lte] [] -> boolean
+  %v10 = kernel_call (:v6, :v9) [fn=:core.and] [] -> boolean
+function b3:
+  %v18 = load_input [key=:birth_year]
+  %v19 = constant [value=1943] [] -> integer
+  %v13 = kernel_call (:v18, :v19) [fn=:core.gte] [] -> boolean
+  %v20 = constant [value=1954] [] -> integer
+  %v16 = kernel_call (:v18, :v20) [fn=:core.lte] [] -> boolean
+  %v17 = kernel_call (:v13, :v16) [fn=:core.and] [] -> boolean
+function b4:
+  %v25 = load_input [key=:birth_year]
+  %v26 = constant [value=1955] [] -> integer
+  %v20 = kernel_call (:v25, :v26) [fn=:core.gte] [] -> boolean
+  %v27 = constant [value=1959] [] -> integer
+  %v23 = kernel_call (:v25, :v27) [fn=:core.lte] [] -> boolean
+  %v24 = kernel_call (:v20, :v23) [fn=:core.and] [] -> boolean
+function b5:
+  %v28 = load_input [key=:birth_year]
+  %v29 = constant [value=1960] [] -> integer
+  %v27 = kernel_call (:v28, :v29) [fn=:core.gte] [] -> boolean
+function full_retirement_age:
+  %v84 = load_input [key=:birth_year]
+  %v85 = constant [value=1937] [] -> integer
+  %v62 = kernel_call (:v84, :v85) [fn=:core.lte] [] -> boolean
+  %v86 = constant [value=1938] [] -> integer
+  %v65 = kernel_call (:v84, :v86) [fn=:core.gte] [] -> boolean
+  %v87 = constant [value=1942] [] -> integer
+  %v68 = kernel_call (:v84, :v87) [fn=:core.lte] [] -> boolean
+  %v69 = kernel_call (:v65, :v68) [fn=:core.and] [] -> boolean
+  %v34 = kernel_call (:v84, :v85) [fn=:core.sub] [] -> integer
+  %v88 = constant [value=2.0] [] -> float
+  %v89 = constant [value=12.0] [] -> float
+  %v37 = kernel_call (:v88, :v89) [fn=:core.div] [] -> float
+  %v38 = kernel_call (:v34, :v37) [fn=:core.mul:numeric] [] -> float
+  %v90 = constant [value=65.0] [] -> float
+  %v39 = kernel_call (:v90, :v38) [fn=:core.add] [] -> float
+  %v91 = constant [value=1943] [] -> integer
+  %v72 = kernel_call (:v84, :v91) [fn=:core.gte] [] -> boolean
+  %v92 = constant [value=1954] [] -> integer
+  %v75 = kernel_call (:v84, :v92) [fn=:core.lte] [] -> boolean
+  %v76 = kernel_call (:v72, :v75) [fn=:core.and] [] -> boolean
+  %v93 = constant [value=1955] [] -> integer
+  %v79 = kernel_call (:v84, :v93) [fn=:core.gte] [] -> boolean
+  %v94 = constant [value=1959] [] -> integer
+  %v82 = kernel_call (:v84, :v94) [fn=:core.lte] [] -> boolean
+  %v83 = kernel_call (:v79, :v82) [fn=:core.and] [] -> boolean
+  %v46 = kernel_call (:v84, :v92) [fn=:core.sub] [] -> integer
+  %v50 = kernel_call (:v46, :v37) [fn=:core.mul:numeric] [] -> float
+  %v95 = constant [value=66.0] [] -> float
+  %v51 = kernel_call (:v95, :v50) [fn=:core.add] [] -> float
+  %v96 = constant [value=67.0] [] -> float
+  %v56 = select (:v83, :v51, :v96) [] -> float
+  %v57 = select (:v76, :v95, :v56) [] -> float
+  %v58 = select (:v69, :v39, :v57) [] -> float
+  %v59 = select (:v62, :v90, :v58) [] -> float
+function months_delayed:
+  %v122 = load_input [key=:birth_year]
+  %v123 = constant [value=1937] [] -> integer
+  %v70 = kernel_call (:v122, :v123) [fn=:core.lte] [] -> boolean
+  %v124 = constant [value=1938] [] -> integer
+  %v74 = kernel_call (:v122, :v124) [fn=:core.gte] [] -> boolean
+  %v125 = constant [value=1942] [] -> integer
+  %v77 = kernel_call (:v122, :v125) [fn=:core.lte] [] -> boolean
+  %v78 = kernel_call (:v74, :v77) [fn=:core.and] [] -> boolean
+  %v82 = kernel_call (:v122, :v123) [fn=:core.sub] [] -> integer
+  %v126 = constant [value=2.0] [] -> float
+  %v127 = constant [value=12.0] [] -> float
+  %v85 = kernel_call (:v126, :v127) [fn=:core.div] [] -> float
+  %v86 = kernel_call (:v82, :v85) [fn=:core.mul:numeric] [] -> float
+  %v128 = constant [value=65.0] [] -> float
+  %v87 = kernel_call (:v128, :v86) [fn=:core.add] [] -> float
+  %v129 = constant [value=1943] [] -> integer
+  %v90 = kernel_call (:v122, :v129) [fn=:core.gte] [] -> boolean
+  %v130 = constant [value=1954] [] -> integer
+  %v93 = kernel_call (:v122, :v130) [fn=:core.lte] [] -> boolean
+  %v94 = kernel_call (:v90, :v93) [fn=:core.and] [] -> boolean
+  %v131 = constant [value=1955] [] -> integer
+  %v98 = kernel_call (:v122, :v131) [fn=:core.gte] [] -> boolean
+  %v132 = constant [value=1959] [] -> integer
+  %v101 = kernel_call (:v122, :v132) [fn=:core.lte] [] -> boolean
+  %v102 = kernel_call (:v98, :v101) [fn=:core.and] [] -> boolean
+  %v106 = kernel_call (:v122, :v130) [fn=:core.sub] [] -> integer
+  %v110 = kernel_call (:v106, :v85) [fn=:core.mul:numeric] [] -> float
+  %v133 = constant [value=66.0] [] -> float
+  %v111 = kernel_call (:v133, :v110) [fn=:core.add] [] -> float
+  %v134 = constant [value=67.0] [] -> float
+  %v118 = select (:v102, :v111, :v134) [] -> float
+  %v119 = select (:v94, :v133, :v118) [] -> float
+  %v120 = select (:v78, :v87, :v119) [] -> float
+  %v121 = select (:v70, :v128, :v120) [] -> float
+  %v135 = load_input [key=:claiming_age]
+  %v64 = kernel_call (:v135, :v121) [fn=:core.sub] [] -> float
+  %v136 = constant [value=12] [] -> integer
+  %v65 = kernel_call (:v136, :v64) [fn=:core.mul:numeric] [] -> float
+  %v137 = constant [value=0] [] -> integer
+  %acc0 = kernel_call (:v137, :v65) [fn=:core.max] [] -> integer
+function months_early:
+  %v130 = load_input [key=:birth_year]
+  %v131 = constant [value=1937] [] -> integer
+  %v78 = kernel_call (:v130, :v131) [fn=:core.lte] [] -> boolean
+  %v132 = constant [value=1938] [] -> integer
+  %v82 = kernel_call (:v130, :v132) [fn=:core.gte] [] -> boolean
+  %v133 = constant [value=1942] [] -> integer
+  %v85 = kernel_call (:v130, :v133) [fn=:core.lte] [] -> boolean
+  %v86 = kernel_call (:v82, :v85) [fn=:core.and] [] -> boolean
+  %v90 = kernel_call (:v130, :v131) [fn=:core.sub] [] -> integer
+  %v134 = constant [value=2.0] [] -> float
+  %v135 = constant [value=12.0] [] -> float
+  %v93 = kernel_call (:v134, :v135) [fn=:core.div] [] -> float
+  %v94 = kernel_call (:v90, :v93) [fn=:core.mul:numeric] [] -> float
+  %v136 = constant [value=65.0] [] -> float
+  %v95 = kernel_call (:v136, :v94) [fn=:core.add] [] -> float
+  %v137 = constant [value=1943] [] -> integer
+  %v98 = kernel_call (:v130, :v137) [fn=:core.gte] [] -> boolean
+  %v138 = constant [value=1954] [] -> integer
+  %v101 = kernel_call (:v130, :v138) [fn=:core.lte] [] -> boolean
+  %v102 = kernel_call (:v98, :v101) [fn=:core.and] [] -> boolean
+  %v139 = constant [value=1955] [] -> integer
+  %v106 = kernel_call (:v130, :v139) [fn=:core.gte] [] -> boolean
+  %v140 = constant [value=1959] [] -> integer
+  %v109 = kernel_call (:v130, :v140) [fn=:core.lte] [] -> boolean
+  %v110 = kernel_call (:v106, :v109) [fn=:core.and] [] -> boolean
+  %v114 = kernel_call (:v130, :v138) [fn=:core.sub] [] -> integer
+  %v118 = kernel_call (:v114, :v93) [fn=:core.mul:numeric] [] -> float
+  %v141 = constant [value=66.0] [] -> float
+  %v119 = kernel_call (:v141, :v118) [fn=:core.add] [] -> float
+  %v142 = constant [value=67.0] [] -> float
+  %v126 = select (:v110, :v119, :v142) [] -> float
+  %v127 = select (:v102, :v141, :v126) [] -> float
+  %v128 = select (:v86, :v95, :v127) [] -> float
+  %v129 = select (:v78, :v136, :v128) [] -> float
+  %v143 = load_input [key=:claiming_age]
+  %v72 = kernel_call (:v129, :v143) [fn=:core.sub] [] -> float
+  %v144 = constant [value=12] [] -> integer
+  %v73 = kernel_call (:v144, :v72) [fn=:core.mul:numeric] [] -> float
+  %v145 = constant [value=0] [] -> integer
+  %acc0 = kernel_call (:v145, :v73) [fn=:core.max] [] -> integer
+function months_early_first_36:
+  %v139 = load_input [key=:birth_year]
+  %v140 = constant [value=1937] [] -> integer
+  %v84 = kernel_call (:v139, :v140) [fn=:core.lte] [] -> boolean
+  %v141 = constant [value=1938] [] -> integer
+  %v88 = kernel_call (:v139, :v141) [fn=:core.gte] [] -> boolean
+  %v142 = constant [value=1942] [] -> integer
+  %v91 = kernel_call (:v139, :v142) [fn=:core.lte] [] -> boolean
+  %v92 = kernel_call (:v88, :v91) [fn=:core.and] [] -> boolean
+  %v96 = kernel_call (:v139, :v140) [fn=:core.sub] [] -> integer
+  %v143 = constant [value=2.0] [] -> float
+  %v144 = constant [value=12.0] [] -> float
+  %v99 = kernel_call (:v143, :v144) [fn=:core.div] [] -> float
+  %v100 = kernel_call (:v96, :v99) [fn=:core.mul:numeric] [] -> float
+  %v145 = constant [value=65.0] [] -> float
+  %v101 = kernel_call (:v145, :v100) [fn=:core.add] [] -> float
+  %v146 = constant [value=1943] [] -> integer
+  %v104 = kernel_call (:v139, :v146) [fn=:core.gte] [] -> boolean
+  %v147 = constant [value=1954] [] -> integer
+  %v107 = kernel_call (:v139, :v147) [fn=:core.lte] [] -> boolean
+  %v108 = kernel_call (:v104, :v107) [fn=:core.and] [] -> boolean
+  %v148 = constant [value=1955] [] -> integer
+  %v112 = kernel_call (:v139, :v148) [fn=:core.gte] [] -> boolean
+  %v149 = constant [value=1959] [] -> integer
+  %v115 = kernel_call (:v139, :v149) [fn=:core.lte] [] -> boolean
+  %v116 = kernel_call (:v112, :v115) [fn=:core.and] [] -> boolean
+  %v120 = kernel_call (:v139, :v147) [fn=:core.sub] [] -> integer
+  %v124 = kernel_call (:v120, :v99) [fn=:core.mul:numeric] [] -> float
+  %v150 = constant [value=66.0] [] -> float
+  %v125 = kernel_call (:v150, :v124) [fn=:core.add] [] -> float
+  %v151 = constant [value=67.0] [] -> float
+  %v132 = select (:v116, :v125, :v151) [] -> float
+  %v133 = select (:v108, :v150, :v132) [] -> float
+  %v134 = select (:v92, :v101, :v133) [] -> float
+  %v135 = select (:v84, :v145, :v134) [] -> float
+  %v152 = load_input [key=:claiming_age]
+  %v137 = kernel_call (:v135, :v152) [fn=:core.sub] [] -> float
+  %v153 = constant [value=12] [] -> integer
+  %v138 = kernel_call (:v153, :v137) [fn=:core.mul:numeric] [] -> float
+  %v154 = constant [value=0] [] -> integer
+  %acc0 = kernel_call (:v154, :v138) [fn=:core.max] [] -> integer
+  %v155 = constant [value=36] [] -> integer
+  %acc1 = kernel_call (:v155, :acc0) [fn=:core.min] [] -> integer
+function months_early_additional:
+  %v148 = load_input [key=:birth_year]
+  %v149 = constant [value=1937] [] -> integer
+  %v93 = kernel_call (:v148, :v149) [fn=:core.lte] [] -> boolean
+  %v150 = constant [value=1938] [] -> integer
+  %v97 = kernel_call (:v148, :v150) [fn=:core.gte] [] -> boolean
+  %v151 = constant [value=1942] [] -> integer
+  %v100 = kernel_call (:v148, :v151) [fn=:core.lte] [] -> boolean
+  %v101 = kernel_call (:v97, :v100) [fn=:core.and] [] -> boolean
+  %v105 = kernel_call (:v148, :v149) [fn=:core.sub] [] -> integer
+  %v152 = constant [value=2.0] [] -> float
+  %v153 = constant [value=12.0] [] -> float
+  %v108 = kernel_call (:v152, :v153) [fn=:core.div] [] -> float
+  %v109 = kernel_call (:v105, :v108) [fn=:core.mul:numeric] [] -> float
+  %v154 = constant [value=65.0] [] -> float
+  %v110 = kernel_call (:v154, :v109) [fn=:core.add] [] -> float
+  %v155 = constant [value=1943] [] -> integer
+  %v113 = kernel_call (:v148, :v155) [fn=:core.gte] [] -> boolean
+  %v156 = constant [value=1954] [] -> integer
+  %v116 = kernel_call (:v148, :v156) [fn=:core.lte] [] -> boolean
+  %v117 = kernel_call (:v113, :v116) [fn=:core.and] [] -> boolean
+  %v157 = constant [value=1955] [] -> integer
+  %v121 = kernel_call (:v148, :v157) [fn=:core.gte] [] -> boolean
+  %v158 = constant [value=1959] [] -> integer
+  %v124 = kernel_call (:v148, :v158) [fn=:core.lte] [] -> boolean
+  %v125 = kernel_call (:v121, :v124) [fn=:core.and] [] -> boolean
+  %v129 = kernel_call (:v148, :v156) [fn=:core.sub] [] -> integer
+  %v133 = kernel_call (:v129, :v108) [fn=:core.mul:numeric] [] -> float
+  %v159 = constant [value=66.0] [] -> float
+  %v134 = kernel_call (:v159, :v133) [fn=:core.add] [] -> float
+  %v160 = constant [value=67.0] [] -> float
+  %v141 = select (:v125, :v134, :v160) [] -> float
+  %v142 = select (:v117, :v159, :v141) [] -> float
+  %v143 = select (:v101, :v110, :v142) [] -> float
+  %v144 = select (:v93, :v154, :v143) [] -> float
+  %v161 = load_input [key=:claiming_age]
+  %v146 = kernel_call (:v144, :v161) [fn=:core.sub] [] -> float
+  %v162 = constant [value=12] [] -> integer
+  %v147 = kernel_call (:v162, :v146) [fn=:core.mul:numeric] [] -> float
+  %v163 = constant [value=0] [] -> integer
+  %acc0 = kernel_call (:v163, :v147) [fn=:core.max] [] -> integer
+  %v164 = constant [value=36] [] -> integer
+  %v83 = kernel_call (:acc0, :v164) [fn=:core.sub] [] -> float
+  %acc1 = kernel_call (:v163, :v83) [fn=:core.max] [] -> integer
+  %v165 = constant [value=24] [] -> integer
+  %acc2 = kernel_call (:acc1, :v165) [fn=:core.min] [] -> integer
+function adj:
+  %v306 = load_input [key=:birth_year]
+  %v307 = constant [value=1937] [] -> integer
+  %v119 = kernel_call (:v306, :v307) [fn=:core.lte] [] -> boolean
+  %v308 = constant [value=1938] [] -> integer
+  %v123 = kernel_call (:v306, :v308) [fn=:core.gte] [] -> boolean
+  %v309 = constant [value=1942] [] -> integer
+  %v126 = kernel_call (:v306, :v309) [fn=:core.lte] [] -> boolean
+  %v127 = kernel_call (:v123, :v126) [fn=:core.and] [] -> boolean
+  %v131 = kernel_call (:v306, :v307) [fn=:core.sub] [] -> integer
+  %v310 = constant [value=2.0] [] -> float
+  %v311 = constant [value=12.0] [] -> float
+  %v134 = kernel_call (:v310, :v311) [fn=:core.div] [] -> float
+  %v135 = kernel_call (:v131, :v134) [fn=:core.mul:numeric] [] -> float
+  %v312 = constant [value=65.0] [] -> float
+  %v136 = kernel_call (:v312, :v135) [fn=:core.add] [] -> float
+  %v313 = constant [value=1943] [] -> integer
+  %v139 = kernel_call (:v306, :v313) [fn=:core.gte] [] -> boolean
+  %v314 = constant [value=1954] [] -> integer
+  %v142 = kernel_call (:v306, :v314) [fn=:core.lte] [] -> boolean
+  %v143 = kernel_call (:v139, :v142) [fn=:core.and] [] -> boolean
+  %v315 = constant [value=1955] [] -> integer
+  %v147 = kernel_call (:v306, :v315) [fn=:core.gte] [] -> boolean
+  %v316 = constant [value=1959] [] -> integer
+  %v150 = kernel_call (:v306, :v316) [fn=:core.lte] [] -> boolean
+  %v151 = kernel_call (:v147, :v150) [fn=:core.and] [] -> boolean
+  %v155 = kernel_call (:v306, :v314) [fn=:core.sub] [] -> integer
+  %v159 = kernel_call (:v155, :v134) [fn=:core.mul:numeric] [] -> float
+  %v317 = constant [value=66.0] [] -> float
+  %v160 = kernel_call (:v317, :v159) [fn=:core.add] [] -> float
+  %v318 = constant [value=67.0] [] -> float
+  %v167 = select (:v151, :v160, :v318) [] -> float
+  %v168 = select (:v143, :v317, :v167) [] -> float
+  %v169 = select (:v127, :v136, :v168) [] -> float
+  %v170 = select (:v119, :v312, :v169) [] -> float
+  %v319 = load_input [key=:claiming_age]
+  %v172 = kernel_call (:v170, :v319) [fn=:core.sub] [] -> float
+  %v320 = constant [value=12] [] -> integer
+  %v173 = kernel_call (:v320, :v172) [fn=:core.mul:numeric] [] -> float
+  %v321 = constant [value=0] [] -> integer
+  %acc0 = kernel_call (:v321, :v173) [fn=:core.max] [] -> integer
+  %v322 = constant [value=36] [] -> integer
+  %acc1 = kernel_call (:v322, :acc0) [fn=:core.min] [] -> integer
+  %v323 = constant [value=-5.0] [] -> float
+  %v324 = constant [value=9.0] [] -> float
+  %v93 = kernel_call (:v323, :v324) [fn=:core.div] [] -> float
+  %v325 = constant [value=0.01] [] -> float
+  %v95 = kernel_call (:v93, :v325) [fn=:core.mul:numeric] [] -> float
+  %v96 = kernel_call (:acc1, :v95) [fn=:core.mul:numeric] [] -> float
+  %v326 = constant [value=1.0] [] -> float
+  %v97 = kernel_call (:v326, :v96) [fn=:core.add] [] -> float
+  %v241 = kernel_call (:acc0, :v322) [fn=:core.sub] [] -> float
+  %acc3 = kernel_call (:v321, :v241) [fn=:core.max] [] -> integer
+  %v327 = constant [value=24] [] -> integer
+  %acc4 = kernel_call (:acc3, :v327) [fn=:core.min] [] -> integer
+  %v101 = kernel_call (:v323, :v311) [fn=:core.div] [] -> float
+  %v103 = kernel_call (:v101, :v325) [fn=:core.mul:numeric] [] -> float
+  %v104 = kernel_call (:acc4, :v103) [fn=:core.mul:numeric] [] -> float
+  %v105 = kernel_call (:v97, :v104) [fn=:core.add] [] -> float
+  %v304 = kernel_call (:v319, :v170) [fn=:core.sub] [] -> float
+  %v305 = kernel_call (:v320, :v304) [fn=:core.mul:numeric] [] -> float
+  %acc5 = kernel_call (:v321, :v305) [fn=:core.max] [] -> integer
+  %v328 = constant [value=3.0] [] -> float
+  %v109 = kernel_call (:v310, :v328) [fn=:core.div] [] -> float
+  %v111 = kernel_call (:v109, :v325) [fn=:core.mul:numeric] [] -> float
+  %v112 = kernel_call (:acc5, :v111) [fn=:core.mul:numeric] [] -> float
+  %v113 = kernel_call (:v105, :v112) [fn=:core.add] [] -> float

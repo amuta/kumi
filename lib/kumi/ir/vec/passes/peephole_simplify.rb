@@ -5,6 +5,8 @@ module Kumi
     module Vec
       module Passes
         class PeepholeSimplify < Kumi::IR::Passes::Base
+          require_relative "support/instruction_cloner"
+
           def run(graph:, context: {})
             new_functions = graph.functions.values.map { simplify_function(_1) }
             Kumi::IR::Vec::Module.new(name: graph.name, functions: new_functions)
@@ -26,16 +28,16 @@ module Kumi
                     replacements[result] = inputs[1] if result
                     next
                   end
-                  new_instrs << instr
+                  new_instrs << rebuild(instr, inputs)
                 when :map
                   simplified = simplify_map(instr, inputs)
                   if simplified
                     replacements[result] = simplified if result
                   else
-                    new_instrs << instr
+                    new_instrs << rebuild(instr, inputs)
                   end
                 else
-                  new_instrs << instr
+                  new_instrs << rebuild(instr, inputs)
                 end
               end
 
@@ -48,6 +50,17 @@ module Kumi
               blocks: new_blocks,
               return_stamp: function.return_stamp
             )
+          end
+
+          # Keep an instruction with its rewritten inputs, not the stale
+          # original. An earlier simplification (a collapsed select, a folded
+          # and/or map) records its result in `replacements`; downstream
+          # instructions that consumed it must be rebuilt to point at the
+          # replacement, or they reference a register this pass just deleted.
+          def rebuild(instr, inputs)
+            return instr if instr.uses.empty?
+
+            Support::InstructionCloner.clone(instr, inputs)
           end
 
           def simplify_map(instr, inputs)

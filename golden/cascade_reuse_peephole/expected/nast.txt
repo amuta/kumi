@@ -1,0 +1,188 @@
+(NAST
+  (TRAIT b1
+    (Call :"core.lte"
+    (InputRef [:birth_year])
+    (Const 1937)
+  )
+  )
+  (TRAIT b2
+    (Call :and
+    (Call :"core.gte"
+      (InputRef [:birth_year])
+      (Const 1938)
+    )
+    (Call :"core.lte"
+      (InputRef [:birth_year])
+      (Const 1942)
+    )
+  )
+  )
+  (TRAIT b3
+    (Call :and
+    (Call :"core.gte"
+      (InputRef [:birth_year])
+      (Const 1943)
+    )
+    (Call :"core.lte"
+      (InputRef [:birth_year])
+      (Const 1954)
+    )
+  )
+  )
+  (TRAIT b4
+    (Call :and
+    (Call :"core.gte"
+      (InputRef [:birth_year])
+      (Const 1955)
+    )
+    (Call :"core.lte"
+      (InputRef [:birth_year])
+      (Const 1959)
+    )
+  )
+  )
+  (TRAIT b5
+    (Call :"core.gte"
+    (InputRef [:birth_year])
+    (Const 1960)
+  )
+  )
+  (VALUE full_retirement_age
+    (Call :__select__
+    (Ref b1)
+    (Const 65.0)
+    (Call :__select__
+      (Ref b2)
+      (Call :add
+        (Const 65.0)
+        (Call :multiply
+          (Call :subtract
+            (InputRef [:birth_year])
+            (Const 1937)
+          )
+          (Call :divide
+            (Const 2.0)
+            (Const 12.0)
+          )
+        )
+      )
+      (Call :__select__
+        (Ref b3)
+        (Const 66.0)
+        (Call :__select__
+          (Ref b4)
+          (Call :add
+            (Const 66.0)
+            (Call :multiply
+              (Call :subtract
+                (InputRef [:birth_year])
+                (Const 1954)
+              )
+              (Call :divide
+                (Const 2.0)
+                (Const 12.0)
+              )
+            )
+          )
+          (Call :__select__
+            (Ref b5)
+            (Const 67.0)
+            (Const 67.0)
+          )
+        )
+      )
+    )
+  )
+  )
+  (VALUE months_delayed
+    (Call :max
+    (Tuple
+      (Const 0)
+      (Call :multiply
+        (Const 12)
+        (Call :subtract
+          (InputRef [:claiming_age])
+          (Ref full_retirement_age)
+        )
+      )
+    )
+  )
+  )
+  (VALUE months_early
+    (Call :max
+    (Tuple
+      (Const 0)
+      (Call :multiply
+        (Const 12)
+        (Call :subtract
+          (Ref full_retirement_age)
+          (InputRef [:claiming_age])
+        )
+      )
+    )
+  )
+  )
+  (VALUE months_early_first_36
+    (Call :min
+    (Tuple
+      (Const 36)
+      (Ref months_early)
+    )
+  )
+  )
+  (VALUE months_early_additional
+    (Call :min
+    (Tuple
+      (Call :max
+        (Tuple
+          (Const 0)
+          (Call :subtract
+            (Ref months_early)
+            (Const 36)
+          )
+        )
+      )
+      (Const 24)
+    )
+  )
+  )
+  (VALUE adj
+    (Call :add
+    (Call :add
+      (Call :add
+        (Const 1.0)
+        (Call :multiply
+          (Ref months_early_first_36)
+          (Call :multiply
+            (Call :divide
+              (Const -5.0)
+              (Const 9.0)
+            )
+            (Const 0.01)
+          )
+        )
+      )
+      (Call :multiply
+        (Ref months_early_additional)
+        (Call :multiply
+          (Call :divide
+            (Const -5.0)
+            (Const 12.0)
+          )
+          (Const 0.01)
+        )
+      )
+    )
+    (Call :multiply
+      (Ref months_delayed)
+      (Call :multiply
+        (Call :divide
+          (Const 2.0)
+          (Const 3.0)
+        )
+        (Const 0.01)
+      )
+    )
+  )
+  )
+)
