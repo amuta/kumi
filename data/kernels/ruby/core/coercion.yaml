@@ -18,3 +18,11 @@ kernels:
     fn: core.to_string
     inline: "= $0.to_s"
     impl: "(value)\n  value.to_s"
+
+  # Float#to_s already renders Ruby's canonical float form ("3.0", "1.0e+21"),
+  # which IS the cross-target contract; the JS kernel reproduces it exactly.
+  # See docs/CROSS_TARGET_SEMANTICS.md.
+  - id: to_string_float:ruby:v1
+    fn: core.to_string:float
+    inline: "= $0.to_s"
+    impl: "(value)\n  value.to_s"

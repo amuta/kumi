@@ -91,7 +91,7 @@ module Kumi
           return if function.params.size == arg_types.size
 
           raise ResolutionError,
-                "#{alias_or_id} expects #{function.params.size} argument(s), got #{arg_types.size}"
+                "#{display_name(alias_or_id)} expects #{function.params.size} argument(s), got #{arg_types.size}"
         end
 
         # Point the user at exactly which argument is wrong and what was expected.
@@ -104,7 +104,17 @@ module Kumi
           end
 
           detail = offending.empty? ? "" : ": #{offending.join('; ')}"
-          "#{alias_or_id}(#{format_types(arg_types)}) - type mismatch#{detail}"
+          "#{display_name(alias_or_id)}(#{format_types(arg_types)}) - type mismatch#{detail}"
+        end
+
+        # The name to show the user. A synthetic id like `__select__` (never
+        # typed by the user) is rendered as its friendly alias (`select`); a
+        # normal alias/id passes through unchanged.
+        def display_name(alias_or_id)
+          name = alias_or_id.to_s
+          return name unless name.start_with?("__") && name.end_with?("__")
+
+          @functions[name]&.aliases&.first || name
         end
 
         def build_alias_overloads(functions)

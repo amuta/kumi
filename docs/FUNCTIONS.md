@@ -134,9 +134,12 @@ Auto-generated documentation for Kumi functions and their kernels.
 
 `agg.join:ruby:v1`
 
+**Inline:** `+= $1` (`$0` = accumulator, `$1` = element)
+
 **Fold:** `= $0.join`
 
-_Note: No identity value. First element initializes accumulator._
+**Identity:**
+- string: ``
 
 **Reduction:** First element is initial value (no identity)
 
@@ -253,6 +256,7 @@ _Note: No identity value. First element initializes accumulator._
 **Identity:**
 - float: `0.0`
 - integer: `0`
+- decimal: `0`
 
 **Reduction:** Monoid operation with identity element
 
@@ -405,7 +409,7 @@ _Note: No identity value. First element initializes accumulator._
 
 ```ruby
 (x, lo, hi)
-  [[x, lo].max, hi].min
+  x.clamp(lo, hi)
 ```
 
 _Note: No identity value. First element initializes accumulator._
@@ -432,6 +436,23 @@ _Note: No identity value. First element initializes accumulator._
 (a, b)
 a.to_s + b.to_s
 ```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.cos`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `angle`
+
+### Implementations
+
+#### Ruby
+
+`cos:ruby:v1`
 
 _Note: No identity value. First element initializes accumulator._
 
@@ -503,6 +524,23 @@ _Note: No identity value. First element initializes accumulator._
 (a, b)
   a == b
 ```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.exp`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `number`
+
+### Implementations
+
+#### Ruby
+
+`exp:ruby:v1`
 
 _Note: No identity value. First element initializes accumulator._
 
@@ -597,6 +635,23 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
+## `core.log`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `number`
+
+### Implementations
+
+#### Ruby
+
+`log:ruby:v1`
+
+_Note: No identity value. First element initializes accumulator._
+
 ## `core.lt`
 
 **Aliases:** `<`, `less_than`, `lt`
@@ -671,29 +726,29 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
-## `core.mul`
+## `core.mul:string_repeat`
 
 **Aliases:** `mul`, `multiply`
 
 - **Arity:** 2
-- **Type:** promoted from `left_operand`, `right_operand`
+- **Type:** string
 
 ### Parameters
 
-- `left_operand`
-- `right_operand`
+- `string_value`
+- `repeat_count`
 
 ### Implementations
 
-#### Ruby
+#### String_repeat
 
-`mul:ruby:v1`
+`mul:string_repeat:ruby:v1`
 
 **Implementation:**
 
 ```ruby
-(a, b)
-  a * b
+(str, count)
+  str * count
 ```
 
 _Note: No identity value. First element initializes accumulator._
@@ -800,8 +855,43 @@ _Note: No identity value. First element initializes accumulator._
 
 ```ruby
 (a, b)
-  a ** b
+  r = a ** b
+  r.is_a?(Complex) ? Float::NAN : r
 ```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.sin`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `angle`
+
+### Implementations
+
+#### Ruby
+
+`sin:ruby:v1`
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.sqrt`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `number`
+
+### Implementations
+
+#### Ruby
+
+`sqrt:ruby:v1`
 
 _Note: No identity value. First element initializes accumulator._
 
@@ -829,6 +919,23 @@ _Note: No identity value. First element initializes accumulator._
 (a, b)
   a - b
 ```
+
+_Note: No identity value. First element initializes accumulator._
+
+## `core.tanh`
+
+- **Arity:** 1
+- **Type:** float
+
+### Parameters
+
+- `number`
+
+### Implementations
+
+#### Ruby
+
+`tanh:ruby:v1`
 
 _Note: No identity value. First element initializes accumulator._
 
@@ -911,7 +1018,7 @@ _Note: No identity value. First element initializes accumulator._
 
 _Note: No identity value. First element initializes accumulator._
 
-## `core.to_string`
+## `core.to_string:float`
 
 **Aliases:** `to_str`, `to_string`
 
@@ -926,7 +1033,7 @@ _Note: No identity value. First element initializes accumulator._
 
 #### Ruby
 
-`to_string:ruby:v1`
+`to_string_float:ruby:v1`
 
 **Implementation:**
 

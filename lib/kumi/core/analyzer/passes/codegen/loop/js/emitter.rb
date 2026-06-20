@@ -14,6 +14,7 @@ module Kumi
                   @registry = registry
                   @out = []
                   @indent = 0
+                  @helper_kernels = []
                 end
 
                 def emit(loop_module, schema_digest: nil, streaming: false)
@@ -24,6 +25,7 @@ module Kumi
                     emit_streaming_function(fn) if streaming
                   end
 
+                  emit_helpers
                   to_s
                 end
 
@@ -150,6 +152,7 @@ module Kumi
                 def reset!
                   @out.clear
                   @indent = 0
+                  @helper_kernels = []
                 end
 
                 def to_s = @out.join
@@ -341,15 +344,23 @@ module Kumi
                   write "#{acc} #{step};"
                 end
 
+                # An inline kernel expands in place; a kernel that only provides
+                # an `impl` (a multi-line function body, e.g. Ruby-compatible
+                # float formatting) is emitted once as a module-level helper and
+                # called by name — mirroring the Ruby emitter so both targets can
+                # share the same kernel shape for non-trivial semantics.
                 def kernel_expr(fn_id, args)
                   kernel = @registry.kernel_for(fn_id, target: :javascript)
                   inline = kernel.inline
-                  if inline.nil? || inline.strip.empty?
+                  return apply_inline(inline, args) if inline && !inline.strip.empty?
+
+                  unless kernel.impl && !kernel.impl.strip.empty?
                     raise Kumi::Core::Errors::UnsupportedFeature,
-                          "no JS inline kernel for #{fn_id.inspect}"
+                          "no JS inline or impl kernel for #{fn_id.inspect}"
                   end
 
-                  apply_inline(inline, args)
+                  @helper_kernels << kernel
+                  "#{kernel_method_name(kernel.fn_id)}(#{args.join(', ')})"
                 end
 
                 def apply_inline(template, args)
@@ -357,6 +368,21 @@ module Kumi
                   expr = expr.sub(/^=\s*/, "")
                   args.each_with_index { |arg, idx| expr = expr.gsub("$#{idx}", arg) }
                   expr
+                end
+
+                # Emit each used impl-only kernel once as a module-level function.
+                # A JS impl is a complete signature+body, e.g. "(value) { ... }",
+                # so the helper is `function __fn_id(value) { ... }`.
+                def emit_helpers
+                  @helper_kernels.uniq(&:id).each do |kernel|
+                    next unless kernel.impl && !kernel.impl.strip.empty?
+
+                    write "function #{kernel_method_name(kernel.fn_id)}#{kernel.impl.strip}"
+                  end
+                end
+
+                def kernel_method_name(fn_id)
+                  "__#{fn_id.to_s.tr('.:', '_')}"
                 end
 
                 def write(line)

@@ -1,7 +1,7 @@
 functions:
   - id: __select__
     kind: elementwise
-    params: [{ name: condition_mask }, { name: value_when_true }, { name: value_when_false }]
+    params: [{ name: condition_mask, dtype: boolean }, { name: value_when_true }, { name: value_when_false }]
     dtype:
       rule: same_as
       param: value_when_true

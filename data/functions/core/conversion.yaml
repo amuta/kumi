@@ -30,3 +30,16 @@ functions:
       rule: scalar
       kind: string
     aliases: ["to_string", "to_str"]
+
+  # Float overload: a whole-valued float must stringify as "3.0", not "3", and
+  # both targets must agree. Ruby's Float#to_s already does this; the JS kernel
+  # reproduces Ruby's exact float formatting (see data/kernels/.../coercion.yaml
+  # and docs/CROSS_TARGET_SEMANTICS.md). Picked over the generic overload for
+  # float arguments by dtype-based overload resolution.
+  - id: core.to_string:float
+    kind: elementwise
+    params: [{ name: value, dtype: float }]
+    dtype:
+      rule: scalar
+      kind: string
+    aliases: ["to_string", "to_str"]
