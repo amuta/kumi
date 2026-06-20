@@ -5,7 +5,6 @@ function sum_numbers:
     %v8 = load_field (:numbers_el6) [field=:value]
     acc_step (:acc9, :v8) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:numbers]
-  %v4 = acc_load (:acc9) [] -> integer
 function matrix_sums:
   %v11 = load_input [key=:matrix]
   %arr19 = array_init
@@ -16,8 +15,7 @@ function matrix_sums:
       %v17 = load_field (:row_el15) [field=:cell]
       acc_step (:acc18, :v17) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:row]
-    %v10 = acc_load (:acc18) [] -> float
-    array_push (:arr19, :v10)
+    array_push (:arr19, :acc18)
   loop_end [axis=:matrix]
 function mixed_array:
   %v23 = load_input [key=:numbers]
@@ -26,7 +24,6 @@ function mixed_array:
     %v26 = load_field (:numbers_el24) [field=:value]
     acc_step (:acc27, :v26) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:numbers]
-  %v22 = acc_load (:acc27) [] -> integer
   %v28 = load_input [key=:matrix]
   %arr36 = array_init
   %matrix_el29 = loop_start (:v28) [axis=:matrix, index=:matrix_i30]
@@ -35,7 +32,7 @@ function mixed_array:
     %row_el32 = loop_start (:v31) [axis=:row, index=:row_i33]
       %v34 = load_input [key=:scalar_val]
       %v35 = load_field (:row_el32) [field=:cell]
-      %v18 = make_object (:v34, :v22, :v35) [keys=[:_0, :_1, :_2]] [matrix, row] -> tuple<integer, integer, float>
+      %v18 = make_object (:v34, :acc27, :v35) [keys=[:_0, :_1, :_2]] [matrix, row] -> tuple<integer, integer, float>
       array_push (:arr37, :v18)
     loop_end [axis=:row]
     array_push (:arr36, :arr37)

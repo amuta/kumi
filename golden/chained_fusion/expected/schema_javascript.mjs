@@ -10,8 +10,7 @@ export function _total_payroll(input) {
       let t13 = employees_el11["salary"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -33,8 +32,7 @@ export function _manager_count(input) {
       let t19 = t14 ? t29 : t30;
       acc31 += t19;
     }
-    let t20 = acc31;
-    arr32.push(t20);
+    arr32.push(acc31);
   }
   return arr32;
 }
@@ -56,8 +54,7 @@ export function _senior_employee_count(input) {
       let t33 = t28 ? t43 : t44;
       acc45 += t33;
     }
-    let t34 = acc45;
-    arr46.push(t34);
+    arr46.push(acc45);
   }
   return arr46;
 }
@@ -74,8 +71,7 @@ export function _max_salary(input) {
       let t47 = employees_el45["salary"];
       acc48 = (t47 !== null && (acc48 === null || t47 > acc48)) ? t47 : acc48;
     }
-    let t40 = acc48;
-    arr49.push(t40);
+    arr49.push(acc48);
   }
   return arr49;
 }
@@ -107,12 +103,8 @@ export function _department_summary(input) {
       acc103 += t81;
       acc104 = (t95 !== null && (acc104 === null || t95 > acc104)) ? t95 : acc104;
     }
-    let t54 = acc96;
-    let t68 = acc101;
-    let t82 = acc103;
-    let t88 = acc104;
     let t105 = departments_el90["name"];
-    let t48 = { "name": t105, "total_payroll": t54, "manager_count": t68, "senior_count": t82, "top_salary": t88 };
+    let t48 = { "name": t105, "total_payroll": acc96, "manager_count": acc101, "senior_count": acc103, "top_salary": acc104 };
     arr106.push(t48);
   }
   return arr106;

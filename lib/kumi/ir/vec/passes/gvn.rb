@@ -18,12 +18,17 @@ module Kumi
             replacements = {}
             table = {}
             new_blocks = function.blocks.map do |block|
+              # The function's result is the LAST result-bearing instruction.
+              # Deduplicating it away (pointing at the earlier equal value) would
+              # leave an earlier instruction as the terminal and change the
+              # result, so the terminal is never dropped — it keeps its register.
+              terminal = block.terminal_instruction
               new_instrs = []
               block.instructions.each do |instr|
                 inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
                 signature = build_signature(instr, inputs)
 
-                if signature && table.key?(signature)
+                if signature && table.key?(signature) && !instr.equal?(terminal)
                   replacements[instr.result] = table[signature]
                   next
                 end
@@ -47,8 +52,7 @@ module Kumi
             Kumi::IR::Base::Function.new(
               name: function.name,
               parameters: function.parameters,
-              blocks: new_blocks,
-              return_stamp: function.return_stamp
+              blocks: new_blocks
             )
           end
 

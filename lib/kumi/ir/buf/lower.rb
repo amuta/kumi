@@ -15,8 +15,7 @@ module Kumi
               Buf::Function.new(
                 name: fn.name,
                 parameters: fn.parameters,
-                blocks: fn.blocks,
-                return_stamp: fn.return_stamp
+                blocks: fn.blocks
               )
             )
           end

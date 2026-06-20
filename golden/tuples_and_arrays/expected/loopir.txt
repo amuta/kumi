@@ -42,4 +42,3 @@ function grand_total:
     %acc0 = kernel_call (:v35, :v39) [fn=:core.max] [points] -> integer
     acc_step (:acc42, :acc0) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:points]
-  %v22 = acc_load (:acc42) [] -> integer

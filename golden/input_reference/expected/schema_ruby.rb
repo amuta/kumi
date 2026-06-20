@@ -11,8 +11,7 @@ module Kumi::Compiled::KUMI_e4d8c257f200bcd6fe2eb565f24fff1f547fe84f916bacd6b917
     t7 = t6["feature_flags"] || t6[:feature_flags]
     arr11 = []
     t7.each_with_index do |feature_flags_el8, feature_flags_i9|
-      t10 = feature_flags_el8
-      arr11 << t10
+      arr11 << feature_flags_el8
     end
     return arr11
   end
@@ -23,8 +22,7 @@ module Kumi::Compiled::KUMI_e4d8c257f200bcd6fe2eb565f24fff1f547fe84f916bacd6b917
     arr16 = []
     t11.each_with_index do |servers_el12, servers_i13|
       t14 = servers_el12["hostname"] || servers_el12[:hostname]
-      t15 = t14
-      arr16 << t15
+      arr16 << t14
     end
     return arr16
   end
@@ -44,7 +42,6 @@ module Kumi::Compiled::KUMI_e4d8c257f200bcd6fe2eb565f24fff1f547fe84f916bacd6b917
       t22 = servers_el20["port"] || servers_el20[:port]
       acc23 += t22
     end
-    t17 = acc23
-    return t17
+    return acc23
   end
 end

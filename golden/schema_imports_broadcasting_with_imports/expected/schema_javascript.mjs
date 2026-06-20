@@ -21,7 +21,6 @@ export function _total_tax(input) {
     let t12 = t16 * t17;
     acc18 += t12;
   }
-  let t6 = acc18;
-  return t6;
+  return acc18;
 }
 

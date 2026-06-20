@@ -1,0 +1,46 @@
+(SNAST
+  (VALUE double
+    (Call :core.mul:numeric
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
+      (Const 2.0) :: [] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE dj
+    (Call :cross
+      (Ref double) :: [items] -> float
+    ) :: [items, items__x] -> float
+  ) :: [items, items__x] -> float
+  (VALUE pair_total
+    (Reduce :agg.sum over [items__x]
+      (Ref dj) :: [items, items__x] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE self_diff
+    (Reduce :agg.sum over [items__x]
+      (Call :core.sub
+        (Ref dj) :: [items, items__x] -> float
+        (Ref double) :: [items] -> float
+      ) :: [items, items__x] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE idx_i
+    (IndexRef i input=items.__index(i)) :: [items] -> integer
+  ) :: [items] -> integer
+  (VALUE idx_j
+    (Call :cross
+      (Ref idx_i) :: [items] -> integer
+    ) :: [items, items__x] -> integer
+  ) :: [items, items__x] -> integer
+  (VALUE rank
+    (Reduce :agg.sum over [items__x]
+      (Select
+        (Call :core.lt
+          (Ref idx_j) :: [items, items__x] -> integer
+          (Ref idx_i) :: [items] -> integer
+        ) :: [items, items__x] -> boolean
+        (Const 1) :: [] -> integer
+        (Const 0) :: [] -> integer
+      ) :: [items, items__x] -> integer
+    ) :: [items] -> integer
+  ) :: [items] -> integer
+)

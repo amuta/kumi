@@ -7,8 +7,7 @@ module Kumi::Compiled::KUMI_4e4ce7bdf592c5cd736a24993e4aaea9af8b1d0e525bb0c8c00e
       t8 = numbers_el6["value"] || numbers_el6[:value]
       acc9 += t8
     end
-    t4 = acc9
-    return t4
+    return acc9
   end
 
   def self._matrix_sums(input)
@@ -21,8 +20,7 @@ module Kumi::Compiled::KUMI_4e4ce7bdf592c5cd736a24993e4aaea9af8b1d0e525bb0c8c00e
         t17 = row_el15["cell"] || row_el15[:cell]
         acc18 += t17
       end
-      t10 = acc18
-      arr19 << t10
+      arr19 << acc18
     end
     return arr19
   end
@@ -34,7 +32,6 @@ module Kumi::Compiled::KUMI_4e4ce7bdf592c5cd736a24993e4aaea9af8b1d0e525bb0c8c00e
       t26 = numbers_el24["value"] || numbers_el24[:value]
       acc27 += t26
     end
-    t22 = acc27
     t28 = input["matrix"] || input[:matrix]
     arr36 = []
     t28.each_with_index do |matrix_el29, matrix_i30|
@@ -43,7 +40,7 @@ module Kumi::Compiled::KUMI_4e4ce7bdf592c5cd736a24993e4aaea9af8b1d0e525bb0c8c00e
       t31.each_with_index do |row_el32, row_i33|
         t34 = input["scalar_val"] || input[:scalar_val]
         t35 = row_el32["cell"] || row_el32[:cell]
-        t18 = [t34, t22, t35]
+        t18 = [t34, acc27, t35]
         arr37 << t18
       end
       arr36 << arr37

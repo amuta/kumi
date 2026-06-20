@@ -12,8 +12,7 @@ module Kumi::Compiled::KUMI_8dbd0eb931d58fd15db076fa1f1977ec5cb7f884be362c901d8a
         t8 = t16 * t17
         acc18 += t8
       end
-      t9 = acc18
-      arr19 << t9
+      arr19 << acc18
     end
     return arr19
   end
@@ -30,11 +29,9 @@ module Kumi::Compiled::KUMI_8dbd0eb931d58fd15db076fa1f1977ec5cb7f884be362c901d8a
         t14 = t22 * t23
         acc24 += t14
       end
-      t15 = acc24
-      acc25 += t15
+      acc25 += acc24
     end
-    t6 = acc25
-    return t6
+    return acc25
   end
 
   def self._tax_for_all(input)
@@ -49,12 +46,10 @@ module Kumi::Compiled::KUMI_8dbd0eb931d58fd15db076fa1f1977ec5cb7f884be362c901d8a
         t17 = t27 * t28
         acc29 += t17
       end
-      t18 = acc29
-      acc30 += t18
+      acc30 += acc29
     end
-    t13 = acc30
     t31 = 0.15
-    t20 = t13 * t31
+    t20 = acc30 * t31
     return t20
   end
 
@@ -70,13 +65,11 @@ module Kumi::Compiled::KUMI_8dbd0eb931d58fd15db076fa1f1977ec5cb7f884be362c901d8a
         t26 = t36 * t37
         acc38 += t26
       end
-      t27 = acc38
-      acc39 += t27
+      acc39 += acc38
     end
-    t16 = acc39
     t40 = 0.15
-    t29 = t16 * t40
-    t11 = t16 + t29
+    t29 = acc39 * t40
+    t11 = acc39 + t29
     return t11
   end
 end

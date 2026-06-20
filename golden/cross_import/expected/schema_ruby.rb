@@ -8,13 +8,11 @@ module Kumi::Compiled::KUMI_5d8b6099fec8a7b8946dc1e53f00b4143f33abbe583c03459781
       acc17 = 0.0
       t12.each_with_index do |vals__x_el13, vals__x_i14|
         t15 = vals__x_el13["a"] || vals__x_el13[:a]
-        t5 = t15
         t16 = vals_el10["a"] || vals_el10[:a]
-        t7 = t5 - t16
+        t7 = t15 - t16
         acc17 += t7
       end
-      t8 = acc17
-      arr18 << t8
+      arr18 << acc17
     end
     return arr18
   end

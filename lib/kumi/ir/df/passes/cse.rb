@@ -17,8 +17,7 @@ module Kumi
             Kumi::IR::DF::Function.new(
               name: fn.name,
               parameters: fn.parameters,
-              blocks: new_blocks,
-              return_stamp: fn.return_stamp
+              blocks: new_blocks
             )
           end
 
@@ -27,12 +26,18 @@ module Kumi
             memo = {}
             new_instructions = []
 
+            # The function's result is the LAST result-bearing instruction, so
+            # deduplicating it away would change which value the function
+            # returns. Per-output functions make the terminal a structurally
+            # unique root today, but the guard keeps the invariant explicit.
+            terminal = block.terminal_instruction
+
             block.each do |instr|
               new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
 
               signature = instr.value_signature(inputs: new_inputs, include_axes: true, include_dtype: true)
 
-              if signature && memo.key?(signature)
+              if signature && memo.key?(signature) && !instr.equal?(terminal)
                 replacements[instr.result] = memo[signature]
                 next
               end

@@ -1,0 +1,24 @@
+{
+  "div_one": [
+    5.0,
+    3.0
+  ],
+  "mul_zero": [
+    0.0,
+    0.0
+  ],
+  "plus_zero": [
+    7.0,
+    2.0
+  ],
+  "price_check": 8.0,
+  "qty_check": 9.0,
+  "sub_zero": [
+    5.0,
+    3.0
+  ],
+  "times_one": [
+    5.0,
+    3.0
+  ]
+}

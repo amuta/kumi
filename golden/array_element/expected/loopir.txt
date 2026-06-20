@@ -6,6 +6,5 @@ function v_sum_y:
     %y_el8 = loop_start (:x_el6) [axis=:y, index=:y_i9]
       acc_step (:acc10, :y_el8) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:y]
-    %v4 = acc_load (:acc10) [] -> integer
-    array_push (:arr11, :v4)
+    array_push (:arr11, :acc10)
   loop_end [axis=:x]

@@ -12,9 +12,8 @@ export function _pre(input) {
       let t11 = t23 * t24;
       acc25 += t11;
     }
-    let t12 = acc25;
     let t26 = hidden_el18["b1"];
-    let t16 = t12 + t26;
+    let t16 = acc25 + t26;
     arr27.push(t16);
   }
   return arr27;
@@ -34,9 +33,8 @@ export function _h(input) {
       let t29 = t41 * t42;
       acc43 += t29;
     }
-    let t30 = acc43;
     let t44 = hidden_el36["b1"];
-    let t34 = t30 + t44;
+    let t34 = acc43 + t44;
     let t18 = Math.tanh(t34);
     arr45.push(t18);
   }
@@ -57,17 +55,15 @@ export function _o_pre(input) {
       let t37 = t50 * t51;
       acc52 += t37;
     }
-    let t38 = acc52;
     let t53 = hidden_el45["b1"];
-    let t42 = t38 + t53;
+    let t42 = acc52 + t53;
     let t43 = Math.tanh(t42);
     let t54 = hidden_el45["w2"];
     let t23 = t54 * t43;
     acc55 += t23;
   }
-  let t24 = acc55;
   let t56 = input["b_out"];
-  let t26 = t24 + t56;
+  let t26 = acc55 + t56;
   return t26;
 }
 
@@ -85,17 +81,15 @@ export function _o(input) {
       let t48 = t65 * t66;
       acc67 += t48;
     }
-    let t49 = acc67;
     let t68 = hidden_el60["b1"];
-    let t53 = t49 + t68;
+    let t53 = acc67 + t68;
     let t54 = Math.tanh(t53);
     let t69 = hidden_el60["w2"];
     let t55 = t69 * t54;
     acc70 += t55;
   }
-  let t56 = acc70;
   let t71 = input["b_out"];
-  let t58 = t56 + t71;
+  let t58 = acc70 + t71;
   let t72 = 0.0;
   let t31 = t72 - t58;
   let t32 = Math.exp(t31);
@@ -119,17 +113,15 @@ export function _output(input) {
       let t52 = t73 * t74;
       acc75 += t52;
     }
-    let t53 = acc75;
     let t76 = hidden_el68["b1"];
-    let t57 = t53 + t76;
+    let t57 = acc75 + t76;
     let t58 = Math.tanh(t57);
     let t77 = hidden_el68["w2"];
     let t59 = t77 * t58;
     acc78 += t59;
   }
-  let t60 = acc78;
   let t79 = input["b_out"];
-  let t62 = t60 + t79;
+  let t62 = acc78 + t79;
   let t80 = 0.0;
   let t63 = t80 - t62;
   let t64 = Math.exp(t63);
@@ -153,17 +145,15 @@ export function _oc(input) {
       let t56 = t77 * t78;
       acc79 += t56;
     }
-    let t57 = acc79;
     let t80 = hidden_el72["b1"];
-    let t61 = t57 + t80;
+    let t61 = acc79 + t80;
     let t62 = Math.tanh(t61);
     let t81 = hidden_el72["w2"];
     let t63 = t81 * t62;
     acc82 += t63;
   }
-  let t64 = acc82;
   let t83 = input["b_out"];
-  let t66 = t64 + t83;
+  let t66 = acc82 + t83;
   let t84 = 0.0;
   let t67 = t84 - t66;
   let t68 = Math.exp(t67);
@@ -190,17 +180,15 @@ export function _loss(input) {
       let t71 = t95 * t96;
       acc97 += t71;
     }
-    let t72 = acc97;
     let t98 = hidden_el90["b1"];
-    let t76 = t72 + t98;
+    let t76 = acc97 + t98;
     let t77 = Math.tanh(t76);
     let t99 = hidden_el90["w2"];
     let t78 = t99 * t77;
     acc100 += t78;
   }
-  let t79 = acc100;
   let t101 = input["b_out"];
-  let t81 = t79 + t101;
+  let t81 = acc100 + t101;
   let t102 = 0.0;
   let t82 = t102 - t81;
   let t83 = Math.exp(t82);
@@ -236,17 +224,15 @@ export function _dpre_out(input) {
       let t74 = t95 * t96;
       acc97 += t74;
     }
-    let t75 = acc97;
     let t98 = hidden_el90["b1"];
-    let t79 = t75 + t98;
+    let t79 = acc97 + t98;
     let t80 = Math.tanh(t79);
     let t99 = hidden_el90["w2"];
     let t81 = t99 * t80;
     acc100 += t81;
   }
-  let t82 = acc100;
   let t101 = input["b_out"];
-  let t84 = t82 + t101;
+  let t84 = acc100 + t101;
   let t102 = 0.0;
   let t85 = t102 - t84;
   let t86 = Math.exp(t85);
@@ -272,17 +258,15 @@ export function _dh(input) {
       let t80 = t103 * t104;
       acc105 += t80;
     }
-    let t81 = acc105;
     let t106 = hidden_el98["b1"];
-    let t85 = t81 + t106;
+    let t85 = acc105 + t106;
     let t86 = Math.tanh(t85);
     let t107 = hidden_el98["w2"];
     let t87 = t107 * t86;
     acc108 += t87;
   }
-  let t88 = acc108;
   let t109 = input["b_out"];
-  let t90 = t88 + t109;
+  let t90 = acc108 + t109;
   let t110 = 0.0;
   let t91 = t110 - t90;
   let t92 = Math.exp(t91);
@@ -316,18 +300,16 @@ export function _dpre(input) {
       let t88 = t116 * t117;
       acc118 += t88;
     }
-    let t89 = acc118;
     let t119 = hidden_el111["b1"];
-    let t93 = t89 + t119;
+    let t93 = acc118 + t119;
     let t94 = Math.tanh(t93);
     arr129.push(t94);
     let t120 = hidden_el111["w2"];
     let t95 = t120 * t94;
     acc121 += t95;
   }
-  let t96 = acc121;
   let t122 = input["b_out"];
-  let t98 = t96 + t122;
+  let t98 = acc121 + t122;
   let t123 = 0.0;
   let t99 = t123 - t98;
   let t100 = Math.exp(t99);
@@ -365,17 +347,15 @@ export function _grad_b_out(input) {
       let t89 = t112 * t113;
       acc114 += t89;
     }
-    let t90 = acc114;
     let t115 = hidden_el107["b1"];
-    let t94 = t90 + t115;
+    let t94 = acc114 + t115;
     let t95 = Math.tanh(t94);
     let t116 = hidden_el107["w2"];
     let t96 = t116 * t95;
     acc117 += t96;
   }
-  let t97 = acc117;
   let t118 = input["b_out"];
-  let t99 = t97 + t118;
+  let t99 = acc117 + t118;
   let t119 = 0.0;
   let t100 = t119 - t99;
   let t101 = Math.exp(t100);
@@ -402,18 +382,16 @@ export function _grad_w2(input) {
       let t93 = t116 * t117;
       acc118 += t93;
     }
-    let t94 = acc118;
     let t119 = hidden_el111["b1"];
-    let t98 = t94 + t119;
+    let t98 = acc118 + t119;
     let t99 = Math.tanh(t98);
     arr128.push(t99);
     let t120 = hidden_el111["w2"];
     let t100 = t120 * t99;
     acc121 += t100;
   }
-  let t101 = acc121;
   let t122 = input["b_out"];
-  let t103 = t101 + t122;
+  let t103 = acc121 + t122;
   let t123 = 0.0;
   let t104 = t123 - t103;
   let t105 = Math.exp(t104);
@@ -447,18 +425,16 @@ export function _grad_b1(input) {
       let t94 = t161 * t162;
       acc163 += t94;
     }
-    let t95 = acc163;
     let t164 = hidden_el156["b1"];
-    let t99 = t95 + t164;
+    let t99 = acc163 + t164;
     let t100 = Math.tanh(t99);
     arr174.push(t100);
     let t165 = hidden_el156["w2"];
     let t101 = t165 * t100;
     acc166 += t101;
   }
-  let t102 = acc166;
   let t167 = input["b_out"];
-  let t104 = t102 + t167;
+  let t104 = acc166 + t167;
   let t168 = 0.0;
   let t105 = t168 - t104;
   let t106 = Math.exp(t105);
@@ -497,18 +473,16 @@ export function _grad_w1(input) {
       let t102 = t169 * t170;
       acc171 += t102;
     }
-    let t103 = acc171;
     let t172 = hidden_el164["b1"];
-    let t107 = t103 + t172;
+    let t107 = acc171 + t172;
     let t108 = Math.tanh(t107);
     arr182.push(t108);
     let t173 = hidden_el164["w2"];
     let t109 = t173 * t108;
     acc174 += t109;
   }
-  let t110 = acc174;
   let t175 = input["b_out"];
-  let t112 = t110 + t175;
+  let t112 = acc174 + t175;
   let t176 = 0.0;
   let t113 = t176 - t112;
   let t114 = Math.exp(t113);

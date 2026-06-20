@@ -62,8 +62,7 @@ module Kumi::Compiled::KUMI_986a15a50847a0555efbdc73131ff0ff5cc12d5e66aa49164650
       t36 = items_el34["qty"] || items_el34[:qty]
       acc37 += t36
     end
-    t32 = acc37
-    return t32
+    return acc37
   end
 
   def self._cart_total(input)
@@ -75,8 +74,7 @@ module Kumi::Compiled::KUMI_986a15a50847a0555efbdc73131ff0ff5cc12d5e66aa49164650
       t41 = t45 * t46
       acc47 += t41
     end
-    t34 = acc47
-    return t34
+    return acc47
   end
 
   def self._cart_total_effective(input)
@@ -93,7 +91,6 @@ module Kumi::Compiled::KUMI_986a15a50847a0555efbdc73131ff0ff5cc12d5e66aa49164650
       t60 = t42 ? t52 : t49
       acc68 += t60
     end
-    t36 = acc68
-    return t36
+    return acc68
   end
 end

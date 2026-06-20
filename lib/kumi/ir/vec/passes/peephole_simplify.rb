@@ -17,20 +17,27 @@ module Kumi
           def simplify_function(function)
             replacements = {}
             new_blocks = function.blocks.map do |block|
+              # The function's result is the LAST result-bearing instruction, so
+              # collapsing it (dropping it and pointing at an earlier register)
+              # would make some earlier instruction the new terminal and silently
+              # change the result. Never collapse the terminal; the small
+              # redundancy left there is harmless.
+              terminal = block.terminal_instruction
               new_instrs = []
               block.instructions.each do |instr|
                 inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
                 result = instr.defs.first
+                collapsible = !instr.equal?(terminal)
 
                 case instr.opcode
                 when :select
-                  if inputs[1] == inputs[2]
+                  if collapsible && inputs[1] == inputs[2]
                     replacements[result] = inputs[1] if result
                     next
                   end
                   new_instrs << rebuild(instr, inputs)
                 when :map
-                  simplified = simplify_map(instr, inputs)
+                  simplified = simplify_map(instr, inputs) if collapsible
                   if simplified
                     replacements[result] = simplified if result
                   else
@@ -47,8 +54,7 @@ module Kumi
             Kumi::IR::Base::Function.new(
               name: function.name,
               parameters: function.parameters,
-              blocks: new_blocks,
-              return_stamp: function.return_stamp
+              blocks: new_blocks
             )
           end
 

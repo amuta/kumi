@@ -55,7 +55,6 @@ export function _grand_total(input) {
     let acc0 = Math.max(t35, t39);
     acc42 += acc0;
   }
-  let t22 = acc42;
-  return t22;
+  return acc42;
 }
 

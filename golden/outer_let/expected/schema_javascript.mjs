@@ -1,6 +1,6 @@
 export function _t(input) {
   let t5 = input["step"];
-  let t2 = parseFloat(t5);
+  let t2 = __core_to_float(t5);
   let t6 = 0.03;
   let t4 = t2 * t6;
   return t4;
@@ -12,8 +12,7 @@ export function _px(input) {
   for (let pixels_i10 = 0; pixels_i10 < t8.length; pixels_i10++) {
     let pixels_el9 = t8[pixels_i10];
     let t11 = pixels_el9["px"];
-    let t12 = t11;
-    arr13.push(t12);
+    arr13.push(t11);
   }
   return arr13;
 }
@@ -24,8 +23,7 @@ export function _lbx(input) {
   for (let lights__o_i14 = 0; lights__o_i14 < t12.length; lights__o_i14++) {
     let lights__o_el13 = t12[lights__o_i14];
     let t15 = lights__o_el13["bx"];
-    let t16 = t15;
-    arr17.push(t16);
+    arr17.push(t15);
   }
   return arr17;
 }
@@ -36,8 +34,7 @@ export function _lr(input) {
   for (let lights__o_i18 = 0; lights__o_i18 < t16.length; lights__o_i18++) {
     let lights__o_el17 = t16[lights__o_i18];
     let t19 = lights__o_el17["r"];
-    let t20 = t19;
-    arr21.push(t20);
+    arr21.push(t19);
   }
   return arr21;
 }
@@ -48,8 +45,7 @@ export function _lph(input) {
   for (let lights__o_i22 = 0; lights__o_i22 < t20.length; lights__o_i22++) {
     let lights__o_el21 = t20[lights__o_i22];
     let t23 = lights__o_el21["ph"];
-    let t24 = t23;
-    arr25.push(t24);
+    arr25.push(t23);
   }
   return arr25;
 }
@@ -60,8 +56,7 @@ export function _lglow(input) {
   for (let lights__o_i26 = 0; lights__o_i26 < t24.length; lights__o_i26++) {
     let lights__o_el25 = t24[lights__o_i26];
     let t27 = lights__o_el25["glow"];
-    let t28 = t27;
-    arr29.push(t28);
+    arr29.push(t27);
   }
   return arr29;
 }
@@ -72,15 +67,14 @@ export function _lwr(input) {
   for (let lights__o_i30 = 0; lights__o_i30 < t28.length; lights__o_i30++) {
     let lights__o_el29 = t28[lights__o_i30];
     let t31 = lights__o_el29["wr"];
-    let t32 = t31;
-    arr33.push(t32);
+    arr33.push(t31);
   }
   return arr33;
 }
 
 export function _lx(input) {
   let t53 = input["step"];
-  let t42 = parseFloat(t53);
+  let t42 = __core_to_float(t53);
   let t54 = 0.03;
   let t44 = t42 * t54;
   let t55 = input["lights"];
@@ -101,7 +95,7 @@ export function _lx(input) {
 
 export function _dx(input) {
   let t66 = input["step"];
-  let t50 = parseFloat(t66);
+  let t50 = __core_to_float(t66);
   let t67 = 0.03;
   let t52 = t50 * t67;
   let t68 = input["lights"];
@@ -137,7 +131,7 @@ export function _dx(input) {
 
 export function _intensity(input) {
   let t82 = input["step"];
-  let t64 = parseFloat(t82);
+  let t64 = __core_to_float(t82);
   let t83 = 0.03;
   let t66 = t64 * t83;
   let t84 = input["lights"];
@@ -178,7 +172,7 @@ export function _intensity(input) {
 
 export function _brightness(input) {
   let t124 = input["step"];
-  let t70 = parseFloat(t124);
+  let t70 = __core_to_float(t124);
   let t125 = 0.03;
   let t72 = t70 * t125;
   let t126 = input["lights"];
@@ -214,9 +208,13 @@ export function _brightness(input) {
       let t54 = t119 * t143;
       acc144 += t54;
     }
-    let t55 = acc144;
-    arr145.push(t55);
+    arr145.push(acc144);
   }
   return arr145;
 }
 
+function __core_to_float(value) {
+  if (typeof value === 'number') return value;
+  const f = parseFloat(value);
+  return Number.isNaN(f) ? 0.0 : f;
+}

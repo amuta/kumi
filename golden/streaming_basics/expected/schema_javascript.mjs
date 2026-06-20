@@ -65,8 +65,7 @@ export function _total_qty(input) {
     let t36 = items_el34["qty"];
     acc37 += t36;
   }
-  let t32 = acc37;
-  return t32;
+  return acc37;
 }
 
 export function _cart_total(input) {
@@ -79,8 +78,7 @@ export function _cart_total(input) {
     let t41 = t45 * t46;
     acc47 += t41;
   }
-  let t34 = acc47;
-  return t34;
+  return acc47;
 }
 
 export function _cart_total_effective(input) {
@@ -98,7 +96,6 @@ export function _cart_total_effective(input) {
     let t60 = t42 ? t52 : t49;
     acc68 += t60;
   }
-  let t36 = acc68;
-  return t36;
+  return acc68;
 }
 

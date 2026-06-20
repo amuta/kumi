@@ -10,8 +10,7 @@ export function _total_payroll(input) {
       let t13 = employees_el11["salary"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -33,8 +32,7 @@ export function _manager_count(input) {
       let t19 = t14 ? t29 : t30;
       acc31 += t19;
     }
-    let t20 = acc31;
-    arr32.push(t20);
+    arr32.push(acc31);
   }
   return arr32;
 }
@@ -59,10 +57,8 @@ export function _department_summary(input) {
       let t45 = t40 ? t57 : t58;
       acc59 += t45;
     }
-    let t32 = acc54;
-    let t46 = acc59;
     let t60 = departments_el48["name"];
-    let t26 = { "name": t60, "total_payroll": t32, "manager_count": t46 };
+    let t26 = { "name": t60, "total_payroll": acc54, "manager_count": acc59 };
     arr61.push(t26);
   }
   return arr61;

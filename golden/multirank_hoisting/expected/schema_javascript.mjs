@@ -126,8 +126,7 @@ export function _row_sum_affine(input) {
         let t59 = t88 + t57;
         acc89 += t59;
       }
-      let t32 = acc89;
-      arr91.push(t32);
+      arr91.push(acc89);
     }
     arr90.push(arr91);
   }
@@ -174,11 +173,9 @@ export function _batch_total_affine(input) {
         let t61 = t91 + t59;
         acc92 += t61;
       }
-      let t62 = acc92;
-      acc93 += t62;
+      acc93 += acc92;
     }
-    let t34 = acc93;
-    arr94.push(t34);
+    arr94.push(acc93);
   }
   return arr94;
 }

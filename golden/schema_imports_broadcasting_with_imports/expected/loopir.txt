@@ -16,4 +16,3 @@ function total_tax:
     %v12 = kernel_call (:v16, :v17) [fn=:core.mul:numeric] [items] -> decimal
     acc_step (:acc18, :v12) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:items]
-  %v6 = acc_load (:acc18) [] -> decimal

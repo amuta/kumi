@@ -8,8 +8,7 @@ module Kumi::Compiled::KUMI_cf13c09cdb25fd3b72afa4199f094912cb09702ddea2b85baf57
       x_el6.each_with_index do |y_el8, y_i9|
         acc10 += y_el8
       end
-      t4 = acc10
-      arr11 << t4
+      arr11 << acc10
     end
     return arr11
   end

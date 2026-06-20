@@ -27,6 +27,14 @@ module Kumi
         def empty?
           @instructions.empty?
         end
+
+        # The block's last result-bearing instruction. By the IR convention this
+        # is the function's result, so passes that drop/dedup instructions use it
+        # to avoid collapsing the terminal (which would change what the function
+        # returns). nil for a block that defines no value.
+        def terminal_instruction
+          @instructions.reverse_each.find { |instr| instr.defs.first }
+        end
       end
     end
   end

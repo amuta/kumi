@@ -78,8 +78,7 @@ module Kumi::Compiled::KUMI_47622dacfc4573d398a479e75bddc5793da13b50095b7dd04a19
       t34 = t30 * t32
       acc44 += t34
     end
-    t26 = acc44
-    return t26
+    return acc44
   end
 
   def self._amount_count(input)

@@ -10,8 +10,7 @@ export function _regional_sales(input) {
       let t13 = sales_el11["amount"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -28,11 +27,9 @@ export function _total_sales(input) {
       let t21 = sales_el19["amount"];
       acc22 += t21;
     }
-    let t14 = acc22;
-    acc23 += t14;
+    acc23 += acc22;
   }
-  let t8 = acc23;
-  return t8;
+  return acc23;
 }
 
 export function _adjusted_total(input) {
@@ -47,12 +44,10 @@ export function _adjusted_total(input) {
       let t25 = sales_el23["amount"];
       acc26 += t25;
     }
-    let t17 = acc26;
-    acc27 += t17;
+    acc27 += acc26;
   }
-  let t18 = acc27;
   let t28 = input["adjustment"];
-  let t11 = t18 + t28;
+  let t11 = acc27 + t28;
   return t11;
 }
 

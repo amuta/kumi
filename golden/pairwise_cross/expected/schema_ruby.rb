@@ -5,8 +5,7 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
     arr9 = []
     t4.each_with_index do |bodies_el5, bodies_i6|
       t7 = bodies_el5["x"] || bodies_el5[:x]
-      t8 = t7
-      arr9 << t8
+      arr9 << t7
     end
     return arr9
   end
@@ -19,8 +18,7 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
       arr16 = []
       t11.each_with_index do |bodies__x_el12, bodies__x_i13|
         t14 = bodies__x_el12["x"] || bodies__x_el12[:x]
-        t4 = t14
-        arr16 << t4
+        arr16 << t14
       end
       arr15 << arr16
     end
@@ -35,8 +33,7 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
       arr20 = []
       t15.each_with_index do |bodies__x_el16, bodies__x_i17|
         t18 = bodies__x_el16["m"] || bodies__x_el16[:m]
-        t8 = t18
-        arr20 << t8
+        arr20 << t18
       end
       arr19 << arr20
     end
@@ -51,9 +48,8 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
       arr29 = []
       t23.each_with_index do |bodies__x_el24, bodies__x_i25|
         t26 = bodies__x_el24["x"] || bodies__x_el24[:x]
-        t19 = t26
         t27 = bodies_el21["x"] || bodies_el21[:x]
-        t15 = t19 - t27
+        t15 = t26 - t27
         arr29 << t15
       end
       arr28 << arr29
@@ -69,9 +65,8 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
       arr40 = []
       t33.each_with_index do |bodies__x_el34, bodies__x_i35|
         t36 = bodies__x_el34["x"] || bodies__x_el34[:x]
-        t24 = t36
         t37 = bodies_el31["x"] || bodies_el31[:x]
-        t29 = t24 - t37
+        t29 = t36 - t37
         t17 = t29.abs
         t38 = input["eps"] || input[:eps]
         t20 = t17 + t38
@@ -90,12 +85,10 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
       acc67 = 0.0
       t60.each_with_index do |bodies__x_el61, bodies__x_i62|
         t63 = bodies__x_el61["m"] || bodies__x_el61[:m]
-        t34 = t63
         t64 = bodies__x_el61["x"] || bodies__x_el61[:x]
-        t38 = t64
         t65 = bodies_el58["x"] || bodies_el58[:x]
-        t43 = t38 - t65
-        t23 = t34 * t43
+        t43 = t64 - t65
+        t23 = t63 * t43
         t53 = t43.abs
         t66 = input["eps"] || input[:eps]
         t56 = t53 + t66
@@ -104,8 +97,7 @@ module Kumi::Compiled::KUMI_f760fa8a6abb66622e8e992b3eb5bc92d74eff12c6a5677c8290
         t29 = t23 / t28.to_f
         acc67 += t29
       end
-      t30 = acc67
-      arr68 << t30
+      arr68 << acc67
     end
     return arr68
   end

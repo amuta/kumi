@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_db6a0f9f99ee4bac20c8760b2b2a30f7794ff4a780e8085f2122
         t13 = sales_el11["amount"] || sales_el11[:amount]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -26,11 +25,9 @@ module Kumi::Compiled::KUMI_db6a0f9f99ee4bac20c8760b2b2a30f7794ff4a780e8085f2122
         t21 = sales_el19["amount"] || sales_el19[:amount]
         acc22 += t21
       end
-      t14 = acc22
-      acc23 += t14
+      acc23 += acc22
     end
-    t8 = acc23
-    return t8
+    return acc23
   end
 
   def self._adjusted_total(input)
@@ -43,12 +40,10 @@ module Kumi::Compiled::KUMI_db6a0f9f99ee4bac20c8760b2b2a30f7794ff4a780e8085f2122
         t25 = sales_el23["amount"] || sales_el23[:amount]
         acc26 += t25
       end
-      t17 = acc26
-      acc27 += t17
+      acc27 += acc26
     end
-    t18 = acc27
     t28 = input["adjustment"] || input[:adjustment]
-    t11 = t18 + t28
+    t11 = acc27 + t28
     return t11
   end
 end

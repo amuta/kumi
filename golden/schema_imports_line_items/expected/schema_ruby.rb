@@ -9,8 +9,7 @@ module Kumi::Compiled::KUMI_8947d1d06b42ba339af6c7b0ec6d2f7f30e2b58befde9c826499
       t6 = t11 * t12
       acc13 += t6
     end
-    t7 = acc13
-    return t7
+    return acc13
   end
 
   def self._tax_amount(input)
@@ -22,9 +21,8 @@ module Kumi::Compiled::KUMI_8947d1d06b42ba339af6c7b0ec6d2f7f30e2b58befde9c826499
       t11 = t16 * t17
       acc18 += t11
     end
-    t12 = acc18
     t19 = input["tax_rate"] || input[:tax_rate]
-    t5 = t12 * t19
+    t5 = acc18 * t19
     return t5
   end
 
@@ -37,10 +35,9 @@ module Kumi::Compiled::KUMI_8947d1d06b42ba339af6c7b0ec6d2f7f30e2b58befde9c826499
       t18 = t23 * t24
       acc25 += t18
     end
-    t19 = acc25
     t26 = input["tax_rate"] || input[:tax_rate]
-    t14 = t19 * t26
-    t8 = t19 + t14
+    t14 = acc25 * t26
+    t8 = acc25 + t14
     return t8
   end
 end

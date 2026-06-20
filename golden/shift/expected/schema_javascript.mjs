@@ -40,8 +40,7 @@ export function _shift_right_clamp(input) {
     let t13 = input["cells"];
     let t14 = t13.length;
     let t15 = t13[Math.min(Math.max(cells_i12 - (1), 0), t14 - 1)];
-    let t7 = t15;
-    arr16.push(t7);
+    arr16.push(t15);
   }
   return arr16;
 }
@@ -54,8 +53,7 @@ export function _shift_left_clamp(input) {
     let t16 = input["cells"];
     let t17 = t16.length;
     let t18 = t16[Math.min(Math.max(cells_i15 - (-1), 0), t17 - 1)];
-    let t10 = t18;
-    arr19.push(t10);
+    arr19.push(t18);
   }
   return arr19;
 }
@@ -68,8 +66,7 @@ export function _shift_right_wrap(input) {
     let t19 = input["cells"];
     let t20 = t19.length;
     let t21 = t19[(((cells_i18 - (1)) % t20) + t20) % t20];
-    let t13 = t21;
-    arr22.push(t13);
+    arr22.push(t21);
   }
   return arr22;
 }
@@ -82,8 +79,7 @@ export function _shift_left_wrap(input) {
     let t22 = input["cells"];
     let t23 = t22.length;
     let t24 = t22[(((cells_i21 - (-1)) % t23) + t23) % t23];
-    let t16 = t24;
-    arr25.push(t16);
+    arr25.push(t24);
   }
   return arr25;
 }

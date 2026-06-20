@@ -10,8 +10,7 @@ export function _all_flags(input) {
   let arr11 = [];
   for (let feature_flags_i9 = 0; feature_flags_i9 < t7.length; feature_flags_i9++) {
     let feature_flags_el8 = t7[feature_flags_i9];
-    let t10 = feature_flags_el8;
-    arr11.push(t10);
+    arr11.push(feature_flags_el8);
   }
   return arr11;
 }
@@ -23,8 +22,7 @@ export function _server_hostnames(input) {
   for (let servers_i13 = 0; servers_i13 < t11.length; servers_i13++) {
     let servers_el12 = t11[servers_i13];
     let t14 = servers_el12["hostname"];
-    let t15 = t14;
-    arr16.push(t15);
+    arr16.push(t14);
   }
   return arr16;
 }
@@ -45,7 +43,6 @@ export function _total_ports(input) {
     let t22 = servers_el20["port"];
     acc23 += t22;
   }
-  let t17 = acc23;
-  return t17;
+  return acc23;
 }
 

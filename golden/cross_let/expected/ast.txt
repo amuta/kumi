@@ -1,0 +1,62 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array :i
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :price :float)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :double
+      (CallExpression :multiply
+        (InputElementReference items.item.price)
+        (Literal 2.0)
+      )
+    )
+    (ValueDeclaration :dj
+      (CallExpression :cross
+        (DeclarationReference :double)
+      )
+    )
+    (ValueDeclaration :pair_total
+      (CallExpression :sum
+        (DeclarationReference :dj)
+      )
+    )
+    (ValueDeclaration :self_diff
+      (CallExpression :sum
+        (CallExpression :subtract
+          (DeclarationReference :dj)
+          (DeclarationReference :double)
+        )
+      )
+    )
+    (ValueDeclaration :idx_i
+      (CallExpression :index
+        (Literal :i)
+      )
+    )
+    (ValueDeclaration :idx_j
+      (CallExpression :cross
+        (DeclarationReference :idx_i)
+      )
+    )
+    (ValueDeclaration :rank
+      (CallExpression :sum
+        (CallExpression :select
+          (CallExpression :<
+            (DeclarationReference :idx_j)
+            (DeclarationReference :idx_i)
+          )
+          (Literal 1)
+          (Literal 0)
+        )
+      )
+    )
+  ]
+  traits: []
+)

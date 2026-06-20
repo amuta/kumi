@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_932eed7fa360bba3e591724b754d63508772a8fa2c2317380521
         t13 = teams_el11["headcount"] || teams_el11[:headcount]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -26,8 +25,7 @@ module Kumi::Compiled::KUMI_932eed7fa360bba3e591724b754d63508772a8fa2c2317380521
         t19 = teams_el17["team_name"] || teams_el17[:team_name]
         acc20 += 1
       end
-      t12 = acc20
-      arr21 << t12
+      arr21 << acc20
     end
     return arr21
   end
@@ -45,9 +43,7 @@ module Kumi::Compiled::KUMI_932eed7fa360bba3e591724b754d63508772a8fa2c2317380521
         t36 = teams_el32["team_name"] || teams_el32[:team_name]
         acc37 += 1
       end
-      t21 = acc35
-      t27 = acc37
-      t15 = t21 / t27.to_f
+      t15 = acc35 / acc37.to_f
       arr38 << t15
     end
     return arr38
@@ -66,9 +62,7 @@ module Kumi::Compiled::KUMI_932eed7fa360bba3e591724b754d63508772a8fa2c2317380521
         t45 = teams_el41["team_name"] || teams_el41[:team_name]
         acc46 += 1
       end
-      t29 = acc44
-      t35 = acc46
-      t36 = t29 / t35.to_f
+      t36 = acc44 / acc46.to_f
       arr51 = []
       t40.each_with_index do |teams_el47, teams_i48|
         t49 = teams_el47["headcount"] || teams_el47[:headcount]

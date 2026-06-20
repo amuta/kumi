@@ -4,8 +4,7 @@ export function _xi(input) {
   for (let bodies_i6 = 0; bodies_i6 < t4.length; bodies_i6++) {
     let bodies_el5 = t4[bodies_i6];
     let t7 = bodies_el5["x"];
-    let t8 = t7;
-    arr9.push(t8);
+    arr9.push(t7);
   }
   return arr9;
 }
@@ -20,8 +19,7 @@ export function _xj(input) {
     for (let bodies__x_i13 = 0; bodies__x_i13 < t11.length; bodies__x_i13++) {
       let bodies__x_el12 = t11[bodies__x_i13];
       let t14 = bodies__x_el12["x"];
-      let t4 = t14;
-      arr16.push(t4);
+      arr16.push(t14);
     }
     arr15.push(arr16);
   }
@@ -38,8 +36,7 @@ export function _mj(input) {
     for (let bodies__x_i17 = 0; bodies__x_i17 < t15.length; bodies__x_i17++) {
       let bodies__x_el16 = t15[bodies__x_i17];
       let t18 = bodies__x_el16["m"];
-      let t8 = t18;
-      arr20.push(t8);
+      arr20.push(t18);
     }
     arr19.push(arr20);
   }
@@ -56,9 +53,8 @@ export function _dx(input) {
     for (let bodies__x_i25 = 0; bodies__x_i25 < t23.length; bodies__x_i25++) {
       let bodies__x_el24 = t23[bodies__x_i25];
       let t26 = bodies__x_el24["x"];
-      let t19 = t26;
       let t27 = bodies_el21["x"];
-      let t15 = t19 - t27;
+      let t15 = t26 - t27;
       arr29.push(t15);
     }
     arr28.push(arr29);
@@ -76,9 +72,8 @@ export function _dist(input) {
     for (let bodies__x_i35 = 0; bodies__x_i35 < t33.length; bodies__x_i35++) {
       let bodies__x_el34 = t33[bodies__x_i35];
       let t36 = bodies__x_el34["x"];
-      let t24 = t36;
       let t37 = bodies_el31["x"];
-      let t29 = t24 - t37;
+      let t29 = t36 - t37;
       let t17 = Math.abs(t29);
       let t38 = input["eps"];
       let t20 = t17 + t38;
@@ -99,12 +94,10 @@ export function _accel(input) {
     for (let bodies__x_i62 = 0; bodies__x_i62 < t60.length; bodies__x_i62++) {
       let bodies__x_el61 = t60[bodies__x_i62];
       let t63 = bodies__x_el61["m"];
-      let t34 = t63;
       let t64 = bodies__x_el61["x"];
-      let t38 = t64;
       let t65 = bodies_el58["x"];
-      let t43 = t38 - t65;
-      let t23 = t34 * t43;
+      let t43 = t64 - t65;
+      let t23 = t63 * t43;
       let t53 = Math.abs(t43);
       let t66 = input["eps"];
       let t56 = t53 + t66;
@@ -113,8 +106,7 @@ export function _accel(input) {
       let t29 = t23 / t28;
       acc67 += t29;
     }
-    let t30 = acc67;
-    arr68.push(t30);
+    arr68.push(acc67);
   }
   return arr68;
 }

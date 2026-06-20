@@ -12,8 +12,7 @@ export function _order_subtotals(input) {
       let t8 = t16 * t17;
       acc18 += t8;
     }
-    let t9 = acc18;
-    arr19.push(t9);
+    arr19.push(acc18);
   }
   return arr19;
 }
@@ -32,9 +31,8 @@ export function _order_with_shipping(input) {
       let t17 = t25 * t26;
       acc27 += t17;
     }
-    let t18 = acc27;
     let t28 = orders_el20["shipping_cost"];
-    let t9 = t18 + t28;
+    let t9 = acc27 + t28;
     arr29.push(t9);
   }
   return arr29;
@@ -54,9 +52,8 @@ export function _order_discounted(input) {
       let t25 = t36 * t37;
       acc38 += t25;
     }
-    let t26 = acc38;
     let t39 = orders_el31["shipping_cost"];
-    let t21 = t26 + t39;
+    let t21 = acc38 + t39;
     let t40 = 1.0;
     let t41 = input["global_discount_rate"];
     let t28 = t40 - t41;
@@ -80,9 +77,8 @@ export function _order_tax(input) {
       let t30 = t43 * t44;
       acc45 += t30;
     }
-    let t31 = acc45;
     let t46 = orders_el38["shipping_cost"];
-    let t23 = t31 + t46;
+    let t23 = acc45 + t46;
     let t47 = 1.0;
     let t48 = input["global_discount_rate"];
     let t33 = t47 - t48;
@@ -108,9 +104,8 @@ export function _order_totals(input) {
       let t45 = t58 * t59;
       acc60 += t45;
     }
-    let t46 = acc60;
     let t61 = orders_el53["shipping_cost"];
-    let t26 = t46 + t61;
+    let t26 = acc60 + t61;
     let t62 = 1.0;
     let t63 = input["global_discount_rate"];
     let t48 = t62 - t63;
@@ -137,9 +132,8 @@ export function _discount_per_order(input) {
       let t44 = t55 * t56;
       acc57 += t44;
     }
-    let t45 = acc57;
     let t58 = orders_el50["shipping_cost"];
-    let t29 = t45 + t58;
+    let t29 = acc57 + t58;
     let t59 = 1.0;
     let t60 = input["global_discount_rate"];
     let t47 = t59 - t60;
@@ -158,8 +152,7 @@ export function _total_orders(input) {
     let t29 = orders_el27["id"];
     acc30 += 1;
   }
-  let t25 = acc30;
-  return t25;
+  return acc30;
 }
 
 export function _total_revenue(input) {
@@ -176,9 +169,8 @@ export function _total_revenue(input) {
       let t55 = t68 * t69;
       acc70 += t55;
     }
-    let t56 = acc70;
     let t71 = orders_el63["shipping_cost"];
-    let t35 = t56 + t71;
+    let t35 = acc70 + t71;
     let t72 = 1.0;
     let t73 = input["global_discount_rate"];
     let t58 = t72 - t73;
@@ -188,8 +180,7 @@ export function _total_revenue(input) {
     let t51 = t59 + t61;
     acc75 += t51;
   }
-  let t27 = acc75;
-  return t27;
+  return acc75;
 }
 
 export function _total_tax_collected(input) {
@@ -206,9 +197,8 @@ export function _total_tax_collected(input) {
       let t45 = t58 * t59;
       acc60 += t45;
     }
-    let t46 = acc60;
     let t61 = orders_el53["shipping_cost"];
-    let t37 = t46 + t61;
+    let t37 = acc60 + t61;
     let t62 = 1.0;
     let t63 = input["global_discount_rate"];
     let t48 = t62 - t63;
@@ -217,8 +207,7 @@ export function _total_tax_collected(input) {
     let t51 = t49 * t64;
     acc65 += t51;
   }
-  let t29 = acc65;
-  return t29;
+  return acc65;
 }
 
 export function _total_discount_given(input) {
@@ -235,9 +224,8 @@ export function _total_discount_given(input) {
       let t55 = t66 * t67;
       acc68 += t55;
     }
-    let t56 = acc68;
     let t69 = orders_el61["shipping_cost"];
-    let t39 = t56 + t69;
+    let t39 = acc68 + t69;
     let t70 = 1.0;
     let t71 = input["global_discount_rate"];
     let t58 = t70 - t71;
@@ -245,7 +233,6 @@ export function _total_discount_given(input) {
     let t51 = t39 - t59;
     acc72 += t51;
   }
-  let t31 = acc72;
-  return t31;
+  return acc72;
 }
 

@@ -10,8 +10,7 @@ export function _dept_total(input) {
       let t13 = teams_el11["headcount"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -28,11 +27,9 @@ export function _company_total(input) {
       let t20 = teams_el18["headcount"];
       acc21 += t20;
     }
-    let t12 = acc21;
-    acc22 += t12;
+    acc22 += acc21;
   }
-  let t13 = acc22;
-  return t13;
+  return acc22;
 }
 
 export function _big_team(input) {
@@ -70,8 +67,7 @@ export function _dept_total_masked(input) {
       let t30 = t39 ? t46 : t48;
       acc49 += t30;
     }
-    let t31 = acc49;
-    arr50.push(t31);
+    arr50.push(acc49);
   }
   return arr50;
 }

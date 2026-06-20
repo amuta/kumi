@@ -1,0 +1,51 @@
+(SNAST
+  (VALUE times_one
+    (Call :core.mul:numeric
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
+      (Const 1.0) :: [] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE div_one
+    (Call :core.div
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
+      (Const 1.0) :: [] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE sub_zero
+    (Call :core.sub
+      (InputRef items.item.price key_chain=[]) :: [items] -> float
+      (Const 0.0) :: [] -> float
+    ) :: [items] -> float
+  ) :: [items] -> float
+  (VALUE plus_zero
+    (Call :core.add
+      (InputRef items.item.qty key_chain=[]) :: [items] -> integer
+      (Const 0) :: [] -> integer
+    ) :: [items] -> integer
+  ) :: [items] -> integer
+  (VALUE mul_zero
+    (Call :core.mul:numeric
+      (InputRef items.item.qty key_chain=[]) :: [items] -> integer
+      (Const 0) :: [] -> integer
+    ) :: [items] -> integer
+  ) :: [items] -> integer
+  (VALUE price_check
+    (Reduce :agg.sum over [items]
+      (Call :core.sub
+        (Call :core.add
+          (Ref times_one) :: [items] -> float
+          (Ref div_one) :: [items] -> float
+        ) :: [items] -> float
+        (Ref sub_zero) :: [items] -> float
+      ) :: [items] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE qty_check
+    (Reduce :agg.sum over [items]
+      (Call :core.add
+        (Ref plus_zero) :: [items] -> integer
+        (Ref mul_zero) :: [items] -> integer
+      ) :: [items] -> integer
+    ) :: [] -> integer
+  ) :: [] -> integer
+)

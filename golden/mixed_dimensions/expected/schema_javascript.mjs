@@ -6,8 +6,7 @@ export function _sum_numbers(input) {
     let t8 = numbers_el6["value"];
     acc9 += t8;
   }
-  let t4 = acc9;
-  return t4;
+  return acc9;
 }
 
 export function _matrix_sums(input) {
@@ -22,8 +21,7 @@ export function _matrix_sums(input) {
       let t17 = row_el15["cell"];
       acc18 += t17;
     }
-    let t10 = acc18;
-    arr19.push(t10);
+    arr19.push(acc18);
   }
   return arr19;
 }
@@ -36,7 +34,6 @@ export function _mixed_array(input) {
     let t26 = numbers_el24["value"];
     acc27 += t26;
   }
-  let t22 = acc27;
   let t28 = input["matrix"];
   let arr36 = [];
   for (let matrix_i30 = 0; matrix_i30 < t28.length; matrix_i30++) {
@@ -47,7 +44,7 @@ export function _mixed_array(input) {
       let row_el32 = t31[row_i33];
       let t34 = input["scalar_val"];
       let t35 = row_el32["cell"];
-      let t18 = [t34, t22, t35];
+      let t18 = [t34, acc27, t35];
       arr37.push(t18);
     }
     arr36.push(arr37);

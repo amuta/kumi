@@ -6,11 +6,9 @@ function result:
     %acc17 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
     %vals__x_el13 = loop_start (:v12) [axis=:vals__x, index=:vals__x_i14]
       %v15 = load_field (:vals__x_el13) [field=:a]
-      %v5 = ref (:v15) [vals, vals__x] -> float
       %v16 = load_field (:vals_el10) [field=:a]
-      %v7 = kernel_call (:v5, :v16) [fn=:core.sub] [vals, vals__x] -> float
+      %v7 = kernel_call (:v15, :v16) [fn=:core.sub] [vals, vals__x] -> float
       acc_step (:acc17, :v7) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:vals__x]
-    %v8 = acc_load (:acc17) [] -> float
-    array_push (:arr18, :v8)
+    array_push (:arr18, :acc17)
   loop_end [axis=:vals]

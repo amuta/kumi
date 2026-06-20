@@ -5,6 +5,8 @@ module Kumi
     module DF
       module Passes
         class ImportInlining < Kumi::IR::Passes::Base
+          require_relative "../../passes/register_generator"
+
           def initialize(loader: nil)
             @loader = loader
           end
@@ -30,14 +32,13 @@ module Kumi
           end
 
           def rewrite_function(fn, loader)
-            reg_gen = RegGenerator.new(fn)
+            reg_gen = Kumi::IR::Passes::RegisterGenerator.new(fn)
             defs = {}
             new_blocks = fn.blocks.map { |block| rewrite_block(block, loader, reg_gen, defs) }
             Kumi::IR::DF::Function.new(
               name: fn.name,
               parameters: fn.parameters,
-              blocks: new_blocks,
-              return_stamp: fn.return_stamp
+              blocks: new_blocks
             )
           end
 
@@ -140,7 +141,7 @@ module Kumi
               value_map[callee_result] = new_result if callee_result
             end
 
-            final_reg = value_map[block.instructions.reverse.find { |instr| instr.defs.any? }&.defs&.first] or
+            final_reg = value_map[block.terminal_instruction&.defs&.first] or
               abort_inline(fn_name, "no final result register after inlining")
 
             [emitted, final_reg]
@@ -268,28 +269,6 @@ module Kumi
           def references_declarations?(function)
             function.blocks.any? do |block|
               block.any? { |instr| instr.opcode == :decl_ref }
-            end
-          end
-
-          class RegGenerator
-            def initialize(function)
-              @counter = extract_highest(function)
-            end
-
-            def next
-              @counter += 1
-              :"v#{@counter}"
-            end
-
-            private
-
-            def extract_highest(function)
-              regs = function.blocks.flat_map(&:instructions).map(&:result).compact
-              nums = regs.filter_map do |reg|
-                match = reg.to_s.match(/^v(\d+)$/)
-                match && match[1].to_i
-              end
-              nums.max || 0
             end
           end
         end

@@ -21,7 +21,6 @@ module Kumi::Compiled::KUMI_640a831e4be1bf73dfb2e5c4cf0f2a484e1595c3f84aa7c58e6b
       t12 = t16 * t17
       acc18 += t12
     end
-    t6 = acc18
-    return t6
+    return acc18
   end
 end

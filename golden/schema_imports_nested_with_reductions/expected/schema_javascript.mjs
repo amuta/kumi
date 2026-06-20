@@ -12,8 +12,7 @@ export function _order_subtotals(input) {
       let t8 = t16 * t17;
       acc18 += t8;
     }
-    let t9 = acc18;
-    arr19.push(t9);
+    arr19.push(acc18);
   }
   return arr19;
 }
@@ -32,11 +31,9 @@ export function _total_before_tax(input) {
       let t14 = t22 * t23;
       acc24 += t14;
     }
-    let t15 = acc24;
-    acc25 += t15;
+    acc25 += acc24;
   }
-  let t6 = acc25;
-  return t6;
+  return acc25;
 }
 
 export function _tax_for_all(input) {
@@ -53,12 +50,10 @@ export function _tax_for_all(input) {
       let t17 = t27 * t28;
       acc29 += t17;
     }
-    let t18 = acc29;
-    acc30 += t18;
+    acc30 += acc29;
   }
-  let t13 = acc30;
   let t31 = 0.15;
-  let t20 = t13 * t31;
+  let t20 = acc30 * t31;
   return t20;
 }
 
@@ -76,13 +71,11 @@ export function _grand_total(input) {
       let t26 = t36 * t37;
       acc38 += t26;
     }
-    let t27 = acc38;
-    acc39 += t27;
+    acc39 += acc38;
   }
-  let t16 = acc39;
   let t40 = 0.15;
-  let t29 = t16 * t40;
-  let t11 = t16 + t29;
+  let t29 = acc39 * t40;
+  let t11 = acc39 + t29;
   return t11;
 }
 

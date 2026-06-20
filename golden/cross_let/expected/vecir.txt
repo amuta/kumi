@@ -1,0 +1,51 @@
+function double:
+  %v1 = load_input [key=:items, chain=[]] [items] -> float
+  %v2 = load_field (:v1) [field=:item] [items] -> float
+  %v3 = load_field (:v2) [field=:price] [items] -> float
+  %v4 = constant [value=2.0] [] -> float
+  %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v6 = map (:v3, :v5) [fn=:core.mul:numeric] [items] -> float
+function dj:
+  %v9 = load_input [key=:items, chain=[]] [items] -> float
+  %v10 = load_field (:v9) [field=:item] [items] -> float
+  %v11 = load_field (:v10) [field=:price] [items] -> float
+  %v12 = constant [value=2.0] [] -> float
+  %v13 = axis_broadcast (:v12) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v14 = map (:v11, :v13) [fn=:core.mul:numeric] [items] -> float
+  %v7 = axis_cross (:v14) [axis=:items__x, source_axis=:items] [items, items__x] -> float
+function pair_total:
+  %v11 = load_input [key=:items, chain=[]] [items] -> float
+  %v12 = load_field (:v11) [field=:item] [items] -> float
+  %v13 = load_field (:v12) [field=:price] [items] -> float
+  %v14 = constant [value=2.0] [] -> float
+  %v15 = axis_broadcast (:v14) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v16 = map (:v13, :v15) [fn=:core.mul:numeric] [items] -> float
+  %v17 = axis_cross (:v16) [axis=:items__x, source_axis=:items] [items, items__x] -> float
+  %v10 = reduce (:v17) [fn=:agg.sum, over_axes=[:items__x]] [items] -> float
+function self_diff:
+  %v16 = load_input [key=:items, chain=[]] [items] -> float
+  %v17 = load_field (:v16) [field=:item] [items] -> float
+  %v18 = load_field (:v17) [field=:price] [items] -> float
+  %v19 = constant [value=2.0] [] -> float
+  %v20 = axis_broadcast (:v19) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v21 = map (:v18, :v20) [fn=:core.mul:numeric] [items] -> float
+  %v22 = axis_cross (:v21) [axis=:items__x, source_axis=:items] [items, items__x] -> float
+  %v13 = axis_broadcast (:v21) [from_axes=[:items], to_axes=[:items, :items__x]] [items, items__x] -> float
+  %v14 = map (:v22, :v13) [fn=:core.sub] [items, items__x] -> float
+  %v15 = reduce (:v14) [fn=:agg.sum, over_axes=[:items__x]] [items] -> float
+function idx_i:
+  %v16 = axis_index [axis=:items] [items] -> integer
+function idx_j:
+  %v19 = axis_index [axis=:items] [items] -> integer
+  %v17 = axis_cross (:v19) [axis=:items__x, source_axis=:items] [items, items__x] -> integer
+function rank:
+  %v29 = axis_index [axis=:items] [items] -> integer
+  %v30 = axis_cross (:v29) [axis=:items__x, source_axis=:items] [items, items__x] -> integer
+  %v21 = axis_broadcast (:v29) [from_axes=[:items], to_axes=[:items, :items__x]] [items, items__x] -> integer
+  %v22 = map (:v30, :v21) [fn=:core.lt] [items, items__x] -> boolean
+  %v23 = constant [value=1] [] -> integer
+  %v24 = constant [value=0] [] -> integer
+  %v25 = axis_broadcast (:v23) [from_axes=[], to_axes=[:items, :items__x]] [items, items__x] -> integer
+  %v26 = axis_broadcast (:v24) [from_axes=[], to_axes=[:items, :items__x]] [items, items__x] -> integer
+  %v27 = select (:v22, :v25, :v26) [items, items__x] -> integer
+  %v28 = reduce (:v27) [fn=:agg.sum, over_axes=[:items__x]] [items] -> integer

@@ -79,8 +79,7 @@ export function _total_scaled(input) {
     let t34 = t30 * t32;
     acc44 += t34;
   }
-  let t26 = acc44;
-  return t26;
+  return acc44;
 }
 
 export function _amount_count(input) {

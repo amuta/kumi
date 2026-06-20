@@ -17,8 +17,7 @@ module Kumi
             Kumi::IR::DF::Function.new(
               name: fn.name,
               parameters: fn.parameters,
-              blocks: new_blocks,
-              return_stamp: fn.return_stamp
+              blocks: new_blocks
             )
           end
 
@@ -28,14 +27,20 @@ module Kumi
             load_fields = {}
             new_instructions = []
 
+            # Never dedup away the terminal (the last result-bearing instruction
+            # is the function's result); replacing it would change what the
+            # function returns.
+            terminal = block.terminal_instruction
+
             block.each do |instr|
               new_inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
               result = instr.defs.first
+              dedupable = !instr.equal?(terminal)
 
               case instr.opcode
               when :load_input
                 key = load_input_key(instr)
-                if key && load_inputs[key]
+                if dedupable && key && load_inputs[key]
                   replacements[result] = load_inputs[key] if result
                   next
                 end
@@ -45,7 +50,7 @@ module Kumi
               when :load_field
                 key = load_field_key(instr, new_inputs)
                 cache = field_cache_for(instr, load_fields)
-                if key && cache[key]
+                if dedupable && key && cache[key]
                   replacements[result] = cache[key] if result
                   next
                 end

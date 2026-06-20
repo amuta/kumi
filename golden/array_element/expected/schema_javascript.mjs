@@ -8,8 +8,7 @@ export function _v_sum_y(input) {
       let y_el8 = x_el6[y_i9];
       acc10 += y_el8;
     }
-    let t4 = acc10;
-    arr11.push(t4);
+    arr11.push(acc10);
   }
   return arr11;
 }

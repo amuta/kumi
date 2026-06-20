@@ -39,8 +39,7 @@ module Kumi::Compiled::KUMI_fdcd458021dec2de4de2c2b625f514ca1b345237bcd79c4d036a
       t13 = input["cells"] || input[:cells]
       t14 = t13.length
       t15 = t13[(cells_i12 - (1)).clamp(0, t14 - 1)]
-      t7 = t15
-      arr16 << t7
+      arr16 << t15
     end
     return arr16
   end
@@ -52,8 +51,7 @@ module Kumi::Compiled::KUMI_fdcd458021dec2de4de2c2b625f514ca1b345237bcd79c4d036a
       t16 = input["cells"] || input[:cells]
       t17 = t16.length
       t18 = t16[(cells_i15 - (-1)).clamp(0, t17 - 1)]
-      t10 = t18
-      arr19 << t10
+      arr19 << t18
     end
     return arr19
   end
@@ -65,8 +63,7 @@ module Kumi::Compiled::KUMI_fdcd458021dec2de4de2c2b625f514ca1b345237bcd79c4d036a
       t19 = input["cells"] || input[:cells]
       t20 = t19.length
       t21 = t19[((cells_i18 - (1)) % t20 + t20) % t20]
-      t13 = t21
-      arr22 << t13
+      arr22 << t21
     end
     return arr22
   end
@@ -78,8 +75,7 @@ module Kumi::Compiled::KUMI_fdcd458021dec2de4de2c2b625f514ca1b345237bcd79c4d036a
       t22 = input["cells"] || input[:cells]
       t23 = t22.length
       t24 = t22[((cells_i21 - (-1)) % t23 + t23) % t23]
-      t16 = t24
-      arr25 << t16
+      arr25 << t24
     end
     return arr25
   end

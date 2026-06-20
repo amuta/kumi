@@ -52,7 +52,6 @@ function total_scaled:
     %v34 = kernel_call (:v30, :v32) [fn=:core.mul:numeric] [amounts] -> decimal
     acc_step (:acc44, :v34) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:amounts]
-  %v26 = acc_load (:acc44) [] -> decimal
 function amount_count:
   %v29 = load_input [key=:amounts]
   %v28 = kernel_call (:v29) [fn=:core.array_size] [] -> integer

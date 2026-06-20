@@ -4,8 +4,7 @@ function a:
   %rows_el5 = loop_start (:v4) [axis=:rows, index=:rows_i6]
     %arr11 = array_init
     %col_el7 = loop_start (:rows_el5) [axis=:col, index=:col_i8]
-      %v9 = ref (:col_el7) [rows, col] -> integer
-      array_push (:arr11, :v9)
+      array_push (:arr11, :col_el7)
     loop_end [axis=:col]
     array_push (:arr10, :arr11)
   loop_end [axis=:rows]

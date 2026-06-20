@@ -1,0 +1,25 @@
+schema do
+  input do
+    array :items do
+      hash :item do
+        float :price
+        integer :qty
+      end
+    end
+  end
+
+  # Each `let` is an algebraic identity used DOWNSTREAM (not as the terminal of
+  # its value), so ConstantPropagation reduces it to one operand and the op is
+  # gone from the generated loop. Only IEEE-safe identities are applied:
+  #   times_one / div_one / sub_zero  -> float, always safe
+  #   plus_zero / mul_zero            -> integer only
+  let :times_one, input.items.item.price * 1.0
+  let :div_one,   input.items.item.price / 1.0
+  let :sub_zero,  input.items.item.price - 0.0
+  let :plus_zero, input.items.item.qty + 0
+  let :mul_zero,  input.items.item.qty * 0
+
+  # Combine them so each identity result is a real downstream use.
+  value :price_check, fn(:sum, (times_one + div_one) - sub_zero)
+  value :qty_check,   fn(:sum, plus_zero + mul_zero)
+end

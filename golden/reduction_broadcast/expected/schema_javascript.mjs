@@ -10,8 +10,7 @@ export function _dept_headcount(input) {
       let t13 = teams_el11["headcount"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -28,8 +27,7 @@ export function _teams_per_dept(input) {
       let t19 = teams_el17["team_name"];
       acc20 += 1;
     }
-    let t12 = acc20;
-    arr21.push(t12);
+    arr21.push(acc20);
   }
   return arr21;
 }
@@ -49,9 +47,7 @@ export function _avg_headcount_per_dept(input) {
       let t36 = teams_el32["team_name"];
       acc37 += 1;
     }
-    let t21 = acc35;
-    let t27 = acc37;
-    let t15 = t21 / t27;
+    let t15 = acc35 / acc37;
     arr38.push(t15);
   }
   return arr38;
@@ -72,9 +68,7 @@ export function _is_above_average_team(input) {
       let t45 = teams_el41["team_name"];
       acc46 += 1;
     }
-    let t29 = acc44;
-    let t35 = acc46;
-    let t36 = t29 / t35;
+    let t36 = acc44 / acc46;
     let arr51 = [];
     for (let teams_i48 = 0; teams_i48 < t40.length; teams_i48++) {
       let teams_el47 = t40[teams_i48];
