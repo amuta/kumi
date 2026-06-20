@@ -34,6 +34,18 @@ jobs:
       - name: Generate portal artifacts
         run: bundle exec rake docs:portal
 
+      # Fail fast with an actionable message: the checkout below otherwise
+      # dies on a cryptic "Input required and not supplied: token" when the
+      # secret is missing or empty.
+      - name: Require KUMI_DOCS_TOKEN
+        env:
+          KUMI_DOCS_TOKEN: ${{ secrets.KUMI_DOCS_TOKEN }}
+        run: |
+          if [ -z "${KUMI_DOCS_TOKEN}" ]; then
+            echo "::error::KUMI_DOCS_TOKEN is not set. Add a PAT with push access to amuta/kumi-docs via 'gh secret set KUMI_DOCS_TOKEN' (or repo Settings > Secrets > Actions)."
+            exit 1
+          fi
+
       - name: Checkout kumi-docs
         uses: actions/checkout@v4
         with:
