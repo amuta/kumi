@@ -185,6 +185,93 @@ RSpec.describe "Kumi::IR::Loop::Passes" do
     end
   end
 
+  describe Kumi::IR::Loop::Passes::CopyCleanup do
+    it "propagates a ref copy into its consumer and drops the copy" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      out = builder.array_init(result: :out)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      v = builder.load_field(result: :v, object: el, field: :v)
+      aliased = builder.ref(result: :aliased, value: v)
+      doubled = builder.kernel_call(result: :doubled, fn: :"core.add", args: [aliased, aliased])
+      builder.array_push(array: out, value: doubled)
+      builder.loop_end(axis: :xs)
+
+      fn = run_pass(described_class.new)
+
+      expect(opcodes(fn)).not_to include(:ref)
+      add = fn.entry_block.instructions.find { |i| i.opcode == :kernel_call }
+      expect(add.inputs).to eq(%i[v v]) # both args now read the source directly
+    end
+
+    it "folds an acc_load copy so the consumer reads the accumulator" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      acc = builder.acc_init(result: :acc, fn: :"agg.sum", init: 0, nil_init: false)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      builder.acc_step(acc: acc, value: el, fn: :"agg.sum", nil_init: false)
+      builder.loop_end(axis: :xs)
+      total = builder.acc_load(result: :total, acc: acc)
+      builder.kernel_call(result: :out, fn: :"core.add", args: [total, total])
+
+      fn = run_pass(described_class.new)
+
+      expect(opcodes(fn)).not_to include(:acc_load)
+      add = fn.entry_block.instructions.find { |i| i.opcode == :kernel_call }
+      expect(add.inputs).to eq(%i[acc acc])
+    end
+
+    it "returns through a copy directly" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      acc = builder.acc_init(result: :acc, fn: :"agg.sum", init: 0, nil_init: false)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      builder.acc_step(acc: acc, value: el, fn: :"agg.sum", nil_init: false)
+      builder.loop_end(axis: :xs)
+      builder.acc_load(result: :out, acc: acc)
+
+      fn = run_pass(described_class.new)
+
+      expect(fn.return_reg).to eq(:acc)
+      expect(opcodes(fn)).not_to include(:acc_load)
+    end
+
+    it "eliminates a pure instruction whose result is never read" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      builder.load_input(result: :unused, key: :ignored) # dead: nobody reads :unused
+      out = builder.array_init(result: :out)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      builder.array_push(array: out, value: el)
+      builder.loop_end(axis: :xs)
+
+      fn = run_pass(described_class.new)
+
+      keys = fn.entry_block.instructions.select { |i| i.opcode == :load_input }.map { |i| i.attributes[:key] }
+      expect(keys).to eq(%i[xs]) # the :ignored load is gone
+    end
+
+    it "keeps effectful ops (push, acc_step, loops) even with no read of a result" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      out = builder.array_init(result: :out)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      builder.array_push(array: out, value: el)
+      builder.loop_end(axis: :xs)
+
+      fn = run_pass(described_class.new)
+      expect(opcodes(fn)).to include(:array_init, :array_push, :loop_start, :loop_end)
+    end
+
+    it "produces IR that still validates" do
+      xs = builder.load_input(result: :xs, key: :xs)
+      out = builder.array_init(result: :out)
+      el = builder.loop_start(result: :el, source: xs, axis: :xs, index: :i)
+      v = builder.load_field(result: :v, object: el, field: :v)
+      aliased = builder.ref(result: :aliased, value: v)
+      builder.array_push(array: out, value: aliased)
+      builder.loop_end(axis: :xs)
+
+      optimized = described_class.new.run(graph: loop_module, context: {})
+      expect { Kumi::IR::Loop::Validator.validate!(optimized) }.not_to raise_error
+    end
+  end
+
   describe Kumi::IR::Loop::Pipeline do
     it "fuses then contracts, producing a single-loop scratch-free function" do
       build_two_pass_function

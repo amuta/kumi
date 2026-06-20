@@ -99,4 +99,64 @@ RSpec.describe "analyzer error reporting" do
       expect(feat).not_to be_a(Kumi::Core::Errors::LocatedError)
     end
   end
+
+  # An input typo is the most common user mistake; it must be a clean, located
+  # user error — never "internal compiler error (please report)".
+  describe "a reference to an undeclared input" do
+    subject(:error) do
+      analyze_error do
+        input { integer :x }
+        value :y, input.nope * 2
+      end
+    end
+
+    it "raises a located SemanticError naming the missing field and its siblings" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("undeclared input")
+      expect(error.message).to include("nope")
+      expect(error.message).to include("Available: x")
+    end
+
+    it "does not leak compiler internals" do
+      expect(error.message).not_to include("internal compiler error")
+      expect(error.message).not_to include("input_table")
+    end
+  end
+
+  describe "a path that reads past a leaf input" do
+    subject(:error) do
+      analyze_error do
+        input { array(:items) { hash(:item) { integer :q } } }
+        value :y, input.items.item.q.extra
+      end
+    end
+
+    it "raises a clean SemanticError about reading past a leaf, not a compiler bug" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("reads past a leaf")
+      expect(error.message).not_to include("internal compiler error")
+    end
+  end
+
+  # select must require a boolean condition (consistent with & | !), not coerce
+  # a number to truthy. And the message uses the friendly alias, not __select__.
+  describe "select with a non-boolean condition" do
+    subject(:error) do
+      analyze_error do
+        input { integer :x }
+        value :y, select(input.x, 100, 200)
+      end
+    end
+
+    it "raises a located TypeError naming the boolean condition requirement" do
+      expect(error).to be_a(Kumi::Core::Errors::TypeError)
+      expect(error.message).to include("condition_mask")
+      expect(error.message).to include("expected boolean")
+    end
+
+    it "shows the friendly alias `select`, not the synthetic id" do
+      expect(error.message).to include("select(")
+      expect(error.message).not_to include("__select__")
+    end
+  end
 end

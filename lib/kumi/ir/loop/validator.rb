@@ -48,23 +48,34 @@ module Kumi
         def validate_function(function)
           raise ArgumentError, "LoopIR function #{function.name} missing return_reg" unless function.return_reg
 
+          # `defs` holds only the registers that are LIVE at the current point:
+          # each maps to the loop depth where it was defined, and a register
+          # defined inside a loop is dropped when that loop closes. A bare
+          # "defined somewhere" set would let a register defined inside a loop be
+          # read after loop_end — which the validator must reject, because that
+          # IR compiles to a block-local read (nil in Ruby, a crash in JS).
           defs = {}
+          closed = {} # registers that WERE defined but fell out of scope at loop_end
           depth = 0
 
           function.blocks.each do |block|
             block.instructions.each do |instr|
-              validate_instruction(function, instr, defs)
+              validate_instruction(function, instr, defs, closed)
 
               case instr.opcode
               when :loop_start
                 depth += 1
-                defs[instr.attributes[:index]] = instr
+                defs[instr.attributes[:index]] = depth
               when :loop_end
+                drop_defs_at_depth(defs, closed, depth)
                 depth -= 1
                 raise ArgumentError, "LoopIR function #{function.name} has unbalanced loop_end" if depth.negative?
               end
 
-              defs[instr.result] = instr if instr.result
+              if instr.result
+                defs[instr.result] = depth
+                closed.delete(instr.result)
+              end
             end
           end
 
@@ -74,11 +85,25 @@ module Kumi
           raise ArgumentError, "LoopIR function #{function.name} returns undefined #{function.return_reg.inspect}"
         end
 
-        def validate_instruction(function, instr, defs)
+        # Drop every register defined at the loop level being closed; they fall
+        # out of scope at loop_end. Remember them in `closed` so a later use can
+        # be reported as an out-of-scope read rather than a generic undefined.
+        def drop_defs_at_depth(defs, closed, depth)
+          defs.each { |reg, d| closed[reg] = true if d == depth }
+          defs.delete_if { |_, d| d == depth }
+        end
+
+        def validate_instruction(function, instr, defs, closed = {})
           raise ArgumentError, "LoopIR does not support opcode #{instr.opcode}" unless ALLOWED_OPS.include?(instr.opcode)
 
           instr.uses.each do |use|
             next if defs.key?(use)
+
+            if closed.key?(use)
+              raise ArgumentError,
+                    "LoopIR function #{function.name}: #{instr.opcode} uses register #{use.inspect} out of scope — " \
+                    "it is defined inside a loop that has already closed, so the read would be invalid (block-local)"
+            end
 
             raise ArgumentError,
                   "LoopIR function #{function.name}: #{instr.opcode} uses undefined register #{use.inspect}"

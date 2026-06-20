@@ -17,7 +17,8 @@ module Kumi
         def default_passes
           [
             Passes::LoopFusion.new,
-            Passes::ArrayContraction.new
+            Passes::ArrayContraction.new,
+            Passes::CopyCleanup.new
           ]
         end
       end

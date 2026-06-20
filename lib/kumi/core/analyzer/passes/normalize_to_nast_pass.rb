@@ -153,9 +153,21 @@ module Kumi
 
             debug "normalize_index_ref: idx_name_n=#{idx_name_n.inspect}, is Const? #{idx_name_n.is_a?(NAST::Const)}, value=#{idx_name_n.respond_to?(:value) ? idx_name_n.value.inspect : 'N/A'}"
 
-            add_error(errors, loc, "index() needs a symbol") unless idx_name_n.is_a?(NAST::Const) && idx_name_n.value.is_a?(Symbol)
+            unless idx_name_n.is_a?(NAST::Const) && idx_name_n.value.is_a?(Symbol)
+              halt_pass!(errors, "index() needs a symbol literal, e.g. index(:i)", location: loc)
+            end
+
             idx_name = idx_name_n.value
             idx_meta = @index_table[idx_name]
+            unless idx_meta
+              known = @index_table.keys
+              hint = known.empty? ? "no arrays declare an index" : "declared indices: #{known.map { |k| ":#{k}" }.join(', ')}"
+              halt_pass!(errors,
+                         "index(:#{idx_name}) refers to an undeclared index — #{hint}. " \
+                         "Declare it on an array, e.g. `array :rows, index: :#{idx_name}`.",
+                         location: loc)
+            end
+
             NAST::IndexRef.new(name: idx_name, input_fqn: idx_meta[:fqn])
           end
 

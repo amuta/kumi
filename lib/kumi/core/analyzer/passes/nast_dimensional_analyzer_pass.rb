@@ -35,6 +35,10 @@ module Kumi
 
           def analyze_declaration(name, decl, errors)
             debug "Analyzing #{name}"
+            # Operator-built calls (input.a + input.b) often carry no loc of
+            # their own; keep the enclosing declaration's loc as a fallback so
+            # axis/scope errors still point somewhere real instead of nowhere.
+            @current_decl_loc = decl.loc
             result_metadata = analyze_expression(decl.body, errors)
 
             decl_metadata = {
@@ -108,7 +112,7 @@ module Kumi
               report_type_error(
                 errors,
                 e.message,
-                location: call.loc,
+                location: loc_of(call),
                 context: {
                   function: call.fn.to_s,
                   arg_types: arg_types
@@ -120,7 +124,7 @@ module Kumi
               report_semantic_error(
                 errors,
                 "Function resolution error for '#{call.fn}': #{e.message}",
-                location: call.loc,
+                location: loc_of(call),
                 context: { function: call.fn.to_s }
               )
               throw Passes::PassBase::HALT
@@ -157,7 +161,7 @@ module Kumi
               begin
                 compute_result_scope(function_spec, arg_scopes, over_collection)
               rescue Kumi::Core::Errors::SemanticError => e
-                halt_pass!(errors, e.message, location: call.loc)
+                halt_pass!(errors, e.message, location: loc_of(call))
               end
 
             @metadata_table[node_id(call)] = {
@@ -369,6 +373,25 @@ module Kumi
               referenced_name: ref.name
             }.freeze
             { type: meta[:result_type], scope: meta[:result_scope] }
+          end
+
+          # Best available location for an error about `call`. Prefer the call's
+          # own loc; many operator-built calls (input.a + input.b) have none, so
+          # fall back to the first argument that carries a loc, then to the
+          # enclosing declaration. This keeps axis/type errors pointing at real
+          # source even when the operator node itself was never stamped.
+          def loc_of(call)
+            call.loc || first_arg_loc(call) || @current_decl_loc
+          end
+
+          def first_arg_loc(node)
+            return nil unless node.respond_to?(:args) && node.args
+
+            node.args.each do |arg|
+              loc = arg.loc || (arg.respond_to?(:args) ? first_arg_loc(arg) : nil)
+              return loc if loc
+            end
+            nil
           end
 
           def compute_result_scope(function_spec, arg_scopes, over_collection = false)
