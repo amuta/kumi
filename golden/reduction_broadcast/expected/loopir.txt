@@ -8,8 +8,7 @@ function dept_headcount:
       %v13 = load_field (:teams_el11) [field=:headcount]
       acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:teams]
-    %v6 = acc_load (:acc14) [] -> integer
-    array_push (:arr15, :v6)
+    array_push (:arr15, :acc14)
   loop_end [axis=:departments]
 function teams_per_dept:
   %v13 = load_input [key=:departments]
@@ -21,8 +20,7 @@ function teams_per_dept:
       %v19 = load_field (:teams_el17) [field=:team_name]
       acc_step (:acc20, :v19) [fn=:agg.count, nil_init=false]
     loop_end [axis=:teams]
-    %v12 = acc_load (:acc20) [] -> integer
-    array_push (:arr21, :v12)
+    array_push (:arr21, :acc20)
   loop_end [axis=:departments]
 function avg_headcount_per_dept:
   %v28 = load_input [key=:departments]
@@ -37,9 +35,7 @@ function avg_headcount_per_dept:
       %v36 = load_field (:teams_el32) [field=:team_name]
       acc_step (:acc37, :v36) [fn=:agg.count, nil_init=false]
     loop_end [axis=:teams]
-    %v21 = acc_load (:acc35) [] -> integer
-    %v27 = acc_load (:acc37) [] -> integer
-    %v15 = kernel_call (:v21, :v27) [fn=:core.div] [departments] -> float
+    %v15 = kernel_call (:acc35, :acc37) [fn=:core.div] [departments] -> float
     array_push (:arr38, :v15)
   loop_end [axis=:departments]
 function is_above_average_team:
@@ -55,9 +51,7 @@ function is_above_average_team:
       %v45 = load_field (:teams_el41) [field=:team_name]
       acc_step (:acc46, :v45) [fn=:agg.count, nil_init=false]
     loop_end [axis=:teams]
-    %v29 = acc_load (:acc44) [] -> integer
-    %v35 = acc_load (:acc46) [] -> integer
-    %v36 = kernel_call (:v29, :v35) [fn=:core.div] [departments] -> float
+    %v36 = kernel_call (:acc44, :acc46) [fn=:core.div] [departments] -> float
     %arr51 = array_init
     %teams_el47 = loop_start (:v40) [axis=:teams, index=:teams_i48]
       %v49 = load_field (:teams_el47) [field=:headcount]

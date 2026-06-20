@@ -101,8 +101,7 @@ function row_sum_affine:
         %v59 = kernel_call (:v88, :v57) [fn=:core.add] [batch, row, col] -> float
         acc_step (:acc89, :v59) [fn=:agg.sum, nil_init=false]
       loop_end [axis=:col]
-      %v32 = acc_load (:acc89) [] -> float
-      array_push (:arr91, :v32)
+      array_push (:arr91, :acc89)
     loop_end [axis=:row]
     array_push (:arr90, :arr91)
   loop_end [axis=:batch]
@@ -141,9 +140,7 @@ function batch_total_affine:
         %v61 = kernel_call (:v91, :v59) [fn=:core.add] [batch, row, col] -> float
         acc_step (:acc92, :v61) [fn=:agg.sum, nil_init=false]
       loop_end [axis=:col]
-      %v62 = acc_load (:acc92) [] -> float
-      acc_step (:acc93, :v62) [fn=:agg.sum, nil_init=false]
+      acc_step (:acc93, :acc92) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:row]
-    %v34 = acc_load (:acc93) [] -> float
-    array_push (:arr94, :v34)
+    array_push (:arr94, :acc93)
   loop_end [axis=:batch]

@@ -9,8 +9,7 @@ module Kumi::Compiled::KUMI_466b25cf0c819df52c2ac63d1a79ae3e9f7eaa9e94570208049d
     t4 = input["cube"] || input[:cube]
     arr8 = []
     t4.each_with_index do |cube_el5, cube_i6|
-      t7 = cube_el5
-      arr8 << t7
+      arr8 << cube_el5
     end
     return arr8
   end
@@ -21,8 +20,7 @@ module Kumi::Compiled::KUMI_466b25cf0c819df52c2ac63d1a79ae3e9f7eaa9e94570208049d
     t7.each_with_index do |cube_el8, cube_i9|
       arr14 = []
       cube_el8.each_with_index do |layer_el10, layer_i11|
-        t12 = layer_el10
-        arr14 << t12
+        arr14 << layer_el10
       end
       arr13 << arr14
     end
@@ -37,8 +35,7 @@ module Kumi::Compiled::KUMI_466b25cf0c819df52c2ac63d1a79ae3e9f7eaa9e94570208049d
       cube_el12.each_with_index do |layer_el14, layer_i15|
         arr21 = []
         layer_el14.each_with_index do |row_el16, row_i17|
-          t18 = row_el16
-          arr21 << t18
+          arr21 << row_el16
         end
         arr20 << arr21
       end
@@ -80,8 +77,7 @@ module Kumi::Compiled::KUMI_466b25cf0c819df52c2ac63d1a79ae3e9f7eaa9e94570208049d
           t25 = t33 ? row_el39 : t42
           acc43 += t25
         end
-        t26 = acc43
-        arr45 << t26
+        arr45 << acc43
       end
       arr44 << arr45
     end
@@ -103,13 +99,10 @@ module Kumi::Compiled::KUMI_466b25cf0c819df52c2ac63d1a79ae3e9f7eaa9e94570208049d
           t32 = t42 ? t51 : t52
           acc53 += t32
         end
-        t33 = acc53
-        acc54 += t33
+        acc54 += acc53
       end
-      t34 = acc54
-      acc55 += t34
+      acc55 += acc54
     end
-    t35 = acc55
-    return t35
+    return acc55
   end
 end

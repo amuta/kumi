@@ -1,9 +1,9 @@
 function tax_result:
   %v5 = load_input [key=:amount]
   %v6 = constant [value=0.15] [] -> float
-  %v4 = kernel_call (:v5, :v6) [fn=:core.mul:numeric] [] -> float
+  %v4 = kernel_call (:v5, :v6) [fn=:core.mul:numeric] [] -> decimal
 function total:
   %v10 = load_input [key=:amount]
   %v11 = constant [value=0.15] [] -> float
-  %v9 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [] -> float
-  %v5 = kernel_call (:v10, :v9) [fn=:core.add] [] -> float
+  %v9 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [] -> decimal
+  %v5 = kernel_call (:v10, :v9) [fn=:core.add] [] -> decimal

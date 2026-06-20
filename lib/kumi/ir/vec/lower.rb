@@ -38,8 +38,7 @@ module Kumi
           Vec::Function.new(
             name: df_function.name,
             parameters: df_function.parameters,
-            blocks: blocks,
-            return_stamp: df_function.return_stamp
+            blocks: blocks
           )
         end
 

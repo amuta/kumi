@@ -1,0 +1,75 @@
+(Root
+  inputs: [
+    (InputDeclaration :count :integer)
+    (InputDeclaration :weight :float)
+    (InputDeclaration :price_text :string)
+    (InputDeclaration :rate_text :string)
+    (InputDeclaration :amounts :array
+      [
+        (InputDeclaration :amount :hash
+          [
+            (InputDeclaration :value :string)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :price
+      (CallExpression :to_decimal
+        (InputReference :price_text)
+      )
+    )
+    (ValueDeclaration :rate
+      (CallExpression :to_decimal
+        (InputReference :rate_text)
+      )
+    )
+    (ValueDeclaration :int_times_float
+      (CallExpression :multiply
+        (InputReference :count)
+        (InputReference :weight)
+      )
+    )
+    (ValueDeclaration :decimal_times_int
+      (CallExpression :multiply
+        (DeclarationReference :price)
+        (InputReference :count)
+      )
+    )
+    (ValueDeclaration :decimal_plus_float
+      (CallExpression :add
+        (DeclarationReference :price)
+        (InputReference :weight)
+      )
+    )
+    (ValueDeclaration :float_plus_int
+      (CallExpression :add
+        (InputReference :weight)
+        (InputReference :count)
+      )
+    )
+    (ValueDeclaration :amount_values
+      (CallExpression :to_decimal
+        (InputElementReference amounts.amount.value)
+      )
+    )
+    (ValueDeclaration :scaled_amounts
+      (CallExpression :multiply
+        (DeclarationReference :amount_values)
+        (DeclarationReference :rate)
+      )
+    )
+    (ValueDeclaration :total_scaled
+      (CallExpression :sum
+        (DeclarationReference :scaled_amounts)
+      )
+    )
+    (ValueDeclaration :amount_count
+      (CallExpression :size
+        (InputReference :amounts)
+      )
+    )
+  ]
+  traits: []
+)

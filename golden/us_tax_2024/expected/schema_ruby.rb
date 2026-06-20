@@ -36,8 +36,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       arr30 = []
       t24.each_with_index do |rates_el25, rates_i26|
         t27 = rates_el25["lo"] || rates_el25[:lo]
-        t28 = t27
-        arr30 << t28
+        arr30 << t27
       end
       arr29 << arr30
     end
@@ -52,8 +51,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       arr35 = []
       t29.each_with_index do |rates_el30, rates_i31|
         t32 = rates_el30["hi"] || rates_el30[:hi]
-        t33 = t32
-        arr35 << t33
+        arr35 << t32
       end
       arr34 << arr35
     end
@@ -68,8 +66,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       arr40 = []
       t34.each_with_index do |rates_el35, rates_i36|
         t37 = rates_el35["rate"] || rates_el35[:rate]
-        t38 = t37
-        arr40 << t38
+        arr40 << t37
       end
       arr39 << arr40
     end
@@ -155,8 +152,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t52 = t94 * t114
         acc115 += t52
       end
-      t53 = acc115
-      arr116 << t53
+      arr116 << acc115
     end
     return arr116
   end
@@ -215,8 +211,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t67 = t112 ? t131 : t132
         acc133 += t67
       end
-      t68 = acc133
-      arr134 << t68
+      arr134 << acc133
     end
     return arr134
   end
@@ -250,8 +245,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t122 = t116 * t138
         acc139 += t122
       end
-      t123 = acc139
-      t75 = t123 / acc1.to_f
+      t75 = acc139 / acc1.to_f
       arr146 << t75
     end
     return arr146
@@ -400,7 +394,6 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t169 = t163 * t215
         acc216 += t169
       end
-      t170 = acc216
       t223 = input["income"] || input[:income]
       t224 = statuses_el202["addl_threshold"] || statuses_el202[:addl_threshold]
       t187 = t223 - t224
@@ -409,7 +402,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       t226 = 0.009
       t193 = acc2 * t226
       t194 = t180 + t193
-      t116 = t170 + t194
+      t116 = acc216 + t194
       t119 = t116 + t197
       t122 = t119 + t200
       arr239 << t122
@@ -457,7 +450,6 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t176 = t170 * t227
         acc228 += t176
       end
-      t177 = acc228
       t235 = input["income"] || input[:income]
       t236 = statuses_el214["addl_threshold"] || statuses_el214[:addl_threshold]
       t194 = t235 - t236
@@ -466,7 +458,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       t238 = 0.009
       t200 = acc2 * t238
       t201 = t187 + t200
-      t202 = t177 + t201
+      t202 = acc228 + t201
       t207 = t202 + t205
       t212 = t207 + t210
       t129 = t212 / acc3.to_f
@@ -513,7 +505,6 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t180 = t174 * t231
         acc232 += t180
       end
-      t181 = acc232
       t239 = input["income"] || input[:income]
       t240 = statuses_el218["addl_threshold"] || statuses_el218[:addl_threshold]
       t198 = t239 - t240
@@ -522,7 +513,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       t242 = 0.009
       t204 = acc2 * t242
       t205 = t191 + t204
-      t206 = t181 + t205
+      t206 = acc232 + t205
       t211 = t206 + t209
       t216 = t211 + t214
       t255 = input["income"] || input[:income]
@@ -570,7 +561,6 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t186 = t180 * t238
         acc239 += t186
       end
-      t187 = acc239
       t246 = input["income"] || input[:income]
       t247 = statuses_el225["addl_threshold"] || statuses_el225[:addl_threshold]
       t204 = t246 - t247
@@ -579,7 +569,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       t249 = 0.009
       t210 = acc2 * t249
       t211 = t197 + t210
-      t212 = t187 + t211
+      t212 = acc239 + t211
       t217 = t212 + t215
       t222 = t217 + t220
       t262 = input["income"] || input[:income]
@@ -639,10 +629,8 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
         t262 = t256 * t738
         acc741 += t262
       end
-      t215 = acc740
-      t263 = acc741
-      t269 = t263 / acc3.to_f
-      t144 = { "marginal" => t215, "effective" => t269, "tax" => t263 }
+      t269 = acc741 / acc3.to_f
+      t144 = { "marginal" => acc740, "effective" => t269, "tax" => acc741 }
       t755 = input["income"] || input[:income]
       t756 = statuses_el726["addl_threshold"] || statuses_el726[:addl_threshold]
       t334 = t755 - t756
@@ -653,7 +641,7 @@ module Kumi::Compiled::KUMI_58273b0daeb9f06a3b1e521b1d491f58590c75f9ef278993172d
       t341 = t327 + t340
       t347 = t341 / acc3.to_f
       t147 = { "effective" => t347, "tax" => t341 }
-      t450 = t263 + t341
+      t450 = acc741 + t341
       t455 = t450 + t374
       t460 = t455 + t377
       t466 = t460 / acc3.to_f

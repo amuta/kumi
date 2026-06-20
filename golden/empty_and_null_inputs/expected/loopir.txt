@@ -8,8 +8,7 @@ function regional_sales:
       %v13 = load_field (:sales_el11) [field=:amount]
       acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:sales]
-    %v6 = acc_load (:acc14) [] -> integer
-    array_push (:arr15, :v6)
+    array_push (:arr15, :acc14)
   loop_end [axis=:regions]
 function total_sales:
   %v15 = load_input [key=:regions]
@@ -21,10 +20,8 @@ function total_sales:
       %v21 = load_field (:sales_el19) [field=:amount]
       acc_step (:acc22, :v21) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:sales]
-    %v14 = acc_load (:acc22) [] -> integer
-    acc_step (:acc23, :v14) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc23, :acc22) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:regions]
-  %v8 = acc_load (:acc23) [] -> integer
 function adjusted_total:
   %v19 = load_input [key=:regions]
   %acc27 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -35,9 +32,7 @@ function adjusted_total:
       %v25 = load_field (:sales_el23) [field=:amount]
       acc_step (:acc26, :v25) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:sales]
-    %v17 = acc_load (:acc26) [] -> integer
-    acc_step (:acc27, :v17) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc27, :acc26) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:regions]
-  %v18 = acc_load (:acc27) [] -> integer
   %v28 = load_input [key=:adjustment]
-  %v11 = kernel_call (:v18, :v28) [fn=:core.add] [] -> integer
+  %v11 = kernel_call (:acc27, :v28) [fn=:core.add] [] -> integer

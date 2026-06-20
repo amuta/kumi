@@ -1,0 +1,47 @@
+function times_one:
+  %v1 = load_input [key=:items, chain=[]] [items] -> float
+  %v2 = load_field (:v1) [field=:item] [items] -> float
+  %v3 = load_field (:v2) [field=:price] [items] -> float
+  %v4 = constant [value=1.0] [] -> float
+  %v5 = axis_broadcast (:v4) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v6 = map (:v3, :v5) [fn=:core.mul:numeric] [items] -> float
+function div_one:
+  %v7 = load_input [key=:items, chain=[]] [items] -> float
+  %v8 = load_field (:v7) [field=:item] [items] -> float
+  %v9 = load_field (:v8) [field=:price] [items] -> float
+  %v10 = constant [value=1.0] [] -> float
+  %v11 = axis_broadcast (:v10) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v12 = map (:v9, :v11) [fn=:core.div] [items] -> float
+function sub_zero:
+  %v13 = load_input [key=:items, chain=[]] [items] -> float
+  %v14 = load_field (:v13) [field=:item] [items] -> float
+  %v15 = load_field (:v14) [field=:price] [items] -> float
+  %v16 = constant [value=0.0] [] -> float
+  %v17 = axis_broadcast (:v16) [from_axes=[], to_axes=[:items]] [items] -> float
+  %v18 = map (:v15, :v17) [fn=:core.sub] [items] -> float
+function plus_zero:
+  %v19 = load_input [key=:items, chain=[]] [items] -> integer
+  %v20 = load_field (:v19) [field=:item] [items] -> integer
+  %v21 = load_field (:v20) [field=:qty] [items] -> integer
+  %v22 = constant [value=0] [] -> integer
+  %v23 = axis_broadcast (:v22) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v24 = map (:v21, :v23) [fn=:core.add] [items] -> integer
+function mul_zero:
+  %v25 = load_input [key=:items, chain=[]] [items] -> integer
+  %v26 = load_field (:v25) [field=:item] [items] -> integer
+  %v27 = load_field (:v26) [field=:qty] [items] -> integer
+  %v28 = constant [value=0] [] -> integer
+  %v29 = axis_broadcast (:v28) [from_axes=[], to_axes=[:items]] [items] -> integer
+  %v30 = map (:v27, :v29) [fn=:core.mul:numeric] [items] -> integer
+function price_check:
+  %v37 = load_input [key=:items, chain=[]] [items] -> float
+  %v38 = load_field (:v37) [field=:item] [items] -> float
+  %v39 = load_field (:v38) [field=:price] [items] -> float
+  %v33 = map (:v39, :v39) [fn=:core.add] [items] -> float
+  %v35 = map (:v33, :v39) [fn=:core.sub] [items] -> float
+  %v36 = reduce (:v35) [fn=:agg.sum, over_axes=[:items]] [] -> float
+function qty_check:
+  %v41 = load_input [key=:items, chain=[]] [items] -> integer
+  %v42 = load_field (:v41) [field=:item] [items] -> integer
+  %v43 = load_field (:v42) [field=:qty] [items] -> integer
+  %v40 = reduce (:v43) [fn=:agg.sum, over_axes=[:items]] [] -> integer

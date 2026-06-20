@@ -6,8 +6,7 @@ export function _roll_right(input) {
     let t7 = input["cells"];
     let t8 = t7.length;
     let t9 = t7[(((cells_i6 - (1)) % t8) + t8) % t8];
-    let t1 = t9;
-    arr10.push(t1);
+    arr10.push(t9);
   }
   return arr10;
 }
@@ -20,8 +19,7 @@ export function _roll_left(input) {
     let t10 = input["cells"];
     let t11 = t10.length;
     let t12 = t10[(((cells_i9 - (-1)) % t11) + t11) % t11];
-    let t4 = t12;
-    arr13.push(t4);
+    arr13.push(t12);
   }
   return arr13;
 }
@@ -34,8 +32,7 @@ export function _roll_right_clamp(input) {
     let t13 = input["cells"];
     let t14 = t13.length;
     let t15 = t13[Math.min(Math.max(cells_i12 - (1), 0), t14 - 1)];
-    let t7 = t15;
-    arr16.push(t7);
+    arr16.push(t15);
   }
   return arr16;
 }
@@ -48,8 +45,7 @@ export function _roll_left_clamp(input) {
     let t16 = input["cells"];
     let t17 = t16.length;
     let t18 = t16[Math.min(Math.max(cells_i15 - (-1), 0), t17 - 1)];
-    let t10 = t18;
-    arr19.push(t10);
+    arr19.push(t18);
   }
   return arr19;
 }

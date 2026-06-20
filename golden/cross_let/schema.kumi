@@ -1,0 +1,25 @@
+schema do
+  input do
+    array :items, index: :i do
+      hash :item do
+        float :price
+      end
+    end
+  end
+
+  # cross over a COMPUTED value (a let), not just an input field: the let is
+  # materialized once along its axis, then read at the independent cross index.
+  let :double, input.items.item.price * 2.0
+  let :dj, cross(double)
+
+  # each row i: total of all doubles (broadcast), and the signed difference to
+  # every other row summed (sum_j double[j] - double[i]).
+  value :pair_total, fn(:sum, dj)
+  value :self_diff, fn(:sum, dj - double)
+
+  # cross over an INDEX: the crossed index is the inner loop counter j, so this
+  # counts, per row i, how many rows j come strictly before it.
+  let :idx_i, index(:i)
+  let :idx_j, cross(idx_i)
+  value :rank, fn(:sum, select(idx_j < idx_i, 1, 0))
+end

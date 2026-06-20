@@ -13,15 +13,12 @@ module Kumi
             @input_table = get_state(:input_table, required: true)
             @registry = get_state(:registry, required: true)
 
-            @function_specs    = Functions::Loader.load_minimal_functions
-
             @metadata_table    = {}
             @declaration_table = {}
             @cross_axes        = {}
             @outer_axes        = {}
 
             debug "Analyzing NAST module with #{nast_module.decls.size} declarations"
-            debug "Function specs loaded: #{@function_specs.keys.join(', ')}"
 
             nast_module.decls.each { |name, decl| analyze_declaration(name, decl, errors) }
 
@@ -38,6 +35,10 @@ module Kumi
 
           def analyze_declaration(name, decl, errors)
             debug "Analyzing #{name}"
+            # Operator-built calls (input.a + input.b) often carry no loc of
+            # their own; keep the enclosing declaration's loc as a fallback so
+            # axis/scope errors still point somewhere real instead of nowhere.
+            @current_decl_loc = decl.loc
             result_metadata = analyze_expression(decl.body, errors)
 
             decl_metadata = {
@@ -66,7 +67,7 @@ module Kumi
             when Kumi::Core::NAST::Hash         then analyze_hash(expr, errors)
 
             else
-              raise "Unknown NAST node type: #{expr.class}"
+              raise Kumi::Core::Errors::CompilerBug, "unknown NAST node type: #{expr.class}"
             end
           end
 
@@ -102,30 +103,31 @@ module Kumi
 
             # Step 2: Resolve function using type-aware overload resolution
             begin
-              resolved_fn_id = @registry.resolve_function_with_types(call.fn.to_s, arg_types)
+              resolved_fn_id = @registry.resolve(call.fn.to_s, arg_types)
               function_spec = @registry.function(resolved_fn_id)
               debug "    Resolved '#{call.fn}' with types #{arg_types.inspect} to #{resolved_fn_id}"
             rescue Core::Functions::OverloadResolver::ResolutionError => e
-              # Type-aware overload resolution failed - report with location
+              # Type-aware overload resolution failed: record the located error
+              # and stop — there is no resolved function to continue with.
               report_type_error(
                 errors,
                 e.message,
-                location: call.loc,
+                location: loc_of(call),
                 context: {
                   function: call.fn.to_s,
                   arg_types: arg_types
                 }
               )
-              raise Kumi::Core::Errors::TypeError.new(e.message, call.loc)
+              throw Passes::PassBase::HALT
             rescue StandardError => e
               # Other function resolution errors
               report_semantic_error(
                 errors,
                 "Function resolution error for '#{call.fn}': #{e.message}",
-                location: call.loc,
+                location: loc_of(call),
                 context: { function: call.fn.to_s }
               )
-              raise Kumi::Core::Errors::SemanticError, e.message
+              throw Passes::PassBase::HALT
             end
 
             # Step 3: Compute result type
@@ -148,11 +150,19 @@ module Kumi
                   arg_types: arg_types
                 }
               )
-              raise Kumi::Core::Errors::TypeError, "Type rule failed for #{function_spec.id}: #{e.message}"
+              throw Passes::PassBase::HALT
             end
 
             over_collection = arg_types.size == 1 && Types.collection?(arg_types[0])
-            result_scope = compute_result_scope(function_spec, arg_scopes, over_collection)
+            # Axis-merge failures originate deep in the scope math without a node
+            # in scope; attach the call's location here and route through the one
+            # reporting channel instead of letting the bare error escape.
+            result_scope =
+              begin
+                compute_result_scope(function_spec, arg_scopes, over_collection)
+              rescue Kumi::Core::Errors::SemanticError => e
+                halt_pass!(errors, e.message, location: loc_of(call))
+              end
 
             @metadata_table[node_id(call)] = {
               function: function_spec.id,
@@ -176,11 +186,11 @@ module Kumi
           # carrier. A later `fn(:sum, ...)` over the rank-2 value reduces the new
           # (innermost) axis back to A.
           def analyze_cross(call, errors)
-            raise Kumi::Core::Errors::SemanticError, "cross expects exactly one argument" unless call.args.size == 1
+            halt_pass!(errors, "cross expects exactly one argument", location: call.loc) unless call.args.size == 1
 
             inner = analyze_expression(call.args.first, errors)
             src_scope = Array(inner[:scope])
-            raise Kumi::Core::Errors::SemanticError, "cross requires an array argument (got a scalar)" if src_scope.empty?
+            halt_pass!(errors, "cross requires an array argument (got a scalar)", location: call.loc) if src_scope.empty?
 
             parent_axis = src_scope.last
             child_axis  = :"#{parent_axis}__x"
@@ -189,6 +199,7 @@ module Kumi
             @cross_axes[child_axis] = parent_axis
 
             @metadata_table[node_id(call)] = {
+              function: call.fn,
               kind: :cross,
               cross_axis: child_axis,
               source_axis: parent_axis,
@@ -208,11 +219,11 @@ module Kumi
           # innermost axis instead of erroring. That turns `pixel_x - outer(lx)`
           # into a (pixels x lights) grid, which `fn(:sum, ...)` reduces back.
           def analyze_outer(call, errors)
-            raise Kumi::Core::Errors::SemanticError, "outer expects exactly one argument" unless call.args.size == 1
+            halt_pass!(errors, "outer expects exactly one argument", location: call.loc) unless call.args.size == 1
 
             inner = analyze_expression(call.args.first, errors)
             src_scope = Array(inner[:scope])
-            raise Kumi::Core::Errors::SemanticError, "outer requires an array argument (got a scalar)" if src_scope.empty?
+            halt_pass!(errors, "outer requires an array argument (got a scalar)", location: call.loc) if src_scope.empty?
 
             # Mint a distinct axis alias for the outer carrier so it never clashes
             # with a direct use of the same array, and tag it free so the merge
@@ -223,6 +234,7 @@ module Kumi
             @outer_axes[outer_axis] = source_axis
 
             @metadata_table[node_id(call)] = {
+              function: call.fn,
               kind: :outer,
               outer_axis: outer_axis,
               source_axis: source_axis,
@@ -325,7 +337,7 @@ module Kumi
           # STRICT: requires entry with :axes and :dtype (no fallbacks)
           def analyze_input_ref(input_ref)
             entry = @input_table.find { |imp| imp[:path_fqn] == input_ref.path_fqn }
-            entry or raise KeyError, "Input path not found in input_table: #{input_ref.path_fqn}"
+            entry or raise Kumi::Core::Errors::CompilerBug, "input path not found in input_table: #{input_ref.path_fqn}"
 
             axes  = entry.axes
             dtype = entry.dtype
@@ -341,7 +353,8 @@ module Kumi
           end
 
           def analyze_index_ref(node, _errors)
-            meta = @input_table.find { _1.path_fqn == node.input_fqn } or raise "Index plan found: #{n.name.inspect}"
+            meta = @input_table.find { _1.path_fqn == node.input_fqn } or
+              raise Kumi::Core::Errors::CompilerBug, "no input plan for index ref #{node.name.inspect} (fqn #{node.input_fqn.inspect})"
             axes = Array(meta[:axes])
             type = Types.scalar(:integer)
 
@@ -360,6 +373,25 @@ module Kumi
               referenced_name: ref.name
             }.freeze
             { type: meta[:result_type], scope: meta[:result_scope] }
+          end
+
+          # Best available location for an error about `call`. Prefer the call's
+          # own loc; many operator-built calls (input.a + input.b) have none, so
+          # fall back to the first argument that carries a loc, then to the
+          # enclosing declaration. This keeps axis/type errors pointing at real
+          # source even when the operator node itself was never stamped.
+          def loc_of(call)
+            call.loc || first_arg_loc(call) || @current_decl_loc
+          end
+
+          def first_arg_loc(node)
+            return nil unless node.respond_to?(:args) && node.args
+
+            node.args.each do |arg|
+              loc = arg.loc || (arg.respond_to?(:args) ? first_arg_loc(arg) : nil)
+              return loc if loc
+            end
+            nil
           end
 
           def compute_result_scope(function_spec, arg_scopes, over_collection = false)

@@ -42,6 +42,24 @@ Every analyzer pass declares what it touches, at the top of the class body:
   declare bare `writes`; keep such in-place mutation limited to node `meta` /
   annotation fields, never structure.
 
+## Error reporting
+
+One channel per logical error — never report AND raise the same problem (that
+surfaces it twice, once via the accumulator and once via PassManager's exception
+capture, which also leaks internal file paths).
+
+- **User-facing errors** (the schema is wrong): record them in the `errors`
+  accumulator passed to `run`, with a real `location:` (pass the node's `loc`,
+  never interpolate it into the message string). Use `report(errors, msg, node:)`
+  to keep going and collect more, or `halt_pass!(errors, msg, node:)` to record
+  one and stop the pass cleanly. A halted/erroring pass fails because `errors`
+  is non-empty — no exception needed.
+- **Internal invariants** ("can't happen" — a violated assumption, not bad user
+  input): `raise Kumi::Core::Errors::CompilerBug, "..."`. It is framed as a bug
+  to report and is never presented to users as if they wrote bad input.
+- Do not raise `SemanticError`/`TypeError` directly from a pass for user errors;
+  route them through the accumulator so they are located and deduplicated.
+
 ## Loading
 
 - zeitwerk owns everything under `lib/kumi/`. Inside `lib/`, only require

@@ -344,16 +344,150 @@
     ],
     "reduction_strategy": null
   },
+  "sqrt": {
+    "id": "core.sqrt",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "number",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "sqrt:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "sqrt"
+    ],
+    "reduction_strategy": null
+  },
+  "sin": {
+    "id": "core.sin",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "angle",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "sin:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "sin"
+    ],
+    "reduction_strategy": null
+  },
+  "cos": {
+    "id": "core.cos",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "angle",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "cos:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "cos"
+    ],
+    "reduction_strategy": null
+  },
+  "exp": {
+    "id": "core.exp",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "number",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "exp:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "exp"
+    ],
+    "reduction_strategy": null
+  },
+  "log": {
+    "id": "core.log",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "number",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "log:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "log"
+    ],
+    "reduction_strategy": null
+  },
+  "tanh": {
+    "id": "core.tanh",
+    "kind": "elementwise",
+    "arity": 1,
+    "params": [
+      {
+        "name": "number",
+        "dtype": "numeric"
+      }
+    ],
+    "kernels": {
+      "ruby": "tanh:ruby:v1"
+    },
+    "dtype": {
+      "rule": "scalar",
+      "kind": "float"
+    },
+    "aliases": [
+      "tanh"
+    ],
+    "reduction_strategy": null
+  },
   "add": {
     "id": "core.add",
     "kind": "elementwise",
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -377,10 +511,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -405,10 +541,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -428,26 +566,25 @@
     "reduction_strategy": null
   },
   "mul": {
-    "id": "core.mul",
+    "id": "core.mul:string_repeat",
     "kind": "elementwise",
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "string_value",
+        "dtype": "string"
       },
       {
-        "name": "right_operand"
+        "name": "repeat_count",
+        "dtype": "integer"
       }
     ],
     "kernels": {
-      "ruby": "mul:ruby:v1"
+      "string_repeat": "mul:string_repeat:ruby:v1"
     },
     "dtype": {
-      "rule": "promote",
-      "params": [
-        "left_operand",
-        "right_operand"
-      ]
+      "rule": "scalar",
+      "kind": "string"
     },
     "aliases": [
       "mul",
@@ -456,26 +593,25 @@
     "reduction_strategy": null
   },
   "multiply": {
-    "id": "core.mul",
+    "id": "core.mul:string_repeat",
     "kind": "elementwise",
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "string_value",
+        "dtype": "string"
       },
       {
-        "name": "right_operand"
+        "name": "repeat_count",
+        "dtype": "integer"
       }
     ],
     "kernels": {
-      "ruby": "mul:ruby:v1"
+      "string_repeat": "mul:string_repeat:ruby:v1"
     },
     "dtype": {
-      "rule": "promote",
-      "params": [
-        "left_operand",
-        "right_operand"
-      ]
+      "rule": "scalar",
+      "kind": "string"
     },
     "aliases": [
       "mul",
@@ -489,10 +625,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "base"
+        "name": "base",
+        "dtype": "numeric"
       },
       {
-        "name": "exponent"
+        "name": "exponent",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -517,10 +655,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "base"
+        "name": "base",
+        "dtype": "numeric"
       },
       {
-        "name": "exponent"
+        "name": "exponent",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -545,10 +685,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -570,10 +712,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -595,10 +739,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -624,10 +770,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -653,10 +801,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "numeric"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "numeric"
       }
     ],
     "kernels": {
@@ -709,10 +859,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "boolean"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -734,10 +886,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "boolean"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -759,10 +913,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "boolean"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -784,10 +940,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "boolean"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -809,7 +967,8 @@
     "arity": 1,
     "params": [
       {
-        "name": "operand"
+        "name": "operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -831,7 +990,8 @@
     "arity": 1,
     "params": [
       {
-        "name": "operand"
+        "name": "operand",
+        "dtype": "boolean"
       }
     ],
     "kernels": {
@@ -853,10 +1013,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -880,10 +1042,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -907,10 +1071,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -934,10 +1100,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -961,10 +1129,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -987,10 +1157,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1013,10 +1185,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1039,10 +1213,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1066,10 +1242,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1093,10 +1271,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1120,10 +1300,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1147,10 +1329,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1173,10 +1357,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1199,10 +1385,12 @@
     "arity": 2,
     "params": [
       {
-        "name": "left_operand"
+        "name": "left_operand",
+        "dtype": "orderable"
       },
       {
-        "name": "right_operand"
+        "name": "right_operand",
+        "dtype": "orderable"
       }
     ],
     "kernels": {
@@ -1657,16 +1845,17 @@
     "reduction_strategy": null
   },
   "to_string": {
-    "id": "core.to_string",
+    "id": "core.to_string:float",
     "kind": "elementwise",
     "arity": 1,
     "params": [
       {
-        "name": "value"
+        "name": "value",
+        "dtype": "float"
       }
     ],
     "kernels": {
-      "ruby": "to_string:ruby:v1"
+      "ruby": "to_string_float:ruby:v1"
     },
     "dtype": {
       "rule": "scalar",
@@ -1679,16 +1868,17 @@
     "reduction_strategy": null
   },
   "to_str": {
-    "id": "core.to_string",
+    "id": "core.to_string:float",
     "kind": "elementwise",
     "arity": 1,
     "params": [
       {
-        "name": "value"
+        "name": "value",
+        "dtype": "float"
       }
     ],
     "kernels": {
-      "ruby": "to_string:ruby:v1"
+      "ruby": "to_string_float:ruby:v1"
     },
     "dtype": {
       "rule": "scalar",
@@ -1706,7 +1896,8 @@
     "arity": 3,
     "params": [
       {
-        "name": "condition_mask"
+        "name": "condition_mask",
+        "dtype": "boolean"
       },
       {
         "name": "value_when_true"
@@ -1732,7 +1923,8 @@
     "arity": 3,
     "params": [
       {
-        "name": "condition_mask"
+        "name": "condition_mask",
+        "dtype": "boolean"
       },
       {
         "name": "value_when_true"

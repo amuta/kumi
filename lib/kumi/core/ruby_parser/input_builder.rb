@@ -51,6 +51,8 @@ module Kumi
         def hash(name_or_key_type, val_type = nil, **kwargs, &)
           if block_given?
             create_hash_field_with_block(name_or_key_type, kwargs, &)
+          elsif val_type.nil? && name_or_key_type.is_a?(Symbol)
+            create_bare_hash_field(name_or_key_type, kwargs)
           elsif val_type.nil?
             create_hash_field(name_or_key_type, kwargs)
           else
@@ -103,6 +105,19 @@ module Kumi
           @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, domain, hash_type, [], nil, loc: @context.current_location)
         end
 
+        def create_bare_hash_field(field_name, options)
+          unknown = options.keys - [:domain]
+          unless unknown.empty?
+            raise_syntax_error(
+              "hash input '#{field_name}' only supports `domain:` without a block. " \
+              "Use `hash :#{field_name} do ... end` for declared fields.",
+              location: @context.current_location
+            )
+          end
+
+          @context.inputs << Kumi::Syntax::InputDeclaration.new(field_name, options[:domain], :hash, [], nil, loc: @context.current_location)
+        end
+
         def extract_type(spec)
           spec.is_a?(Hash) && spec[:type] ? spec[:type] : :any
         end
@@ -115,97 +130,74 @@ module Kumi
 
         def create_array_field_with_block(field_name, options, &)
           domain = options[:domain]
+          index_name = options[:index]
+          unknown = options.keys - %i[domain index]
+          unless unknown.empty?
+            raise_syntax_error(
+              "unknown option(s) for array input '#{field_name}': #{unknown.map { |key| "#{key}:" }.join(', ')}",
+              location: @context.current_location
+            )
+          end
+          if index_name && !index_name.is_a?(Symbol)
+            raise_syntax_error("array input '#{field_name}' index: must be a Symbol", location: @context.current_location)
+          end
 
-          # Collect children by creating a nested context
-          children, = collect_array_children(&)
-
-          # Create the InputDeclaration with children and access_mode
-          # access_mode = using_elements ? :element : :field
+          children = collect_array_children(&)
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
             :array,
             children,
+            index_name,
             loc: @context.current_location
           )
         end
 
+        # Run a child-declaration block against a fresh nested builder and return
+        # the declarations it collected.
         def collect_array_children(&)
-          # Create a temporary nested context to collect children
           nested_inputs = []
           nested_context = NestedInput.new(nested_inputs, @context.current_location)
-          nested_builder = InputBuilder.new(nested_context)
-
-          # Execute the block in the nested context
-          nested_builder.instance_eval(&)
-
-          # Determine element type based on what was declared
-          elem_type = determine_element_type(nested_builder, nested_inputs)
-
-          # Check if element() was used
-          using_elements = nested_builder.instance_variable_get(:@using_elements) || false
-
-          [nested_inputs, elem_type, using_elements]
+          InputBuilder.new(nested_context).instance_eval(&)
+          nested_inputs
         end
 
-        def determine_element_type(_builder, inputs)
-          # Since element() always creates named children now,
-          # we just use the standard logic
-          if inputs.any?
-            # If fields were declared, it's a hash/object structure
-            :hash
-          else
-            # No fields declared, default to :any
-            :any
-          end
-        end
-
-        def primitive_element_type?(elem_type)
-          %i[string integer float boolean bool any symbol].include?(elem_type)
-        end
-
-        # New method: element() declaration - always requires a name
+        # `element(type, :name)` declares a named child. With a block it nests an
+        # array or object; without one it is a named primitive element.
         def element(type_spec, name, &)
-          @using_elements = true
           if block_given?
-            # Named element with nested structure: element(:array, :rows) do ... end
-            # These DO set @using_elements to enable element access mode for multi-dimensional arrays
             case type_spec
             when :array
               create_array_field_with_block(name, {}, &)
             when :field
-              # Create nested object structure
               create_object_element(name, &)
             else
               raise_syntax_error("element(#{type_spec.inspect}, #{name.inspect}) with block only supports :array or :field types",
                                  location: @context.current_location)
             end
           else
-            # Named primitive element: element(:boolean, :active)
-            # Only primitive elements mark the parent as using element access
             @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, type_spec, [], nil, loc: @context.current_location)
           end
         end
 
         def create_object_element(name, &)
-          # Similar to create_array_field_with_block but for objects
-          children, = collect_array_children(&)
+          children = collect_array_children(&)
           @context.inputs << Kumi::Syntax::InputDeclaration.new(name, nil, :field, children, nil, loc: @context.current_location)
         end
 
         def create_hash_field_with_block(field_name, options, &)
           domain = options[:domain]
+          children = collect_array_children(&)
 
-          # Collect children by creating a nested context (reuse array logic)
-          children, = collect_array_children(&)
-
-          # Create the InputDeclaration with children and :field access_mode for hash objects
+          # `index` is only consumed downstream for array containers (the access
+          # planner reads define_index only when container == :array), so a hash
+          # carries no index. Leave it nil to match the text frontend's AST.
           @context.inputs << Kumi::Syntax::InputDeclaration.new(
             field_name,
             domain,
             :hash,
             children,
-            :field,
+            nil,
             loc: @context.current_location
           )
         end

@@ -10,9 +10,8 @@ function pre:
       %v11 = kernel_call (:v23, :v24) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc25, :v11) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v12 = acc_load (:acc25) [] -> float
     %v26 = load_field (:hidden_el18) [field=:b1]
-    %v16 = kernel_call (:v12, :v26) [fn=:core.add] [hidden] -> float
+    %v16 = kernel_call (:acc25, :v26) [fn=:core.add] [hidden] -> float
     array_push (:arr27, :v16)
   loop_end [axis=:hidden]
 function h:
@@ -27,9 +26,8 @@ function h:
       %v29 = kernel_call (:v41, :v42) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc43, :v29) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v30 = acc_load (:acc43) [] -> float
     %v44 = load_field (:hidden_el36) [field=:b1]
-    %v34 = kernel_call (:v30, :v44) [fn=:core.add] [hidden] -> float
+    %v34 = kernel_call (:acc43, :v44) [fn=:core.add] [hidden] -> float
     %v18 = kernel_call (:v34) [fn=:core.tanh] [hidden] -> float
     array_push (:arr45, :v18)
   loop_end [axis=:hidden]
@@ -45,17 +43,15 @@ function o_pre:
       %v37 = kernel_call (:v50, :v51) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc52, :v37) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v38 = acc_load (:acc52) [] -> float
     %v53 = load_field (:hidden_el45) [field=:b1]
-    %v42 = kernel_call (:v38, :v53) [fn=:core.add] [hidden] -> float
+    %v42 = kernel_call (:acc52, :v53) [fn=:core.add] [hidden] -> float
     %v43 = kernel_call (:v42) [fn=:core.tanh] [hidden] -> float
     %v54 = load_field (:hidden_el45) [field=:w2]
     %v23 = kernel_call (:v54, :v43) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc55, :v23) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v24 = acc_load (:acc55) [] -> float
   %v56 = load_input [key=:b_out]
-  %v26 = kernel_call (:v24, :v56) [fn=:core.add] [] -> float
+  %v26 = kernel_call (:acc55, :v56) [fn=:core.add] [] -> float
 function o:
   %v59 = load_input [key=:hidden]
   %acc70 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
@@ -68,17 +64,15 @@ function o:
       %v48 = kernel_call (:v65, :v66) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc67, :v48) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v49 = acc_load (:acc67) [] -> float
     %v68 = load_field (:hidden_el60) [field=:b1]
-    %v53 = kernel_call (:v49, :v68) [fn=:core.add] [hidden] -> float
+    %v53 = kernel_call (:acc67, :v68) [fn=:core.add] [hidden] -> float
     %v54 = kernel_call (:v53) [fn=:core.tanh] [hidden] -> float
     %v69 = load_field (:hidden_el60) [field=:w2]
     %v55 = kernel_call (:v69, :v54) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc70, :v55) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v56 = acc_load (:acc70) [] -> float
   %v71 = load_input [key=:b_out]
-  %v58 = kernel_call (:v56, :v71) [fn=:core.add] [] -> float
+  %v58 = kernel_call (:acc70, :v71) [fn=:core.add] [] -> float
   %v72 = constant [value=0.0] [] -> float
   %v31 = kernel_call (:v72, :v58) [fn=:core.sub] [] -> float
   %v32 = kernel_call (:v31) [fn=:core.exp] [] -> float
@@ -97,17 +91,15 @@ function output:
       %v52 = kernel_call (:v73, :v74) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc75, :v52) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v53 = acc_load (:acc75) [] -> float
     %v76 = load_field (:hidden_el68) [field=:b1]
-    %v57 = kernel_call (:v53, :v76) [fn=:core.add] [hidden] -> float
+    %v57 = kernel_call (:acc75, :v76) [fn=:core.add] [hidden] -> float
     %v58 = kernel_call (:v57) [fn=:core.tanh] [hidden] -> float
     %v77 = load_field (:hidden_el68) [field=:w2]
     %v59 = kernel_call (:v77, :v58) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc78, :v59) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v60 = acc_load (:acc78) [] -> float
   %v79 = load_input [key=:b_out]
-  %v62 = kernel_call (:v60, :v79) [fn=:core.add] [] -> float
+  %v62 = kernel_call (:acc78, :v79) [fn=:core.add] [] -> float
   %v80 = constant [value=0.0] [] -> float
   %v63 = kernel_call (:v80, :v62) [fn=:core.sub] [] -> float
   %v64 = kernel_call (:v63) [fn=:core.exp] [] -> float
@@ -126,17 +118,15 @@ function oc:
       %v56 = kernel_call (:v77, :v78) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc79, :v56) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v57 = acc_load (:acc79) [] -> float
     %v80 = load_field (:hidden_el72) [field=:b1]
-    %v61 = kernel_call (:v57, :v80) [fn=:core.add] [hidden] -> float
+    %v61 = kernel_call (:acc79, :v80) [fn=:core.add] [hidden] -> float
     %v62 = kernel_call (:v61) [fn=:core.tanh] [hidden] -> float
     %v81 = load_field (:hidden_el72) [field=:w2]
     %v63 = kernel_call (:v81, :v62) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc82, :v63) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v64 = acc_load (:acc82) [] -> float
   %v83 = load_input [key=:b_out]
-  %v66 = kernel_call (:v64, :v83) [fn=:core.add] [] -> float
+  %v66 = kernel_call (:acc82, :v83) [fn=:core.add] [] -> float
   %v84 = constant [value=0.0] [] -> float
   %v67 = kernel_call (:v84, :v66) [fn=:core.sub] [] -> float
   %v68 = kernel_call (:v67) [fn=:core.exp] [] -> float
@@ -158,17 +148,15 @@ function loss:
       %v71 = kernel_call (:v95, :v96) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc97, :v71) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v72 = acc_load (:acc97) [] -> float
     %v98 = load_field (:hidden_el90) [field=:b1]
-    %v76 = kernel_call (:v72, :v98) [fn=:core.add] [hidden] -> float
+    %v76 = kernel_call (:acc97, :v98) [fn=:core.add] [hidden] -> float
     %v77 = kernel_call (:v76) [fn=:core.tanh] [hidden] -> float
     %v99 = load_field (:hidden_el90) [field=:w2]
     %v78 = kernel_call (:v99, :v77) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc100, :v78) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v79 = acc_load (:acc100) [] -> float
   %v101 = load_input [key=:b_out]
-  %v81 = kernel_call (:v79, :v101) [fn=:core.add] [] -> float
+  %v81 = kernel_call (:acc100, :v101) [fn=:core.add] [] -> float
   %v102 = constant [value=0.0] [] -> float
   %v82 = kernel_call (:v102, :v81) [fn=:core.sub] [] -> float
   %v83 = kernel_call (:v82) [fn=:core.exp] [] -> float
@@ -199,17 +187,15 @@ function dpre_out:
       %v74 = kernel_call (:v95, :v96) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc97, :v74) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v75 = acc_load (:acc97) [] -> float
     %v98 = load_field (:hidden_el90) [field=:b1]
-    %v79 = kernel_call (:v75, :v98) [fn=:core.add] [hidden] -> float
+    %v79 = kernel_call (:acc97, :v98) [fn=:core.add] [hidden] -> float
     %v80 = kernel_call (:v79) [fn=:core.tanh] [hidden] -> float
     %v99 = load_field (:hidden_el90) [field=:w2]
     %v81 = kernel_call (:v99, :v80) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc100, :v81) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v82 = acc_load (:acc100) [] -> float
   %v101 = load_input [key=:b_out]
-  %v84 = kernel_call (:v82, :v101) [fn=:core.add] [] -> float
+  %v84 = kernel_call (:acc100, :v101) [fn=:core.add] [] -> float
   %v102 = constant [value=0.0] [] -> float
   %v85 = kernel_call (:v102, :v84) [fn=:core.sub] [] -> float
   %v86 = kernel_call (:v85) [fn=:core.exp] [] -> float
@@ -230,17 +216,15 @@ function dh:
       %v80 = kernel_call (:v103, :v104) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc105, :v80) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v81 = acc_load (:acc105) [] -> float
     %v106 = load_field (:hidden_el98) [field=:b1]
-    %v85 = kernel_call (:v81, :v106) [fn=:core.add] [hidden] -> float
+    %v85 = kernel_call (:acc105, :v106) [fn=:core.add] [hidden] -> float
     %v86 = kernel_call (:v85) [fn=:core.tanh] [hidden] -> float
     %v107 = load_field (:hidden_el98) [field=:w2]
     %v87 = kernel_call (:v107, :v86) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc108, :v87) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v88 = acc_load (:acc108) [] -> float
   %v109 = load_input [key=:b_out]
-  %v90 = kernel_call (:v88, :v109) [fn=:core.add] [] -> float
+  %v90 = kernel_call (:acc108, :v109) [fn=:core.add] [] -> float
   %v110 = constant [value=0.0] [] -> float
   %v91 = kernel_call (:v110, :v90) [fn=:core.sub] [] -> float
   %v92 = kernel_call (:v91) [fn=:core.exp] [] -> float
@@ -268,18 +252,16 @@ function dpre:
       %v88 = kernel_call (:v116, :v117) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc118, :v88) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v89 = acc_load (:acc118) [] -> float
     %v119 = load_field (:hidden_el111) [field=:b1]
-    %v93 = kernel_call (:v89, :v119) [fn=:core.add] [hidden] -> float
+    %v93 = kernel_call (:acc118, :v119) [fn=:core.add] [hidden] -> float
     %v94 = kernel_call (:v93) [fn=:core.tanh] [hidden] -> float
     array_push (:arr129, :v94)
     %v120 = load_field (:hidden_el111) [field=:w2]
     %v95 = kernel_call (:v120, :v94) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc121, :v95) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v96 = acc_load (:acc121) [] -> float
   %v122 = load_input [key=:b_out]
-  %v98 = kernel_call (:v96, :v122) [fn=:core.add] [] -> float
+  %v98 = kernel_call (:acc121, :v122) [fn=:core.add] [] -> float
   %v123 = constant [value=0.0] [] -> float
   %v99 = kernel_call (:v123, :v98) [fn=:core.sub] [] -> float
   %v100 = kernel_call (:v99) [fn=:core.exp] [] -> float
@@ -311,17 +293,15 @@ function grad_b_out:
       %v89 = kernel_call (:v112, :v113) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc114, :v89) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v90 = acc_load (:acc114) [] -> float
     %v115 = load_field (:hidden_el107) [field=:b1]
-    %v94 = kernel_call (:v90, :v115) [fn=:core.add] [hidden] -> float
+    %v94 = kernel_call (:acc114, :v115) [fn=:core.add] [hidden] -> float
     %v95 = kernel_call (:v94) [fn=:core.tanh] [hidden] -> float
     %v116 = load_field (:hidden_el107) [field=:w2]
     %v96 = kernel_call (:v116, :v95) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc117, :v96) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v97 = acc_load (:acc117) [] -> float
   %v118 = load_input [key=:b_out]
-  %v99 = kernel_call (:v97, :v118) [fn=:core.add] [] -> float
+  %v99 = kernel_call (:acc117, :v118) [fn=:core.add] [] -> float
   %v119 = constant [value=0.0] [] -> float
   %v100 = kernel_call (:v119, :v99) [fn=:core.sub] [] -> float
   %v101 = kernel_call (:v100) [fn=:core.exp] [] -> float
@@ -343,18 +323,16 @@ function grad_w2:
       %v93 = kernel_call (:v116, :v117) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc118, :v93) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v94 = acc_load (:acc118) [] -> float
     %v119 = load_field (:hidden_el111) [field=:b1]
-    %v98 = kernel_call (:v94, :v119) [fn=:core.add] [hidden] -> float
+    %v98 = kernel_call (:acc118, :v119) [fn=:core.add] [hidden] -> float
     %v99 = kernel_call (:v98) [fn=:core.tanh] [hidden] -> float
     array_push (:arr128, :v99)
     %v120 = load_field (:hidden_el111) [field=:w2]
     %v100 = kernel_call (:v120, :v99) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc121, :v100) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v101 = acc_load (:acc121) [] -> float
   %v122 = load_input [key=:b_out]
-  %v103 = kernel_call (:v101, :v122) [fn=:core.add] [] -> float
+  %v103 = kernel_call (:acc121, :v122) [fn=:core.add] [] -> float
   %v123 = constant [value=0.0] [] -> float
   %v104 = kernel_call (:v123, :v103) [fn=:core.sub] [] -> float
   %v105 = kernel_call (:v104) [fn=:core.exp] [] -> float
@@ -382,18 +360,16 @@ function grad_b1:
       %v94 = kernel_call (:v161, :v162) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc163, :v94) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v95 = acc_load (:acc163) [] -> float
     %v164 = load_field (:hidden_el156) [field=:b1]
-    %v99 = kernel_call (:v95, :v164) [fn=:core.add] [hidden] -> float
+    %v99 = kernel_call (:acc163, :v164) [fn=:core.add] [hidden] -> float
     %v100 = kernel_call (:v99) [fn=:core.tanh] [hidden] -> float
     array_push (:arr174, :v100)
     %v165 = load_field (:hidden_el156) [field=:w2]
     %v101 = kernel_call (:v165, :v100) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc166, :v101) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v102 = acc_load (:acc166) [] -> float
   %v167 = load_input [key=:b_out]
-  %v104 = kernel_call (:v102, :v167) [fn=:core.add] [] -> float
+  %v104 = kernel_call (:acc166, :v167) [fn=:core.add] [] -> float
   %v168 = constant [value=0.0] [] -> float
   %v105 = kernel_call (:v168, :v104) [fn=:core.sub] [] -> float
   %v106 = kernel_call (:v105) [fn=:core.exp] [] -> float
@@ -426,18 +402,16 @@ function grad_w1:
       %v102 = kernel_call (:v169, :v170) [fn=:core.mul:numeric] [hidden, win] -> float
       acc_step (:acc171, :v102) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:win]
-    %v103 = acc_load (:acc171) [] -> float
     %v172 = load_field (:hidden_el164) [field=:b1]
-    %v107 = kernel_call (:v103, :v172) [fn=:core.add] [hidden] -> float
+    %v107 = kernel_call (:acc171, :v172) [fn=:core.add] [hidden] -> float
     %v108 = kernel_call (:v107) [fn=:core.tanh] [hidden] -> float
     array_push (:arr182, :v108)
     %v173 = load_field (:hidden_el164) [field=:w2]
     %v109 = kernel_call (:v173, :v108) [fn=:core.mul:numeric] [hidden] -> float
     acc_step (:acc174, :v109) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:hidden]
-  %v110 = acc_load (:acc174) [] -> float
   %v175 = load_input [key=:b_out]
-  %v112 = kernel_call (:v110, :v175) [fn=:core.add] [] -> float
+  %v112 = kernel_call (:acc174, :v175) [fn=:core.add] [] -> float
   %v176 = constant [value=0.0] [] -> float
   %v113 = kernel_call (:v176, :v112) [fn=:core.sub] [] -> float
   %v114 = kernel_call (:v113) [fn=:core.exp] [] -> float

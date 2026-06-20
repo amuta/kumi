@@ -1,5 +1,26 @@
 ## [Unreleased]
 
+## [0.1.0] – 2026-06-20
+### Added
+- **Parser rewrite integration** (kumi-parser ≥ 0.1.0): new lexer/parser/grammar with located, framed parse errors. Semantic and parse errors now render on one `file:line:col` format; no more `?:?`.
+- **Cross-target semantics doc + parity tests** (`docs/CROSS_TARGET_SEMANTICS.md`): pinned Ruby/JS contracts for `to_string(float)`, `to_integer`/`to_float` of strings, and `pow` with a negative base and fractional exponent, each backed by a spec running Ruby against real node JS.
+- **Cross-references** beyond plain input fields: cross-axis (`A × A'`) iteration in Loop lowering, usable through `let`.
+- **Optimization passes**: algebraic identity folding (`x*1`, `x/1`, `x-0`, integer `x+0`/`x*0`) in Vec constant propagation and a Loop-layer copy-cleanup pass.
+- `SchemaMetadata`: the schema's algebra exposed as read-only data.
+
+### Changed
+- **Type system consolidated** under one `Core::Types` namespace (Registry/Profile/System/DtypeRule) with a per-target `Profile` seam; decimal > float > integer promotion lattice.
+- Compiler invariants, backend capability limits, and registry/schema/IR faults are now typed errors that break loudly instead of silently degrading.
+- `__select__` condition is typed `boolean`; the JS Loop emitter supports `impl`-only kernels (emitted once as a module-level helper), mirroring Ruby.
+
+### Fixed
+- `to_string(float)`, string `to_integer`/`to_float`, and `pow` of a negative base produced divergent results between Ruby and JS; kernels rewritten so both targets agree.
+- Typo'd input paths (`input.nope`) report a clean located user error instead of a compiler bug deep in dimensional analysis.
+- `PeepholeSimplify` could drop a def while keeping a stale use.
+
+### Removed
+- Vestigial `return_stamp` IR field, dead IRv2/pack tooling, and duplicated `RegisterGenerator`/terminal-instruction lookups across IR passes.
+
 ## [0.0.40] – 2026-06-15
 ### Added
 - LoopIR optimization pipeline (`Kumi::IR::Loop::Pipeline`), previously empty, now runs two passes on every compile:

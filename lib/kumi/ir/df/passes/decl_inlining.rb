@@ -7,6 +7,8 @@ module Kumi
     module DF
       module Passes
         class DeclInlining < Kumi::IR::Passes::Base
+          require_relative "../../passes/register_generator"
+
           InlineResult = Struct.new(:instructions, :result)
 
           def run(graph:, context: {})
@@ -17,13 +19,12 @@ module Kumi
           private
 
           def rewrite_function(fn, graph)
-            reg_gen = RegGenerator.new(fn)
+            reg_gen = Kumi::IR::Passes::RegisterGenerator.new(fn)
             new_blocks = fn.blocks.map { |block| rewrite_block(block, graph, reg_gen) }
             Kumi::IR::DF::Function.new(
               name: fn.name,
               parameters: fn.parameters,
-              blocks: new_blocks,
-              return_stamp: fn.return_stamp
+              blocks: new_blocks
             )
           end
 
@@ -96,33 +97,11 @@ module Kumi
               end
             end
 
-            last_instr = function.blocks.flat_map(&:instructions).reverse.find { |instr| instr.defs.any? }
+            last_instr = function.entry_block.terminal_instruction
             final_reg = last_instr && replacements[last_instr.defs.first]
             return nil unless final_reg
 
             InlineResult.new(emitted, final_reg)
-          end
-
-          class RegGenerator
-            def initialize(function)
-              @counter = extract_highest(function)
-            end
-
-            def next
-              @counter += 1
-              :"v#{@counter}"
-            end
-
-            private
-
-            def extract_highest(function)
-              regs = function.blocks.flat_map(&:instructions).map(&:result).compact
-              nums = regs.filter_map do |reg|
-                match = reg.to_s.match(/^v(\d+)$/)
-                match && match[1].to_i
-              end
-              nums.max || 0
-            end
           end
         end
       end

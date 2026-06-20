@@ -1,0 +1,162 @@
+# frozen_string_literal: true
+
+# Locks in the error-model contract (docs/PASS_AUDIT.md F1/F2): a user-facing
+# analyzer error surfaces exactly ONCE, with a real source location, and never
+# leaks the internal pass machinery (file paths, "Error in Analysis Pass(...)").
+RSpec.describe "analyzer error reporting" do
+  def analyze_error(&block)
+    ast = Kumi::Core::RubyParser::Dsl.build_syntax_tree(&block)
+    begin
+      Kumi::Analyzer.analyze!(ast)
+      nil
+    rescue StandardError => e
+      e
+    end
+  end
+
+  describe "a single type mismatch" do
+    subject(:error) do
+      analyze_error do
+        input do
+          string :name
+        end
+        value :bad, fn(:add, input.name, input.name)
+      end
+    end
+
+    it "raises a located TypeError" do
+      expect(error).to be_a(Kumi::Core::Errors::TypeError)
+      expect(error.message).to match(/type mismatch/)
+    end
+
+    it "reports the error exactly once" do
+      expect(error.message.scan("type mismatch").size).to eq(1)
+    end
+
+    it "does not leak internal pass machinery to the user" do
+      expect(error.message).not_to include("Error in Analysis Pass")
+      expect(error.message).not_to include("nast_dimensional_analyzer_pass.rb")
+      expect(error.message).not_to match(%r{lib/kumi/core/analyzer})
+    end
+
+    it "carries a real source location, not coordinates in the message text" do
+      expect(error.message).to match(/line=\d+|:\d+:/)
+    end
+  end
+
+  describe "an unknown function" do
+    subject(:error) do
+      analyze_error do
+        input do
+          integer :x
+        end
+        value :v, fn(:no_such_function, input.x)
+      end
+    end
+
+    it "reports a located error naming the function, with no internal leak" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("unknown function `no_such_function`")
+      expect(error.message).not_to include("Error in Analysis Pass")
+      expect(error.message).not_to include("function_registry.rb")
+      expect(error.message).to match(/line=\d+|:\d+:/)
+    end
+  end
+
+  describe "cross/outer argument validation" do
+    it "reports a located error for cross on a scalar, with no leak" do
+      error = analyze_error do
+        input do
+          integer :x
+        end
+        value :c, cross(input.x)
+      end
+
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("cross requires an array argument")
+      expect(error.message.scan("cross requires an array argument").size).to eq(1)
+      expect(error.message).not_to include("Error in Analysis Pass")
+    end
+  end
+
+  describe "CompilerBug" do
+    it "frames internal invariants as a bug to report, distinct from user errors" do
+      bug = Kumi::Core::Errors::CompilerBug.new("widget axis desync")
+
+      expect(bug).to be_a(Kumi::Core::Errors::Error)
+      expect(bug).not_to be_a(Kumi::Core::Errors::LocatedError)
+      expect(bug.message).to include("internal compiler error (please report)")
+      expect(bug.message).to include("widget axis desync")
+    end
+  end
+
+  describe "UnsupportedFeature" do
+    it "names a missing backend capability, distinct from a bug and from a user error" do
+      feat = Kumi::Core::Errors::UnsupportedFeature.new("JS loop codegen does not support opcode :foo")
+
+      expect(feat).to be_a(Kumi::Core::Errors::Error)
+      expect(feat).not_to be_a(Kumi::Core::Errors::CompilerBug)
+      expect(feat).not_to be_a(Kumi::Core::Errors::LocatedError)
+    end
+  end
+
+  # An input typo is the most common user mistake; it must be a clean, located
+  # user error — never "internal compiler error (please report)".
+  describe "a reference to an undeclared input" do
+    subject(:error) do
+      analyze_error do
+        input { integer :x }
+        value :y, input.nope * 2
+      end
+    end
+
+    it "raises a located SemanticError naming the missing field and its siblings" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("undeclared input")
+      expect(error.message).to include("nope")
+      expect(error.message).to include("Available: x")
+    end
+
+    it "does not leak compiler internals" do
+      expect(error.message).not_to include("internal compiler error")
+      expect(error.message).not_to include("input_table")
+    end
+  end
+
+  describe "a path that reads past a leaf input" do
+    subject(:error) do
+      analyze_error do
+        input { array(:items) { hash(:item) { integer :q } } }
+        value :y, input.items.item.q.extra
+      end
+    end
+
+    it "raises a clean SemanticError about reading past a leaf, not a compiler bug" do
+      expect(error).to be_a(Kumi::Core::Errors::SemanticError)
+      expect(error.message).to include("reads past a leaf")
+      expect(error.message).not_to include("internal compiler error")
+    end
+  end
+
+  # select must require a boolean condition (consistent with & | !), not coerce
+  # a number to truthy. And the message uses the friendly alias, not __select__.
+  describe "select with a non-boolean condition" do
+    subject(:error) do
+      analyze_error do
+        input { integer :x }
+        value :y, select(input.x, 100, 200)
+      end
+    end
+
+    it "raises a located TypeError naming the boolean condition requirement" do
+      expect(error).to be_a(Kumi::Core::Errors::TypeError)
+      expect(error.message).to include("condition_mask")
+      expect(error.message).to include("expected boolean")
+    end
+
+    it "shows the friendly alias `select`, not the synthetic id" do
+      expect(error.message).to include("select(")
+      expect(error.message).not_to include("__select__")
+    end
+  end
+end

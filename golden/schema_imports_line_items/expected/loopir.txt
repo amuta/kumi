@@ -7,7 +7,6 @@ function order_subtotal:
     %v6 = kernel_call (:v11, :v12) [fn=:core.mul:numeric] [order_items] -> integer
     acc_step (:acc13, :v6) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:order_items]
-  %v7 = acc_load (:acc13) [] -> integer
 function tax_amount:
   %v13 = load_input [key=:order_items]
   %acc18 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -17,9 +16,8 @@ function tax_amount:
     %v11 = kernel_call (:v16, :v17) [fn=:core.mul:numeric] [order_items] -> integer
     acc_step (:acc18, :v11) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:order_items]
-  %v12 = acc_load (:acc18) [] -> integer
   %v19 = load_input [key=:tax_rate]
-  %v5 = kernel_call (:v12, :v19) [fn=:core.mul:numeric] [] -> integer
+  %v5 = kernel_call (:acc18, :v19) [fn=:core.mul:numeric] [] -> integer
 function total:
   %v20 = load_input [key=:order_items]
   %acc25 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -29,7 +27,6 @@ function total:
     %v18 = kernel_call (:v23, :v24) [fn=:core.mul:numeric] [order_items] -> integer
     acc_step (:acc25, :v18) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:order_items]
-  %v19 = acc_load (:acc25) [] -> integer
   %v26 = load_input [key=:tax_rate]
-  %v14 = kernel_call (:v19, :v26) [fn=:core.mul:numeric] [] -> integer
-  %v8 = kernel_call (:v19, :v14) [fn=:core.add] [] -> integer
+  %v14 = kernel_call (:acc25, :v26) [fn=:core.mul:numeric] [] -> integer
+  %v8 = kernel_call (:acc25, :v14) [fn=:core.add] [] -> integer

@@ -98,7 +98,7 @@ module Kumi
                   when :acc_load
                     @buffer.write "#{reg(instr.result)} = #{reg(instr.inputs.first)}"
                   else
-                    raise "Loop Ruby codegen does not support #{instr.opcode.inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature, "Ruby loop codegen does not support opcode #{instr.opcode.inspect}"
                   end
                 end
 
@@ -113,7 +113,8 @@ module Kumi
                   when :clamp
                     @buffer.write "#{out} = #{array}[(#{index} - (#{offset})).clamp(0, #{length} - 1)]"
                   else
-                    raise "Loop Ruby codegen does not support shift policy #{instr.attributes[:policy].inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature,
+                          "Ruby loop codegen does not support shift policy #{instr.attributes[:policy].inspect}"
                   end
                 end
 
@@ -122,7 +123,9 @@ module Kumi
                   value = reg(instr.inputs[1])
                   kernel = @registry.kernel_for(instr.attributes[:fn], target: :ruby)
                   template = kernel.inline
-                  raise "Missing inline for #{instr.attributes[:fn]}" if template.nil? || template.strip.empty?
+                  if template.nil? || template.strip.empty?
+                    raise Kumi::Core::Errors::UnsupportedFeature, "no Ruby inline template for #{instr.attributes[:fn].inspect}"
+                  end
 
                   @buffer.write "#{acc} ||= #{value}" if instr.attributes[:nil_init]
                   step = template.strip.gsub("$0", acc).gsub("$1", value)

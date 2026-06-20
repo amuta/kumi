@@ -1,0 +1,2 @@
+birth_year: integer
+claiming_age: integer

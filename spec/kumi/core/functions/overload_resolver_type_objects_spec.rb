@@ -5,111 +5,61 @@ require "kumi/core/functions/overload_resolver"
 require "kumi/core/types/value_objects"
 
 RSpec.describe Kumi::Core::Functions::OverloadResolver do
-  describe "type resolution with Type objects" do
-    let(:string_type) { Kumi::Core::Types.scalar(:string) }
-    let(:integer_type) { Kumi::Core::Types.scalar(:integer) }
-    let(:float_type) { Kumi::Core::Types.scalar(:float) }
-    let(:array_int_type) { Kumi::Core::Types.array(integer_type) }
+  let(:string_type)  { Kumi::Core::Types.scalar(:string) }
+  let(:integer_type) { Kumi::Core::Types.scalar(:integer) }
+  let(:float_type)   { Kumi::Core::Types.scalar(:float) }
 
-    describe "#type_compatible? with Type objects" do
-      let(:resolver) { described_class.new({}) }
+  def fn(id, params, aliases)
+    Struct.new(:id, :params, :aliases, :param_names).new(id, params, aliases, params.map { |p| p["name"]&.to_sym })
+  end
 
-      it "recognizes compatible scalar types" do
-        expect(resolver.send(:type_compatible?, "string", string_type)).to be true
-      end
+  describe "#resolve" do
+    let(:functions) do
+      {
+        "core.max:int" => fn("core.max:int", [{ "name" => "values", "dtype" => "integer" }], %w[core.max max]),
+        "core.max:float" => fn("core.max:float", [{ "name" => "values", "dtype" => "float" }], %w[core.max max])
+      }
+    end
+    let(:resolver) { described_class.new(functions) }
 
-      it "recognizes compatible array types with Type objects" do
-        expect(resolver.send(:type_compatible?, "array", array_int_type)).to be true
-      end
-
-      it "recognizes incompatible types" do
-        expect(resolver.send(:type_compatible?, "string", integer_type)).to be false
-      end
-
-      it "recognizes integer compatibility" do
-        expect(resolver.send(:type_compatible?, "integer", integer_type)).to be true
-      end
-
-      it "recognizes float compatibility" do
-        expect(resolver.send(:type_compatible?, "float", float_type)).to be true
-      end
-
-      it "recognizes hash compatibility" do
-        hash_type = Kumi::Core::Types.scalar(:hash)
-        expect(resolver.send(:type_compatible?, "hash", hash_type)).to be true
-      end
+    it "resolves to the integer overload for integer arguments" do
+      expect(resolver.resolve("max", [integer_type])).to eq("core.max:int")
     end
 
-    describe "#match_score with Type objects" do
-      let(:functions) do
-        {
-          "core.add:int" => Struct.new(:id, :params, :aliases, :param_names).new(
-            "core.add:int",
-            [{ "dtype" => "integer" }, { "dtype" => "integer" }],
-            ["core.add"],
-            %w[a b]
-          ),
-          "core.add:float" => Struct.new(:id, :params, :aliases, :param_names).new(
-            "core.add:float",
-            [{ "dtype" => "float" }, { "dtype" => "float" }],
-            ["core.add"],
-            %w[a b]
-          )
-        }
-      end
-      let(:resolver) { described_class.new(functions) }
-
-      it "scores exact type matches higher" do
-        int_params = functions["core.add:int"].params
-        float_params = functions["core.add:float"].params
-
-        int_score = resolver.send(:match_score, int_params, [integer_type, integer_type])
-        float_score = resolver.send(:match_score, float_params, [integer_type, integer_type])
-
-        expect(int_score).to be > float_score
-      end
-
-      it "scores zero for incompatible types" do
-        int_params = functions["core.add:int"].params
-
-        score = resolver.send(:match_score, int_params, [string_type, string_type])
-        expect(score).to eq(0)
-      end
+    it "resolves to the float overload for float arguments" do
+      expect(resolver.resolve("max", [float_type])).to eq("core.max:float")
     end
 
-    describe "resolution with Type object arguments" do
-      let(:functions) do
-        {
-          "core.max:int" => Struct.new(:id, :params, :aliases, :param_names).new(
-            "core.max:int",
-            [{ "dtype" => "integer" }],
-            ["core.max", "max"],
-            ["values"]
-          ),
-          "core.max:float" => Struct.new(:id, :params, :aliases, :param_names).new(
-            "core.max:float",
-            [{ "dtype" => "float" }],
-            ["core.max", "max"],
-            ["values"]
-          )
-        }
-      end
-      let(:resolver) { described_class.new(functions) }
+    it "raises a precise, argument-level error when no overload matches" do
+      expect { resolver.resolve("max", [string_type]) }
+        .to raise_error(described_class::ResolutionError,
+                        /argument 1 \(values\) expected (integer|float), got string/)
+    end
 
-      it "resolves to correct overload for integer types" do
-        result = resolver.resolve("max", [integer_type])
-        expect(result).to eq("core.max:int")
-      end
+    it "reports arity mismatches" do
+      expect { resolver.resolve("max", [integer_type, integer_type]) }
+        .to raise_error(described_class::ResolutionError, /expects 1 argument\(s\), got 2/)
+    end
 
-      it "resolves to correct overload for float types" do
-        result = resolver.resolve("max", [float_type])
-        expect(result).to eq("core.max:float")
-      end
+    it "raises for an unknown function" do
+      expect { resolver.resolve("nope", [integer_type]) }
+        .to raise_error(described_class::ResolutionError, /unknown function nope/)
+    end
+  end
 
-      it "prefers exact matches over generic matches" do
-        result = resolver.resolve("max", [integer_type])
-        expect(result).to eq("core.max:int")
-      end
+  describe "single-overload constraint checking" do
+    let(:functions) do
+      { "core.upcase" => fn("core.upcase", [{ "name" => "s", "dtype" => "string" }], %w[upcase]) }
+    end
+    let(:resolver) { described_class.new(functions) }
+
+    it "accepts a matching argument" do
+      expect(resolver.resolve("upcase", [string_type])).to eq("core.upcase")
+    end
+
+    it "names the offending argument and the expected constraint on mismatch" do
+      expect { resolver.resolve("upcase", [integer_type]) }
+        .to raise_error(described_class::ResolutionError, /argument 1 \(s\) expected string, got integer/)
     end
   end
 end

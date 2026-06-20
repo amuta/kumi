@@ -8,8 +8,7 @@ function dept_total:
       %v13 = load_field (:teams_el11) [field=:headcount]
       acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:teams]
-    %v6 = acc_load (:acc14) [] -> integer
-    array_push (:arr15, :v6)
+    array_push (:arr15, :acc14)
   loop_end [axis=:depts]
 function company_total:
   %v14 = load_input [key=:depts]
@@ -21,10 +20,8 @@ function company_total:
       %v20 = load_field (:teams_el18) [field=:headcount]
       acc_step (:acc21, :v20) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:teams]
-    %v12 = acc_load (:acc21) [] -> integer
-    acc_step (:acc22, :v12) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc22, :acc21) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:depts]
-  %v13 = acc_load (:acc22) [] -> integer
 function big_team:
   %v22 = load_input [key=:depts]
   %arr30 = array_init
@@ -53,6 +50,5 @@ function dept_total_masked:
       %v30 = select (:v39, :v46, :v48) [depts, teams] -> integer
       acc_step (:acc49, :v30) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:teams]
-    %v31 = acc_load (:acc49) [] -> integer
-    array_push (:arr50, :v31)
+    array_push (:arr50, :acc49)
   loop_end [axis=:depts]

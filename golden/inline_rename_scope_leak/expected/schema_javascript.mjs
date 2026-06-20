@@ -6,8 +6,7 @@ export function _sum_x(input) {
     let t8 = xs_el6["v"];
     acc9 += t8;
   }
-  let t4 = acc9;
-  return t4;
+  return acc9;
 }
 
 export function _sum_y(input) {
@@ -18,8 +17,7 @@ export function _sum_y(input) {
     let t12 = ys_el10["v"];
     acc13 += t12;
   }
-  let t8 = acc13;
-  return t8;
+  return acc13;
 }
 
 export function _tail(input) {
@@ -35,7 +33,6 @@ export function _out(input) {
     let t30 = xs_el28["v"];
     acc31 += t30;
   }
-  let t19 = acc31;
   let t32 = input["ys"];
   let acc36 = 0.0;
   for (let ys_i34 = 0; ys_i34 < t32.length; ys_i34++) {
@@ -43,9 +40,8 @@ export function _out(input) {
     let t35 = ys_el33["v"];
     acc36 += t35;
   }
-  let t23 = acc36;
   let t37 = 12.0;
-  let t15 = { "x": t19, "y": t23, "t": t37 };
+  let t15 = { "x": acc31, "y": acc36, "t": t37 };
   return t15;
 }
 

@@ -12,8 +12,7 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t8 = t16 * t17
         acc18 += t8
       end
-      t9 = acc18
-      arr19 << t9
+      arr19 << acc18
     end
     return arr19
   end
@@ -30,9 +29,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t17 = t25 * t26
         acc27 += t17
       end
-      t18 = acc27
       t28 = orders_el20["shipping_cost"] || orders_el20[:shipping_cost]
-      t9 = t18 + t28
+      t9 = acc27 + t28
       arr29 << t9
     end
     return arr29
@@ -50,9 +48,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t25 = t36 * t37
         acc38 += t25
       end
-      t26 = acc38
       t39 = orders_el31["shipping_cost"] || orders_el31[:shipping_cost]
-      t21 = t26 + t39
+      t21 = acc38 + t39
       t40 = 1.0
       t41 = input["global_discount_rate"] || input[:global_discount_rate]
       t28 = t40 - t41
@@ -74,9 +71,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t30 = t43 * t44
         acc45 += t30
       end
-      t31 = acc45
       t46 = orders_el38["shipping_cost"] || orders_el38[:shipping_cost]
-      t23 = t31 + t46
+      t23 = acc45 + t46
       t47 = 1.0
       t48 = input["global_discount_rate"] || input[:global_discount_rate]
       t33 = t47 - t48
@@ -100,9 +96,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t45 = t58 * t59
         acc60 += t45
       end
-      t46 = acc60
       t61 = orders_el53["shipping_cost"] || orders_el53[:shipping_cost]
-      t26 = t46 + t61
+      t26 = acc60 + t61
       t62 = 1.0
       t63 = input["global_discount_rate"] || input[:global_discount_rate]
       t48 = t62 - t63
@@ -127,9 +122,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t44 = t55 * t56
         acc57 += t44
       end
-      t45 = acc57
       t58 = orders_el50["shipping_cost"] || orders_el50[:shipping_cost]
-      t29 = t45 + t58
+      t29 = acc57 + t58
       t59 = 1.0
       t60 = input["global_discount_rate"] || input[:global_discount_rate]
       t47 = t59 - t60
@@ -147,13 +141,12 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
       t29 = orders_el27["id"] || orders_el27[:id]
       acc30 += 1
     end
-    t25 = acc30
-    return t25
+    return acc30
   end
 
   def self._total_revenue(input)
     t62 = input["orders"] || input[:orders]
-    acc75 = 0.0
+    acc75 = 0
     t62.each_with_index do |orders_el63, orders_i64|
       t65 = orders_el63["items"] || orders_el63[:items]
       acc70 = 0
@@ -163,9 +156,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t55 = t68 * t69
         acc70 += t55
       end
-      t56 = acc70
       t71 = orders_el63["shipping_cost"] || orders_el63[:shipping_cost]
-      t35 = t56 + t71
+      t35 = acc70 + t71
       t72 = 1.0
       t73 = input["global_discount_rate"] || input[:global_discount_rate]
       t58 = t72 - t73
@@ -175,13 +167,12 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
       t51 = t59 + t61
       acc75 += t51
     end
-    t27 = acc75
-    return t27
+    return acc75
   end
 
   def self._total_tax_collected(input)
     t52 = input["orders"] || input[:orders]
-    acc65 = 0.0
+    acc65 = 0
     t52.each_with_index do |orders_el53, orders_i54|
       t55 = orders_el53["items"] || orders_el53[:items]
       acc60 = 0
@@ -191,9 +182,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t45 = t58 * t59
         acc60 += t45
       end
-      t46 = acc60
       t61 = orders_el53["shipping_cost"] || orders_el53[:shipping_cost]
-      t37 = t46 + t61
+      t37 = acc60 + t61
       t62 = 1.0
       t63 = input["global_discount_rate"] || input[:global_discount_rate]
       t48 = t62 - t63
@@ -202,13 +192,12 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
       t51 = t49 * t64
       acc65 += t51
     end
-    t29 = acc65
-    return t29
+    return acc65
   end
 
   def self._total_discount_given(input)
     t60 = input["orders"] || input[:orders]
-    acc72 = 0.0
+    acc72 = 0
     t60.each_with_index do |orders_el61, orders_i62|
       t63 = orders_el61["items"] || orders_el61[:items]
       acc68 = 0
@@ -218,9 +207,8 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
         t55 = t66 * t67
         acc68 += t55
       end
-      t56 = acc68
       t69 = orders_el61["shipping_cost"] || orders_el61[:shipping_cost]
-      t39 = t56 + t69
+      t39 = acc68 + t69
       t70 = 1.0
       t71 = input["global_discount_rate"] || input[:global_discount_rate]
       t58 = t70 - t71
@@ -228,7 +216,6 @@ module Kumi::Compiled::KUMI_bfadf7e4e122e3c34f7c4e295b15d28e4885544b894edff59173
       t51 = t39 - t59
       acc72 += t51
     end
-    t31 = acc72
-    return t31
+    return acc72
   end
 end

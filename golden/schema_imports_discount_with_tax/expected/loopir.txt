@@ -1,13 +1,13 @@
 function tax_amount:
   %v5 = load_input [key=:price]
   %v6 = constant [value=0.15] [] -> float
-  %v4 = kernel_call (:v5, :v6) [fn=:core.mul:numeric] [] -> float
+  %v4 = kernel_call (:v5, :v6) [fn=:core.mul:numeric] [] -> decimal
 function price_after_discount:
   %v9 = constant [value=1.0] [] -> float
   %v10 = load_input [key=:discount_rate]
-  %v7 = kernel_call (:v9, :v10) [fn=:core.sub] [] -> float
+  %v7 = kernel_call (:v9, :v10) [fn=:core.sub] [] -> decimal
   %v11 = load_input [key=:price]
-  %v8 = kernel_call (:v11, :v7) [fn=:core.mul:numeric] [] -> float
+  %v8 = kernel_call (:v11, :v7) [fn=:core.mul:numeric] [] -> decimal
 function discount_saved:
   %v10 = load_input [key=:price]
   %v11 = load_input [key=:discount_rate]
@@ -15,17 +15,17 @@ function discount_saved:
 function tax_on_discounted:
   %v19 = constant [value=1.0] [] -> float
   %v20 = load_input [key=:discount_rate]
-  %v15 = kernel_call (:v19, :v20) [fn=:core.sub] [] -> float
+  %v15 = kernel_call (:v19, :v20) [fn=:core.sub] [] -> decimal
   %v21 = load_input [key=:price]
-  %v16 = kernel_call (:v21, :v15) [fn=:core.mul:numeric] [] -> float
+  %v16 = kernel_call (:v21, :v15) [fn=:core.mul:numeric] [] -> decimal
   %v22 = constant [value=0.15] [] -> float
-  %v18 = kernel_call (:v16, :v22) [fn=:core.mul:numeric] [] -> float
+  %v18 = kernel_call (:v16, :v22) [fn=:core.mul:numeric] [] -> decimal
 function final_total:
   %v26 = constant [value=1.0] [] -> float
   %v27 = load_input [key=:discount_rate]
-  %v22 = kernel_call (:v26, :v27) [fn=:core.sub] [] -> float
+  %v22 = kernel_call (:v26, :v27) [fn=:core.sub] [] -> decimal
   %v28 = load_input [key=:price]
-  %v23 = kernel_call (:v28, :v22) [fn=:core.mul:numeric] [] -> float
+  %v23 = kernel_call (:v28, :v22) [fn=:core.mul:numeric] [] -> decimal
   %v29 = constant [value=0.15] [] -> float
-  %v25 = kernel_call (:v23, :v29) [fn=:core.mul:numeric] [] -> float
-  %v13 = kernel_call (:v23, :v25) [fn=:core.add] [] -> float
+  %v25 = kernel_call (:v23, :v29) [fn=:core.mul:numeric] [] -> decimal
+  %v13 = kernel_call (:v23, :v25) [fn=:core.add] [] -> decimal

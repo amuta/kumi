@@ -14,6 +14,7 @@ module Kumi
                   @registry = registry
                   @out = []
                   @indent = 0
+                  @helper_kernels = []
                 end
 
                 def emit(loop_module, schema_digest: nil, streaming: false)
@@ -24,6 +25,7 @@ module Kumi
                     emit_streaming_function(fn) if streaming
                   end
 
+                  emit_helpers
                   to_s
                 end
 
@@ -150,6 +152,7 @@ module Kumi
                 def reset!
                   @out.clear
                   @indent = 0
+                  @helper_kernels = []
                 end
 
                 def to_s = @out.join
@@ -250,7 +253,7 @@ module Kumi
                   when :acc_load
                     write "let #{reg(instr.result)} = #{reg(instr.inputs.first)};"
                   else
-                    raise "Loop JS codegen does not support #{instr.opcode.inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature, "JS loop codegen does not support opcode #{instr.opcode.inspect}"
                   end
                 end
 
@@ -323,7 +326,8 @@ module Kumi
                   when :clamp
                     write "let #{out} = #{array}[Math.min(Math.max(#{index} - (#{offset}), 0), #{length} - 1)];"
                   else
-                    raise "Loop JS codegen does not support shift policy #{instr.attributes[:policy].inspect}"
+                    raise Kumi::Core::Errors::UnsupportedFeature,
+                          "JS loop codegen does not support shift policy #{instr.attributes[:policy].inspect}"
                   end
                 end
 
@@ -332,18 +336,31 @@ module Kumi
                   value = reg(instr.inputs[1])
                   kernel = @registry.kernel_for(instr.attributes[:fn], target: :javascript)
                   template = kernel.inline
-                  raise "Missing inline for #{instr.attributes[:fn]}" if template.nil? || template.strip.empty?
+                  if template.nil? || template.strip.empty?
+                    raise Kumi::Core::Errors::UnsupportedFeature, "no JS inline template for #{instr.attributes[:fn].inspect}"
+                  end
 
                   step = template.strip.gsub("$0", acc).gsub("$1", value)
                   write "#{acc} #{step};"
                 end
 
+                # An inline kernel expands in place; a kernel that only provides
+                # an `impl` (a multi-line function body, e.g. Ruby-compatible
+                # float formatting) is emitted once as a module-level helper and
+                # called by name — mirroring the Ruby emitter so both targets can
+                # share the same kernel shape for non-trivial semantics.
                 def kernel_expr(fn_id, args)
                   kernel = @registry.kernel_for(fn_id, target: :javascript)
                   inline = kernel.inline
-                  raise "Missing inline kernel for #{fn_id}" if inline.nil? || inline.strip.empty?
+                  return apply_inline(inline, args) if inline && !inline.strip.empty?
 
-                  apply_inline(inline, args)
+                  unless kernel.impl && !kernel.impl.strip.empty?
+                    raise Kumi::Core::Errors::UnsupportedFeature,
+                          "no JS inline or impl kernel for #{fn_id.inspect}"
+                  end
+
+                  @helper_kernels << kernel
+                  "#{kernel_method_name(kernel.fn_id)}(#{args.join(', ')})"
                 end
 
                 def apply_inline(template, args)
@@ -351,6 +368,21 @@ module Kumi
                   expr = expr.sub(/^=\s*/, "")
                   args.each_with_index { |arg, idx| expr = expr.gsub("$#{idx}", arg) }
                   expr
+                end
+
+                # Emit each used impl-only kernel once as a module-level function.
+                # A JS impl is a complete signature+body, e.g. "(value) { ... }",
+                # so the helper is `function __fn_id(value) { ... }`.
+                def emit_helpers
+                  @helper_kernels.uniq(&:id).each do |kernel|
+                    next unless kernel.impl && !kernel.impl.strip.empty?
+
+                    write "function #{kernel_method_name(kernel.fn_id)}#{kernel.impl.strip}"
+                  end
+                end
+
+                def kernel_method_name(fn_id)
+                  "__#{fn_id.to_s.tr('.:', '_')}"
                 end
 
                 def write(line)

@@ -10,6 +10,17 @@ module Kumi
             reads :registry
             optional_reads :precomputed_plan_by_fqn, :cross_axes, :outer_axes
 
+            # The loop lowering can hit a genuine "valid schema, unsupported
+            # construct" wall (e.g. cross(...) over a computed value). Those are
+            # raised as UnsupportedFeature; catch them here and surface as a
+            # clean, accumulated pass failure rather than letting PassManager
+            # re-raise them as an "internal compiler error (please report)".
+            def run(errors)
+              super
+            rescue Kumi::Core::Errors::UnsupportedFeature => e
+              halt_pass!(errors, e.message)
+            end
+
             private
 
             def lower(vec_module)

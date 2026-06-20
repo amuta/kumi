@@ -61,10 +61,14 @@ kernels:
     inline: "= $0 * $1"
     impl: "(str, count)\n  str * count"
 
+  # A negative base with a fractional exponent makes Ruby return a Complex,
+  # whereas JS Math.pow returns NaN. A numeric DSL should not silently produce
+  # complex numbers, so collapse the Complex case to NaN to match JS.
+  # Contract documented in docs/CROSS_TARGET_SEMANTICS.md.
   - id: pow:ruby:v1
     fn: core.pow
-    inline: "= $0 ** $1"
-    impl: "(a, b)\n  a ** b"
+    inline: "= (($0) ** ($1)).then { |r| r.is_a?(Complex) ? Float::NAN : r }"
+    impl: "(a, b)\n  r = a ** b\n  r.is_a?(Complex) ? Float::NAN : r"
 
   - id: div:ruby:v1
     fn: core.div

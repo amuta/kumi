@@ -10,8 +10,7 @@ export function _total_payroll(input) {
       let t13 = employees_el11["salary"];
       acc14 += t13;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -28,9 +27,8 @@ export function _payroll_tax(input) {
       let t23 = employees_el21["salary"];
       acc24 += t23;
     }
-    let t16 = acc24;
     let t25 = 0.15;
-    let t10 = t16 * t25;
+    let t10 = acc24 * t25;
     arr26.push(t10);
   }
   return arr26;
@@ -53,8 +51,7 @@ export function _manager_count(input) {
       let t23 = t18 ? t33 : t34;
       acc35 += t23;
     }
-    let t24 = acc35;
-    arr36.push(t24);
+    arr36.push(acc35);
   }
   return arr36;
 }
@@ -71,9 +68,8 @@ export function _department_summary(input) {
       let t67 = employees_el65["salary"];
       acc68 += t67;
     }
-    let t37 = acc68;
     let t69 = 0.15;
-    let t46 = t37 * t69;
+    let t46 = acc68 * t69;
     let acc76 = 0;
     for (let employees_i71 = 0; employees_i71 < t64.length; employees_i71++) {
       let employees_el70 = t64[employees_i71];
@@ -85,9 +81,8 @@ export function _department_summary(input) {
       let t59 = t54 ? t74 : t75;
       acc76 += t59;
     }
-    let t60 = acc76;
     let t77 = departments_el62["name"];
-    let t31 = { "name": t77, "payroll": t37, "tax": t46, "managers": t60 };
+    let t31 = { "name": t77, "payroll": acc68, "tax": t46, "managers": acc76 };
     arr78.push(t31);
   }
   return arr78;

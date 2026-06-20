@@ -1,0 +1,193 @@
+(Root
+  inputs: [
+    (InputDeclaration :birth_year :integer domain: 1900..2024)
+    (InputDeclaration :claiming_age :integer domain: 62..70)
+  ]
+  values: [
+    (ValueDeclaration :full_retirement_age
+      (CascadeExpression
+        ((CallExpression :cascade_and
+        (DeclarationReference :b1)
+      ) (Literal 65.0))
+        ((CallExpression :cascade_and
+        (DeclarationReference :b2)
+      ) (CallExpression :add
+        (Literal 65.0)
+        (CallExpression :multiply
+          (CallExpression :subtract
+            (InputReference :birth_year)
+            (Literal 1937)
+          )
+          (CallExpression :divide
+            (Literal 2.0)
+            (Literal 12.0)
+          )
+        )
+      ))
+        ((CallExpression :cascade_and
+        (DeclarationReference :b3)
+      ) (Literal 66.0))
+        ((CallExpression :cascade_and
+        (DeclarationReference :b4)
+      ) (CallExpression :add
+        (Literal 66.0)
+        (CallExpression :multiply
+          (CallExpression :subtract
+            (InputReference :birth_year)
+            (Literal 1954)
+          )
+          (CallExpression :divide
+            (Literal 2.0)
+            (Literal 12.0)
+          )
+        )
+      ))
+        ((CallExpression :cascade_and
+        (DeclarationReference :b5)
+      ) (Literal 67.0))
+        ((Literal true) (Literal 67.0))
+      )
+    )
+    (ValueDeclaration :months_delayed
+      (CallExpression :max
+        (ArrayExpression
+          (Literal 0)
+          (CallExpression :multiply
+            (Literal 12)
+            (CallExpression :subtract
+              (InputReference :claiming_age)
+              (DeclarationReference :full_retirement_age)
+            )
+          )
+        )
+      )
+    )
+    (ValueDeclaration :months_early
+      (CallExpression :max
+        (ArrayExpression
+          (Literal 0)
+          (CallExpression :multiply
+            (Literal 12)
+            (CallExpression :subtract
+              (DeclarationReference :full_retirement_age)
+              (InputReference :claiming_age)
+            )
+          )
+        )
+      )
+    )
+    (ValueDeclaration :months_early_first_36
+      (CallExpression :min
+        (ArrayExpression
+          (Literal 36)
+          (DeclarationReference :months_early)
+        )
+      )
+    )
+    (ValueDeclaration :months_early_additional
+      (CallExpression :min
+        (ArrayExpression
+          (CallExpression :max
+            (ArrayExpression
+              (Literal 0)
+              (CallExpression :subtract
+                (DeclarationReference :months_early)
+                (Literal 36)
+              )
+            )
+          )
+          (Literal 24)
+        )
+      )
+    )
+    (ValueDeclaration :adj
+      (CallExpression :add
+        (CallExpression :add
+          (CallExpression :add
+            (Literal 1.0)
+            (CallExpression :multiply
+              (DeclarationReference :months_early_first_36)
+              (CallExpression :multiply
+                (CallExpression :divide
+                  (Literal -5.0)
+                  (Literal 9.0)
+                )
+                (Literal 0.01)
+              )
+            )
+          )
+          (CallExpression :multiply
+            (DeclarationReference :months_early_additional)
+            (CallExpression :multiply
+              (CallExpression :divide
+                (Literal -5.0)
+                (Literal 12.0)
+              )
+              (Literal 0.01)
+            )
+          )
+        )
+        (CallExpression :multiply
+          (DeclarationReference :months_delayed)
+          (CallExpression :multiply
+            (CallExpression :divide
+              (Literal 2.0)
+              (Literal 3.0)
+            )
+            (Literal 0.01)
+          )
+        )
+      )
+    )
+  ]
+  traits: [
+    (TraitDeclaration :b1
+      (CallExpression :<=
+        (InputReference :birth_year)
+        (Literal 1937)
+      )
+    )
+    (TraitDeclaration :b2
+      (CallExpression :and
+        (CallExpression :>=
+          (InputReference :birth_year)
+          (Literal 1938)
+        )
+        (CallExpression :<=
+          (InputReference :birth_year)
+          (Literal 1942)
+        )
+      )
+    )
+    (TraitDeclaration :b3
+      (CallExpression :and
+        (CallExpression :>=
+          (InputReference :birth_year)
+          (Literal 1943)
+        )
+        (CallExpression :<=
+          (InputReference :birth_year)
+          (Literal 1954)
+        )
+      )
+    )
+    (TraitDeclaration :b4
+      (CallExpression :and
+        (CallExpression :>=
+          (InputReference :birth_year)
+          (Literal 1955)
+        )
+        (CallExpression :<=
+          (InputReference :birth_year)
+          (Literal 1959)
+        )
+      )
+    )
+    (TraitDeclaration :b5
+      (CallExpression :>=
+        (InputReference :birth_year)
+        (Literal 1960)
+      )
+    )
+  ]
+)

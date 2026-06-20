@@ -109,7 +109,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
       expect(result_state).to be_a(Kumi::Core::Analyzer::AnalysisState)
     end
 
-    it "includes pass source location when a pass raises" do
+    it "raises a CompilerBug naming the pass when a pass crashes unexpectedly" do
       exploding_pass = Class.new do
         def self.name = "ExplodingPass"
 
@@ -125,11 +125,8 @@ RSpec.describe "Analyzer refactoring with PassManager" do
       state = Kumi::Core::Analyzer::AnalysisState.new
       errors = []
 
-      Kumi::Analyzer.run_analysis_passes(simple_schema, [exploding_pass], state, errors)
-
-      expect(errors.first.message).to include("ExplodingPass")
-      expect(errors.first.message).to include("kaboom")
-      expect(errors.first.message).to include(__FILE__)
+      expect { Kumi::Analyzer.run_analysis_passes(simple_schema, [exploding_pass], state, errors) }
+        .to raise_error(Kumi::Core::Errors::CompilerBug, /ExplodingPass.*kaboom/m)
     end
   end
 
@@ -153,7 +150,7 @@ RSpec.describe "Analyzer refactoring with PassManager" do
   describe ".analyze!" do
     it "raises immediately when an earlier pipeline reports errors" do
       schema = instance_double("Schema", digest: "digest")
-      allow(Kumi::RegistryV2).to receive(:load).and_return(double("Registry"))
+      allow(Kumi::FunctionRegistry).to receive(:load).and_return(double("Registry"))
 
       error_entry = Kumi::Core::ErrorReporter.create_error("boom", type: :semantic)
       call_count = 0

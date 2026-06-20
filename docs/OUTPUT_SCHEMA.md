@@ -31,15 +31,19 @@ bin/kumi analyze schema.kumi --dump output_schema --side-tables
 
 **Schema:**
 ```kumi
-input items: array {
-  item: hash {
-    price: float
-    quantity: integer
-  }
-}
+schema do
+  input do
+    array :items do
+      hash :item do
+        float :price
+        integer :quantity
+      end
+    end
+  end
 
-trait expensive: items.item.price > 100.0
-value total: items.item.price * items.item.quantity
+  trait :expensive, input.items.item.price > 100.0
+  value :total, input.items.item.price * input.items.item.quantity
+end
 ```
 
 **Generated Output Schema:**

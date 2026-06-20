@@ -33,12 +33,12 @@ module Kumi
             elsif template_part.key?("const")
               NAST::Const.new(value: template_part["const"], loc: @loc)
             else
-              raise "Invalid expansion template part: #{template_part}"
+              raise Kumi::Core::Errors::CompilerBug, "invalid expansion template part: #{template_part}"
             end
           when String
             build_argument_node(template_part)
           else
-            raise "Invalid expansion template part: #{template_part}"
+            raise Kumi::Core::Errors::CompilerBug, "invalid expansion template part: #{template_part}"
           end
         end
 
@@ -55,7 +55,7 @@ module Kumi
         end
 
         def build_argument_node(arg_str)
-          raise "Invalid argument placeholder: #{arg_str}" unless arg_str.start_with?("$")
+          raise Kumi::Core::Errors::CompilerBug, "invalid argument placeholder: #{arg_str}" unless arg_str.start_with?("$")
 
           index = arg_str[1..].to_i - 1
           @normalized_args.fetch(index) do

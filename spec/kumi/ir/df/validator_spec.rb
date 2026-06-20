@@ -129,7 +129,7 @@ RSpec.describe Kumi::IR::DF::Validator do
   end
 
   describe "registry coherence" do
-    let(:registry) { Kumi::RegistryV2.load }
+    let(:registry) { Kumi::FunctionRegistry.load }
 
     def map_graph(fn)
       graph_with(

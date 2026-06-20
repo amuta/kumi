@@ -4,16 +4,15 @@ function item_taxes:
   %items_el8 = loop_start (:v7) [axis=:items, index=:items_i9]
     %v10 = load_field (:items_el8) [field=:amount]
     %v11 = constant [value=0.15] [] -> float
-    %v6 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [items] -> float
+    %v6 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [items] -> decimal
     array_push (:arr12, :v6)
   loop_end [axis=:items]
 function total_tax:
   %v13 = load_input [key=:items]
-  %acc18 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %acc18 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> decimal
   %items_el14 = loop_start (:v13) [axis=:items, index=:items_i15]
     %v16 = load_field (:items_el14) [field=:amount]
     %v17 = constant [value=0.15] [] -> float
-    %v12 = kernel_call (:v16, :v17) [fn=:core.mul:numeric] [items] -> float
+    %v12 = kernel_call (:v16, :v17) [fn=:core.mul:numeric] [items] -> decimal
     acc_step (:acc18, :v12) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:items]
-  %v6 = acc_load (:acc18) [] -> float

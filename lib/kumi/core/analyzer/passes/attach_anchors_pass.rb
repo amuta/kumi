@@ -57,7 +57,7 @@ module Kumi
                 ax = axes_of(x)
                 found ||= ir_fqn(x) if prefix?(wanted_axes, ax)
               when NAST::Ref
-                decl = @snast.decls.fetch(x.name) { raise "unknown declaration #{x.name}" }
+                decl = @snast.decls.fetch(x.name) { raise Kumi::Core::Errors::CompilerBug, "unknown declaration #{x.name}" }
                 walk.call(decl.body)
               when NAST::IndexRef
                 found ||= x.input_fqn
@@ -67,7 +67,7 @@ module Kumi
             end
 
             walk.call(node)
-            found or raise "no anchor for axes #{wanted_axes.inspect}"
+            found or raise Kumi::Core::Errors::CompilerBug, "no anchor for axes #{wanted_axes.inspect}"
           end
 
           # Find the input array whose axes match the given (real) source axes —
@@ -87,7 +87,7 @@ module Kumi
               end
             end
             walk.call(node)
-            found or raise "no anchor for outer source axes #{source_axes.inspect}"
+            found or raise Kumi::Core::Errors::CompilerBug, "no anchor for outer source axes #{source_axes.inspect}"
           end
 
           def axes_of(n) = Array(n.meta[:stamp]&.dig(:axes))

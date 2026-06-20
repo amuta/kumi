@@ -1,0 +1,11 @@
+{
+  "count": 3,
+  "weight": 2.5,
+  "price_text": "10.50",
+  "rate_text": "1.5",
+  "amounts": [
+    { "value": "10.00" },
+    { "value": "20.00" },
+    { "value": "30.00" }
+  ]
+}

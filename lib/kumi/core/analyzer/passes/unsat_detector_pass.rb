@@ -162,12 +162,7 @@ module Kumi
             expr = decl.expression
             return [] unless expr.is_a?(CallExpression)
 
-            fn_id = registry.resolve_function(expr.fn_name)
-            return [] unless fn_id
-
-            operation = registry.function(fn_id)
-            return [] unless operation
-
+            operation = registry.function(expr.fn_name)
             operand_map = build_operand_map(expr, definitions)
             constraint = { variable: variable, op: :==, value: value }
 

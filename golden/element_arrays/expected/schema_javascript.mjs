@@ -8,8 +8,7 @@ export function _layer(input) {
   let arr8 = [];
   for (let cube_i6 = 0; cube_i6 < t4.length; cube_i6++) {
     let cube_el5 = t4[cube_i6];
-    let t7 = cube_el5;
-    arr8.push(t7);
+    arr8.push(cube_el5);
   }
   return arr8;
 }
@@ -22,8 +21,7 @@ export function _row(input) {
     let arr14 = [];
     for (let layer_i11 = 0; layer_i11 < cube_el8.length; layer_i11++) {
       let layer_el10 = cube_el8[layer_i11];
-      let t12 = layer_el10;
-      arr14.push(t12);
+      arr14.push(layer_el10);
     }
     arr13.push(arr14);
   }
@@ -41,8 +39,7 @@ export function _cell(input) {
       let arr21 = [];
       for (let row_i17 = 0; row_i17 < layer_el14.length; row_i17++) {
         let row_el16 = layer_el14[row_i17];
-        let t18 = row_el16;
-        arr21.push(t18);
+        arr21.push(row_el16);
       }
       arr20.push(arr21);
     }
@@ -90,8 +87,7 @@ export function _cell_sum(input) {
         let t25 = t33 ? row_el39 : t42;
         acc43 += t25;
       }
-      let t26 = acc43;
-      arr45.push(t26);
+      arr45.push(acc43);
     }
     arr44.push(arr45);
   }
@@ -116,13 +112,10 @@ export function _count_over_limit(input) {
         let t32 = t42 ? t51 : t52;
         acc53 += t32;
       }
-      let t33 = acc53;
-      acc54 += t33;
+      acc54 += acc53;
     }
-    let t34 = acc54;
-    acc55 += t34;
+    acc55 += acc54;
   }
-  let t35 = acc55;
-  return t35;
+  return acc55;
 }
 

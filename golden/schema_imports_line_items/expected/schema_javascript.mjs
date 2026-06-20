@@ -8,8 +8,7 @@ export function _order_subtotal(input) {
     let t6 = t11 * t12;
     acc13 += t6;
   }
-  let t7 = acc13;
-  return t7;
+  return acc13;
 }
 
 export function _tax_amount(input) {
@@ -22,9 +21,8 @@ export function _tax_amount(input) {
     let t11 = t16 * t17;
     acc18 += t11;
   }
-  let t12 = acc18;
   let t19 = input["tax_rate"];
-  let t5 = t12 * t19;
+  let t5 = acc18 * t19;
   return t5;
 }
 
@@ -38,10 +36,9 @@ export function _total(input) {
     let t18 = t23 * t24;
     acc25 += t18;
   }
-  let t19 = acc25;
   let t26 = input["tax_rate"];
-  let t14 = t19 * t26;
-  let t8 = t19 + t14;
+  let t14 = acc25 * t26;
+  let t8 = acc25 + t14;
   return t8;
 }
 

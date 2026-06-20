@@ -6,6 +6,7 @@ kernels:
     identity:
       float: 0.0
       integer: 0
+      decimal: 0.0
 
   - id: agg.count:javascript:v1
     fn: agg.count

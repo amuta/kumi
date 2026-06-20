@@ -33,7 +33,7 @@ module Kumi
           end
 
           def annotate_input_ref!(node, by_fqn)
-            plan  = by_fqn.fetch(node.path_fqn.to_s) { raise KeyError, "No InputPlan for #{node.path_fqn.inspect}" }
+            plan  = by_fqn.fetch(node.path_fqn.to_s) { raise Kumi::Core::Errors::CompilerBug, "no InputPlan for #{node.path_fqn.inspect}" }
             steps = normalize_steps(plan.navigation_steps) # do not mutate original
 
             # Compute from original steps

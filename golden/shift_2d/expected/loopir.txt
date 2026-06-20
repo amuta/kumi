@@ -21,8 +21,7 @@ function shift_cols_right_clamp:
     %col_el12 = loop_start (:rows_el10) [axis=:col, index=:col_i13]
       %v14 = array_len (:rows_el10)
       %v15 = shift_read (:rows_el10, :col_i13, :v14) [offset=1, policy=:clamp] [] -> integer
-      %v5 = ref (:v15) [rows, col] -> integer
-      array_push (:arr17, :v5)
+      array_push (:arr17, :v15)
     loop_end [axis=:col]
     array_push (:arr16, :arr17)
   loop_end [axis=:rows]
@@ -34,8 +33,7 @@ function shift_cols_right_wrap:
     %col_el16 = loop_start (:rows_el14) [axis=:col, index=:col_i17]
       %v18 = array_len (:rows_el14)
       %v19 = shift_read (:rows_el14, :col_i17, :v18) [offset=1, policy=:wrap] [] -> integer
-      %v9 = ref (:v19) [rows, col] -> integer
-      array_push (:arr21, :v9)
+      array_push (:arr21, :v19)
     loop_end [axis=:col]
     array_push (:arr20, :arr21)
   loop_end [axis=:rows]
@@ -62,8 +60,7 @@ function shift_cols_left_clamp:
     %col_el24 = loop_start (:rows_el22) [axis=:col, index=:col_i25]
       %v26 = array_len (:rows_el22)
       %v27 = shift_read (:rows_el22, :col_i25, :v26) [offset=-1, policy=:clamp] [] -> integer
-      %v17 = ref (:v27) [rows, col] -> integer
-      array_push (:arr29, :v17)
+      array_push (:arr29, :v27)
     loop_end [axis=:col]
     array_push (:arr28, :arr29)
   loop_end [axis=:rows]
@@ -75,8 +72,7 @@ function shift_cols_left_wrap:
     %col_el28 = loop_start (:rows_el26) [axis=:col, index=:col_i29]
       %v30 = array_len (:rows_el26)
       %v31 = shift_read (:rows_el26, :col_i29, :v30) [offset=-1, policy=:wrap] [] -> integer
-      %v21 = ref (:v31) [rows, col] -> integer
-      array_push (:arr33, :v21)
+      array_push (:arr33, :v31)
     loop_end [axis=:col]
     array_push (:arr32, :arr33)
   loop_end [axis=:rows]
@@ -107,8 +103,7 @@ function shift_rows_down_clamp:
       %v39 = array_len (:v38)
       %v40 = shift_read (:v38, :rows_i35, :v39) [offset=1, policy=:clamp] [] -> integer
       %v41 = index_read (:v40, :col_i37)
-      %v29 = ref (:v41) [rows, col] -> integer
-      array_push (:arr43, :v29)
+      array_push (:arr43, :v41)
     loop_end [axis=:col]
     array_push (:arr42, :arr43)
   loop_end [axis=:rows]
@@ -122,8 +117,7 @@ function shift_rows_down_wrap:
       %v43 = array_len (:v42)
       %v44 = shift_read (:v42, :rows_i39, :v43) [offset=1, policy=:wrap] [] -> integer
       %v45 = index_read (:v44, :col_i41)
-      %v33 = ref (:v45) [rows, col] -> integer
-      array_push (:arr47, :v33)
+      array_push (:arr47, :v45)
     loop_end [axis=:col]
     array_push (:arr46, :arr47)
   loop_end [axis=:rows]
@@ -154,8 +148,7 @@ function shift_rows_up_clamp:
       %v51 = array_len (:v50)
       %v52 = shift_read (:v50, :rows_i47, :v51) [offset=-1, policy=:clamp] [] -> integer
       %v53 = index_read (:v52, :col_i49)
-      %v41 = ref (:v53) [rows, col] -> integer
-      array_push (:arr55, :v41)
+      array_push (:arr55, :v53)
     loop_end [axis=:col]
     array_push (:arr54, :arr55)
   loop_end [axis=:rows]
@@ -169,8 +162,7 @@ function shift_rows_up_wrap:
       %v55 = array_len (:v54)
       %v56 = shift_read (:v54, :rows_i51, :v55) [offset=-1, policy=:wrap] [] -> integer
       %v57 = index_read (:v56, :col_i53)
-      %v45 = ref (:v57) [rows, col] -> integer
-      array_push (:arr59, :v45)
+      array_push (:arr59, :v57)
     loop_end [axis=:col]
     array_push (:arr58, :arr59)
   loop_end [axis=:rows]

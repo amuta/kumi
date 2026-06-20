@@ -26,7 +26,7 @@ module Kumi
 
         def to_s
           location_str = format_location(location)
-          "#{location_str}: #{message}"
+          location_str ? "#{location_str}: #{message}" : message
         end
 
         # Check if location information is present
@@ -59,17 +59,12 @@ module Kumi
 
         private
 
+        # Returns nil when there is no usable location, so callers omit the
+        # location segment entirely rather than printing a placeholder. Renders
+        # through Location#to_s so every error speaks the one `file:line:col`
+        # dialect.
         def format_location(loc)
-          case loc
-          when nil
-            "at ?"
-          when Symbol
-            "at #{loc}"
-          when Syntax::Location
-            "at #{loc.file} line=#{loc.line} column=#{loc.column}"
-          else
-            "at <unknown>"
-          end
+          loc&.to_s
         end
       end
 

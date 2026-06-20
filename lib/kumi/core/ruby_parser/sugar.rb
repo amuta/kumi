@@ -147,70 +147,6 @@ module Kumi
           end
         end
 
-        module HashRefinement
-          refine Hash do
-            # --- helpers ------------------------------------------------------
-            def any_syntax_expressions_in_hash?
-              any? { |k, v| Sugar.syntax_expression?(k) || Sugar.syntax_expression?(v) }
-            end
-
-            def to_syntax_hash
-              pairs = map { |k, v| Kumi::Syntax::Pair.new(Sugar.ensure_literal(k), Sugar.ensure_literal(v)) }
-              Kumi::Syntax::HashExpression.new(pairs)
-            end
-
-            # --- readers: no-arg methods -------------------------------------
-            %i[keys values size length empty?].each do |method_name|
-              define_method(method_name) do
-                if any_syntax_expressions_in_hash?
-                  Sugar.create_call_expression(method_name, [to_syntax_hash])
-                else
-                  super()
-                end
-              end
-            end
-
-            # --- membership ---------------------------------------------------
-            def include?(key)
-              if any_syntax_expressions_in_hash? || Sugar.syntax_expression?(key)
-                Sugar.create_call_expression(:has_key?, [to_syntax_hash, Sugar.ensure_literal(key)])
-              else
-                super
-              end
-            end
-            alias_method :key?, :include?
-            alias_method :has_key?, :include?
-
-            # --- element access -----------------------------------------------
-            def [](key)
-              if any_syntax_expressions_in_hash? || Sugar.syntax_expression?(key)
-                Sugar.create_call_expression(:get, [to_syntax_hash, Sugar.ensure_literal(key)])
-              else
-                super
-              end
-            end
-
-            def fetch(key, default = (missing = true
-                                      nil))
-              if any_syntax_expressions_in_hash? || Sugar.syntax_expression?(key) || (!missing && Sugar.syntax_expression?(default))
-                args = [to_syntax_hash, Sugar.ensure_literal(key)]
-                args << Sugar.ensure_literal(default) unless missing
-                Sugar.create_call_expression(:fetch, args)
-              else
-                missing ? super(key) : super
-              end
-            end
-
-            def dig(*path)
-              if any_syntax_expressions_in_hash? || path.any? { |k| Sugar.syntax_expression?(k) }
-                Sugar.create_call_expression(:dig, [to_syntax_hash, *path.map { |k| Sugar.ensure_literal(k) }])
-              else
-                super
-              end
-            end
-          end
-        end
-
         module ArrayRefinement
           refine Array do
             # Helper method to check if array contains any syntax expressions
@@ -245,28 +181,6 @@ module Kumi
 
             # Define methods with arguments
             define_array_syntax_method(:include?, has_argument: true)
-          end
-        end
-
-        module ModuleRefinement
-          refine Module do
-            # Allow modules to provide schema utilities and helpers
-            def with_schema_utilities
-              include Kumi::Schema if respond_to?(:include)
-              extend Kumi::Schema if respond_to?(:extend)
-            end
-
-            # Helper for defining schema constants that can be used in multiple schemas
-            def schema_const(name, value)
-              const_set(name, value.freeze)
-            end
-
-            # Enable easy schema composition
-            def compose_schema(*modules)
-              modules.each do |mod|
-                include mod if mod.is_a?(Module)
-              end
-            end
           end
         end
 

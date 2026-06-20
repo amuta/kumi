@@ -1,0 +1,51 @@
+(NAST
+  (VALUE times_one
+    (Call :multiply
+    (InputRef [:items, :item, :price])
+    (Const 1.0)
+  )
+  )
+  (VALUE div_one
+    (Call :divide
+    (InputRef [:items, :item, :price])
+    (Const 1.0)
+  )
+  )
+  (VALUE sub_zero
+    (Call :subtract
+    (InputRef [:items, :item, :price])
+    (Const 0.0)
+  )
+  )
+  (VALUE plus_zero
+    (Call :add
+    (InputRef [:items, :item, :qty])
+    (Const 0)
+  )
+  )
+  (VALUE mul_zero
+    (Call :multiply
+    (InputRef [:items, :item, :qty])
+    (Const 0)
+  )
+  )
+  (VALUE price_check
+    (Call :sum
+    (Call :subtract
+      (Call :add
+        (Ref times_one)
+        (Ref div_one)
+      )
+      (Ref sub_zero)
+    )
+  )
+  )
+  (VALUE qty_check
+    (Call :sum
+    (Call :add
+      (Ref plus_zero)
+      (Ref mul_zero)
+    )
+  )
+  )
+)

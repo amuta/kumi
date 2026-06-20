@@ -5,6 +5,8 @@ module Kumi
     module Vec
       module Passes
         class PeepholeSimplify < Kumi::IR::Passes::Base
+          require_relative "support/instruction_cloner"
+
           def run(graph:, context: {})
             new_functions = graph.functions.values.map { simplify_function(_1) }
             Kumi::IR::Vec::Module.new(name: graph.name, functions: new_functions)
@@ -15,27 +17,34 @@ module Kumi
           def simplify_function(function)
             replacements = {}
             new_blocks = function.blocks.map do |block|
+              # The function's result is the LAST result-bearing instruction, so
+              # collapsing it (dropping it and pointing at an earlier register)
+              # would make some earlier instruction the new terminal and silently
+              # change the result. Never collapse the terminal; the small
+              # redundancy left there is harmless.
+              terminal = block.terminal_instruction
               new_instrs = []
               block.instructions.each do |instr|
                 inputs = instr.uses.map { |reg| replacements.fetch(reg, reg) }
                 result = instr.defs.first
+                collapsible = !instr.equal?(terminal)
 
                 case instr.opcode
                 when :select
-                  if inputs[1] == inputs[2]
+                  if collapsible && inputs[1] == inputs[2]
                     replacements[result] = inputs[1] if result
                     next
                   end
-                  new_instrs << instr
+                  new_instrs << rebuild(instr, inputs)
                 when :map
-                  simplified = simplify_map(instr, inputs)
+                  simplified = simplify_map(instr, inputs) if collapsible
                   if simplified
                     replacements[result] = simplified if result
                   else
-                    new_instrs << instr
+                    new_instrs << rebuild(instr, inputs)
                   end
                 else
-                  new_instrs << instr
+                  new_instrs << rebuild(instr, inputs)
                 end
               end
 
@@ -45,9 +54,19 @@ module Kumi
             Kumi::IR::Base::Function.new(
               name: function.name,
               parameters: function.parameters,
-              blocks: new_blocks,
-              return_stamp: function.return_stamp
+              blocks: new_blocks
             )
+          end
+
+          # Keep an instruction with its rewritten inputs, not the stale
+          # original. An earlier simplification (a collapsed select, a folded
+          # and/or map) records its result in `replacements`; downstream
+          # instructions that consumed it must be rebuilt to point at the
+          # replacement, or they reference a register this pass just deleted.
+          def rebuild(instr, inputs)
+            return instr if instr.uses.empty?
+
+            Support::InstructionCloner.clone(instr, inputs)
           end
 
           def simplify_map(instr, inputs)

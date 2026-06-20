@@ -3,7 +3,16 @@
 module Kumi
   module Core
     module Types
-      # Base class for all type objects
+      # Base class for all type objects.
+      #
+      # Every type has exactly one canonical string form, produced by #to_s and
+      # round-trippable through Types.parse:
+      #
+      #   scalar  -> "decimal"
+      #   array   -> "array<integer>"
+      #   tuple   -> "tuple<decimal, integer>"
+      #
+      # #inspect is uniform across all type kinds: "#<Type {to_s}>".
       class Type
         def scalar?
           is_a?(ScalarType)
@@ -15,6 +24,10 @@ module Kumi
 
         def tuple?
           is_a?(TupleType)
+        end
+
+        def inspect
+          "#<Type #{self}>"
         end
       end
 
@@ -28,10 +41,6 @@ module Kumi
 
         def to_s
           @kind.to_s
-        end
-
-        def inspect
-          "#<ScalarType:#{@kind}>"
         end
 
         def ==(other)
@@ -61,10 +70,6 @@ module Kumi
           "array<#{@element_type}>"
         end
 
-        def inspect
-          "#<ArrayType:#{self}>"
-        end
-
         def ==(other)
           return false unless other.is_a?(ArrayType)
 
@@ -90,10 +95,6 @@ module Kumi
 
         def to_s
           "tuple<#{@element_types.join(', ')}>"
-        end
-
-        def inspect
-          "#<TupleType:#{self}>"
         end
 
         def ==(other)

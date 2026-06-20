@@ -1,0 +1,9 @@
+count: integer
+weight: float
+price_text: string
+rate_text: string
+amounts: array (array) access_mode=element
+  └─> amount: element_access
+  amount: hash (hash)
+    └─> value: property_access
+    value: string

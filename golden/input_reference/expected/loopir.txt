@@ -6,8 +6,7 @@ function all_flags:
   %v7 = load_field (:v6) [field=:feature_flags]
   %arr11 = array_init
   %feature_flags_el8 = loop_start (:v7) [axis=:feature_flags, index=:feature_flags_i9]
-    %v10 = ref (:feature_flags_el8) [feature_flags] -> string
-    array_push (:arr11, :v10)
+    array_push (:arr11, :feature_flags_el8)
   loop_end [axis=:feature_flags]
 function server_hostnames:
   %v10 = load_input [key=:config]
@@ -15,8 +14,7 @@ function server_hostnames:
   %arr16 = array_init
   %servers_el12 = loop_start (:v11) [axis=:servers, index=:servers_i13]
     %v14 = load_field (:servers_el12) [field=:hostname]
-    %v15 = ref (:v14) [servers] -> string
-    array_push (:arr16, :v15)
+    array_push (:arr16, :v14)
   loop_end [axis=:servers]
 function server_count:
   %v13 = load_input [key=:config]
@@ -30,4 +28,3 @@ function total_ports:
     %v22 = load_field (:servers_el20) [field=:port]
     acc_step (:acc23, :v22) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:servers]
-  %v17 = acc_load (:acc23) [] -> integer

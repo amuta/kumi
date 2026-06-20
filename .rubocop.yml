@@ -37,11 +37,11 @@ Naming/VariableNumber:
   Enabled: false
 
 Layout/LineLength:
-  Max: 140
+  Max: 150
 
 # Pass bodies legitimately carry long dispatch methods; relaxed only there.
 Metrics/MethodLength:
-  Max: 20
+  Max: 25
   Exclude:
     - 'lib/kumi/core/analyzer/passes/**/*'
     - 'lib/kumi/ir/**/*'

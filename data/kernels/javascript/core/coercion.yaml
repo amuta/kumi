@@ -4,17 +4,31 @@ kernels:
     inline: "= typeof $0 === 'string' ? parseFloat($0) : Number($0)"
     impl: "(value) {\n  if (typeof value === 'string') return parseFloat(value);\n  return Number(value);\n}"
 
+  # Match Ruby String#to_i / Numeric#to_i (and to_f): a non-numeric string is 0
+  # (not NaN), parsing is base-10 (so "0x1f" is 0, not 31), and a numeric value
+  # truncates toward zero without scientific-notation surprises (Math.trunc, not
+  # parseInt — parseInt(1e-7) is 1). Emitted as module-level helpers (no inline).
+  # Contract documented in docs/CROSS_TARGET_SEMANTICS.md.
   - id: to_integer:javascript:v1
     fn: core.to_integer
-    inline: "= parseInt($0)"
-    impl: "(value) { return parseInt(value); }"
+    impl: "(value) {\n  if (typeof value === 'number') return Math.trunc(value) || 0;\n  const m = String(value).trim().match(/^[+-]?\\d+/);\n  return m ? parseInt(m[0], 10) : 0;\n}"
 
   - id: to_float:javascript:v1
     fn: core.to_float
-    inline: "= parseFloat($0)"
-    impl: "(value) { return parseFloat(value); }"
+    impl: "(value) {\n  if (typeof value === 'number') return value;\n  const f = parseFloat(value);\n  return Number.isNaN(f) ? 0.0 : f;\n}"
 
   - id: to_string:javascript:v1
     fn: core.to_string
     inline: "= String($0)"
     impl: "(value) { return String(value); }"
+
+  # Reproduce Ruby's Float#to_s so to_string(float) matches across targets:
+  #   - whole floats keep ".0"  (3.0 -> "3.0", not JS's "3")
+  #   - negative zero keeps its sign  (-0.0 -> "-0.0")
+  #   - exponent form is "1.0e+21" / "1.0e-07"  (mantissa gets ".0", exponent
+  #     is signed and zero-padded to >= 2 digits)
+  # No `inline`: this is emitted once as a module-level helper function. The
+  # contract is documented in docs/CROSS_TARGET_SEMANTICS.md.
+  - id: to_string_float:javascript:v1
+    fn: core.to_string:float
+    impl: "(value) {\n  if (Number.isNaN(value)) return 'NaN';\n  if (value === Infinity) return 'Infinity';\n  if (value === -Infinity) return '-Infinity';\n  if (Object.is(value, -0)) return '-0.0';\n  let s = String(value);\n  const e = s.indexOf('e');\n  if (e !== -1) {\n    let mant = s.slice(0, e);\n    let exp = s.slice(e + 1);\n    if (!mant.includes('.')) mant += '.0';\n    const sign = exp[0] === '-' ? '-' : '+';\n    let digits = exp.replace(/^[+-]/, '');\n    if (digits.length < 2) digits = '0' + digits;\n    return mant + 'e' + sign + digits;\n  }\n  return s.includes('.') ? s : s + '.0';\n}"

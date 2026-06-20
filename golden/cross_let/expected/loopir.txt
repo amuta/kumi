@@ -1,0 +1,100 @@
+function double:
+  %v7 = load_input [key=:items]
+  %arr12 = array_init
+  %items_el8 = loop_start (:v7) [axis=:items, index=:items_i9]
+    %v10 = load_field (:items_el8) [field=:price]
+    %v11 = constant [value=2.0] [] -> float
+    %v6 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr12, :v6)
+  loop_end [axis=:items]
+function dj:
+  %v15 = load_input [key=:items]
+  %arr20 = array_init
+  %items_el16 = loop_start (:v15) [axis=:items, index=:items_i17]
+    %v18 = load_field (:items_el16) [field=:price]
+    %v19 = constant [value=2.0] [] -> float
+    %v14 = kernel_call (:v18, :v19) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr20, :v14)
+  loop_end [axis=:items]
+  %arr27 = array_init
+  %items_el21 = loop_start (:v15) [axis=:items, index=:items_i22]
+    %v23 = load_input [key=:items]
+    %arr28 = array_init
+    %items__x_el24 = loop_start (:v23) [axis=:items__x, index=:items__x_i25]
+      %v26 = index_read (:arr20, :items__x_i25)
+      array_push (:arr28, :v26)
+    loop_end [axis=:items__x]
+    array_push (:arr27, :arr28)
+  loop_end [axis=:items]
+function pair_total:
+  %v18 = load_input [key=:items]
+  %arr23 = array_init
+  %items_el19 = loop_start (:v18) [axis=:items, index=:items_i20]
+    %v21 = load_field (:items_el19) [field=:price]
+    %v22 = constant [value=2.0] [] -> float
+    %v16 = kernel_call (:v21, :v22) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr23, :v16)
+  loop_end [axis=:items]
+  %arr31 = array_init
+  %items_el24 = loop_start (:v18) [axis=:items, index=:items_i25]
+    %v26 = load_input [key=:items]
+    %acc30 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %items__x_el27 = loop_start (:v26) [axis=:items__x, index=:items__x_i28]
+      %v29 = index_read (:arr23, :items__x_i28)
+      acc_step (:acc30, :v29) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:items__x]
+    array_push (:arr31, :acc30)
+  loop_end [axis=:items]
+function self_diff:
+  %v23 = load_input [key=:items]
+  %arr28 = array_init
+  %items_el24 = loop_start (:v23) [axis=:items, index=:items_i25]
+    %v26 = load_field (:items_el24) [field=:price]
+    %v27 = constant [value=2.0] [] -> float
+    %v21 = kernel_call (:v26, :v27) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr28, :v21)
+  loop_end [axis=:items]
+  %arr37 = array_init
+  %items_el29 = loop_start (:v23) [axis=:items, index=:items_i30]
+    %v31 = load_input [key=:items]
+    %acc36 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+    %items__x_el32 = loop_start (:v31) [axis=:items__x, index=:items__x_i33]
+      %v34 = index_read (:arr28, :items__x_i33)
+      %v35 = index_read (:arr28, :items_i30)
+      %v14 = kernel_call (:v34, :v35) [fn=:core.sub] [items, items__x] -> float
+      acc_step (:acc36, :v14) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:items__x]
+    array_push (:arr37, :acc36)
+  loop_end [axis=:items]
+function idx_i:
+  %v17 = load_input [key=:items]
+  %arr21 = array_init
+  %items_el18 = loop_start (:v17) [axis=:items, index=:items_i19]
+    array_push (:arr21, :items_i19)
+  loop_end [axis=:items]
+function idx_j:
+  %v20 = load_input [key=:items]
+  %arr26 = array_init
+  %items_el21 = loop_start (:v20) [axis=:items, index=:items_i22]
+    %v23 = load_input [key=:items]
+    %arr27 = array_init
+    %items__x_el24 = loop_start (:v23) [axis=:items__x, index=:items__x_i25]
+      array_push (:arr27, :items__x_i25)
+    loop_end [axis=:items__x]
+    array_push (:arr26, :arr27)
+  loop_end [axis=:items]
+function rank:
+  %v31 = load_input [key=:items]
+  %arr40 = array_init
+  %items_el32 = loop_start (:v31) [axis=:items, index=:items_i33]
+    %v34 = load_input [key=:items]
+    %acc39 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+    %items__x_el35 = loop_start (:v34) [axis=:items__x, index=:items__x_i36]
+      %v22 = kernel_call (:items__x_i36, :items_i33) [fn=:core.lt] [items, items__x] -> boolean
+      %v37 = constant [value=1] [] -> integer
+      %v38 = constant [value=0] [] -> integer
+      %v27 = select (:v22, :v37, :v38) [items, items__x] -> integer
+      acc_step (:acc39, :v27) [fn=:agg.sum, nil_init=false]
+    loop_end [axis=:items__x]
+    array_push (:arr40, :acc39)
+  loop_end [axis=:items]

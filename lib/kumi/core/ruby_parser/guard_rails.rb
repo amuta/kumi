@@ -35,7 +35,21 @@ module Kumi
 
         # catch any stray method call inside DSL block
         def method_missing(name, *_args)
-          raise NoMethodError, "unknown DSL keyword `#{name}`"
+          raise_syntax_error(
+            "unknown DSL keyword `#{name}`. Valid top-level keywords are: " \
+            "input, value, let, trait, ref, fn, literal, select, index, import, codegen.",
+            location: guard_rails_caller_location
+          )
+        end
+
+        # The user's DSL line that triggered the stray call. Stray keywords can
+        # fire before any DSL method set @context.current_location, so we read
+        # the caller stack directly instead of trusting the stored location.
+        def guard_rails_caller_location
+          frame = caller_locations(2).find { |f| !f.path.to_s.include?("ruby_parser") }
+          return nil unless frame
+
+          Kumi::Syntax::Location.new(file: frame.path, line: frame.lineno, column: 0)
         end
 
         def respond_to_missing?(*) = false

@@ -7,8 +7,7 @@ module Kumi::Compiled::KUMI_14a66b4f40e6421e57ad27ddcc06aba6186998019aab60bf8e87
       t8 = items_el6["value"] || items_el6[:value]
       acc9 += t8
     end
-    t4 = acc9
-    return t4
+    return acc9
   end
 
   def self._half_total(input)
@@ -18,9 +17,8 @@ module Kumi::Compiled::KUMI_14a66b4f40e6421e57ad27ddcc06aba6186998019aab60bf8e87
       t15 = items_el13["value"] || items_el13[:value]
       acc16 += t15
     end
-    t11 = acc16
     t17 = 0.5
-    t7 = t11 * t17
+    t7 = acc16 * t17
     return t7
   end
 
@@ -31,9 +29,8 @@ module Kumi::Compiled::KUMI_14a66b4f40e6421e57ad27ddcc06aba6186998019aab60bf8e87
       t30 = items_el28["value"] || items_el28[:value]
       acc31 += t30
     end
-    t24 = acc31
     t32 = 0.5
-    t26 = t24 * t32
+    t26 = acc31 * t32
     acc37 = 0
     t27.each_with_index do |items_el33, items_i34|
       t35 = items_el33["value"] || items_el33[:value]
@@ -42,7 +39,6 @@ module Kumi::Compiled::KUMI_14a66b4f40e6421e57ad27ddcc06aba6186998019aab60bf8e87
       t19 = t13 ? t35 : t36
       acc37 += t19
     end
-    t20 = acc37
-    return t20
+    return acc37
   end
 end

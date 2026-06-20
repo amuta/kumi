@@ -21,7 +21,7 @@ module Kumi
               next unless OPS_WITH_KERNELS.include?(opcode)
 
               fn_name = op.attributes[:fn]
-              raise "KernelCall at #{op.location} is missing :fn attribute" unless fn_name
+              raise Kumi::Core::Errors::CompilerBug, "KernelCall at #{op.location} is missing :fn attribute" unless fn_name
 
               function = registry.function(fn_name)
               fn_id = function.id
@@ -86,7 +86,7 @@ module Kumi
             attrs = binding["attrs"]
 
             if kernels.key?(id)
-              raise "Inconsistent impl for #{id}" unless kernels[id]["impl"] == impl
+              raise Kumi::Core::Errors::CompilerBug, "inconsistent impl for kernel #{id}" unless kernels[id]["impl"] == impl
 
               kernels[id]["attrs"].merge!(attrs)
             else

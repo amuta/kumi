@@ -1,0 +1,188 @@
+(SNAST
+  (VALUE b1
+    (Call :core.lte
+      (InputRef birth_year key_chain=[]) :: [] -> integer
+      (Const 1937) :: [] -> integer
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE b2
+    (Call :core.and
+      (Call :core.gte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1938) :: [] -> integer
+      ) :: [] -> boolean
+      (Call :core.lte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1942) :: [] -> integer
+      ) :: [] -> boolean
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE b3
+    (Call :core.and
+      (Call :core.gte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1943) :: [] -> integer
+      ) :: [] -> boolean
+      (Call :core.lte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1954) :: [] -> integer
+      ) :: [] -> boolean
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE b4
+    (Call :core.and
+      (Call :core.gte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1955) :: [] -> integer
+      ) :: [] -> boolean
+      (Call :core.lte
+        (InputRef birth_year key_chain=[]) :: [] -> integer
+        (Const 1959) :: [] -> integer
+      ) :: [] -> boolean
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE b5
+    (Call :core.gte
+      (InputRef birth_year key_chain=[]) :: [] -> integer
+      (Const 1960) :: [] -> integer
+    ) :: [] -> boolean
+  ) :: [] -> boolean
+  (VALUE full_retirement_age
+    (Select
+      (Ref b1) :: [] -> boolean
+      (Const 65.0) :: [] -> float
+      (Select
+        (Ref b2) :: [] -> boolean
+        (Call :core.add
+          (Const 65.0) :: [] -> float
+          (Call :core.mul:numeric
+            (Call :core.sub
+              (InputRef birth_year key_chain=[]) :: [] -> integer
+              (Const 1937) :: [] -> integer
+            ) :: [] -> integer
+            (Call :core.div
+              (Const 2.0) :: [] -> float
+              (Const 12.0) :: [] -> float
+            ) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+        (Select
+          (Ref b3) :: [] -> boolean
+          (Const 66.0) :: [] -> float
+          (Select
+            (Ref b4) :: [] -> boolean
+            (Call :core.add
+              (Const 66.0) :: [] -> float
+              (Call :core.mul:numeric
+                (Call :core.sub
+                  (InputRef birth_year key_chain=[]) :: [] -> integer
+                  (Const 1954) :: [] -> integer
+                ) :: [] -> integer
+                (Call :core.div
+                  (Const 2.0) :: [] -> float
+                  (Const 12.0) :: [] -> float
+                ) :: [] -> float
+              ) :: [] -> float
+            ) :: [] -> float
+            (Select
+              (Ref b5) :: [] -> boolean
+              (Const 67.0) :: [] -> float
+              (Const 67.0) :: [] -> float
+            ) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE months_delayed
+    (Fold :agg.max
+      (Tuple
+        (Const 0) :: [] -> integer
+        (Call :core.mul:numeric
+          (Const 12) :: [] -> integer
+          (Call :core.sub
+            (InputRef claiming_age key_chain=[]) :: [] -> integer
+            (Ref full_retirement_age) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> tuple<integer, float>
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE months_early
+    (Fold :agg.max
+      (Tuple
+        (Const 0) :: [] -> integer
+        (Call :core.mul:numeric
+          (Const 12) :: [] -> integer
+          (Call :core.sub
+            (Ref full_retirement_age) :: [] -> float
+            (InputRef claiming_age key_chain=[]) :: [] -> integer
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> tuple<integer, float>
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE months_early_first_36
+    (Fold :agg.min
+      (Tuple
+        (Const 36) :: [] -> integer
+        (Ref months_early) :: [] -> float
+      ) :: [] -> tuple<integer, float>
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE months_early_additional
+    (Fold :agg.min
+      (Tuple
+        (Fold :agg.max
+          (Tuple
+            (Const 0) :: [] -> integer
+            (Call :core.sub
+              (Ref months_early) :: [] -> float
+              (Const 36) :: [] -> integer
+            ) :: [] -> float
+          ) :: [] -> tuple<integer, float>
+        ) :: [] -> float
+        (Const 24) :: [] -> integer
+      ) :: [] -> tuple<float, integer>
+    ) :: [] -> float
+  ) :: [] -> float
+  (VALUE adj
+    (Call :core.add
+      (Call :core.add
+        (Call :core.add
+          (Const 1.0) :: [] -> float
+          (Call :core.mul:numeric
+            (Ref months_early_first_36) :: [] -> float
+            (Call :core.mul:numeric
+              (Call :core.div
+                (Const -5.0) :: [] -> float
+                (Const 9.0) :: [] -> float
+              ) :: [] -> float
+              (Const 0.01) :: [] -> float
+            ) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+        (Call :core.mul:numeric
+          (Ref months_early_additional) :: [] -> float
+          (Call :core.mul:numeric
+            (Call :core.div
+              (Const -5.0) :: [] -> float
+              (Const 12.0) :: [] -> float
+            ) :: [] -> float
+            (Const 0.01) :: [] -> float
+          ) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> float
+      (Call :core.mul:numeric
+        (Ref months_delayed) :: [] -> float
+        (Call :core.mul:numeric
+          (Call :core.div
+            (Const 2.0) :: [] -> float
+            (Const 3.0) :: [] -> float
+          ) :: [] -> float
+          (Const 0.01) :: [] -> float
+        ) :: [] -> float
+      ) :: [] -> float
+    ) :: [] -> float
+  ) :: [] -> float
+)

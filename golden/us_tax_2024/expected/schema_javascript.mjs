@@ -37,8 +37,7 @@ export function _lo(input) {
     for (let rates_i26 = 0; rates_i26 < t24.length; rates_i26++) {
       let rates_el25 = t24[rates_i26];
       let t27 = rates_el25["lo"];
-      let t28 = t27;
-      arr30.push(t28);
+      arr30.push(t27);
     }
     arr29.push(arr30);
   }
@@ -55,8 +54,7 @@ export function _hi(input) {
     for (let rates_i31 = 0; rates_i31 < t29.length; rates_i31++) {
       let rates_el30 = t29[rates_i31];
       let t32 = rates_el30["hi"];
-      let t33 = t32;
-      arr35.push(t33);
+      arr35.push(t32);
     }
     arr34.push(arr35);
   }
@@ -73,8 +71,7 @@ export function _rate(input) {
     for (let rates_i36 = 0; rates_i36 < t34.length; rates_i36++) {
       let rates_el35 = t34[rates_i36];
       let t37 = rates_el35["rate"];
-      let t38 = t37;
-      arr40.push(t38);
+      arr40.push(t37);
     }
     arr39.push(arr40);
   }
@@ -166,8 +163,7 @@ export function _fed_tax(input) {
       let t52 = t94 * t114;
       acc115 += t52;
     }
-    let t53 = acc115;
-    arr116.push(t53);
+    arr116.push(acc115);
   }
   return arr116;
 }
@@ -230,8 +226,7 @@ export function _fed_marg(input) {
       let t67 = t112 ? t131 : t132;
       acc133 += t67;
     }
-    let t68 = acc133;
-    arr134.push(t68);
+    arr134.push(acc133);
   }
   return arr134;
 }
@@ -267,8 +262,7 @@ export function _fed_eff(input) {
       let t122 = t116 * t138;
       acc139 += t122;
     }
-    let t123 = acc139;
-    let t75 = t123 / acc1;
+    let t75 = acc139 / acc1;
     arr146.push(t75);
   }
   return arr146;
@@ -422,7 +416,6 @@ export function _total_tax(input) {
       let t169 = t163 * t215;
       acc216 += t169;
     }
-    let t170 = acc216;
     let t223 = input["income"];
     let t224 = statuses_el202["addl_threshold"];
     let t187 = t223 - t224;
@@ -431,7 +424,7 @@ export function _total_tax(input) {
     let t226 = 0.009;
     let t193 = acc2 * t226;
     let t194 = t180 + t193;
-    let t116 = t170 + t194;
+    let t116 = acc216 + t194;
     let t119 = t116 + t197;
     let t122 = t119 + t200;
     arr239.push(t122);
@@ -481,7 +474,6 @@ export function _total_eff(input) {
       let t176 = t170 * t227;
       acc228 += t176;
     }
-    let t177 = acc228;
     let t235 = input["income"];
     let t236 = statuses_el214["addl_threshold"];
     let t194 = t235 - t236;
@@ -490,7 +482,7 @@ export function _total_eff(input) {
     let t238 = 0.009;
     let t200 = acc2 * t238;
     let t201 = t187 + t200;
-    let t202 = t177 + t201;
+    let t202 = acc228 + t201;
     let t207 = t202 + t205;
     let t212 = t207 + t210;
     let t129 = t212 / acc3;
@@ -539,7 +531,6 @@ export function _after_tax(input) {
       let t180 = t174 * t231;
       acc232 += t180;
     }
-    let t181 = acc232;
     let t239 = input["income"];
     let t240 = statuses_el218["addl_threshold"];
     let t198 = t239 - t240;
@@ -548,7 +539,7 @@ export function _after_tax(input) {
     let t242 = 0.009;
     let t204 = acc2 * t242;
     let t205 = t191 + t204;
-    let t206 = t181 + t205;
+    let t206 = acc232 + t205;
     let t211 = t206 + t209;
     let t216 = t211 + t214;
     let t255 = input["income"];
@@ -598,7 +589,6 @@ export function _take_home(input) {
       let t186 = t180 * t238;
       acc239 += t186;
     }
-    let t187 = acc239;
     let t246 = input["income"];
     let t247 = statuses_el225["addl_threshold"];
     let t204 = t246 - t247;
@@ -607,7 +597,7 @@ export function _take_home(input) {
     let t249 = 0.009;
     let t210 = acc2 * t249;
     let t211 = t197 + t210;
-    let t212 = t187 + t211;
+    let t212 = acc239 + t211;
     let t217 = t212 + t215;
     let t222 = t217 + t220;
     let t262 = input["income"];
@@ -669,10 +659,8 @@ export function _summary(input) {
       let t262 = t256 * t738;
       acc741 += t262;
     }
-    let t215 = acc740;
-    let t263 = acc741;
-    let t269 = t263 / acc3;
-    let t144 = { "marginal": t215, "effective": t269, "tax": t263 };
+    let t269 = acc741 / acc3;
+    let t144 = { "marginal": acc740, "effective": t269, "tax": acc741 };
     let t755 = input["income"];
     let t756 = statuses_el726["addl_threshold"];
     let t334 = t755 - t756;
@@ -683,7 +671,7 @@ export function _summary(input) {
     let t341 = t327 + t340;
     let t347 = t341 / acc3;
     let t147 = { "effective": t347, "tax": t341 };
-    let t450 = t263 + t341;
+    let t450 = acc741 + t341;
     let t455 = t450 + t374;
     let t460 = t455 + t377;
     let t466 = t460 / acc3;

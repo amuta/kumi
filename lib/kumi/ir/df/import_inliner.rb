@@ -16,8 +16,7 @@ module Kumi
           Kumi::IR::DF::Function.new(
             name: function.name,
             parameters: function.parameters,
-            blocks: new_blocks,
-            return_stamp: function.return_stamp
+            blocks: new_blocks
           )
         end
 

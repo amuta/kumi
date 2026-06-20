@@ -4,8 +4,7 @@ function layer:
   %v4 = load_input [key=:cube]
   %arr8 = array_init
   %cube_el5 = loop_start (:v4) [axis=:cube, index=:cube_i6]
-    %v7 = ref (:cube_el5) [cube] -> array<array<integer>>
-    array_push (:arr8, :v7)
+    array_push (:arr8, :cube_el5)
   loop_end [axis=:cube]
 function row:
   %v7 = load_input [key=:cube]
@@ -13,8 +12,7 @@ function row:
   %cube_el8 = loop_start (:v7) [axis=:cube, index=:cube_i9]
     %arr14 = array_init
     %layer_el10 = loop_start (:cube_el8) [axis=:layer, index=:layer_i11]
-      %v12 = ref (:layer_el10) [cube, layer] -> array<integer>
-      array_push (:arr14, :v12)
+      array_push (:arr14, :layer_el10)
     loop_end [axis=:layer]
     array_push (:arr13, :arr14)
   loop_end [axis=:cube]
@@ -26,8 +24,7 @@ function cell:
     %layer_el14 = loop_start (:cube_el12) [axis=:layer, index=:layer_i15]
       %arr21 = array_init
       %row_el16 = loop_start (:layer_el14) [axis=:row, index=:row_i17]
-        %v18 = ref (:row_el16) [cube, layer, row] -> integer
-        array_push (:arr21, :v18)
+        array_push (:arr21, :row_el16)
       loop_end [axis=:row]
       array_push (:arr20, :arr21)
     loop_end [axis=:layer]
@@ -63,8 +60,7 @@ function cell_sum:
         %v25 = select (:v33, :row_el39, :v42) [cube, layer, row] -> integer
         acc_step (:acc43, :v25) [fn=:agg.sum, nil_init=false]
       loop_end [axis=:row]
-      %v26 = acc_load (:acc43) [] -> integer
-      array_push (:arr45, :v26)
+      array_push (:arr45, :acc43)
     loop_end [axis=:layer]
     array_push (:arr44, :arr45)
   loop_end [axis=:cube]
@@ -83,10 +79,7 @@ function count_over_limit:
         %v32 = select (:v42, :v51, :v52) [cube, layer, row] -> integer
         acc_step (:acc53, :v32) [fn=:agg.sum, nil_init=false]
       loop_end [axis=:row]
-      %v33 = acc_load (:acc53) [] -> integer
-      acc_step (:acc54, :v33) [fn=:agg.sum, nil_init=false]
+      acc_step (:acc54, :acc53) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:layer]
-    %v34 = acc_load (:acc54) [] -> integer
-    acc_step (:acc55, :v34) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc55, :acc54) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:cube]
-  %v35 = acc_load (:acc55) [] -> integer

@@ -4,13 +4,12 @@ module Kumi
   module IR
     module Base
       class Function
-        attr_reader :name, :parameters, :blocks, :return_stamp
+        attr_reader :name, :parameters, :blocks
 
-        def initialize(name:, parameters: [], blocks: [], return_stamp: nil)
+        def initialize(name:, parameters: [], blocks: [])
           @name = name.to_sym
           @parameters = parameters.map(&:to_sym)
           @blocks = blocks.map { |b| ensure_block(b) }
-          @return_stamp = return_stamp
         end
 
         def entry_block
@@ -25,7 +24,6 @@ module Kumi
           {
             name:,
             parameters:,
-            return_stamp:,
             blocks: @blocks.map { |b| { name: b.name, instructions: b.instructions.map(&:to_h) } }
           }
         end

@@ -29,8 +29,7 @@ export function _shift_cols_right_clamp(input) {
       let col_el12 = rows_el10[col_i13];
       let t14 = rows_el10.length;
       let t15 = rows_el10[Math.min(Math.max(col_i13 - (1), 0), t14 - 1)];
-      let t5 = t15;
-      arr17.push(t5);
+      arr17.push(t15);
     }
     arr16.push(arr17);
   }
@@ -47,8 +46,7 @@ export function _shift_cols_right_wrap(input) {
       let col_el16 = rows_el14[col_i17];
       let t18 = rows_el14.length;
       let t19 = rows_el14[(((col_i17 - (1)) % t18) + t18) % t18];
-      let t9 = t19;
-      arr21.push(t9);
+      arr21.push(t19);
     }
     arr20.push(arr21);
   }
@@ -86,8 +84,7 @@ export function _shift_cols_left_clamp(input) {
       let col_el24 = rows_el22[col_i25];
       let t26 = rows_el22.length;
       let t27 = rows_el22[Math.min(Math.max(col_i25 - (-1), 0), t26 - 1)];
-      let t17 = t27;
-      arr29.push(t17);
+      arr29.push(t27);
     }
     arr28.push(arr29);
   }
@@ -104,8 +101,7 @@ export function _shift_cols_left_wrap(input) {
       let col_el28 = rows_el26[col_i29];
       let t30 = rows_el26.length;
       let t31 = rows_el26[(((col_i29 - (-1)) % t30) + t30) % t30];
-      let t21 = t31;
-      arr33.push(t21);
+      arr33.push(t31);
     }
     arr32.push(arr33);
   }
@@ -147,8 +143,7 @@ export function _shift_rows_down_clamp(input) {
       let t39 = t38.length;
       let t40 = t38[Math.min(Math.max(rows_i35 - (1), 0), t39 - 1)];
       let t41 = t40[col_i37];
-      let t29 = t41;
-      arr43.push(t29);
+      arr43.push(t41);
     }
     arr42.push(arr43);
   }
@@ -167,8 +162,7 @@ export function _shift_rows_down_wrap(input) {
       let t43 = t42.length;
       let t44 = t42[(((rows_i39 - (1)) % t43) + t43) % t43];
       let t45 = t44[col_i41];
-      let t33 = t45;
-      arr47.push(t33);
+      arr47.push(t45);
     }
     arr46.push(arr47);
   }
@@ -210,8 +204,7 @@ export function _shift_rows_up_clamp(input) {
       let t51 = t50.length;
       let t52 = t50[Math.min(Math.max(rows_i47 - (-1), 0), t51 - 1)];
       let t53 = t52[col_i49];
-      let t41 = t53;
-      arr55.push(t41);
+      arr55.push(t53);
     }
     arr54.push(arr55);
   }
@@ -230,8 +223,7 @@ export function _shift_rows_up_wrap(input) {
       let t55 = t54.length;
       let t56 = t54[(((rows_i51 - (-1)) % t55) + t55) % t55];
       let t57 = t56[col_i53];
-      let t45 = t57;
-      arr59.push(t45);
+      arr59.push(t57);
     }
     arr58.push(arr59);
   }

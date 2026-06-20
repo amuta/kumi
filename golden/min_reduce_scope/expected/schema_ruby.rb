@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_3938617028697c57b3221bd97169cafdab1ff145b0cb26a74580
         t13 = teams_el11["headcount"] || teams_el11[:headcount]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -26,11 +25,9 @@ module Kumi::Compiled::KUMI_3938617028697c57b3221bd97169cafdab1ff145b0cb26a74580
         t20 = teams_el18["headcount"] || teams_el18[:headcount]
         acc21 += t20
       end
-      t12 = acc21
-      acc22 += t12
+      acc22 += acc21
     end
-    t13 = acc22
-    return t13
+    return acc22
   end
 
   def self._big_team(input)
@@ -64,8 +61,7 @@ module Kumi::Compiled::KUMI_3938617028697c57b3221bd97169cafdab1ff145b0cb26a74580
         t30 = t39 ? t46 : t48
         acc49 += t30
       end
-      t31 = acc49
-      arr50 << t31
+      arr50 << acc49
     end
     return arr50
   end

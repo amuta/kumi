@@ -36,27 +36,53 @@ module Kumi
           @location && @location.file && @location.line && @location.line > 0
         end
 
-        # Format location for error messages
+        # Format location for error messages, or nil when there is no location
+        # to show — callers must not invent an "at ?" placeholder. Delegates to
+        # Location#to_s so the whole codebase renders locations one way.
         def format_location
-          if @location
-            "at #{@location.file} line=#{@location.line} column=#{@location.column}"
-          else
-            "at ?"
-          end
+          return nil unless @location
+
+          @location.to_s
         end
 
+        # `file:line:col: message`. The location goes in front (the convention
+        # editors and humans scan for) and exactly once: if the underlying
+        # message already starts with this location it is not prepended again.
         def to_s
-          if @location
-            "#{super} #{format_location}"
-          else
-            super
-          end
+          prefix = format_location
+          base = super
+          return base if prefix.nil? || base.start_with?("#{prefix}:")
+
+          "#{prefix}: #{base}"
         end
       end
 
       class UnknownFunction < Error; end
 
       class AnalysisError < Error; end
+
+      # An internal compiler invariant was violated — a "this should never
+      # happen" condition, not a problem with the user's schema. Raising this
+      # (instead of a bare RuntimeError or a SemanticError) keeps invariant
+      # failures from being presented to users as if they wrote bad input, and
+      # frames them as a bug to report.
+      class CompilerBug < Error
+        def initialize(message)
+          super("internal compiler error (please report): #{message}")
+        end
+      end
+
+      # A construct the schema uses is valid but not supported by the current
+      # backend/target (e.g. a codegen target that lacks an opcode or shift
+      # policy). Distinct from CompilerBug (a violated invariant) and from a
+      # user error (the schema is well-formed) — it names the missing capability.
+      class UnsupportedFeature < Error; end
+
+      # Kumi was used or configured incorrectly by the host application: no schema
+      # defined, an unknown compilation mode, a schema not precompiled in :aot
+      # mode. The schema itself may be fine — the call site or configuration is
+      # wrong, so the message tells the operator what to do.
+      class ConfigurationError < Error; end
 
       class SemanticError < LocatedError; end
 

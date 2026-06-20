@@ -83,23 +83,25 @@ module Kumi
           end
 
           def visit_call(n)
-            if @registry.function_select?(n.fn)
+            if @registry.select?(n.fn)
               c = n.args[0].accept(self)
               t = n.args[1].accept(self)
               f = n.args[2].accept(self)
               target_axes = lub_by_prefix([axes_of(t), axes_of(f)])
               target_axes = axes_of(c) if target_axes.empty?
               unless prefix?(axes_of(c), target_axes)
-                raise Kumi::Core::Errors::SemanticError,
-                      "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect} at: #{n.loc}"
+                halt_pass!(@errors,
+                           "select mask axes #{axes_of(c).inspect} must prefix #{target_axes.inspect}",
+                           location: n.loc)
               end
 
               out = NAST::Select.new(id: n.id, cond: c, on_true: t, on_false: f, loc: n.loc, meta: n.meta.dup)
               return stamp!(out, target_axes, dtype_of(t))
             end
 
-            if @registry.function_reduce?(n.fn)
-              raise "Reducers should only have one arg" if n.args.size != 1 # TODO: -> sugar to collapse variadics?
+            if @registry.reduce?(n.fn)
+              # Reduce arity is fixed upstream; >1 arg here means the IR is malformed.
+              raise Kumi::Core::Errors::CompilerBug, "reduce #{n.fn} has #{n.args.size} args, expected 1" if n.args.size != 1
 
               arg_node = n.args.first
               visited_arg = arg_node.accept(self)
@@ -112,9 +114,10 @@ module Kumi
 
                 # We still need to visit the child node to build the SNAST tree
 
+                result_meta = meta_for(n)
                 fold_node = NAST::Fold.new(
                   id: n.id,
-                  fn: @registry.resolve_function(n.fn),
+                  fn: result_meta.fetch(:function).to_sym,
                   arg: visited_arg, # The arg is the tuple/reference to the tuple
                   loc: n.loc,
                   meta: n.meta.dup
@@ -123,26 +126,26 @@ module Kumi
                 # The output type is the reduced scalar type (e.g., :integer for max).
                 # The axes are PRESERVED because a fold is an element-wise operation
                 # on the container of tuples.
-                result_meta = meta_for(n)
                 return stamp!(fold_node, result_meta[:result_scope], result_meta[:result_type])
               else
                 # --- Path for REDUCE (Vectorized Arrays) ---
                 in_axes = axes_of(visited_arg)
 
-                if in_axes.empty?
-                  raise Kumi::Core::Errors::SemanticError,
-                        "reduce function called on a non-collection scalar: #{arg_type}"
-                end
+                halt_pass!(@errors, "reduce function called on a non-collection scalar: #{arg_type}", location: n.loc) if in_axes.empty?
 
                 result_meta = meta_for(n)
                 out_axes = Array(result_meta[:result_scope])
 
-                raise Kumi::Core::Errors::SemanticError, "reduce: out axes must prefix arg axes" unless prefix?(out_axes, in_axes)
+                unless prefix?(out_axes, in_axes)
+                  halt_pass!(@errors,
+                             "reduce: out axes #{out_axes.inspect} must prefix arg axes #{in_axes.inspect}",
+                             location: n.loc)
+                end
 
                 over_axes = in_axes.drop(out_axes.length)
                 reduce_node = NAST::Reduce.new(
                   id: n.id,
-                  fn: @registry.resolve_function(n.fn),
+                  fn: result_meta.fetch(:function).to_sym,
                   over: over_axes,
                   arg: visited_arg,
                   loc: n.loc,
@@ -152,12 +155,11 @@ module Kumi
               end
             end
 
-            # regular elementwise
+            # regular elementwise: the function id was resolved with type
+            # awareness in NASTDimensionalAnalyzerPass and stored in metadata.
             args = n.args.map { _1.accept(self) }
             m    = meta_for(n)
-            # Use the function ID from metadata (already resolved with type awareness in NASTDimensionalAnalyzerPass)
-            fn_id = m[:function] || @registry.resolve_function(n.fn)
-            out = n.class.new(id: n.id, fn: fn_id.to_sym, args:, opts: n.opts, loc: n.loc)
+            out = n.class.new(id: n.id, fn: m.fetch(:function).to_sym, args:, opts: n.opts, loc: n.loc)
             stamp!(out, m[:result_scope], m[:result_type])
           end
 
@@ -193,22 +195,13 @@ module Kumi
 
             cand = list.max_by(&:length) || []
             list.each do |ax|
-              raise Kumi::Core::Errors::SemanticError, "prefix mismatch: #{ax.inspect} vs #{cand.inspect}" unless prefix?(ax, cand)
+              raise Kumi::Core::Errors::CompilerBug, "axis prefix mismatch: #{ax.inspect} vs #{cand.inspect}" unless prefix?(ax, cand)
             end
             cand
           end
 
           def prefix?(pre, full)
             pre.each_with_index.all? { |tok, i| full[i] == tok }
-          end
-
-          # Default reduce sugar: over last axis of the LUB of argument axes.
-          # Returns { over:, out_axes: }.
-          def reduce_last_axis(args_axes_list)
-            a = lub_by_prefix(args_axes_list)
-            raise Kumi::Core::Errors::SemanticError, "cannot reduce scalar" if a.empty?
-
-            { over: [a.last], out_axes: a[0...-1] }
           end
 
           def lookup_input(fqn)

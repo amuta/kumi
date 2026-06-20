@@ -11,8 +11,8 @@ module Kumi
           # @param v [Hash] vector value {:k => :vec, :scope => [...], :rows => [...]}
           # @return [Hash] broadcasted vector
           def self.broadcast_scalar(s, v)
-            raise "First arg must be scalar" unless s[:k] == :scalar
-            raise "Second arg must be vec" unless v[:k] == :vec
+            raise Kumi::Core::Errors::CompilerBug, "broadcast_scalar: first arg must be scalar" unless s[:k] == :scalar
+            raise Kumi::Core::Errors::CompilerBug, "broadcast_scalar: second arg must be vec" unless v[:k] == :vec
 
             rows = v[:rows].map do |r|
               r.key?(:idx) ? { v: s[:v], idx: r[:idx] } : { v: s[:v] }
@@ -25,9 +25,10 @@ module Kumi
           # @param vecs [Array<Hash>] vectors to zip together
           # @return [Hash] zipped vector
           def self.zip_same_scope(*vecs)
-            raise "All arguments must be vecs" unless vecs.all? { |v| v[:k] == :vec }
-            raise "All vecs must have same scope" unless vecs.map { |v| v[:scope] }.uniq.size == 1
-            raise "All vecs must have same row count" unless vecs.map { |v| v[:rows].size }.uniq.size == 1
+            bug = Kumi::Core::Errors::CompilerBug
+            raise bug, "zip_same_scope: all arguments must be vecs" unless vecs.all? { |v| v[:k] == :vec }
+            raise bug, "zip_same_scope: all vecs must share a scope" unless vecs.map { |v| v[:scope] }.uniq.size == 1
+            raise bug, "zip_same_scope: all vecs must have same row count" unless vecs.map { |v| v[:rows].size }.uniq.size == 1
             return vecs.first if vecs.length == 1
 
             first_vec = vecs.first
@@ -49,17 +50,22 @@ module Kumi
           # @param on_missing [Symbol] :error or :nil policy
           # @return [Hash] aligned vector
           def self.align_to(tgt, src, to_scope:, require_unique: false, on_missing: :error)
-            raise "align_to expects vecs with indices" unless [tgt, src].all? { |v| v[:k] == :vec && v[:has_idx] }
+            unless [tgt, src].all? { |v| v[:k] == :vec && v[:has_idx] }
+              raise Kumi::Core::Errors::CompilerBug, "align_to expects vecs with indices"
+            end
 
             to_rank = to_scope.length
             src_rank = src[:rows].first[:idx].length
-            raise "scope not prefix-compatible: #{src_rank} > #{to_rank}" unless src_rank <= to_rank
+            unless src_rank <= to_rank
+              raise Kumi::Core::Errors::CompilerBug,
+                    "align_to: scope not prefix-compatible: #{src_rank} > #{to_rank}"
+            end
 
             # Build prefix->value hash
             h = {}
             src[:rows].each do |r|
               k = r[:idx].first(src_rank)
-              raise "non-unique prefix for align_to: #{k.inspect}" if require_unique && h.key?(k)
+              raise Kumi::Core::Errors::CompilerBug, "align_to: non-unique prefix #{k.inspect}" if require_unique && h.key?(k)
 
               h[k] = r[:v]
             end
@@ -72,8 +78,8 @@ module Kumi
               else
                 case on_missing
                 when :nil then { v: nil, idx: r[:idx] }
-                when :error then raise "missing prefix #{k.inspect} in align_to"
-                else raise "unknown on_missing policy: #{on_missing}"
+                when :error then raise Kumi::Core::Errors::RuntimeError, "align_to: no source row for prefix #{k.inspect}"
+                else raise Kumi::Core::Errors::CompilerBug, "align_to: unknown on_missing policy #{on_missing.inspect}"
                 end
               end
             end

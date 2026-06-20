@@ -6,8 +6,7 @@ module Kumi::Compiled::KUMI_72c943d81be34feb5fe484d2480e233accb8f461c408bfa07b6c
     t4.each_with_index do |rows_el5, rows_i6|
       arr11 = []
       rows_el5.each_with_index do |col_el7, col_i8|
-        t9 = col_el7
-        arr11 << t9
+        arr11 << col_el7
       end
       arr10 << arr11
     end

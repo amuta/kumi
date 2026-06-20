@@ -28,7 +28,7 @@ module Kumi::Compiled::KUMI_cfe6d7ef09d533a86b82196416a8a3753bd73454431e90c3d6f9
     t18 = t21 * t21
     t19 = t15 + t18
     t22 = 0.5
-    t12 = t19 ** t22
+    t12 = ((t19) ** (t22)).then { |r| r.is_a?(Complex) ? Float::NAN : r }
     return t12
   end
 end

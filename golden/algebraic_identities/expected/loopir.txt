@@ -1,0 +1,61 @@
+function times_one:
+  %v7 = load_input [key=:items]
+  %arr12 = array_init
+  %items_el8 = loop_start (:v7) [axis=:items, index=:items_i9]
+    %v10 = load_field (:items_el8) [field=:price]
+    %v11 = constant [value=1.0] [] -> float
+    %v6 = kernel_call (:v10, :v11) [fn=:core.mul:numeric] [items] -> float
+    array_push (:arr12, :v6)
+  loop_end [axis=:items]
+function div_one:
+  %v13 = load_input [key=:items]
+  %arr18 = array_init
+  %items_el14 = loop_start (:v13) [axis=:items, index=:items_i15]
+    %v16 = load_field (:items_el14) [field=:price]
+    %v17 = constant [value=1.0] [] -> float
+    %v12 = kernel_call (:v16, :v17) [fn=:core.div] [items] -> float
+    array_push (:arr18, :v12)
+  loop_end [axis=:items]
+function sub_zero:
+  %v19 = load_input [key=:items]
+  %arr24 = array_init
+  %items_el20 = loop_start (:v19) [axis=:items, index=:items_i21]
+    %v22 = load_field (:items_el20) [field=:price]
+    %v23 = constant [value=0.0] [] -> float
+    %v18 = kernel_call (:v22, :v23) [fn=:core.sub] [items] -> float
+    array_push (:arr24, :v18)
+  loop_end [axis=:items]
+function plus_zero:
+  %v25 = load_input [key=:items]
+  %arr30 = array_init
+  %items_el26 = loop_start (:v25) [axis=:items, index=:items_i27]
+    %v28 = load_field (:items_el26) [field=:qty]
+    %v29 = constant [value=0] [] -> integer
+    %v24 = kernel_call (:v28, :v29) [fn=:core.add] [items] -> integer
+    array_push (:arr30, :v24)
+  loop_end [axis=:items]
+function mul_zero:
+  %v31 = load_input [key=:items]
+  %arr36 = array_init
+  %items_el32 = loop_start (:v31) [axis=:items, index=:items_i33]
+    %v34 = load_field (:items_el32) [field=:qty]
+    %v35 = constant [value=0] [] -> integer
+    %v30 = kernel_call (:v34, :v35) [fn=:core.mul:numeric] [items] -> integer
+    array_push (:arr36, :v30)
+  loop_end [axis=:items]
+function price_check:
+  %v40 = load_input [key=:items]
+  %acc44 = acc_init [fn=:agg.sum, init=0.0, nil_init=false] [] -> float
+  %items_el41 = loop_start (:v40) [axis=:items, index=:items_i42]
+    %v43 = load_field (:items_el41) [field=:price]
+    %v33 = kernel_call (:v43, :v43) [fn=:core.add] [items] -> float
+    %v35 = kernel_call (:v33, :v43) [fn=:core.sub] [items] -> float
+    acc_step (:acc44, :v35) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]
+function qty_check:
+  %v44 = load_input [key=:items]
+  %acc48 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
+  %items_el45 = loop_start (:v44) [axis=:items, index=:items_i46]
+    %v47 = load_field (:items_el45) [field=:qty]
+    acc_step (:acc48, :v47) [fn=:agg.sum, nil_init=false]
+  loop_end [axis=:items]

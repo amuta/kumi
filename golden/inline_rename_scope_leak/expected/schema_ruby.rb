@@ -7,8 +7,7 @@ module Kumi::Compiled::KUMI_7e3cd53f6997823ef4b8f5074c4343d359439756c9c3c22e3a6e
       t8 = xs_el6["v"] || xs_el6[:v]
       acc9 += t8
     end
-    t4 = acc9
-    return t4
+    return acc9
   end
 
   def self._sum_y(input)
@@ -18,8 +17,7 @@ module Kumi::Compiled::KUMI_7e3cd53f6997823ef4b8f5074c4343d359439756c9c3c22e3a6e
       t12 = ys_el10["v"] || ys_el10[:v]
       acc13 += t12
     end
-    t8 = acc13
-    return t8
+    return acc13
   end
 
   def self._tail(input)
@@ -34,16 +32,14 @@ module Kumi::Compiled::KUMI_7e3cd53f6997823ef4b8f5074c4343d359439756c9c3c22e3a6e
       t30 = xs_el28["v"] || xs_el28[:v]
       acc31 += t30
     end
-    t19 = acc31
     t32 = input["ys"] || input[:ys]
     acc36 = 0.0
     t32.each_with_index do |ys_el33, ys_i34|
       t35 = ys_el33["v"] || ys_el33[:v]
       acc36 += t35
     end
-    t23 = acc36
     t37 = 12.0
-    t15 = { "x" => t19, "y" => t23, "t" => t37 }
+    t15 = { "x" => acc31, "y" => acc36, "t" => t37 }
     return t15
   end
 end

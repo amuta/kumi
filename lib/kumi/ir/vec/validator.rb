@@ -40,6 +40,28 @@ module Kumi
           function.blocks.each do |block|
             block.instructions.each { |instr| validate_instruction(instr) }
           end
+          validate_no_dangling_uses(function)
+        end
+
+        # Every register a function uses must be defined in that same function.
+        # A register-rewriting pass (gvn, peephole) can drop a defining
+        # instruction while a consumer still points at it; left unchecked the
+        # dangling use surfaces far downstream as an opaque LoopIR "cannot read
+        # :vNN (nil)". Catch it here, at the producing boundary, naming the
+        # offender.
+        def validate_no_dangling_uses(function)
+          instructions = function.blocks.flat_map(&:instructions)
+          defs = instructions.each_with_object({}) { |instr, h| h[instr.result] = true if instr.result }
+
+          instructions.each do |instr|
+            instr.uses.each do |reg|
+              next if defs[reg]
+
+              raise ArgumentError,
+                    "VecIR #{function.name}: #{instr.result.inspect}=#{instr.opcode} uses #{reg.inspect}, " \
+                    "which no instruction defines (dangling register)"
+            end
+          end
         end
 
         def validate_instruction(instr)

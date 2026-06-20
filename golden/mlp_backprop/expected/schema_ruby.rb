@@ -12,9 +12,8 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t11 = t23 * t24
         acc25 += t11
       end
-      t12 = acc25
       t26 = hidden_el18["b1"] || hidden_el18[:b1]
-      t16 = t12 + t26
+      t16 = acc25 + t26
       arr27 << t16
     end
     return arr27
@@ -32,9 +31,8 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t29 = t41 * t42
         acc43 += t29
       end
-      t30 = acc43
       t44 = hidden_el36["b1"] || hidden_el36[:b1]
-      t34 = t30 + t44
+      t34 = acc43 + t44
       t18 = Math.tanh(t34)
       arr45 << t18
     end
@@ -53,17 +51,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t37 = t50 * t51
         acc52 += t37
       end
-      t38 = acc52
       t53 = hidden_el45["b1"] || hidden_el45[:b1]
-      t42 = t38 + t53
+      t42 = acc52 + t53
       t43 = Math.tanh(t42)
       t54 = hidden_el45["w2"] || hidden_el45[:w2]
       t23 = t54 * t43
       acc55 += t23
     end
-    t24 = acc55
     t56 = input["b_out"] || input[:b_out]
-    t26 = t24 + t56
+    t26 = acc55 + t56
     return t26
   end
 
@@ -79,17 +75,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t48 = t65 * t66
         acc67 += t48
       end
-      t49 = acc67
       t68 = hidden_el60["b1"] || hidden_el60[:b1]
-      t53 = t49 + t68
+      t53 = acc67 + t68
       t54 = Math.tanh(t53)
       t69 = hidden_el60["w2"] || hidden_el60[:w2]
       t55 = t69 * t54
       acc70 += t55
     end
-    t56 = acc70
     t71 = input["b_out"] || input[:b_out]
-    t58 = t56 + t71
+    t58 = acc70 + t71
     t72 = 0.0
     t31 = t72 - t58
     t32 = Math.exp(t31)
@@ -111,17 +105,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t52 = t73 * t74
         acc75 += t52
       end
-      t53 = acc75
       t76 = hidden_el68["b1"] || hidden_el68[:b1]
-      t57 = t53 + t76
+      t57 = acc75 + t76
       t58 = Math.tanh(t57)
       t77 = hidden_el68["w2"] || hidden_el68[:w2]
       t59 = t77 * t58
       acc78 += t59
     end
-    t60 = acc78
     t79 = input["b_out"] || input[:b_out]
-    t62 = t60 + t79
+    t62 = acc78 + t79
     t80 = 0.0
     t63 = t80 - t62
     t64 = Math.exp(t63)
@@ -143,17 +135,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t56 = t77 * t78
         acc79 += t56
       end
-      t57 = acc79
       t80 = hidden_el72["b1"] || hidden_el72[:b1]
-      t61 = t57 + t80
+      t61 = acc79 + t80
       t62 = Math.tanh(t61)
       t81 = hidden_el72["w2"] || hidden_el72[:w2]
       t63 = t81 * t62
       acc82 += t63
     end
-    t64 = acc82
     t83 = input["b_out"] || input[:b_out]
-    t66 = t64 + t83
+    t66 = acc82 + t83
     t84 = 0.0
     t67 = t84 - t66
     t68 = Math.exp(t67)
@@ -178,17 +168,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t71 = t95 * t96
         acc97 += t71
       end
-      t72 = acc97
       t98 = hidden_el90["b1"] || hidden_el90[:b1]
-      t76 = t72 + t98
+      t76 = acc97 + t98
       t77 = Math.tanh(t76)
       t99 = hidden_el90["w2"] || hidden_el90[:w2]
       t78 = t99 * t77
       acc100 += t78
     end
-    t79 = acc100
     t101 = input["b_out"] || input[:b_out]
-    t81 = t79 + t101
+    t81 = acc100 + t101
     t102 = 0.0
     t82 = t102 - t81
     t83 = Math.exp(t82)
@@ -222,17 +210,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t74 = t95 * t96
         acc97 += t74
       end
-      t75 = acc97
       t98 = hidden_el90["b1"] || hidden_el90[:b1]
-      t79 = t75 + t98
+      t79 = acc97 + t98
       t80 = Math.tanh(t79)
       t99 = hidden_el90["w2"] || hidden_el90[:w2]
       t81 = t99 * t80
       acc100 += t81
     end
-    t82 = acc100
     t101 = input["b_out"] || input[:b_out]
-    t84 = t82 + t101
+    t84 = acc100 + t101
     t102 = 0.0
     t85 = t102 - t84
     t86 = Math.exp(t85)
@@ -256,17 +242,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t80 = t103 * t104
         acc105 += t80
       end
-      t81 = acc105
       t106 = hidden_el98["b1"] || hidden_el98[:b1]
-      t85 = t81 + t106
+      t85 = acc105 + t106
       t86 = Math.tanh(t85)
       t107 = hidden_el98["w2"] || hidden_el98[:w2]
       t87 = t107 * t86
       acc108 += t87
     end
-    t88 = acc108
     t109 = input["b_out"] || input[:b_out]
-    t90 = t88 + t109
+    t90 = acc108 + t109
     t110 = 0.0
     t91 = t110 - t90
     t92 = Math.exp(t91)
@@ -297,18 +281,16 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t88 = t116 * t117
         acc118 += t88
       end
-      t89 = acc118
       t119 = hidden_el111["b1"] || hidden_el111[:b1]
-      t93 = t89 + t119
+      t93 = acc118 + t119
       t94 = Math.tanh(t93)
       arr129 << t94
       t120 = hidden_el111["w2"] || hidden_el111[:w2]
       t95 = t120 * t94
       acc121 += t95
     end
-    t96 = acc121
     t122 = input["b_out"] || input[:b_out]
-    t98 = t96 + t122
+    t98 = acc121 + t122
     t123 = 0.0
     t99 = t123 - t98
     t100 = Math.exp(t99)
@@ -343,17 +325,15 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t89 = t112 * t113
         acc114 += t89
       end
-      t90 = acc114
       t115 = hidden_el107["b1"] || hidden_el107[:b1]
-      t94 = t90 + t115
+      t94 = acc114 + t115
       t95 = Math.tanh(t94)
       t116 = hidden_el107["w2"] || hidden_el107[:w2]
       t96 = t116 * t95
       acc117 += t96
     end
-    t97 = acc117
     t118 = input["b_out"] || input[:b_out]
-    t99 = t97 + t118
+    t99 = acc117 + t118
     t119 = 0.0
     t100 = t119 - t99
     t101 = Math.exp(t100)
@@ -378,18 +358,16 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t93 = t116 * t117
         acc118 += t93
       end
-      t94 = acc118
       t119 = hidden_el111["b1"] || hidden_el111[:b1]
-      t98 = t94 + t119
+      t98 = acc118 + t119
       t99 = Math.tanh(t98)
       arr128 << t99
       t120 = hidden_el111["w2"] || hidden_el111[:w2]
       t100 = t120 * t99
       acc121 += t100
     end
-    t101 = acc121
     t122 = input["b_out"] || input[:b_out]
-    t103 = t101 + t122
+    t103 = acc121 + t122
     t123 = 0.0
     t104 = t123 - t103
     t105 = Math.exp(t104)
@@ -420,18 +398,16 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t94 = t161 * t162
         acc163 += t94
       end
-      t95 = acc163
       t164 = hidden_el156["b1"] || hidden_el156[:b1]
-      t99 = t95 + t164
+      t99 = acc163 + t164
       t100 = Math.tanh(t99)
       arr174 << t100
       t165 = hidden_el156["w2"] || hidden_el156[:w2]
       t101 = t165 * t100
       acc166 += t101
     end
-    t102 = acc166
     t167 = input["b_out"] || input[:b_out]
-    t104 = t102 + t167
+    t104 = acc166 + t167
     t168 = 0.0
     t105 = t168 - t104
     t106 = Math.exp(t105)
@@ -467,18 +443,16 @@ module Kumi::Compiled::KUMI_e0ce99f3d0119e55dba57f52d7f6dbe38374a94a3d4523f18ea6
         t102 = t169 * t170
         acc171 += t102
       end
-      t103 = acc171
       t172 = hidden_el164["b1"] || hidden_el164[:b1]
-      t107 = t103 + t172
+      t107 = acc171 + t172
       t108 = Math.tanh(t107)
       arr182 << t108
       t173 = hidden_el164["w2"] || hidden_el164[:w2]
       t109 = t173 * t108
       acc174 += t109
     end
-    t110 = acc174
     t175 = input["b_out"] || input[:b_out]
-    t112 = t110 + t175
+    t112 = acc174 + t175
     t176 = 0.0
     t113 = t176 - t112
     t114 = Math.exp(t113)

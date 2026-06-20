@@ -133,7 +133,7 @@ module Kumi
           end
 
           def validate_input_table_plans(plan, errors)
-            errors << "Input table path must be Array, got: #{plan.class}" unless plan.is_a?(Kumi::Core::IRV2::InputPlan)
+            errors << "Input table path must be Array, got: #{plan.class}" unless plan.is_a?(Kumi::Core::Analyzer::Plans::InputPlan)
 
             required_keys = %i[axes dtype]
             required_keys.each do |key|

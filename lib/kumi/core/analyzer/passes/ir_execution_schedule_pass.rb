@@ -20,7 +20,9 @@ module Kumi
             visit = lambda do |dn|
               return closure_cache[dn] if closure_cache.key?(dn)
 
-              raise Kumi::Core::Errors::TypeError, "cycle detected in IR at #{dn.inspect}" if visiting[dn]
+              # ToposorterPass already rejects declaration cycles with a located
+              # error; reaching one here means the dep graph is inconsistent.
+              raise Kumi::Core::Errors::CompilerBug, "cycle detected in IR at #{dn.inspect}" if visiting[dn]
 
               visiting[dn] = true
 
@@ -51,7 +53,7 @@ module Kumi
 
               target_names.each do |t|
                 if schedules.key?(t) && schedules[t] != seq
-                  raise Kumi::Core::Errors::TypeError,
+                  raise Kumi::Core::Errors::CompilerBug,
                         "duplicate schedule target #{t.inspect} produced by #{schedules[t].last.name} and #{decl.name}"
                 end
                 schedules[t] = seq

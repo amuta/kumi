@@ -11,8 +11,7 @@ module Kumi::Compiled::KUMI_63d525a0f839a2681e280ccd915bc091aaf744391318b245aace
         acc14 ||= t13
         acc14 = t13 if !t13.nil? && t13 > acc14
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -28,8 +27,7 @@ module Kumi::Compiled::KUMI_63d525a0f839a2681e280ccd915bc091aaf744391318b245aace
         acc20 ||= t19
         acc20 = t19 if !t19.nil? && t19 < acc20
       end
-      t12 = acc20
-      arr21 << t12
+      arr21 << acc20
     end
     return arr21
   end
@@ -44,8 +42,7 @@ module Kumi::Compiled::KUMI_63d525a0f839a2681e280ccd915bc091aaf744391318b245aace
         t25 = tags_el23["label"] || tags_el23[:label]
         acc26 += t25
       end
-      t18 = acc26
-      arr27 << t18
+      arr27 << acc26
     end
     return arr27
   end
@@ -61,12 +58,10 @@ module Kumi::Compiled::KUMI_63d525a0f839a2681e280ccd915bc091aaf744391318b245aace
         acc34 ||= t33
         acc34 = t33 if !t33.nil? && t33 > acc34
       end
-      t26 = acc34
-      acc35 ||= t26
-      acc35 = t26 if !t26.nil? && t26 > acc35
+      acc35 ||= acc34
+      acc35 = acc34 if !acc34.nil? && acc34 > acc35
     end
-    t20 = acc35
-    return t20
+    return acc35
   end
 
   def self._worst_region_sale(input)
@@ -80,11 +75,9 @@ module Kumi::Compiled::KUMI_63d525a0f839a2681e280ccd915bc091aaf744391318b245aace
         acc36 ||= t35
         acc36 = t35 if !t35.nil? && t35 < acc36
       end
-      t28 = acc36
-      acc37 ||= t28
-      acc37 = t28 if !t28.nil? && t28 < acc37
+      acc37 ||= acc36
+      acc37 = acc36 if !acc36.nil? && acc36 < acc37
     end
-    t22 = acc37
-    return t22
+    return acc37
   end
 end

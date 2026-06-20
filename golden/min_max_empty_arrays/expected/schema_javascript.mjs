@@ -10,8 +10,7 @@ export function _region_max(input) {
       let t13 = sales_el11["amount"];
       acc14 = (t13 !== null && (acc14 === null || t13 > acc14)) ? t13 : acc14;
     }
-    let t6 = acc14;
-    arr15.push(t6);
+    arr15.push(acc14);
   }
   return arr15;
 }
@@ -28,8 +27,7 @@ export function _region_min(input) {
       let t19 = sales_el17["amount"];
       acc20 = (t19 !== null && (acc20 === null || t19 < acc20)) ? t19 : acc20;
     }
-    let t12 = acc20;
-    arr21.push(t12);
+    arr21.push(acc20);
   }
   return arr21;
 }
@@ -46,8 +44,7 @@ export function _region_labels(input) {
       let t25 = tags_el23["label"];
       acc26 += t25;
     }
-    let t18 = acc26;
-    arr27.push(t18);
+    arr27.push(acc26);
   }
   return arr27;
 }
@@ -64,11 +61,9 @@ export function _best_region_sale(input) {
       let t33 = sales_el31["amount"];
       acc34 = (t33 !== null && (acc34 === null || t33 > acc34)) ? t33 : acc34;
     }
-    let t26 = acc34;
-    acc35 = (t26 !== null && (acc35 === null || t26 > acc35)) ? t26 : acc35;
+    acc35 = (acc34 !== null && (acc35 === null || acc34 > acc35)) ? acc34 : acc35;
   }
-  let t20 = acc35;
-  return t20;
+  return acc35;
 }
 
 export function _worst_region_sale(input) {
@@ -83,10 +78,8 @@ export function _worst_region_sale(input) {
       let t35 = sales_el33["amount"];
       acc36 = (t35 !== null && (acc36 === null || t35 < acc36)) ? t35 : acc36;
     }
-    let t28 = acc36;
-    acc37 = (t28 !== null && (acc37 === null || t28 < acc37)) ? t28 : acc37;
+    acc37 = (acc36 !== null && (acc37 === null || acc36 < acc37)) ? acc36 : acc37;
   }
-  let t22 = acc37;
-  return t22;
+  return acc37;
 }
 

@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_228a88877ee63dc4343fcc7392f19a304f2dc0fdc4849c722036
         t13 = employees_el11["salary"] || employees_el11[:salary]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -31,8 +30,7 @@ module Kumi::Compiled::KUMI_228a88877ee63dc4343fcc7392f19a304f2dc0fdc4849c722036
         t19 = t14 ? t29 : t30
         acc31 += t19
       end
-      t20 = acc31
-      arr32 << t20
+      arr32 << acc31
     end
     return arr32
   end
@@ -55,10 +53,8 @@ module Kumi::Compiled::KUMI_228a88877ee63dc4343fcc7392f19a304f2dc0fdc4849c722036
         t45 = t40 ? t57 : t58
         acc59 += t45
       end
-      t32 = acc54
-      t46 = acc59
       t60 = departments_el48["name"] || departments_el48[:name]
-      t26 = { "name" => t60, "total_payroll" => t32, "manager_count" => t46 }
+      t26 = { "name" => t60, "total_payroll" => acc54, "manager_count" => acc59 }
       arr61 << t26
     end
     return arr61

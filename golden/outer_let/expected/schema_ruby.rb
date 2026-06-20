@@ -13,8 +13,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr13 = []
     t8.each_with_index do |pixels_el9, pixels_i10|
       t11 = pixels_el9["px"] || pixels_el9[:px]
-      t12 = t11
-      arr13 << t12
+      arr13 << t11
     end
     return arr13
   end
@@ -24,8 +23,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr17 = []
     t12.each_with_index do |lights__o_el13, lights__o_i14|
       t15 = lights__o_el13["bx"] || lights__o_el13[:bx]
-      t16 = t15
-      arr17 << t16
+      arr17 << t15
     end
     return arr17
   end
@@ -35,8 +33,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr21 = []
     t16.each_with_index do |lights__o_el17, lights__o_i18|
       t19 = lights__o_el17["r"] || lights__o_el17[:r]
-      t20 = t19
-      arr21 << t20
+      arr21 << t19
     end
     return arr21
   end
@@ -46,8 +43,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr25 = []
     t20.each_with_index do |lights__o_el21, lights__o_i22|
       t23 = lights__o_el21["ph"] || lights__o_el21[:ph]
-      t24 = t23
-      arr25 << t24
+      arr25 << t23
     end
     return arr25
   end
@@ -57,8 +53,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr29 = []
     t24.each_with_index do |lights__o_el25, lights__o_i26|
       t27 = lights__o_el25["glow"] || lights__o_el25[:glow]
-      t28 = t27
-      arr29 << t28
+      arr29 << t27
     end
     return arr29
   end
@@ -68,8 +63,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
     arr33 = []
     t28.each_with_index do |lights__o_el29, lights__o_i30|
       t31 = lights__o_el29["wr"] || lights__o_el29[:wr]
-      t32 = t31
-      arr33 << t32
+      arr33 << t31
     end
     return arr33
   end
@@ -200,8 +194,7 @@ module Kumi::Compiled::KUMI_8ec1fd5a6b1da925c76e2360d7f25daf788db5ced41269113628
         t54 = t119 * t143
         acc144 += t54
       end
-      t55 = acc144
-      arr145 << t55
+      arr145 << acc144
     end
     return arr145
   end

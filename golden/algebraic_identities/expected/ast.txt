@@ -1,0 +1,66 @@
+(Root
+  inputs: [
+    (InputDeclaration :items :array
+      [
+        (InputDeclaration :item :hash
+          [
+            (InputDeclaration :price :float)
+            (InputDeclaration :qty :integer)
+          ]
+        )
+      ]
+    )
+  ]
+  values: [
+    (ValueDeclaration :times_one
+      (CallExpression :multiply
+        (InputElementReference items.item.price)
+        (Literal 1.0)
+      )
+    )
+    (ValueDeclaration :div_one
+      (CallExpression :divide
+        (InputElementReference items.item.price)
+        (Literal 1.0)
+      )
+    )
+    (ValueDeclaration :sub_zero
+      (CallExpression :subtract
+        (InputElementReference items.item.price)
+        (Literal 0.0)
+      )
+    )
+    (ValueDeclaration :plus_zero
+      (CallExpression :add
+        (InputElementReference items.item.qty)
+        (Literal 0)
+      )
+    )
+    (ValueDeclaration :mul_zero
+      (CallExpression :multiply
+        (InputElementReference items.item.qty)
+        (Literal 0)
+      )
+    )
+    (ValueDeclaration :price_check
+      (CallExpression :sum
+        (CallExpression :subtract
+          (CallExpression :add
+            (DeclarationReference :times_one)
+            (DeclarationReference :div_one)
+          )
+          (DeclarationReference :sub_zero)
+        )
+      )
+    )
+    (ValueDeclaration :qty_check
+      (CallExpression :sum
+        (CallExpression :add
+          (DeclarationReference :plus_zero)
+          (DeclarationReference :mul_zero)
+        )
+      )
+    )
+  ]
+  traits: []
+)

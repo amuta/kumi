@@ -53,7 +53,6 @@ module Kumi::Compiled::KUMI_e6cf3b6ffd6a8e2f1821d9b947e36182aaa5d6eb5e8799d0ed58
       acc0 = t35 > t39 ? t35 : t39
       acc42 += acc0
     end
-    t22 = acc42
-    return t22
+    return acc42
   end
 end

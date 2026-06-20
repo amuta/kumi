@@ -8,10 +8,12 @@ module Kumi
         include Syntax
         include ErrorReporting
 
-        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross outer import codegen].freeze
+        DSL_METHODS = %i[value trait input ref literal fn select shift roll cross outer index import codegen
+                         to_decimal to_integer to_float to_string].freeze
 
         def initialize(context)
           @context = context
+          @converter = ExpressionConverter.new(context)
         end
 
         def let(name = nil, expr = nil, &blk)
@@ -116,12 +118,24 @@ module Kumi
 
         def shift(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
-          Kumi::Syntax::CallExpression.new(:roll, args_expr, kwargs, loc: @context.current_location)
+          Kumi::Syntax::CallExpression.new(:shift, args_expr, kwargs, loc: @context.current_location)
         end
 
         def cross(*args, **kwargs)
           args_expr = args.map { ensure_syntax(_1) }
           Kumi::Syntax::CallExpression.new(:cross, args_expr, kwargs, loc: @context.current_location)
+        end
+
+        def index(name)
+          update_location
+          Kumi::Syntax::CallExpression.new(:index, [ensure_syntax(name)], {}, loc: @context.current_location)
+        end
+
+        %i[to_decimal to_integer to_float to_string].each do |fn_name|
+          define_method(fn_name) do |arg|
+            update_location
+            Kumi::Syntax::CallExpression.new(fn_name, [ensure_syntax(arg)], {}, loc: @context.current_location)
+          end
         end
 
         # `outer(v)` re-exposes a value from a DIFFERENT array as a fresh inner
@@ -151,10 +165,9 @@ module Kumi
         private
 
         def build_import_mapping(kwargs)
-          converter = ExpressionConverter.new(@context)
           mapping = {}
           kwargs.each do |field_name, expr|
-            mapping[field_name] = converter.ensure_syntax(expr)
+            mapping[field_name] = @converter.ensure_syntax(expr)
           end
           mapping
         end
@@ -201,28 +214,29 @@ module Kumi
             expr = ensure_syntax(expression)
             @context.traits << Kumi::Syntax::TraitDeclaration.new(name, expr, loc: @context.current_location)
           else
-            handle_deprecated_trait_syntax(args)
+            build_operator_trait_syntax(args)
           end
         end
 
-        def handle_deprecated_trait_syntax(args)
+        # The explicit operator form: `trait :name, lhs, :op, rhs[, rhs...]`.
+        # (Three positional args after the name — lhs, operator, rhs — is the
+        # minimum; extra trailing args become additional rhs operands.)
+        def build_operator_trait_syntax(args)
           if args.size == 3
             name, = args
             raise_syntax_error("trait '#{name}' requires exactly 3 arguments: lhs, operator, and rhs", location: @context.current_location)
           end
 
-          # warn "DEPRECATION: trait(:name, lhs, operator, rhs) syntax is deprecated. Use: trait :name, (lhs operator rhs)"
-
           if args.size == 4
             name, lhs, operator, rhs = args
-            build_deprecated_trait(name, lhs, operator, [rhs])
+            build_operator_trait(name, lhs, operator, [rhs])
           else
             name, lhs, operator, *rhs = args
-            build_deprecated_trait(name, lhs, operator, rhs)
+            build_operator_trait(name, lhs, operator, rhs)
           end
         end
 
-        def build_deprecated_trait(name, lhs, operator, rhs)
+        def build_operator_trait(name, lhs, operator, rhs)
           validate_trait_name(name)
           validate_operator(operator)
 
@@ -248,14 +262,13 @@ module Kumi
         end
 
         def build_cascade(&)
-          expression_converter = ExpressionConverter.new(@context)
-          cascade_builder = DslCascadeBuilder.new(expression_converter, @context.current_location)
+          cascade_builder = DslCascadeBuilder.new(@converter, @context.current_location)
           cascade_builder.instance_eval(&)
           Kumi::Syntax::CascadeExpression.new(cascade_builder.cases, loc: @context.current_location)
         end
 
         def ensure_syntax(obj)
-          ExpressionConverter.new(@context).ensure_syntax(obj)
+          @converter.ensure_syntax(obj)
         end
       end
     end

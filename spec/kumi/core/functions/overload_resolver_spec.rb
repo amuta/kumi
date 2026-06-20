@@ -3,7 +3,7 @@
 require "kumi/core/types/value_objects"
 
 RSpec.describe Kumi::Core::Functions::OverloadResolver do
-  let(:registry) { Kumi::RegistryV2.load }
+  let(:registry) { Kumi::FunctionRegistry.load }
   let(:resolver) { described_class.new(registry.instance_variable_get(:@functions)) }
 
   let(:int_type) { Kumi::Core::Types.scalar(:integer) }

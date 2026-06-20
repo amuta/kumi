@@ -8,13 +8,11 @@ export function _result(input) {
     for (let vals__x_i14 = 0; vals__x_i14 < t12.length; vals__x_i14++) {
       let vals__x_el13 = t12[vals__x_i14];
       let t15 = vals__x_el13["a"];
-      let t5 = t15;
       let t16 = vals_el10["a"];
-      let t7 = t5 - t16;
+      let t7 = t15 - t16;
       acc17 += t7;
     }
-    let t8 = acc17;
-    arr18.push(t8);
+    arr18.push(acc17);
   }
   return arr18;
 }

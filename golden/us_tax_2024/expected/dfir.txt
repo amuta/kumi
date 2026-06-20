@@ -15,7 +15,7 @@ function taxable:
   %v12 = map (:v8, :v11) [fn=:core.sub] [statuses] -> float
   %v13 = constant [value=0] [] -> integer
   %v14 = array_build (:v12, :v13) [size=2] [statuses] -> tuple<float, integer>
-  %v15 = fold (:v14) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v15 = fold (:v14) [fn=:agg.max] [statuses] -> float
 function lo:
   %v16 = load_input [key=:statuses, chain=[], plan_ref="statuses"] [statuses, rates] -> float
   %v17 = load_field (:v16) [field=:status, plan_ref="statuses.status"] [statuses, rates] -> float
@@ -83,7 +83,7 @@ function fed_eff:
   %v70 = load_input [key=:income, chain=[], plan_ref="income"] [] -> float
   %v71 = constant [value=1.0] [] -> float
   %v72 = array_build (:v70, :v71) [size=2] [] -> tuple<float, float>
-  %v73 = fold (:v72) [fn=:agg.max] [] -> tuple<float, float>
+  %v73 = fold (:v72) [fn=:agg.max] [] -> float
   %v74 = axis_broadcast (:v73) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v75 = map (:v69, :v74) [fn=:core.div] [statuses] -> float
 function ss_wage_base:
@@ -94,7 +94,7 @@ function ss_tax:
   %v78 = load_input [key=:income, chain=[], plan_ref="income"] [] -> float
   %v79 = constant [value=168600.0] [] -> float
   %v80 = array_build (:v78, :v79) [size=2] [] -> tuple<float, float>
-  %v81 = fold (:v80) [fn=:agg.min] [] -> tuple<float, float>
+  %v81 = fold (:v80) [fn=:agg.min] [] -> float
   %v82 = constant [value=0.062] [] -> float
   %v83 = map (:v81, :v82) [fn=:core.mul:numeric] [] -> float
 function med_base_rate:
@@ -114,7 +114,7 @@ function addl_med_tax:
   %v94 = map (:v90, :v93) [fn=:core.sub] [statuses] -> float
   %v95 = constant [value=0] [] -> integer
   %v96 = array_build (:v94, :v95) [size=2] [statuses] -> tuple<float, integer>
-  %v97 = fold (:v96) [fn=:agg.max] [statuses] -> tuple<float, integer>
+  %v97 = fold (:v96) [fn=:agg.max] [statuses] -> float
   %v98 = constant [value=0.009] [] -> float
   %v99 = axis_broadcast (:v98) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v100 = map (:v97, :v99) [fn=:core.mul:numeric] [statuses] -> float
@@ -130,7 +130,7 @@ function fica_eff:
   %v108 = load_input [key=:income, chain=[], plan_ref="income"] [] -> float
   %v109 = constant [value=1.0] [] -> float
   %v110 = array_build (:v108, :v109) [size=2] [] -> tuple<float, float>
-  %v111 = fold (:v110) [fn=:agg.max] [] -> tuple<float, float>
+  %v111 = fold (:v110) [fn=:agg.max] [] -> float
   %v112 = axis_broadcast (:v111) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v113 = map (:v107, :v112) [fn=:core.div] [statuses] -> float
 function total_tax:
@@ -148,7 +148,7 @@ function total_eff:
   %v124 = load_input [key=:income, chain=[], plan_ref="income"] [] -> float
   %v125 = constant [value=1.0] [] -> float
   %v126 = array_build (:v124, :v125) [size=2] [] -> tuple<float, float>
-  %v127 = fold (:v126) [fn=:agg.max] [] -> tuple<float, float>
+  %v127 = fold (:v126) [fn=:agg.max] [] -> float
   %v128 = axis_broadcast (:v127) [from_axes=[], to_axes=[:statuses]] [statuses] -> float
   %v129 = map (:v123, :v128) [fn=:core.div] [statuses] -> float
 function after_tax:

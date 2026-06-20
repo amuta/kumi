@@ -6,8 +6,7 @@ export function _a(input) {
     let arr11 = [];
     for (let col_i8 = 0; col_i8 < rows_el5.length; col_i8++) {
       let col_el7 = rows_el5[col_i8];
-      let t9 = col_el7;
-      arr11.push(t9);
+      arr11.push(col_el7);
     }
     arr10.push(arr11);
   }

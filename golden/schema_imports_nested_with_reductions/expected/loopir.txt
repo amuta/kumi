@@ -10,8 +10,7 @@ function order_subtotals:
       %v8 = kernel_call (:v16, :v17) [fn=:core.mul:numeric] [orders, items] -> integer
       acc_step (:acc18, :v8) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:items]
-    %v9 = acc_load (:acc18) [] -> integer
-    array_push (:arr19, :v9)
+    array_push (:arr19, :acc18)
   loop_end [axis=:orders]
 function total_before_tax:
   %v16 = load_input [key=:orders]
@@ -25,10 +24,8 @@ function total_before_tax:
       %v14 = kernel_call (:v22, :v23) [fn=:core.mul:numeric] [orders, items] -> integer
       acc_step (:acc24, :v14) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:items]
-    %v15 = acc_load (:acc24) [] -> integer
-    acc_step (:acc25, :v15) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc25, :acc24) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v6 = acc_load (:acc25) [] -> integer
 function tax_for_all:
   %v21 = load_input [key=:orders]
   %acc30 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -41,12 +38,10 @@ function tax_for_all:
       %v17 = kernel_call (:v27, :v28) [fn=:core.mul:numeric] [orders, items] -> integer
       acc_step (:acc29, :v17) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:items]
-    %v18 = acc_load (:acc29) [] -> integer
-    acc_step (:acc30, :v18) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc30, :acc29) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v13 = acc_load (:acc30) [] -> integer
   %v31 = constant [value=0.15] [] -> float
-  %v20 = kernel_call (:v13, :v31) [fn=:core.mul:numeric] [] -> float
+  %v20 = kernel_call (:acc30, :v31) [fn=:core.mul:numeric] [] -> decimal
 function grand_total:
   %v30 = load_input [key=:orders]
   %acc39 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
@@ -59,10 +54,8 @@ function grand_total:
       %v26 = kernel_call (:v36, :v37) [fn=:core.mul:numeric] [orders, items] -> integer
       acc_step (:acc38, :v26) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:items]
-    %v27 = acc_load (:acc38) [] -> integer
-    acc_step (:acc39, :v27) [fn=:agg.sum, nil_init=false]
+    acc_step (:acc39, :acc38) [fn=:agg.sum, nil_init=false]
   loop_end [axis=:orders]
-  %v16 = acc_load (:acc39) [] -> integer
   %v40 = constant [value=0.15] [] -> float
-  %v29 = kernel_call (:v16, :v40) [fn=:core.mul:numeric] [] -> float
-  %v11 = kernel_call (:v16, :v29) [fn=:core.add] [] -> float
+  %v29 = kernel_call (:acc39, :v40) [fn=:core.mul:numeric] [] -> decimal
+  %v11 = kernel_call (:acc39, :v29) [fn=:core.add] [] -> decimal

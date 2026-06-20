@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_53bf3dee54a43c47f8956244e0ec72c7c6adca098e84b80050c8
         t13 = employees_el11["salary"] || employees_el11[:salary]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -26,9 +25,8 @@ module Kumi::Compiled::KUMI_53bf3dee54a43c47f8956244e0ec72c7c6adca098e84b80050c8
         t23 = employees_el21["salary"] || employees_el21[:salary]
         acc24 += t23
       end
-      t16 = acc24
       t25 = 0.15
-      t10 = t16 * t25
+      t10 = acc24 * t25
       arr26 << t10
     end
     return arr26
@@ -49,8 +47,7 @@ module Kumi::Compiled::KUMI_53bf3dee54a43c47f8956244e0ec72c7c6adca098e84b80050c8
         t23 = t18 ? t33 : t34
         acc35 += t23
       end
-      t24 = acc35
-      arr36 << t24
+      arr36 << acc35
     end
     return arr36
   end
@@ -65,9 +62,8 @@ module Kumi::Compiled::KUMI_53bf3dee54a43c47f8956244e0ec72c7c6adca098e84b80050c8
         t67 = employees_el65["salary"] || employees_el65[:salary]
         acc68 += t67
       end
-      t37 = acc68
       t69 = 0.15
-      t46 = t37 * t69
+      t46 = acc68 * t69
       acc76 = 0
       t64.each_with_index do |employees_el70, employees_i71|
         t72 = employees_el70["role"] || employees_el70[:role]
@@ -78,9 +74,8 @@ module Kumi::Compiled::KUMI_53bf3dee54a43c47f8956244e0ec72c7c6adca098e84b80050c8
         t59 = t54 ? t74 : t75
         acc76 += t59
       end
-      t60 = acc76
       t77 = departments_el62["name"] || departments_el62[:name]
-      t31 = { "name" => t77, "payroll" => t37, "tax" => t46, "managers" => t60 }
+      t31 = { "name" => t77, "payroll" => acc68, "tax" => t46, "managers" => acc76 }
       arr78 << t31
     end
     return arr78

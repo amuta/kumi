@@ -124,14 +124,6 @@ RSpec.describe "Array Broadcasting Comprehensive Tests" do
         expect(runner[:prices_with_fallback]).to eq([100.0, 0.0, 50.0])
         expect(runner[:categories_with_fallback]).to eq(%w[books electronics unknown])
       end
-
-      xit "handles complex nil operations with aggregations" do
-        runner = run_schema_fixture("edge_case_nil_aggregations")
-
-        expect(runner[:total_valid_prices]).to eq(150.0)
-        expect(runner[:array_size]).to eq(3)
-        expect(runner[:count_items_with_price]).to eq(2)
-      end
     end
   end
 end

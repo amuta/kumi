@@ -20,7 +20,7 @@ function final_value_per_point:
   %v17 = load_field (:v16) [field=:point, plan_ref="points.point"] [points] -> integer
   %v18 = load_field (:v17) [field=:x, plan_ref="points.point.x"] [points] -> integer
   %v19 = array_build (:v15, :v18) [size=2] [points] -> tuple<integer, integer>
-  %v20 = fold (:v19) [fn=:agg.max] [points] -> tuple<integer, integer>
+  %v20 = fold (:v19) [fn=:agg.max] [points] -> integer
 function grand_total:
   %v21 = decl_ref [name=:final_value_per_point] [points] -> integer
   %v22 = reduce (:v21) [fn=:agg.sum, over_axes=[:points]] [] -> integer

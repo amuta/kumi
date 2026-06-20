@@ -1,0 +1,46 @@
+(NAST
+  (VALUE double
+    (Call :multiply
+    (InputRef [:items, :item, :price])
+    (Const 2.0)
+  )
+  )
+  (VALUE dj
+    (Call :cross
+    (Ref double)
+  )
+  )
+  (VALUE pair_total
+    (Call :sum
+    (Ref dj)
+  )
+  )
+  (VALUE self_diff
+    (Call :sum
+    (Call :subtract
+      (Ref dj)
+      (Ref double)
+    )
+  )
+  )
+  (VALUE idx_i
+    (IndexRef :i)
+  )
+  (VALUE idx_j
+    (Call :cross
+    (Ref idx_i)
+  )
+  )
+  (VALUE rank
+    (Call :sum
+    (Call :select
+      (Call :"core.lt"
+        (Ref idx_j)
+        (Ref idx_i)
+      )
+      (Const 1)
+      (Const 0)
+    )
+  )
+  )
+)

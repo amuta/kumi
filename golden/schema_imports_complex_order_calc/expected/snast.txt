@@ -1,38 +1,38 @@
 (SNAST
   (VALUE order_subtotals
     (ImportCall :subtotal
-      (items (InputRef orders.order.items key_chain=[]) :: [orders] -> array<any>)
+      (items (InputRef orders.order.items key_chain=[]) :: [orders] -> array<hash>)
     ) :: [orders] -> integer
   ) :: [orders] -> integer
   (VALUE order_with_shipping
     (Call :core.add
       (Ref order_subtotals) :: [orders] -> integer
       (InputRef orders.order.shipping_cost key_chain=[]) :: [orders] -> decimal
-    ) :: [orders] -> integer
-  ) :: [orders] -> integer
+    ) :: [orders] -> decimal
+  ) :: [orders] -> decimal
   (VALUE order_discounted
     (ImportCall :discounted
-      (price (Ref order_with_shipping) :: [orders] -> integer)
+      (price (Ref order_with_shipping) :: [orders] -> decimal)
       (rate (InputRef global_discount_rate key_chain=[]) :: [] -> decimal)
-    ) :: [orders] -> float
-  ) :: [orders] -> float
+    ) :: [orders] -> decimal
+  ) :: [orders] -> decimal
   (VALUE order_tax
     (ImportCall :tax
-      (amount (Ref order_discounted) :: [orders] -> float)
-    ) :: [orders] -> float
-  ) :: [orders] -> float
+      (amount (Ref order_discounted) :: [orders] -> decimal)
+    ) :: [orders] -> decimal
+  ) :: [orders] -> decimal
   (VALUE order_totals
     (Call :core.add
-      (Ref order_discounted) :: [orders] -> float
-      (Ref order_tax) :: [orders] -> float
-    ) :: [orders] -> float
-  ) :: [orders] -> float
+      (Ref order_discounted) :: [orders] -> decimal
+      (Ref order_tax) :: [orders] -> decimal
+    ) :: [orders] -> decimal
+  ) :: [orders] -> decimal
   (VALUE discount_per_order
     (Call :core.sub
-      (Ref order_with_shipping) :: [orders] -> integer
-      (Ref order_discounted) :: [orders] -> float
-    ) :: [orders] -> float
-  ) :: [orders] -> float
+      (Ref order_with_shipping) :: [orders] -> decimal
+      (Ref order_discounted) :: [orders] -> decimal
+    ) :: [orders] -> decimal
+  ) :: [orders] -> decimal
   (VALUE total_orders
     (Reduce :agg.count over [orders]
       (InputRef orders.order.id key_chain=[]) :: [orders] -> string
@@ -40,17 +40,17 @@
   ) :: [] -> integer
   (VALUE total_revenue
     (Reduce :agg.sum over [orders]
-      (Ref order_totals) :: [orders] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+      (Ref order_totals) :: [orders] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE total_tax_collected
     (Reduce :agg.sum over [orders]
-      (Ref order_tax) :: [orders] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+      (Ref order_tax) :: [orders] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
   (VALUE total_discount_given
     (Reduce :agg.sum over [orders]
-      (Ref discount_per_order) :: [orders] -> float
-    ) :: [] -> float
-  ) :: [] -> float
+      (Ref discount_per_order) :: [orders] -> decimal
+    ) :: [] -> decimal
+  ) :: [] -> decimal
 )

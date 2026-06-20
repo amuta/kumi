@@ -14,14 +14,13 @@ module Kumi::Compiled::KUMI_640a831e4be1bf73dfb2e5c4cf0f2a484e1595c3f84aa7c58e6b
 
   def self._total_tax(input)
     t13 = input["items"] || input[:items]
-    acc18 = 0.0
+    acc18 = 0
     t13.each_with_index do |items_el14, items_i15|
       t16 = items_el14["amount"] || items_el14[:amount]
       t17 = 0.15
       t12 = t16 * t17
       acc18 += t12
     end
-    t6 = acc18
-    return t6
+    return acc18
   end
 end

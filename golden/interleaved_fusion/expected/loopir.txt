@@ -8,8 +8,7 @@ function total_payroll:
       %v13 = load_field (:employees_el11) [field=:salary]
       acc_step (:acc14, :v13) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:employees]
-    %v6 = acc_load (:acc14) [] -> integer
-    array_push (:arr15, :v6)
+    array_push (:arr15, :acc14)
   loop_end [axis=:departments]
 function payroll_tax:
   %v17 = load_input [key=:departments]
@@ -21,9 +20,8 @@ function payroll_tax:
       %v23 = load_field (:employees_el21) [field=:salary]
       acc_step (:acc24, :v23) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:employees]
-    %v16 = acc_load (:acc24) [] -> integer
     %v25 = constant [value=0.15] [] -> float
-    %v10 = kernel_call (:v16, :v25) [fn=:core.mul:numeric] [departments] -> float
+    %v10 = kernel_call (:acc24, :v25) [fn=:core.mul:numeric] [departments] -> float
     array_push (:arr26, :v10)
   loop_end [axis=:departments]
 function manager_count:
@@ -41,8 +39,7 @@ function manager_count:
       %v23 = select (:v18, :v33, :v34) [departments, employees] -> integer
       acc_step (:acc35, :v23) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:employees]
-    %v24 = acc_load (:acc35) [] -> integer
-    array_push (:arr36, :v24)
+    array_push (:arr36, :acc35)
   loop_end [axis=:departments]
 function department_summary:
   %v61 = load_input [key=:departments]
@@ -54,9 +51,8 @@ function department_summary:
       %v67 = load_field (:employees_el65) [field=:salary]
       acc_step (:acc68, :v67) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:employees]
-    %v37 = acc_load (:acc68) [] -> integer
     %v69 = constant [value=0.15] [] -> float
-    %v46 = kernel_call (:v37, :v69) [fn=:core.mul:numeric] [departments] -> float
+    %v46 = kernel_call (:acc68, :v69) [fn=:core.mul:numeric] [departments] -> float
     %acc76 = acc_init [fn=:agg.sum, init=0, nil_init=false] [] -> integer
     %employees_el70 = loop_start (:v64) [axis=:employees, index=:employees_i71]
       %v72 = load_field (:employees_el70) [field=:role]
@@ -67,8 +63,7 @@ function department_summary:
       %v59 = select (:v54, :v74, :v75) [departments, employees] -> integer
       acc_step (:acc76, :v59) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:employees]
-    %v60 = acc_load (:acc76) [] -> integer
     %v77 = load_field (:departments_el62) [field=:name]
-    %v31 = make_object (:v77, :v37, :v46, :v60) [keys=[:name, :payroll, :tax, :managers]] [departments] -> hash
+    %v31 = make_object (:v77, :acc68, :v46, :acc76) [keys=[:name, :payroll, :tax, :managers]] [departments] -> hash
     array_push (:arr78, :v31)
   loop_end [axis=:departments]

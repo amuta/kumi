@@ -29,8 +29,7 @@ function shift_right_clamp:
     %v13 = load_input [key=:cells]
     %v14 = array_len (:v13)
     %v15 = shift_read (:v13, :cells_i12, :v14) [offset=1, policy=:clamp] [] -> integer
-    %v7 = ref (:v15) [cells] -> integer
-    array_push (:arr16, :v7)
+    array_push (:arr16, :v15)
   loop_end [axis=:cells]
 function shift_left_clamp:
   %v13 = load_input [key=:cells]
@@ -39,8 +38,7 @@ function shift_left_clamp:
     %v16 = load_input [key=:cells]
     %v17 = array_len (:v16)
     %v18 = shift_read (:v16, :cells_i15, :v17) [offset=-1, policy=:clamp] [] -> integer
-    %v10 = ref (:v18) [cells] -> integer
-    array_push (:arr19, :v10)
+    array_push (:arr19, :v18)
   loop_end [axis=:cells]
 function shift_right_wrap:
   %v16 = load_input [key=:cells]
@@ -49,8 +47,7 @@ function shift_right_wrap:
     %v19 = load_input [key=:cells]
     %v20 = array_len (:v19)
     %v21 = shift_read (:v19, :cells_i18, :v20) [offset=1, policy=:wrap] [] -> integer
-    %v13 = ref (:v21) [cells] -> integer
-    array_push (:arr22, :v13)
+    array_push (:arr22, :v21)
   loop_end [axis=:cells]
 function shift_left_wrap:
   %v19 = load_input [key=:cells]
@@ -59,6 +56,5 @@ function shift_left_wrap:
     %v22 = load_input [key=:cells]
     %v23 = array_len (:v22)
     %v24 = shift_read (:v22, :cells_i21, :v23) [offset=-1, policy=:wrap] [] -> integer
-    %v16 = ref (:v24) [cells] -> integer
-    array_push (:arr25, :v16)
+    array_push (:arr25, :v24)
   loop_end [axis=:cells]

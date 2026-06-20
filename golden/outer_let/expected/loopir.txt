@@ -8,48 +8,42 @@ function px:
   %arr13 = array_init
   %pixels_el9 = loop_start (:v8) [axis=:pixels, index=:pixels_i10]
     %v11 = load_field (:pixels_el9) [field=:px]
-    %v12 = ref (:v11) [pixels] -> float
-    array_push (:arr13, :v12)
+    array_push (:arr13, :v11)
   loop_end [axis=:pixels]
 function lbx:
   %v12 = load_input [key=:lights]
   %arr17 = array_init
   %lights__o_el13 = loop_start (:v12) [axis=:lights__o, index=:lights__o_i14]
     %v15 = load_field (:lights__o_el13) [field=:bx]
-    %v16 = ref (:v15) [lights__o] -> float
-    array_push (:arr17, :v16)
+    array_push (:arr17, :v15)
   loop_end [axis=:lights__o]
 function lr:
   %v16 = load_input [key=:lights]
   %arr21 = array_init
   %lights__o_el17 = loop_start (:v16) [axis=:lights__o, index=:lights__o_i18]
     %v19 = load_field (:lights__o_el17) [field=:r]
-    %v20 = ref (:v19) [lights__o] -> float
-    array_push (:arr21, :v20)
+    array_push (:arr21, :v19)
   loop_end [axis=:lights__o]
 function lph:
   %v20 = load_input [key=:lights]
   %arr25 = array_init
   %lights__o_el21 = loop_start (:v20) [axis=:lights__o, index=:lights__o_i22]
     %v23 = load_field (:lights__o_el21) [field=:ph]
-    %v24 = ref (:v23) [lights__o] -> float
-    array_push (:arr25, :v24)
+    array_push (:arr25, :v23)
   loop_end [axis=:lights__o]
 function lglow:
   %v24 = load_input [key=:lights]
   %arr29 = array_init
   %lights__o_el25 = loop_start (:v24) [axis=:lights__o, index=:lights__o_i26]
     %v27 = load_field (:lights__o_el25) [field=:glow]
-    %v28 = ref (:v27) [lights__o] -> float
-    array_push (:arr29, :v28)
+    array_push (:arr29, :v27)
   loop_end [axis=:lights__o]
 function lwr:
   %v28 = load_input [key=:lights]
   %arr33 = array_init
   %lights__o_el29 = loop_start (:v28) [axis=:lights__o, index=:lights__o_i30]
     %v31 = load_field (:lights__o_el29) [field=:wr]
-    %v32 = ref (:v31) [lights__o] -> float
-    array_push (:arr33, :v32)
+    array_push (:arr33, :v31)
   loop_end [axis=:lights__o]
 function lx:
   %v53 = load_input [key=:step]
@@ -168,6 +162,5 @@ function brightness:
       %v54 = kernel_call (:v119, :v143) [fn=:core.mul:numeric] [pixels, lights__o] -> float
       acc_step (:acc144, :v54) [fn=:agg.sum, nil_init=false]
     loop_end [axis=:lights__o]
-    %v55 = acc_load (:acc144) [] -> float
-    array_push (:arr145, :v55)
+    array_push (:arr145, :acc144)
   loop_end [axis=:pixels]

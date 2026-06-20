@@ -115,8 +115,7 @@ module Kumi::Compiled::KUMI_01ffeea7162f739c2c3b7872061de416e72fb803f9d2b2bacbdb
           t59 = t88 + t57
           acc89 += t59
         end
-        t32 = acc89
-        arr91 << t32
+        arr91 << acc89
       end
       arr90 << arr91
     end
@@ -158,11 +157,9 @@ module Kumi::Compiled::KUMI_01ffeea7162f739c2c3b7872061de416e72fb803f9d2b2bacbdb
           t61 = t91 + t59
           acc92 += t61
         end
-        t62 = acc92
-        acc93 += t62
+        acc93 += acc92
       end
-      t34 = acc93
-      arr94 << t34
+      arr94 << acc93
     end
     return arr94
   end

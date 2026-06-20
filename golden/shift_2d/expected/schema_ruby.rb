@@ -27,8 +27,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
       rows_el10.each_with_index do |col_el12, col_i13|
         t14 = rows_el10.length
         t15 = rows_el10[(col_i13 - (1)).clamp(0, t14 - 1)]
-        t5 = t15
-        arr17 << t5
+        arr17 << t15
       end
       arr16 << arr17
     end
@@ -43,8 +42,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
       rows_el14.each_with_index do |col_el16, col_i17|
         t18 = rows_el14.length
         t19 = rows_el14[((col_i17 - (1)) % t18 + t18) % t18]
-        t9 = t19
-        arr21 << t9
+        arr21 << t19
       end
       arr20 << arr21
     end
@@ -78,8 +76,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
       rows_el22.each_with_index do |col_el24, col_i25|
         t26 = rows_el22.length
         t27 = rows_el22[(col_i25 - (-1)).clamp(0, t26 - 1)]
-        t17 = t27
-        arr29 << t17
+        arr29 << t27
       end
       arr28 << arr29
     end
@@ -94,8 +91,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
       rows_el26.each_with_index do |col_el28, col_i29|
         t30 = rows_el26.length
         t31 = rows_el26[((col_i29 - (-1)) % t30 + t30) % t30]
-        t21 = t31
-        arr33 << t21
+        arr33 << t31
       end
       arr32 << arr33
     end
@@ -133,8 +129,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
         t39 = t38.length
         t40 = t38[(rows_i35 - (1)).clamp(0, t39 - 1)]
         t41 = t40[col_i37]
-        t29 = t41
-        arr43 << t29
+        arr43 << t41
       end
       arr42 << arr43
     end
@@ -151,8 +146,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
         t43 = t42.length
         t44 = t42[((rows_i39 - (1)) % t43 + t43) % t43]
         t45 = t44[col_i41]
-        t33 = t45
-        arr47 << t33
+        arr47 << t45
       end
       arr46 << arr47
     end
@@ -190,8 +184,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
         t51 = t50.length
         t52 = t50[(rows_i47 - (-1)).clamp(0, t51 - 1)]
         t53 = t52[col_i49]
-        t41 = t53
-        arr55 << t41
+        arr55 << t53
       end
       arr54 << arr55
     end
@@ -208,8 +201,7 @@ module Kumi::Compiled::KUMI_64c40eab72771870a32e20633871e9701c8aead1e32715eb083d
         t55 = t54.length
         t56 = t54[((rows_i51 - (-1)) % t55 + t55) % t55]
         t57 = t56[col_i53]
-        t45 = t57
-        arr59 << t45
+        arr59 << t57
       end
       arr58 << arr59
     end

@@ -10,8 +10,7 @@ module Kumi::Compiled::KUMI_1a9d91bff3a08478f7b8196e72c691e74dd430e058a8b4f11714
         t13 = employees_el11["salary"] || employees_el11[:salary]
         acc14 += t13
       end
-      t6 = acc14
-      arr15 << t6
+      arr15 << acc14
     end
     return arr15
   end
@@ -31,8 +30,7 @@ module Kumi::Compiled::KUMI_1a9d91bff3a08478f7b8196e72c691e74dd430e058a8b4f11714
         t19 = t14 ? t29 : t30
         acc31 += t19
       end
-      t20 = acc31
-      arr32 << t20
+      arr32 << acc31
     end
     return arr32
   end
@@ -52,8 +50,7 @@ module Kumi::Compiled::KUMI_1a9d91bff3a08478f7b8196e72c691e74dd430e058a8b4f11714
         t33 = t28 ? t43 : t44
         acc45 += t33
       end
-      t34 = acc45
-      arr46 << t34
+      arr46 << acc45
     end
     return arr46
   end
@@ -69,8 +66,7 @@ module Kumi::Compiled::KUMI_1a9d91bff3a08478f7b8196e72c691e74dd430e058a8b4f11714
         acc48 ||= t47
         acc48 = t47 if !t47.nil? && t47 > acc48
       end
-      t40 = acc48
-      arr49 << t40
+      arr49 << acc48
     end
     return arr49
   end
@@ -101,12 +97,8 @@ module Kumi::Compiled::KUMI_1a9d91bff3a08478f7b8196e72c691e74dd430e058a8b4f11714
         acc104 ||= t95
         acc104 = t95 if !t95.nil? && t95 > acc104
       end
-      t54 = acc96
-      t68 = acc101
-      t82 = acc103
-      t88 = acc104
       t105 = departments_el90["name"] || departments_el90[:name]
-      t48 = { "name" => t105, "total_payroll" => t54, "manager_count" => t68, "senior_count" => t82, "top_salary" => t88 }
+      t48 = { "name" => t105, "total_payroll" => acc96, "manager_count" => acc101, "senior_count" => acc103, "top_salary" => acc104 }
       arr106 << t48
     end
     return arr106

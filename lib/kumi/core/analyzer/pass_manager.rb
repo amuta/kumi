@@ -23,6 +23,11 @@ module Kumi
       end
 
       class PassManager
+        # Per-pass identity threaded through guarded execution.
+        PassRun = Struct.new(:pass_class, :phase_index, :instrumentation, keyword_init: true) do
+          def pass_name = instrumentation.pass_name
+        end
+
         attr_reader :passes, :errors
 
         # Default per-pass wall-clock budget in milliseconds. 0 disables the
@@ -45,18 +50,9 @@ module Kumi
             instrumentation = Instrumentation.new(pass_name, options)
             instrumentation.before(state)
 
-            begin
-              enforce_reads!(pass_class, pass_name, state)
-              contract_before = state.to_h
-              state = execute_pass(pass_class, pass_name, syntax_tree, state, errors, options)
-              enforce_writes!(pass_class, pass_name, contract_before, state)
-            rescue StandardError => e
-              error_obj = capture_exception(pass_name, e, errors)
-              instrumentation.after_failure(e)
-              return failure_result(state, [error_obj], pass_class, phase_index)
-            end
-
-            raise "Pass #{pass_name} returned #{state.class}, expected AnalysisState" unless state.is_a?(AnalysisState)
+            run = PassRun.new(pass_class: pass_class, phase_index: phase_index, instrumentation: instrumentation)
+            state, budget_failure = run_one_pass(run, syntax_tree, state, errors, options)
+            return budget_failure if budget_failure
 
             instrumentation.after_success(state)
             Checkpoint.leaving(pass_name:, idx: phase_index, state:) if options[:checkpoint_enabled]
@@ -70,15 +66,52 @@ module Kumi
 
         private
 
+        def run_one_pass(run, syntax_tree, state, errors, options)
+          pass_class = run.pass_class
+          pass_name = run.pass_name
+          enforce_reads!(pass_class, pass_name, state)
+          contract_before = state.to_h
+          state = execute_pass(pass_class, pass_name, syntax_tree, state, errors, options)
+          enforce_writes!(pass_class, pass_name, contract_before, state)
+
+          unless state.is_a?(AnalysisState)
+            raise Kumi::Core::Errors::CompilerBug, "pass #{pass_name} returned #{state.class}, expected AnalysisState"
+          end
+
+          [state, nil]
+        rescue PassBudgetError => e
+          # A runaway pass is a recoverable resource limit, not a fault:
+          # surface it as a normal located pass failure.
+          error_obj = capture_exception(pass_name, e, errors)
+          run.instrumentation.after_failure(e)
+          [state, failure_result(state, [error_obj], pass_class, run.phase_index)]
+        rescue Kumi::Core::Errors::Error => e
+          # User-reachable errors are accumulated, not raised; an internal error
+          # class reaching here (CompilerBug, ConfigurationError,
+          # UnsupportedFeature) is a genuine fault — let it crash loudly.
+          run.instrumentation.after_failure(e)
+          raise
+        rescue StandardError => e
+          # An unexpected exception in pass code is a compiler bug, not a user
+          # error. Surface it as one instead of disguising it.
+          run.instrumentation.after_failure(e)
+          raise Kumi::Core::Errors::CompilerBug, "#{pass_name}: #{e.class}: #{e.message}"
+        end
+
         def execute_pass(pass_class, pass_name, syntax_tree, state, errors, options)
           pass_instance = pass_class.new(syntax_tree, state)
 
           with_budget(pass_name, syntax_tree, options) do
-            if options[:profiling_enabled]
-              Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
-            else
-              pass_instance.run(errors)
-            end
+            # A pass that calls halt_pass! has already recorded a located error
+            # and stops here; we return the unchanged state and let the
+            # non-empty `errors` array drive the failure (no exception wrapping).
+            catch(Passes::PassBase::HALT) do
+              if options[:profiling_enabled]
+                Dev::Profiler.phase("analyzer.pass", pass: pass_name) { pass_instance.run(errors) }
+              else
+                pass_instance.run(errors)
+              end
+            end || state
           end
         end
 
@@ -130,7 +163,8 @@ module Kumi
           missing = pass_class.declared_reads.reject { |key| state.key?(key) }
           return if missing.empty?
 
-          raise "#{pass_name} declares reads #{missing.inspect} but they are missing from analysis state"
+          raise Kumi::Core::Errors::CompilerBug,
+                "#{pass_name} declares reads #{missing.inspect} but they are missing from analysis state"
         end
 
         def enforce_writes!(pass_class, pass_name, before, state)
@@ -142,17 +176,12 @@ module Kumi
           undeclared = changed - pass_class.declared_writes
           return if undeclared.empty?
 
-          raise "#{pass_name} wrote undeclared state keys #{undeclared.inspect} (declared writes: #{pass_class.declared_writes.inspect})"
+          raise Kumi::Core::Errors::CompilerBug,
+                "#{pass_name} wrote undeclared state keys #{undeclared.inspect} (declared writes: #{pass_class.declared_writes.inspect})"
         end
 
-        def capture_exception(pass_name, exception, errors)
-          location_hint = exception.backtrace&.first
-          message = if location_hint
-                      "Error in Analysis Pass(#{pass_name}) at #{location_hint}: #{exception.message}"
-                    else
-                      "Error in Analysis Pass(#{pass_name}): #{exception.message}"
-                    end
-          error_obj = ErrorReporter.create_error(message, location: nil, type: :semantic, backtrace: exception.backtrace)
+        def capture_exception(_pass_name, exception, errors)
+          error_obj = ErrorReporter.create_error(exception.message, location: nil, type: :semantic, backtrace: exception.backtrace)
           errors << error_obj
           error_obj
         end
@@ -171,6 +200,8 @@ module Kumi
         end
 
         class Instrumentation
+          attr_reader :pass_name
+
           def initialize(pass_name, options)
             @pass_name = pass_name
             @debug = options[:debug_enabled]
@@ -211,7 +242,7 @@ module Kumi
               next if v.nil? || v.is_a?(Numeric) || v.is_a?(Symbol) || v.is_a?(TrueClass) || v.is_a?(FalseClass) ||
                       (v.is_a?(String) && v.frozen?)
 
-              raise "State[#{k}] not frozen: #{v.class}" unless v.frozen?
+              raise Kumi::Core::Errors::CompilerBug, "State[#{k}] not frozen: #{v.class}" unless v.frozen?
             end
           end
         end
